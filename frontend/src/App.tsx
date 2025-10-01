@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { Header, Hero, Features, Section, Footer } from './components';
+import { Header, Hero, Features, Section, TelegramQR, Footer } from './components';
 import { SECTIONS } from './config/constants';
 import './index.css';
 
@@ -40,6 +40,9 @@ const App: React.FC = () => {
         {SECTIONS.map((section) => (
           <Section key={section.id} section={section} />
         ))}
+
+        {/* QR-код и кнопка для перехода в Telegram */}
+        <TelegramQR />
       </main>
 
       {/* Подвал */}
