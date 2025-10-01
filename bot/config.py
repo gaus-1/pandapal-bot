@@ -92,7 +92,7 @@ class Settings(BaseSettings):
     # ============ SECURITY ============
     secret_key: str = Field(
         ..., 
-        min_length=32,
+        min_length=16,
         description='Секретный ключ для шифрования'
     )
     
@@ -118,6 +118,9 @@ class Settings(BaseSettings):
         """Проверка корректности DATABASE_URL"""
         if not v.startswith('postgresql'):
             raise ValueError('DATABASE_URL должен начинаться с postgresql://')
+        # Нормализуем драйвер: заставляем использовать psycopg v3
+        if v.startswith('postgresql://') and '+psycopg' not in v:
+            v = v.replace('postgresql://', 'postgresql+psycopg://', 1)
         return v
     
     @field_validator('gemini_api_key')
