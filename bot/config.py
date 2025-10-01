@@ -7,7 +7,7 @@
 import os
 from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, AliasChoices
 
 
 class Settings(BaseSettings):
@@ -25,87 +25,101 @@ class Settings(BaseSettings):
     # ============ DATABASE ============
     database_url: str = Field(
         ..., 
-        description='PostgreSQL connection string'
+        description='PostgreSQL connection string',
+        validation_alias=AliasChoices('DATABASE_URL', 'database_url')
     )
     
     # ============ TELEGRAM ============
     telegram_bot_token: str = Field(
         ..., 
-        description='Токен Telegram бота от @BotFather'
+        description='Токен Telegram бота от @BotFather',
+        validation_alias=AliasChoices('TELEGRAM_BOT_TOKEN', 'telegram_bot_token')
     )
     
     # ============ AI / GEMINI ============
     gemini_api_key: str = Field(
         ..., 
-        description='Google Gemini API ключ'
+        description='Google Gemini API ключ',
+        validation_alias=AliasChoices('GEMINI_API_KEY', 'gemini_api_key')
     )
     
     gemini_model: str = Field(
         default='gemini-2.0-flash-exp',
-        description='Модель Gemini для использования'
+        description='Модель Gemini для использования',
+        validation_alias=AliasChoices('GEMINI_MODEL', 'gemini_model')
     )
     
     ai_temperature: float = Field(
         default=0.7,
         ge=0.0,
         le=1.0,
-        description='Температура генерации (0.0 = детерминированно, 1.0 = креативно)'
+        description='Температура генерации (0.0 = детерминированно, 1.0 = креативно)',
+        validation_alias=AliasChoices('AI_TEMPERATURE', 'ai_temperature')
     )
     
     ai_max_tokens: int = Field(
         default=2048,
         ge=100,
         le=8192,
-        description='Максимум токенов в ответе AI'
+        description='Максимум токенов в ответе AI',
+        validation_alias=AliasChoices('AI_MAX_TOKENS', 'ai_max_tokens')
     )
     
     # ============ CONTENT MODERATION ============
     forbidden_topics: str = Field(
         default='политика,насилие,оружие,наркотики,экстремизм',
-        description='Запрещённые темы (через запятую в .env)'
+        description='Запрещённые темы (через запятую в .env)',
+        validation_alias=AliasChoices('FORBIDDEN_TOPICS', 'forbidden_topics')
     )
     
     content_filter_level: int = Field(
         default=5,
         ge=1,
         le=5,
-        description='Уровень строгости фильтра (1=мягкий, 5=максимальный)'
+        description='Уровень строгости фильтра (1=мягкий, 5=максимальный)',
+        validation_alias=AliasChoices('CONTENT_FILTER_LEVEL', 'content_filter_level')
     )
     
     # ============ RATE LIMITING ============
     ai_rate_limit_per_minute: int = Field(
         default=10,
-        description='Максимум AI запросов в минуту на пользователя'
+        description='Максимум AI запросов в минуту на пользователя',
+        validation_alias=AliasChoices('AI_RATE_LIMIT_PER_MINUTE', 'ai_rate_limit_per_minute')
     )
     
     daily_message_limit: int = Field(
         default=100,
-        description='Максимум сообщений в день на ребёнка'
+        description='Максимум сообщений в день на ребёнка',
+        validation_alias=AliasChoices('DAILY_MESSAGE_LIMIT', 'daily_message_limit')
     )
     
     # ============ MEMORY / HISTORY ============
     chat_history_limit: int = Field(
         default=50,
-        description='Количество последних сообщений для контекста AI'
+        description='Количество последних сообщений для контекста AI',
+        validation_alias=AliasChoices('CHAT_HISTORY_LIMIT', 'chat_history_limit')
     )
     
     # ============ SECURITY ============
     secret_key: str = Field(
         ..., 
         min_length=16,
-        description='Секретный ключ для шифрования'
+        description='Секретный ключ для шифрования',
+        validation_alias=AliasChoices('SECRET_KEY', 'secret_key')
     )
     
     # ============ FRONTEND ============
     frontend_url: str = Field(
         default='https://pandapal.ru',
-        description='URL фронтенда'
+        description='URL фронтенда',
+        validation_alias=AliasChoices('FRONTEND_URL', 'frontend_url')
     )
     
     # ============ LOGGING ============
     log_level: str = Field(
         default='INFO',
-        description='Уровень логирования (DEBUG, INFO, WARNING, ERROR)'
+        description='Уровень логирования (DEBUG, INFO, WARNING, ERROR)',
+        validation_alias=AliasChoices('LOG_LEVEL', 'log_level')
     )
     
     def get_forbidden_topics_list(self) -> List[str]:
