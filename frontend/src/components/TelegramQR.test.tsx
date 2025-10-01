@@ -12,7 +12,7 @@ describe('TelegramQR Component', () => {
 
   it('должен отображать QR-код', () => {
     render(<TelegramQR />);
-    const qrImage = screen.getByAlt(/QR-код для Telegram бота PandaPal/i);
+    const qrImage = screen.getByAltText(/QR-код для Telegram бота PandaPal/i);
     expect(qrImage).toBeInTheDocument();
     expect(qrImage).toHaveAttribute('src');
   });
@@ -49,7 +49,7 @@ describe('TelegramQR Component', () => {
 
   it('QR-код должен быть lazy-loaded', () => {
     render(<TelegramQR />);
-    const qrImage = screen.getByAlt(/QR-код для Telegram бота PandaPal/i);
+    const qrImage = screen.getByAltText(/QR-код для Telegram бота PandaPal/i);
     expect(qrImage).toHaveAttribute('loading', 'lazy');
   });
 });
