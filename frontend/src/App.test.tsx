@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import App from './App';
 import { SITE_CONFIG, FEATURES, SECTIONS } from './config/constants';
 
@@ -17,7 +17,7 @@ describe('App Integration Tests', () => {
     render(<App />);
     
     // Проверяем Header
-    expect(screen.getByRole('banner')).toBeInTheDocument(); // @ts-ignore
+    expect(screen.getByRole('banner')).toBeInTheDocument(); // @ts-ignore   
     
     // Проверяем Main content
     expect(screen.getByRole('main')).toBeInTheDocument(); // @ts-ignore
