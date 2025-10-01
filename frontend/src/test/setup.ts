@@ -6,10 +6,9 @@
 
 import { expect, afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
-import * as matchers from '@testing-library/jest-dom/matchers';
+import '@testing-library/jest-dom/vitest';
 
-// Добавляем matchers от jest-dom (toBeInTheDocument, toHaveClass, etc)
-expect.extend(matchers);
+// Matchers автоматически добавляются через импорт выше
 
 // Очистка после каждого теста (unmount компонентов)
 afterEach(() => {
