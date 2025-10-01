@@ -1,0 +1,162 @@
+"""
+Обработчик общения с AI
+Главная функция бота — диалог с PandaPalAI
+@module bot.handlers.ai_chat
+"""
+
+from aiogram import Router, F
+from aiogram.types import Message
+from aiogram.fsm.context import FSMContext
+
+from bot.database import get_db
+from bot.services import (
+    GeminiAIService,
+    ChatHistoryService,
+    UserService,
+    ContentModerationService
+)
+from loguru import logger
+
+
+# Создаём роутер для AI чата
+router = Router(name='ai_chat')
+
+
+@router.message(F.text & (F.text == "💬 Общение с AI"))
+async def start_ai_chat(message: Message, state: FSMContext):
+    """
+    Активация режима общения с AI
+    
+    Args:
+        message: Сообщение от пользователя
+        state: FSM состояние
+    """
+    await message.answer(
+        text="🐼 <b>Режим общения с AI активирован!</b>\n\n"
+             "Теперь просто пиши мне любые вопросы — я отвечу!\n\n"
+             "Я помню наши последние 50 сообщений, так что можешь "
+             "задавать уточняющие вопросы 💡",
+        parse_mode='HTML'
+    )
+
+
+@router.message(F.text)
+async def handle_ai_message(message: Message, state: FSMContext):
+    """
+    Обработка текстового сообщения для AI
+    
+    Алгоритм:
+    1. Получить пользователя из БД
+    2. Загрузить последние 50 сообщений (контекст для AI)
+    3. Проверить контент на безопасность (модерация)
+    4. Отправить в Gemini AI с контекстом
+    5. Получить ответ
+    6. Промодерировать ответ AI
+    7. Сохранить оба сообщения в историю
+    8. Отправить ответ пользователю
+    
+    Args:
+        message: Текстовое сообщение от пользователя
+        state: FSM состояние
+    """
+    telegram_id = message.from_user.id
+    user_message = message.text
+    
+    # Показываем индикатор "печатает..."
+    await message.bot.send_chat_action(message.chat.id, 'typing')
+    
+    try:
+        # Работа с базой данных
+        with get_db() as db:
+            # Инициализируем сервисы
+            user_service = UserService(db)
+            history_service = ChatHistoryService(db)
+            
+            # Получаем пользователя
+            user = user_service.get_or_create_user(
+                telegram_id=telegram_id,
+                username=message.from_user.username,
+                first_name=message.from_user.first_name,
+                last_name=message.from_user.last_name
+            )
+            
+            # Загружаем последние 50 сообщений для контекста
+            history = history_service.get_formatted_history_for_ai(telegram_id)
+            
+            logger.info(
+                f"💬 Сообщение от {telegram_id} ({user.first_name}): "
+                f"{user_message[:50]}... | История: {len(history)} сообщений"
+            )
+            
+            # Инициализируем AI сервис
+            ai_service = GeminiAIService()
+            
+            # Генерируем ответ с учётом контекста, возраста и класса
+            ai_response = await ai_service.generate_response(
+                user_message=user_message,
+                chat_history=history,
+                user_age=user.age,
+                user_grade=user.grade
+            )
+            
+            # Сохраняем сообщение пользователя в историю
+            history_service.add_message(
+                telegram_id=telegram_id,
+                message_text=user_message,
+                message_type='user'
+            )
+            
+            # Сохраняем ответ AI в историю
+            history_service.add_message(
+                telegram_id=telegram_id,
+                message_text=ai_response,
+                message_type='ai'
+            )
+            
+            logger.info(f"🤖 AI ответил пользователю {telegram_id}")
+        
+        # Отправляем ответ пользователю
+        await message.answer(
+            text=ai_response,
+            parse_mode='Markdown'  # Gemini может использовать markdown форматирование
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ Ошибка обработки сообщения: {e}")
+        
+        # Отправляем безопасное сообщение об ошибке
+        await message.answer(
+            text="😔 Ой, что-то пошло не так...\n"
+                 "Попробуй переформулировать вопрос или напиши /start для перезапуска."
+        )
+
+
+@router.message(F.photo)
+async def handle_photo(message: Message):
+    """
+    Обработка фотографий (задачи с фото, графики и т.д.)
+    TODO: Реализовать распознавание через Gemini Vision
+    
+    Args:
+        message: Сообщение с фото
+    """
+    await message.answer(
+        text="📷 Обработка изображений скоро появится!\n"
+             "Пока опиши задачу текстом — я помогу! 🐼"
+    )
+
+
+@router.message(F.document)
+async def handle_document(message: Message):
+    """
+    Обработка документов (PDF, Word и т.д.)
+    TODO: Реализовать парсинг документов
+    
+    Args:
+        message: Сообщение с документом
+    """
+    await message.answer(
+        text="📄 Обработка файлов скоро появится!\n"
+             "Пока скопируй текст задачи сюда — я помогу! 📝"
+    )
+

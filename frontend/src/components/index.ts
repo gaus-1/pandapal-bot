@@ -11,4 +11,6 @@ export { Features } from './Features';
 export { FeatureCard } from './FeatureCard';
 export { Section } from './Section';
 export { Footer } from './Footer';
+export { TelegramQR } from './TelegramQR';
+export { TelegramLogin } from './TelegramLogin';
 
