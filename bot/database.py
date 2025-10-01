@@ -4,7 +4,7 @@
 @module bot.database
 """
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import NullPool
 from contextlib import contextmanager
@@ -101,7 +101,7 @@ class DatabaseService:
         """
         try:
             with engine.connect() as conn:
-                conn.execute("SELECT 1")
+                conn.execute(text("SELECT 1"))
             logger.info("✅ Подключение к БД активно")
             return True
         except Exception as e:
