@@ -1,0 +1,101 @@
+# Security Policy для PandaPal
+
+## Контакты для сообщения об уязвимостях
+
+Email: v81158847@gmail.com
+Telegram: @PandaPalBot
+
+## Поддерживаемые версии
+
+Мы поддерживаем только последнюю версию приложения.
+
+## Процесс сообщения об уязвимости
+
+1. НЕ публикуйте уязвимость публично
+2. Отправьте детали на email выше
+3. Мы ответим в течение 48 часов
+4. После исправления выпустим патч
+
+## Награды (Bug Bounty)
+
+Пока не действует (проект на ранней стадии).
+
+## Implemented Security Measures (OWASP Top 10)
+
+### A01:2021 - Broken Access Control
+- [ ] JWT-токены с коротким TTL (backend)
+- [ ] Проверка прав доступа на каждом эндпоинте
+- [ ] Rate limiting (5 req/min per IP)
+
+### A02:2021 - Cryptographic Failures
+- [x] HTTPS принудительно (Render)
+- [x] HSTS заголовок (max-age=1 year)
+- [ ] Шифрование паролей (bcrypt, backend)
+- [ ] Шифрование чувствительных данных в БД
+
+### A03:2021 - Injection
+- [x] Input sanitization (sanitize.ts)
+- [x] Prepared statements (SQLAlchemy ORM)
+- [x] CSP headers (защита от XSS)
+- [x] SQL Injection детектор
+
+### A04:2021 - Insecure Design
+- [x] Rate limiting (RateLimiter class)
+- [x] Валидация всех входных данных
+- [ ] Логирование подозрительной активности
+
+### A05:2021 - Security Misconfiguration
+- [x] Security Headers (X-Frame-Options, CSP, etc)
+- [x] Отключён directory listing
+- [x] Нет дефолтных паролей
+- [x] Регулярные обновления зависимостей
+
+### A06:2021 - Vulnerable Components
+- [x] npm audit при каждой сборке
+- [x] Dependabot alerts включены на GitHub
+- [ ] Автоматическое обновление patch-версий
+
+### A07:2021 - Identification and Authentication Failures
+- [ ] Telegram OAuth (Single Sign-On)
+- [ ] Session timeout (30 минут)
+- [ ] Защита от brute-force (rate limit)
+- [ ] Multi-factor authentication (опционально)
+
+### A08:2021 - Software and Data Integrity Failures
+- [x] Subresource Integrity (SRI) для CDN
+- [x] Git-подписи коммитов (опционально)
+- [x] Проверка зависимостей (npm audit)
+
+### A09:2021 - Security Logging Failures
+- [ ] Логирование всех попыток авторизации
+- [ ] Мониторинг подозрительной активности
+- [ ] Алерты при необычных паттернах
+
+### A10:2021 - Server-Side Request Forgery (SSRF)
+- [x] Валидация URL (isValidURL)
+- [x] Whitelist разрешённых доменов
+- [ ] Network segmentation (backend)
+
+## Checklist перед production
+
+- [x] HTTPS enabled
+- [x] Security Headers configured
+- [x] CSP implemented
+- [x] Input validation
+- [ ] Secrets в environment variables (не в коде!)
+- [ ] Регулярные security audits
+- [ ] Penetration testing
+- [ ] Backup базы данных (автоматический)
+
+## Дополнительная защита для детей
+
+- [ ] Фильтрация контента через AI модерацию
+- [ ] Блокировка запрещённых тем
+- [ ] Ограничение времени использования
+- [ ] Логи всех взаимодействий (для родителей)
+- [ ] Возможность экстренной блокировки
+
+---
+
+Последнее обновление: 2025-10-01
+
