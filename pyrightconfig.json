@@ -8,12 +8,12 @@
         "**/__pycache__",
         "**/.*"
     ],
-    "pythonVersion": "3.11",
+    "pythonVersion": "3.13",
     "pythonPlatform": "Windows",
     "executionEnvironments": [
         {
             "root": ".",
-            "pythonVersion": "3.11",
+            "pythonVersion": "3.13",
             "pythonPlatform": "Windows",
             "extraPaths": [
                 "./venv/Lib/site-packages"
