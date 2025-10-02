@@ -1,49 +1,20 @@
 services:
-  # Backend (Python Bot)
   - type: web
     name: pandapal-bot
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python main.py
+    startCommand: python web_server.py
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: pandapal-db
-          property: connectionString
+        sync: false
       - key: TELEGRAM_BOT_TOKEN
-        value: 8298992033:AAHINatNlTn_Dl1eFNjWc5wjQWBk0NGzmfU
+        sync: false
       - key: GEMINI_API_KEY
-        value: AIzaSyDc24ihn9SZn5EN0hrBzA2lYQMSjxC9z6M
-      - key: GEMINI_MODEL
-        value: gemini-2.0-flash-exp
-      - key: AI_TEMPERATURE
-        value: 0.7
+        sync: false
       - key: SECRET_KEY
-        value: oq$=tx3us5yoxnyd_9+^o9kp^4*xbaq6=ej6a+qco^=32h1g0m
-      - key: FORBIDDEN_TOPICS
-        value: политика,насилие,оружие,наркотики,экстремизм
-      - key: CONTENT_FILTER_LEVEL
-        value: 3
-      - key: FRONTEND_URL
-        value: https://pandapal.ru
-      - key: DEBUG
-        value: False
-
-  # Frontend (React)
-  - type: web
-    name: pandapal-frontend
-    env: static
-    plan: free
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: ./frontend/dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-
-  # Database
-  - type: pserv
-    name: pandapal-db
-    env: postgresql
-    plan: free
+        sync: false
+      - key: PORT
+        value: 8000
+    healthCheckPath: /health
+    autoDeploy: true
