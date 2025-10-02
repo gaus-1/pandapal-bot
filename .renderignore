@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Alembic
+alembic/versions/*.pyc
+
+# Node.js (Frontend)
+frontend/node_modules/
+frontend/.cache/
+frontend/build/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.pnpm-debug.log*
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.vitest/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+test_*.py
+temp/
+tmp/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+CONTRIBUTING.md
+DEPLOYMENT.md
+RENDER_DEPLOY.md
+SECURITY_INCIDENT.md
+TESTING.md
