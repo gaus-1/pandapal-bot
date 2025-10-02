@@ -4,16 +4,16 @@
 @module bot.database
 """
 
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.pool import NullPool
 from contextlib import contextmanager
 from typing import Generator
 
+from loguru import logger
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import NullPool
+
 from bot.config import settings
 from bot.models import Base
-from loguru import logger
-
 
 # Создаём engine для подключения к PostgreSQL
 # NullPool для асинхронной работы (каждый запрос = новое подключение)
@@ -21,22 +21,18 @@ engine = create_engine(
     settings.database_url,
     poolclass=NullPool,
     echo=False,  # True для отладки SQL-запросов
-    future=True
+    future=True,
 )
 
 # Фабрика сессий
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def init_db() -> None:
     """
     Инициализация базы данных
     Создаёт все таблицы, если их нет
-    
+
     ВНИМАНИЕ: В production используйте Alembic миграции!
     """
     try:
@@ -52,13 +48,13 @@ def get_db() -> Generator[Session, None, None]:
     """
     Context manager для получения сессии БД
     Автоматически закрывает сессию после использования
-    
+
     Использование:
     ```python
     with get_db() as db:
         user = db.query(User).filter_by(telegram_id=123).first()
     ```
-    
+
     Yields:
         Session: Сессия SQLAlchemy
     """
@@ -79,23 +75,23 @@ class DatabaseService:
     Сервис для работы с базой данных
     Предоставляет высокоуровневые методы
     """
-    
+
     @staticmethod
     def get_db_session() -> Session:
         """
         Получить новую сессию БД
         НЕ ЗАБУДЬТЕ закрыть сессию после использования!
-        
+
         Returns:
             Session: Новая сессия SQLAlchemy
         """
         return SessionLocal()
-    
+
     @staticmethod
     def check_connection() -> bool:
         """
         Проверка подключения к базе данных
-        
+
         Returns:
             bool: True если подключение работает
         """
@@ -107,5 +103,3 @@ class DatabaseService:
         except Exception as e:
             logger.error(f"❌ Ошибка подключения к БД: {e}")
             return False
-
-

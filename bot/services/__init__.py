@@ -10,9 +10,8 @@ from bot.services.moderation_service import ContentModerationService
 from bot.services.user_service import UserService
 
 __all__ = [
-    'GeminiAIService',
-    'ChatHistoryService',
-    'ContentModerationService',
-    'UserService',
+    "GeminiAIService",
+    "ChatHistoryService",
+    "ContentModerationService",
+    "UserService",
 ]
-
