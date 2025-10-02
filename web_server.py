@@ -26,12 +26,25 @@ async def health_check(request):
 async def start_bot_background():
     """Запускает бота в фоновом режиме"""
     try:
+        # Проверяем переменные окружения
+        required_vars = ['TELEGRAM_BOT_TOKEN', 'GEMINI_API_KEY', 'DATABASE_URL']
+        missing_vars = [var for var in required_vars if not os.environ.get(var)]
+        
+        if missing_vars:
+            logger.error(f"❌ Отсутствуют переменные окружения: {missing_vars}")
+            return
+        
+        logger.info("✅ Все переменные окружения настроены")
+        
         # Импортируем и запускаем бота
         from main import main as bot_main
         logger.info("🤖 Запускаем бота в фоновом режиме...")
         await bot_main()
     except Exception as e:
         logger.error(f"❌ Ошибка при запуске бота: {e}")
+        logger.error(f"❌ Тип ошибки: {type(e).__name__}")
+        import traceback
+        logger.error(f"❌ Подробности: {traceback.format_exc()}")
 
 async def init_app():
     """Инициализирует веб-приложение"""
