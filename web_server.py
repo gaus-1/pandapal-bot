@@ -4,7 +4,6 @@
 """
 
 import asyncio
-import threading
 import os
 import signal
 import sys
@@ -16,9 +15,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Глобальная переменная для бота
-bot_task = None
-
 async def health_check(request):
     """Health check endpoint для Render"""
     return Response(
@@ -27,10 +23,8 @@ async def health_check(request):
         status=200
     )
 
-async def start_bot():
+async def start_bot_background():
     """Запускает бота в фоновом режиме"""
-    global bot_task
-    
     try:
         # Импортируем и запускаем бота
         from main import main as bot_main
@@ -38,16 +32,6 @@ async def start_bot():
         await bot_main()
     except Exception as e:
         logger.error(f"❌ Ошибка при запуске бота: {e}")
-
-async def init_bot():
-    """Инициализирует бота в отдельном потоке"""
-    global bot_task
-    
-    if bot_task is None or bot_task.done():
-        logger.info("🚀 Создаем задачу для бота...")
-        bot_task = asyncio.create_task(start_bot())
-    else:
-        logger.info("✅ Бот уже запущен")
 
 async def init_app():
     """Инициализирует веб-приложение"""
@@ -57,27 +41,13 @@ async def init_app():
     app.router.add_get('/health', health_check)
     app.router.add_get('/', health_check)
     
-    # Инициализируем бота при старте
-    await init_bot()
+    # Запускаем бота в фоновом режиме
+    asyncio.create_task(start_bot_background())
     
     return app
 
-def signal_handler(signum, frame):
-    """Обработчик сигналов для корректного завершения"""
-    logger.info("🛑 Получен сигнал завершения...")
-    
-    if bot_task and not bot_task.done():
-        bot_task.cancel()
-        logger.info("⏹️ Бот остановлен")
-    
-    sys.exit(0)
-
 async def main():
     """Основная функция"""
-    # Регистрируем обработчики сигналов
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
-    
     # Получаем порт из переменной окружения (Render)
     port = int(os.environ.get('PORT', 8000))
     
