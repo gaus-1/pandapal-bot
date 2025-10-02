@@ -66,6 +66,21 @@ async def handle_ai_message(message: Message, state: FSMContext):
     await message.bot.send_chat_action(message.chat.id, 'typing')
     
     try:
+        # Проверка контента на безопасность
+        moderation_service = ContentModerationService()
+        is_safe, reason = moderation_service.is_safe_content(user_message)
+        
+        if not is_safe:
+            logger.warning(f"🚫 Заблокирован контент от {telegram_id}: {reason}")
+            
+            # Логируем заблокированный контент
+            moderation_service.log_blocked_content(telegram_id, user_message, reason)
+            
+            # Отправляем безопасный ответ
+            safe_response = moderation_service.get_safe_response_alternative("blocked_content")
+            await message.answer(text=safe_response)
+            return
+        
         # Работа с базой данных
         with get_db() as db:
             # Инициализируем сервисы
@@ -98,6 +113,9 @@ async def handle_ai_message(message: Message, state: FSMContext):
                 user_age=user.age,
                 user_grade=user.grade
             )
+            
+            # Промодерируем ответ AI на безопасность
+            ai_response = moderation_service.sanitize_ai_response(ai_response)
             
             # Сохраняем сообщение пользователя в историю
             history_service.add_message(
