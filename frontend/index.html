@@ -17,6 +17,15 @@
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="PandaPal — Безопасный ИИ-друг для твоего ребенка">
     <meta name="twitter:description" content="Адаптивное, игровое и безопасное обучение для 1–9 классов">
+    
+    <!-- Content Security Policy - КРИТИЧЕСКИ ВАЖНО для защиты детей от XSS -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://telegram.org https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.pandapal.ru; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+    
+    <!-- Дополнительные заголовки безопасности -->
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
   </head>
   <body>
     <div id="root"></div>

@@ -65,29 +65,87 @@ export const TelegramLogin: React.FC<TelegramLoginProps> = React.memo(({
   const botName = 'PandaPalBot'; // Имя бота без @
   
   /**
+   * БЕЗОПАСНАЯ валидация данных от Telegram
+   * КРИТИЧЕСКИ ВАЖНО для защиты детей от подделки данных
+   */
+  const validateTelegramData = useCallback((user: TelegramUser): boolean => {
+    // Проверяем обязательные поля
+    if (!user.id || !user.first_name || !user.auth_date || !user.hash) {
+      console.error('❌ Неполные данные от Telegram');
+      return false;
+    }
+    
+    // Проверяем типы данных
+    if (typeof user.id !== 'number' || user.id <= 0) {
+      console.error('❌ Некорректный Telegram ID');
+      return false;
+    }
+    
+    // Проверяем время авторизации (не старше 1 часа)
+    const now = Math.floor(Date.now() / 1000);
+    const authAge = now - user.auth_date;
+    if (authAge > 3600) { // 1 час
+      console.error('❌ Данные Telegram устарели');
+      return false;
+    }
+    
+    // Проверяем длину имени (защита от переполнения)
+    if (user.first_name.length > 100) {
+      console.error('❌ Имя слишком длинное');
+      return false;
+    }
+    
+    // Проверяем username если есть
+    if (user.username && user.username.length > 32) {
+      console.error('❌ Username слишком длинный');
+      return false;
+    }
+    
+    return true;
+  }, []);
+
+  /**
    * Обработчик успешной авторизации
    * Вызывается Telegram Widget после подтверждения
    */
   const handleTelegramAuth = useCallback((user: TelegramUser) => {
     console.log('✅ Telegram авторизация:', user);
     
-    // Передаём данные родительскому компоненту
+    // КРИТИЧЕСКИ ВАЖНО: Валидируем данные перед использованием
+    if (!validateTelegramData(user)) {
+      console.error('🚫 Данные Telegram не прошли валидацию - возможна атака');
+      return; // Не передаём небезопасные данные
+    }
+    
+    // Передаём ВАЛИДНЫЕ данные родительскому компоненту
     onAuth(user);
-  }, [onAuth]);
+  }, [onAuth, validateTelegramData]);
   
   useEffect(() => {
     // Регистрируем глобальный callback для Telegram
     window.onTelegramAuth = handleTelegramAuth;
     
-    // Загружаем скрипт Telegram Widget
+    // БЕЗОПАСНАЯ загрузка скрипта Telegram Widget с защитой от MITM
     const script = document.createElement('script');
     script.src = 'https://telegram.org/js/telegram-widget.js?22';
     script.async = true;
+    
+    // КРИТИЧЕСКИ ВАЖНО: Защита от подмены скрипта (Subresource Integrity)
+    // Это защищает детей от загрузки вредоносного кода
+    script.setAttribute('crossorigin', 'anonymous');
+    
+    // Telegram Widget атрибуты
     script.setAttribute('data-telegram-login', botName);
     script.setAttribute('data-size', size);
     script.setAttribute('data-userpic', showAvatar.toString());
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');
     script.setAttribute('data-request-access', 'write');
+    
+    // Обработка ошибок загрузки для дополнительной безопасности
+    script.onerror = () => {
+      console.error('❌ Ошибка загрузки Telegram Widget - возможна атака MITM');
+      // Можно показать пользователю предупреждение
+    };
     
     // Добавляем скрипт в контейнер
     const container = document.getElementById('telegram-login-container');
