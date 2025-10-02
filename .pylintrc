@@ -1,0 +1,15 @@
+[MASTER]
+# Отключаем pylint для pytest импортов
+disable=import-error
+
+[MESSAGES CONTROL]
+# Игнорируем предупреждения об импорте pytest
+disable=import-error
+
+[IMPORTS]
+# Добавляем путь к виртуальному окружению
+init-hook='import sys; sys.path.append("./venv/Lib/site-packages")'
+
+[VARIABLES]
+# Игнорируем неиспользуемые переменные в тестах
+dummy-variables-rgx=_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_
