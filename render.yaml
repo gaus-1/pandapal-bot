@@ -17,7 +17,7 @@ services:
       - key: PORT
         value: 8000
       - key: PYTHON_VERSION
-        value: "3.11.9"
+        value: "3.13.4"
     healthCheckPath: /health
     autoDeploy: true
     region: oregon
