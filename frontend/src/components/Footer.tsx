@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { SITE_CONFIG } from '../config/constants';
+import './Footer.css';
 
 /**
  * Подвал сайта с автообновляемым годом
@@ -25,10 +26,12 @@ export const Footer: React.FC = React.memo(() => {
         <img
           src={SITE_CONFIG.logo.src}
           alt={SITE_CONFIG.logo.alt}
-          className="w-8 h-8 rounded-full"
-          loading="lazy" // Ленивая загрузка (футер внизу страницы)
+          className="w-8 h-8 rounded-full panda-footer-logo cursor-pointer transition-all duration-300 hover:scale-125 hover:rotate-12 hover:shadow-lg"
+          loading="lazy"
           width="32"
           height="32"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          title="Наверх! 🚀"
         />
         <span className="font-display text-lg font-semibold">
           {SITE_CONFIG.name}
