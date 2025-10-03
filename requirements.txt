@@ -11,6 +11,9 @@ alembic==1.13.2
 psycopg[binary]==3.2.10
 psycopg2-binary==2.9.10
 
+# Monitoring
+psutil==6.1.0
+
 # Google Gemini AI
 google-generativeai==0.8.3
 google-ai-generativelanguage==0.6.10

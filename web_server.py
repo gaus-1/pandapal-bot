@@ -10,13 +10,20 @@ import sys
 from aiohttp import web
 from aiohttp.web import Response
 import logging
+from bot.monitoring import (
+    monitoring_service, 
+    health_check, 
+    metrics_endpoint, 
+    user_stats_endpoint,
+    detailed_metrics_endpoint
+)
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-async def health_check(request):
-    """Health check endpoint для Render"""
+async def simple_health_check(request):
+    """Простой health check endpoint для Render"""
     return Response(
         text="PandaPal Bot is running! 🐼",
         content_type="text/plain",
@@ -58,8 +65,14 @@ async def init_app():
     app = web.Application()
     
     # Добавляем маршруты
-    app.router.add_get('/health', health_check)
-    app.router.add_get('/', health_check)
+    app.router.add_get('/health', simple_health_check)
+    app.router.add_get('/', simple_health_check)
+    
+    # Маршруты мониторинга
+    app.router.add_get('/monitoring/health', health_check)
+    app.router.add_get('/monitoring/metrics', metrics_endpoint)
+    app.router.add_get('/monitoring/users', user_stats_endpoint)
+    app.router.add_get('/monitoring/detailed', detailed_metrics_endpoint)
     
     # Запускаем бота в фоновом режиме
     asyncio.create_task(start_bot_background())

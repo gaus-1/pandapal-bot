@@ -16,12 +16,14 @@ from bot.services import (
     GeminiAIService,
     UserService,
 )
+from bot.monitoring import log_user_activity, monitor_performance
 
 # Создаём роутер для AI чата
 router = Router(name="ai_chat")
 
 
 @router.message(F.text & (F.text == "💬 Общение с AI"))
+@monitor_performance
 async def start_ai_chat(message: Message, state: FSMContext):
     """
     Активация режима общения с AI
@@ -40,6 +42,7 @@ async def start_ai_chat(message: Message, state: FSMContext):
 
 
 @router.message(F.text)
+@monitor_performance
 async def handle_ai_message(message: Message, state: FSMContext):
     """
     Обработка текстового сообщения для AI
@@ -74,6 +77,9 @@ async def handle_ai_message(message: Message, state: FSMContext):
 
             # Логируем заблокированный контент
             moderation_service.log_blocked_content(telegram_id, user_message, reason)
+            
+            # Логируем активность пользователя
+            log_user_activity(telegram_id, "blocked_content", False, reason)
 
             # Отправляем безопасный ответ
             safe_response = moderation_service.get_safe_response_alternative(
@@ -129,6 +135,9 @@ async def handle_ai_message(message: Message, state: FSMContext):
             )
 
             logger.info(f"🤖 AI ответил пользователю {telegram_id}")
+            
+            # Логируем успешную активность пользователя
+            log_user_activity(telegram_id, "ai_message_sent", True)
 
         # Отправляем ответ пользователю
         await message.answer(
@@ -138,6 +147,9 @@ async def handle_ai_message(message: Message, state: FSMContext):
 
     except Exception as e:
         logger.error(f"❌ Ошибка обработки сообщения: {e}")
+        
+        # Логируем ошибку пользователя
+        log_user_activity(telegram_id, "ai_message_error", False, str(e))
 
         # Отправляем безопасное сообщение об ошибке
         await message.answer(
