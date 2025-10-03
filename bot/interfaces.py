@@ -70,9 +70,7 @@ class IModerationService(ABC):
         pass
 
     @abstractmethod
-    def log_blocked_content(
-        self, telegram_id: int, content: str, reason: str
-    ) -> None:
+    def log_blocked_content(self, telegram_id: int, content: str, reason: str) -> None:
         """Логирование заблокированного контента"""
         pass
 
@@ -129,9 +127,7 @@ class IChatHistoryService(ABC):
         pass
 
     @abstractmethod
-    def get_recent_messages(
-        self, telegram_id: int, limit: int = 10
-    ) -> List[ChatHistory]:
+    def get_recent_messages(self, telegram_id: int, limit: int = 10) -> List[ChatHistory]:
         """Получить последние сообщения"""
         pass
 
@@ -212,8 +208,6 @@ class ILoggerService(ABC):
         pass
 
     @abstractmethod
-    def log_security_event(
-        self, event_type: str, details: Dict[str, Any]
-    ) -> None:
+    def log_security_event(self, event_type: str, details: Dict[str, Any]) -> None:
         """Логирование событий безопасности"""
         pass

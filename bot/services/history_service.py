@@ -30,9 +30,7 @@ class ChatHistoryService:
         self.db = db
         self.history_limit = settings.chat_history_limit  # 50 сообщений
 
-    def add_message(
-        self, telegram_id: int, message_text: str, message_type: str
-    ) -> ChatHistory:
+    def add_message(self, telegram_id: int, message_text: str, message_type: str) -> ChatHistory:
         """
         Добавить сообщение в историю
 
@@ -68,9 +66,7 @@ class ChatHistoryService:
 
         return message
 
-    def get_recent_history(
-        self, telegram_id: int, limit: int = None
-    ) -> List[ChatHistory]:
+    def get_recent_history(self, telegram_id: int, limit: int = None) -> List[ChatHistory]:
         """
         Получить последние N сообщений пользователя
         Используется для формирования контекста AI
@@ -125,9 +121,7 @@ class ChatHistoryService:
         # Форматируем сообщения
         context_lines = []
         for msg in messages:
-            role = {"user": "User", "ai": "AI", "system": "System"}.get(
-                msg.message_type, "Unknown"
-            )
+            role = {"user": "User", "ai": "AI", "system": "System"}.get(msg.message_type, "Unknown")
 
             context_lines.append(f"{role}: {msg.message_text}")
 
@@ -200,9 +194,7 @@ class ChatHistoryService:
         for msg in messages:
             self.db.delete(msg)
 
-        logger.info(
-            f"🗑️ Очищена история для user={telegram_id}, удалено {count} сообщений"
-        )
+        logger.info(f"🗑️ Очищена история для user={telegram_id}, удалено {count} сообщений")
 
         return count
 

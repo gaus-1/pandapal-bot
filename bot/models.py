@@ -120,12 +120,8 @@ class User(Base):
 
     # Constraints (ограничения)
     __table_args__ = (
-        CheckConstraint(
-            "user_type IN ('child', 'parent', 'teacher')", name="ck_users_user_type"
-        ),
-        CheckConstraint(
-            "age IS NULL OR (age >= 6 AND age <= 18)", name="ck_users_age_range"
-        ),
+        CheckConstraint("user_type IN ('child', 'parent', 'teacher')", name="ck_users_user_type"),
+        CheckConstraint("age IS NULL OR (age >= 6 AND age <= 18)", name="ck_users_age_range"),
         CheckConstraint(
             "grade IS NULL OR (grade >= 1 AND grade <= 11)", name="ck_users_grade_range"
         ),
@@ -190,9 +186,7 @@ class LearningSession(Base):
     # Relationship
     user: Mapped["User"] = relationship("User", back_populates="sessions")
 
-    __table_args__ = (
-        Index("idx_sessions_user_date", "user_telegram_id", "session_start"),
-    )
+    __table_args__ = (Index("idx_sessions_user_date", "user_telegram_id", "session_start"),)
 
     def __repr__(self) -> str:
         return f"<LearningSession(id={self.id}, subject={self.subject})>"
@@ -219,9 +213,7 @@ class UserProgress(Base):
     # Предмет и уровень
     subject: Mapped[Optional[str]] = mapped_column(String(100), comment="Предмет")
 
-    level: Mapped[Optional[int]] = mapped_column(
-        Integer, comment="Текущий уровень владения (1-10)"
-    )
+    level: Mapped[Optional[int]] = mapped_column(Integer, comment="Текущий уровень владения (1-10)")
 
     # Геймификация
     points: Mapped[int] = mapped_column(
@@ -243,9 +235,7 @@ class UserProgress(Base):
     # Relationship
     user: Mapped["User"] = relationship("User", back_populates="progress")
 
-    __table_args__ = (
-        Index("idx_progress_user_subject", "user_telegram_id", "subject"),
-    )
+    __table_args__ = (Index("idx_progress_user_subject", "user_telegram_id", "subject"),)
 
     def __repr__(self) -> str:
         return f"<UserProgress(user_id={self.user_telegram_id}, subject={self.subject}, level={self.level})>"
@@ -271,9 +261,7 @@ class ChatHistory(Base):
     )
 
     # Содержание сообщения
-    message_text: Mapped[str] = mapped_column(
-        Text, nullable=False, comment="Текст сообщения"
-    )
+    message_text: Mapped[str] = mapped_column(Text, nullable=False, comment="Текст сообщения")
 
     # Тип сообщения: user, ai, system
     message_type: Mapped[str] = mapped_column(
@@ -296,23 +284,18 @@ class ChatHistory(Base):
     __table_args__ = (
         # Составной индекс для быстрой выборки последних N сообщений пользователя
         Index("idx_chat_history_user_time", "user_telegram_id", "timestamp"),
-        CheckConstraint(
-            "message_type IN ('user', 'ai', 'system')", name="ck_chat_message_type"
-        ),
+        CheckConstraint("message_type IN ('user', 'ai', 'system')", name="ck_chat_message_type"),
     )
 
     def __repr__(self) -> str:
         preview = (
-            self.message_text[:50] + "..."
-            if len(self.message_text) > 50
-            else self.message_text
+            self.message_text[:50] + "..." if len(self.message_text) > 50 else self.message_text
         )
-        return (
-            f"<ChatHistory(id={self.id}, type={self.message_type}, text='{preview}')>"
-        )
+        return f"<ChatHistory(id={self.id}, type={self.message_type}, text='{preview}')>"
 
 
 # ============ МОДЕЛИ АНАЛИТИКИ ============
+
 
 class AnalyticsMetric(Base):
     """
@@ -326,9 +309,7 @@ class AnalyticsMetric(Base):
     metric_name: Mapped[str] = mapped_column(
         String(100), nullable=False, comment="Название метрики"
     )
-    metric_value: Mapped[float] = mapped_column(
-        Float, nullable=False, comment="Значение метрики"
-    )
+    metric_value: Mapped[float] = mapped_column(Float, nullable=False, comment="Значение метрики")
     metric_type: Mapped[str] = mapped_column(
         String(50), nullable=False, comment="Тип метрики (counter, gauge, histogram)"
     )
@@ -438,9 +419,7 @@ class UserEvent(Base):
     user_telegram_id: Mapped[int] = mapped_column(
         BigInteger, nullable=False, comment="ID пользователя"
     )
-    event_type: Mapped[str] = mapped_column(
-        String(100), nullable=False, comment="Тип события"
-    )
+    event_type: Mapped[str] = mapped_column(String(100), nullable=False, comment="Тип события")
     event_data: Mapped[Optional[Dict]] = mapped_column(
         JSON, nullable=True, comment="Данные события"
     )
@@ -450,15 +429,11 @@ class UserEvent(Base):
         nullable=False,
         comment="Время события",
     )
-    session_id: Mapped[Optional[int]] = mapped_column(
-        Integer, nullable=True, comment="ID сессии"
-    )
+    session_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="ID сессии")
     importance: Mapped[str] = mapped_column(
         String(20), default="normal", comment="Важность события (low, normal, high, critical)"
     )
-    processed: Mapped[bool] = mapped_column(
-        Boolean, default=False, comment="Обработано ли событие"
-    )
+    processed: Mapped[bool] = mapped_column(Boolean, default=False, comment="Обработано ли событие")
 
     __table_args__ = (
         Index("idx_user_events_user_time", "user_telegram_id", "timestamp"),
@@ -483,15 +458,9 @@ class AnalyticsReport(Base):
     __tablename__ = "analytics_reports"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    report_type: Mapped[str] = mapped_column(
-        String(50), nullable=False, comment="Тип отчета"
-    )
-    report_period: Mapped[str] = mapped_column(
-        String(20), nullable=False, comment="Период отчета"
-    )
-    report_data: Mapped[Dict] = mapped_column(
-        JSON, nullable=False, comment="Данные отчета"
-    )
+    report_type: Mapped[str] = mapped_column(String(50), nullable=False, comment="Тип отчета")
+    report_period: Mapped[str] = mapped_column(String(20), nullable=False, comment="Период отчета")
+    report_data: Mapped[Dict] = mapped_column(JSON, nullable=False, comment="Данные отчета")
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -583,18 +552,12 @@ class AnalyticsAlert(Base):
     __tablename__ = "analytics_alerts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    alert_type: Mapped[str] = mapped_column(
-        String(50), nullable=False, comment="Тип алерта"
-    )
+    alert_type: Mapped[str] = mapped_column(String(50), nullable=False, comment="Тип алерта")
     alert_level: Mapped[str] = mapped_column(
         String(20), nullable=False, comment="Уровень алерта (info, warning, critical)"
     )
-    alert_message: Mapped[str] = mapped_column(
-        Text, nullable=False, comment="Сообщение алерта"
-    )
-    alert_data: Mapped[Optional[Dict]] = mapped_column(
-        JSON, nullable=True, comment="Данные алерта"
-    )
+    alert_message: Mapped[str] = mapped_column(Text, nullable=False, comment="Сообщение алерта")
+    alert_data: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True, comment="Данные алерта")
     triggered_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -646,9 +609,7 @@ class AnalyticsConfig(Base):
     config_value: Mapped[Dict] = mapped_column(
         JSON, nullable=False, comment="Значение конфигурации"
     )
-    config_type: Mapped[str] = mapped_column(
-        String(50), nullable=False, comment="Тип конфигурации"
-    )
+    config_type: Mapped[str] = mapped_column(String(50), nullable=False, comment="Тип конфигурации")
     description: Mapped[Optional[str]] = mapped_column(
         Text, nullable=True, comment="Описание конфигурации"
     )

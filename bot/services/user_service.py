@@ -75,9 +75,7 @@ class UserService:
             self.db.add(user)
             self.db.flush()  # Получаем ID
 
-            logger.info(
-                f"✨ Новый пользователь зарегистрирован: {telegram_id} ({first_name})"
-            )
+            logger.info(f"✨ Новый пользователь зарегистрирован: {telegram_id} ({first_name})")
 
         return user
 
@@ -145,9 +143,7 @@ class UserService:
         stmt = select(User).where(User.telegram_id == telegram_id)
         return self.db.execute(stmt).scalar_one_or_none()
 
-    def link_parent_to_child(
-        self, child_telegram_id: int, parent_telegram_id: int
-    ) -> bool:
+    def link_parent_to_child(self, child_telegram_id: int, parent_telegram_id: int) -> bool:
         """
         Связать родителя с ребёнком
         Используется для родительского контроля
@@ -181,9 +177,7 @@ class UserService:
         child.parent_telegram_id = parent_telegram_id
         self.db.flush()
 
-        logger.info(
-            f"👨‍👧 Родитель {parent_telegram_id} связан с ребёнком {child_telegram_id}"
-        )
+        logger.info(f"👨‍👧 Родитель {parent_telegram_id} связан с ребёнком {child_telegram_id}")
 
         return True
 
