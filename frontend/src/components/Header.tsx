@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { SITE_CONFIG, NAVIGATION_LINKS } from '../config/constants';
+import PandaLogo from './PandaLogo';
 
 /**
  * Шапка сайта с адаптивной навигацией
@@ -16,13 +17,11 @@ export const Header: React.FC = React.memo(() => {
     <header className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
       {/* Логотип и название */}
       <div className="flex items-center gap-3">
-        <img
-          src={SITE_CONFIG.logo.src}
-          alt={SITE_CONFIG.logo.alt}
-          className="w-12 h-12 rounded-full shadow-md"
-          loading="eager" // Высокий приоритет загрузки (логотип важен)
-          width="48"
-          height="48"
+        <PandaLogo 
+          size={48}
+          animated={true}
+          onClick={() => window.location.href = '/'}
+          className="cursor-pointer"
         />
         <span className="font-display text-2xl font-bold">
           {SITE_CONFIG.name}
