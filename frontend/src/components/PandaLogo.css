@@ -1,0 +1,222 @@
+/**
+ * Стили для анимированного логотипа PandaPal
+ * Оптимизированы для производительности и доступности
+ */
+
+/* Основной контейнер */
+.panda-logo-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  will-change: transform;
+}
+
+/* SVG логотип */
+.panda-logo {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Анимация моргания */
+.panda-logo.animated .panda-eyelid-left,
+.panda-logo.animated .panda-eyelid-right {
+  animation: panda-blink 4s infinite;
+  transform-origin: center;
+}
+
+/* Покачивание головы */
+.panda-logo.animated .panda-head {
+  animation: panda-sway 6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Hover эффекты */
+.panda-logo.hovered {
+  transform: scale(1.05);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+}
+
+.panda-logo.hovered .panda-eye-left,
+.panda-logo.hovered .panda-eye-right {
+  animation: panda-happy-wiggle 0.5s ease-in-out;
+}
+
+.panda-logo.hovered .panda-cheek-left,
+.panda-logo.hovered .panda-cheek-right {
+  fill: #FF69B4;
+  opacity: 0.9;
+}
+
+/* Click анимация */
+.panda-logo.clicked {
+  animation: panda-bounce 0.6s ease;
+}
+
+/* Loading состояние */
+.panda-logo.loading .panda-head {
+  animation: panda-thinking 1s ease-in-out infinite alternate;
+}
+
+.panda-logo.loading .panda-eye-left,
+.panda-logo.loading .panda-eye-right {
+  fill: #4A90E2;
+}
+
+/* Ключевые кадры анимаций */
+@keyframes panda-blink {
+  0%, 90%, 100% { 
+    opacity: 0; 
+    transform: scaleY(1); 
+  }
+  5%, 85% { 
+    opacity: 1; 
+    transform: scaleY(0.1); 
+  }
+}
+
+@keyframes panda-sway {
+  0%, 100% { 
+    transform: rotate(-1deg); 
+  }
+  50% { 
+    transform: rotate(1deg); 
+  }
+}
+
+@keyframes panda-happy-wiggle {
+  0%, 100% { 
+    transform: rotate(0deg); 
+  }
+  25% { 
+    transform: rotate(-3deg); 
+  }
+  75% { 
+    transform: rotate(3deg); 
+  }
+}
+
+@keyframes panda-bounce {
+  0% { 
+    transform: scale(1); 
+  }
+  50% { 
+    transform: scale(1.1); 
+  }
+  100% { 
+    transform: scale(1); 
+  }
+}
+
+@keyframes panda-thinking {
+  0% { 
+    transform: translateY(0px); 
+  }
+  100% { 
+    transform: translateY(-2px); 
+  }
+}
+
+/* Анимация пузырьков */
+.panda-logo .bubble {
+  opacity: 0.8;
+}
+
+.panda-logo .bubble-1 {
+  animation: bubble-float-1 2s ease-in-out infinite;
+}
+
+.panda-logo .bubble-2 {
+  animation: bubble-float-2 2.5s ease-in-out infinite;
+}
+
+.panda-logo .bubble-3 {
+  animation: bubble-float-3 3s ease-in-out infinite;
+}
+
+@keyframes bubble-float-1 {
+  0%, 100% { 
+    transform: translateY(0px); 
+    opacity: 0.8; 
+  }
+  50% { 
+    transform: translateY(-10px); 
+    opacity: 0.4; 
+  }
+}
+
+@keyframes bubble-float-2 {
+  0%, 100% { 
+    transform: translateY(0px); 
+    opacity: 0.6; 
+  }
+  50% { 
+    transform: translateY(-15px); 
+    opacity: 0.2; 
+  }
+}
+
+@keyframes bubble-float-3 {
+  0%, 100% { 
+    transform: translateY(0px); 
+    opacity: 0.7; 
+  }
+  50% { 
+    transform: translateY(-12px); 
+    opacity: 0.3; 
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .panda-logo {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+  }
+  
+  .panda-logo.hovered {
+    transform: scale(1.03);
+  }
+}
+
+/* Поддержка prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .panda-logo.animated .panda-eyelid-left,
+  .panda-logo.animated .panda-eyelid-right,
+  .panda-logo.animated .panda-head,
+  .panda-logo.hovered .panda-eye-left,
+  .panda-logo.hovered .panda-eye-right,
+  .panda-logo.clicked,
+  .panda-logo.loading .panda-head,
+  .panda-logo .bubble {
+    animation: none !important;
+  }
+  
+  .panda-logo {
+    transition: none !important;
+  }
+}
+
+/* Темная тема */
+@media (prefers-color-scheme: dark) {
+  .panda-logo {
+    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.1));
+  }
+  
+  .panda-logo.hovered {
+    filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.15));
+  }
+}
+
+/* Высокий контраст */
+@media (prefers-contrast: high) {
+  .panda-logo .panda-head {
+    stroke: #000000;
+    stroke-width: 3;
+  }
+  
+  .panda-logo .panda-eye-left,
+  .panda-logo .panda-eye-right,
+  .panda-logo .panda-nose {
+    fill: #000000;
+  }
+}
