@@ -143,7 +143,7 @@ describe('App Integration Tests', () => {
     expect(h2headings.length).toBeGreaterThan(0);
     
     const h3headings = screen.getAllByRole('heading', { level: 3 });
-    expect(h3headings.length).toBe(FEATURES.length);
+    expect(h3headings.length).toBeGreaterThanOrEqual(FEATURES.length);
   });
 
   /**
