@@ -16,6 +16,7 @@ from bot.services import (
     GeminiAIService,
     UserService,
 )
+from bot.services.advanced_moderation import ModerationResult
 from bot.monitoring import log_user_activity, monitor_performance
 
 # Создаём роутер для AI чата
@@ -68,25 +69,56 @@ async def handle_ai_message(message: Message, state: FSMContext):
     await message.bot.send_chat_action(message.chat.id, "typing")
 
     try:
-        # Проверка контента на безопасность
+        # Продвинутая проверка контента на безопасность
         moderation_service = ContentModerationService()
+        
+        # Сначала базовая проверка
         is_safe, reason = moderation_service.is_safe_content(user_message)
-
+        
         if not is_safe:
             logger.warning(f"🚫 Заблокирован контент от {telegram_id}: {reason}")
-
-            # Логируем заблокированный контент
             moderation_service.log_blocked_content(telegram_id, user_message, reason)
-            
-            # Логируем активность пользователя
             log_user_activity(telegram_id, "blocked_content", False, reason)
-
-            # Отправляем безопасный ответ
-            safe_response = moderation_service.get_safe_response_alternative(
-                "blocked_content"
-            )
+            
+            safe_response = moderation_service.get_safe_response_alternative("blocked_content")
             await message.answer(text=safe_response)
             return
+        
+        # Затем продвинутая модерация
+        user_context = {
+            "telegram_id": telegram_id,
+            "username": message.from_user.username,
+            "first_name": message.from_user.first_name,
+        }
+        
+        try:
+            advanced_result = await moderation_service.advanced_moderate_content(
+                user_message, user_context
+            )
+            
+            # Если продвинутая модерация заблокировала контент
+            if not advanced_result.is_safe:
+                logger.warning(
+                    f"🚫 Продвинутая модерация заблокировала контент от {telegram_id}: "
+                    f"{advanced_result.reason} (уверенность: {advanced_result.confidence:.2f})"
+                )
+                
+                # Логируем активность
+                log_user_activity(
+                    telegram_id, 
+                    "advanced_blocked_content", 
+                    False, 
+                    f"{advanced_result.category.value if advanced_result.category else 'unknown'}: {advanced_result.reason}"
+                )
+                
+                # Используем альтернативный ответ из продвинутой модерации
+                response_text = advanced_result.alternative_response or moderation_service.get_safe_response_alternative("blocked_content")
+                await message.answer(text=response_text)
+                return
+                
+        except Exception as e:
+            logger.error(f"❌ Ошибка продвинутой модерации: {e}")
+            # Продолжаем с базовой модерацией в случае ошибки
 
         # Работа с базой данных
         with get_db() as db:
