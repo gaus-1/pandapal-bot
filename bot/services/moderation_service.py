@@ -6,11 +6,13 @@ OWASP A04:2021 - Insecure Design (защита детей)
 """
 
 import re
-from typing import List, Optional, Pattern, Tuple
+import asyncio
+from typing import List, Optional, Pattern, Tuple, Dict, Any
 
 from loguru import logger
 
 from bot.config import FORBIDDEN_PATTERNS, settings
+from bot.services.advanced_moderation import AdvancedModerationService, ModerationResult
 
 
 class ContentModerationService:
@@ -33,6 +35,9 @@ class ContentModerationService:
         ]
 
         self.filter_level: int = settings.content_filter_level
+        
+        # Инициализируем продвинутый сервис модерации
+        self.advanced_moderation = AdvancedModerationService()
 
         # Базовый список нецензурных слов -> единый regex с word-boundaries
         profanity_words = [
@@ -66,7 +71,7 @@ class ContentModerationService:
 
     def is_safe_content(self, text: str) -> Tuple[bool, Optional[str]]:
         """
-        Проверка, безопасен ли контент для ребёнка.
+        Проверка, безопасен ли контент для ребёнка (базовая версия).
 
         Args:
             text: Текст для проверки
@@ -176,3 +181,20 @@ class ContentModerationService:
             message[:100] + "...",
         )
         # TODO: Сохранить в таблицу moderation_log
+
+    async def advanced_moderate_content(self, content: str, user_context: Dict[str, Any] = None) -> ModerationResult:
+        """
+        Продвинутая модерация контента с использованием ML и контекстного анализа.
+
+        Args:
+            content: Текст для проверки
+            user_context: Контекст пользователя (возраст, история и т.д.)
+
+        Returns:
+            ModerationResult: Детальный результат анализа
+        """
+        return await self.advanced_moderation.moderate_content(content, user_context)
+
+    async def get_moderation_stats(self) -> Dict[str, Any]:
+        """Возвращает статистику модерации"""
+        return await self.advanced_moderation.get_moderation_stats()
