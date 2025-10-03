@@ -5,10 +5,10 @@ Barrel export для всех обработчиков
 """
 
 from bot.handlers.ai_chat import router as ai_chat_router
+from bot.handlers.parent_dashboard import router as parent_dashboard_router
+from bot.handlers.parental_control import router as parental_control_router
 from bot.handlers.settings import router as settings_router
 from bot.handlers.start import router as start_router
-from bot.handlers.parental_control import router as parental_control_router
-from bot.handlers.parent_dashboard import router as parent_dashboard_router
 
 # Список всех роутеров для регистрации в main.py
 routers = [

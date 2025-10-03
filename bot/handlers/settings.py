@@ -77,8 +77,7 @@ async def settings_age(callback: CallbackQuery, state: FSMContext):
         state: FSM состояние
     """
     await callback.message.edit_text(
-        text="🎂 <b>Сколько тебе лет?</b>\n\n"
-        "Напиши свой возраст цифрами (например: 10)",
+        text="🎂 <b>Сколько тебе лет?</b>\n\n" "Напиши свой возраст цифрами (например: 10)",
         parse_mode="HTML",
     )
 
@@ -101,9 +100,7 @@ async def process_age(message: Message, state: FSMContext):
 
         # Валидация возраста
         if age < 6 or age > 18:
-            await message.answer(
-                "❌ Возраст должен быть от 6 до 18 лет.\n" "Попробуй ещё раз:"
-            )
+            await message.answer("❌ Возраст должен быть от 6 до 18 лет.\n" "Попробуй ещё раз:")
             return
 
         # Сохраняем возраст в БД
@@ -112,8 +109,7 @@ async def process_age(message: Message, state: FSMContext):
             user_service.update_user_profile(telegram_id=message.from_user.id, age=age)
 
         await message.answer(
-            text=f"✅ Отлично! Запомнил, что тебе {age} лет.\n\n"
-            "Теперь укажи свой класс:",
+            text=f"✅ Отлично! Запомнил, что тебе {age} лет.\n\n" "Теперь укажи свой класс:",
             reply_markup=get_grade_selection_keyboard(),
         )
 
@@ -150,9 +146,7 @@ async def set_grade(callback: CallbackQuery):
     )
 
     # Показываем главное меню
-    await callback.message.answer(
-        text="Выбери действие:", reply_markup=get_main_menu_keyboard()
-    )
+    await callback.message.answer(text="Выбери действие:", reply_markup=get_main_menu_keyboard())
 
     await callback.answer("Профиль обновлён!")
 
@@ -223,8 +217,6 @@ async def show_main_menu(callback: CallbackQuery):
     """
     await callback.message.edit_text(text="Главное меню:", reply_markup=None)
 
-    await callback.message.answer(
-        text="Выбери действие:", reply_markup=get_main_menu_keyboard()
-    )
+    await callback.message.answer(text="Выбери действие:", reply_markup=get_main_menu_keyboard())
 
     await callback.answer()

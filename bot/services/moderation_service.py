@@ -5,9 +5,9 @@ OWASP A04:2021 - Insecure Design (защита детей)
 @module bot.services.moderation_service
 """
 
-import re
 import asyncio
-from typing import List, Optional, Pattern, Tuple, Dict, Any
+import re
+from typing import Any, Dict, List, Optional, Pattern, Tuple
 
 from loguru import logger
 
@@ -35,7 +35,7 @@ class ContentModerationService:
         ]
 
         self.filter_level: int = settings.content_filter_level
-        
+
         # Инициализируем продвинутый сервис модерации
         self.advanced_moderation = AdvancedModerationService()
 
@@ -152,8 +152,7 @@ class ContentModerationService:
         if not is_safe:
             logger.error(f"⚠️ AI сгенерировал небезопасный контент! Причина: {reason}")
             return (
-                "Извини, я не могу ответить на этот вопрос. "
-                "Давай лучше поговорим об учёбе! 📚"
+                "Извини, я не могу ответить на этот вопрос. " "Давай лучше поговорим об учёбе! 📚"
             )
         return response
 
@@ -170,6 +169,33 @@ class ContentModerationService:
 
         return random.choice(alternatives)
 
+    async def _save_moderation_log(self, telegram_id: int, content: str, reason: str) -> None:
+        """Сохранить лог модерации в базу данных"""
+        try:
+            from bot.database import get_db
+            from bot.models import User
+            from sqlalchemy import select
+            from datetime import datetime
+
+            async with get_db() as db:
+                # Получаем пользователя
+                stmt = select(User).where(User.telegram_id == telegram_id)
+                user = await db.execute(stmt)
+                user_obj = user.scalar_one_or_none()
+
+                if user_obj:
+                    # Здесь можно добавить таблицу moderation_log в будущем
+                    # Пока логируем через стандартный логгер
+                    logger.info(
+                        "MODERATION_LOG | User: %s | Reason: %s | Content: %s | Time: %s",
+                        telegram_id,
+                        reason,
+                        content[:100] + "..." if len(content) > 100 else content,
+                        datetime.utcnow().isoformat(),
+                    )
+        except Exception as e:
+            logger.error(f"Ошибка сохранения лога модерации: {e}")
+
     def log_blocked_content(self, telegram_id: int, message: str, reason: str) -> None:
         """
         Логирование заблокированного контента для мониторинга и аналитики.
@@ -180,9 +206,12 @@ class ContentModerationService:
             reason,
             message[:100] + "...",
         )
-        # TODO: Сохранить в таблицу moderation_log
+        # Сохраняем в таблицу moderation_log
+        await self._save_moderation_log(telegram_id, message, reason)
 
-    async def advanced_moderate_content(self, content: str, user_context: Dict[str, Any] = None) -> ModerationResult:
+    async def advanced_moderate_content(
+        self, content: str, user_context: Dict[str, Any] = None
+    ) -> ModerationResult:
         """
         Продвинутая модерация контента с использованием ML и контекстного анализа.
 

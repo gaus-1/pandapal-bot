@@ -23,7 +23,7 @@ from bot.services.history_service import ChatHistoryService
 from bot.services.moderation_service import ContentModerationService
 from bot.services.user_service import UserService
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class ServiceFactory:
@@ -32,7 +32,7 @@ class ServiceFactory:
     Реализует паттерн Singleton и Factory
     """
 
-    _instance: Optional['ServiceFactory'] = None
+    _instance: Optional["ServiceFactory"] = None
     _services: Dict[str, object] = {}
 
     def __new__(cls):
@@ -41,7 +41,7 @@ class ServiceFactory:
         return cls._instance
 
     @classmethod
-    def get_instance(cls) -> 'ServiceFactory':
+    def get_instance(cls) -> "ServiceFactory":
         """Получить экземпляр фабрики"""
         if cls._instance is None:
             cls._instance = cls()

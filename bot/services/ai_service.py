@@ -6,6 +6,7 @@
 """
 
 import base64
+import hashlib
 import io
 from typing import Dict, List, Optional, Union
 
@@ -14,8 +15,7 @@ from loguru import logger
 from PIL import Image
 
 from bot.config import AI_SYSTEM_PROMPT, settings
-from bot.services.cache_service import cache_service, UserCache, AIResponseCache
-import hashlib
+from bot.services.cache_service import AIResponseCache, UserCache, cache_service
 from bot.services.moderation_service import ContentModerationService
 
 
@@ -108,11 +108,11 @@ class GeminiAIService:
             # Проверяем кэш ответов AI
             query_hash = hashlib.md5(f"{user_message}:{user_age}:{user_grade}".encode()).hexdigest()
             cached_response = await AIResponseCache.get_response(query_hash)
-            
+
             if cached_response:
                 logger.debug(f"💾 AI ответ получен из кэша для запроса: {user_message[:50]}...")
                 return cached_response
-            
+
             # ШАГ 1: Модерация входящего сообщения
             is_safe, reason = self.moderation.is_safe_content(user_message)
 
@@ -160,9 +160,7 @@ class GeminiAIService:
                 "Попробуй спросить чуть позже или перефразируй вопрос!"
             )
 
-    def _build_context_instruction(
-        self, age: Optional[int], grade: Optional[int]
-    ) -> str:
+    def _build_context_instruction(self, age: Optional[int], grade: Optional[int]) -> str:
         """
         Построение инструкции с учётом возраста и класса
         Адаптирует сложность и стиль ответа
@@ -203,9 +201,7 @@ class GeminiAIService:
 
         return ""
 
-    async def explain_topic(
-        self, topic: str, subject: str, grade: Optional[int] = None
-    ) -> str:
+    async def explain_topic(self, topic: str, subject: str, grade: Optional[int] = None) -> str:
         """
         Объяснить учебную тему
 
@@ -234,9 +230,7 @@ class GeminiAIService:
 """
         return await self.generate_response(prompt, user_grade=grade)
 
-    async def solve_problem(
-        self, problem_text: str, subject: str, show_steps: bool = True
-    ) -> str:
+    async def solve_problem(self, problem_text: str, subject: str, show_steps: bool = True) -> str:
         """
         Решить задачу с пошаговым объяснением
 
@@ -313,10 +307,10 @@ class GeminiAIService:
     def _prepare_image_for_gemini(self, image_data: bytes):
         """
         Подготовить изображение для отправки в Gemini API
-        
+
         Args:
             image_data: Бинарные данные изображения
-            
+
         Returns:
             PIL Image объект для Gemini
         """
@@ -324,14 +318,15 @@ class GeminiAIService:
             # Проверяем размер изображения
             if len(image_data) > 20 * 1024 * 1024:  # 20MB лимит
                 raise ValueError("Изображение слишком большое (максимум 20MB)")
-            
+
             # Конвертируем байты в PIL Image
             import io
+
             image = Image.open(io.BytesIO(image_data))
-            
+
             logger.info(f"🖼️ Изображение подготовлено для анализа ({len(image_data)} байт)")
             return image
-            
+
         except Exception as e:
             logger.error(f"❌ Ошибка подготовки изображения: {e}")
             raise ValueError(f"Не удалось обработать изображение: {e}")
@@ -345,13 +340,13 @@ class GeminiAIService:
     ) -> str:
         """
         Анализировать изображение с помощью Gemini Vision API
-        
+
         Args:
             image_data: Бинарные данные изображения
             user_message: Сообщение пользователя (опционально)
             user_age: Возраст ребёнка
             user_grade: Класс ребёнка
-            
+
         Returns:
             str: Анализ изображения от AI
         """
@@ -360,17 +355,17 @@ class GeminiAIService:
             image_hash = hashlib.md5(image_data).hexdigest()
             cache_key = f"image_analysis:{image_hash}:{user_message}"
             cached_response = await AIResponseCache.get_response(cache_key)
-            
+
             if cached_response:
                 logger.debug(f"💾 Анализ изображения получен из кэша")
                 return cached_response
 
             # Подготавливаем изображение
             prepared_image = self._prepare_image_for_gemini(image_data)
-            
+
             # Формируем промпт для анализа
             context_instruction = self._build_context_instruction(user_age, user_grade)
-            
+
             if user_message:
                 prompt = f"{context_instruction}\n\nПользователь прислал изображение и написал: '{user_message}'\n\nПроанализируй изображение и ответь на вопрос ребёнка, учитывая его возраст. Будь дружелюбным и образовательным."
             else:
@@ -379,13 +374,13 @@ class GeminiAIService:
             # Отправляем запрос в Gemini с изображением и текстом
             model = genai.GenerativeModel(settings.gemini_model)
             response = model.generate_content([prepared_image, prompt])
-            
+
             if not response.text:
                 return "Извини, я не смог проанализировать это изображение. Попробуй отправить другое фото! 🐼"
 
             # Сохраняем в кэш
             await AIResponseCache.set_response(cache_key, response.text, ttl=3600)  # 1 час
-            
+
             logger.info(f"🖼️ Изображение проанализировано успешно")
             return response.text
 
@@ -396,17 +391,17 @@ class GeminiAIService:
     async def moderate_image_content(self, image_data: bytes) -> tuple[bool, str]:
         """
         Проверить изображение на безопасность для детей
-        
+
         Args:
             image_data: Бинарные данные изображения
-            
+
         Returns:
             tuple[bool, str]: (безопасно, причина_блокировки)
         """
         try:
             # Подготавливаем изображение
             prepared_image = self._prepare_image_for_gemini(image_data)
-            
+
             # Специальный промпт для модерации
             moderation_prompt = """
             Проанализируй это изображение на предмет безопасности для детей 6-18 лет.
@@ -423,12 +418,12 @@ class GeminiAIService:
             
             Если BLOCK, добавь причину через двоеточие: BLOCK: причина
             """
-            
+
             model = genai.GenerativeModel(settings.gemini_model)
             response = model.generate_content([prepared_image, moderation_prompt])
-            
+
             result = response.text.strip().upper()
-            
+
             if result.startswith("SAFE"):
                 return True, ""
             elif result.startswith("BLOCK:"):
@@ -439,7 +434,7 @@ class GeminiAIService:
                 # Если ответ неожиданный, блокируем для безопасности
                 logger.warning(f"🚫 Неожиданный ответ модерации изображения: {result}")
                 return False, "Неопределённый контент"
-                
+
         except Exception as e:
             logger.error(f"❌ Ошибка модерации изображения: {e}")
             # При ошибке блокируем для безопасности
@@ -454,22 +449,22 @@ class GeminiAIService:
     ) -> str:
         """
         Создать образовательную задачу на основе изображения
-        
+
         Args:
             image_data: Бинарные данные изображения
             subject: Предмет (математика, физика, биология и т.д.)
             user_age: Возраст ребёнка
             user_grade: Класс ребёнка
-            
+
         Returns:
             str: Образовательная задача с использованием изображения
         """
         try:
             # Подготавливаем изображение
             prepared_image = self._prepare_image_for_gemini(image_data)
-            
+
             context_instruction = self._build_context_instruction(user_age, user_grade)
-            
+
             prompt = f"""
             {context_instruction}
             
@@ -488,10 +483,10 @@ class GeminiAIService:
             
             Будь креативным и образовательным! 🎓
             """
-            
+
             model = genai.GenerativeModel(settings.gemini_model)
             response = model.generate_content([prepared_image, prompt])
-            
+
             logger.info(f"🎓 Создана образовательная задача на основе изображения")
             return response.text
 
@@ -499,9 +494,7 @@ class GeminiAIService:
             logger.error(f"❌ Ошибка создания задачи из изображения: {e}")
             return "Извини, не удалось создать задачу на основе этого изображения. Попробуй другое фото! 🐼"
 
-    def _build_context_instruction(
-        self, user_age: Optional[int], user_grade: Optional[int]
-    ) -> str:
+    def _build_context_instruction(self, user_age: Optional[int], user_grade: Optional[int]) -> str:
         """
         Формирует инструкцию для AI на основе возраста и класса пользователя.
         """

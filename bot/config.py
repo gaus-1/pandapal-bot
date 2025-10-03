@@ -83,9 +83,7 @@ class Settings(BaseSettings):
     ai_rate_limit_per_minute: int = Field(
         default=10,
         description="Максимум AI запросов в минуту на пользователя",
-        validation_alias=AliasChoices(
-            "AI_RATE_LIMIT_PER_MINUTE", "ai_rate_limit_per_minute"
-        ),
+        validation_alias=AliasChoices("AI_RATE_LIMIT_PER_MINUTE", "ai_rate_limit_per_minute"),
     )
 
     daily_message_limit: int = Field(
@@ -125,9 +123,7 @@ class Settings(BaseSettings):
 
     def get_forbidden_topics_list(self) -> List[str]:
         """Получить список запрещённых тем"""
-        return [
-            topic.strip() for topic in self.forbidden_topics.split(",") if topic.strip()
-        ]
+        return [topic.strip() for topic in self.forbidden_topics.split(",") if topic.strip()]
 
     @field_validator("database_url")
     @classmethod

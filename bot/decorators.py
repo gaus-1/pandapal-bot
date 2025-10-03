@@ -10,7 +10,7 @@ from typing import Any, Callable, Optional, TypeVar
 
 from loguru import logger
 
-F = TypeVar('F', bound=Callable[..., Any])
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 def log_execution_time(func: F) -> F:
@@ -31,17 +31,13 @@ def log_execution_time(func: F) -> F:
         result = func(*args, **kwargs)
         execution_time = time.time() - start_time
 
-        logger.info(
-            f"⏱️ {func.__name__} выполнена за {execution_time:.3f}s"
-        )
+        logger.info(f"⏱️ {func.__name__} выполнена за {execution_time:.3f}s")
         return result
 
     return wrapper
 
 
-def retry_on_exception(
-    max_attempts: int = 3, delay: float = 1.0, exceptions: tuple = (Exception,)
-):
+def retry_on_exception(max_attempts: int = 3, delay: float = 1.0, exceptions: tuple = (Exception,)):
     """
     Декоратор для повторных попыток при исключениях
     Реализует принцип открытости/закрытости (OCP)
@@ -69,9 +65,7 @@ def retry_on_exception(
                         )
                         time.sleep(delay)
                     else:
-                        logger.error(
-                            f"❌ {func.__name__} все попытки исчерпаны: {e}"
-                        )
+                        logger.error(f"❌ {func.__name__} все попытки исчерпаны: {e}")
 
             raise last_exception
 
@@ -96,9 +90,7 @@ def validate_input(**validators):
             for param_name, validator in validators.items():
                 if param_name in kwargs:
                     if not validator(kwargs[param_name]):
-                        raise ValueError(
-                            f"❌ Некорректное значение параметра {param_name}"
-                        )
+                        raise ValueError(f"❌ Некорректное значение параметра {param_name}")
 
             return func(*args, **kwargs)
 
@@ -167,15 +159,11 @@ def rate_limit(calls_per_minute: int = 60):
             current_time = time.time()
 
             # Удаляем старые вызовы
-            call_times[:] = [
-                t for t in call_times if current_time - t < 60
-            ]
+            call_times[:] = [t for t in call_times if current_time - t < 60]
 
             # Проверяем лимит
             if len(call_times) >= calls_per_minute:
-                raise RuntimeError(
-                    f"❌ Превышен лимит вызовов: {calls_per_minute}/мин"
-                )
+                raise RuntimeError(f"❌ Превышен лимит вызовов: {calls_per_minute}/мин")
 
             call_times.append(current_time)
             return func(*args, **kwargs)
@@ -218,9 +206,7 @@ def deprecated(reason: str = "Функция устарела"):
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            logger.warning(
-                f"⚠️ Используется устаревшая функция {func.__name__}: {reason}"
-            )
+            logger.warning(f"⚠️ Используется устаревшая функция {func.__name__}: {reason}")
             return func(*args, **kwargs)
 
         return wrapper

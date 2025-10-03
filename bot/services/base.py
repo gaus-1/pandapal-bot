@@ -9,7 +9,7 @@ from typing import Any, Dict, Generic, Optional, TypeVar
 
 from sqlalchemy.orm import Session
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class BaseService(ABC, Generic[T]):
@@ -51,6 +51,7 @@ class BaseService(ABC, Generic[T]):
             **kwargs: Дополнительные параметры
         """
         from loguru import logger
+
         logger.info(f"🔧 {self.__class__.__name__}: {operation}", **kwargs)
 
 
@@ -141,7 +142,7 @@ class SingletonService(BaseService[T]):
     Реализует принцип единственной ответственности (SRP)
     """
 
-    _instance: Optional['SingletonService'] = None
+    _instance: Optional["SingletonService"] = None
     _initialized: bool = False
 
     def __new__(cls, *args, **kwargs):
@@ -225,12 +226,14 @@ class ValidationMixin:
     def validate_age(age: int) -> bool:
         """Валидация возраста"""
         from bot.config import MAX_AGE, MIN_AGE
+
         return isinstance(age, int) and MIN_AGE <= age <= MAX_AGE
 
     @staticmethod
     def validate_grade(grade: int) -> bool:
         """Валидация класса"""
         from bot.config import MAX_GRADE, MIN_GRADE
+
         return isinstance(grade, int) and MIN_GRADE <= grade <= MAX_GRADE
 
     @staticmethod
