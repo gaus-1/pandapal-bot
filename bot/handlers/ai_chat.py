@@ -17,6 +17,7 @@ from bot.services import (
     UserService,
 )
 from bot.services.advanced_moderation import ModerationResult
+from bot.services.parental_control import ParentalControlService, ActivityType
 from bot.monitoring import log_user_activity, monitor_performance
 
 # Создаём роутер для AI чата
@@ -111,6 +112,32 @@ async def handle_ai_message(message: Message, state: FSMContext):
                     f"{advanced_result.category.value if advanced_result.category else 'unknown'}: {advanced_result.reason}"
                 )
                 
+                # Записываем заблокированную активность в родительский контроль
+                try:
+                    with get_db() as db:
+                        user_service = UserService(db)
+                        user = user_service.get_user_by_telegram_id(telegram_id)
+                        
+                        if user and user.user_type == "child":
+                            parental_service = ParentalControlService(db)
+                            await parental_service.record_child_activity(
+                                child_telegram_id=telegram_id,
+                                activity_type=ActivityType.MESSAGE_BLOCKED,
+                                details={
+                                    "category": advanced_result.category.value if advanced_result.category else "unknown",
+                                    "confidence": advanced_result.confidence,
+                                    "reason": advanced_result.reason
+                                },
+                                message_content=user_message,
+                                moderation_result={
+                                    "level": advanced_result.level.value,
+                                    "category": advanced_result.category.value if advanced_result.category else None,
+                                    "confidence": advanced_result.confidence
+                                }
+                            )
+                except Exception as e:
+                    logger.error(f"❌ Ошибка записи заблокированной активности: {e}")
+                
                 # Используем альтернативный ответ из продвинутой модерации
                 response_text = advanced_result.alternative_response or moderation_service.get_safe_response_alternative("blocked_content")
                 await message.answer(text=response_text)
@@ -170,6 +197,23 @@ async def handle_ai_message(message: Message, state: FSMContext):
             
             # Логируем успешную активность пользователя
             log_user_activity(telegram_id, "ai_message_sent", True)
+            
+            # Записываем активность в родительский контроль (если пользователь - ребенок)
+            if user.user_type == "child":
+                try:
+                    parental_service = ParentalControlService(db)
+                    await parental_service.record_child_activity(
+                        child_telegram_id=telegram_id,
+                        activity_type=ActivityType.AI_INTERACTION,
+                        details={
+                            "message_length": len(user_message),
+                            "response_length": len(ai_response),
+                            "history_messages": len(history)
+                        },
+                        message_content=user_message
+                    )
+                except Exception as e:
+                    logger.error(f"❌ Ошибка записи активности в родительский контроль: {e}")
 
         # Отправляем ответ пользователю
         await message.answer(
