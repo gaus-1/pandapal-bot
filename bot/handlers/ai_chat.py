@@ -1,12 +1,13 @@
 """
 Обработчик общения с AI
 Главная функция бота — диалог с PandaPalAI
+Поддерживает текстовые сообщения и изображения
 @module bot.handlers.ai_chat
 """
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import Message, PhotoSize
 from loguru import logger
 
 from bot.database import get_db
@@ -277,6 +278,123 @@ async def handle_voice(message: Message):
         
         # Логируем неудачную попытку
         log_user_activity(message.from_user.id, "voice_recognition_failed", False, "No text recognized")
+
+
+@router.message(F.photo)
+@monitor_performance
+async def handle_image(message: Message, state: FSMContext):
+    """
+    Обработка изображений с помощью Gemini Vision API
+    
+    Args:
+        message: Сообщение с изображением
+        state: FSM состояние
+    """
+    try:
+        # Получаем самое большое изображение
+        photo: PhotoSize = max(message.photo, key=lambda p: p.file_size)
+        
+        # Проверяем размер изображения
+        if photo.file_size > 20 * 1024 * 1024:  # 20MB лимит
+            await message.answer(
+                "🖼️ Изображение слишком большое! Максимум 20MB. "
+                "Попробуй сжать фото и отправить снова 📏"
+            )
+            return
+
+        # Показываем, что обрабатываем изображение
+        processing_msg = await message.answer(
+            "🖼️ Анализирую изображение... Пожалуйста, подожди! 🐼"
+        )
+
+        # Получаем файл изображения
+        file = await message.bot.get_file(photo.file_id)
+        image_data = await message.bot.download_file(file.file_path)
+        
+        # Читаем данные изображения
+        image_bytes = image_data.read()
+        
+        # Получаем пользователя и его данные
+        async with get_db() as db:
+            user_service = UserService(db)
+            user = await user_service.get_user_by_telegram_id(message.from_user.id)
+            
+            if not user:
+                await processing_msg.edit_text(
+                    "❌ Сначала зарегистрируйся командой /start"
+                )
+                return
+
+            # Инициализируем сервисы
+            ai_service = GeminiAIService()
+            moderation_service = ContentModerationService()
+            parental_control = ParentalControlService(db)
+            history_service = ChatHistoryService(db)
+
+            # Проверяем модерацию изображения
+            is_safe, reason = await ai_service.moderate_image_content(image_bytes)
+            
+            if not is_safe:
+                # Логируем заблокированное изображение
+                await parental_control.log_child_activity(
+                    child_telegram_id=message.from_user.id,
+                    activity_type=ActivityType.MESSAGE_BLOCKED,
+                    message_content=f"[ИЗОБРАЖЕНИЕ] {reason}",
+                    alert_level="WARNING",
+                    moderation_result={"reason": reason, "type": "image_moderation"}
+                )
+                
+                await processing_msg.edit_text(
+                    "🚫 Это изображение не подходит для детей. "
+                    "Попробуй отправить что-то другое! 🐼"
+                )
+                log_user_activity(message.from_user.id, "image_blocked", False, reason)
+                return
+
+            # Получаем подпись к изображению (если есть)
+            caption = message.caption or ""
+            
+            # Анализируем изображение с помощью AI
+            ai_response = await ai_service.analyze_image(
+                image_data=image_bytes,
+                user_message=caption,
+                user_age=user.age,
+                user_grade=user.grade
+            )
+
+            # Сохраняем в историю
+            await history_service.add_message(
+                user_telegram_id=message.from_user.id,
+                message_text=f"[ИЗОБРАЖЕНИЕ] {caption}" if caption else "[ИЗОБРАЖЕНИЕ]",
+                message_type="user"
+            )
+            
+            await history_service.add_message(
+                user_telegram_id=message.from_user.id,
+                message_text=ai_response,
+                message_type="ai"
+            )
+
+            # Логируем успешную обработку
+            await parental_control.log_child_activity(
+                child_telegram_id=message.from_user.id,
+                activity_type=ActivityType.MESSAGE_SENT,
+                message_content=f"[ИЗОБРАЖЕНИЕ] {caption}" if caption else "[ИЗОБРАЖЕНИЕ]",
+                alert_level="INFO",
+                moderation_result={"status": "safe", "type": "image_analysis"}
+            )
+
+            # Отправляем ответ
+            await processing_msg.edit_text(ai_response)
+            log_user_activity(message.from_user.id, "image_analyzed", True, f"Size: {len(image_bytes)} bytes")
+
+    except Exception as e:
+        logger.error(f"❌ Ошибка обработки изображения: {e}")
+        await message.answer(
+            "🖼️ Произошла ошибка при анализе изображения. "
+            "Попробуй отправить другое фото! 🐼"
+        )
+        log_user_activity(message.from_user.id, "image_error", False, str(e))
 
 
 @router.message(F.document)
