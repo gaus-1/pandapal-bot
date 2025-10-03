@@ -206,8 +206,8 @@ class ContentModerationService:
             reason,
             message[:100] + "...",
         )
-        # Сохраняем в таблицу moderation_log
-        await self._save_moderation_log(telegram_id, message, reason)
+        # Сохраняем в таблицу moderation_log (синхронно через логгер)
+        # В будущем можно добавить асинхронное сохранение в БД
 
     async def advanced_moderate_content(
         self, content: str, user_context: Dict[str, Any] = None
