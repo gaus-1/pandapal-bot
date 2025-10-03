@@ -62,3 +62,23 @@ Thumbs.db
 
 # Render
 .render/
+
+# Security - Секреты и токены
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+.env.production
+.env.staging
+config/secrets.py
+credentials.json
+service-account.json
+
+# API Keys и токены (дополнительная защита)
+**/api_keys.txt
+**/tokens.txt
+**/secrets.txt
+**/*secret*
+**/*token*
+**/*key*
