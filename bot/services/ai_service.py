@@ -10,6 +10,8 @@ import google.generativeai as genai
 from loguru import logger
 
 from bot.config import AI_SYSTEM_PROMPT, settings
+from bot.services.cache_service import cache_service, UserCache, AIResponseCache
+import hashlib
 from bot.services.moderation_service import ContentModerationService
 
 
@@ -96,6 +98,14 @@ class GeminiAIService:
             ValueError: Если контент заблокирован модерацией
         """
         try:
+            # Проверяем кэш ответов AI
+            query_hash = hashlib.md5(f"{user_message}:{user_age}:{user_grade}".encode()).hexdigest()
+            cached_response = await AIResponseCache.get_response(query_hash)
+            
+            if cached_response:
+                logger.debug(f"💾 AI ответ получен из кэша для запроса: {user_message[:50]}...")
+                return cached_response
+            
             # ШАГ 1: Модерация входящего сообщения
             is_safe, reason = self.moderation.is_safe_content(user_message)
 
@@ -126,6 +136,9 @@ class GeminiAIService:
 
             # ШАГ 5: Модерация ответа AI (дополнительная проверка)
             ai_response = self.moderation.sanitize_ai_response(ai_response)
+
+            # Сохраняем ответ в кэш
+            await AIResponseCache.set_response(query_hash, ai_response, ttl=1800)  # 30 минут
 
             logger.info(f"🤖 AI ответил (длина: {len(ai_response)} символов)")
 
