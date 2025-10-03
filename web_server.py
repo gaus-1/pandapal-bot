@@ -26,9 +26,13 @@ async def health_check(request):
 async def start_bot_background():
     """Запускает бота в фоновом режиме"""
     try:
-        # Проверяем переменные окружения
+        # Проверяем переменные окружения (поддерживаем оба регистра)
         required_vars = ['TELEGRAM_BOT_TOKEN', 'GEMINI_API_KEY', 'DATABASE_URL']
-        missing_vars = [var for var in required_vars if not os.environ.get(var)]
+        missing_vars = []
+        for var in required_vars:
+            # Проверяем и верхний, и нижний регистр
+            if not os.environ.get(var) and not os.environ.get(var.lower()):
+                missing_vars.append(var)
         
         if missing_vars:
             logger.error(f"❌ Отсутствуют переменные окружения: {missing_vars}")
