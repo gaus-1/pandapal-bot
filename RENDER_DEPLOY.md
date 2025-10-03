@@ -2,7 +2,7 @@
 
 ## ✅ Что готово
 
-- ✅ Новый токен Telegram: `8298992033:AAHINatNlTn_Dl1eFNjWc5wjQWBk0NGzmfU`
+- ✅ Токен Telegram настроен в Environment Variables
 - ✅ Код в GitHub: https://github.com/gaus-1/pandapal-bot
 - ✅ PostgreSQL БД создана на Render
 - ✅ .env.example добавлен в репозиторий
@@ -19,24 +19,21 @@
 
 **Нажмите:** Environment → Edit
 
-**Замените токен:**
-```
-TELEGRAM_BOT_TOKEN=8298992033:AAHINatNlTn_Dl1eFNjWc5wjQWBk0NGzmfU
-```
-
-**Все переменные окружения:**
+**Настройте переменные окружения:**
 ```env
-DATABASE_URL=postgresql+psycopg://pandapal_user:7rCuhY8R8C1fHvblUPdFjLzgMoLKn95D@dpg-d3bvnm37mgec73a3gjbg-a.frankfurt-postgres.render.com/pandapal_db
-TELEGRAM_BOT_TOKEN=8298992033:AAHINatNlTn_Dl1eFNjWc5wjQWBk0NGzmfU
-GEMINI_API_KEY=sk-538429845b344fbc9aa0a5d6ab10e138
+DATABASE_URL=your_database_url_from_render
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+GEMINI_API_KEY=your_gemini_api_key
 GEMINI_MODEL=gemini-2.0-flash-exp
 AI_TEMPERATURE=0.7
-SECRET_KEY=pandapal_secret_key_2025_production
+SECRET_KEY=your_secret_key
 FORBIDDEN_TOPICS=политика,насилие,оружие,наркотики,экстремизм
 CONTENT_FILTER_LEVEL=5
 FRONTEND_URL=https://pandapal.ru
 LOG_LEVEL=INFO
 ```
+
+**⚠️ ВАЖНО:** Используйте актуальные значения из Render Dashboard!
 
 **Нажмите:** Save Changes
 
@@ -95,11 +92,11 @@ Dashboard → pandapal-bot → Logs
 
 **Решение 2: Проверьте токен**
 ```bash
-# Локально:
+# Локально (используйте ваш токен):
 python -c "
 import asyncio
 from aiogram import Bot
-bot = Bot(token='8298992033:AAHINatNlTn_Dl1eFNjWc5wjQWBk0NGzmfU')
+bot = Bot(token='YOUR_TELEGRAM_BOT_TOKEN')
 me = asyncio.run(bot.get_me())
 print(f'Бот: @{me.username}')
 "
@@ -157,7 +154,8 @@ Dashboard → pandapal-bot → Logs
 
 **Подключение:**
 ```bash
-psql postgresql://pandapal_user:7rCuhY8R8C1fHvblUPdFjLzgMoLKn95D@dpg-d3bvnm37mgec73a3gjbg-a.frankfurt-postgres.render.com/pandapal_db
+# Используйте DATABASE_URL из Render Dashboard
+psql $DATABASE_URL
 ```
 
 **Проверка таблиц:**
