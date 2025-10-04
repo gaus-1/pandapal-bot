@@ -82,3 +82,43 @@ service-account.json
 **/*secret*
 **/*token*
 **/*key*
+
+# КРИТИЧЕСКИЕ ФАЙЛЫ БЕЗОПАСНОСТИ - НИКОГДА НЕ КОММИТИТЬ!
+*.env.production
+*.env.staging
+*.env.local
+.env.backup
+.env.old
+config/secrets.py
+config/credentials.py
+secrets/
+credentials/
+keys/
+tokens/
+private/
+
+# Файлы с паролями и секретами
+**/password*
+**/secret*
+**/private*
+**/credential*
+**/auth*
+
+# Временные файлы с секретами
+test_db_connection.py
+fix_db_url.py
+update_render_env.py
+*_temp.py
+*_backup.py
+*_old.py
+
+# Документация с секретами
+*SECURITY*.md
+*DEPLOYMENT*.md
+*INCIDENT*.md
+*SECRET*.md
+
+# Логи с секретами
+**/logs/*.log
+**/logs/*.txt
+logs/

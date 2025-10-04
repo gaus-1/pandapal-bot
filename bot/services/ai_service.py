@@ -17,6 +17,7 @@ from PIL import Image
 from bot.config import AI_SYSTEM_PROMPT, settings
 from bot.services.cache_service import AIResponseCache, UserCache, cache_service
 from bot.services.moderation_service import ContentModerationService
+from bot.services.ai_fallback_service import ai_fallback_service
 
 
 class GeminiAIService:
