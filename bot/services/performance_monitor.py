@@ -1,627 +1,444 @@
 """
-Система мониторинга производительности PandaPal
-Отслеживает метрики в реальном времени и предоставляет аналитику
-@module bot.services.performance_monitor
+⚡ СИСТЕМА МОНИТОРИНГА ПРОИЗВОДИТЕЛЬНОСТИ
+Отслеживание производительности и автоматическая оптимизация
 """
 
 import asyncio
-import json
-import threading
 import time
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
+import psutil
+import gc
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
+from dataclasses import dataclass
+from enum import Enum
 
 from loguru import logger
 
-try:
-    import psutil
 
-    PSUTIL_AVAILABLE = True
-except ImportError:
-    PSUTIL_AVAILABLE = False
-    logger.warning("psutil не установлен, мониторинг системы недоступен")
+class PerformanceLevel(Enum):
+    """Уровни производительности"""
+    EXCELLENT = "excellent"  # > 80%
+    GOOD = "good"           # 60-80%
+    FAIR = "fair"           # 40-60%
+    POOR = "poor"           # 20-40%
+    CRITICAL = "critical"   # < 20%
 
 
 @dataclass
-class PerformanceMetric:
-    """Метрика производительности"""
-
-    name: str
-    value: float
+class PerformanceMetrics:
+    """Метрики производительности"""
     timestamp: datetime
-    tags: Dict[str, str] = field(default_factory=dict)
-    unit: str = ""
-
-
-@dataclass
-class SystemMetrics:
-    """Системные метрики"""
-
     cpu_percent: float
     memory_percent: float
-    memory_used_mb: float
-    memory_available_mb: float
-    disk_usage_percent: float
-    disk_free_mb: float
-    network_bytes_sent: int
-    network_bytes_recv: int
-    timestamp: datetime
-
-
-@dataclass
-class DatabaseMetrics:
-    """Метрики базы данных"""
-
-    connection_count: int
+    memory_available: int
+    disk_percent: float
+    disk_free: int
     active_connections: int
-    query_count: int
-    slow_queries: int
-    avg_query_time_ms: float
-    cache_hit_ratio: float
-    timestamp: datetime
-
-
-@dataclass
-class ApplicationMetrics:
-    """Метрики приложения"""
-
-    active_users: int
-    messages_per_minute: int
-    ai_requests_per_minute: int
-    moderation_blocks_per_minute: int
-    cache_hit_rate: float
+    response_time_avg: float
     error_rate: float
-    response_time_avg_ms: float
-    timestamp: datetime
+    queue_size: int
 
 
 class PerformanceMonitor:
-    """
-    Монитор производительности PandaPal
-    Собирает и анализирует метрики в реальном времени
-    """
-
-    def __init__(self, metrics_retention_hours: int = 24):
-        """
-        Инициализация монитора производительности
-
-        Args:
-            metrics_retention_hours: Время хранения метрик в часах
-        """
-        self.metrics_retention_hours = metrics_retention_hours
-
-        # Хранилище метрик
-        self._system_metrics: deque = deque(maxlen=1000)
-        self._database_metrics: deque = deque(maxlen=1000)
-        self._application_metrics: deque = deque(maxlen=1000)
-        self._custom_metrics: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
-
-        # Счетчики для расчета метрик
-        self._message_count = 0
-        self._ai_request_count = 0
-        self._moderation_block_count = 0
-        self._error_count = 0
-        self._response_times: deque = deque(maxlen=100)
-
-        # Время последнего сброса счетчиков
-        self._last_reset = datetime.utcnow()
-
-        # Блокировка для потокобезопасности
-        self._lock = threading.Lock()
-
-        # Флаг работы монитора
-        self._running = False
-        self._monitor_task: Optional[asyncio.Task] = None
-
-        logger.info("📊 Монитор производительности инициализирован")
-
-    async def start(self, interval_seconds: int = 60):
-        """
-        Запуск мониторинга
-
-        Args:
-            interval_seconds: Интервал сбора метрик в секундах
-        """
-        if self._running:
-            logger.warning("⚠️ Монитор производительности уже запущен")
+    """⚡ Монитор производительности системы"""
+    
+    def __init__(self):
+        self.metrics_history: List[PerformanceMetrics] = []
+        self.max_history = 100  # Максимум записей в истории
+        self.current_performance = PerformanceLevel.EXCELLENT
+        self.is_monitoring = False
+        self._monitoring_task: Optional[asyncio.Task] = None
+        
+        # Пороги для уровней производительности
+        self.thresholds = {
+            "cpu_warning": 70.0,
+            "cpu_critical": 90.0,
+            "memory_warning": 80.0,
+            "memory_critical": 95.0,
+            "disk_warning": 85.0,
+            "disk_critical": 95.0,
+            "response_warning": 2.0,  # секунды
+            "response_critical": 5.0,
+            "error_rate_warning": 5.0,  # процент
+            "error_rate_critical": 15.0,
+        }
+        
+        # Статистика
+        self.stats = {
+            "optimizations_performed": 0,
+            "last_optimization": None,
+            "performance_degradations": 0,
+            "recoveries": 0,
+        }
+    
+    async def start_monitoring(self):
+        """Запуск мониторинга производительности"""
+        if self.is_monitoring:
+            logger.warning("⚠️ Мониторинг производительности уже запущен")
             return
-
-        self._running = True
-        self._monitor_task = asyncio.create_task(self._monitoring_loop(interval_seconds))
-
-        logger.info(f"🚀 Мониторинг производительности запущен (интервал: {interval_seconds}с)")
-
-    async def stop(self):
+        
+        self.is_monitoring = True
+        self._monitoring_task = asyncio.create_task(self._monitoring_loop())
+        logger.info("⚡ Мониторинг производительности запущен")
+    
+    async def stop_monitoring(self):
         """Остановка мониторинга"""
-        if not self._running:
-            return
-
-        self._running = False
-
-        if self._monitor_task:
-            self._monitor_task.cancel()
+        self.is_monitoring = False
+        if self._monitoring_task:
+            self._monitoring_task.cancel()
             try:
-                await self._monitor_task
+                await self._monitoring_task
             except asyncio.CancelledError:
                 pass
-
-        logger.info("🛑 Мониторинг производительности остановлен")
-
-    async def _monitoring_loop(self, interval_seconds: int):
+        logger.info("⚡ Мониторинг производительности остановлен")
+    
+    async def _monitoring_loop(self):
         """Основной цикл мониторинга"""
-        while self._running:
+        while self.is_monitoring:
             try:
-                # Собираем все метрики
-                await self._collect_system_metrics()
-                await self._collect_database_metrics()
-                await self._collect_application_metrics()
-
-                # Очищаем старые метрики
-                await self._cleanup_old_metrics()
-
-                # Ждем следующий цикл
-                await asyncio.sleep(interval_seconds)
-
-            except asyncio.CancelledError:
-                break
+                await self._collect_metrics()
+                await self._analyze_performance()
+                await self._check_for_optimization()
+                await asyncio.sleep(30)  # Проверяем каждые 30 секунд
+                
             except Exception as e:
-                logger.error(f"❌ Ошибка в цикле мониторинга: {e}")
-                await asyncio.sleep(interval_seconds)
-
-    async def _collect_system_metrics(self):
-        """Сбор системных метрик"""
-        if not PSUTIL_AVAILABLE:
-            return
-
+                logger.error(f"❌ Ошибка в цикле мониторинга производительности: {e}")
+                await asyncio.sleep(10)
+    
+    async def _collect_metrics(self):
+        """Сбор метрик производительности"""
         try:
-            # CPU
+            # Системные метрики
             cpu_percent = psutil.cpu_percent(interval=1)
-
-            # Память
             memory = psutil.virtual_memory()
-            memory_percent = memory.percent
-            memory_used_mb = memory.used / 1024 / 1024
-            memory_available_mb = memory.available / 1024 / 1024
-
-            # Диск
-            disk = psutil.disk_usage("/")
-            disk_usage_percent = (disk.used / disk.total) * 100
-            disk_free_mb = disk.free / 1024 / 1024
-
-            # Сеть
-            network = psutil.net_io_counters()
-            network_bytes_sent = network.bytes_sent
-            network_bytes_recv = network.bytes_recv
-
-            metrics = SystemMetrics(
-                cpu_percent=cpu_percent,
-                memory_percent=memory_percent,
-                memory_used_mb=memory_used_mb,
-                memory_available_mb=memory_available_mb,
-                disk_usage_percent=disk_usage_percent,
-                disk_free_mb=disk_free_mb,
-                network_bytes_sent=network_bytes_sent,
-                network_bytes_recv=network_bytes_recv,
-                timestamp=datetime.utcnow(),
-            )
-
-            with self._lock:
-                self._system_metrics.append(metrics)
-
-        except Exception as e:
-            logger.error(f"❌ Ошибка сбора системных метрик: {e}")
-
-    async def _collect_database_metrics(self):
-        """Сбор метрик базы данных"""
-        try:
-            # Здесь можно добавить реальные метрики БД
-            # Пока используем заглушки
-
-            # Получаем реальные метрики из БД
-            connection_count = await self._get_real_connection_count()
-            active_connections = await self._get_real_active_connections()
-
-            metrics = DatabaseMetrics(
-                connection_count=connection_count,
-                active_connections=active_connections,
-                query_count=self._get_query_count(),
-                slow_queries=self._get_slow_query_count(),
-                avg_query_time_ms=self._get_avg_query_time(),
-                cache_hit_ratio=self._get_cache_hit_ratio(),
-                timestamp=datetime.utcnow(),
-            )
-
-            with self._lock:
-                self._database_metrics.append(metrics)
-
-        except Exception as e:
-            logger.error(f"❌ Ошибка сбора метрик БД: {e}")
-
-    async def _collect_application_metrics(self):
-        """Сбор метрик приложения"""
-        try:
-            now = datetime.utcnow()
-            time_diff = (now - self._last_reset).total_seconds()
-
-            # Рассчитываем метрики в минуту
-            messages_per_minute = (self._message_count / time_diff) * 60 if time_diff > 0 else 0
-            ai_requests_per_minute = (
-                (self._ai_request_count / time_diff) * 60 if time_diff > 0 else 0
-            )
-            moderation_blocks_per_minute = (
-                (self._moderation_block_count / time_diff) * 60 if time_diff > 0 else 0
-            )
-
-            # Рассчитываем среднее время ответа
-            avg_response_time = 0
-            if self._response_times:
-                avg_response_time = sum(self._response_times) / len(self._response_times)
-
-            # Рассчитываем процент ошибок
-            total_requests = self._message_count + self._ai_request_count
-            error_rate = (self._error_count / total_requests * 100) if total_requests > 0 else 0
-
-            metrics = ApplicationMetrics(
-                active_users=self._get_active_users_count(),
-                messages_per_minute=messages_per_minute,
-                ai_requests_per_minute=ai_requests_per_minute,
-                moderation_blocks_per_minute=moderation_blocks_per_minute,
-                cache_hit_rate=self._get_cache_hit_rate(),
-                error_rate=error_rate,
-                response_time_avg_ms=avg_response_time,
-                timestamp=now,
-            )
-
-            with self._lock:
-                self._application_metrics.append(metrics)
-
-        except Exception as e:
-            logger.error(f"❌ Ошибка сбора метрик приложения: {e}")
-
-    def record_message(self):
-        """Записать отправку сообщения"""
-        with self._lock:
-            self._message_count += 1
-
-    def record_ai_request(self):
-        """Записать запрос к AI"""
-        with self._lock:
-            self._ai_request_count += 1
-
-    def record_moderation_block(self):
-        """Записать блокировку модерацией"""
-        with self._lock:
-            self._moderation_block_count += 1
-
-    def record_error(self):
-        """Записать ошибку"""
-        with self._lock:
-            self._error_count += 1
-
-    def record_response_time(self, response_time_ms: float):
-        """Записать время ответа"""
-        with self._lock:
-            self._response_times.append(response_time_ms)
-
-    def record_custom_metric(
-        self, name: str, value: float, tags: Dict[str, str] = None, unit: str = ""
-    ):
-        """Записать пользовательскую метрику"""
-        metric = PerformanceMetric(
-            name=name, value=value, timestamp=datetime.utcnow(), tags=tags or {}, unit=unit
-        )
-
-        with self._lock:
-            self._custom_metrics[name].append(metric)
-
-    def get_system_metrics(self, limit: int = 100) -> List[SystemMetrics]:
-        """Получить системные метрики"""
-        with self._lock:
-            return list(self._system_metrics)[-limit:]
-
-    def get_database_metrics(self, limit: int = 100) -> List[DatabaseMetrics]:
-        """Получить метрики базы данных"""
-        with self._lock:
-            return list(self._database_metrics)[-limit:]
-
-    def get_application_metrics(self, limit: int = 100) -> List[ApplicationMetrics]:
-        """Получить метрики приложения"""
-        with self._lock:
-            return list(self._application_metrics)[-limit:]
-
-    def get_custom_metrics(self, name: str, limit: int = 100) -> List[PerformanceMetric]:
-        """Получить пользовательские метрики"""
-        with self._lock:
-            return list(self._custom_metrics.get(name, []))[-limit:]
-
-    def get_performance_summary(self) -> Dict[str, Any]:
-        """Получить сводку по производительности"""
-        with self._lock:
-            now = datetime.utcnow()
-
-            # Последние метрики
-            latest_system = self._system_metrics[-1] if self._system_metrics else None
-            latest_db = self._database_metrics[-1] if self._database_metrics else None
-            latest_app = self._application_metrics[-1] if self._application_metrics else None
-
-            # Рассчитываем тренды за последний час
-            hour_ago = now - timedelta(hours=1)
-
-            system_trend = self._calculate_trend(self._system_metrics, "cpu_percent", hour_ago)
-            db_trend = self._calculate_trend(self._database_metrics, "avg_query_time_ms", hour_ago)
-            app_trend = self._calculate_trend(
-                self._application_metrics, "response_time_avg_ms", hour_ago
-            )
-
-            return {
-                "timestamp": now.isoformat(),
-                "system": {
-                    "cpu_percent": latest_system.cpu_percent if latest_system else 0,
-                    "memory_percent": latest_system.memory_percent if latest_system else 0,
-                    "disk_usage_percent": latest_system.disk_usage_percent if latest_system else 0,
-                    "cpu_trend": system_trend,
-                },
-                "database": {
-                    "avg_query_time_ms": latest_db.avg_query_time_ms if latest_db else 0,
-                    "cache_hit_ratio": latest_db.cache_hit_ratio if latest_db else 0,
-                    "query_time_trend": db_trend,
-                },
-                "application": {
-                    "active_users": latest_app.active_users if latest_app else 0,
-                    "messages_per_minute": latest_app.messages_per_minute if latest_app else 0,
-                    "error_rate": latest_app.error_rate if latest_app else 0,
-                    "response_time_trend": app_trend,
-                },
-                "health": self._calculate_health_score(latest_system, latest_db, latest_app),
-            }
-
-    def _calculate_trend(self, metrics_deque: deque, field_name: str, since: datetime) -> float:
-        """Рассчитать тренд метрики"""
-        if not metrics_deque:
-            return 0.0
-
-        # Получаем метрики за указанный период
-        recent_metrics = [
-            getattr(metric, field_name) for metric in metrics_deque if metric.timestamp >= since
-        ]
-
-        if len(recent_metrics) < 2:
-            return 0.0
-
-        # Простое вычисление тренда (изменение за период)
-        return recent_metrics[-1] - recent_metrics[0]
-
-    def _calculate_health_score(
-        self, system: SystemMetrics, db: DatabaseMetrics, app: ApplicationMetrics
-    ) -> float:
-        """Рассчитать общий индекс здоровья системы (0-100)"""
-        score = 100.0
-
-        # Штрафы за высокую нагрузку
-        if system and system.cpu_percent > 80:
-            score -= 20
-        if system and system.memory_percent > 90:
-            score -= 20
-        if system and system.disk_usage_percent > 95:
-            score -= 15
-
-        # Штрафы за медленные запросы
-        if db and db.avg_query_time_ms > 1000:
-            score -= 15
-        if db and db.cache_hit_ratio < 0.8:
-            score -= 10
-
-        # Штрафы за ошибки приложения
-        if app and app.error_rate > 5:
-            score -= 20
-        if app and app.response_time_avg_ms > 5000:
-            score -= 15
-
-        return max(0.0, score)
-
-    async def _cleanup_old_metrics(self):
-        """Очистка старых метрик"""
-        cutoff_time = datetime.utcnow() - timedelta(hours=self.metrics_retention_hours)
-
-        with self._lock:
-            # Очищаем системные метрики
-            while self._system_metrics and self._system_metrics[0].timestamp < cutoff_time:
-                self._system_metrics.popleft()
-
-            # Очищаем метрики БД
-            while self._database_metrics and self._database_metrics[0].timestamp < cutoff_time:
-                self._database_metrics.popleft()
-
-            # Очищаем метрики приложения
-            while (
-                self._application_metrics and self._application_metrics[0].timestamp < cutoff_time
-            ):
-                self._application_metrics.popleft()
-
-            # Очищаем пользовательские метрики
-            for metric_name in list(self._custom_metrics.keys()):
-                while (
-                    self._custom_metrics[metric_name]
-                    and self._custom_metrics[metric_name][0].timestamp < cutoff_time
-                ):
-                    self._custom_metrics[metric_name].popleft()
-
-                # Удаляем пустые коллекции
-                if not self._custom_metrics[metric_name]:
-                    del self._custom_metrics[metric_name]
-
-    def _get_query_count(self) -> int:
-        """Получить количество запросов к БД"""
-        # TODO: реализовать подсчет запросов
-        return 0
-
-    def _get_slow_query_count(self) -> int:
-        """Получить количество медленных запросов"""
-        # TODO: реализовать подсчет медленных запросов
-        return 0
-
-    def _get_avg_query_time(self) -> float:
-        """Получить среднее время выполнения запроса"""
-        # TODO: реализовать расчет среднего времени
-        return 0.0
-
-    def _get_cache_hit_ratio(self) -> float:
-        """Получить коэффициент попаданий в кэш"""
-        try:
-            # Получаем реальные метрики кэша
-            cache_service = self._get_cache_service()
-            if cache_service:
-                hits = cache_service.get_cache_hits()
-                misses = cache_service.get_cache_misses()
-                total = hits + misses
-                return hits / total if total > 0 else 0.0
-            return 0.85  # Fallback значение
-        except Exception:
-            return 0.85  # Fallback при ошибке
-
-    def _get_active_users_count(self) -> int:
-        """Получить количество активных пользователей"""
-        try:
-            # Получаем количество активных пользователей за последние 5 минут
-            from bot.database import get_db
-            from bot.models import User
-            from sqlalchemy import select, func
-            from datetime import datetime, timedelta
-
-            active_threshold = datetime.utcnow() - timedelta(minutes=5)
-
-            async def get_count():
-                async with get_db() as db:
-                    stmt = select(func.count(User.id)).where(
-                        User.is_active.is_(True), User.created_at >= active_threshold
-                    )
-                    result = await db.execute(stmt)
-                    return result.scalar() or 0
-
-            # Для синхронного вызова
-            import asyncio
-
+            disk = psutil.disk_usage('/')
+            
+            # Метрики приложения
+            active_connections = len(psutil.net_connections())
+            
+            # Метрики бота (если доступны)
+            queue_size = 0
+            response_time_avg = 0.0
+            error_rate = 0.0
+            
             try:
-                loop = asyncio.get_event_loop()
-                return loop.run_until_complete(get_count())
-            except RuntimeError:
-                # Если нет активного loop, создаем новый
-                return asyncio.run(get_count())
-        except Exception:
-            return 0  # Fallback при ошибке
-
-    async def _get_real_connection_count(self) -> int:
-        """Получить реальное количество подключений к БД"""
+                from bot.services.bot_24_7_service import bot_24_7_service
+                if bot_24_7_service:
+                    queue_size = len(bot_24_7_service.message_queue)
+                    # Здесь можно добавить расчет среднего времени ответа
+            except:
+                pass
+            
+            # Создаем метрику
+            metric = PerformanceMetrics(
+                timestamp=datetime.now(),
+                cpu_percent=cpu_percent,
+                memory_percent=memory.percent,
+                memory_available=memory.available,
+                disk_percent=disk.percent,
+                disk_free=disk.free,
+                active_connections=active_connections,
+                response_time_avg=response_time_avg,
+                error_rate=error_rate,
+                queue_size=queue_size,
+            )
+            
+            # Добавляем в историю
+            self.metrics_history.append(metric)
+            
+            # Ограничиваем размер истории
+            if len(self.metrics_history) > self.max_history:
+                self.metrics_history = self.metrics_history[-self.max_history:]
+            
+            logger.debug(f"📊 Метрики собраны: CPU={cpu_percent:.1f}%, RAM={memory.percent:.1f}%, Queue={queue_size}")
+            
+        except Exception as e:
+            logger.error(f"❌ Ошибка сбора метрик: {e}")
+    
+    async def _analyze_performance(self):
+        """Анализ производительности"""
+        if not self.metrics_history:
+            return
+        
+        latest_metric = self.metrics_history[-1]
+        
+        # Определяем уровень производительности
+        performance_score = self._calculate_performance_score(latest_metric)
+        
+        # Обновляем текущий уровень
+        old_performance = self.current_performance
+        self.current_performance = self._get_performance_level(performance_score)
+        
+        # Логируем изменения
+        if old_performance != self.current_performance:
+            if self._is_performance_degradation(old_performance, self.current_performance):
+                self.stats["performance_degradations"] += 1
+                logger.warning(f"⚠️ Деградация производительности: {old_performance.value} → {self.current_performance.value}")
+            else:
+                self.stats["recoveries"] += 1
+                logger.info(f"✅ Восстановление производительности: {old_performance.value} → {self.current_performance.value}")
+    
+    def _calculate_performance_score(self, metric: PerformanceMetrics) -> float:
+        """Расчет общего балла производительности"""
+        scores = []
+        
+        # CPU (чем меньше, тем лучше)
+        cpu_score = max(0, 100 - metric.cpu_percent)
+        scores.append(cpu_score)
+        
+        # Memory (чем больше свободной, тем лучше)
+        memory_score = max(0, 100 - metric.memory_percent)
+        scores.append(memory_score)
+        
+        # Disk (чем больше свободной, тем лучше)
+        disk_score = max(0, 100 - metric.disk_percent)
+        scores.append(disk_score)
+        
+        # Response time (чем быстрее, тем лучше)
+        if metric.response_time_avg > 0:
+            response_score = max(0, 100 - (metric.response_time_avg * 20))  # 5 сек = 0 баллов
+        else:
+            response_score = 100
+        scores.append(response_score)
+        
+        # Error rate (чем меньше ошибок, тем лучше)
+        error_score = max(0, 100 - metric.error_rate * 5)  # 20% ошибок = 0 баллов
+        scores.append(error_score)
+        
+        # Возвращаем средний балл
+        return sum(scores) / len(scores)
+    
+    def _get_performance_level(self, score: float) -> PerformanceLevel:
+        """Определение уровня производительности по баллу"""
+        if score >= 80:
+            return PerformanceLevel.EXCELLENT
+        elif score >= 60:
+            return PerformanceLevel.GOOD
+        elif score >= 40:
+            return PerformanceLevel.FAIR
+        elif score >= 20:
+            return PerformanceLevel.POOR
+        else:
+            return PerformanceLevel.CRITICAL
+    
+    def _is_performance_degradation(self, old: PerformanceLevel, new: PerformanceLevel) -> bool:
+        """Проверка деградации производительности"""
+        levels = [PerformanceLevel.EXCELLENT, PerformanceLevel.GOOD, PerformanceLevel.FAIR, PerformanceLevel.POOR, PerformanceLevel.CRITICAL]
+        old_index = levels.index(old)
+        new_index = levels.index(new)
+        return new_index > old_index
+    
+    async def _check_for_optimization(self):
+        """Проверка необходимости оптимизации"""
+        if not self.metrics_history:
+            return
+        
+        latest_metric = self.metrics_history[-1]
+        
+        # Проверяем критические пороги
+        optimizations_needed = []
+        
+        if latest_metric.cpu_percent > self.thresholds["cpu_critical"]:
+            optimizations_needed.append("cpu_critical")
+        elif latest_metric.cpu_percent > self.thresholds["cpu_warning"]:
+            optimizations_needed.append("cpu_warning")
+        
+        if latest_metric.memory_percent > self.thresholds["memory_critical"]:
+            optimizations_needed.append("memory_critical")
+        elif latest_metric.memory_percent > self.thresholds["memory_warning"]:
+            optimizations_needed.append("memory_warning")
+        
+        if latest_metric.disk_percent > self.thresholds["disk_critical"]:
+            optimizations_needed.append("disk_critical")
+        elif latest_metric.disk_percent > self.thresholds["disk_warning"]:
+            optimizations_needed.append("disk_warning")
+        
+        if latest_metric.response_time_avg > self.thresholds["response_critical"]:
+            optimizations_needed.append("response_critical")
+        elif latest_metric.response_time_avg > self.thresholds["response_warning"]:
+            optimizations_needed.append("response_warning")
+        
+        if latest_metric.error_rate > self.thresholds["error_rate_critical"]:
+            optimizations_needed.append("error_rate_critical")
+        elif latest_metric.error_rate > self.thresholds["error_rate_warning"]:
+            optimizations_needed.append("error_rate_warning")
+        
+        # Выполняем оптимизации
+        if optimizations_needed:
+            await self._perform_optimizations(optimizations_needed, latest_metric)
+    
+    async def _perform_optimizations(self, optimizations: List[str], metric: PerformanceMetrics):
+        """Выполнение оптимизаций"""
+        logger.warning(f"⚡ Выполняем оптимизации: {', '.join(optimizations)}")
+        
+        for optimization in optimizations:
+            try:
+                if optimization == "cpu_critical" or optimization == "cpu_warning":
+                    await self._optimize_cpu()
+                
+                elif optimization == "memory_critical" or optimization == "memory_warning":
+                    await self._optimize_memory()
+                
+                elif optimization == "disk_critical" or optimization == "disk_warning":
+                    await self._optimize_disk()
+                
+                elif optimization == "response_critical" or optimization == "response_warning":
+                    await self._optimize_response_time()
+                
+                elif optimization == "error_rate_critical" or optimization == "error_rate_warning":
+                    await self._optimize_error_rate()
+                
+                self.stats["optimizations_performed"] += 1
+                self.stats["last_optimization"] = datetime.now()
+                
+            except Exception as e:
+                logger.error(f"❌ Ошибка оптимизации {optimization}: {e}")
+    
+    async def _optimize_cpu(self):
+        """Оптимизация CPU"""
+        logger.info("⚡ Оптимизация CPU...")
+        
+        # Снижаем приоритет процесса
         try:
-            from bot.database import engine
-
-            # Получаем информацию о пуле подключений
-            pool = engine.pool
-            return pool.size() if hasattr(pool, "size") else 10
-        except Exception:
-            return 10  # Fallback значение
-
-    async def _get_real_active_connections(self) -> int:
-        """Получить количество активных подключений"""
-        try:
-            from bot.database import engine
-
-            pool = engine.pool
-            return pool.checkedin() if hasattr(pool, "checkedin") else 5
-        except Exception:
-            return 5  # Fallback значение
-
-    def _get_cache_service(self):
-        """Получить сервис кэширования"""
+            import os
+            os.nice(1)  # Увеличиваем nice value
+        except:
+            pass
+        
+        # Принудительная сборка мусора
+        gc.collect()
+        
+        # Пауза для снижения нагрузки
+        await asyncio.sleep(0.1)
+    
+    async def _optimize_memory(self):
+        """Оптимизация памяти"""
+        logger.info("⚡ Оптимизация памяти...")
+        
+        # Принудительная сборка мусора
+        collected = gc.collect()
+        logger.info(f"🧹 Собрано объектов: {collected}")
+        
+        # Очистка кэшей (если доступно)
         try:
             from bot.services.cache_service import cache_service
-
-            return cache_service
-        except ImportError:
-            return None
-
-    async def export_metrics(self, format_type: str = "json") -> str:
-        """
-        Экспорт метрик в различных форматах
-
-        Args:
-            format_type: Тип формата (json, prometheus)
-
-        Returns:
-            Строка с метриками
-        """
-        if format_type == "json":
-            summary = self.get_performance_summary()
-            return json.dumps(summary, indent=2, ensure_ascii=False)
-
-        elif format_type == "prometheus":
-            return self._export_prometheus_metrics()
-
+            if cache_service:
+                cache_service.clear_expired()
+        except:
+            pass
+    
+    async def _optimize_disk(self):
+        """Оптимизация дискового пространства"""
+        logger.info("⚡ Оптимизация дискового пространства...")
+        
+        # Очистка временных файлов
+        import tempfile
+        import shutil
+        
+        try:
+            temp_dir = tempfile.gettempdir()
+            # Очищаем только наши временные файлы
+            for item in os.listdir(temp_dir):
+                if item.startswith('pandapal_'):
+                    item_path = os.path.join(temp_dir, item)
+                    if os.path.isfile(item_path):
+                        os.remove(item_path)
+                    elif os.path.isdir(item_path):
+                        shutil.rmtree(item_path)
+        except Exception as e:
+            logger.warning(f"⚠️ Ошибка очистки временных файлов: {e}")
+    
+    async def _optimize_response_time(self):
+        """Оптимизация времени ответа"""
+        logger.info("⚡ Оптимизация времени ответа...")
+        
+        # Очистка очереди сообщений (если переполнена)
+        try:
+            from bot.services.bot_24_7_service import bot_24_7_service
+            if bot_24_7_service and len(bot_24_7_service.message_queue) > 100:
+                # Удаляем старые сообщения с низким приоритетом
+                bot_24_7_service.message_queue.sort(key=lambda x: (x.priority, x.timestamp))
+                bot_24_7_service.message_queue = bot_24_7_service.message_queue[:50]
+                logger.info("🧹 Очищена очередь сообщений")
+        except:
+            pass
+    
+    async def _optimize_error_rate(self):
+        """Оптимизация частоты ошибок"""
+        logger.info("⚡ Оптимизация частоты ошибок...")
+        
+        # Перезапуск проблемных сервисов
+        try:
+            from bot.services.ai_fallback_service import ai_fallback_service
+            if ai_fallback_service:
+                # Сброс счетчиков ошибок
+                for provider in ai_fallback_service.provider_errors:
+                    ai_fallback_service.provider_errors[provider] = 0
+                logger.info("🔄 Сброшены счетчики ошибок AI провайдеров")
+        except:
+            pass
+    
+    def get_performance_report(self) -> Dict[str, Any]:
+        """Получение отчета о производительности"""
+        if not self.metrics_history:
+            return {"error": "Нет данных о производительности"}
+        
+        latest = self.metrics_history[-1]
+        
+        # Анализ трендов
+        if len(self.metrics_history) >= 5:
+            recent_avg_cpu = sum(m.cpu_percent for m in self.metrics_history[-5:]) / 5
+            recent_avg_memory = sum(m.memory_percent for m in self.metrics_history[-5:]) / 5
         else:
-            raise ValueError(f"Неподдерживаемый формат: {format_type}")
-
-    def _export_prometheus_metrics(self) -> str:
-        """Экспорт метрик в формате Prometheus"""
-        lines = []
-
-        # Системные метрики
-        if self._system_metrics:
-            latest = self._system_metrics[-1]
-            lines.append("# HELP system_cpu_percent CPU usage percentage")
-            lines.append("# TYPE system_cpu_percent gauge")
-            lines.append(f"system_cpu_percent {latest.cpu_percent}")
-
-            lines.append("# HELP system_memory_percent Memory usage percentage")
-            lines.append("# TYPE system_memory_percent gauge")
-            lines.append(f"system_memory_percent {latest.memory_percent}")
-
-        # Метрики приложения
-        if self._application_metrics:
-            latest = self._application_metrics[-1]
-            lines.append("# HELP app_messages_per_minute Messages per minute")
-            lines.append("# TYPE app_messages_per_minute gauge")
-            lines.append(f"app_messages_per_minute {latest.messages_per_minute}")
-
-            lines.append("# HELP app_error_rate Error rate percentage")
-            lines.append("# TYPE app_error_rate gauge")
-            lines.append(f"app_error_rate {latest.error_rate}")
-
-        return "\n".join(lines)
+            recent_avg_cpu = latest.cpu_percent
+            recent_avg_memory = latest.memory_percent
+        
+        return {
+            "current_performance": self.current_performance.value,
+            "current_metrics": {
+                "cpu_percent": latest.cpu_percent,
+                "memory_percent": latest.memory_percent,
+                "memory_available_gb": latest.memory_available // (1024**3),
+                "disk_percent": latest.disk_percent,
+                "disk_free_gb": latest.disk_free // (1024**3),
+                "queue_size": latest.queue_size,
+                "active_connections": latest.active_connections,
+            },
+            "trends": {
+                "avg_cpu_5min": recent_avg_cpu,
+                "avg_memory_5min": recent_avg_memory,
+            },
+            "statistics": self.stats,
+            "thresholds": self.thresholds,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    def get_optimization_recommendations(self) -> List[str]:
+        """Получение рекомендаций по оптимизации"""
+        recommendations = []
+        
+        if not self.metrics_history:
+            return recommendations
+        
+        latest = self.metrics_history[-1]
+        
+        if latest.cpu_percent > self.thresholds["cpu_warning"]:
+            recommendations.append("Высокая нагрузка CPU - рассмотрите масштабирование")
+        
+        if latest.memory_percent > self.thresholds["memory_warning"]:
+            recommendations.append("Высокое использование памяти - очистите кэши")
+        
+        if latest.disk_percent > self.thresholds["disk_warning"]:
+            recommendations.append("Мало свободного места на диске - очистите логи")
+        
+        if latest.queue_size > 50:
+            recommendations.append("Большая очередь сообщений - увеличьте производительность")
+        
+        if self.current_performance in [PerformanceLevel.POOR, PerformanceLevel.CRITICAL]:
+            recommendations.append("Критическая производительность - требуется вмешательство")
+        
+        return recommendations
 
 
 # Глобальный экземпляр монитора производительности
 performance_monitor = PerformanceMonitor()
-
-
-# Декораторы для автоматического мониторинга
-def monitor_performance(func):
-    """Декоратор для мониторинга производительности функций"""
-
-    async def async_wrapper(*args, **kwargs):
-        start_time = time.time()
-
-        try:
-            result = await func(*args, **kwargs)
-            performance_monitor.record_response_time((time.time() - start_time) * 1000)
-            return result
-        except Exception:
-            performance_monitor.record_error()
-            raise
-
-    def sync_wrapper(*args, **kwargs):
-        start_time = time.time()
-
-        try:
-            result = func(*args, **kwargs)
-            performance_monitor.record_response_time((time.time() - start_time) * 1000)
-            return result
-        except Exception:
-            performance_monitor.record_error()
-            raise
-
-    if asyncio.iscoroutinefunction(func):
-        return async_wrapper
-    else:
-        return sync_wrapper

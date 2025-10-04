@@ -14,6 +14,10 @@ from loguru import logger
 from bot.config import settings
 from bot.database import init_db, DatabaseService
 from bot.handlers import routers
+from bot.services.health_monitor import health_monitor
+from bot.services.ai_fallback_service import ai_fallback_service
+from bot.services.error_recovery_service import error_recovery_service
+from bot.services.bot_24_7_service import Bot24_7Service
 
 
 # Настройка логирования
@@ -38,6 +42,7 @@ async def on_startup():
     - Проверка подключения к БД
     - Инициализация таблиц
     - Проверка API ключей
+    - Запуск системы мониторинга 24/7
     """
     logger.info("🚀 Запуск PandaPal Bot...")
     
@@ -62,6 +67,13 @@ async def on_startup():
         logger.error(f"❌ Ошибка инициализации Gemini: {e}")
         sys.exit(1)
     
+    # Запуск системы мониторинга здоровья
+    try:
+        await health_monitor.start_monitoring()
+        logger.info("🛡️ Система мониторинга здоровья запущена")
+    except Exception as e:
+        logger.error(f"❌ Ошибка запуска мониторинга: {e}")
+    
     logger.success("✅ Бот запущен успешно!")
 
 
@@ -71,13 +83,21 @@ async def on_shutdown():
     Cleanup ресурсов
     """
     logger.info("⏹️ Остановка бота...")
+    
+    # Остановка системы мониторинга
+    try:
+        await health_monitor.stop_monitoring()
+        logger.info("🛡️ Система мониторинга остановлена")
+    except Exception as e:
+        logger.error(f"❌ Ошибка остановки мониторинга: {e}")
+    
     logger.success("👋 Бот остановлен")
 
 
 async def main():
     """
     Главная функция запуска бота
-    Инициализирует Bot, Dispatcher и запускает polling
+    Инициализирует Bot, Dispatcher и запускает режим 24/7
     """
     # Инициализация бота
     bot = Bot(
@@ -98,28 +118,49 @@ async def main():
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
     
-    # Удаляем вебхук (если был) и запускаем polling
-    await bot.delete_webhook(drop_pending_updates=True)
-    
     # Включаем распознавание речи для голосовых сообщений
     await bot.set_my_commands([
         {"command": "start", "description": "Начать работу с ботом"},
-        {"command": "help", "description": "Помощь по использованию"}
+        {"command": "help", "description": "Помощь по использованию"},
+        {"command": "status", "description": "Статус системы 24/7"},
+        {"command": "health", "description": "Проверка здоровья сервисов"}
     ])
     
     # Настраиваем бота для работы с голосовыми сообщениями
     logger.info("🎤 Настроено распознавание речи для голосовых сообщений")
     
-    logger.info("📡 Запуск polling...")
+    # Инициализация сервиса 24/7
+    bot_24_7 = Bot24_7Service(bot, dp)
     
-    # Запуск бота в режиме long polling
+    # Определяем webhook URL для Render
+    webhook_url = None
+    import os
+    if os.getenv("RENDER"):
+        port = os.getenv("PORT", "8000")
+        webhook_url = f"https://pandapal-bot.onrender.com/webhook"
+    
+    logger.info("🤖 Запуск режима 24/7...")
+    
+    # Запуск бота в режиме 24/7
     try:
-        await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+        await bot_24_7.start_24_7_mode(webhook_url)
+        
+        # Основной цикл работы
+        while bot_24_7.health.is_running:
+            await asyncio.sleep(1)
+            
     except KeyboardInterrupt:
         logger.info("⌨️ Получен сигнал остановки (Ctrl+C)")
     except Exception as e:
         logger.error(f"❌ Критическая ошибка: {e}")
+        logger.error(f"❌ Traceback: {traceback.format_exc()}")
     finally:
+        # Корректная остановка
+        try:
+            await bot_24_7.stop_24_7_mode()
+        except Exception as e:
+            logger.error(f"❌ Ошибка остановки 24/7: {e}")
+        
         await bot.session.close()
 
 

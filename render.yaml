@@ -4,20 +4,22 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python web_server.py
+    startCommand: python webhook_server.py
     envVars:
       - key: database_url
-        value: postgresql://pandapal_user:7rCuhY8R8C1fHvblUPdFjLzgMoLKn95D@dpg-d3bvnm37mgec73a3gjbg-a.frankfurt-postgres.render.com/pandapal_db
+        sync: false
       - key: telegram_bot_token
-        value: 8298992033:AAHINatNlTn_Dl1eFNjWc5wjQWBk0NGzmfU
+        sync: false
       - key: gemini_api_key
-        value: AIzaSyDc24ihn9SZn5EN0hrBzA2lYQMSjxC9z6M
+        sync: false
       - key: secret_key
-        value: oq$=tx3us5yoxnyd_9+^o9kp^4*xbaq6=ej6a+qco^=32h1g0m
+        sync: false
       - key: PORT
         value: 8000
       - key: PYTHON_VERSION
         value: "3.11.9"
+      - key: RENDER
+        value: "true"
     healthCheckPath: /health
     autoDeploy: true
     region: frankfurt
