@@ -213,18 +213,15 @@ def upgrade() -> None:
     
     # Вставляем конфигурации
     for config in configs:
-        op.execute(
-            sa.text("""
-                INSERT INTO analytics_config (config_key, config_value, config_type, description)
-                VALUES (:key, :value, :type, :description)
-            """),
-            {
-                'key': config['config_key'],
-                'value': json.dumps(config['config_value']),
-                'type': config['config_type'],
-                'description': config['description']
-            }
-        )
+        op.execute(sa.text("""
+            INSERT INTO analytics_config (config_key, config_value, config_type, description)
+            VALUES (:key, :value, :type, :description)
+        """).bindparams(
+            key=config['config_key'],
+            value=json.dumps(config['config_value']),
+            type=config['config_type'],
+            description=config['description']
+        ))
     
     # ============ ОБНОВЛЕНИЕ СТАТИСТИКИ ============
     op.execute("ANALYZE analytics_metrics")

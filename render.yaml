@@ -7,7 +7,7 @@ services:
     startCommand: python web_server.py
     envVars:
       - key: database_url
-        value: postgresql://pandapal_user:7rCuhY8R8C1fHvb1UPdFjLzgMoLKn95D@dpg-d3bvnm37mgec73a3gjbg-a.frankfurt-postgres.render.com/pandapal_db
+        value: postgresql://pandapal_user:7rCuhY8R8C1fHvblUPdFjLzgMoLKn95D@dpg-d3bvnm37mgec73a3gjbg-a.frankfurt-postgres.render.com/pandapal_db
       - key: telegram_bot_token
         value: 8298992033:AAHINatNlTn_Dl1eFNjWc5wjQWBk0NGzmfU
       - key: gemini_api_key
