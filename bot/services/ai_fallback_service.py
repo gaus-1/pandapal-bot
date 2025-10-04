@@ -155,8 +155,8 @@ class AIFallbackService:
     ) -> Optional[str]:
         """Попытка использования Gemini AI"""
         try:
-            from bot.services.ai_service import AIService
-            ai_service = AIService()
+            from bot.services.ai_service import GeminiAIService
+            ai_service = GeminiAIService()
             
             if message_type == "image" and image_data:
                 response = await ai_service.process_image_with_ai(image_data, message)
