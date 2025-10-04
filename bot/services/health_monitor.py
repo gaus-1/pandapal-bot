@@ -166,8 +166,8 @@ class HealthMonitor:
     async def _check_gemini_ai(self) -> bool:
         """Проверка Gemini AI"""
         try:
-            from bot.services.ai_service import AIService
-            ai_service = AIService()
+            from bot.services.ai_service import GeminiAIService
+            ai_service = GeminiAIService()
             # Простой тест - генерация короткого ответа
             response = await ai_service.generate_response("Тест")
             return response is not None and len(response) > 0
@@ -267,7 +267,7 @@ class HealthMonitor:
         """Восстановление Gemini AI"""
         try:
             # Переинициализация AI сервиса
-            from bot.services.ai_service import AIService
+            from bot.services.ai_service import GeminiAIService
             logger.info("🔄 Переинициализация Gemini AI")
             await asyncio.sleep(2)
         except Exception as e:

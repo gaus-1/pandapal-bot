@@ -89,6 +89,7 @@ class GeminiAIService:
         chat_history: List[Dict[str, str]] = None,
         user_age: Optional[int] = None,
         user_grade: Optional[int] = None,
+        user_telegram_id: int = 0,
     ) -> str:
         """
         Генерация ответа AI с учётом контекста и возраста
