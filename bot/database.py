@@ -22,6 +22,10 @@ engine = create_engine(
     poolclass=NullPool,
     echo=False,  # True для отладки SQL-запросов
     future=True,
+    connect_args={
+        "sslmode": "require",  # Требуем SSL для Render PostgreSQL
+        "connect_timeout": 10,  # Таймаут подключения 10 секунд
+    }
 )
 
 # Фабрика сессий
@@ -96,10 +100,19 @@ class DatabaseService:
             bool: True если подключение работает
         """
         try:
+            # Логируем URL для диагностики (без пароля)
+            db_url_clean = settings.database_url.replace(
+                settings.database_url.split('@')[0].split('//')[1], 
+                '***:***'
+            )
+            logger.info(f"🔍 Подключение к БД: {db_url_clean}")
+            
             with engine.connect() as conn:
-                conn.execute(text("SELECT 1"))
+                result = conn.execute(text("SELECT 1"))
+                logger.info(f"✅ Тест запроса успешен: {result.fetchone()}")
             logger.info("✅ Подключение к БД активно")
             return True
         except Exception as e:
             logger.error(f"❌ Ошибка подключения к БД: {e}")
+            logger.error(f"❌ URL БД (без пароля): {db_url_clean}")
             return False

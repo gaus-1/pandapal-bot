@@ -7,17 +7,15 @@ services:
     startCommand: python web_server.py
     envVars:
       - key: database_url
-        sync: false
+        value: postgresql://pandapal_user:7rCuhY8R8C1fHvb1UPdFjLzgMoLKn95D@dpg-d3bvnm37mgec73a3gjbg-a.frankfurt-postgres.render.com/pandapal_db
       - key: telegram_bot_token
-        sync: false
+        value: 8298992033:AAHINatNlTn_Dl1eFNjWc5wjQWBk0NGzmfU
       - key: gemini_api_key
-        sync: false
+        value: AIzaSyDc24ihn9SZn5EN0hrBzA2lYQMSjxC9z6M
       - key: secret_key
-        sync: false
+        value: oq$=tx3us5yoxnyd_9+^o9kp^4*xbaq6=ej6a+qco^=32h1g0m
       - key: PORT
         value: 8000
-      - key: PYTHON_VERSION
-        value: "3.11.9"
     healthCheckPath: /health
     autoDeploy: true
     region: frankfurt
