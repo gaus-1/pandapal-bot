@@ -16,6 +16,8 @@ services:
         value: oq$=tx3us5yoxnyd_9+^o9kp^4*xbaq6=ej6a+qco^=32h1g0m
       - key: PORT
         value: 8000
+      - key: PYTHON_VERSION
+        value: "3.11.9"
     healthCheckPath: /health
     autoDeploy: true
     region: frankfurt
