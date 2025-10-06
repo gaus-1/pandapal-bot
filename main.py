@@ -6,6 +6,7 @@ Entry point приложения
 
 import asyncio
 import sys
+import traceback
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -129,38 +130,25 @@ async def main():
     # Настраиваем бота для работы с голосовыми сообщениями
     logger.info("🎤 Настроено распознавание речи для голосовых сообщений")
     
-    # Инициализация сервиса 24/7
-    bot_24_7 = Bot24_7Service(bot, dp)
+    # ВРЕМЕННО ОТКЛЮЧАЕМ 24/7 СЕРВИС ИЗ-ЗА ПРОБЛЕМ С ДУБЛИРОВАНИЕМ
+    logger.info("Запуск простого polling режима...")
     
-    # Определяем webhook URL для Render
-    webhook_url = None
-    import os
-    if os.getenv("RENDER"):
-        port = os.getenv("PORT", "8000")
-        webhook_url = f"https://pandapal-bot.onrender.com/webhook"
-    
-    logger.info("🤖 Запуск режима 24/7...")
-    
-    # Запуск бота в режиме 24/7
+    # Простой polling без 24/7 сервиса
     try:
-        await bot_24_7.start_24_7_mode(webhook_url)
+        # Удаляем webhook если есть
+        await bot.delete_webhook(drop_pending_updates=True)
+        logger.info("Webhook удален, запускаем polling...")
         
-        # Основной цикл работы
-        while bot_24_7.health.is_running:
-            await asyncio.sleep(1)
-            
+        # Запускаем polling напрямую
+        await dp.start_polling(bot)
+        
     except KeyboardInterrupt:
-        logger.info("⌨️ Получен сигнал остановки (Ctrl+C)")
+        logger.info("Получен сигнал остановки (Ctrl+C)")
     except Exception as e:
-        logger.error(f"❌ Критическая ошибка: {e}")
-        logger.error(f"❌ Traceback: {traceback.format_exc()}")
+        logger.error(f"Критическая ошибка: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
     finally:
         # Корректная остановка
-        try:
-            await bot_24_7.stop_24_7_mode()
-        except Exception as e:
-            logger.error(f"❌ Ошибка остановки 24/7: {e}")
-        
         await bot.session.close()
 
 

@@ -4,6 +4,7 @@
 @module bot.handlers.start
 """
 
+from datetime import datetime
 from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
@@ -40,11 +41,20 @@ async def cmd_start(message: Message, state: FSMContext):
 
     logger.info(f"/start от пользователя {telegram_id} ({first_name})")
     
-    # Защита от дублирования - проверяем, не обрабатываем ли мы уже это сообщение
-    current_state = await state.get_state()
-    if current_state:
-        logger.warning(f"Пользователь {telegram_id} уже в состоянии {current_state}, пропускаем дублирующий /start")
-        return
+    # Защита от дублирования - проверяем время последнего сообщения
+    current_time = datetime.now()
+    last_message_time = getattr(cmd_start, '_last_message_times', {})
+    
+    if telegram_id in last_message_time:
+        time_diff = (current_time - last_message_time[telegram_id]).total_seconds()
+        if time_diff < 2:  # Меньше 2 секунд между сообщениями
+            logger.warning(f"Пользователь {telegram_id} отправляет сообщения слишком часто, пропускаем")
+            return
+    
+    # Обновляем время последнего сообщения
+    if not hasattr(cmd_start, '_last_message_times'):
+        cmd_start._last_message_times = {}
+    cmd_start._last_message_times[telegram_id] = current_time
 
     # Работа с базой данных
     with get_db() as db:
