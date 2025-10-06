@@ -38,12 +38,12 @@ async def cmd_start(message: Message, state: FSMContext):
     first_name = message.from_user.first_name
     last_name = message.from_user.last_name
 
-    logger.info(f"📩 /start от пользователя {telegram_id} ({first_name})")
+    logger.info(f"/start от пользователя {telegram_id} ({first_name})")
     
     # Защита от дублирования - проверяем, не обрабатываем ли мы уже это сообщение
     current_state = await state.get_state()
     if current_state:
-        logger.warning(f"⚠️ Пользователь {telegram_id} уже в состоянии {current_state}, пропускаем дублирующий /start")
+        logger.warning(f"Пользователь {telegram_id} уже в состоянии {current_state}, пропускаем дублирующий /start")
         return
 
     # Работа с базой данных
