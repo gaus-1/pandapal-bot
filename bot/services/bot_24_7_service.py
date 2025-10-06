@@ -65,6 +65,8 @@ class Bot24_7Service:
             is_running=False,
             last_activity=datetime.now()
         )
+        # Защита от дублирования обновлений
+        self.processed_updates: set = set()
         
         # Очередь сообщений
         self.message_queue: List[QueuedMessage] = []
@@ -299,6 +301,18 @@ class Bot24_7Service:
     async def _process_update(self, update: Update):
         """Обработка обновления"""
         try:
+            # Защита от дублирования - проверяем, не обрабатывали ли мы уже это обновление
+            if update.update_id in self.processed_updates:
+                logger.debug(f"🔄 Пропускаем дублирующее обновление {update.update_id}")
+                return
+            
+            # Добавляем в список обработанных
+            self.processed_updates.add(update.update_id)
+            
+            # Очищаем старые записи (оставляем только последние 1000)
+            if len(self.processed_updates) > 1000:
+                self.processed_updates = set(list(self.processed_updates)[-500:])
+            
             # Если очередь переполнена, обрабатываем критичные сообщения напрямую
             if len(self.message_queue) >= self.max_queue_size:
                 if self._is_critical_message(update):
