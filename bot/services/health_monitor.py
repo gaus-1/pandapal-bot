@@ -186,7 +186,7 @@ class HealthMonitor:
                 async with session.get(url, timeout=5) as response:
                     return response.status == 200
         except Exception as e:
-            logger.error(f"❌ Ошибка веб-сервера: {e}")
+            logger.error(f"Ошибка веб-сервера: {e}")
             return False
     
     async def _handle_healthy_service(self, service: ServiceHealth):
@@ -203,11 +203,11 @@ class HealthMonitor:
         service.failure_count += 1
         service.last_error = error
         
-        logger.warning(f"⚠️ Сервис {service.name} недоступен ({service.failure_count}/{service.max_failures}): {error}")
+        logger.warning(f"Сервис {service.name} недоступен ({service.failure_count}/{service.max_failures}): {error}")
         
         if service.failure_count >= service.max_failures:
             if service.status != ServiceStatus.FAILED:
-                logger.error(f"❌ Сервис {service.name} переведен в статус FAILED")
+                logger.error(f"Сервис {service.name} переведен в статус FAILED")
                 service.status = ServiceStatus.FAILED
                 # Запускаем восстановление
                 await self._start_recovery(service)
@@ -215,7 +215,7 @@ class HealthMonitor:
     async def _start_recovery(self, service: ServiceHealth):
         """Запуск процесса восстановления сервиса"""
         if service.recovery_attempts >= service.max_recovery_attempts:
-            logger.error(f"💀 Сервис {service.name} не может быть восстановлен после {service.max_recovery_attempts} попыток")
+            logger.error(f"Сервис {service.name} не может быть восстановлен после {service.max_recovery_attempts} попыток")
             return
         
         service.status = ServiceStatus.RECOVERING
