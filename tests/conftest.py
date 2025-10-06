@@ -12,11 +12,9 @@ from typing import Generator, AsyncGenerator
 # Добавляем корневую директорию в путь
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from bot.services.ai_service import AIService
-from bot.services.security_service import SecurityService
-from bot.services.parent_analytics_service import ParentAnalyticsService
-from bot.services.teacher_tools_service import TeacherToolsService
-from bot.database.models import User, ChatHistory
+from bot.services.ai_service import GeminiAIService
+from bot.services.moderation_service import ContentModerationService
+from bot.models import User, ChatHistory
 
 
 @pytest.fixture(scope="session")
@@ -72,7 +70,7 @@ def mock_teacher_user() -> User:
 @pytest.fixture
 def mock_ai_service() -> Mock:
     """Мок AI сервиса"""
-    service = Mock(spec=AIService)
+    service = Mock(spec=GeminiAIService)
     service.generate_response = AsyncMock(return_value="Тестовый ответ AI")
     service.analyze_sentiment = AsyncMock(return_value="positive")
     service.check_content_safety = AsyncMock(return_value=True)
@@ -81,35 +79,11 @@ def mock_ai_service() -> Mock:
 
 @pytest.fixture
 def mock_security_service() -> Mock:
-    """Мок сервиса безопасности"""
-    service = Mock(spec=SecurityService)
+    """Мок сервиса модерации"""
+    service = Mock(spec=ContentModerationService)
     service.check_message_safety = AsyncMock(return_value=True)
     service.filter_inappropriate_content = AsyncMock(return_value="Очищенное сообщение")
     service.log_security_event = AsyncMock()
-    return service
-
-
-@pytest.fixture
-def mock_parent_analytics() -> Mock:
-    """Мок аналитики для родителей"""
-    service = Mock(spec=ParentAnalyticsService)
-    service.get_child_progress = AsyncMock(return_value={
-        "total_messages": 100,
-        "learning_time": "2h 30m",
-        "topics_covered": ["математика", "русский язык"],
-        "safety_score": 95
-    })
-    service.generate_progress_report = AsyncMock(return_value="Отчет о прогрессе")
-    return service
-
-
-@pytest.fixture
-def mock_teacher_tools() -> Mock:
-    """Мок инструментов учителя"""
-    service = Mock(spec=TeacherToolsService)
-    service.create_assignment = AsyncMock(return_value="Задание создано")
-    service.check_work = AsyncMock(return_value={"score": 85, "feedback": "Хорошо!"})
-    service.track_engagement = AsyncMock(return_value={"engagement": 78})
     return service
 
 
