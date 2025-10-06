@@ -167,7 +167,13 @@ async def main():
 if __name__ == '__main__':
     """
     Точка входа при запуске python main.py
+    ЭКСТРЕННАЯ ОСТАНОВКА - БОТ ОТКЛЮЧЕН
     """
+    import os
+    if os.getenv("EMERGENCY_STOP") == "true":
+        print("🛑 ЭКСТРЕННАЯ ОСТАНОВКА - БОТ ОТКЛЮЧЕН")
+        exit(0)
+    
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
