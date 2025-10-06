@@ -94,8 +94,8 @@ class Settings(BaseSettings):
 
     # ============ MEMORY / HISTORY ============
     chat_history_limit: int = Field(
-        default=50,
-        description="Количество последних сообщений для контекста AI",
+        default=200,
+        description="Количество последних сообщений для контекста AI (100 от пользователя + 100 от бота)",
         validation_alias=AliasChoices("CHAT_HISTORY_LIMIT", "chat_history_limit"),
     )
 

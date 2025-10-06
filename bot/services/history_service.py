@@ -1,6 +1,6 @@
 """
 Сервис для работы с историей чата
-Управляет памятью AI (последние 50 сообщений)
+Управляет памятью AI (последние 200 сообщений: 100 от пользователя + 100 от бота)
 @module bot.services.history_service
 """
 
@@ -28,7 +28,7 @@ class ChatHistoryService:
             db: Сессия SQLAlchemy
         """
         self.db = db
-        self.history_limit = settings.chat_history_limit  # 50 сообщений
+        self.history_limit = settings.chat_history_limit  # 100 сообщений
 
     def add_message(self, telegram_id: int, message_text: str, message_type: str) -> ChatHistory:
         """
