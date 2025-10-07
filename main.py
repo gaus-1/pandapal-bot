@@ -1,7 +1,6 @@
 """
 Главный файл запуска PandaPal Telegram Bot
-Entry point приложения
-@module main
+Точка входа приложения (Polling режим для локальной разработки)
 """
 
 import asyncio
