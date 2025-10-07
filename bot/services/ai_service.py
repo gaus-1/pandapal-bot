@@ -2,7 +2,7 @@
 Сервис для работы с Google Gemini AI
 Обеспечивает общение с ИИ, адаптацию под возраст, память контекста
 Поддерживает обработку изображений через Gemini Vision API
-@module bot.services.ai_service
+
 """
 
 import base64

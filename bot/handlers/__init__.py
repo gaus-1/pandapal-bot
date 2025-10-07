@@ -1,7 +1,7 @@
 """
 Barrel export для всех обработчиков
 Собирает все роутеры в одном месте
-@module bot.handlers
+
 """
 
 from bot.handlers.ai_chat import router as ai_chat_router

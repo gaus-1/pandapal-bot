@@ -2,7 +2,7 @@
 Сервис модерации контента
 Фильтрует запрещённые темы: политика, насилие, наркотики и т.д.
 OWASP A04:2021 - Insecure Design (защита детей)
-@module bot.services.moderation_service
+
 """
 
 import asyncio

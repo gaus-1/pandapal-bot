@@ -1,7 +1,7 @@
 """
 Интерфейсы для сервисов
 Реализация принципа инверсии зависимостей (DIP)
-@module bot.interfaces
+
 """
 
 from abc import ABC, abstractmethod

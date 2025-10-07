@@ -2,7 +2,7 @@
 Фабрика сервисов
 Реализация паттерна Factory для создания сервисов
 Реализует принцип инверсии зависимостей (DIP)
-@module bot.services.factory
+
 """
 
 from typing import Dict, Optional, Type, TypeVar

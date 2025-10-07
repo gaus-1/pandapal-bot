@@ -1,7 +1,7 @@
 """
 Обработчик команды /start
 Приветствие нового пользователя и регистрация
-@module bot.handlers.start
+
 """
 
 from datetime import datetime

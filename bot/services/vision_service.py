@@ -1,7 +1,7 @@
 """
 Сервис обработки изображений с использованием Gemini Vision API
 Анализирует изображения для образовательных задач и модерации
-@module bot.services.vision_service
+
 """
 
 import asyncio

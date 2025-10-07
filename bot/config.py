@@ -1,7 +1,5 @@
 """
 Конфигурация приложения PandaPal Bot
-Загружает настройки из .env файла и валидирует их
-@module bot.config
 """
 
 import os

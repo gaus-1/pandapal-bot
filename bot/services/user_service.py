@@ -1,7 +1,7 @@
 """
 Сервис для работы с пользователями
 CRUD операции, регистрация, получение данных
-@module bot.services.user_service
+
 """
 
 from typing import Optional

@@ -1,7 +1,7 @@
 """
 Сервис расширенной аналитики для PandaPal
 Собирает и анализирует данные о пользователях, обучении и безопасности
-@module bot.services.analytics_service
+
 """
 
 import asyncio

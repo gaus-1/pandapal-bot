@@ -1,7 +1,7 @@
 """
 Базовые классы для сервисов
 Реализация SOLID принципов и ООП паттернов
-@module bot.services.base
+
 """
 
 from abc import ABC, abstractmethod

@@ -1,7 +1,7 @@
 """
 Система родительского контроля для PandaPal
 Обеспечивает мониторинг активности детей и отчеты для родителей
-@module bot.services.parental_control
+
 """
 
 import asyncio
