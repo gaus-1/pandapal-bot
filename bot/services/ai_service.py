@@ -12,6 +12,7 @@ from loguru import logger
 if TYPE_CHECKING:
     from typing import Type
 
+from bot.config import settings
 from bot.services.ai_response_generator import AIResponseGenerator
 from bot.services.ai_context_manager import AIContextManager
 from bot.services.cache_service import AIResponseCache, cache_service
