@@ -5,8 +5,10 @@
 1. ✅ Создан `bot/services/speech_service.py` - сервис распознавания речи
 2. ✅ Обновлен `bot/handlers/ai_chat.py` - handler для голосовых
 3. ✅ Добавлены зависимости в `requirements.txt`:
-   - `openai-whisper==20231117`
+   - `openai-whisper` (последняя версия)
    - `ffmpeg-python==0.2.0`
+   - `tiktoken` (токенизатор для Whisper)
+   - `setuptools-rust` (для компиляции tiktoken)
 4. ✅ Обновлен `Dockerfile` - добавлен FFmpeg
 
 ---
@@ -17,12 +19,15 @@
 
 **Вариант 1: Через Aptfile (РЕКОМЕНДУЕТСЯ)**
 
-Создайте файл `Aptfile` в корне проекта:
+✅ Уже создан файл `Aptfile` в корне проекта:
 ```
 ffmpeg
+build-essential
 ```
 
-Render автоматически установит FFmpeg при деплое.
+Render автоматически установит FFmpeg и build tools при деплое.
+
+**ВАЖНО:** Первый деплой займет ~5-10 минут из-за компиляции Whisper!
 
 **Вариант 2: Через Native Environment**
 
