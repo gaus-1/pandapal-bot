@@ -244,31 +244,83 @@ async def handle_ai_message(message: Message, state: FSMContext):
 async def handle_voice(message: Message):
     """
     Обработка голосовых сообщений
-    Использует встроенное распознавание речи Telegram
+    Использует OpenAI Whisper для распознавания речи
 
     Args:
         message: Голосовое сообщение от пользователя
     """
-    # Telegram автоматически распознает речь в текст
-    if message.text:
-        # Если Telegram смог распознать речь, обрабатываем как текст
-        logger.info(f"🎤 Голосовое сообщение распознано: {message.text[:50]}...")
-
-        # Логируем активность пользователя
-        log_user_activity(message.from_user.id, "voice_message_sent", True)
-
-        # Обрабатываем распознанный текст как обычное сообщение
-        await handle_ai_message(message, None)
-    else:
-        # Если распознавание не сработало
-        await message.answer(
-            text="🎤 Не удалось распознать речь.\n"
-            "Попробуйте говорить четче или напишите текстом! 📝"
+    telegram_id = message.from_user.id
+    
+    try:
+        logger.info(f"🎤 Получено голосовое сообщение от {telegram_id}")
+        
+        # Показываем что обрабатываем
+        processing_msg = await message.answer(
+            "🎤 Слушаю твоё сообщение... Пожалуйста, подожди! 🐼"
         )
-
-        # Логируем неудачную попытку
+        
+        # Скачиваем голосовое сообщение
+        voice_file = await message.bot.get_file(message.voice.file_id)
+        voice_bytes = await message.bot.download_file(voice_file.file_path)
+        
+        # Читаем байты
+        audio_data = voice_bytes.read()
+        
+        # Получаем сервис распознавания речи
+        from bot.services.speech_service import get_speech_service
+        speech_service = get_speech_service()
+        
+        # Распознаем речь
+        recognized_text = await speech_service.transcribe_voice(
+            audio_data, 
+            language="ru"
+        )
+        
+        if not recognized_text:
+            await processing_msg.edit_text(
+                "🎤 Не удалось распознать речь.\n"
+                "Попробуй говорить четче или напиши текстом! 📝"
+            )
+            log_user_activity(
+                telegram_id, 
+                "voice_recognition_failed", 
+                False, 
+                "Whisper failed"
+            )
+            return
+        
+        # Удаляем сообщение "Слушаю..."
+        await processing_msg.delete()
+        
+        # Показываем что было распознано
+        await message.answer(
+            f"🎤 <i>Я услышал:</i> \"{recognized_text}\"\n\n"
+            f"Сейчас подумаю над ответом... 🐼",
+            parse_mode="HTML"
+        )
+        
+        logger.info(f"✅ Речь распознана: {recognized_text[:100]}")
+        
+        # Логируем успешную активность
+        log_user_activity(telegram_id, "voice_message_sent", True)
+        
+        # Создаем фейковое текстовое сообщение для handle_ai_message
+        message.text = recognized_text
+        
+        # Обрабатываем как обычное текстовое сообщение
+        await handle_ai_message(message, None)
+        
+    except Exception as e:
+        logger.error(f"❌ Ошибка обработки голосового сообщения: {e}")
+        await message.answer(
+            "😔 Произошла ошибка при обработке голосового сообщения.\n"
+            "Попробуй написать текстом! 📝"
+        )
         log_user_activity(
-            message.from_user.id, "voice_recognition_failed", False, "No text recognized"
+            telegram_id, 
+            "voice_processing_error", 
+            False, 
+            str(e)
         )
 
 
