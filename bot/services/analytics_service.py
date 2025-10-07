@@ -6,7 +6,7 @@
 
 import asyncio
 import json
-import statistics
+# statistics не используется
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
@@ -16,7 +16,7 @@ from loguru import logger
 from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 
-from bot.models import ChatHistory, LearningSession, User, UserProgress
+from bot.models import ChatHistory, User
 from bot.services.cache_service import cache_service
 
 
