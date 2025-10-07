@@ -12,7 +12,7 @@ from aiogram.types import (
 )
 
 
-def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
+def get_main_menu_keyboard(user_type: str = "child") -> ReplyKeyboardMarkup:
     """
     Главное меню бота (Reply клавиатура)
     Постоянно видна внизу экрана
@@ -21,24 +21,47 @@ def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
     - 💬 Общение с AI — основной режим (чат с PandaPalAI)
     - 📚 Помощь с уроками — специализированная помощь
     - 📊 Мой прогресс — статистика и достижения
+    - 🏆 Достижения — геймификация и награды
     - ⚙️ Настройки — профиль, возраст, класс
+
+    Args:
+        user_type: Тип пользователя (child/parent/teacher)
 
     Returns:
         ReplyKeyboardMarkup: Клавиатура главного меню
     """
-    keyboard = ReplyKeyboardMarkup(
-        keyboard=[
-            [
-                KeyboardButton(text="💬 Общение с AI"),
-                KeyboardButton(text="📚 Помощь с уроками"),
-            ],
-            [
-                KeyboardButton(text="📊 Мой прогресс"),
-                KeyboardButton(text="⚙️ Настройки"),
-            ],
+    # Базовые кнопки для всех
+    buttons = [
+        [
+            KeyboardButton(text="💬 Общение с AI"),
+            KeyboardButton(text="📚 Помощь с уроками"),
         ],
-        resize_keyboard=True,  # Адаптивный размер кнопок
-        one_time_keyboard=False,  # Клавиатура постоянно видна
+        [
+            KeyboardButton(text="📊 Мой прогресс"),
+            KeyboardButton(text="🏆 Достижения"),
+        ],
+        [
+            KeyboardButton(text="⚙️ Настройки"),
+        ],
+    ]
+    
+    # Дополнительные кнопки для родителей
+    if user_type == "parent":
+        buttons.insert(2, [
+            KeyboardButton(text="👨‍👩‍👧 Контроль детей"),
+        ])
+    
+    # Дополнительные кнопки для учителей
+    if user_type == "teacher":
+        buttons.insert(2, [
+            KeyboardButton(text="👩‍🏫 Мой класс"),
+            KeyboardButton(text="📝 Создать задание"),
+        ])
+    
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=buttons,
+        resize_keyboard=True,
+        one_time_keyboard=False,
         input_field_placeholder="Напиши сообщение или выбери действие...",
     )
 
