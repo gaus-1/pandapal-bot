@@ -116,6 +116,15 @@ async def on_startup(bot: Bot) -> None:
         except Exception as e:
             logger.error(f"❌ Ошибка запуска мониторинга: {e}")
         
+        # Запуск планировщика задач (напоминания пользователям)
+        try:
+            from bot.services.scheduler_service import get_scheduler
+            scheduler = get_scheduler(bot)
+            await scheduler.start()
+            logger.info("⏰ Планировщик задач запущен (еженедельные напоминания)")
+        except Exception as e:
+            logger.error(f"❌ Ошибка запуска планировщика: {e}")
+        
         # Устанавливаем webhook
         await bot.set_webhook(
             WEBHOOK_URL,
@@ -134,6 +143,15 @@ async def on_startup(bot: Bot) -> None:
 async def on_shutdown(bot: Bot) -> None:
     """Вызывается при остановке бота"""
     logger.info("⏹️ Остановка бота...")
+    
+    # Останавливаем планировщик
+    try:
+        from bot.services.scheduler_service import get_scheduler
+        scheduler = get_scheduler(bot)
+        await scheduler.stop()
+        logger.info("⏰ Планировщик остановлен")
+    except Exception as e:
+        logger.error(f"❌ Ошибка остановки планировщика: {e}")
     
     # Останавливаем мониторинг
     await health_monitor.stop_monitoring()
