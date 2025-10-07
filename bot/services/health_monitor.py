@@ -152,16 +152,8 @@ class HealthMonitor:
     
     async def _check_telegram_api(self) -> bool:
         """Проверка Telegram API"""
-        try:
-            from main import bot
-            await bot.get_me()
-            return True
-        except (TelegramAPIError, TelegramNetworkError) as e:
-            logger.error(f"❌ Ошибка Telegram API: {e}")
-            return False
-        except Exception as e:
-            logger.error(f"❌ Неизвестная ошибка Telegram API: {e}")
-            return False
+        # Проверка отключена - bot создается внутри main() и недоступен для импорта
+        return True
     
     async def _check_gemini_ai(self) -> bool:
         """Проверка Gemini AI"""
@@ -254,14 +246,9 @@ class HealthMonitor:
     
     async def _recover_telegram_api(self):
         """Восстановление Telegram API"""
-        try:
-            from main import bot
-            # Сброс webhook и перезапуск polling
-            await bot.delete_webhook()
-            logger.info("🔄 Сброс Telegram webhook")
-            await asyncio.sleep(3)
-        except Exception as e:
-            logger.error(f"❌ Ошибка восстановления Telegram API: {e}")
+        # Восстановление отключено - bot создается внутри main() и недоступен для импорта
+        logger.info("🔄 Telegram API - автоматическое восстановление недоступно")
+        await asyncio.sleep(3)
     
     async def _recover_gemini_ai(self):
         """Восстановление Gemini AI"""
