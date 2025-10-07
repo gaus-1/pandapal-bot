@@ -8,14 +8,14 @@
 import base64
 import hashlib
 import io
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 import google.generativeai as genai
 from loguru import logger
 from PIL import Image
 
 from bot.config import AI_SYSTEM_PROMPT, settings
-from bot.services.cache_service import AIResponseCache, UserCache, cache_service
+from bot.services.cache_service import AIResponseCache, cache_service
 from bot.services.moderation_service import ContentModerationService
 # Fallback отключен - используем только Gemini
 

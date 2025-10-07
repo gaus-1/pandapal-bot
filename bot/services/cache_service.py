@@ -7,20 +7,14 @@
 import asyncio
 import hashlib
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from loguru import logger
 
-try:
-    import redis
-    import redis.asyncio as aioredis
-
-    REDIS_AVAILABLE = True
-except ImportError:
-    REDIS_AVAILABLE = False
-    logger.warning("Redis не установлен, используется in-memory кэш")
+# Redis imports закомментированы - используем только in-memory cache
+REDIS_AVAILABLE = False
 
 from bot.config import settings
 

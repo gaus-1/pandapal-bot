@@ -14,7 +14,7 @@ import random
 from loguru import logger
 import aiohttp
 from google.generativeai import GenerativeModel
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
+# Импорты HarmCategory, HarmBlockThreshold не используются
 
 
 class AIProvider(Enum):
