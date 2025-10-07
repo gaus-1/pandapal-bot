@@ -242,7 +242,7 @@ class UserProgress(Base):
 class ChatHistory(Base):
     """
     Модель истории чата с AI
-    Хранит последние 50 сообщений для контекста
+    Хранит историю сообщений для контекста
     """
 
     __tablename__ = "chat_history"

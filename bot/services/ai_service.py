@@ -96,7 +96,7 @@ class GeminiAIService:
 
         Args:
             user_message: Сообщение от пользователя
-            chat_history: История чата (последние 50 сообщений)
+            chat_history: История чата для контекста
             user_age: Возраст ребёнка (для адаптации языка)
             user_grade: Класс (для адаптации сложности)
 
