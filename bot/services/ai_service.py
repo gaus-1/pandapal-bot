@@ -5,14 +5,29 @@
 """
 
 import hashlib
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TYPE_CHECKING
 
 from loguru import logger
+
+if TYPE_CHECKING:
+    from typing import Type
 
 from bot.services.ai_response_generator import AIResponseGenerator
 from bot.services.ai_context_manager import AIContextManager
 from bot.services.cache_service import AIResponseCache, cache_service
 from bot.services.moderation_service import ContentModerationService
+
+
+# Глобальный экземпляр сервиса
+ai_service = None
+
+
+def get_ai_service() -> "GeminiAIService":
+    """Получение глобального экземпляра AI сервиса"""
+    global ai_service
+    if ai_service is None:
+        ai_service = GeminiAIService()
+    return ai_service
 
 
 class GeminiAIService:
@@ -113,6 +128,15 @@ class GeminiAIService:
         """Генерация ключа кэша"""
         key_data = f"{user_message}:{user_age}:{user_grade}"
         return hashlib.md5(key_data.encode()).hexdigest()
+
+    def get_model_info(self) -> Dict[str, str]:
+        """Получение информации о модели"""
+        return {
+            "model": "gemini-1.5-pro",
+            "temperature": "0.7",
+            "max_tokens": "2048",
+            "public_name": "PandaPalAI"
+        }
 
     def get_service_status(self) -> Dict[str, any]:
         """Получение статуса сервиса"""
