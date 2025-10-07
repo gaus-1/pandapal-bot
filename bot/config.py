@@ -1,7 +1,3 @@
-"""
-Конфигурация приложения PandaPal Bot
-"""
-
 import os
 from typing import List
 
@@ -10,23 +6,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """
-    Настройки приложения с валидацией
-    Все значения загружаются из .env файла
-    """
-
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )
     
-    # ============ DATABASE ============
-    database_url: str = Field(
-        ..., 
-        description="PostgreSQL connection string",
-        validation_alias=AliasChoices("DATABASE_URL", "database_url"),
-    )
-    
-    # ============ TELEGRAM ============
+    database_url: str = Field(..., validation_alias=AliasChoices("DATABASE_URL", "database_url"))
     telegram_bot_token: str = Field(
         ..., 
         description="Токен Telegram бота от @BotFather",
