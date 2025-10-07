@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     )
     
     gemini_model: str = Field(
-        default="gemini-pro",
+        default="gemini-1.5-flash",
         description="Модель Gemini для использования",
         validation_alias=AliasChoices("GEMINI_MODEL", "gemini_model"),
     )
