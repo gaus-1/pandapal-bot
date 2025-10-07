@@ -7,6 +7,7 @@ Entry point приложения
 import asyncio
 import sys
 import traceback
+import re
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -21,13 +22,33 @@ from bot.services.error_recovery_service import error_recovery_service
 from bot.services.bot_24_7_service import Bot24_7Service
 
 
+# Функция для удаления эмодзи из логов (для Windows консоли)
+emoji_pattern = re.compile(
+    "["
+    "\U0001F300-\U0001F9FF"
+    "\U0001F600-\U0001F64F"
+    "\U0001F680-\U0001F6FF"
+    "\U00002600-\U000027BF"
+    "\U0001F1E0-\U0001F1FF"
+    "\U0001F900-\U0001F9FF"
+    "\U0001FA70-\U0001FAFF"
+    "]+",
+    flags=re.UNICODE
+)
+
+def format_for_console(record):
+    """Удаляет эмодзи из сообщений для консоли"""
+    record["message"] = emoji_pattern.sub("", record["message"])
+    return True
+
 # Настройка логирования
 logger.remove()  # Удаляем дефолтный handler
 logger.add(
     sys.stdout,
     format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan> - <level>{message}</level>",
     level=settings.log_level,
-    colorize=True
+    colorize=True,
+    filter=format_for_console  # Удаляем эмодзи для консоли
 )
 logger.add(
     "logs/pandapal_{time:YYYY-MM-DD}.log",
