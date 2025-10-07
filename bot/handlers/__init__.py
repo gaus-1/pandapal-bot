@@ -12,6 +12,7 @@ from bot.handlers.start import router as start_router
 from bot.handlers.admin_commands import router as admin_commands_router
 from bot.handlers.menu import router as menu_router
 from bot.handlers.achievements import router as achievements_router
+from bot.handlers.location import router as location_router
 
 # Список всех роутеров для регистрации в main.py
 routers = [
@@ -19,6 +20,7 @@ routers = [
     start_router,
     menu_router,  # Обработка кнопок меню
     achievements_router,  # Система достижений
+    location_router,  # Геолокация для безопасности
     settings_router,
     parental_control_router,  # Родительский контроль
     parent_dashboard_router,  # Дашборд для родителей
