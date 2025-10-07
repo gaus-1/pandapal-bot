@@ -135,10 +135,10 @@ class GeminiAIService:
             if chat_history:
                 # Используем историю для контекста
                 chat = self.model.start_chat(history=chat_history)
-                response = chat.send_message(full_message)
+                response = await chat.send_message_async(full_message)
             else:
                 # Первое сообщение без истории
-                response = self.model.generate_content(full_message)
+                response = await self.model.generate_content_async(full_message)
 
             # Извлекаем текст ответа
             ai_response = response.text
