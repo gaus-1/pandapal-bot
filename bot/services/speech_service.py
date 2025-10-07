@@ -23,15 +23,22 @@ class SpeechRecognitionService:
         
         Args:
             model_size: Размер модели Whisper
-                - tiny (39M, быстро, неточно)
-                - base (74M, баланс) ✅ РЕКОМЕНДУЕТСЯ
-                - small (244M, медленно, точно)
+                - tiny (39M, быстро, менее точно)
+                - base (74M, баланс) ✅ РЕКОМЕНДУЕТСЯ для русского
+                - small (244M, точнее, медленнее)
+                - medium (769M, очень точно, очень медленно)
+                - large (1550M, максимальная точность)
+                - turbo (809M, быстро, только английский)
+        
+        Примечание: turbo НЕ поддерживает русский язык!
+        Для русского используйте base или small.
         """
         logger.info(f"🎤 Загрузка Whisper модели: {model_size}")
         
         try:
             self.model = whisper.load_model(model_size)
-            logger.info("✅ Whisper модель загружена успешно")
+            self.model_size = model_size
+            logger.info(f"✅ Whisper модель {model_size} загружена успешно")
         except Exception as e:
             logger.error(f"❌ Ошибка загрузки Whisper: {e}")
             raise
@@ -39,14 +46,16 @@ class SpeechRecognitionService:
     async def transcribe_voice(
         self, 
         voice_file_bytes: bytes, 
-        language: str = "ru"
+        language: str = "ru",
+        auto_detect_language: bool = True
     ) -> Optional[str]:
         """
         Распознать речь из голосового сообщения
         
         Args:
             voice_file_bytes: Байты аудио файла (.ogg)
-            language: Язык речи (ru/en)
+            language: Предполагаемый язык (ru/en) - используется если auto_detect=False
+            auto_detect_language: Автоопределение языка (рекомендуется)
         
         Returns:
             str: Распознанный текст или None при ошибке
@@ -64,13 +73,22 @@ class SpeechRecognitionService:
             
             logger.info(f"🎤 Распознавание речи: {temp_file_path}")
             
+            # Параметры распознавания
+            transcribe_options = {
+                "fp16": False,  # CPU совместимость
+                "verbose": False
+            }
+            
+            # Автоопределение языка или использование указанного
+            if not auto_detect_language:
+                transcribe_options["language"] = language
+            
             # Распознаем речь через Whisper
-            result = self.model.transcribe(
-                temp_file_path,
-                language=language,
-                fp16=False,
-                verbose=False
-            )
+            result = self.model.transcribe(temp_file_path, **transcribe_options)
+            
+            # Логируем определенный язык
+            detected_lang = result.get("language", "unknown")
+            logger.info(f"🌍 Определен язык: {detected_lang}")
             
             # Получаем распознанный текст
             text = result["text"].strip()

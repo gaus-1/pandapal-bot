@@ -270,10 +270,11 @@ async def handle_voice(message: Message):
         from bot.services.speech_service import get_speech_service
         speech_service = get_speech_service()
         
-        # Распознаем речь
+        # Распознаем речь с автоопределением языка
         recognized_text = await speech_service.transcribe_voice(
-            audio_data, 
-            language="ru"
+            audio_data,
+            language="ru",  # Предполагаем русский
+            auto_detect_language=True  # Но определяем автоматически
         )
         
         if not recognized_text:
