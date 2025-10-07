@@ -17,7 +17,7 @@ from PIL import Image
 from bot.config import AI_SYSTEM_PROMPT, settings
 from bot.services.cache_service import AIResponseCache, UserCache, cache_service
 from bot.services.moderation_service import ContentModerationService
-from bot.services.ai_fallback_service import ai_fallback_service
+# Fallback отключен - используем только Gemini
 
 
 class GeminiAIService:
@@ -154,13 +154,8 @@ class GeminiAIService:
             return ai_response
 
         except Exception as e:
-            logger.error(f"❌ Ошибка генерации AI: {e}")
-
-            # Безопасный fallback ответ при ошибке
-            return (
-                "Ой, кажется у меня технические проблемы 🔧 "
-                "Попробуй спросить чуть позже или перефразируй вопрос!"
-            )
+            logger.error(f"Ошибка генерации AI: {e}")
+            raise
 
     def _build_context_instruction(self, age: Optional[int], grade: Optional[int]) -> str:
         """
