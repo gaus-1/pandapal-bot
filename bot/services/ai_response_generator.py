@@ -62,7 +62,7 @@ class AIResponseGenerator:
             if chat_history:
                 history_text = "\n".join(
                     [
-                        f"{msg['role']}: {msg['content']}"
+                        f"{msg['role']}: {msg['parts'][0]}"
                         for msg in chat_history[-10:]  # Последние 10 сообщений
                     ]
                 )
@@ -73,9 +73,10 @@ class AIResponseGenerator:
             # Генерация ответа
             response = await self.model.generate_content_async(full_prompt)
 
-            if response and response.text:
+            if response and hasattr(response, 'text') and response.text and response.text.strip():
                 return response.text.strip()
             else:
+                logger.warning(f"Пустой ответ от Gemini: response={response}, text={getattr(response, 'text', None)}")
                 return "Извините, не могу сгенерировать ответ в данный момент."
 
         except Exception as e:
@@ -91,9 +92,10 @@ class AIResponseGenerator:
             # Генерация ответа
             response = await self.model.generate_content_async([image, prompt])
 
-            if response and response.text:
+            if response and hasattr(response, 'text') and response.text and response.text.strip():
                 return response.text.strip()
             else:
+                logger.warning(f"Пустой ответ на изображение: response={response}, text={getattr(response, 'text', None)}")
                 return "Не могу проанализировать изображение."
 
         except Exception as e:

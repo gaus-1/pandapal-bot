@@ -15,9 +15,9 @@ from bot.monitoring import log_user_activity, monitor_performance
 from bot.services import (
     ChatHistoryService,
     ContentModerationService,
-    GeminiAIService,
     UserService,
 )
+from bot.services.ai_service import get_ai_service
 from bot.services.advanced_moderation import ModerationResult
 from bot.services.parental_control import ActivityType, ParentalControlService
 
@@ -179,8 +179,8 @@ async def handle_ai_message(message: Message, state: FSMContext):
                 f"{user_message[:50]}... | История: {len(history)} сообщений"
             )
 
-            # Инициализируем AI сервис
-            ai_service = GeminiAIService()
+            # Получаем AI сервис
+            ai_service = get_ai_service()
 
             # Генерируем ответ с учётом контекста, возраста и класса
             ai_response = await ai_service.generate_response(
@@ -313,8 +313,8 @@ async def handle_image(message: Message, state: FSMContext):
                 await processing_msg.edit_text("❌ Сначала зарегистрируйся командой /start")
                 return
 
-            # Инициализируем сервисы
-            ai_service = GeminiAIService()
+            # Получаем сервисы
+            ai_service = get_ai_service()
             parental_control = ParentalControlService(db)
             history_service = ChatHistoryService(db)
 
