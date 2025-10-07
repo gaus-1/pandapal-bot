@@ -132,9 +132,9 @@ class GeminiAIService:
     def get_model_info(self) -> Dict[str, str]:
         """Получение информации о модели"""
         return {
-            "model": "gemini-1.5-pro",
-            "temperature": "0.7",
-            "max_tokens": "2048",
+            "model": settings.gemini_model,
+            "temperature": str(settings.ai_temperature),
+            "max_tokens": str(settings.ai_max_tokens),
             "public_name": "PandaPalAI"
         }
 
