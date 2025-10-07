@@ -126,7 +126,7 @@ class PerformanceMonitor:
                 if bot_24_7_service:
                     queue_size = len(bot_24_7_service.message_queue)
                     # Здесь можно добавить расчет среднего времени ответа
-            except:
+            except Exception:
                 pass
             
             # Создаем метрику

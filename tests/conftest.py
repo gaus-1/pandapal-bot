@@ -2,6 +2,7 @@
 Pytest конфигурация для PandaPal Bot
 Настройка тестового окружения для детского проекта
 """
+
 import pytest
 import asyncio
 import sys
@@ -35,7 +36,7 @@ def mock_user() -> User:
         last_name="Ребенок",
         user_type="child",
         age=10,
-        grade=5
+        grade=5,
     )
 
 
@@ -49,7 +50,7 @@ def mock_parent_user() -> User:
         last_name="Родитель",
         user_type="parent",
         age=35,
-        grade=None
+        grade=None,
     )
 
 
@@ -63,7 +64,7 @@ def mock_teacher_user() -> User:
         last_name="Учитель",
         user_type="teacher",
         age=30,
-        grade=None
+        grade=None,
     )
 
 
@@ -96,7 +97,7 @@ def mock_chat_history() -> ChatHistory:
         response="Тестовый ответ",
         timestamp="2024-01-01 12:00:00",
         message_type="text",
-        sentiment="positive"
+        sentiment="positive",
     )
 
 
@@ -127,7 +128,7 @@ def safe_content_samples():
         "Как работает электричество?",
         "Что такое периметр и площадь?",
         "Объясни правила орфографии",
-        "Помоги с домашним заданием по истории"
+        "Помоги с домашним заданием по истории",
     ]
 
 
@@ -144,7 +145,7 @@ def forbidden_content_samples():
         "Как причинить боль?",
         "Расскажи про убийство",
         "Где купить наркотики?",
-        "Как украсть деньги?"
+        "Как украсть деньги?",
     ]
 
 
@@ -152,6 +153,7 @@ def forbidden_content_samples():
 def test_db():
     """Фикстура для тестовой базы данных"""
     from unittest.mock import Mock
+
     db = Mock()
     db.add = Mock()
     db.commit = Mock()
@@ -165,6 +167,7 @@ def test_db():
 def user_service(test_db):
     """Фикстура для сервиса пользователей"""
     from unittest.mock import Mock
+
     service = Mock()
     service.db = test_db
     service.get_or_create_user = Mock()
