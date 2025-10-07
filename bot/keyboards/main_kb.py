@@ -41,6 +41,7 @@ def get_main_menu_keyboard(user_type: str = "child") -> ReplyKeyboardMarkup:
             KeyboardButton(text="🏆 Достижения"),
         ],
         [
+            KeyboardButton(text="📍 Где я"),
             KeyboardButton(text="⚙️ Настройки"),
         ],
     ]
