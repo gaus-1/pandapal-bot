@@ -10,11 +10,15 @@ from bot.handlers.parental_control import router as parental_control_router
 from bot.handlers.settings import router as settings_router
 from bot.handlers.start import router as start_router
 from bot.handlers.admin_commands import router as admin_commands_router
+from bot.handlers.menu import router as menu_router
+from bot.handlers.achievements import router as achievements_router
 
 # Список всех роутеров для регистрации в main.py
 routers = [
     admin_commands_router,  # Административные команды (высший приоритет)
     start_router,
+    menu_router,  # Обработка кнопок меню
+    achievements_router,  # Система достижений
     settings_router,
     parental_control_router,  # Родительский контроль
     parent_dashboard_router,  # Дашборд для родителей
