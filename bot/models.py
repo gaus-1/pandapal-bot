@@ -37,10 +37,10 @@ class User(Base):
     username: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     first_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     last_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    
+
     age: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     grade: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    
+
     user_type: Mapped[str] = mapped_column(String(20), nullable=False, default="child")
     parent_telegram_id: Mapped[Optional[int]] = mapped_column(
         BigInteger, ForeignKey("users.telegram_id", ondelete="SET NULL"), nullable=True
