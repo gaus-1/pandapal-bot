@@ -37,8 +37,10 @@ sentry-sdk==2.18.0
 Pillow==11.1.0
 
 # Speech Recognition
-openai-whisper==20231117
+openai-whisper
 ffmpeg-python==0.2.0
+tiktoken
+setuptools-rust
 
 # Testing Framework
 pytest==8.4.2
