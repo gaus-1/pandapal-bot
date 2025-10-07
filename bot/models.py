@@ -29,67 +29,26 @@ class Base(DeclarativeBase):
 
 
 class User(Base):
-    """
-    Модель пользователя (ребёнок, родитель или учитель)
-
-    Связи:
-    - parent: родитель этого пользователя (если user_type='child')
-    - children: дети этого родителя (если user_type='parent')
-    - sessions: учебные сессии пользователя
-    - progress: прогресс по предметам
-    - messages: история чата с AI
-    """
-
     __tablename__ = "users"
 
-    # Первичный ключ
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-
-    # Telegram ID (уникальный идентификатор из Telegram)
-    telegram_id: Mapped[int] = mapped_column(
-        BigInteger,
-        unique=True,
-        nullable=False,
-        index=True,  # Индекс для быстрого поиска
-        comment="Уникальный Telegram ID пользователя",
-    )
-
-    # Данные пользователя из Telegram
+    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False, index=True)
+    
     username: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     first_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     last_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-
-    # Возраст и класс (для детей)
+    
     age: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     grade: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-
-    # Тип пользователя: child, parent, teacher
-    user_type: Mapped[str] = mapped_column(
-        String(20),
-        nullable=False,
-        default="child",
-        comment="Роль: child/parent/teacher",
-    )
-
-    # Связь с родителем (для детей)
+    
+    user_type: Mapped[str] = mapped_column(String(20), nullable=False, default="child")
     parent_telegram_id: Mapped[Optional[int]] = mapped_column(
-        BigInteger,
-        ForeignKey("users.telegram_id", ondelete="SET NULL"),
-        nullable=True,
-        comment="Telegram ID родителя (если user_type=child)",
+        BigInteger, ForeignKey("users.telegram_id", ondelete="SET NULL"), nullable=True
     )
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
 
-    # Временные метки
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), comment="Дата регистрации"
-    )
-
-    # Статус активности
-    is_active: Mapped[bool] = mapped_column(
-        Boolean, default=True, server_default="true", comment="Активен ли пользователь"
-    )
-
-    # Relationships (связи с другими таблицами)
     parent: Mapped[Optional["User"]] = relationship(
         "User",
         remote_side=[telegram_id],
@@ -145,40 +104,40 @@ class LearningSession(Base):
         ForeignKey("users.telegram_id", ondelete="CASCADE"),
         nullable=False,
         index=True,
-        comment="Telegram ID ученика",
+        
     )
 
     # Информация о сессии
     subject: Mapped[Optional[str]] = mapped_column(
-        String(100), comment="Предмет (математика, русский и т.д.)"
+        String(100)
     )
 
-    topic: Mapped[Optional[str]] = mapped_column(String(255), comment="Тема урока")
+    topic: Mapped[Optional[str]] = mapped_column(String(255))
 
     difficulty_level: Mapped[Optional[int]] = mapped_column(
-        Integer, comment="Уровень сложности (1-5)"
+        Integer
     )
 
     # Статистика
     questions_answered: Mapped[int] = mapped_column(
-        Integer, default=0, server_default="0", comment="Количество отвеченных вопросов"
+        Integer, default=0, server_default="0"
     )
 
     correct_answers: Mapped[int] = mapped_column(
-        Integer, default=0, server_default="0", comment="Количество правильных ответов"
+        Integer, default=0, server_default="0"
     )
 
     # Временные метки
     session_start: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), comment="Начало сессии"
+        DateTime(timezone=True), server_default=func.now()
     )
 
     session_end: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True, comment="Конец сессии"
+        DateTime(timezone=True), nullable=True
     )
 
     is_completed: Mapped[bool] = mapped_column(
-        Boolean, default=False, server_default="false", comment="Завершена ли сессия"
+        Boolean, default=False, server_default="false"
     )
 
     # Relationship
@@ -209,17 +168,17 @@ class UserProgress(Base):
     )
 
     # Предмет и уровень
-    subject: Mapped[Optional[str]] = mapped_column(String(100), comment="Предмет")
+    subject: Mapped[Optional[str]] = mapped_column(String(100))
 
-    level: Mapped[Optional[int]] = mapped_column(Integer, comment="Текущий уровень владения (1-10)")
+    level: Mapped[Optional[int]] = mapped_column(Integer)
 
     # Геймификация
     points: Mapped[int] = mapped_column(
-        Integer, default=0, server_default="0", comment="Накопленные очки"
+        Integer, default=0, server_default="0"
     )
 
     achievements: Mapped[Optional[dict]] = mapped_column(
-        JSON, nullable=True, comment="Достижения (JSON: {achievement_id: date_earned})"
+        JSON, nullable=True
     )
 
     # Последняя активность
@@ -227,7 +186,7 @@ class UserProgress(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
-        comment="Дата последней активности",
+        
     )
 
     # Relationship
@@ -255,17 +214,17 @@ class ChatHistory(Base):
         ForeignKey("users.telegram_id", ondelete="CASCADE"),
         nullable=False,
         index=True,
-        comment="Telegram ID пользователя",
+        
     )
 
     # Содержание сообщения
-    message_text: Mapped[str] = mapped_column(Text, nullable=False, comment="Текст сообщения")
+    message_text: Mapped[str] = mapped_column(Text, nullable=False)
 
     # Тип сообщения: user, ai, system
     message_type: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
-        comment="Тип: user (от ребёнка) / ai (от PandaPal) / system (служебное)",
+        
     )
 
     # Временная метка
@@ -273,7 +232,7 @@ class ChatHistory(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         index=True,  # Индекс для сортировки по дате
-        comment="Дата и время сообщения",
+        
     )
 
     # Relationship
@@ -305,26 +264,26 @@ class AnalyticsMetric(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     metric_name: Mapped[str] = mapped_column(
-        String(100), nullable=False, comment="Название метрики"
+        String(100), nullable=False
     )
-    metric_value: Mapped[float] = mapped_column(Float, nullable=False, comment="Значение метрики")
+    metric_value: Mapped[float] = mapped_column(Float, nullable=False)
     metric_type: Mapped[str] = mapped_column(
-        String(50), nullable=False, comment="Тип метрики (counter, gauge, histogram)"
+        String(50), nullable=False
     )
     tags: Mapped[Optional[Dict]] = mapped_column(
-        JSON, nullable=True, comment="Теги для группировки метрик"
+        JSON, nullable=True
     )
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        comment="Время записи",
+        
     )
     period: Mapped[str] = mapped_column(
-        String(20), nullable=False, comment="Период агрегации (hour, day, week, month)"
+        String(20), nullable=False
     )
     user_telegram_id: Mapped[Optional[int]] = mapped_column(
-        BigInteger, nullable=True, comment="ID пользователя (если метрика пользовательская)"
+        BigInteger, nullable=True
     )
 
     __table_args__ = (
@@ -350,46 +309,46 @@ class UserSession(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_telegram_id: Mapped[int] = mapped_column(
-        BigInteger, nullable=False, comment="ID пользователя"
+        BigInteger, nullable=False
     )
     session_start: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        comment="Начало сессии",
+        
     )
     session_end: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True, comment="Конец сессии"
+        DateTime(timezone=True), nullable=True
     )
     session_duration: Mapped[Optional[int]] = mapped_column(
-        Integer, nullable=True, comment="Длительность сессии в секундах"
+        Integer, nullable=True
     )
     messages_count: Mapped[int] = mapped_column(
-        Integer, default=0, comment="Количество сообщений в сессии"
+        Integer, default=0
     )
     ai_interactions: Mapped[int] = mapped_column(
-        Integer, default=0, comment="Количество AI взаимодействий"
+        Integer, default=0
     )
     voice_messages: Mapped[int] = mapped_column(
-        Integer, default=0, comment="Количество голосовых сообщений"
+        Integer, default=0
     )
     blocked_messages: Mapped[int] = mapped_column(
-        Integer, default=0, comment="Количество заблокированных сообщений"
+        Integer, default=0
     )
     subjects_covered: Mapped[Optional[List[str]]] = mapped_column(
-        JSON, nullable=True, comment="Предметы, изученные в сессии"
+        JSON, nullable=True
     )
     engagement_score: Mapped[Optional[float]] = mapped_column(
-        Float, nullable=True, comment="Индекс вовлеченности"
+        Float, nullable=True
     )
     safety_score: Mapped[Optional[float]] = mapped_column(
-        Float, nullable=True, comment="Индекс безопасности"
+        Float, nullable=True
     )
     session_type: Mapped[str] = mapped_column(
-        String(50), default="regular", comment="Тип сессии (learning, casual, support)"
+        String(50), default="regular"
     )
     device_info: Mapped[Optional[Dict]] = mapped_column(
-        JSON, nullable=True, comment="Информация об устройстве"
+        JSON, nullable=True
     )
 
     __table_args__ = (
@@ -415,23 +374,23 @@ class UserEvent(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_telegram_id: Mapped[int] = mapped_column(
-        BigInteger, nullable=False, comment="ID пользователя"
+        BigInteger, nullable=False
     )
-    event_type: Mapped[str] = mapped_column(String(100), nullable=False, comment="Тип события")
+    event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     event_data: Mapped[Optional[Dict]] = mapped_column(
-        JSON, nullable=True, comment="Данные события"
+        JSON, nullable=True
     )
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        comment="Время события",
+        
     )
-    session_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, comment="ID сессии")
+    session_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     importance: Mapped[str] = mapped_column(
-        String(20), default="normal", comment="Важность события (low, normal, high, critical)"
+        String(20), default="normal"
     )
-    processed: Mapped[bool] = mapped_column(Boolean, default=False, comment="Обработано ли событие")
+    processed: Mapped[bool] = mapped_column(Boolean, default=False)
 
     __table_args__ = (
         Index("idx_user_events_user_time", "user_telegram_id", "timestamp"),
@@ -456,26 +415,26 @@ class AnalyticsReport(Base):
     __tablename__ = "analytics_reports"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    report_type: Mapped[str] = mapped_column(String(50), nullable=False, comment="Тип отчета")
-    report_period: Mapped[str] = mapped_column(String(20), nullable=False, comment="Период отчета")
-    report_data: Mapped[Dict] = mapped_column(JSON, nullable=False, comment="Данные отчета")
+    report_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    report_period: Mapped[str] = mapped_column(String(20), nullable=False)
+    report_data: Mapped[Dict] = mapped_column(JSON, nullable=False)
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        comment="Время генерации",
+        
     )
     generated_by: Mapped[Optional[str]] = mapped_column(
-        String(100), nullable=True, comment="Кто сгенерировал отчет"
+        String(100), nullable=True
     )
     parent_telegram_id: Mapped[Optional[int]] = mapped_column(
-        BigInteger, nullable=True, comment="ID родителя (если отчет для родителя)"
+        BigInteger, nullable=True
     )
     child_telegram_id: Mapped[Optional[int]] = mapped_column(
-        BigInteger, nullable=True, comment="ID ребенка (если отчет для ребенка)"
+        BigInteger, nullable=True
     )
     is_scheduled: Mapped[bool] = mapped_column(
-        Boolean, default=False, comment="Автоматически сгенерированный отчет"
+        Boolean, default=False
     )
 
     __table_args__ = (
@@ -501,31 +460,31 @@ class AnalyticsTrend(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     metric_name: Mapped[str] = mapped_column(
-        String(100), nullable=False, comment="Название метрики"
+        String(100), nullable=False
     )
     trend_direction: Mapped[str] = mapped_column(
-        String(20), nullable=False, comment="Направление тренда (up, down, stable)"
+        String(20), nullable=False
     )
     trend_strength: Mapped[float] = mapped_column(
-        Float, nullable=False, comment="Сила тренда (0-1)"
+        Float, nullable=False
     )
     confidence: Mapped[float] = mapped_column(
-        Float, nullable=False, comment="Уверенность в тренде (0-1)"
+        Float, nullable=False
     )
     period_start: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, comment="Начало периода"
+        DateTime(timezone=True), nullable=False
     )
     period_end: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, comment="Конец периода"
+        DateTime(timezone=True), nullable=False
     )
     prediction_data: Mapped[Optional[Dict]] = mapped_column(
-        JSON, nullable=True, comment="Данные прогноза"
+        JSON, nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        comment="Время создания",
+        
     )
 
     __table_args__ = (
@@ -550,32 +509,32 @@ class AnalyticsAlert(Base):
     __tablename__ = "analytics_alerts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    alert_type: Mapped[str] = mapped_column(String(50), nullable=False, comment="Тип алерта")
+    alert_type: Mapped[str] = mapped_column(String(50), nullable=False)
     alert_level: Mapped[str] = mapped_column(
-        String(20), nullable=False, comment="Уровень алерта (info, warning, critical)"
+        String(20), nullable=False
     )
-    alert_message: Mapped[str] = mapped_column(Text, nullable=False, comment="Сообщение алерта")
-    alert_data: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True, comment="Данные алерта")
+    alert_message: Mapped[str] = mapped_column(Text, nullable=False)
+    alert_data: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
     triggered_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        comment="Время срабатывания",
+        
     )
     resolved_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True, comment="Время разрешения"
+        DateTime(timezone=True), nullable=True
     )
     resolved_by: Mapped[Optional[str]] = mapped_column(
-        String(100), nullable=True, comment="Кто разрешил алерт"
+        String(100), nullable=True
     )
     parent_telegram_id: Mapped[Optional[int]] = mapped_column(
-        BigInteger, nullable=True, comment="ID родителя для уведомления"
+        BigInteger, nullable=True
     )
     child_telegram_id: Mapped[Optional[int]] = mapped_column(
-        BigInteger, nullable=True, comment="ID ребенка (если алерт связан с ребенком)"
+        BigInteger, nullable=True
     )
     is_sent: Mapped[bool] = mapped_column(
-        Boolean, default=False, comment="Отправлено ли уведомление"
+        Boolean, default=False
     )
 
     __table_args__ = (
@@ -602,27 +561,27 @@ class AnalyticsConfig(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     config_key: Mapped[str] = mapped_column(
-        String(100), nullable=False, comment="Ключ конфигурации"
+        String(100), nullable=False
     )
     config_value: Mapped[Dict] = mapped_column(
-        JSON, nullable=False, comment="Значение конфигурации"
+        JSON, nullable=False
     )
-    config_type: Mapped[str] = mapped_column(String(50), nullable=False, comment="Тип конфигурации")
+    config_type: Mapped[str] = mapped_column(String(50), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(
-        Text, nullable=True, comment="Описание конфигурации"
+        Text, nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        comment="Время создания",
+        
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
-        comment="Время обновления",
+        
     )
 
     __table_args__ = (
