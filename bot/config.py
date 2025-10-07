@@ -17,6 +17,12 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("TELEGRAM_BOT_TOKEN", "telegram_bot_token"),
     )
     
+    sentry_dsn: str = Field(
+        default="",
+        description="Sentry DSN для мониторинга ошибок",
+        validation_alias=AliasChoices("SENTRY_DSN", "sentry_dsn"),
+    )
+    
     # ============ AI / GEMINI ============
     gemini_api_key: str = Field(
         ..., 

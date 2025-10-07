@@ -13,6 +13,15 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from loguru import logger
 
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.asyncio import AsyncioIntegration
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+    SENTRY_AVAILABLE = True
+except ImportError:
+    SENTRY_AVAILABLE = False
+    logger.warning("Sentry SDK не установлен. Установите: pip install sentry-sdk")
+
 from bot.config import settings
 from bot.database import init_db, DatabaseService
 from bot.handlers import routers
@@ -66,6 +75,19 @@ async def on_startup():
     - Проверка API ключей
     - Запуск системы мониторинга 24/7
     """
+    if SENTRY_AVAILABLE and hasattr(settings, 'sentry_dsn') and settings.sentry_dsn:
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn,
+            integrations=[
+                AsyncioIntegration(),
+                SqlalchemyIntegration(),
+            ],
+            traces_sample_rate=1.0,
+            profiles_sample_rate=1.0,
+            environment="production" if "render.com" in str(settings.database_url) else "development",
+        )
+        logger.info("✅ Sentry monitoring активирован")
+    
     logger.info("🚀 Запуск PandaPal Bot...")
     
     # Проверка подключения к БД
