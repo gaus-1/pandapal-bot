@@ -307,18 +307,18 @@ async def handle_image(message: Message, state: FSMContext):
         image_bytes = image_data.read()
 
         # Получаем пользователя и его данные
-        async with get_db() as db:
+        with get_db() as db:
             user_service = UserService(db)
-            user = await user_service.get_user_by_telegram_id(message.from_user.id)
+            user = user_service.get_user_by_telegram_id(message.from_user.id)
 
             if not user:
                 await processing_msg.edit_text("❌ Сначала зарегистрируйся командой /start")
                 return
 
-                # Инициализируем сервисы
-                ai_service = GeminiAIService()
-                parental_control = ParentalControlService(db)
-                history_service = ChatHistoryService(db)
+            # Инициализируем сервисы
+            ai_service = GeminiAIService()
+            parental_control = ParentalControlService(db)
+            history_service = ChatHistoryService(db)
 
             # Проверяем модерацию изображения
             is_safe, reason = await ai_service.moderate_image_content(image_bytes)
