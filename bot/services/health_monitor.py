@@ -153,7 +153,7 @@ class HealthMonitor:
     async def _check_telegram_api(self) -> bool:
         """Проверка Telegram API"""
         try:
-            from bot.main import bot
+            from main import bot
             await bot.get_me()
             return True
         except (TelegramAPIError, TelegramNetworkError) as e:
@@ -255,7 +255,7 @@ class HealthMonitor:
     async def _recover_telegram_api(self):
         """Восстановление Telegram API"""
         try:
-            from bot.main import bot
+            from main import bot
             # Сброс webhook и перезапуск polling
             await bot.delete_webhook()
             logger.info("🔄 Сброс Telegram webhook")
