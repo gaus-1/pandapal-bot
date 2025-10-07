@@ -4,8 +4,10 @@
 ![React](https://img.shields.io/badge/React-18+-61DAFB.svg)
 ![Telegram](https://img.shields.io/badge/Telegram-Bot-26A5E4.svg)
 ![AI](https://img.shields.io/badge/AI-Gemini-4285F4.svg)
-![Coverage](https://img.shields.io/badge/Coverage-41%25-yellow.svg)
-![Tests](https://img.shields.io/badge/Tests-336%20passing-success.svg)
+![Coverage](https://img.shields.io/badge/Coverage-39%25-yellow.svg)
+![Tests](https://img.shields.io/badge/Tests-206%20passing-success.svg)
+![CI](https://github.com/gaus-1/pandapal-bot/workflows/CI%2FCD%20Pipeline/badge.svg)
+![Code Quality](https://img.shields.io/badge/Code%20Quality-A-brightgreen.svg)
 
 **PandaPal** — это Telegram-бот на базе Google Gemini AI для безопасного и адаптивного обучения школьников 1–9 классов.
 

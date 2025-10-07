@@ -165,8 +165,9 @@ class ChatHistoryService:
 
         all_messages = self.db.execute(stmt).scalars().all()
 
-        # Если больше лимита — удаляем старые
-        if len(all_messages) > self.history_limit:
+        # Автоудаление при достижении 400 сообщений (оставляем последние 200)
+        max_total_messages = 400
+        if len(all_messages) > max_total_messages:
             messages_to_delete = all_messages[self.history_limit :]
 
             for msg in messages_to_delete:

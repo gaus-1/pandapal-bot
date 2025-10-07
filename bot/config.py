@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     )
     
     gemini_model: str = Field(
-        default="gemini-2.0-flash-exp",
+        default="gemini-1.5-flash",
         description="Модель Gemini для использования",
         validation_alias=AliasChoices("GEMINI_MODEL", "gemini_model"),
     )
@@ -75,8 +75,8 @@ class Settings(BaseSettings):
     )
     
     daily_message_limit: int = Field(
-        default=100,
-        description="Максимум сообщений в день на ребёнка",
+        default=999999,
+        description="Без ограничений на количество сообщений",
         validation_alias=AliasChoices("DAILY_MESSAGE_LIMIT", "daily_message_limit"),
     )
     
