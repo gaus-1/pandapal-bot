@@ -1,7 +1,7 @@
 """
 Обработчики настроек пользователя
 Изменение профиля, возраста, класса
-@module bot.handlers.settings
+
 """
 
 from aiogram import F, Router

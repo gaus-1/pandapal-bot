@@ -1,7 +1,7 @@
 """
 Сервис для работы с историей чата
 Управляет памятью AI (последние 200 сообщений: 100 от пользователя + 100 от бота)
-@module bot.services.history_service
+
 """
 
 from typing import Dict, List

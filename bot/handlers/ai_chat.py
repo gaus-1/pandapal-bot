@@ -2,7 +2,7 @@
 Обработчик общения с AI
 Главная функция бота — диалог с PandaPalAI
 Поддерживает текстовые сообщения и изображения
-@module bot.handlers.ai_chat
+
 """
 
 from aiogram import F, Router

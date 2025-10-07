@@ -1,7 +1,7 @@
 """
 Barrel export для сервисов
 Удобный импорт всех сервисов из одного модуля
-@module bot.services
+
 """
 
 from bot.services.ai_service import GeminiAIService

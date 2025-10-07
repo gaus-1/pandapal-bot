@@ -1,7 +1,7 @@
 """
 Основные клавиатуры для Telegram бота
 Reply и Inline кнопки для навигации
-@module bot.keyboards.main_kb
+
 """
 
 from aiogram.types import (

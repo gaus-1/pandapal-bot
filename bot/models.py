@@ -1,7 +1,5 @@
 """
 SQLAlchemy модели для PandaPal
-Описывают структуру таблиц базы данных
-@module bot.models
 """
 
 from datetime import datetime

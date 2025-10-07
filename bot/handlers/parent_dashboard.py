@@ -1,7 +1,7 @@
 """
 Обработчики дашборда для родителей
 Предоставляет аналитику и отчеты о деятельности детей
-@module bot.handlers.parent_dashboard
+
 """
 
 from datetime import datetime, timedelta

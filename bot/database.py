@@ -1,7 +1,7 @@
 """
 Подключение к базе данных PostgreSQL
 Создание сессий для работы с БД
-@module bot.database
+
 """
 
 from contextlib import contextmanager

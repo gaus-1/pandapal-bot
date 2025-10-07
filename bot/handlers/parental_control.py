@@ -1,7 +1,7 @@
 """
 Обработчики родительского контроля
 Предоставляет интерфейс для родителей для мониторинга детей
-@module bot.handlers.parental_control
+
 """
 
 from datetime import datetime, timedelta

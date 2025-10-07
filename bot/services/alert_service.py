@@ -1,7 +1,7 @@
 """
 Сервис алертов и уведомлений для PandaPal
 Отслеживает критические события и уведомляет родителей
-@module bot.services.alert_service
+
 """
 
 import asyncio
