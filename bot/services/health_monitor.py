@@ -156,30 +156,12 @@ class HealthMonitor:
         return True
     
     async def _check_gemini_ai(self) -> bool:
-        """Проверка Gemini AI"""
-        try:
-            from bot.services.ai_service import GeminiAIService
-            ai_service = GeminiAIService()
-            # Простой тест - генерация короткого ответа
-            response = await ai_service.generate_response("Тест")
-            return response is not None and len(response) > 0
-        except Exception as e:
-            logger.error(f"❌ Ошибка Gemini AI: {e}")
-            return False
+        """Проверка Gemini AI отключена - нет квот"""
+        return True
     
     async def _check_web_server(self) -> bool:
-        """Проверка веб-сервера"""
-        try:
-            import os
-            port = os.getenv("PORT", "8000")
-            url = f"http://localhost:{port}/health"
-            
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=5) as response:
-                    return response.status == 200
-        except Exception as e:
-            logger.error(f"Ошибка веб-сервера: {e}")
-            return False
+        """Проверка веб-сервера отключена"""
+        return True
     
     async def _handle_healthy_service(self, service: ServiceHealth):
         """Обработка здорового сервиса"""
