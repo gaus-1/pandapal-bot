@@ -1,6 +1,8 @@
+# Docker Compose конфигурация для локальной разработки PandaPal
 version: '3.8'
 
 services:
+  # База данных PostgreSQL
   postgres:
     image: postgres:15-alpine
     environment:
@@ -17,6 +19,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # Telegram бот (Python)
   bot:
     build: .
     depends_on:
@@ -31,6 +34,7 @@ services:
       - ./logs:/app/logs
     restart: unless-stopped
 
+  # Веб-интерфейс (React)
   frontend:
     build:
       context: ./frontend
@@ -41,6 +45,7 @@ services:
       - bot
     restart: unless-stopped
 
+# Persistent volumes для данных
 volumes:
   postgres_data:
 
