@@ -89,7 +89,7 @@ async def on_startup(bot: Bot) -> None:
         
         # Проверка БД
         db_service = DatabaseService()
-        if not await db_service.check_connection():
+        if not db_service.check_connection():
             logger.error("❌ Не удалось подключиться к БД")
             sys.exit(1)
         
