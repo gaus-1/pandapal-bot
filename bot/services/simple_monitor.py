@@ -90,12 +90,21 @@ class SimpleMonitor:
     async def _check_database(self) -> bool:
         """Проверка подключения к БД"""
         try:
-            # Используем контекстный менеджер напрямую
+            # Используем контекстный менеджер правильно
             from contextlib import contextmanager
-            for db in get_db():
+            
+            # get_db() это @contextmanager, используем с with
+            gen = get_db()
+            db = next(gen)
+            try:
                 db.execute(select(1))
-                return True
-            return False
+                result = True
+            finally:
+                try:
+                    next(gen)  # Вызываем finally блок в генераторе
+                except StopIteration:
+                    pass
+            return result
         except Exception as e:
             logger.error(f"❌ Ошибка БД: {e}")
             return False
@@ -108,7 +117,9 @@ class SimpleMonitor:
             memory_percent = psutil.virtual_memory().percent
             
             # Статистика пользователей
-            for db in get_db():
+            gen = get_db()
+            db = next(gen)
+            try:
                 active_users = db.scalar(
                     select(func.count(User.id)).where(User.is_active == True)
                 ) or 0
@@ -135,6 +146,11 @@ class SimpleMonitor:
                     messages_today=messages_today,
                     last_update=datetime.now()
                 )
+            finally:
+                try:
+                    next(gen)
+                except StopIteration:
+                    pass
             
         except Exception as e:
             logger.error(f"❌ Ошибка получения статуса: {e}")
