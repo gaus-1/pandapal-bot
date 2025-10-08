@@ -94,17 +94,9 @@ class SimpleMonitor:
             from contextlib import contextmanager
             
             # get_db() это @contextmanager, используем с with
-            gen = get_db()
-            db = next(gen)
-            try:
+            with get_db() as db:
                 db.execute(select(1))
-                result = True
-            finally:
-                try:
-                    next(gen)  # Вызываем finally блок в генераторе
-                except StopIteration:
-                    pass
-            return result
+                return True
         except Exception as e:
             logger.error(f"❌ Ошибка БД: {e}")
             return False
@@ -117,9 +109,7 @@ class SimpleMonitor:
             memory_percent = psutil.virtual_memory().percent
             
             # Статистика пользователей
-            gen = get_db()
-            db = next(gen)
-            try:
+            with get_db() as db:
                 active_users = db.scalar(
                     select(func.count(User.id)).where(User.is_active == True)
                 ) or 0
@@ -146,11 +136,6 @@ class SimpleMonitor:
                     messages_today=messages_today,
                     last_update=datetime.now()
                 )
-            finally:
-                try:
-                    next(gen)
-                except StopIteration:
-                    pass
             
         except Exception as e:
             logger.error(f"❌ Ошибка получения статуса: {e}")
