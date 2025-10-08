@@ -24,10 +24,8 @@ except ImportError:
 from bot.config import settings
 from bot.database import init_db, DatabaseService
 from bot.handlers import routers
-from bot.services.health_monitor import health_monitor
-from bot.services.ai_fallback_service import ai_fallback_service
-from bot.services.error_recovery_service import error_recovery_service
-from bot.services.bot_24_7_service import Bot24_7Service
+from bot.services.ai_service_solid import get_ai_service
+from bot.services.simple_monitor import get_simple_monitor
 
 
 # Функция для удаления эмодзи из логов (для Windows консоли)
@@ -101,19 +99,19 @@ async def on_startup():
         logger.error(f"❌ Ошибка инициализации БД: {e}")
         sys.exit(1)
     
-    # Проверка Gemini API
+    # Проверка Gemini API (SOLID)
     try:
-        from bot.services.ai_service import GeminiAIService
-        ai_service = GeminiAIService()
+        ai_service = get_ai_service()
         logger.info(f"✅ Gemini AI готов: {ai_service.get_model_info()}")
     except Exception as e:
         logger.error(f"❌ Ошибка инициализации Gemini: {e}")
         sys.exit(1)
     
-    # Запуск системы мониторинга здоровья
+    # Запуск упрощенного мониторинга
     try:
-        await health_monitor.start_monitoring()
-        logger.info("🛡️ Система мониторинга здоровья запущена")
+        monitor = get_simple_monitor()
+        await monitor.start_monitoring()
+        logger.info("🛡️ Упрощенный мониторинг запущен")
     except Exception as e:
         logger.error(f"❌ Ошибка запуска мониторинга: {e}")
     
@@ -127,10 +125,11 @@ async def on_shutdown():
     """
     logger.info("⏹️ Остановка бота...")
     
-    # Остановка системы мониторинга
+    # Остановка упрощенного мониторинга
     try:
-        await health_monitor.stop_monitoring()
-        logger.info("🛡️ Система мониторинга остановлена")
+        monitor = get_simple_monitor()
+        await monitor.stop_monitoring()
+        logger.info("🛡️ Упрощенный мониторинг остановлен")
     except Exception as e:
         logger.error(f"❌ Ошибка остановки мониторинга: {e}")
     

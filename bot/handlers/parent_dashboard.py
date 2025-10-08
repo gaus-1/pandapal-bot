@@ -15,8 +15,8 @@ from loguru import logger
 
 from bot.database import get_db
 from bot.services import UserService
-from bot.services.analytics_service import AnalyticsPeriod, AnalyticsService
 from bot.services.parental_control import ParentalControlService
+from bot.services.simple_monitor import get_simple_monitor
 
 # Создаём роутер для дашборда родителей
 router = Router(name="parent_dashboard")
