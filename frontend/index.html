@@ -144,12 +144,10 @@
     </script>
     
     <!-- Content Security Policy - КРИТИЧЕСКИ ВАЖНО для защиты детей от XSS -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://telegram.org https://www.googletagmanager.com https://mc.yandex.ru; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.pandapal.ru https://mc.yandex.ru; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://telegram.org https://www.googletagmanager.com https://mc.yandex.ru; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.pandapal.ru https://mc.yandex.ru https://region1.google-analytics.com https://www.google-analytics.com; frame-src 'self' https://mc.yandex.ru; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
     
-    <!-- Дополнительные заголовки безопасности -->
-    <meta http-equiv="X-Frame-Options" content="DENY">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <!-- Дополнительные заголовки безопасности (устанавливаются на сервере) -->
+    <!-- X-Frame-Options, X-Content-Type-Options, Referrer-Policy должны быть HTTP заголовками -->
     <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
     
     <!-- ========== GOOGLE ANALYTICS 4 ========== -->
