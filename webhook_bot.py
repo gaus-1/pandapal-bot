@@ -109,39 +109,51 @@ async def on_startup(bot: Bot) -> None:
             logger.error(f"❌ Ошибка инициализации БД: {e}")
             sys.exit(1)
         
-        # Проверка Gemini API (SOLID фасад)
+        # Проверка Gemini API (SOLID фасад) - в фоне для быстрого старта
         try:
             from bot.services.ai_service_solid import get_ai_service
             ai_service = get_ai_service()
             logger.info(f"✅ Gemini AI готов: {ai_service.get_model_info()}")
         except Exception as e:
-            logger.error(f"❌ Ошибка инициализации Gemini: {e}")
-            sys.exit(1)
+            # Не критично - можем запуститься без AI и попробовать позже
+            logger.warning(f"⚠️ Gemini AI не инициализирован: {e}")
+            logger.info("ℹ️ Бот запустится, AI будет доступен при первом использовании")
         
-        # Запуск упрощенного мониторинга
+        # Запуск упрощенного мониторинга (асинхронно, не блокирует старт)
         try:
             from bot.services.simple_monitor import get_simple_monitor
             monitor = get_simple_monitor()
-            await monitor.start_monitoring()
-            logger.info("🛡️ Упрощенный мониторинг запущен")
+            asyncio.create_task(monitor.start_monitoring())
+            logger.info("🛡️ Упрощенный мониторинг запускается в фоне")
         except Exception as e:
-            logger.error(f"❌ Ошибка запуска мониторинга: {e}")
+            logger.warning(f"⚠️ Мониторинг не запущен: {e}")
         
-        # Запуск упрощенного сервиса напоминаний
+        # Запуск упрощенного сервиса напоминаний (асинхронно, не блокирует старт)
         try:
             from bot.services.simple_engagement import get_simple_engagement
             engagement = get_simple_engagement(bot)
-            await engagement.start()
-            logger.info("⏰ Служба напоминаний запущена")
+            asyncio.create_task(engagement.start())
+            logger.info("⏰ Служба напоминаний запускается в фоне")
         except Exception as e:
-            logger.error(f"❌ Ошибка запуска напоминаний: {e}")
+            logger.warning(f"⚠️ Напоминания не запущены: {e}")
         
-        # Устанавливаем webhook
-        await bot.set_webhook(
-            WEBHOOK_URL,
-            drop_pending_updates=True,
-            allowed_updates=dp.resolve_used_update_types()
-        )
+        # Устанавливаем webhook с таймаутом
+        try:
+            await asyncio.wait_for(
+                bot.set_webhook(
+                    WEBHOOK_URL,
+                    drop_pending_updates=True,
+                    allowed_updates=dp.resolve_used_update_types()
+                ),
+                timeout=30.0  # 30 секунд на установку webhook
+            )
+            logger.info(f"✅ Webhook установлен: {WEBHOOK_URL}")
+        except asyncio.TimeoutError:
+            logger.error("❌ Таймаут установки webhook (30 сек)")
+            sys.exit(1)
+        except Exception as e:
+            logger.error(f"❌ Ошибка установки webhook: {e}")
+            sys.exit(1)
         
         logger.success("✅ Бот запущен успешно!")
         logger.info(f"🔗 Webhook URL: {WEBHOOK_URL}")
