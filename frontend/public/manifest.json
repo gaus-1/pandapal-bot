@@ -1,0 +1,69 @@
+{
+  "short_name": "PandaPal",
+  "name": "PandaPal - AI-ассистент для обучения детей",
+  "description": "Умный AI-помощник для школьников 6-18 лет. Помощь с уроками, безопасный чат, адаптивное обучение.",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#4F46E5",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "lang": "ru-RU",
+  "dir": "ltr",
+  "categories": ["education", "productivity", "kids"],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Главная страница PandaPal"
+    },
+    {
+      "src": "/screenshots/chat.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "AI чат с образовательным ассистентом"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Начать чат с AI",
+      "short_name": "AI Чат",
+      "description": "Быстрый доступ к образовательному чату",
+      "url": "/ai-chat",
+      "icons": [{ "src": "/icons/chat-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Помощь с уроками",
+      "short_name": "Уроки",
+      "url": "/homework-help",
+      "icons": [{ "src": "/icons/homework-96x96.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "telegram",
+      "url": "https://t.me/pandapal_bot",
+      "id": "pandapal_bot"
+    }
+  ]
+}
+
