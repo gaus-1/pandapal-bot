@@ -25,7 +25,6 @@ except ImportError:
 from bot.config import settings
 from bot.database import init_db, DatabaseService
 from bot.handlers import routers
-from bot.services.health_monitor import health_monitor
 
 
 # Удаление эмодзи из логов
