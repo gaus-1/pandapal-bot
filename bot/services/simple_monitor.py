@@ -90,9 +90,18 @@ class SimpleMonitor:
     async def _check_database(self) -> bool:
         """Проверка подключения к БД"""
         try:
-            with next(get_db()) as db:
+            # get_db() возвращает генератор, нужно правильно его использовать
+            db_generator = get_db()
+            db = next(db_generator)
+            try:
                 db.execute(select(1))
                 return True
+            finally:
+                # Закрываем генератор
+                try:
+                    next(db_generator)
+                except StopIteration:
+                    pass
         except Exception as e:
             logger.error(f"❌ Ошибка БД: {e}")
             return False
@@ -105,7 +114,9 @@ class SimpleMonitor:
             memory_percent = psutil.virtual_memory().percent
             
             # Статистика пользователей
-            with next(get_db()) as db:
+            db_generator = get_db()
+            db = next(db_generator)
+            try:
                 active_users = db.scalar(
                     select(func.count(User.id)).where(User.is_active == True)
                 ) or 0
@@ -116,22 +127,28 @@ class SimpleMonitor:
                         func.date(ChatHistory.timestamp) == today
                     )
                 ) or 0
-            
-            # Определение здоровья системы
-            healthy = (
-                cpu_percent < 80 and 
-                memory_percent < 80 and 
-                await self._check_database()
-            )
-            
-            return SystemStatus(
-                healthy=healthy,
-                cpu_percent=cpu_percent,
-                memory_percent=memory_percent,
-                active_users=active_users,
-                messages_today=messages_today,
-                last_update=datetime.now()
-            )
+                
+                # Определение здоровья системы
+                healthy = (
+                    cpu_percent < 80 and 
+                    memory_percent < 80 and 
+                    await self._check_database()
+                )
+                
+                return SystemStatus(
+                    healthy=healthy,
+                    cpu_percent=cpu_percent,
+                    memory_percent=memory_percent,
+                    active_users=active_users,
+                    messages_today=messages_today,
+                    last_update=datetime.now()
+                )
+            finally:
+                # Закрываем генератор БД
+                try:
+                    next(db_generator)
+                except StopIteration:
+                    pass
             
         except Exception as e:
             logger.error(f"❌ Ошибка получения статуса: {e}")
