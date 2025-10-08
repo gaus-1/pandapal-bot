@@ -19,23 +19,38 @@ depends_on = None
 def upgrade() -> None:
     """Создание таблиц для аналитики"""
     
-    # ============ ТАБЛИЦА АНАЛИТИЧЕСКИХ МЕТРИК ============
-    op.create_table('analytics_metrics',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('metric_name', sa.String(100), nullable=False, comment='Название метрики'),
-        sa.Column('metric_value', sa.Float(), nullable=False, comment='Значение метрики'),
-        sa.Column('metric_type', sa.String(50), nullable=False, comment='Тип метрики (counter, gauge, histogram)'),
-        sa.Column('tags', sa.JSON(), nullable=True, comment='Теги для группировки метрик'),
-        sa.Column('timestamp', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False, comment='Время записи'),
-        sa.Column('period', sa.String(20), nullable=False, comment='Период агрегации (hour, day, week, month)'),
-        sa.Column('user_telegram_id', sa.BigInteger(), nullable=True, comment='ID пользователя (если метрика пользовательская)'),
-        sa.PrimaryKeyConstraint('id')
-    )
+    # Проверяем существование таблиц перед созданием
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    existing_tables = inspector.get_table_names()
     
-    # Индексы для таблицы метрик
-    op.create_index('ix_analytics_metrics_name_time', 'analytics_metrics', ['metric_name', 'timestamp'])
-    op.create_index('ix_analytics_metrics_user_time', 'analytics_metrics', ['user_telegram_id', 'timestamp'])
-    op.create_index('ix_analytics_metrics_period', 'analytics_metrics', ['period'])
+    # Если все таблицы уже существуют - пропускаем миграцию
+    required_tables = [
+        'analytics_metrics', 'user_sessions', 'user_events',
+        'analytics_reports', 'analytics_trends', 'analytics_alerts', 'analytics_config'
+    ]
+    if all(table in existing_tables for table in required_tables):
+        print("✅ Все таблицы аналитики уже существуют, пропускаем миграцию")
+        return
+    
+    # ============ ТАБЛИЦА АНАЛИТИЧЕСКИХ МЕТРИК ============
+    if 'analytics_metrics' not in existing_tables:
+        op.create_table('analytics_metrics',
+            sa.Column('id', sa.Integer(), nullable=False),
+            sa.Column('metric_name', sa.String(100), nullable=False, comment='Название метрики'),
+            sa.Column('metric_value', sa.Float(), nullable=False, comment='Значение метрики'),
+            sa.Column('metric_type', sa.String(50), nullable=False, comment='Тип метрики (counter, gauge, histogram)'),
+            sa.Column('tags', sa.JSON(), nullable=True, comment='Теги для группировки метрик'),
+            sa.Column('timestamp', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False, comment='Время записи'),
+            sa.Column('period', sa.String(20), nullable=False, comment='Период агрегации (hour, day, week, month)'),
+            sa.Column('user_telegram_id', sa.BigInteger(), nullable=True, comment='ID пользователя (если метрика пользовательская)'),
+            sa.PrimaryKeyConstraint('id')
+        )
+        
+        # Индексы для таблицы метрик
+        op.create_index('ix_analytics_metrics_name_time', 'analytics_metrics', ['metric_name', 'timestamp'])
+        op.create_index('ix_analytics_metrics_user_time', 'analytics_metrics', ['user_telegram_id', 'timestamp'])
+        op.create_index('ix_analytics_metrics_period', 'analytics_metrics', ['period'])
     
     # ============ ТАБЛИЦА ПОЛЬЗОВАТЕЛЬСКИХ СЕССИЙ ============
     op.create_table('user_sessions',
