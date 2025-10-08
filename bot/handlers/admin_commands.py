@@ -60,26 +60,25 @@ async def cmd_status(message: Message):
 
 @router.message(Command("health"))
 async def cmd_health(message: Message):
-    """Команда проверки здоровья сервисов"""
+    """Команда проверки здоровья сервисов (SOLID)"""
     try:
-        health_status = health_monitor.get_overall_health()
+        monitor = get_simple_monitor()
+        status = monitor.get_current_status()
         
         # Определяем общий статус
-        overall_emoji = "✅" if health_status["overall_status"] == "healthy" else "⚠️"
+        overall_status = status.get("overall", "unknown")
+        overall_emoji = "✅" if overall_status == "healthy" else "⚠️"
         
         response = f"""🛡️ <b>Здоровье системы PandaPal</b>
 
-{overall_emoji} <b>Общий статус:</b> <code>{health_status['overall_status'].upper()}</code>
-📊 Рабочих сервисов: <code>{health_status['healthy_services']}/{health_status['total_services']}</code>
+{overall_emoji} <b>Общий статус:</b> <code>{overall_status.upper()}</code>
 
 🔍 <b>Детали по сервисам:</b>"""
 
-        for service_name, service_info in health_status["services"].items():
-            status_emoji = "✅" if service_info["status"] == "healthy" else "⚠️"
-            response += f"\n{status_emoji} <b>{service_name}:</b> <code>{service_info['status']}</code>"
-            
-            if service_info["failure_count"] > 0:
-                response += f" (ошибок: {service_info['failure_count']})"
+        for service_name, service_status in status.items():
+            if service_name != "overall":
+                status_emoji = "✅" if service_status == "healthy" else "⚠️"
+                response += f"\n{status_emoji} <b>{service_name}:</b> <code>{service_status}</code>"
 
         await message.answer(response)
         
