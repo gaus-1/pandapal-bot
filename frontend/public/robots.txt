@@ -40,3 +40,11 @@ Sitemap: https://pandapal.ru/sitemap-blog.xml
 # Хост (для Яндекс)
 Host: https://pandapal.ru
 
+# Приоритет для Яндекса
+User-agent: Yandex
+Allow: /
+Crawl-delay: 1
+
+# Уведомляем о файле подтверждения
+Allow: /yandex_verification.html
+
