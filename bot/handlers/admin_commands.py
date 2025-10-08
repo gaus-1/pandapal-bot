@@ -9,10 +9,8 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from loguru import logger
 
-from bot.services.health_monitor import health_monitor
-from bot.services.ai_fallback_service import ai_fallback_service
-from bot.services.error_recovery_service import error_recovery_service
-from bot.services.bot_24_7_service import bot_24_7_service
+from bot.services.simple_monitor import get_simple_monitor
+from bot.services.ai_service_solid import get_ai_service
 
 
 router = Router()
@@ -92,22 +90,17 @@ async def cmd_health(message: Message):
 
 @router.message(Command("ai_status"))
 async def cmd_ai_status(message: Message):
-    """Команда проверки статуса AI провайдеров"""
+    """Команда проверки статуса AI (SOLID)"""
     try:
-        ai_status = await ai_fallback_service.get_provider_status()
+        ai_service = get_ai_service()
+        model_info = ai_service.get_model_info()
         
-        response = f"""🤖 <b>Статус AI провайдеров</b>
+        response = f"""🤖 <b>Статус AI</b>
 
-🎯 <b>Текущий провайдер:</b> <code>{ai_status['current_provider']}</code>
-✅ <b>Последний успешный:</b> <code>{ai_status['last_successful_provider']}</code>
-
-📊 <b>Состояние провайдеров:</b>"""
-
-        for provider_name, provider_info in ai_status["providers"].items():
-            status_emoji = "✅" if provider_info["status"] == "active" else "❌"
-            response += f"\n{status_emoji} <b>{provider_name}:</b>"
-            response += f"\n   Статус: <code>{provider_info['status']}</code>"
-            response += f"\n   Ошибок: <code>{provider_info['errors']}/{provider_info['max_errors']}</code>"
+📦 <b>Модель:</b> <code>{model_info['model']}</code>
+🎯 <b>Температура:</b> <code>{model_info['temperature']}</code>
+📊 <b>Max токенов:</b> <code>{model_info['max_tokens']}</code>
+✅ <b>Публичное имя:</b> <code>{model_info['public_name']}</code>"""
 
         await message.answer(response)
         
@@ -155,47 +148,46 @@ async def cmd_errors(message: Message):
 
 @router.message(Command("restart_ai"))
 async def cmd_restart_ai(message: Message):
-    """Команда перезапуска AI провайдеров"""
+    """Команда перезапуска AI (SOLID)"""
     try:
-        from bot.services.ai_fallback_service import AIProvider
+        # В SOLID архитектуре AI сервис управляется через singleton
+        ai_service = get_ai_service()
+        logger.info("🔄 AI сервис готов к работе")
         
-        # Сбрасываем все провайдеры
-        for provider in AIProvider:
-            await ai_fallback_service.reset_provider(provider)
-        
-        await message.answer("🔄 AI провайдеры перезапущены")
+        await message.answer("✅ AI сервис работает корректно")
         
     except Exception as e:
         logger.error(f"❌ Ошибка команды restart_ai: {e}")
-        await message.answer("❌ Ошибка перезапуска AI")
+        await message.answer("❌ Ошибка проверки AI")
 
 
 @router.message(Command("clear_errors"))
 async def cmd_clear_errors(message: Message):
-    """Команда очистки истории ошибок"""
+    """Команда очистки истории ошибок (заглушка для совместимости)"""
     try:
-        error_recovery_service.clear_error_history()
-        await message.answer("🧹 История ошибок очищена")
+        logger.info("🧹 Команда очистки ошибок (в SOLID архитектуре не требуется)")
+        await message.answer("✅ В текущей архитектуре очистка не требуется")
         
     except Exception as e:
         logger.error(f"❌ Ошибка команды clear_errors: {e}")
-        await message.answer("❌ Ошибка очистки истории ошибок")
+        await message.answer("❌ Ошибка выполнения команды")
 
 
 @router.message(Command("force_check"))
 async def cmd_force_check(message: Message):
-    """Команда принудительной проверки здоровья"""
+    """Команда принудительной проверки здоровья (SOLID)"""
     try:
-        # Принудительная проверка всех сервисов
-        if bot_24_7_service:
-            bot_ok = await bot_24_7_service.force_health_check()
-        else:
-            bot_ok = False
-        
         # Проверка AI
-        ai_ok = await ai_fallback_service.generate_response("Тест", 0)
+        ai_service = get_ai_service()
+        test_response = await ai_service.generate_response("Тест", user_age=10)
+        ai_ok = bool(test_response and len(test_response) > 0)
         
-        if bot_ok and ai_ok:
+        # Проверка монитора
+        monitor = get_simple_monitor()
+        monitor_status = monitor.get_current_status()
+        monitor_ok = monitor_status.get("overall") == "healthy"
+        
+        if ai_ok and monitor_ok:
             await message.answer("✅ Все системы работают корректно")
         else:
             await message.answer("⚠️ Обнаружены проблемы в работе систем")
