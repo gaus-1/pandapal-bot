@@ -23,7 +23,7 @@ async def main():
         port = int(os.environ.get("PORT", 10000))
         
         # Получаем параметры webhook
-        webhook_domain = os.getenv("WEBHOOK_DOMAIN", "pandapal-bot.onrender.com")
+        webhook_domain = os.getenv("WEBHOOK_DOMAIN", "pandapal.ru")
         webhook_path = os.getenv("WEBHOOK_PATH", "/webhook")
         webhook_url = f"https://{webhook_domain}{webhook_path}"
         
