@@ -77,7 +77,7 @@ async def on_startup(bot: Bot) -> None:
         logger.info("🚀 Запуск PandaPal Bot (Webhook режим)...")
         
         # Инициализация Sentry
-        if SENTRY_AVAILABLE and settings.sentry_dsn:
+        if SENTRY_AVAILABLE and settings.sentry_dsn and settings.sentry_dsn.strip():
             sentry_sdk.init(
                 dsn=settings.sentry_dsn,
                 integrations=[AsyncioIntegration(), SqlalchemyIntegration()],
@@ -86,6 +86,8 @@ async def on_startup(bot: Bot) -> None:
                 environment="production"
             )
             logger.info("✅ Sentry мониторинг активирован")
+        else:
+            logger.info("ℹ️ Sentry отключен (пустой DSN)")
         
         # Проверка БД
         db_service = DatabaseService()
