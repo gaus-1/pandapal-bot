@@ -36,11 +36,11 @@ sentry-sdk==2.18.0
 # Обработка изображений
 Pillow==11.1.0
 
-# Распознавание речи (Whisper) - ВРЕМЕННО ОТКЛЮЧЕНО ДЛЯ ДЕПЛОЯ
-# openai-whisper
-# ffmpeg-python==0.2.0
-# tiktoken
-# setuptools-rust
+# Распознавание речи (Whisper) - ЛЕГКАЯ МОДЕЛЬ
+openai-whisper==20250625
+ffmpeg-python==0.2.0
+# tiktoken  # Не нужен для tiny модели
+# setuptools-rust  # Не нужен для tiny модели
 
 # Фреймворк тестирования
 pytest==8.4.2
