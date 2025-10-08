@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python webhook_server.py
+    startCommand: python web_server.py
     envVars:
       - key: database_url
         sync: false
@@ -15,11 +15,17 @@ services:
       - key: secret_key
         sync: false
       - key: PORT
-        value: 8000
+        value: 10000
       - key: PYTHON_VERSION
         value: "3.11.9"
       - key: RENDER
         value: "true"
+      - key: WEBHOOK_DOMAIN
+        value: "pandapal.ru"
     healthCheckPath: /health
     autoDeploy: true
     region: frankfurt
+    # Кастомный домен
+    customDomains:
+      - pandapal.ru
+      - www.pandapal.ru
