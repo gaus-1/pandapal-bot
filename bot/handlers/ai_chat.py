@@ -17,7 +17,7 @@ from bot.services import (
     ContentModerationService,
     UserService,
 )
-from bot.services.ai_service import get_ai_service
+from bot.services.ai_service_solid import get_ai_service
 from bot.services.advanced_moderation import ModerationResult
 from bot.services.parental_control import ActivityType, ParentalControlService
 
@@ -179,7 +179,7 @@ async def handle_ai_message(message: Message, state: FSMContext):
                 f"{user_message[:50]}... | История: {len(history)} сообщений"
             )
 
-            # Получаем AI сервис
+            # Получаем AI сервис (SOLID фасад)
             ai_service = get_ai_service()
 
             # Генерируем ответ с учётом контекста, возраста и класса
@@ -187,7 +187,6 @@ async def handle_ai_message(message: Message, state: FSMContext):
                 user_message=user_message,
                 chat_history=history,
                 user_age=user.age,
-                user_grade=user.grade,
             )
 
             # Промодерируем ответ AI на безопасность

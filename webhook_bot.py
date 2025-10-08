@@ -76,18 +76,25 @@ async def on_startup(bot: Bot) -> None:
     try:
         logger.info("🚀 Запуск PandaPal Bot (Webhook режим)...")
         
-        # Инициализация Sentry
-        if SENTRY_AVAILABLE and settings.sentry_dsn and settings.sentry_dsn.strip():
-            sentry_sdk.init(
-                dsn=settings.sentry_dsn,
-                integrations=[AsyncioIntegration(), SqlalchemyIntegration()],
-                traces_sample_rate=0.1,
-                profiles_sample_rate=0.1,
-                environment="production"
-            )
-            logger.info("✅ Sentry мониторинг активирован")
+        # Инициализация Sentry (только если DSN не пустой)
+        if SENTRY_AVAILABLE and settings.sentry_dsn:
+            dsn_stripped = settings.sentry_dsn.strip()
+            if dsn_stripped and len(dsn_stripped) > 10:  # Минимальная длина валидного DSN
+                try:
+                    sentry_sdk.init(
+                        dsn=dsn_stripped,
+                        integrations=[AsyncioIntegration(), SqlalchemyIntegration()],
+                        traces_sample_rate=0.1,
+                        profiles_sample_rate=0.1,
+                        environment="production"
+                    )
+                    logger.info("✅ Sentry мониторинг активирован")
+                except Exception as e:
+                    logger.warning(f"⚠️ Не удалось инициализировать Sentry: {e}")
+            else:
+                logger.info("ℹ️ Sentry отключен (пустой или некорректный DSN)")
         else:
-            logger.info("ℹ️ Sentry отключен (пустой DSN)")
+            logger.info("ℹ️ Sentry отключен (модуль недоступен или DSN не задан)")
         
         # Проверка БД
         db_service = DatabaseService()
@@ -102,30 +109,32 @@ async def on_startup(bot: Bot) -> None:
             logger.error(f"❌ Ошибка инициализации БД: {e}")
             sys.exit(1)
         
-        # Проверка Gemini API
+        # Проверка Gemini API (SOLID фасад)
         try:
-            from bot.services.ai_service import get_ai_service
+            from bot.services.ai_service_solid import get_ai_service
             ai_service = get_ai_service()
             logger.info(f"✅ Gemini AI готов: {ai_service.get_model_info()}")
         except Exception as e:
             logger.error(f"❌ Ошибка инициализации Gemini: {e}")
             sys.exit(1)
         
-        # Запуск мониторинга здоровья
+        # Запуск упрощенного мониторинга
         try:
-            await health_monitor.start_monitoring()
-            logger.info("🛡️ Система мониторинга здоровья запущена")
+            from bot.services.simple_monitor import get_simple_monitor
+            monitor = get_simple_monitor()
+            await monitor.start_monitoring()
+            logger.info("🛡️ Упрощенный мониторинг запущен")
         except Exception as e:
             logger.error(f"❌ Ошибка запуска мониторинга: {e}")
         
-        # Запуск планировщика задач (напоминания пользователям)
+        # Запуск упрощенного сервиса напоминаний
         try:
-            from bot.services.scheduler_service import get_scheduler
-            scheduler = get_scheduler(bot)
-            await scheduler.start()
-            logger.info("⏰ Планировщик задач запущен (еженедельные напоминания)")
+            from bot.services.simple_engagement import get_simple_engagement
+            engagement = get_simple_engagement(bot)
+            await engagement.start()
+            logger.info("⏰ Служба напоминаний запущена")
         except Exception as e:
-            logger.error(f"❌ Ошибка запуска планировщика: {e}")
+            logger.error(f"❌ Ошибка запуска напоминаний: {e}")
         
         # Устанавливаем webhook
         await bot.set_webhook(
@@ -146,18 +155,23 @@ async def on_shutdown(bot: Bot) -> None:
     """Вызывается при остановке бота"""
     logger.info("⏹️ Остановка бота...")
     
-    # Останавливаем планировщик
+    # Останавливаем сервис напоминаний
     try:
-        from bot.services.scheduler_service import get_scheduler
-        scheduler = get_scheduler(bot)
-        await scheduler.stop()
-        logger.info("⏰ Планировщик остановлен")
+        from bot.services.simple_engagement import get_simple_engagement
+        engagement = get_simple_engagement(bot)
+        await engagement.stop()
+        logger.info("⏰ Служба напоминаний остановлена")
     except Exception as e:
-        logger.error(f"❌ Ошибка остановки планировщика: {e}")
+        logger.error(f"❌ Ошибка остановки напоминаний: {e}")
     
     # Останавливаем мониторинг
-    await health_monitor.stop_monitoring()
-    logger.info("🛡️ Система мониторинга остановлена")
+    try:
+        from bot.services.simple_monitor import get_simple_monitor
+        monitor = get_simple_monitor()
+        await monitor.stop_monitoring()
+        logger.info("🛡️ Мониторинг остановлен")
+    except Exception as e:
+        logger.error(f"❌ Ошибка остановки мониторинга: {e}")
     
     # Удаляем webhook
     await bot.delete_webhook()
