@@ -13,7 +13,7 @@ from typing import Generator, AsyncGenerator
 # Добавляем корневую директорию в путь
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from bot.services.ai_service import GeminiAIService
+from bot.services.ai_service_solid import GeminiAIService
 from bot.services.moderation_service import ContentModerationService
 from bot.models import User, ChatHistory
 

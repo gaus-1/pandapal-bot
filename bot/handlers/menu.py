@@ -15,7 +15,7 @@ from bot.keyboards.main_kb import (
     get_help_type_keyboard,
 )
 from bot.services.user_service import UserService
-from bot.services.analytics_service import AnalyticsService
+from bot.services.simple_monitor import get_simple_monitor
 
 router = Router(name="menu")
 
@@ -121,7 +121,6 @@ async def show_progress(message: Message, state: FSMContext):
     logger.info(f"📊 Пользователь {telegram_id} открыл прогресс")
     
     with get_db() as db:
-        analytics_service = AnalyticsService(db)
         user_service = UserService(db)
         
         user = user_service.get_user_by_telegram_id(telegram_id)
@@ -132,9 +131,15 @@ async def show_progress(message: Message, state: FSMContext):
             )
             return
         
-        # Получаем статистику
+        # Получаем статистику через упрощенный монитор
         try:
-            analytics = analytics_service.get_user_analytics(telegram_id)
+            monitor = get_simple_monitor()
+            # Пока заглушка - статистика будет позже
+            analytics = {
+                "total_messages": 0,
+                "total_learning_sessions": 0,
+                "total_time_spent": 0
+            }
             
             # Формируем текст с прогрессом
             progress_text = f"""
