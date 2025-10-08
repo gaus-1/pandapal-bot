@@ -7,7 +7,7 @@ import os
 import tempfile
 from typing import Optional
 
-# import whisper  # ВРЕМЕННО ОТКЛЮЧЕНО
+import whisper  # ВОССТАНОВЛЕНО
 from loguru import logger
 
 
@@ -17,7 +17,7 @@ class SpeechRecognitionService:
     Поддерживает русский и английский языки
     """
     
-    def __init__(self, model_size: str = "base"):
+    def __init__(self, model_size: str = "tiny"):
         """
         Инициализация сервиса
         
@@ -36,8 +36,8 @@ class SpeechRecognitionService:
         logger.info(f"🎤 Загрузка Whisper модели: {model_size}")
         
         try:
-            # self.model = whisper.load_model(model_size)  # ВРЕМЕННО ОТКЛЮЧЕНО
-            self.model = None
+            self.model = whisper.load_model(model_size)  # ВОССТАНОВЛЕНО
+            # self.model = None
             self.model_size = model_size
             logger.info(f"✅ Whisper модель {model_size} загружена успешно")
         except Exception as e:
@@ -84,11 +84,8 @@ class SpeechRecognitionService:
             if not auto_detect_language:
                 transcribe_options["language"] = language
             
-            # Распознаем речь через Whisper - ВРЕМЕННО ОТКЛЮЧЕНО
-            # result = self.model.transcribe(temp_file_path, **transcribe_options)
-            
-            # ВРЕМЕННАЯ ЗАГЛУШКА
-            result = {"text": "Голосовые сообщения временно недоступны", "language": "ru"}
+            # Распознаем речь через Whisper - ВОССТАНОВЛЕНО
+            result = self.model.transcribe(temp_file_path, **transcribe_options)
             
             # Логируем определенный язык
             detected_lang = result.get("language", "unknown")
