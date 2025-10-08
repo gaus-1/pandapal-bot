@@ -82,7 +82,7 @@ class AIResponseGenerator:
             context = self.context_builder.build(user_message, chat_history, user_age)
             
             # Генерация ответа (единственная ответственность этого класса)
-            response = await self.model.generate_content_async(context)
+            response = self.model.generate_content(context)
             
             if response and response.text:
                 return response.text.strip()
