@@ -7,8 +7,15 @@ import os
 import tempfile
 from typing import Optional
 
-import whisper  # ВОССТАНОВЛЕНО
 from loguru import logger
+
+# Whisper временно отключен для быстрого деплоя на Render
+try:
+    import whisper
+    WHISPER_AVAILABLE = True
+except ImportError:
+    WHISPER_AVAILABLE = False
+    logger.warning("⚠️ OpenAI Whisper не установлен - голосовые сообщения недоступны")
 
 
 class SpeechRecognitionService:
@@ -33,11 +40,16 @@ class SpeechRecognitionService:
         Примечание: turbo НЕ поддерживает русский язык!
         Для русского используйте base или small.
         """
-        logger.info(f"🎤 Загрузка Whisper модели: {model_size}")
+        logger.info(f"🎤 Инициализация распознавания речи: {model_size}")
+        
+        if not WHISPER_AVAILABLE:
+            logger.warning("⚠️ Whisper недоступен - используется заглушка")
+            self.model = None
+            self.model_size = model_size
+            return
         
         try:
-            self.model = whisper.load_model(model_size)  # ВОССТАНОВЛЕНО
-            # self.model = None
+            self.model = whisper.load_model(model_size)
             self.model_size = model_size
             logger.info(f"✅ Whisper модель {model_size} загружена успешно")
         except Exception as e:
@@ -61,6 +73,11 @@ class SpeechRecognitionService:
         Returns:
             str: Распознанный текст или None при ошибке
         """
+        # Проверка доступности Whisper
+        if not WHISPER_AVAILABLE or self.model is None:
+            logger.warning("⚠️ Whisper недоступен - возвращаем заглушку")
+            return "Извини, распознавание речи временно недоступно. Пожалуйста, напиши текстом! 📝"
+        
         temp_file_path = None
         
         try:
@@ -84,7 +101,7 @@ class SpeechRecognitionService:
             if not auto_detect_language:
                 transcribe_options["language"] = language
             
-            # Распознаем речь через Whisper - ВОССТАНОВЛЕНО
+            # Распознаем речь через Whisper
             result = self.model.transcribe(temp_file_path, **transcribe_options)
             
             # Логируем определенный язык
