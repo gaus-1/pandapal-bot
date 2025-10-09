@@ -43,5 +43,12 @@ class ContextBuilder(IContextBuilder):
         """Подготовка истории чата"""
         history_text = "Предыдущие сообщения:\n"
         for msg in chat_history[-5:]:  # Только последние 5 сообщений
-            history_text += f"{msg.get('role', 'user')}: {msg.get('content', '')}\n"
+            # Поддерживаем оба формата: 'content' и 'parts'
+            content = msg.get('content', '')
+            if not content and 'parts' in msg:
+                content = msg['parts'][0] if isinstance(msg['parts'], list) and msg['parts'] else ''
+            
+            role = msg.get('role', 'user')
+            role_text = "Пользователь" if role == "user" else "AI"
+            history_text += f"{role_text}: {content}\n"
         return history_text
