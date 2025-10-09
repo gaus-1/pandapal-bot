@@ -30,7 +30,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("GEMINI_API_KEY", "gemini_api_key"),
     )
     
-    gemini_api_keys: Optional[List[str]] = Field(
+    gemini_api_keys: Optional[str] = Field(
         default=None,
         description="Список дополнительных API ключей для ротации (через запятую)",
         validation_alias=AliasChoices("GEMINI_API_KEYS", "gemini_api_keys"),
