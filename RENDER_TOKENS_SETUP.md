@@ -14,7 +14,7 @@
 AIzaSyDc24ihn9SZn5EN0hrBzA2lYQMSjxC9z6M
 ```
 
-**GEMINI_API_KEYS** (дополнительные токены через запятую):
+**GEMINI_API_KEYS** (дополнительные токены через запятую в одну строку):
 ```
 AIzaSyCZUurXQLCRtS8ciiHa3BcYIOpUhA4fCoU,AIzaSyBBKUir0mxvvt0b4Pg8v1a_ejKiSDGVFmw,AIzaSyChPUiERQIODpY3hetMXqYOoC6BQt48kxg,AIzaSyCaXpgIUO5dj5kEofK4RXmQNP219RjGx0I,AIzaSyBtyw1FtfxZd7Y9x4rSFjBswP-pQTUcmmo,AIzaSyD6cFYNIuUnvXwDoRYIiJclvWU_sWmhfXU,AIzaSyCBAQZiMOcVC0qxH3UAhA4lTWqVCYaVXIc,AIzaSyAaWk76xYpAK4yzu0xIVKcyJYE7RyEq7NU,AIzaSyB5gvnPzntr9MgbipSgJoahtBVz5p0aV40
 ```
