@@ -9,6 +9,7 @@ import google.generativeai as genai
 from loguru import logger
 
 from bot.config import AI_SYSTEM_PROMPT, settings
+from bot.services.token_rotator import get_token_rotator
 
 
 class IModerator(ABC):
@@ -36,8 +37,17 @@ class AIResponseGenerator:
         self.moderator = moderator
         self.context_builder = context_builder
         
-        # Инициализация Gemini
-        genai.configure(api_key=settings.gemini_api_key)
+        # Инициализация Gemini с ротатором токенов
+        self.token_rotator = get_token_rotator()
+        self._configure_gemini()
+        
+    def _configure_gemini(self):
+        """Настройка Gemini с текущим токеном"""
+        token = self.token_rotator.get_current_token()
+        if not token:
+            raise ValueError("Нет доступных API токенов")
+        
+        genai.configure(api_key=token)
         self.model = genai.GenerativeModel(
             model_name=settings.gemini_model,
             generation_config={
@@ -90,7 +100,25 @@ class AIResponseGenerator:
                 return "Извините, не смог сгенерировать ответ. Попробуйте переформулировать вопрос."
                 
         except Exception as e:
+            error_msg = str(e)
             logger.error(f"❌ Ошибка генерации AI: {e}")
+            
+            # Проверяем, не исчерпана ли квота
+            if "quota" in error_msg.lower() or "429" in error_msg:
+                logger.warning("⚠️ Квота токена исчерпана, переключаемся на следующий")
+                current_token = self.token_rotator.get_current_token()
+                if current_token:
+                    self.token_rotator.mark_token_failed(current_token, "quota_exceeded")
+                    
+                    # Пробуем с новым токеном
+                    try:
+                        self._configure_gemini()
+                        response = self.model.generate_content(context)
+                        if response and response.text:
+                            return response.text.strip()
+                    except Exception as retry_error:
+                        logger.error(f"❌ Ошибка при повторной попытке: {retry_error}")
+            
             return "Ой, что-то пошло не так. Попробуйте переформулировать вопрос."
 
     def get_model_info(self) -> Dict[str, str]:
