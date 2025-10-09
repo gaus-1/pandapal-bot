@@ -104,7 +104,8 @@ class AIResponseGenerator:
             logger.error(f"❌ Ошибка генерации AI: {e}")
             
             # Проверяем, не исчерпана ли квота
-            if "quota" in error_msg.lower() or "429" in error_msg:
+            quota_indicators = ["quota", "429", "exceeded", "limit", "retry in"]
+            if any(indicator in error_msg.lower() for indicator in quota_indicators):
                 logger.warning("⚠️ Квота токена исчерпана, переключаемся на следующий")
                 current_token = self.token_rotator.get_current_token()
                 if current_token:
