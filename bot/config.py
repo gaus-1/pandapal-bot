@@ -51,10 +51,10 @@ class Settings(BaseSettings):
     )
     
     ai_max_tokens: int = Field(
-        default=2048,
+        default=8192,
         ge=100,
         le=8192,
-        description="Максимум токенов в ответе AI",
+        description="Максимум токенов в ответе AI (увеличен до максимума)",
         validation_alias=AliasChoices("AI_MAX_TOKENS", "ai_max_tokens"),
     )
     
@@ -75,8 +75,8 @@ class Settings(BaseSettings):
     
     # ============ RATE LIMITING ============
     ai_rate_limit_per_minute: int = Field(
-        default=10,
-        description="Максимум AI запросов в минуту на пользователя",
+        default=999999,
+        description="Без ограничений на AI запросы в минуту",
         validation_alias=AliasChoices("AI_RATE_LIMIT_PER_MINUTE", "ai_rate_limit_per_minute"),
     )
     
@@ -88,8 +88,8 @@ class Settings(BaseSettings):
     
     # ============ MEMORY / HISTORY ============
     chat_history_limit: int = Field(
-        default=200,
-        description="Количество последних сообщений для контекста AI (100 от пользователя + 100 от бота)",
+        default=999999,
+        description="Без ограничений на количество сообщений в истории для контекста AI",
         validation_alias=AliasChoices("CHAT_HISTORY_LIMIT", "chat_history_limit"),
     )
     
