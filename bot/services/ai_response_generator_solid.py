@@ -20,8 +20,6 @@ from loguru import logger
 
 from bot.config import AI_SYSTEM_PROMPT, settings
 
-# from bot.services.token_rotator import get_token_rotator
-
 
 class IModerator(ABC):
     """
@@ -96,8 +94,7 @@ class AIResponseGenerator:
         self.moderator = moderator
         self.context_builder = context_builder
 
-        # Инициализация Gemini с ротатором токенов
-        # self.token_rotator = get_token_rotator()
+        # Инициализация Gemini
         self._configure_gemini()
 
     def _configure_gemini(self) -> None:
