@@ -19,7 +19,8 @@ import google.generativeai as genai
 from loguru import logger
 
 from bot.config import AI_SYSTEM_PROMPT, settings
-from bot.services.token_rotator import get_token_rotator
+
+# from bot.services.token_rotator import get_token_rotator
 
 
 class IModerator(ABC):
@@ -96,22 +97,22 @@ class AIResponseGenerator:
         self.context_builder = context_builder
 
         # Инициализация Gemini с ротатором токенов
-        self.token_rotator = get_token_rotator()
+        # self.token_rotator = get_token_rotator()
         self._configure_gemini()
 
     def _configure_gemini(self) -> None:
         """
-        Настройка Gemini AI модели с текущим токеном.
+        Настройка Gemini AI модели с основным токеном.
 
-        Конфигурирует Google Generative AI с использованием текущего активного
-        токена из ротатора, настраивает параметры генерации и настройки безопасности.
+        Конфигурирует Google Generative AI с использованием основного API ключа,
+        настраивает параметры генерации и настройки безопасности.
 
         Raises:
-            ValueError: Если нет доступных API токенов.
+            ValueError: Если нет доступного API токена.
         """
-        token = self.token_rotator.get_current_token()
+        token = settings.gemini_api_key
         if not token:
-            raise ValueError("Нет доступных API токенов")
+            raise ValueError("Нет доступного API токена")
 
         genai.configure(api_key=token)
         self.model = genai.GenerativeModel(
@@ -187,19 +188,8 @@ class AIResponseGenerator:
             # Проверяем, не исчерпана ли квота
             quota_indicators = ["quota", "429", "exceeded", "limit", "retry in"]
             if any(indicator in error_msg.lower() for indicator in quota_indicators):
-                logger.warning("⚠️ Квота токена исчерпана, переключаемся на следующий")
-                current_token = self.token_rotator.get_current_token()
-                if current_token:
-                    self.token_rotator.mark_token_failed(current_token, "quota_exceeded")
-
-                    # Пробуем с новым токеном
-                    try:
-                        self._configure_gemini()
-                        response = self.model.generate_content(context)
-                        if response and response.text:
-                            return response.text.strip()
-                    except Exception as retry_error:
-                        logger.error(f"❌ Ошибка при повторной попытке: {retry_error}")
+                logger.warning("⚠️ Квота токена исчерпана")
+                # TODO: Включить ротацию токенов после исправления импорта
 
             return "Ой, что-то пошло не так. Попробуйте переформулировать вопрос."
 

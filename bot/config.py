@@ -178,6 +178,15 @@ class Settings(BaseSettings):
             raise ValueError("GEMINI_API_KEY не установлен в .env")
         return v
 
+    @field_validator("gemini_api_keys")
+    @classmethod
+    def validate_gemini_keys(cls, v: Optional[str]) -> Optional[str]:
+        """Проверка корректности дополнительных API ключей."""
+        if v is None:
+            return None
+        # Просто возвращаем строку как есть - парсинг делается в token_rotator
+        return v
+
 
 # Singleton instance настроек
 # Создаётся один раз при импорте модуля
