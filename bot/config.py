@@ -1,3 +1,12 @@
+"""
+Конфигурация приложения PandaPal Bot.
+
+Этот модуль содержит все настройки приложения, включая подключения к базе данных,
+API ключи, параметры AI, настройки безопасности и лимиты.
+
+Использует Pydantic для валидации и автоматического парсинга из переменных окружения.
+"""
+
 import os
 from typing import List, Optional
 
@@ -6,42 +15,73 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """
+    Основной класс конфигурации приложения.
+
+    Содержит все настройки для работы бота, включая:
+    - Подключения к внешним сервисам (БД, Telegram, Gemini AI)
+    - Параметры безопасности и модерации
+    - Лимиты и ограничения
+    - Настройки для разработки и продакшена
+
+    Все параметры автоматически загружаются из переменных окружения
+    с поддержкой множественных алиасов для удобства.
+
+    Attributes:
+        database_url (str): URL подключения к PostgreSQL базе данных.
+        telegram_bot_token (str): Токен Telegram бота от @BotFather.
+        gemini_api_key (str): Основной API ключ для Google Gemini AI.
+        gemini_api_keys (Optional[str]): Дополнительные API ключи через запятую для ротации.
+        gemini_model (str): Модель Gemini для использования (по умолчанию gemini-2.0-flash).
+        ai_temperature (float): Температура генерации AI (0.0-1.0).
+        ai_max_tokens (int): Максимальное количество токенов в ответе AI.
+        forbidden_topics (str): Запрещенные темы через запятую для модерации.
+        content_filter_level (int): Уровень строгости фильтра (1-5).
+        ai_rate_limit_per_minute (int): Лимит AI запросов в минуту на пользователя.
+        daily_message_limit (int): Дневной лимит сообщений (999999 = без ограничений).
+        chat_history_limit (int): Количество сообщений в истории для контекста AI.
+        secret_key (str): Секретный ключ для сессий и шифрования.
+        sentry_dsn (Optional[str]): DSN для Sentry мониторинга ошибок.
+        debug (bool): Режим отладки.
+        frontend_url (str): URL фронтенд приложения.
+    """
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )
-    
+
     database_url: str = Field(..., validation_alias=AliasChoices("DATABASE_URL", "database_url"))
     telegram_bot_token: str = Field(
-        ..., 
+        ...,
         description="Токен Telegram бота от @BotFather",
         validation_alias=AliasChoices("TELEGRAM_BOT_TOKEN", "telegram_bot_token"),
     )
-    
+
     sentry_dsn: str = Field(
         default="",
         description="Sentry DSN для мониторинга ошибок",
         validation_alias=AliasChoices("SENTRY_DSN", "sentry_dsn"),
     )
-    
+
     # ============ AI / GEMINI ============
     gemini_api_key: str = Field(
-        ..., 
+        ...,
         description="Google Gemini API ключ",
         validation_alias=AliasChoices("GEMINI_API_KEY", "gemini_api_key"),
     )
-    
+
     gemini_api_keys: Optional[str] = Field(
         default=None,
         description="Список дополнительных API ключей для ротации (через запятую)",
         validation_alias=AliasChoices("GEMINI_API_KEYS", "gemini_api_keys"),
     )
-    
+
     gemini_model: str = Field(
         default="gemini-2.0-flash",
         description="Модель Gemini для использования",
         validation_alias=AliasChoices("GEMINI_MODEL", "gemini_model"),
     )
-    
+
     ai_temperature: float = Field(
         default=0.7,
         ge=0.0,
@@ -49,7 +89,7 @@ class Settings(BaseSettings):
         description="Температура генерации (0.0 = детерминированно, 1.0 = креативно)",
         validation_alias=AliasChoices("AI_TEMPERATURE", "ai_temperature"),
     )
-    
+
     ai_max_tokens: int = Field(
         default=8192,
         ge=100,
@@ -57,14 +97,14 @@ class Settings(BaseSettings):
         description="Максимум токенов в ответе AI (увеличен до максимума)",
         validation_alias=AliasChoices("AI_MAX_TOKENS", "ai_max_tokens"),
     )
-    
+
     # ============ CONTENT MODERATION ============
     forbidden_topics: str = Field(
         default="политика,насилие,оружие,наркотики,экстремизм",
         description="Запрещённые темы (через запятую в .env)",
         validation_alias=AliasChoices("FORBIDDEN_TOPICS", "forbidden_topics"),
     )
-    
+
     content_filter_level: int = Field(
         default=5,
         ge=1,
@@ -72,68 +112,68 @@ class Settings(BaseSettings):
         description="Уровень строгости фильтра (1=мягкий, 5=максимальный)",
         validation_alias=AliasChoices("CONTENT_FILTER_LEVEL", "content_filter_level"),
     )
-    
+
     # ============ RATE LIMITING ============
     ai_rate_limit_per_minute: int = Field(
         default=999999,
         description="Без ограничений на AI запросы в минуту",
         validation_alias=AliasChoices("AI_RATE_LIMIT_PER_MINUTE", "ai_rate_limit_per_minute"),
     )
-    
+
     daily_message_limit: int = Field(
         default=999999,
         description="Без ограничений на количество сообщений",
         validation_alias=AliasChoices("DAILY_MESSAGE_LIMIT", "daily_message_limit"),
     )
-    
+
     # ============ MEMORY / HISTORY ============
     chat_history_limit: int = Field(
         default=999999,
         description="Без ограничений на количество сообщений в истории для контекста AI",
         validation_alias=AliasChoices("CHAT_HISTORY_LIMIT", "chat_history_limit"),
     )
-    
+
     # ============ SECURITY ============
     secret_key: str = Field(
-        ..., 
+        ...,
         min_length=16,
         description="Секретный ключ для шифрования",
         validation_alias=AliasChoices("SECRET_KEY", "secret_key"),
     )
-    
+
     # ============ FRONTEND ============
     frontend_url: str = Field(
         default="https://pandapal.ru",
         description="URL фронтенда",
         validation_alias=AliasChoices("FRONTEND_URL", "frontend_url"),
     )
-    
+
     # ============ LOGGING ============
     log_level: str = Field(
         default="INFO",
         description="Уровень логирования (DEBUG, INFO, WARNING, ERROR)",
         validation_alias=AliasChoices("LOG_LEVEL", "log_level"),
     )
-    
+
     def get_forbidden_topics_list(self) -> List[str]:
-        """Получить список запрещённых тем"""
+        """Получить список запрещённых тем."""
         return [topic.strip() for topic in self.forbidden_topics.split(",") if topic.strip()]
-    
+
     @field_validator("database_url")
     @classmethod
     def validate_database_url(cls, v: str) -> str:
-        """Проверка корректности DATABASE_URL"""
+        """Проверка корректности DATABASE_URL."""
         if not v.startswith("postgresql"):
             raise ValueError("DATABASE_URL должен начинаться с postgresql://")
         # Нормализуем драйвер: заставляем использовать psycopg v3
         if v.startswith("postgresql://") and "+psycopg" not in v:
             v = v.replace("postgresql://", "postgresql+psycopg://", 1)
         return v
-    
+
     @field_validator("gemini_api_key")
     @classmethod
     def validate_gemini_key(cls, v: str) -> str:
-        """Проверка наличия Gemini API ключа"""
+        """Проверка наличия Gemini API ключа."""
         if not v or v == "your_gemini_api_key_here":
             raise ValueError("GEMINI_API_KEY не установлен в .env")
         return v
