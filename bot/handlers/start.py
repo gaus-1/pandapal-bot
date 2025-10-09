@@ -1,10 +1,20 @@
 """
-Обработчик команды /start
-Приветствие нового пользователя и регистрация
+Обработчик команды /start для Telegram бота PandaPal.
 
+Этот модуль реализует стартовую точку взаимодействия с ботом.
+Обрабатывает первичную регистрацию пользователей, приветственные сообщения
+и инициализацию главного меню.
+
+Основные возможности:
+- Автоматическая регистрация новых пользователей в базе данных
+- Получение информации об существующих пользователях
+- Отображение персонализированного приветствия
+- Защита от дублирования команд (антиспам)
+- Логирование всех стартовых взаимодействий
 """
 
 from datetime import datetime
+
 from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
@@ -22,16 +32,23 @@ router = Router(name="start")
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     """
-    Обработчик команды /start
+    Обработчик команды /start - первичная точка входа в бота.
 
-    Функционал:
-    1. Регистрация нового пользователя или получение существующего
-    2. Приветственное сообщение
-    3. Отображение главного меню
+    Выполняет комплексную инициализацию взаимодействия с пользователем:
+    регистрацию в БД, валидацию и отправку приветственного сообщения.
+
+    Функциональность:
+    1. Регистрация нового пользователя или получение существующего из БД
+    2. Защита от дублирования команд (антиспам с таймаутом 2 секунды)
+    3. Персонализированное приветственное сообщение
+    4. Отображение главного меню с основными функциями бота
 
     Args:
-        message: Сообщение от пользователя
-        state: FSM состояние (для диалогов)
+        message (Message): Объект сообщения от Telegram с данными пользователя.
+        state (FSMContext): Контекст конечного автомата для управления диалогами.
+
+    Returns:
+        None: Функция асинхронная, результат отправляется через message.answer().
     """
     # Получаем данные пользователя из Telegram
     telegram_id = message.from_user.id
@@ -40,19 +57,21 @@ async def cmd_start(message: Message, state: FSMContext):
     last_name = message.from_user.last_name
 
     logger.info(f"/start от пользователя {telegram_id} ({first_name})")
-    
+
     # Защита от дублирования - проверяем время последнего сообщения
     current_time = datetime.now()
-    last_message_time = getattr(cmd_start, '_last_message_times', {})
-    
+    last_message_time = getattr(cmd_start, "_last_message_times", {})
+
     if telegram_id in last_message_time:
         time_diff = (current_time - last_message_time[telegram_id]).total_seconds()
         if time_diff < 2:  # Меньше 2 секунд между сообщениями
-            logger.warning(f"Пользователь {telegram_id} отправляет сообщения слишком часто, пропускаем")
+            logger.warning(
+                f"Пользователь {telegram_id} отправляет сообщения слишком часто, пропускаем"
+            )
             return
-    
+
     # Обновляем время последнего сообщения
-    if not hasattr(cmd_start, '_last_message_times'):
+    if not hasattr(cmd_start, "_last_message_times"):
         cmd_start._last_message_times = {}
     cmd_start._last_message_times[telegram_id] = current_time
 
