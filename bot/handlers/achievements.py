@@ -1,11 +1,30 @@
 """
-Обработчики системы достижений и геймификации
-Показ прогресса, наград и рейтинга
+Обработчики системы достижений и геймификации PandaPal.
+
+Этот модуль реализует функциональность системы достижений для мотивации
+пользователей к активному обучению. Включает в себя просмотр прогресса,
+наград и участие в образовательных челленджах.
+
+Основные возможности:
+- Просмотр личных достижений и прогресса
+- Система очков опыта (XP) и уровней
+- Образовательные челленджи и квесты
+- Рейтинг пользователей
+- Награды за активность и успехи в обучении
+
+Текущий статус:
+- UI компоненты готовы
+- Базовая структура данных реализована
+- Логика достижений в разработке
+- Интеграция с AI сервисами планируется
+
+Все достижения привязаны к образовательной активности
+и направлены на мотивацию к обучению.
 """
 
 from aiogram import F, Router
-from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
 from bot.database import get_db
@@ -23,19 +42,17 @@ async def show_achievements(message: Message, state: FSMContext):
     Показывает систему достижений пользователя
     """
     telegram_id = message.from_user.id
-    
+
     logger.info(f"🏆 Пользователь {telegram_id} открыл достижения")
-    
+
     with get_db() as db:
         user_service = UserService(db)
         user = user_service.get_user_by_telegram_id(telegram_id)
-        
+
         if not user:
-            await message.answer(
-                "❌ Пользователь не найден. Напиши /start для регистрации."
-            )
+            await message.answer("❌ Пользователь не найден. Напиши /start для регистрации.")
             return
-    
+
     # Временная заглушка с информацией о разработке
     achievements_text = f"""
 🏆 <b>Система достижений</b>
@@ -75,11 +92,9 @@ async def show_achievements(message: Message, state: FSMContext):
 
 💡 <b>Продолжай учиться и собирай достижения!</b>
 """
-    
+
     await message.answer(
-        text=achievements_text,
-        reply_markup=get_achievements_keyboard(),
-        parse_mode="HTML"
+        text=achievements_text, reply_markup=get_achievements_keyboard(), parse_mode="HTML"
     )
 
 
@@ -93,7 +108,7 @@ async def show_my_achievements(callback: CallbackQuery, state: FSMContext):
         "❓ Любознательный - 🔒 (0/50)\n\n"
         "<i>Продолжай общаться с PandaPal чтобы открыть новые достижения!</i>",
         reply_markup=get_achievements_keyboard(),
-        parse_mode="HTML"
+        parse_mode="HTML",
     )
     await callback.answer()
 
@@ -111,7 +126,7 @@ async def show_available_achievements(callback: CallbackQuery, state: FSMContext
         "📚 Эрудит (0/5) - изучи 5 предметов\n\n"
         "<i>Ближайшая награда: <b>Болтун</b> - еще 60 сообщений!</i>",
         reply_markup=get_achievements_keyboard(),
-        parse_mode="HTML"
+        parse_mode="HTML",
     )
     await callback.answer("💪 Ты близко к новой награде!")
 
@@ -130,7 +145,6 @@ async def show_leaderboard(callback: CallbackQuery, state: FSMContext):
         "🎯 Твоё место: 127 (0 XP)\n\n"
         "<i>Общайся с PandaPal чтобы подняться в рейтинге!</i>",
         reply_markup=get_achievements_keyboard(),
-        parse_mode="HTML"
+        parse_mode="HTML",
     )
     await callback.answer()
-

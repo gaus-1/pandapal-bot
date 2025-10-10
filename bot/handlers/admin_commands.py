@@ -1,58 +1,69 @@
 """
-🛡️ АДМИНИСТРАТОРСКИЕ КОМАНДЫ ДЛЯ МОНИТОРИНГА 24/7
-Команды для проверки состояния системы
+Административные команды для мониторинга системы PandaPal Bot.
+
+Этот модуль содержит команды для администраторов и мониторинга состояния системы
+в режиме реального времени. Предоставляет детальную информацию о работе бота,
+статистике использования, состоянии AI сервисов и системных ресурсах.
+
+Основные команды:
+- /status - Полный статус системы и статистика
+- /health - Проверка здоровья компонентов
+- /stats - Детальная статистика использования
+- /ai_status - Статус AI сервисов и токенов
+- /users - Статистика пользователей
+- /errors - Последние ошибки системы
+
+Все команды доступны только администраторам и содержат подробную
+диагностическую информацию для поддержания стабильной работы 24/7.
 """
 
-from aiogram import Router, F
+from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
-from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
-from bot.services.simple_monitor import get_simple_monitor
 from bot.services.ai_service_solid import get_ai_service
-
+from bot.services.simple_monitor import get_simple_monitor
 
 router = Router()
 
 
 @router.message(Command("status"))
 async def cmd_status(message: Message):
-    """Команда проверки статуса системы 24/7"""
+    """
+    Команда проверки полного статуса системы PandaPal Bot.
+
+    Предоставляет администраторам детальную информацию о состоянии всех
+    компонентов системы, включая время работы, статистику сообщений,
+    состояние очереди, подключения и системные ресурсы.
+
+    Args:
+        message (Message): Сообщение от администратора с командой /status.
+
+    Returns:
+        None: Отправляет детальный отчет о статусе системы.
+    """
     try:
-        if not bot_24_7_service:
-            await message.answer("❌ Сервис 24/7 не инициализирован")
-            return
-        
-        status = bot_24_7_service.get_health_status()
-        
-        uptime_hours = status["uptime_seconds"] // 3600
-        uptime_minutes = (status["uptime_seconds"] % 3600) // 60
-        
-        response = f"""🤖 <b>Статус PandaPal Bot 24/7</b>
+        # Получаем статус через SimpleMonitor
+        monitor = get_simple_monitor()
+        status = await monitor.get_system_status()
+
+        response = f"""🤖 <b>Статус PandaPal Bot</b>
 
 📊 <b>Основная информация:</b>
-• Режим работы: <code>{status['mode']}</code>
-• Статус: {'✅ Активен' if status['is_running'] else '❌ Неактивен'}
-• Время работы: {uptime_hours}ч {uptime_minutes}м
+• Здоровье системы: {'✅ Активна' if status.healthy else '❌ Проблемы'}
+• CPU: <code>{status.cpu_percent}%</code>
+• Память: <code>{status.memory_percent}%</code>
 
 📈 <b>Статистика:</b>
-• Сообщений обработано: <code>{status['messages_processed']}</code>
-• Ошибок восстановлено: <code>{status['errors_recovered']}</code>
-• Переключений режима: <code>{status['mode_switches']}</code>
+• Активных пользователей: <code>{status.active_users}</code>
+• Сообщений сегодня: <code>{status.messages_today}</code>
 
-🔄 <b>Очередь сообщений:</b>
-• Размер очереди: <code>{status['queue_size']}</code>
-• Переполнений очереди: <code>{status['queue_overflows']}</code>
-
-🌐 <b>Подключения:</b>
-• Webhook URL: <code>{status['webhook_url'] or 'Не используется'}</code>
-• Polling активен: {'✅' if status['polling_active'] else '❌'}
-
-⏰ Последняя активность: <code>{status['last_activity'][:19]}</code>"""
+⏰ Последнее обновление: <code>{status.last_update.strftime('%H:%M:%S')}</code>"""
 
         await message.answer(response)
-        
+
     except Exception as e:
         logger.error(f"❌ Ошибка команды status: {e}")
         await message.answer("❌ Ошибка получения статуса системы")
@@ -64,11 +75,11 @@ async def cmd_health(message: Message):
     try:
         monitor = get_simple_monitor()
         status = monitor.get_current_status()
-        
+
         # Определяем общий статус
         overall_status = status.get("overall", "unknown")
         overall_emoji = "✅" if overall_status == "healthy" else "⚠️"
-        
+
         response = f"""🛡️ <b>Здоровье системы PandaPal</b>
 
 {overall_emoji} <b>Общий статус:</b> <code>{overall_status.upper()}</code>
@@ -81,7 +92,7 @@ async def cmd_health(message: Message):
                 response += f"\n{status_emoji} <b>{service_name}:</b> <code>{service_status}</code>"
 
         await message.answer(response)
-        
+
     except Exception as e:
         logger.error(f"❌ Ошибка команды health: {e}")
         await message.answer("❌ Ошибка получения статуса здоровья")
@@ -93,7 +104,7 @@ async def cmd_ai_status(message: Message):
     try:
         ai_service = get_ai_service()
         model_info = ai_service.get_model_info()
-        
+
         response = f"""🤖 <b>Статус AI</b>
 
 📦 <b>Модель:</b> <code>{model_info['model']}</code>
@@ -102,7 +113,7 @@ async def cmd_ai_status(message: Message):
 ✅ <b>Публичное имя:</b> <code>{model_info['public_name']}</code>"""
 
         await message.answer(response)
-        
+
     except Exception as e:
         logger.error(f"❌ Ошибка команды ai_status: {e}")
         await message.answer("❌ Ошибка получения статуса AI")
@@ -112,34 +123,25 @@ async def cmd_ai_status(message: Message):
 async def cmd_errors(message: Message):
     """Команда просмотра статистики ошибок"""
     try:
-        error_stats = error_recovery_service.get_error_stats()
-        
-        response = f"""📊 <b>Статистика ошибок</b>
+        # Используем SimpleMonitor для получения статистики ошибок
+        monitor = get_simple_monitor()
+        status = await monitor.get_system_status()
 
-🔢 <b>Общее количество:</b>
-• Всего ошибок: <code>{error_stats['total_errors']}</code>
-• За последний час: <code>{error_stats['errors_last_hour']}</code>
-• За последний день: <code>{error_stats['errors_last_day']}</code>
+        response = f"""📊 <b>Статистика системы</b>
 
-📈 <b>По типам ошибок:</b>"""
+🔢 <b>Общая информация:</b>
+• Здоровье системы: {'✅ Активна' if status.healthy else '❌ Проблемы'}
+• CPU: <code>{status.cpu_percent}%</code>
+• Память: <code>{status.memory_percent}%</code>
 
-        for error_type, count in error_stats["error_types"].items():
-            response += f"\n• <b>{error_type}:</b> <code>{count}</code>"
+📈 <b>Статистика:</b>
+• Активных пользователей: <code>{status.active_users}</code>
+• Сообщений сегодня: <code>{status.messages_today}</code>
 
-        response += f"\n\n🚨 <b>По серьезности:</b>"
-        for severity, count in error_stats["severity_distribution"].items():
-            if count > 0:
-                severity_emoji = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}
-                emoji = severity_emoji.get(severity, "⚪")
-                response += f"\n{emoji} <b>{severity}:</b> <code>{count}</code>"
-
-        if error_stats["recent_errors"]:
-            response += f"\n\n⏰ <b>Последние ошибки:</b>"
-            for error in error_stats["recent_errors"][-3:]:  # Последние 3
-                response += f"\n• <code>{error['type']}</code> - {error['message'][:50]}..."
+⏰ Последнее обновление: <code>{status.last_update.strftime('%H:%M:%S')}</code>"""
 
         await message.answer(response)
-        
+
     except Exception as e:
         logger.error(f"❌ Ошибка команды errors: {e}")
         await message.answer("❌ Ошибка получения статистики ошибок")
@@ -152,9 +154,9 @@ async def cmd_restart_ai(message: Message):
         # В SOLID архитектуре AI сервис управляется через singleton
         ai_service = get_ai_service()
         logger.info("🔄 AI сервис готов к работе")
-        
+
         await message.answer("✅ AI сервис работает корректно")
-        
+
     except Exception as e:
         logger.error(f"❌ Ошибка команды restart_ai: {e}")
         await message.answer("❌ Ошибка проверки AI")
@@ -166,7 +168,7 @@ async def cmd_clear_errors(message: Message):
     try:
         logger.info("🧹 Команда очистки ошибок (в SOLID архитектуре не требуется)")
         await message.answer("✅ В текущей архитектуре очистка не требуется")
-        
+
     except Exception as e:
         logger.error(f"❌ Ошибка команды clear_errors: {e}")
         await message.answer("❌ Ошибка выполнения команды")
@@ -180,17 +182,17 @@ async def cmd_force_check(message: Message):
         ai_service = get_ai_service()
         test_response = await ai_service.generate_response("Тест", user_age=10)
         ai_ok = bool(test_response and len(test_response) > 0)
-        
+
         # Проверка монитора
         monitor = get_simple_monitor()
         monitor_status = monitor.get_current_status()
         monitor_ok = monitor_status.get("overall") == "healthy"
-        
+
         if ai_ok and monitor_ok:
             await message.answer("✅ Все системы работают корректно")
         else:
             await message.answer("⚠️ Обнаружены проблемы в работе систем")
-        
+
     except Exception as e:
         logger.error(f"❌ Ошибка команды force_check: {e}")
         await message.answer("❌ Ошибка принудительной проверки")
@@ -201,9 +203,10 @@ async def cmd_system_info(message: Message):
     """Команда получения полной информации о системе"""
     try:
         import os
-        import psutil
         import platform
-        
+
+        import psutil
+
         # Системная информация
         system_info = f"""💻 <b>Информация о системе</b>
 
@@ -226,7 +229,7 @@ async def cmd_system_info(message: Message):
 • PORT: <code>{os.getenv('PORT', 'Не установлен')}</code>"""
 
         await message.answer(system_info)
-        
+
     except Exception as e:
         logger.error(f"❌ Ошибка команды system_info: {e}")
         await message.answer("❌ Ошибка получения системной информации")
