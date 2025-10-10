@@ -53,10 +53,16 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db() -> None:
     """
-    Инициализация базы данных
-    Создаёт все таблицы, если их нет
+    Инициализация базы данных PostgreSQL.
 
-    ВНИМАНИЕ: В production используйте Alembic миграции!
+    Создает все таблицы, определенные в моделях SQLAlchemy,
+    если они не существуют. Используется для первоначальной настройки
+    или тестовой среды.
+
+    ВНИМАНИЕ: В production используйте Alembic миграции для управления схемой БД!
+
+    Raises:
+        Exception: При ошибке создания таблиц.
     """
     try:
         Base.metadata.create_all(bind=engine)
@@ -69,17 +75,20 @@ def init_db() -> None:
 @contextmanager
 def get_db() -> Generator[Session, None, None]:
     """
-    Context manager для получения сессии БД
-    Автоматически закрывает сессию после использования
+    Контекстный менеджер для получения сессии базы данных.
 
-    Использование:
-    ```python
-    with get_db() as db:
-        user = db.query(User).filter_by(telegram_id=123).first()
-    ```
+    Автоматически создает сессию БД и гарантирует её корректное закрытие
+    после завершения работы. Обеспечивает безопасное управление транзакциями
+    и предотвращает утечки соединений.
 
     Yields:
-        Session: Сессия SQLAlchemy
+        Session: Сессия SQLAlchemy для работы с базой данных.
+
+    Example:
+        >>> with get_db() as db:
+        ...     user = db.query(User).filter_by(telegram_id=123).first()
+        ...     user.name = "Новое имя"
+        ...     db.commit()  # Автоматически откатится при ошибке
     """
     db = SessionLocal()
     try:

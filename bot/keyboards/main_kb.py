@@ -1,7 +1,24 @@
 """
-Основные клавиатуры для Telegram бота
-Reply и Inline кнопки для навигации
+Основные клавиатуры для Telegram бота PandaPal.
 
+Этот модуль содержит все клавиатуры для навигации по боту, включая
+Reply клавиатуры (постоянно видимые) и Inline клавиатуры (встроенные в сообщения).
+Все клавиатуры оптимизированы для мобильных устройств и обеспечивают
+интуитивную навигацию для детей и родителей.
+
+Основные клавиатуры:
+- get_main_menu_keyboard() - Главное меню с основными функциями
+- get_subjects_keyboard() - Выбор школьных предметов
+- get_help_type_keyboard() - Типы помощи с уроками
+- get_settings_keyboard() - Настройки пользователя
+- get_confirm_keyboard() - Подтверждение действий
+- get_grade_selection_keyboard() - Выбор класса обучения
+
+Особенности:
+- Адаптация под тип пользователя (ребенок/родитель/учитель)
+- Эмодзи для визуального восприятия
+- Логическая группировка функций
+- Оптимизация для мобильных устройств
 """
 
 from aiogram.types import (
@@ -45,20 +62,26 @@ def get_main_menu_keyboard(user_type: str = "child") -> ReplyKeyboardMarkup:
             KeyboardButton(text="⚙️ Настройки"),
         ],
     ]
-    
+
     # Дополнительные кнопки для родителей
     if user_type == "parent":
-        buttons.insert(2, [
-            KeyboardButton(text="👨‍👩‍👧 Контроль детей"),
-        ])
-    
+        buttons.insert(
+            2,
+            [
+                KeyboardButton(text="👨‍👩‍👧 Контроль детей"),
+            ],
+        )
+
     # Дополнительные кнопки для учителей
     if user_type == "teacher":
-        buttons.insert(2, [
-            KeyboardButton(text="👩‍🏫 Мой класс"),
-            KeyboardButton(text="📝 Создать задание"),
-        ])
-    
+        buttons.insert(
+            2,
+            [
+                KeyboardButton(text="👩‍🏫 Мой класс"),
+                KeyboardButton(text="📝 Создать задание"),
+            ],
+        )
+
     keyboard = ReplyKeyboardMarkup(
         keyboard=buttons,
         resize_keyboard=True,
@@ -80,37 +103,23 @@ def get_subjects_keyboard() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(
-                    text="🔢 Математика", callback_data="subject:math"
-                ),
-                InlineKeyboardButton(
-                    text="📖 Русский язык", callback_data="subject:russian"
-                ),
+                InlineKeyboardButton(text="🔢 Математика", callback_data="subject:math"),
+                InlineKeyboardButton(text="📖 Русский язык", callback_data="subject:russian"),
             ],
             [
-                InlineKeyboardButton(
-                    text="🌍 Окружающий мир", callback_data="subject:world"
-                ),
-                InlineKeyboardButton(
-                    text="🇬🇧 Английский", callback_data="subject:english"
-                ),
+                InlineKeyboardButton(text="🌍 Окружающий мир", callback_data="subject:world"),
+                InlineKeyboardButton(text="🇬🇧 Английский", callback_data="subject:english"),
             ],
             [
                 InlineKeyboardButton(text="⚗️ Химия", callback_data="subject:chemistry"),
                 InlineKeyboardButton(text="🔬 Физика", callback_data="subject:physics"),
             ],
             [
-                InlineKeyboardButton(
-                    text="📜 История", callback_data="subject:history"
-                ),
-                InlineKeyboardButton(
-                    text="🌎 География", callback_data="subject:geography"
-                ),
+                InlineKeyboardButton(text="📜 История", callback_data="subject:history"),
+                InlineKeyboardButton(text="🌎 География", callback_data="subject:geography"),
             ],
             [
-                InlineKeyboardButton(
-                    text="🎨 Другой предмет", callback_data="subject:other"
-                ),
+                InlineKeyboardButton(text="🎨 Другой предмет", callback_data="subject:other"),
             ],
         ]
     )
@@ -128,24 +137,16 @@ def get_help_type_keyboard() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(
-                    text="📝 Решить задачу", callback_data="help:solve"
-                ),
+                InlineKeyboardButton(text="📝 Решить задачу", callback_data="help:solve"),
             ],
             [
-                InlineKeyboardButton(
-                    text="📚 Объяснить тему", callback_data="help:explain"
-                ),
+                InlineKeyboardButton(text="📚 Объяснить тему", callback_data="help:explain"),
             ],
             [
-                InlineKeyboardButton(
-                    text="✅ Проверить ответ", callback_data="help:check"
-                ),
+                InlineKeyboardButton(text="✅ Проверить ответ", callback_data="help:check"),
             ],
             [
-                InlineKeyboardButton(
-                    text="💡 Дать подсказку", callback_data="help:hint"
-                ),
+                InlineKeyboardButton(text="💡 Дать подсказку", callback_data="help:hint"),
             ],
             [
                 InlineKeyboardButton(text="🔙 Назад", callback_data="menu:main"),
@@ -171,12 +172,8 @@ def get_settings_keyboard(user_type: str = "child") -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="👤 Изменить имя", callback_data="settings:name"),
         ],
         [
-            InlineKeyboardButton(
-                text="🎂 Указать возраст", callback_data="settings:age"
-            ),
-            InlineKeyboardButton(
-                text="🎓 Указать класс", callback_data="settings:grade"
-            ),
+            InlineKeyboardButton(text="🎂 Указать возраст", callback_data="settings:age"),
+            InlineKeyboardButton(text="🎓 Указать класс", callback_data="settings:grade"),
         ],
     ]
 
@@ -223,26 +220,17 @@ def get_grade_selection_keyboard() -> InlineKeyboardMarkup:
 
     # Первая строка: 1-4 класс
     buttons.append(
-        [
-            InlineKeyboardButton(text=f"{i} класс", callback_data=f"grade:{i}")
-            for i in range(1, 5)
-        ]
+        [InlineKeyboardButton(text=f"{i} класс", callback_data=f"grade:{i}") for i in range(1, 5)]
     )
 
     # Вторая строка: 5-8 класс
     buttons.append(
-        [
-            InlineKeyboardButton(text=f"{i} класс", callback_data=f"grade:{i}")
-            for i in range(5, 9)
-        ]
+        [InlineKeyboardButton(text=f"{i} класс", callback_data=f"grade:{i}") for i in range(5, 9)]
     )
 
     # Третья строка: 9-11 класс
     buttons.append(
-        [
-            InlineKeyboardButton(text=f"{i} класс", callback_data=f"grade:{i}")
-            for i in range(9, 12)
-        ]
+        [InlineKeyboardButton(text=f"{i} класс", callback_data=f"grade:{i}") for i in range(9, 12)]
     )
 
     # Кнопка отмены

@@ -231,7 +231,15 @@ _simple_monitor = None
 
 
 def get_simple_monitor() -> SimpleMonitor:
-    """Получение глобального экземпляра."""
+    """
+    Получить глобальный экземпляр сервиса мониторинга системы.
+
+    Реализует паттерн Singleton для обеспечения единого экземпляра
+    мониторинга во всем приложении.
+
+    Returns:
+        SimpleMonitor: Глобальный экземпляр сервиса мониторинга.
+    """
     global _simple_monitor
     if _simple_monitor is None:
         _simple_monitor = SimpleMonitor()

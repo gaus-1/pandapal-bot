@@ -1,8 +1,31 @@
 """
-Обработчик общения с AI
-Главная функция бота — диалог с PandaPalAI
-Поддерживает текстовые сообщения и изображения
+Обработчик общения с AI для образовательного чата PandaPal.
 
+Этот модуль реализует основную функциональность бота - диалог с AI ассистентом
+PandaPalAI на базе Google Gemini. Обеспечивает безопасное и адаптивное общение
+с детьми, включая поддержку различных типов контента.
+
+Основные возможности:
+- Текстовые сообщения с AI ассистентом
+- Обработка изображений и их анализ
+- Голосовые сообщения с распознаванием речи
+- Адаптация ответов под возраст пользователя
+- Многоуровневая модерация контента
+- Сохранение истории чата для контекста
+- Родительский контроль и мониторинг
+
+Безопасность:
+- 5-уровневая система модерации
+- Фильтрация запрещенных тем
+- Адаптация под возраст (6-18 лет)
+- Логирование всех взаимодействий
+- Родительский контроль активности
+
+Поддерживаемые форматы:
+- Текст (основной режим общения)
+- Изображения (анализ и описание)
+- Голосовые сообщения (распознавание речи)
+- Эмодзи и специальные символы
 """
 
 from aiogram import F, Router
@@ -12,13 +35,9 @@ from loguru import logger
 
 from bot.database import get_db
 from bot.monitoring import log_user_activity, monitor_performance
-from bot.services import (
-    ChatHistoryService,
-    ContentModerationService,
-    UserService,
-)
-from bot.services.ai_service_solid import get_ai_service
+from bot.services import ChatHistoryService, ContentModerationService, UserService
 from bot.services.advanced_moderation import ModerationResult
+from bot.services.ai_service_solid import get_ai_service
 from bot.services.parental_control import ActivityType, ParentalControlService
 
 # Создаём роутер для AI чата
@@ -233,7 +252,7 @@ async def handle_ai_message(message: Message, state: FSMContext):
     except Exception as e:
         logger.error(f"Ошибка обработки сообщения: {e}")
         log_user_activity(telegram_id, "ai_message_error", False, str(e))
-        
+
         await message.answer(
             text="Ой, что-то пошло не так. Попробуй переформулировать вопрос или напиши /start"
         )
@@ -249,79 +268,66 @@ async def handle_voice(message: Message):
         message: Голосовое сообщение от пользователя
     """
     telegram_id = message.from_user.id
-    
+
     try:
         logger.info(f"🎤 Получено голосовое сообщение от {telegram_id}")
-        
+
         # Показываем что обрабатываем
-        processing_msg = await message.answer(
-            "🎤 Слушаю твоё сообщение... Пожалуйста, подожди! 🐼"
-        )
-        
+        processing_msg = await message.answer("🎤 Слушаю твоё сообщение... Пожалуйста, подожди! 🐼")
+
         # Скачиваем голосовое сообщение
         voice_file = await message.bot.get_file(message.voice.file_id)
         voice_bytes = await message.bot.download_file(voice_file.file_path)
-        
+
         # Читаем байты
         audio_data = voice_bytes.read()
-        
+
         # Получаем сервис распознавания речи
         from bot.services.speech_service import get_speech_service
+
         speech_service = get_speech_service()
-        
+
         # Распознаем речь с автоопределением языка
         recognized_text = await speech_service.transcribe_voice(
             audio_data,
             language="ru",  # Предполагаем русский
-            auto_detect_language=True  # Но определяем автоматически
+            auto_detect_language=True,  # Но определяем автоматически
         )
-        
+
         if not recognized_text:
             await processing_msg.edit_text(
-                "🎤 Не удалось распознать речь.\n"
-                "Попробуй говорить четче или напиши текстом! 📝"
+                "🎤 Не удалось распознать речь.\n" "Попробуй говорить четче или напиши текстом! 📝"
             )
-            log_user_activity(
-                telegram_id, 
-                "voice_recognition_failed", 
-                False, 
-                "Whisper failed"
-            )
+            log_user_activity(telegram_id, "voice_recognition_failed", False, "Whisper failed")
             return
-        
+
         # Удаляем сообщение "Слушаю..."
         await processing_msg.delete()
-        
+
         # Показываем что было распознано
         await message.answer(
-            f"🎤 <i>Я услышал:</i> \"{recognized_text}\"\n\n"
-            f"Сейчас подумаю над ответом... 🐼",
-            parse_mode="HTML"
+            f'🎤 <i>Я услышал:</i> "{recognized_text}"\n\n' f"Сейчас подумаю над ответом... 🐼",
+            parse_mode="HTML",
         )
-        
+
         logger.info(f"✅ Речь распознана: {recognized_text[:100]}")
-        
+
         # Логируем успешную активность
         log_user_activity(telegram_id, "voice_message_sent", True)
-        
+
         # Создаем фейковое текстовое сообщение для handle_ai_message
         message.text = recognized_text
-        
+
         # Обрабатываем как обычное текстовое сообщение
         await handle_ai_message(message, None)
-        
+
     except Exception as e:
         logger.error(f"❌ Ошибка обработки голосового сообщения: {e}")
         await message.answer(
             "😔 Произошла ошибка при обработке голосового сообщения.\n"
             "Попробуй написать текстом! 📝"
         )
-        log_user_activity(
-            telegram_id, 
-            "voice_processing_error", 
-            False, 
-            str(e)
-        )
+        log_user_activity(telegram_id, "voice_processing_error", False, str(e))
 
 
 @router.message(F.photo)
