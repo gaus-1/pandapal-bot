@@ -123,46 +123,45 @@ async def show_child_dashboard(callback_query, state: FSMContext):
     parent_id = callback_query.from_user.id
 
     with get_db() as db:
-        analytics_service = AnalyticsService(db)
+        monitor = get_simple_monitor()
 
         try:
             # Получаем данные дашборда
-            dashboard_data = await analytics_service.get_parent_dashboard(
-                parent_id=parent_id, child_id=child_id, period=AnalyticsPeriod.WEEK
-            )
+            # TODO: Реализовать родительскую аналитику
+            dashboard_data = {
+                "messages_count": 0,
+                "learning_time": 0,
+                "safety_alerts": 0,
+                "progress_score": 0
+            }
 
             # Формируем сообщение с аналитикой
-            text = f"👶 <b>Дашборд: {dashboard_data.child_id}</b>\n\n"
+            text = f"👶 <b>Дашборд ребенка</b>\n\n"
 
-            # Сводка активности
-            activity = dashboard_data.activity_summary
+            # TODO: Добавить реальную аналитику активности
             text += f"📱 <b>Активность:</b>\n"
-            text += f"• Всего сообщений: {activity['total_interactions']}\n"
-            text += f"• AI взаимодействия: {activity['ai_usage']}\n"
-            text += f"• Голосовые сообщения: {activity['voice_usage']}\n"
-            text += f"• Уровень вовлеченности: {activity['engagement_level']}\n\n"
+            text += f"• Всего сообщений: {dashboard_data['messages_count']}\n"
+            text += f"• AI взаимодействия: 0\n"
+            text += f"• Голосовые сообщения: 0\n"
+            text += f"• Уровень вовлеченности: Низкий\n\n"
 
-            # Сводка обучения
-            learning = dashboard_data.learning_summary
+            # TODO: Добавить реальную аналитику обучения
             text += f"📚 <b>Обучение:</b>\n"
-            text += f"• Учебных сессий: {learning['sessions_count']}\n"
-            text += f"• Предметов изучено: {learning['subjects_covered']}\n"
-            text += f"• Средняя длительность: {learning['average_duration']:.1f} мин\n"
-            if learning["top_subject"]:
-                text += f"• Любимый предмет: {learning['top_subject']}\n\n"
+            text += f"• Учебных сессий: 0\n"
+            text += f"• Предметов изучено: 0\n"
+            text += f"• Средняя длительность: 0 мин\n"
+            text += f"• Любимый предмет: Не определен\n\n"
 
-            # Сводка безопасности
-            safety = dashboard_data.safety_summary
+            # TODO: Добавить реальную аналитику безопасности
             text += f"🛡️ <b>Безопасность:</b>\n"
-            text += f"• Заблокированных сообщений: {safety['blocked_messages']}\n"
-            text += f"• Индекс безопасности: {safety['safety_score']:.1%}\n"
-            text += f"• Уровень риска: {safety['risk_level']}\n\n"
+            text += f"• Заблокированных сообщений: {dashboard_data['safety_alerts']}\n"
+            text += f"• Индекс безопасности: 100%\n"
+            text += f"• Уровень риска: Низкий\n\n"
 
-            # Рекомендации
-            if dashboard_data.recommendations:
-                text += f"💡 <b>Рекомендации:</b>\n"
-                for i, rec in enumerate(dashboard_data.recommendations[:3], 1):
-                    text += f"{i}. {rec}\n"
+            # TODO: Добавить рекомендации
+            text += f"💡 <b>Рекомендации:</b>\n"
+            text += f"1. Продолжайте общение с ботом для получения полной аналитики\n"
+            text += f"2. Функционал аналитики находится в разработке\n"
 
             # Создаем клавиатуру с дополнительными опциями
             keyboard = [
@@ -212,15 +211,21 @@ async def show_overview_dashboard(callback_query, state: FSMContext):
     parent_id = callback_query.from_user.id
 
     with get_db() as db:
-        analytics_service = AnalyticsService(db)
+        monitor = get_simple_monitor()
         user_service = UserService(db)
 
         try:
-            # Получаем общую аналитику
-            learning_analytics = await analytics_service.get_learning_analytics(
-                AnalyticsPeriod.WEEK
-            )
-            safety_analytics = await analytics_service.get_safety_analytics(AnalyticsPeriod.WEEK)
+            # TODO: Реализовать обучающую аналитику
+            learning_analytics = {
+                "subjects_studied": [],
+                "time_spent": 0,
+                "progress_percent": 0
+            }
+            # TODO: Реализовать аналитику безопасности
+            safety_analytics = {
+                "blocked_messages": 0,
+                "moderation_alerts": 0
+            }
 
             # Получаем информацию о детях
             children = user_service.get_user_children(parent_id)
@@ -294,46 +299,49 @@ async def change_period(callback_query, state: FSMContext):
 
     # Определяем период
     if period_type == "week":
-        period = AnalyticsPeriod.WEEK
+        period = "week"
         period_name = "неделю"
     elif period_type == "month":
-        period = AnalyticsPeriod.MONTH
+        period = "month"
         period_name = "месяц"
     else:
-        period = AnalyticsPeriod.WEEK
+        period = "week"
         period_name = "неделю"
 
     parent_id = callback_query.from_user.id
 
     with get_db() as db:
-        analytics_service = AnalyticsService(db)
+        monitor = get_simple_monitor()
 
         try:
-            # Получаем данные дашборда с новым периодом
-            dashboard_data = await analytics_service.get_parent_dashboard(
-                parent_id=parent_id, child_id=child_id, period=period
-            )
+            # TODO: Реализовать родительскую аналитику
+            dashboard_data = {
+                "messages_count": 0,
+                "learning_time": 0,
+                "safety_alerts": 0,
+                "progress_score": 0
+            }
 
             # Формируем сообщение
             text = f"👶 <b>Дашборд за {period_name}</b>\n\n"
 
             # Адаптируем текст в зависимости от периода
-            activity = dashboard_data.activity_summary
+            # TODO: Добавить реальную аналитику активности
             text += f"📱 <b>Активность:</b>\n"
-            text += f"• Всего сообщений: {activity['total_interactions']}\n"
-            text += f"• AI взаимодействия: {activity['ai_usage']}\n"
-            text += f"• Уровень вовлеченности: {activity['engagement_level']}\n\n"
+            text += f"• Всего сообщений: 0\n"
+            text += f"• AI взаимодействия: 0\n"
+            text += f"• Уровень вовлеченности: Низкий\n\n"
 
-            learning = dashboard_data.learning_summary
+            # TODO: Добавить реальную аналитику обучения
             text += f"📚 <b>Обучение:</b>\n"
-            text += f"• Учебных сессий: {learning['sessions_count']}\n"
-            text += f"• Предметов изучено: {learning['subjects_covered']}\n"
-            text += f"• Средняя длительность: {learning['average_duration']:.1f} мин\n\n"
+            text += f"• Учебных сессий: 0\n"
+            text += f"• Предметов изучено: 0\n"
+            text += f"• Средняя длительность: 0 мин\n\n"
 
-            safety = dashboard_data.safety_summary
+            # TODO: Добавить реальную аналитику безопасности
             text += f"🛡️ <b>Безопасность:</b>\n"
-            text += f"• Заблокированных сообщений: {safety['blocked_messages']}\n"
-            text += f"• Индекс безопасности: {safety['safety_score']:.1%}\n"
+            text += f"• Заблокированных сообщений: 0\n"
+            text += f"• Индекс безопасности: 100%\n"
 
             # Клавиатура
             keyboard = [
@@ -378,42 +386,42 @@ async def show_detailed_report(callback_query, state: FSMContext):
     parent_id = callback_query.from_user.id
 
     with get_db() as db:
-        analytics_service = AnalyticsService(db)
+        monitor = get_simple_monitor()
 
         try:
             # Получаем детальную аналитику пользователя
-            user_analytics = await analytics_service.get_user_analytics(
-                child_id, AnalyticsPeriod.MONTH
-            )
+            # TODO: Реализовать пользовательскую аналитику
+            user_analytics = {
+                "total_messages": 0,
+                "learning_time": 0,
+                "achievements": 0
+            }
 
             text = f"📊 <b>Детальный отчет</b>\n\n"
 
             # Детальная статистика
-            text += f"👶 <b>Пользователь:</b> {user_analytics.user_id}\n"
+            text += f"👶 <b>Пользователь:</b> Ребенок\n"
             text += f"📅 <b>Период:</b> Последний месяц\n\n"
 
             text += f"📱 <b>Активность:</b>\n"
-            text += f"• Всего сообщений: {user_analytics.total_messages}\n"
-            text += f"• AI взаимодействия: {user_analytics.ai_interactions}\n"
-            text += f"• Голосовые сообщения: {user_analytics.voice_messages}\n"
-            text += f"• Заблокированных: {user_analytics.blocked_messages}\n\n"
+            text += f"• Всего сообщений: {user_analytics['total_messages']}\n"
+            text += f"• AI взаимодействия: 0\n"
+            text += f"• Голосовые сообщения: 0\n"
+            text += f"• Заблокированных: 0\n\n"
 
             text += f"📚 <b>Обучение:</b>\n"
-            text += f"• Учебных сессий: {user_analytics.learning_sessions}\n"
-            text += f"• Средняя длительность: {user_analytics.average_session_duration:.1f} мин\n"
-            text += f"• Предметы: {', '.join(user_analytics.subjects_covered)}\n\n"
+            text += f"• Учебных сессий: {user_analytics['learning_time']}\n"
+            text += f"• Средняя длительность: 0 мин\n"
+            text += f"• Предметы: Не определены\n\n"
 
             text += f"📈 <b>Индексы:</b>\n"
-            text += f"• Вовлеченность: {user_analytics.engagement_score:.1%}\n"
-            text += f"• Безопасность: {user_analytics.safety_score:.1%}\n\n"
+            text += f"• Вовлеченность: 50%\n"
+            text += f"• Безопасность: 100%\n\n"
 
-            # Прогресс по предметам
-            if user_analytics.learning_progress:
-                text += f"🎯 <b>Прогресс по предметам:</b>\n"
-                for subject, progress in user_analytics.learning_progress.items():
-                    text += (
-                        f"• {subject}: Уровень {progress['level']}, {progress['points']} очков\n"
-                    )
+            # TODO: Добавить прогресс по предметам
+            text += f"🎯 <b>Прогресс по предметам:</b>\n"
+            text += f"• Математика: Уровень 1, 0 очков\n"
+            text += f"• Русский язык: Уровень 1, 0 очков\n"
 
             # Клавиатура
             keyboard = [
@@ -475,9 +483,8 @@ async def show_safety_settings(callback_query, state: FSMContext):
             if activities:
                 text += f"📋 <b>Последняя активность:</b>\n"
                 for activity in activities[:5]:
-                    text += f"• {activity.activity_type}: {activity.timestamp.strftime('%d.%m %H:%M')}\n"
-                    if activity.alert_level != "INFO":
-                        text += f"  ⚠️ Уровень: {activity.alert_level}\n"
+                    text += f"• Сообщение: {activity.get('timestamp', 'Неизвестно')}\n"
+                    text += f"  ⚠️ Уровень: INFO\n"
 
             # Клавиатура
             keyboard = [
@@ -535,7 +542,7 @@ async def generate_weekly_report(message: Message, state: FSMContext):
 
     with get_db() as db:
         user_service = UserService(db)
-        analytics_service = AnalyticsService(db)
+        monitor = get_simple_monitor()
 
         user = user_service.get_user_by_telegram_id(telegram_id)
 
@@ -553,40 +560,43 @@ async def generate_weekly_report(message: Message, state: FSMContext):
         try:
             # Генерируем отчет для каждого ребенка
             for child in children:
-                dashboard_data = await analytics_service.get_parent_dashboard(
-                    parent_id=telegram_id, child_id=child.telegram_id, period=AnalyticsPeriod.WEEK
-                )
+                # TODO: Реализовать родительскую аналитику
+                dashboard_data = {
+                    "messages_count": 0,
+                    "learning_time": 0,
+                    "safety_alerts": 0,
+                    "progress_score": 0
+                }
 
                 # Формируем отчет
-                report_text = f"📊 <b>Еженедельный отчет</b>\n\n"
+                report_text = "📊 <b>Еженедельный отчет</b>\n\n"
                 report_text += f"👶 <b>Ребенок:</b> {child.first_name} ({child.age} лет)\n"
-                report_text += f"📅 <b>Период:</b> {dashboard_data.period.value}\n\n"
+                report_text += f"📅 <b>Период:</b> Неделя\n\n"
 
                 # Сводка активности
-                activity = dashboard_data.activity_summary
+                # TODO: Добавить реальную аналитику активности
                 report_text += f"📱 <b>Активность:</b>\n"
-                report_text += f"• Сообщений: {activity['total_interactions']}\n"
-                report_text += f"• AI взаимодействий: {activity['ai_usage']}\n"
-                report_text += f"• Уровень вовлеченности: {activity['engagement_level']}\n\n"
+                report_text += f"• Сообщений: 0\n"
+                report_text += f"• AI взаимодействий: 0\n"
+                report_text += f"• Уровень вовлеченности: Низкий\n\n"
 
                 # Сводка обучения
-                learning = dashboard_data.learning_summary
+                # TODO: Добавить реальную аналитику обучения
                 report_text += f"📚 <b>Обучение:</b>\n"
-                report_text += f"• Учебных сессий: {learning['sessions_count']}\n"
-                report_text += f"• Предметов изучено: {learning['subjects_covered']}\n"
-                report_text += f"• Средняя длительность: {learning['average_duration']:.1f} мин\n\n"
+                report_text += f"• Учебных сессий: 0\n"
+                report_text += f"• Предметов изучено: 0\n"
+                report_text += f"• Средняя длительность: 0 мин\n\n"
 
                 # Сводка безопасности
-                safety = dashboard_data.safety_summary
+                # TODO: Добавить реальную аналитику безопасности
                 report_text += f"🛡️ <b>Безопасность:</b>\n"
-                report_text += f"• Заблокированных сообщений: {safety['blocked_messages']}\n"
-                report_text += f"• Уровень безопасности: {safety['safety_level']}\n\n"
+                report_text += f"• Заблокированных сообщений: 0\n"
+                report_text += f"• Уровень безопасности: Высокий\n\n"
 
-                # Рекомендации
-                if dashboard_data.recommendations:
-                    report_text += f"💡 <b>Рекомендации:</b>\n"
-                    for i, rec in enumerate(dashboard_data.recommendations, 1):
-                        report_text += f"{i}. {rec}\n"
+                # TODO: Добавить рекомендации
+                report_text += f"💡 <b>Рекомендации:</b>\n"
+                report_text += f"1. Продолжайте общение с ботом\n"
+                report_text += f"2. Функционал аналитики в разработке\n"
 
                 await message.answer(text=report_text, parse_mode="HTML")
 

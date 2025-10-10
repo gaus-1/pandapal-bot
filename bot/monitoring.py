@@ -66,6 +66,7 @@ class MonitoringService:
     """Сервис мониторинга и метрик"""
 
     def __init__(self):
+        """Инициализация сервиса мониторинга."""
         self.metrics_history: list[Metrics] = []
         self.user_activities: list[UserActivity] = []
         self.error_counts: Dict[str, int] = {}
