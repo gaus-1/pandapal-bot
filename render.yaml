@@ -22,6 +22,8 @@ services:
         value: "true"
       - key: WEBHOOK_DOMAIN
         value: "pandapal-bot.onrender.com"
+      - key: KEEP_ALIVE
+        value: "true"
     healthCheckPath: /health
     autoDeploy: true
     region: frankfurt
