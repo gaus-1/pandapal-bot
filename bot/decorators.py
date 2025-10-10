@@ -236,8 +236,7 @@ def deprecated(reason: str = "Функция устарела"):
 
 
 class SecurityError(Exception):
-    """Исключение для ошибок безопасности"""
-
+    """Исключение для ошибок безопасности    """
     pass
 
 
