@@ -13,10 +13,10 @@ from typing import Any, Dict, List, Optional
 
 from loguru import logger
 
+from bot.config import settings
+
 # Redis imports закомментированы - используем только in-memory cache
 REDIS_AVAILABLE = False
-
-from bot.config import settings
 
 
 @dataclass
@@ -33,6 +33,7 @@ class MemoryCache:
     """In-memory кэш как fallback когда Redis недоступен"""
 
     def __init__(self, max_size: int = 1000):
+        """Инициализация in-memory кэша."""
         self._cache: Dict[str, Dict[str, Any]] = {}
         self._max_size = max_size
         self._access_times: Dict[str, datetime] = {}
@@ -138,8 +139,9 @@ class CacheService:
     """
 
     def __init__(self):
+        """Инициализация сервиса кэширования."""
         self.config = CacheConfig()
-        self._redis_client: Optional[aioredis.Redis] = None
+        self._redis_client = None
         self._memory_cache = MemoryCache()
         self._use_redis = False
 
@@ -155,15 +157,16 @@ class CacheService:
             # Настройки Redis из конфигурации
             redis_url = getattr(settings, "redis_url", "redis://localhost:6379/0")
 
-            self._redis_client = aioredis.from_url(
-                redis_url,
-                encoding="utf-8",
-                decode_responses=True,
-                socket_connect_timeout=5,
-                socket_timeout=5,
-                retry_on_timeout=True,
-                health_check_interval=30,
-            )
+            # Redis отключен для упрощения деплоя
+            # self._redis_client = aioredis.from_url(
+            #     redis_url,
+            #     encoding="utf-8",
+            #     decode_responses=True,
+            #     socket_connect_timeout=5,
+            #     socket_timeout=5,
+            #     retry_on_timeout=True,
+            #     health_check_interval=30,
+            # )
 
             # Проверяем подключение (синхронно для инициализации)
             # asyncio.create_task(self._test_redis_connection())
