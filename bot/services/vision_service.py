@@ -132,7 +132,7 @@ class VisionService:
             image_parts = self._prepare_image_for_gemini(image_data)
 
             # Выполняем анализ
-            response = await self._analyze_with_gemini(image_parts, analysis_prompt)
+            response = self._analyze_with_gemini(image_parts, analysis_prompt)
 
             # Парсим результат
             result = self._parse_analysis_result(response)
@@ -178,7 +178,7 @@ class VisionService:
             )
 
             # Генерируем ответ
-            response = await self._generate_educational_content(educational_prompt)
+            response = self._generate_educational_content(educational_prompt)
 
             # Адаптируем ответ под возраст
             adapted_response = self._adapt_response_for_age(response, user_age)
@@ -311,7 +311,7 @@ class VisionService:
 
         return {"mime_type": mime_type, "data": image_base64}
 
-    async def _analyze_with_gemini(self, image_parts: Dict[str, Any], prompt: str) -> str:
+    def _analyze_with_gemini(self, image_parts: Dict[str, Any], prompt: str) -> str:
         """Анализировать изображение с помощью Gemini"""
         try:
             # Создаем содержимое для модели
@@ -429,7 +429,7 @@ class VisionService:
         Будь дружелюбным, поощрительным и образовательным!
         """
 
-    async def _generate_educational_content(self, prompt: str) -> str:
+    def _generate_educational_content(self, prompt: str) -> str:
         """Генерировать образовательный контент"""
         try:
             response = self.model.generate_content(prompt)
