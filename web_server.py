@@ -42,7 +42,7 @@ async def main():
         port = int(os.environ.get("PORT", 10000))
 
         # Получаем параметры webhook
-        webhook_domain = os.getenv("WEBHOOK_DOMAIN", "pandapal.ru")
+        webhook_domain = os.getenv("WEBHOOK_DOMAIN", "pandapal-bot.onrender.com")
         webhook_path = os.getenv("WEBHOOK_PATH", "/webhook")
         webhook_url = f"https://{webhook_domain}{webhook_path}"
 
@@ -65,6 +65,12 @@ async def main():
         logger.info(f"✅ Веб-сервер запущен на порту {port}")
         logger.info("✅ Webhook бот инициализирован")
         logger.info("🎯 Render готов принимать запросы!")
+
+        # Запускаем Keep Alive для предотвращения сна
+        from keep_alive import keep_alive_loop
+
+        keep_alive_task = asyncio.create_task(keep_alive_loop())
+        logger.info("🔄 Keep Alive сервис запущен для работы 24/7")
 
         # Ждем бесконечно
         await asyncio.Event().wait()
