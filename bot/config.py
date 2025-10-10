@@ -77,8 +77,8 @@ class Settings(BaseSettings):
     )
 
     gemini_model: str = Field(
-        default="gemini-2.0-flash",
-        description="Модель Gemini для использования",
+        default="gemini-1.5-flash",
+        description="Модель Gemini для использования (с поддержкой Vision)",
         validation_alias=AliasChoices("GEMINI_MODEL", "gemini_model"),
     )
 
