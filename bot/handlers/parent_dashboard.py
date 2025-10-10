@@ -132,7 +132,7 @@ async def show_child_dashboard(callback_query, state: FSMContext):
                 "messages_count": 0,
                 "learning_time": 0,
                 "safety_alerts": 0,
-                "progress_score": 0
+                "progress_score": 0,
             }
 
             # Формируем сообщение с аналитикой
@@ -216,16 +216,9 @@ async def show_overview_dashboard(callback_query, state: FSMContext):
 
         try:
             # TODO: Реализовать обучающую аналитику
-            learning_analytics = {
-                "subjects_studied": [],
-                "time_spent": 0,
-                "progress_percent": 0
-            }
+            learning_analytics = {"subjects_studied": [], "time_spent": 0, "progress_percent": 0}
             # TODO: Реализовать аналитику безопасности
-            safety_analytics = {
-                "blocked_messages": 0,
-                "moderation_alerts": 0
-            }
+            safety_analytics = {"blocked_messages": 0, "moderation_alerts": 0}
 
             # Получаем информацию о детях
             children = user_service.get_user_children(parent_id)
@@ -319,7 +312,7 @@ async def change_period(callback_query, state: FSMContext):
                 "messages_count": 0,
                 "learning_time": 0,
                 "safety_alerts": 0,
-                "progress_score": 0
+                "progress_score": 0,
             }
 
             # Формируем сообщение
@@ -391,11 +384,7 @@ async def show_detailed_report(callback_query, state: FSMContext):
         try:
             # Получаем детальную аналитику пользователя
             # TODO: Реализовать пользовательскую аналитику
-            user_analytics = {
-                "total_messages": 0,
-                "learning_time": 0,
-                "achievements": 0
-            }
+            user_analytics = {"total_messages": 0, "learning_time": 0, "achievements": 0}
 
             text = f"📊 <b>Детальный отчет</b>\n\n"
 
@@ -565,7 +554,7 @@ async def generate_weekly_report(message: Message, state: FSMContext):
                     "messages_count": 0,
                     "learning_time": 0,
                     "safety_alerts": 0,
-                    "progress_score": 0
+                    "progress_score": 0,
                 }
 
                 # Формируем отчет

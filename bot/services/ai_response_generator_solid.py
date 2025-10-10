@@ -20,6 +20,8 @@ from loguru import logger
 
 from bot.config import AI_SYSTEM_PROMPT, settings
 from bot.services.token_rotator import get_token_rotator
+from bot.services.vision_service import VisionService, ImageAnalysisResult
+from bot.services.knowledge_service import get_knowledge_service
 
 
 class IModerator(ABC):
@@ -94,6 +96,8 @@ class AIResponseGenerator:
         """
         self.moderator = moderator
         self.context_builder = context_builder
+        self.vision_service = VisionService()
+        self.knowledge_service = get_knowledge_service()
 
         # Инициализация Gemini с ротатором токенов
         self.token_rotator = get_token_rotator()
@@ -169,8 +173,16 @@ class AIResponseGenerator:
             if not is_safe:
                 return f"Извините, но я не могу обсуждать эту тему. {reason}"
 
+            # Получение релевантных материалов из веб-источников
+            relevant_materials = await self.knowledge_service.get_helpful_content(user_message, user_age)
+            web_context = self.knowledge_service.format_knowledge_for_ai(relevant_materials)
+
             # Построение контекста (делегирование ответственности)
             context = self.context_builder.build(user_message, chat_history, user_age)
+            
+            # Добавляем веб-контекст к основному контексту
+            if web_context:
+                context += "\n\n" + web_context
 
             # Генерация ответа (единственная ответственность этого класса)
             response = self.model.generate_content(context)
@@ -220,3 +232,63 @@ class AIResponseGenerator:
             "max_tokens": str(settings.ai_max_tokens),
             "public_name": "PandaPalAI",
         }
+
+    async def analyze_image(
+        self, image_data: bytes, user_message: Optional[str] = None, user_age: Optional[int] = None
+    ) -> str:
+        """
+        Анализировать изображение и генерировать образовательный ответ.
+
+        Args:
+            image_data (bytes): Данные изображения в байтах.
+            user_message (Optional[str]): Сопровождающий текст пользователя.
+            user_age (Optional[int]): Возраст пользователя для адаптации ответа.
+
+        Returns:
+            str: Образовательный ответ на основе анализа изображения.
+        """
+        try:
+            # Анализируем изображение
+            analysis_result = await self.vision_service.analyze_image(
+                image_data, user_message, user_age
+            )
+
+            # Проверяем безопасность
+            if analysis_result.safety_level.value == "unsafe":
+                return (
+                    "🚫 Это изображение не подходит для детей. "
+                    "Попробуй отправить другое фото! 🐼"
+                )
+
+            # Генерируем образовательный ответ
+            educational_response = await self.vision_service.generate_educational_response(
+                analysis_result, user_message, user_age
+            )
+
+            return educational_response
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка анализа изображения: {e}")
+            return "😔 Извини, у меня возникли проблемы с анализом изображения. Попробуй ещё раз!"
+
+    async def moderate_image_content(self, image_data: bytes) -> tuple[bool, str]:
+        """
+        Проверить изображение на безопасность.
+
+        Args:
+            image_data (bytes): Данные изображения в байтах.
+
+        Returns:
+            tuple[bool, str]: (is_safe, reason) - безопасно ли изображение и причина.
+        """
+        try:
+            analysis_result = await self.vision_service.analyze_image(image_data)
+            
+            if analysis_result.safety_level.value == "unsafe":
+                return False, "Небезопасное содержание для детей"
+            
+            return True, "Изображение безопасно"
+            
+        except Exception as e:
+            logger.error(f"❌ Ошибка модерации изображения: {e}")
+            return False, "Ошибка анализа изображения"
