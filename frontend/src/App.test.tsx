@@ -37,7 +37,8 @@ describe('App Integration Tests', () => {
     expect(logos).toHaveLength(2);
 
     logos.forEach((logo) => {
-      expect(logo).toHaveAttribute('src', SITE_CONFIG.logo.src); //     });
+      expect(logo).toHaveAttribute('src', SITE_CONFIG.logo.src);
+    });
   });
 
   /**
@@ -48,7 +49,8 @@ describe('App Integration Tests', () => {
 
     // H1 заголовок
     const heading = screen.getByRole('heading', { level: 1 });
-    expect(heading).toBeInTheDocument(); //     expect(heading.textContent).toContain('Безопасный ИИ-друг');
+    expect(heading).toBeInTheDocument();
+    expect(heading.textContent).toContain('Безопасный ИИ-друг');
 
     // CTA-кнопки (2 штуки: в Header + в Hero)
     const ctaButtons = screen.getAllByText(/Начать/i);
@@ -63,7 +65,8 @@ describe('App Integration Tests', () => {
 
     // Проверяем, что все features отрендерены
     FEATURES.forEach((feature) => {
-      expect(screen.getByText(feature.title)).toBeInTheDocument(); //       expect(screen.getByText(feature.description)).toBeInTheDocument();
+      expect(screen.getByText(feature.title)).toBeInTheDocument();
+      expect(screen.getByText(feature.description)).toBeInTheDocument();
     });
 
     // Должно быть ровно 3 карточки
@@ -81,10 +84,11 @@ describe('App Integration Tests', () => {
       // Проверяем заголовки секций (используем getAllByText т.к. текст может быть в навигации тоже)
       const headings = screen.getAllByText(section.title);
       expect(headings.length).toBeGreaterThan(0);
-      expect(screen.getByText(section.description)).toBeInTheDocument(); //
+      expect(screen.getByText(section.description)).toBeInTheDocument();
       // Проверяем, что section имеет правильный ID (для якорей)
       const sectionElement = document.getElementById(section.id);
-      expect(sectionElement).toBeInTheDocument(); //     });
+      expect(sectionElement).toBeInTheDocument();
+    });
   });
 
   /**
@@ -95,7 +99,8 @@ describe('App Integration Tests', () => {
 
     // Проверяем ссылки на секции
     const parentsLink = screen.getByRole('link', { name: 'Для родителей' });
-    expect(parentsLink).toHaveAttribute('href', '#parents'); //   });
+    expect(parentsLink).toHaveAttribute('href', '#parents');
+  });
 
   /**
    * Тест 7: Внешние ссылки (безопасность - OWASP A01)
@@ -108,7 +113,8 @@ describe('App Integration Tests', () => {
 
     externalLinks.forEach((link) => {
       // Проверяем безопасность
-      expect(link).toHaveAttribute('target', '_blank'); //       expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
       expect(link).toHaveAttribute('href', SITE_CONFIG.botUrl);
     });
   });
