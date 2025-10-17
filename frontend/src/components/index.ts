@@ -13,4 +13,7 @@ export { Section } from './Section';
 export { Footer } from './Footer';
 export { TelegramQR } from './TelegramQR';
 export { TelegramLogin } from './TelegramLogin';
-
+export { ScrollIndicator } from './ScrollIndicator';
+export { Tabs } from './Tabs';
+export { InfoTabs } from './InfoTabs';
+export { Mission } from './Mission';
