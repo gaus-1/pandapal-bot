@@ -59,8 +59,14 @@ async def homework_help(message: Message, state: FSMContext):
 @router.callback_query(F.data.startswith("subject:"))
 async def subject_selected(callback: CallbackQuery, state: FSMContext):
     """
-    Обработчик выбора предмета
-    Показывает типы помощи
+    Обработчик выбора школьного предмета.
+
+    Сохраняет выбранный предмет в FSM состояние и показывает
+    варианты помощи (объяснение темы, решение задачи, тест).
+
+    Args:
+        callback (CallbackQuery): Callback от нажатия на кнопку предмета.
+        state (FSMContext): Контекст FSM для сохранения выбора.
     """
     subject = callback.data.split(":")[1]
 
@@ -95,7 +101,14 @@ async def subject_selected(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data.startswith("help:"))
 async def help_type_selected(callback: CallbackQuery, state: FSMContext):
     """
-    Обработчик выбора типа помощи
+    Обработчик выбора типа помощи с предметом.
+
+    Обрабатывает выбор: объяснение темы, решение задачи или прохождение теста.
+    Переводит пользователя в режим общения с AI для выбранного типа помощи.
+
+    Args:
+        callback (CallbackQuery): Callback от нажатия на кнопку типа помощи.
+        state (FSMContext): Контекст FSM с сохраненным предметом.
     """
     help_type = callback.data.split(":")[1]
 

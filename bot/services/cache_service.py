@@ -21,7 +21,15 @@ REDIS_AVAILABLE = False
 
 @dataclass
 class CacheConfig:
-    """Конфигурация кэширования"""
+    """
+    Конфигурация кэширования.
+
+    Attributes:
+        default_ttl (int): Время жизни записей по умолчанию в секундах (3600 = 1 час).
+        max_memory_mb (int): Максимальный размер кэша в памяти (МБ).
+        compression_enabled (bool): Включить сжатие данных для экономии памяти.
+        serialization_format (str): Формат сериализации данных (json/pickle).
+    """
 
     default_ttl: int = 3600  # 1 час по умолчанию
     max_memory_mb: int = 100  # Максимум памяти для кэша
@@ -30,16 +38,34 @@ class CacheConfig:
 
 
 class MemoryCache:
-    """In-memory кэш как fallback когда Redis недоступен"""
+    """
+    In-memory кэш как fallback когда Redis недоступен.
+
+    Реализует простой LRU (Least Recently Used) кэш в оперативной памяти
+    с поддержкой TTL и автоматической очисткой устаревших записей.
+    """
 
     def __init__(self, max_size: int = 1000):
-        """Инициализация in-memory кэша."""
+        """
+        Инициализация in-memory кэша.
+
+        Args:
+            max_size (int): Максимальное количество записей в кэше (по умолчанию 1000).
+        """
         self._cache: Dict[str, Dict[str, Any]] = {}
         self._max_size = max_size
         self._access_times: Dict[str, datetime] = {}
 
     async def get(self, key: str) -> Optional[Any]:
-        """Получить значение из кэша"""
+        """
+        Получить значение из кэша.
+
+        Args:
+            key (str): Ключ для поиска в кэше.
+
+        Returns:
+            Optional[Any]: Значение из кэша или None если не найдено/истекло.
+        """
         if key not in self._cache:
             return None
 
@@ -58,7 +84,17 @@ class MemoryCache:
         return cache_item["value"]
 
     async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
-        """Установить значение в кэш"""
+        """
+        Установить значение в кэш.
+
+        Args:
+            key (str): Ключ для сохранения.
+            value (Any): Значение для кэширования (любой сериализуемый тип).
+            ttl (Optional[int]): Время жизни в секундах (None = бессрочно).
+
+        Returns:
+            bool: True при успешном сохранении.
+        """
         # Если кэш переполнен, удаляем старые элементы
         if len(self._cache) >= self._max_size:
             await self._evict_oldest()
@@ -77,7 +113,15 @@ class MemoryCache:
         return True
 
     async def delete(self, key: str) -> bool:
-        """Удалить значение из кэша"""
+        """
+        Удалить значение из кэша.
+
+        Args:
+            key (str): Ключ для удаления.
+
+        Returns:
+            bool: True если ключ был удален, False если не существовал.
+        """
         if key in self._cache:
             del self._cache[key]
             del self._access_times[key]
@@ -85,7 +129,15 @@ class MemoryCache:
         return False
 
     async def exists(self, key: str) -> bool:
-        """Проверить существование ключа"""
+        """
+        Проверить существование ключа в кэше.
+
+        Args:
+            key (str): Ключ для проверки.
+
+        Returns:
+            bool: True если ключ существует и не истек, False иначе.
+        """
         if key not in self._cache:
             return False
 
@@ -100,13 +152,22 @@ class MemoryCache:
         return True
 
     async def clear(self) -> bool:
-        """Очистить весь кэш"""
+        """
+        Очистить весь кэш.
+
+        Returns:
+            bool: Всегда True.
+        """
         self._cache.clear()
         self._access_times.clear()
         return True
 
     async def _evict_oldest(self):
-        """Удалить самый старый элемент"""
+        """
+        Удалить самый старый элемент из кэша (LRU eviction).
+
+        Используется при переполнении кэша для освобождения места.
+        """
         if not self._access_times:
             return
 
@@ -115,7 +176,12 @@ class MemoryCache:
         del self._access_times[oldest_key]
 
     async def get_stats(self) -> Dict[str, Any]:
-        """Получить статистику кэша"""
+        """
+        Получить статистику использования кэша.
+
+        Returns:
+            Dict[str, Any]: Словарь со статистикой (размер, истекшие, активные записи).
+        """
         now = datetime.utcnow()
         expired_count = 0
 
