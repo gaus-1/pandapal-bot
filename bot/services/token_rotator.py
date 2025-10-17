@@ -14,6 +14,7 @@ Google Gemini для обхода лимитов запросов. Поддер�
 
 import asyncio
 import random
+import time
 from typing import List, Optional
 
 from loguru import logger
@@ -44,6 +45,7 @@ class TokenRotator:
         self.tokens = self._prepare_tokens()
         self.current_index = 0
         self.failed_tokens = set()  # Токены, которые не работают
+        self.last_reset_time = time.time()  # Время последнего сброса
 
         logger.info(f"🔄 Token Rotator инициализирован с {len(self.tokens)} токенами")
 
@@ -98,12 +100,21 @@ class TokenRotator:
         available_tokens = [t for t in self.tokens if t not in self.failed_tokens]
 
         if not available_tokens:
-            logger.error("❌ Все токены исчерпаны!")
+            logger.error("❌ Все токены исчерпаны! Сброс списка неудачных токенов через 5 минут...")
+            # Сбрасываем неудачные токены через 5 минут (временное решение)
+            self._reset_failed_tokens_if_needed()
+            available_tokens = self.tokens  # Используем все токены
+
+        if not available_tokens:
             return None
 
-        # Если текущий токен в списке неудачных, переключаемся
+        # Если текущий токен в списке неудачных, переключаемся на доступный
         if self.tokens[self.current_index] in self.failed_tokens:
-            self.current_index = (self.current_index + 1) % len(self.tokens)
+            # Находим первый доступный токен
+            for i, token in enumerate(self.tokens):
+                if token not in self.failed_tokens:
+                    self.current_index = i
+                    break
 
         return self.tokens[self.current_index]
 
@@ -170,6 +181,18 @@ class TokenRotator:
             if self.get_current_token()
             else None,
         }
+
+    def _reset_failed_tokens_if_needed(self) -> None:
+        """
+        Сбросить неудачные токены, если прошло достаточно времени.
+
+        Сбрасывает список неудачных токенов через 5 минут для повторного использования.
+        """
+        current_time = time.time()
+        if current_time - self.last_reset_time > 300:  # 5 минут
+            logger.info("🔄 Сбрасываем список неудачных токенов (прошло 5 минут)")
+            self.failed_tokens.clear()
+            self.last_reset_time = current_time
 
 
 # Глобальный экземпляр
