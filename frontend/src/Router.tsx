@@ -7,7 +7,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './App';
 import { Documentation } from './pages/Documentation';
-// import GameApp from './game/GameApp'; // Будет добавлено при разработке игры
+import { GameApp } from './game/GameApp';
 
 export const AppRouter: React.FC = React.memo(() => {
   return (
@@ -19,8 +19,8 @@ export const AppRouter: React.FC = React.memo(() => {
         {/* Документация с переключением языков */}
         <Route path="/docs" element={<Documentation />} />
 
-        {/* Игра (будет добавлено позже) */}
-        {/* <Route path="/game" element={<GameApp />} /> */}
+        {/* Игра PandaPal Go */}
+        <Route path="/game" element={<GameApp />} />
 
         {/* Редирект всех неизвестных маршрутов на главную */}
         <Route path="*" element={<Navigate to="/" />} />
