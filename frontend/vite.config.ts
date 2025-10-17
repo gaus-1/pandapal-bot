@@ -4,7 +4,9 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -16,18 +18,66 @@ export default defineConfig({
     },
   },
   build: {
+    target: 'es2020',
+    cssCodeSplit: true,
+    // Увеличиваем лимит для Three.js
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
+        // Оптимальное разделение бандла для стандартов 2025
         manualChunks: {
-          vendor: ['react', 'react-dom'],
+          // React core (должен загружаться первым)
+          'react-core': ['react', 'react-dom'],
+          // Роутинг (нужен почти сразу)
+          'react-router': ['react-router-dom'],
+          // Three.js (большая библиотека, ленивая загрузка)
+          'three-core': ['three'],
+          'three-fiber': ['@react-three/fiber'],
+          'three-drei': ['@react-three/drei'],
+          // Zustand (легкий, но отдельно)
+          'state': ['zustand'],
+          // Web vitals (загружается асинхронно)
+          'monitoring': ['web-vitals'],
         },
+        // Оптимизация имен файлов
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
-    sourcemap: false,
-    minify: 'esbuild',
+    sourcemap: false, // Отключаем sourcemap в проде
+    minify: 'esbuild', // esbuild быстрее terser
+    reportCompressedSize: true,
+    // Оптимизация для детей (быстрая загрузка на медленных соединениях)
+    assetsInlineLimit: 4096, // Инлайним маленькие файлы < 4KB
   },
   server: {
-    host: true,
+    host: 'localhost',
     port: 5173,
+    strictPort: true,
+    // Стабильный HMR без сетевых проблем
+    hmr: {
+      overlay: true,
+      port: 5174,
+    },
+    // Отключаем предварительную оптимизацию для стабильности
+    preTransformRequests: false,
+    // Кэширование для стабильности
+    fs: {
+      strict: false,
+    },
+  },
+  // Оптимизация для dev сборки - упрощенная для стабильности
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      'zustand',
+      'three',
+      '@react-three/fiber',
+      '@react-three/drei',
+    ],
+    force: true, // Принудительная переоптимизация
   },
 })
