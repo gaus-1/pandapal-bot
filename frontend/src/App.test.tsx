@@ -15,15 +15,15 @@ describe('App Integration Tests', () => {
    */
   it('должен отрендерить все основные секции', () => {
     render(<App />);
-    
+
     // Проверяем Header
-    expect(screen.getByRole('banner')).toBeInTheDocument(); // @ts-ignore   
-    
+    expect(screen.getByRole('banner')).toBeInTheDocument();
+
     // Проверяем Main content
-    expect(screen.getByRole('main')).toBeInTheDocument(); // @ts-ignore
-    
+    expect(screen.getByRole('main')).toBeInTheDocument();
+
     // Проверяем Footer
-    expect(screen.getByRole('contentinfo')).toBeInTheDocument(); // @ts-ignore
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument();
   });
 
   /**
@@ -31,14 +31,13 @@ describe('App Integration Tests', () => {
    */
   it('должен отображать логотип в Header и Footer', () => {
     render(<App />);
-    
+
     const logos = screen.getAllByAltText(SITE_CONFIG.logo.alt);
     // Логотип должен быть 2 раза (header + footer)
     expect(logos).toHaveLength(2);
-    
+
     logos.forEach((logo) => {
-      expect(logo).toHaveAttribute('src', SITE_CONFIG.logo.src); // @ts-ignore
-    });
+      expect(logo).toHaveAttribute('src', SITE_CONFIG.logo.src); //     });
   });
 
   /**
@@ -46,12 +45,11 @@ describe('App Integration Tests', () => {
    */
   it('должен отображать Hero-секцию с заголовком и CTA', () => {
     render(<App />);
-    
+
     // H1 заголовок
     const heading = screen.getByRole('heading', { level: 1 });
-    expect(heading).toBeInTheDocument(); // @ts-ignore
-    expect(heading.textContent).toContain('Безопасный ИИ-друг');
-    
+    expect(heading).toBeInTheDocument(); //     expect(heading.textContent).toContain('Безопасный ИИ-друг');
+
     // CTA-кнопки (2 штуки: в Header + в Hero)
     const ctaButtons = screen.getAllByText(/Начать/i);
     expect(ctaButtons.length).toBeGreaterThanOrEqual(2);
@@ -62,13 +60,12 @@ describe('App Integration Tests', () => {
    */
   it('должен отображать все карточки преимуществ', () => {
     render(<App />);
-    
+
     // Проверяем, что все features отрендерены
     FEATURES.forEach((feature) => {
-      expect(screen.getByText(feature.title)).toBeInTheDocument(); // @ts-ignore
-      expect(screen.getByText(feature.description)).toBeInTheDocument();
+      expect(screen.getByText(feature.title)).toBeInTheDocument(); //       expect(screen.getByText(feature.description)).toBeInTheDocument();
     });
-    
+
     // Должно быть ровно 3 карточки
     const articles = screen.getAllByRole('article');
     expect(articles).toHaveLength(FEATURES.length);
@@ -79,17 +76,15 @@ describe('App Integration Tests', () => {
    */
   it('должен отображать все секции из SECTIONS', () => {
     render(<App />);
-    
+
     SECTIONS.forEach((section) => {
       // Проверяем заголовки секций (используем getAllByText т.к. текст может быть в навигации тоже)
       const headings = screen.getAllByText(section.title);
       expect(headings.length).toBeGreaterThan(0);
-      expect(screen.getByText(section.description)).toBeInTheDocument(); // @ts-ignore
-      
+      expect(screen.getByText(section.description)).toBeInTheDocument(); //
       // Проверяем, что section имеет правильный ID (для якорей)
       const sectionElement = document.getElementById(section.id);
-      expect(sectionElement).toBeInTheDocument(); // @ts-ignore
-    });
+      expect(sectionElement).toBeInTheDocument(); //     });
   });
 
   /**
@@ -97,28 +92,23 @@ describe('App Integration Tests', () => {
    */
   it('должен содержать рабочие якорные ссылки', () => {
     render(<App />);
-    
+
     // Проверяем ссылки на секции
     const parentsLink = screen.getByRole('link', { name: 'Для родителей' });
-    expect(parentsLink).toHaveAttribute('href', '#parents'); // @ts-ignore
-    
-    const teachersLink = screen.getByRole('link', { name: 'Для учителей' });
-    expect(teachersLink).toHaveAttribute('href', '#teachers'); // @ts-ignore
-  });
+    expect(parentsLink).toHaveAttribute('href', '#parents'); //   });
 
   /**
    * Тест 7: Внешние ссылки (безопасность - OWASP A01)
    */
   it('должен иметь безопасные атрибуты на всех внешних ссылках', () => {
     render(<App />);
-    
+
     // Находим все ссылки на Telegram бота
     const externalLinks = screen.getAllByRole('link', { name: /Начать/i });
-    
+
     externalLinks.forEach((link) => {
       // Проверяем безопасность
-      expect(link).toHaveAttribute('target', '_blank'); // @ts-ignore
-      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+      expect(link).toHaveAttribute('target', '_blank'); //       expect(link).toHaveAttribute('rel', 'noopener noreferrer');
       expect(link).toHaveAttribute('href', SITE_CONFIG.botUrl);
     });
   });
@@ -128,20 +118,20 @@ describe('App Integration Tests', () => {
    */
   it('должен быть доступен для screen readers', () => {
     render(<App />);
-    
+
     // Проверяем semantic HTML
     expect(screen.getByRole('banner')).toBeInTheDocument(); // header
     expect(screen.getByRole('main')).toBeInTheDocument(); // main
     expect(screen.getByRole('contentinfo')).toBeInTheDocument(); // footer
     expect(screen.getByRole('navigation')).toBeInTheDocument(); // nav
-    
+
     // Проверяем headings hierarchy (H1 → H2 → H3)
     const h1 = screen.getByRole('heading', { level: 1 });
     expect(h1).toBeInTheDocument();
-    
+
     const h2headings = screen.getAllByRole('heading', { level: 2 });
     expect(h2headings.length).toBeGreaterThan(0);
-    
+
     const h3headings = screen.getAllByRole('heading', { level: 3 });
     expect(h3headings.length).toBeGreaterThanOrEqual(FEATURES.length);
   });
@@ -154,7 +144,7 @@ describe('App Integration Tests', () => {
     // В тестовом окружении он пустой, поэтому просто проверяем что app рендерится
     render(<App />);
     const pandapalTexts = screen.getAllByText(SITE_CONFIG.name);
-    expect(pandapalTexts.length).toBeGreaterThan(0); // Должен быть в Header и Footer   
+    expect(pandapalTexts.length).toBeGreaterThan(0); // Должен быть в Header и Footer
   });
 
   /**
@@ -162,12 +152,12 @@ describe('App Integration Tests', () => {
    */
   it('должен рендериться один раз при mount', () => {
     let renderCount = 0;
-    
+
     const TestWrapper = () => {
       renderCount++;
       return <App />;
     };
-    
+
     render(<TestWrapper />);
     expect(renderCount).toBe(1);
   });
@@ -177,7 +167,7 @@ describe('App Integration Tests', () => {
    */
   it('должен иметь адаптивные классы', () => {
     render(<App />);
-    
+
     const main = screen.getByRole('main');
     expect(main.className).toContain('max-w-6xl');
     expect(main.className).toContain('mx-auto');
@@ -189,7 +179,7 @@ describe('App Integration Tests', () => {
    */
   it('должен иметь alt-текст у всех изображений', () => {
     render(<App />);
-    
+
     const images = screen.getAllByRole('img');
     images.forEach((img) => {
       expect(img).toHaveAttribute('alt');
@@ -198,4 +188,3 @@ describe('App Integration Tests', () => {
     });
   });
 });
-

@@ -17,7 +17,7 @@ interface SectionProps {
 
 /**
  * Универсальная секция контента с полупрозрачным фоном
- * ID используется как якорь для навигации (#parents, #teachers)
+ * ID используется как якорь для навигации (#parents)
  * Легко добавлять новые секции через SECTIONS в constants.ts
  */
 export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
@@ -41,4 +41,3 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
 
 // Для React DevTools
 Section.displayName = 'Section';
-
