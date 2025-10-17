@@ -1,21 +1,10 @@
 {
   "short_name": "PandaPal",
-  "name": "PandaPal - AI-ассистент для обучения детей",
-  "description": "Умный AI-помощник для школьников 6-18 лет. Помощь с уроками, безопасный чат, адаптивное обучение.",
+  "name": "PandaPal - AI-\u0430\u0441\u0441\u0438\u0441\u0442\u0435\u043d\u0442 \u0434\u043b\u044f \u043e\u0431\u0443\u0447\u0435\u043d\u0438\u044f \u0434\u0435\u0442\u0435\u0439",
+  "description": "\u0423\u043c\u043d\u044b\u0439 AI-\u043f\u043e\u043c\u043e\u0449\u043d\u0438\u043a \u0434\u043b\u044f \u0448\u043a\u043e\u043b\u044c\u043d\u0438\u043a\u043e\u0432 6-18 \u043b\u0435\u0442. \u041f\u043e\u043c\u043e\u0449\u044c \u0441 \u0443\u0440\u043e\u043a\u0430\u043c\u0438, \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u044b\u0439 \u0447\u0430\u0442, \u0430\u0434\u0430\u043f\u0442\u0438\u0432\u043d\u043e\u0435 \u043e\u0431\u0443\u0447\u0435\u043d\u0438\u0435.",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "/logo192.png",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/logo512.png",
+      "src": "/logo.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
@@ -28,36 +17,26 @@
   "orientation": "portrait-primary",
   "lang": "ru-RU",
   "dir": "ltr",
-  "categories": ["education", "productivity", "kids"],
+  "categories": [
+    "education",
+    "productivity",
+    "kids"
+  ],
   "screenshots": [
     {
       "src": "/screenshots/home.png",
       "sizes": "1280x720",
       "type": "image/png",
-      "label": "Главная страница PandaPal"
+      "label": "\u0413\u043b\u0430\u0432\u043d\u0430\u044f \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0430 PandaPal"
     },
     {
       "src": "/screenshots/chat.png",
       "sizes": "1280x720",
       "type": "image/png",
-      "label": "AI чат с образовательным ассистентом"
+      "label": "AI \u0447\u0430\u0442 \u0441 \u043e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c\u043d\u044b\u043c \u0430\u0441\u0441\u0438\u0441\u0442\u0435\u043d\u0442\u043e\u043c"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "Начать чат с AI",
-      "short_name": "AI Чат",
-      "description": "Быстрый доступ к образовательному чату",
-      "url": "/ai-chat",
-      "icons": [{ "src": "/icons/chat-96x96.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "Помощь с уроками",
-      "short_name": "Уроки",
-      "url": "/homework-help",
-      "icons": [{ "src": "/icons/homework-96x96.png", "sizes": "96x96" }]
-    }
-  ],
+  "shortcuts": [],
   "related_applications": [
     {
       "platform": "telegram",
@@ -66,4 +45,3 @@
     }
   ]
 }
-
