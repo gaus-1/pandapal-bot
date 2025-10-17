@@ -26,16 +26,22 @@ export const Hero: React.FC = React.memo(() => {
         Адаптивное, игровое и безопасное обучение для 1–9 классов
       </p>
 
-      {/* Главная CTA-кнопка (Call To Action) */}
-      <div className="mt-8">
+      {/* Главные CTA-кнопки (Call To Action) */}
+      <div className="mt-8 flex flex-col md:flex-row gap-4 justify-center">
         <a
           href={SITE_CONFIG.botUrl}
           target="_blank" // Открывается в новой вкладке
           rel="noopener noreferrer" // Защита от tabnabbing
-          className="inline-block px-8 py-4 rounded-full bg-pink text-gray-900 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-100"
+          className="px-8 py-4 rounded-full bg-pink text-gray-900 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-100"
           aria-label="Начать использовать PandaPal в Telegram"
         >
           Начать использовать
+        </a>
+        <a
+          href="/docs"
+          className="px-8 py-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-100"
+        >
+          📚 Документация
         </a>
       </div>
     </section>
@@ -44,4 +50,3 @@ export const Hero: React.FC = React.memo(() => {
 
 // Для React DevTools
 Hero.displayName = 'Hero';
-
