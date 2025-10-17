@@ -38,7 +38,7 @@ interface TelegramLoginProps {
  */
 declare global {
   interface Window {
-    onTelegramAuth: (user: TelegramUser) => void;
+    onTelegramAuth?: (user: TelegramUser) => void;
   }
 }
 
@@ -158,7 +158,7 @@ export const TelegramLogin: React.FC<TelegramLoginProps> = React.memo(({
       if (container && script.parentNode) {
         container.removeChild(script);
       }
-      window.onTelegramAuth = undefined as unknown as ((user: TelegramUser) => void) | undefined;
+      window.onTelegramAuth = undefined;
     };
   }, [botName, size, showAvatar, handleTelegramAuth]);
 
