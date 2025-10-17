@@ -118,6 +118,8 @@ update_render_env.py
 *DEPLOYMENT*.md
 *INCIDENT*.md
 *SECRET*.md
+*TOKENS*.md
+*RENDER*.md
 
 # Логи с секретами
 **/logs/*.log
