@@ -93,7 +93,7 @@ class UserService:
             telegram_id: Telegram ID
             age: Возраст (6-18)
             grade: Класс (1-11)
-            user_type: Тип пользователя (child/parent/teacher)
+            user_type: Тип пользователя (child/parent)
 
         Returns:
             User: Обновлённый пользователь или None если не найден
@@ -121,8 +121,8 @@ class UserService:
 
         # Обновление типа пользователя
         if user_type is not None:
-            if user_type not in ["child", "parent", "teacher"]:
-                raise ValueError("user_type должен быть child/parent/teacher")
+            if user_type not in ["child", "parent"]:
+                raise ValueError("user_type должен быть child/parent")
             user.user_type = user_type
 
         self.db.flush()

@@ -29,11 +29,16 @@ class Base(DeclarativeBase):
 
 
 class User(Base):
+    """
+    Модель пользователя системы PandaPal.
+    Хранит информацию о детях и родителях.
+    """
+
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False, index=True)
-    
+
     username: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     first_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     last_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
@@ -45,7 +50,7 @@ class User(Base):
     parent_telegram_id: Mapped[Optional[int]] = mapped_column(
         BigInteger, ForeignKey("users.telegram_id", ondelete="SET NULL"), nullable=True
     )
-    
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
 
@@ -77,7 +82,7 @@ class User(Base):
 
     # Constraints (ограничения)
     __table_args__ = (
-        CheckConstraint("user_type IN ('child', 'parent', 'teacher')", name="ck_users_user_type"),
+        CheckConstraint("user_type IN ('child', 'parent')", name="ck_users_user_type"),
         CheckConstraint("age IS NULL OR (age >= 6 AND age <= 18)", name="ck_users_age_range"),
         CheckConstraint(
             "grade IS NULL OR (grade >= 1 AND grade <= 11)", name="ck_users_grade_range"
@@ -85,6 +90,7 @@ class User(Base):
     )
 
     def __repr__(self) -> str:
+        """Строковое представление пользователя"""
         return f"<User(id={self.id}, telegram_id={self.telegram_id}, type={self.user_type})>"
 
 
@@ -104,41 +110,28 @@ class LearningSession(Base):
         ForeignKey("users.telegram_id", ondelete="CASCADE"),
         nullable=False,
         index=True,
-        
     )
 
     # Информация о сессии
-    subject: Mapped[Optional[str]] = mapped_column(
-        String(100)
-    )
+    subject: Mapped[Optional[str]] = mapped_column(String(100))
 
     topic: Mapped[Optional[str]] = mapped_column(String(255))
 
-    difficulty_level: Mapped[Optional[int]] = mapped_column(
-        Integer
-    )
+    difficulty_level: Mapped[Optional[int]] = mapped_column(Integer)
 
     # Статистика
-    questions_answered: Mapped[int] = mapped_column(
-        Integer, default=0, server_default="0"
-    )
+    questions_answered: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
-    correct_answers: Mapped[int] = mapped_column(
-        Integer, default=0, server_default="0"
-    )
+    correct_answers: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     # Временные метки
     session_start: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
 
-    session_end: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    session_end: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    is_completed: Mapped[bool] = mapped_column(
-        Boolean, default=False, server_default="false"
-    )
+    is_completed: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
 
     # Relationship
     user: Mapped["User"] = relationship("User", back_populates="sessions")
@@ -146,6 +139,7 @@ class LearningSession(Base):
     __table_args__ = (Index("idx_sessions_user_date", "user_telegram_id", "session_start"),)
 
     def __repr__(self) -> str:
+        """Строковое представление пользователя"""
         return f"<LearningSession(id={self.id}, subject={self.subject})>"
 
 
@@ -173,20 +167,15 @@ class UserProgress(Base):
     level: Mapped[Optional[int]] = mapped_column(Integer)
 
     # Геймификация
-    points: Mapped[int] = mapped_column(
-        Integer, default=0, server_default="0"
-    )
+    points: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
-    achievements: Mapped[Optional[dict]] = mapped_column(
-        JSON, nullable=True
-    )
+    achievements: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
     # Последняя активность
     last_activity: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
-        
     )
 
     # Relationship
@@ -195,6 +184,7 @@ class UserProgress(Base):
     __table_args__ = (Index("idx_progress_user_subject", "user_telegram_id", "subject"),)
 
     def __repr__(self) -> str:
+        """Строковое представление пользователя"""
         return f"<UserProgress(user_id={self.user_telegram_id}, subject={self.subject}, level={self.level})>"
 
 
@@ -214,7 +204,6 @@ class ChatHistory(Base):
         ForeignKey("users.telegram_id", ondelete="CASCADE"),
         nullable=False,
         index=True,
-        
     )
 
     # Содержание сообщения
@@ -224,7 +213,6 @@ class ChatHistory(Base):
     message_type: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
-        
     )
 
     # Временная метка
@@ -232,7 +220,6 @@ class ChatHistory(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         index=True,  # Индекс для сортировки по дате
-        
     )
 
     # Relationship
@@ -245,6 +232,7 @@ class ChatHistory(Base):
     )
 
     def __repr__(self) -> str:
+        """Строковое представление пользователя"""
         preview = (
             self.message_text[:50] + "..." if len(self.message_text) > 50 else self.message_text
         )
@@ -263,28 +251,17 @@ class AnalyticsMetric(Base):
     __tablename__ = "analytics_metrics"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    metric_name: Mapped[str] = mapped_column(
-        String(100), nullable=False
-    )
+    metric_name: Mapped[str] = mapped_column(String(100), nullable=False)
     metric_value: Mapped[float] = mapped_column(Float, nullable=False)
-    metric_type: Mapped[str] = mapped_column(
-        String(50), nullable=False
-    )
-    tags: Mapped[Optional[Dict]] = mapped_column(
-        JSON, nullable=True
-    )
+    metric_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    tags: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        
     )
-    period: Mapped[str] = mapped_column(
-        String(20), nullable=False
-    )
-    user_telegram_id: Mapped[Optional[int]] = mapped_column(
-        BigInteger, nullable=True
-    )
+    period: Mapped[str] = mapped_column(String(20), nullable=False)
+    user_telegram_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
 
     __table_args__ = (
         Index("idx_analytics_metrics_name_time", "metric_name", "timestamp"),
@@ -293,6 +270,7 @@ class AnalyticsMetric(Base):
     )
 
     def __repr__(self) -> str:
+        """Строковое представление пользователя"""
         return (
             f"<AnalyticsMetric(id={self.id}, name='{self.metric_name}', "
             f"value={self.metric_value}, type='{self.metric_type}')>"
@@ -308,48 +286,23 @@ class UserSession(Base):
     __tablename__ = "user_sessions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_telegram_id: Mapped[int] = mapped_column(
-        BigInteger, nullable=False
-    )
+    user_telegram_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     session_start: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        
     )
-    session_end: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    session_duration: Mapped[Optional[int]] = mapped_column(
-        Integer, nullable=True
-    )
-    messages_count: Mapped[int] = mapped_column(
-        Integer, default=0
-    )
-    ai_interactions: Mapped[int] = mapped_column(
-        Integer, default=0
-    )
-    voice_messages: Mapped[int] = mapped_column(
-        Integer, default=0
-    )
-    blocked_messages: Mapped[int] = mapped_column(
-        Integer, default=0
-    )
-    subjects_covered: Mapped[Optional[List[str]]] = mapped_column(
-        JSON, nullable=True
-    )
-    engagement_score: Mapped[Optional[float]] = mapped_column(
-        Float, nullable=True
-    )
-    safety_score: Mapped[Optional[float]] = mapped_column(
-        Float, nullable=True
-    )
-    session_type: Mapped[str] = mapped_column(
-        String(50), default="regular"
-    )
-    device_info: Mapped[Optional[Dict]] = mapped_column(
-        JSON, nullable=True
-    )
+    session_end: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    session_duration: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    messages_count: Mapped[int] = mapped_column(Integer, default=0)
+    ai_interactions: Mapped[int] = mapped_column(Integer, default=0)
+    voice_messages: Mapped[int] = mapped_column(Integer, default=0)
+    blocked_messages: Mapped[int] = mapped_column(Integer, default=0)
+    subjects_covered: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    engagement_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    safety_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    session_type: Mapped[str] = mapped_column(String(50), default="regular")
+    device_info: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
 
     __table_args__ = (
         Index("idx_user_sessions_user_start", "user_telegram_id", "session_start"),
@@ -358,6 +311,7 @@ class UserSession(Base):
     )
 
     def __repr__(self) -> str:
+        """Строковое представление пользователя"""
         return (
             f"<UserSession(id={self.id}, user={self.user_telegram_id}, "
             f"start='{self.session_start}', duration={self.session_duration})>"
@@ -373,23 +327,16 @@ class UserEvent(Base):
     __tablename__ = "user_events"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_telegram_id: Mapped[int] = mapped_column(
-        BigInteger, nullable=False
-    )
+    user_telegram_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
-    event_data: Mapped[Optional[Dict]] = mapped_column(
-        JSON, nullable=True
-    )
+    event_data: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        
     )
     session_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    importance: Mapped[str] = mapped_column(
-        String(20), default="normal"
-    )
+    importance: Mapped[str] = mapped_column(String(20), default="normal")
     processed: Mapped[bool] = mapped_column(Boolean, default=False)
 
     __table_args__ = (
@@ -400,6 +347,7 @@ class UserEvent(Base):
     )
 
     def __repr__(self) -> str:
+        """Строковое представление пользователя"""
         return (
             f"<UserEvent(id={self.id}, user={self.user_telegram_id}, "
             f"type='{self.event_type}', importance='{self.importance}')>"
@@ -422,20 +370,11 @@ class AnalyticsReport(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        
     )
-    generated_by: Mapped[Optional[str]] = mapped_column(
-        String(100), nullable=True
-    )
-    parent_telegram_id: Mapped[Optional[int]] = mapped_column(
-        BigInteger, nullable=True
-    )
-    child_telegram_id: Mapped[Optional[int]] = mapped_column(
-        BigInteger, nullable=True
-    )
-    is_scheduled: Mapped[bool] = mapped_column(
-        Boolean, default=False
-    )
+    generated_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    parent_telegram_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    child_telegram_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    is_scheduled: Mapped[bool] = mapped_column(Boolean, default=False)
 
     __table_args__ = (
         Index("idx_analytics_reports_type_period", "report_type", "report_period"),
@@ -444,6 +383,7 @@ class AnalyticsReport(Base):
     )
 
     def __repr__(self) -> str:
+        """Строковое представление пользователя"""
         return (
             f"<AnalyticsReport(id={self.id}, type='{self.report_type}', "
             f"period='{self.report_period}', generated='{self.generated_at}')>"
@@ -459,32 +399,17 @@ class AnalyticsTrend(Base):
     __tablename__ = "analytics_trends"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    metric_name: Mapped[str] = mapped_column(
-        String(100), nullable=False
-    )
-    trend_direction: Mapped[str] = mapped_column(
-        String(20), nullable=False
-    )
-    trend_strength: Mapped[float] = mapped_column(
-        Float, nullable=False
-    )
-    confidence: Mapped[float] = mapped_column(
-        Float, nullable=False
-    )
-    period_start: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
-    period_end: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
-    prediction_data: Mapped[Optional[Dict]] = mapped_column(
-        JSON, nullable=True
-    )
+    metric_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    trend_direction: Mapped[str] = mapped_column(String(20), nullable=False)
+    trend_strength: Mapped[float] = mapped_column(Float, nullable=False)
+    confidence: Mapped[float] = mapped_column(Float, nullable=False)
+    period_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    period_end: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    prediction_data: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        
     )
 
     __table_args__ = (
@@ -494,6 +419,7 @@ class AnalyticsTrend(Base):
     )
 
     def __repr__(self) -> str:
+        """Строковое представление пользователя"""
         return (
             f"<AnalyticsTrend(id={self.id}, metric='{self.metric_name}', "
             f"direction='{self.trend_direction}', strength={self.trend_strength:.2f})>"
@@ -510,32 +436,19 @@ class AnalyticsAlert(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     alert_type: Mapped[str] = mapped_column(String(50), nullable=False)
-    alert_level: Mapped[str] = mapped_column(
-        String(20), nullable=False
-    )
+    alert_level: Mapped[str] = mapped_column(String(20), nullable=False)
     alert_message: Mapped[str] = mapped_column(Text, nullable=False)
     alert_data: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
     triggered_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        
     )
-    resolved_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    resolved_by: Mapped[Optional[str]] = mapped_column(
-        String(100), nullable=True
-    )
-    parent_telegram_id: Mapped[Optional[int]] = mapped_column(
-        BigInteger, nullable=True
-    )
-    child_telegram_id: Mapped[Optional[int]] = mapped_column(
-        BigInteger, nullable=True
-    )
-    is_sent: Mapped[bool] = mapped_column(
-        Boolean, default=False
-    )
+    resolved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolved_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    parent_telegram_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    child_telegram_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    is_sent: Mapped[bool] = mapped_column(Boolean, default=False)
 
     __table_args__ = (
         Index("idx_analytics_alerts_type_level", "alert_type", "alert_level"),
@@ -545,6 +458,7 @@ class AnalyticsAlert(Base):
     )
 
     def __repr__(self) -> str:
+        """Строковое представление пользователя"""
         return (
             f"<AnalyticsAlert(id={self.id}, type='{self.alert_type}', "
             f"level='{self.alert_level}', triggered='{self.triggered_at}')>"
@@ -560,28 +474,20 @@ class AnalyticsConfig(Base):
     __tablename__ = "analytics_config"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    config_key: Mapped[str] = mapped_column(
-        String(100), nullable=False
-    )
-    config_value: Mapped[Dict] = mapped_column(
-        JSON, nullable=False
-    )
+    config_key: Mapped[str] = mapped_column(String(100), nullable=False)
+    config_value: Mapped[Dict] = mapped_column(JSON, nullable=False)
     config_type: Mapped[str] = mapped_column(String(50), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(
-        Text, nullable=True
-    )
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
-        
     )
 
     __table_args__ = (
@@ -591,6 +497,7 @@ class AnalyticsConfig(Base):
     )
 
     def __repr__(self) -> str:
+        """Строковое представление пользователя"""
         return (
             f"<AnalyticsConfig(id={self.id}, key='{self.config_key}', "
             f"type='{self.config_type}', updated='{self.updated_at}')>"

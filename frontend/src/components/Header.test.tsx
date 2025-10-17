@@ -16,12 +16,12 @@ describe('Header Component', () => {
    */
   it('должен отрендериться без ошибок', () => {
     render(<Header />);
-    
+
     // Проверяем наличие логотипа
     const logo = screen.getByAltText(SITE_CONFIG.logo.alt);
     expect(logo).toBeInTheDocument();
     expect(logo).toHaveAttribute('src', SITE_CONFIG.logo.src);
-    
+
     // Проверяем название сайта
     expect(screen.getByText(SITE_CONFIG.name)).toBeInTheDocument();
   });
@@ -32,11 +32,10 @@ describe('Header Component', () => {
    */
   it('должен содержать все навигационные ссылки', () => {
     render(<Header />);
-    
+
     // Проверяем якорные ссылки
     expect(screen.getByText('Для родителей')).toHaveAttribute('href', '#parents');
-    expect(screen.getByText('Для учителей')).toHaveAttribute('href', '#teachers');
-    
+
     // Проверяем CTA-кнопку
     const startButton = screen.getByText('Начать');
     expect(startButton).toHaveAttribute('href', SITE_CONFIG.botUrl);
@@ -50,11 +49,11 @@ describe('Header Component', () => {
    */
   it('должен быть доступен для screen readers', () => {
     render(<Header />);
-    
+
     // Проверяем наличие nav с aria-label
     const nav = screen.getByRole('navigation');
     expect(nav).toHaveAttribute('aria-label', 'Основная навигация');
-    
+
     // Проверяем alt у изображения
     const logo = screen.getByRole('img');
     expect(logo).toHaveAttribute('alt');
@@ -66,7 +65,7 @@ describe('Header Component', () => {
    */
   it('должен скрывать навигацию на мобильных устройствах', () => {
     render(<Header />);
-    
+
     const nav = screen.getByRole('navigation');
     // Проверяем наличие класса hidden (Tailwind)
     expect(nav.className).toContain('hidden');
@@ -79,7 +78,7 @@ describe('Header Component', () => {
    */
   it('должен иметь безопасные атрибуты на внешних ссылках', () => {
     render(<Header />);
-    
+
     const externalLink = screen.getByText('Начать');
     expect(externalLink).toHaveAttribute('rel', 'noopener noreferrer');
     expect(externalLink).toHaveAttribute('target', '_blank');
@@ -93,4 +92,3 @@ describe('Header Component', () => {
     expect(Header.displayName).toBe('Header');
   });
 });
-
