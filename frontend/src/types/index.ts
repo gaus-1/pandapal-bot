@@ -17,7 +17,7 @@ export interface Feature {
 }
 
 /**
- * Секция контента (Для родителей, Для учителей и т.д.)
+ * Секция контента (информационные блоки)
  */
 export interface Section {
   /** ID секции (используется как якорь #id) */
@@ -60,4 +60,3 @@ export interface SiteConfig {
     alt: string;
   };
 }
-
