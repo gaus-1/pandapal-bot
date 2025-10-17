@@ -198,6 +198,9 @@ async def handle_ai_message(message: Message, state: FSMContext):
                 f"{user_message[:50]}... | История: {len(history)} сообщений"
             )
 
+            # Показываем статус "Панда печатает..."
+            await message.bot.send_chat_action(chat_id=message.chat.id, action="typing")
+
             # Получаем AI сервис (SOLID фасад)
             ai_service = get_ai_service()
 
@@ -243,10 +246,9 @@ async def handle_ai_message(message: Message, state: FSMContext):
                 except Exception as e:
                     logger.error(f"❌ Ошибка записи активности в родительский контроль: {e}")
 
-        # Отправляем ответ пользователю
+        # Отправляем ответ пользователю (без parse_mode для избежания ошибок форматирования)
         await message.answer(
             text=ai_response,
-            parse_mode="Markdown",
         )
 
     except Exception as e:

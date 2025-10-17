@@ -52,16 +52,6 @@ export const Hero: React.FC = React.memo(() => {
         </a>
       </div>
 
-      {/* Дополнительные кнопки */}
-      <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-        <a
-          href="/game"
-          className="px-8 py-4 rounded-full bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-100"
-        >
-          🎮 PandaPal Go
-        </a>
-      </div>
-
       {/* Индикатор прокрутки (в стиле Montfort) */}
       <div className="mt-16 md:mt-20">
         <ScrollIndicator />

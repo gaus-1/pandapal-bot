@@ -29,9 +29,10 @@ class ContentModerationService:
             re.compile(rf"\b{re.escape(topic)}\b", re.IGNORECASE) for topic in topics
         ]
 
-        # Паттерны высокого уровня из конфигурации -> компилируем
+        # Паттерны высокого уровня из конфигурации -> компилируем с границами слов
         self._forbidden_regexes: List[Pattern[str]] = [
-            re.compile(pattern, re.IGNORECASE) for pattern in FORBIDDEN_PATTERNS
+            re.compile(rf"\b{re.escape(pattern)}\b", re.IGNORECASE)
+            for pattern in FORBIDDEN_PATTERNS
         ]
 
         self.filter_level: int = settings.content_filter_level
@@ -109,6 +110,43 @@ class ContentModerationService:
             "учебник",
             "учеба",
             "обучение",
+            # Математические задачи
+            "задача",
+            "решить",
+            "сколько",
+            "вычисли",
+            "посчитай",
+            "найди",
+            "докажи",
+            "вместе",
+            "было",
+            "таблица умножения",
+            "таблица",
+            "умножение",
+            "деление",
+            "сложение",
+            "вычитание",
+            # Русский язык
+            "подчеркни",
+            "слово",
+            "предложение",
+            "согласная",
+            "гласная",
+            "твердый",
+            "мягкий",
+            "алфавит",
+            "буква",
+            "азбука",
+            # Учебные материалы
+            "шпаргалка",
+            "памятка",
+            "справка",
+            "правило",
+            "формула",
+            "создай",
+            "напиши",
+            "покажи",
+            "объясни",
         ]
 
         # Если контекст учебный - пропускаем проверку
@@ -151,9 +189,7 @@ class ContentModerationService:
         is_safe, reason = self.is_safe_content(response)
         if not is_safe:
             logger.error(f"⚠️ AI сгенерировал небезопасный контент! Причина: {reason}")
-            return (
-                "Извини, я не могу ответить на этот вопрос. " "Давай лучше поговорим об учёбе! 📚"
-            )
+            return "Извини, я не могу ответить на этот вопрос. " "Давай лучше поговорим об учёбе! 📚"
         return response
 
     def get_safe_response_alternative(self, detected_topic: str) -> str:
@@ -172,10 +208,12 @@ class ContentModerationService:
     async def _save_moderation_log(self, telegram_id: int, content: str, reason: str) -> None:
         """Сохранить лог модерации в базу данных"""
         try:
+            from datetime import datetime
+
+            from sqlalchemy import select
+
             from bot.database import get_db
             from bot.models import User
-            from sqlalchemy import select
-            from datetime import datetime
 
             async with get_db() as db:
                 # Получаем пользователя

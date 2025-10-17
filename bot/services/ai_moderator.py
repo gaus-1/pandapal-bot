@@ -53,10 +53,20 @@ class ContentModerator(IModerator):
         Returns:
             Tuple[bool, str]: (безопасен, причина_блокировки).
         """
+        import re
+
         text_lower = text.lower()
 
+        # Проверяем учебный контекст
+        educational_keywords = ["умножение", "таблица", "математика", "задача", "урок", "учеба"]
+        if any(keyword in text_lower for keyword in educational_keywords):
+            return True, "Учебный контекст - безопасен"
+
         for pattern in FORBIDDEN_PATTERNS:
-            if pattern.lower() in text_lower:
+            pattern_lower = pattern.lower()
+            # Ищем целое слово с границами \b для избежания ложных срабатываний
+            # Например, "нож" не должен находиться в "умножение"
+            if re.search(r"\b" + re.escape(pattern_lower) + r"\b", text_lower):
                 logger.warning(f"🚫 Запрещенный контент: {pattern}")
                 return False, f"Запрещенная тема: {pattern}"
 

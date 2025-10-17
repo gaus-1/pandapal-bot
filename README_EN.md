@@ -186,11 +186,6 @@ SECRET_KEY=your_secret_key_here
 - 📱 **Notifications** - activity reports
 - 🔍 **Communication History** - transparency in AI interaction
 
-### For Teachers
-- 📚 **Educational Materials** - current information
-- 🎯 **Personalization** - adaptation to different levels
-- 📈 **Analytics** - understanding student needs
-
 ---
 
 ## 🌐 Deployment
