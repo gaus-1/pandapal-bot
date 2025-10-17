@@ -13,7 +13,7 @@ export const detectClickjacking = (): boolean => {
     // Проверяем, не находимся ли мы в iframe
     if (window.self !== window.top) {
       console.error('🚫 ОБНАРУЖЕН CLICKJACKING! Сайт встроен в iframe');
-      
+
       // Заменяем содержимое страницы предупреждением
       document.body.innerHTML = `
         <div style="
@@ -40,12 +40,12 @@ export const detectClickjacking = (): boolean => {
           </div>
         </div>
       `;
-      
+
       return true; // Clickjacking обнаружен
     }
-    
+
     return false; // Всё в порядке
-  } catch (error) {
+  } catch {
     // Если window.top недоступен (same-origin policy), это тоже может быть clickjacking
     console.error('🚫 Подозрение на clickjacking - window.top недоступен');
     return true;
@@ -61,17 +61,17 @@ export const initClickjackingProtection = (): void => {
   if (detectClickjacking()) {
     return; // Страница уже заблокирована
   }
-  
+
   // Дополнительная проверка через небольшой интервал
   setTimeout(() => {
     detectClickjacking();
   }, 100);
-  
+
   // Проверяем при изменении размера окна (может быть попытка скрыть iframe)
   window.addEventListener('resize', () => {
     setTimeout(detectClickjacking, 50);
   });
-  
+
   // Проверяем при попытке изменения фокуса
   window.addEventListener('blur', () => {
     setTimeout(() => {
@@ -92,10 +92,10 @@ export const checkParentFrameStyles = (): void => {
     if (window.parent !== window.self) {
       const parentDocument = window.parent.document;
       const parentBody = parentDocument.body;
-      
+
       if (parentBody) {
         const styles = window.parent.getComputedStyle(parentBody);
-        
+
         // Проверяем, не скрыт ли iframe
         if (styles.opacity === '0' || styles.visibility === 'hidden' || styles.display === 'none') {
           console.error('🚫 Попытка скрыть iframe через CSS - clickjacking!');
@@ -103,7 +103,7 @@ export const checkParentFrameStyles = (): void => {
         }
       }
     }
-  } catch (error) {
+  } catch {
     // Если не можем получить доступ - это нормально (same-origin policy)
     // Но если это не same-origin, то может быть clickjacking
   }

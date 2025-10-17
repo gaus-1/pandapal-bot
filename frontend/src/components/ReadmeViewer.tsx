@@ -18,6 +18,7 @@ export const ReadmeViewer: React.FC<ReadmeViewerProps> = React.memo(({ className
 
   useEffect(() => {
     loadReadme();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLang]);
 
   const loadReadme = async () => {
