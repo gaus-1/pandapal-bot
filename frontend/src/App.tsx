@@ -2,26 +2,26 @@
  * Главный компонент приложения PandaPal
  * Отвечает за композицию всех секций страницы
  * @module App
- * @version 1.1.1 - Восстановлены цвета после отката
+ * @version 2.0.0 - Редизайн в стиле Montfort Trading
  */
 
 import React from 'react';
-import { Header, Hero, Features, Section, TelegramQR, Footer } from './components';
-import { SECTIONS } from './config/constants';
+import { Header, Hero, Features, InfoTabs, Mission, TelegramQR, Footer } from './components';
 import './index.css';
 
 /**
  * Корневой компонент приложения PandaPal
  *
- * Архитектура:
+ * Архитектура (обновлено):
  * - Header: шапка с логотипом и навигацией
- * - Main: основной контент (Hero, Features, динамические секции)
- * - Footer: подвал с копирайтом
+ * - Main: основной контент (Hero с scroll indicator, Features, Tabs, Mission)
+ * - Footer: улучшенный подвал с 3 колонками
  *
  * Принципы:
  * - Модульность: каждый блок — отдельный компонент
- * - Масштабируемость: новые секции добавляются через SECTIONS
+ * - Премиальность: больше whitespace, анимации
  * - Производительность: все компоненты мемоизированы (React.memo)
+ * - Адаптивность: mobile-first подход Tailwind CSS
  */
 const App: React.FC = () => {
   return (
@@ -31,22 +31,25 @@ const App: React.FC = () => {
 
       {/* Основной контент */}
       <main className="max-w-6xl mx-auto px-4">
-        {/* Hero-секция: заголовок + CTA */}
+        {/* Hero-секция: заголовок + CTA + scroll indicator */}
         <Hero />
 
-        {/* Блок преимуществ (3 карточки) */}
-        <Features />
+        {/* Блок преимуществ (3 карточки) - увеличенные отступы */}
+        <section id="features" className="py-8 md:py-12">
+          <Features />
+        </section>
 
-        {/* Динамические секции (Для родителей) */}
-        {SECTIONS.map((section) => (
-          <Section key={section.id} section={section} />
-        ))}
+        {/* Табы с информацией (Родители/Безопасность/Возможности) */}
+        <InfoTabs />
+
+        {/* Секция "Наша миссия" */}
+        <Mission />
 
         {/* QR-код и кнопка для перехода в Telegram */}
         <TelegramQR />
       </main>
 
-      {/* Подвал */}
+      {/* Улучшенный Footer */}
       <Footer />
     </div>
   );
