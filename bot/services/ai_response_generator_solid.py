@@ -12,6 +12,7 @@ Interface Segregation, Dependency Inversion).
 - Поддержка истории чата и адаптации под возраст пользователя
 """
 
+import asyncio
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
@@ -19,9 +20,9 @@ import google.generativeai as genai
 from loguru import logger
 
 from bot.config import AI_SYSTEM_PROMPT, settings
-from bot.services.token_rotator import get_token_rotator
-from bot.services.vision_service import VisionService, ImageAnalysisResult
 from bot.services.knowledge_service import get_knowledge_service
+from bot.services.token_rotator import get_token_rotator
+from bot.services.vision_service import ImageAnalysisResult, VisionService
 
 
 class IModerator(ABC):
@@ -174,17 +175,21 @@ class AIResponseGenerator:
                 return f"Извините, но я не могу обсуждать эту тему. {reason}"
 
             # Получение релевантных материалов из веб-источников
-            relevant_materials = await self.knowledge_service.get_helpful_content(user_message, user_age)
+            relevant_materials = await self.knowledge_service.get_helpful_content(
+                user_message, user_age
+            )
             web_context = self.knowledge_service.format_knowledge_for_ai(relevant_materials)
 
             # Построение контекста (делегирование ответственности)
             context = self.context_builder.build(user_message, chat_history, user_age)
-            
+
             # Добавляем веб-контекст к основному контексту
             if web_context:
                 context += "\n\n" + web_context
 
             # Генерация ответа (единственная ответственность этого класса)
+            # Добавляем задержку между запросами для избежания превышения квоты
+            await asyncio.sleep(2)  # 2 секунды задержка
             response = self.model.generate_content(context)
 
             if response and response.text:
@@ -256,8 +261,7 @@ class AIResponseGenerator:
             # Проверяем безопасность
             if analysis_result.safety_level.value == "unsafe":
                 return (
-                    "🚫 Это изображение не подходит для детей. "
-                    "Попробуй отправить другое фото! 🐼"
+                    "🚫 Это изображение не подходит для детей. " "Попробуй отправить другое фото! 🐼"
                 )
 
             # Генерируем образовательный ответ
@@ -283,12 +287,12 @@ class AIResponseGenerator:
         """
         try:
             analysis_result = await self.vision_service.analyze_image(image_data)
-            
+
             if analysis_result.safety_level.value == "unsafe":
                 return False, "Небезопасное содержание для детей"
-            
+
             return True, "Изображение безопасно"
-            
+
         except Exception as e:
             logger.error(f"❌ Ошибка модерации изображения: {e}")
             return False, "Ошибка анализа изображения"
