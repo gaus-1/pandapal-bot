@@ -11,6 +11,18 @@ from bot.services.ai_context_builder import ContextBuilder
 from bot.services.ai_moderator import ContentModerator
 from bot.services.ai_response_generator_solid import AIResponseGenerator
 
+# Безопасная интеграция метрик (опционально)
+try:
+    from bot.monitoring.metrics_integration import safe_track_ai_service
+
+    METRICS_AVAILABLE = True
+except ImportError:
+    METRICS_AVAILABLE = False
+
+    # Создаем пустой декоратор если метрики недоступны
+    def safe_track_ai_service(func):
+        return func
+
 
 class GeminiAIService:
     """
@@ -34,6 +46,7 @@ class GeminiAIService:
 
         logger.info("✅ Gemini AI Service (SOLID) инициализирован")
 
+    @safe_track_ai_service
     async def generate_response(
         self, user_message: str, chat_history: List[Dict] = None, user_age: Optional[int] = None
     ) -> str:
