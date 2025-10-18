@@ -152,7 +152,7 @@ async def cmd_restart_ai(message: Message):
     """Команда перезапуска AI (SOLID)"""
     try:
         # В SOLID архитектуре AI сервис управляется через singleton
-        ai_service = get_ai_service()
+        get_ai_service()
         logger.info("🔄 AI сервис готов к работе")
 
         await message.answer("✅ AI сервис работает корректно")

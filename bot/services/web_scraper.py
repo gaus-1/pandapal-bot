@@ -432,9 +432,11 @@ class WebScraperService:
             url_elem = item_elem.find("a", href=True)
             url = (
                 urljoin(
-                    self.nsportal_config["base_url"]
-                    if "nsportal" in source
-                    else self.school203_config["base_url"],
+                    (
+                        self.nsportal_config["base_url"]
+                        if "nsportal" in source
+                        else self.school203_config["base_url"]
+                    ),
                     url_elem["href"],
                 )
                 if url_elem
