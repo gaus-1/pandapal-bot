@@ -26,12 +26,14 @@
 ### 🎯 Key Features
 
 - 🤖 **AI Assistant based on Google Gemini 1.5 Flash** - answers questions, explains complex topics
+- 🎮 **PandaPal Go** - educational Breakout/Arkanoid game with math problems
 - 🛡️ **24/7 AI Moderation** - protection from inappropriate language and dangerous content
 - 📊 **Parental Control** - dashboard with progress analytics
 - 🖼️ **Vision API** - analysis of homework photos
 - 📚 **Web Scraping** - current materials from educational sites
 - 🎯 **Personalization** - adaptation to age (6-18 years) and level
 - 🌐 **Modern Web Interface** - responsive design for all devices
+- 🔒 **OWASP Top 10 Security** - comprehensive security protection
 
 ---
 
@@ -43,6 +45,8 @@
 - **Zustand** - state management
 - **Vite** - fast build
 - **Web Vitals** - performance monitoring
+- **Canvas API** - 2D PandaPal Go game
+- **Mobile-First Design** - mobile device optimization
 
 ### Backend (Telegram Bot)
 - **Python 3.11+** - main language
@@ -52,6 +56,8 @@
 - **Google Gemini 1.5 Flash** - AI engine
 - **Redis** - caching and sessions
 - **PostgreSQL** - main database
+- **OWASP Security Modules** - cryptography, audit, integrity
+- **Fernet Encryption** - sensitive data encryption
 
 ### DevOps & Deployment
 - **Docker** - containerization
@@ -69,19 +75,31 @@ PandaPal/
 │   ├── handlers/               # Command handlers
 │   ├── services/               # Business logic
 │   ├── keyboards/              # Keyboards
+│   ├── security/               # OWASP security modules
+│   │   ├── crypto.py           # Encryption and cryptography
+│   │   ├── headers.py          # Security HTTP headers
+│   │   ├── integrity.py        # Integrity checks and SSRF
+│   │   └── audit_logger.py     # Audit logging
 │   ├── models.py              # Database models
 │   └── config.py              # Configuration
 ├── frontend/                   # Website (React)
 │   ├── src/
 │   │   ├── components/         # React components
 │   │   ├── pages/             # Pages
-│   │   ├── security/          # Security
+│   │   ├── game/              # PandaPal Go game
+│   │   │   ├── core/          # Game engine
+│   │   │   ├── entities/      # Game objects
+│   │   │   ├── levels/        # Game levels
+│   │   │   └── physics/       # Physics and collisions
 │   │   └── utils/             # Utilities
 │   ├── public/                # Static files
 │   └── dist/                  # Build
 ├── alembic/                   # Database migrations
 ├── docs/                      # Documentation
-├── tests/                     # Tests
+├── tests/                     # Tests (188+ tests)
+│   ├── unit/                  # Unit tests
+│   ├── integration/           # Integration tests
+│   └── security/              # Security tests
 └── scripts/                   # Utilities
 ```
 
@@ -114,7 +132,7 @@ cp env.template .env
 alembic upgrade head
 
 # Run bot
-python main.py
+python -m bot.main
 ```
 
 ### 3. Frontend Setup (Website)
@@ -131,7 +149,18 @@ npm run dev
 npm run build
 ```
 
-### 4. Environment Variables
+### 4. Access to PandaPal Go
+After starting the frontend, the game will be available at:
+```
+http://localhost:5173/play
+```
+
+Or on the production website:
+```
+https://pandapal.ru/play
+```
+
+### 5. Environment Variables
 Create `.env` file in project root:
 ```env
 # Telegram Bot
@@ -158,17 +187,50 @@ SECRET_KEY=your_secret_key_here
 - **📈 Usage Analytics** - detailed user statistics
 - **🔒 Security** - suspicious activity monitoring
 - **⚡ Performance** - Core Web Vitals, response time
-- **🧪 Testing** - 175+ automated tests
+- **🧪 Testing** - 188+ automated tests
+- **🎮 Game Analytics** - PandaPal Go progress tracking
+- **🛡️ Security Audit** - logging of all security events
 
 ---
 
 ## 🛡️ Security
 
-- **AI Moderation** - automatic content filtering
-- **Parental Control** - access settings and monitoring
-- **Data Protection** - encryption and secure storage
-- **CSP Headers** - XSS attack protection
-- **Clickjacking Protection** - preventing embedding in malicious frames
+- **🔒 OWASP Top 10 Compliance** - full compliance with security standards
+- **🔐 Fernet Encryption** - sensitive data encryption (AES-256 GCM)
+- **🛡️ AI Moderation** - automatic content filtering
+- **👨‍👩‍👧‍👦 Parental Control** - access settings and monitoring
+- **📊 Audit Logging** - masking sensitive data in logs
+- **🌐 SSRF Protection** - preventing attacks on internal resources
+- **🔒 CSP Headers** - XSS attack protection
+- **🛡️ Clickjacking Protection** - preventing embedding in malicious frames
+- **✅ Data Integrity** - checksum verification and validation
+
+---
+
+## 🎮 PandaPal Go - Educational Game
+
+**PandaPal Go** is a unique educational game in the Breakout/Arkanoid genre, specially designed for school-age children. The game combines engaging gameplay with mathematical problem solving.
+
+### 🏫 School Locations
+- **🏃‍♂️ Gym** - math with sports themes
+- **📚 Library** - logic and reading problems
+- **🍎 Cafeteria** - math with food and products
+- **🎨 Classroom** - general school subjects
+- **🌳 Playground** - fun break-time problems
+
+### 🎯 Game Features
+- **📱 Mobile optimization** - finger control on phone
+- **💻 Desktop support** - mouse control on computer
+- **🎵 Sound effects** - pleasant audio feedback
+- **🎨 Modern graphics** - clean geometric design
+- **📊 Scoring system** - motivation for learning
+- **🔄 Progressive difficulty** - adaptation to child's level
+
+### 🎮 Controls
+- **Mobile**: Move finger to control paddle
+- **Desktop**: Move mouse to control paddle
+- **Pause**: Press spacebar or tap screen
+- **Start**: Click anywhere on screen
 
 ---
 
@@ -176,9 +238,11 @@ SECRET_KEY=your_secret_key_here
 
 ### For Children (6-18 years)
 - 💬 **Smart Chat** - answers to school curriculum questions
+- 🎮 **PandaPal Go** - educational game with math problems
 - 📸 **Photo Analysis** - homework help through Vision API
 - 🎓 **Adaptive Learning** - personalized explanations
 - 🏆 **Achievement System** - motivation for learning
+- 🏫 **School Locations** - game in gym, cafeteria, library
 
 ### For Parents
 - 📊 **Progress Dashboard** - tracking child's success
@@ -217,9 +281,10 @@ We welcome contributions to PandaPal development!
 5. Open a **Pull Request**
 
 ### Code Standards
-- **Python**: PEP 8, type hints
+- **Python**: PEP 8, type hints, SOLID principles
 - **TypeScript**: ESLint, Prettier
-- **Tests**: coverage >80%
+- **Tests**: coverage >80%, 188+ automated tests
+- **Security**: OWASP Top 10 compliance
 - **Documentation**: update on changes
 
 ---
