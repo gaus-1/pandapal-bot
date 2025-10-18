@@ -158,7 +158,7 @@ async def show_progress(message: Message, state: FSMContext):
 
         # Получаем статистику через упрощенный монитор
         try:
-            monitor = get_simple_monitor()
+            get_simple_monitor()
             # Пока заглушка - статистика будет позже
             analytics = {"total_messages": 0, "total_learning_sessions": 0, "total_time_spent": 0}
 

@@ -153,7 +153,7 @@ async def view_child_activity(callback, state: FSMContext):
         if not any(report.moderation_summary.values()):
             report_text += "• Нарушений не обнаружено ✅\n"
 
-        report_text += f"\n💡 <b>Рекомендации:</b>\n"
+        report_text += "\n💡 <b>Рекомендации:</b>\n"
         for rec in report.recommendations:
             report_text += f"• {rec}\n"
 
