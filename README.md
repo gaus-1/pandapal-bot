@@ -232,8 +232,8 @@ docker run -p 8000:8000 pandapal
 
 ## 🆘 Поддержка
 
-- **📧 Email**: support@pandapal.ru
-- **💬 Telegram**: [@PandaPalSupport](https://t.me/PandaPalSupport)
+- **📧 Email**: 79516625803@ya.ru
+- **💬 Telegram**: [@SavinVE](https://t.me/SavinVE)
 - **🐛 Issues**: [GitHub Issues](https://github.com/your-username/PandaPal/issues)
 - **📖 Документация**: [pandapal.ru/docs](https://pandapal.ru/docs)
 
