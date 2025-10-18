@@ -100,7 +100,7 @@ class Settings(BaseSettings):
 
     # ============ CONTENT MODERATION ============
     forbidden_topics: str = Field(
-        default="политика,насилие,оружие,наркотики,экстремизм",
+        default="политика,насилие,оружие,наркотики,кокаин,героин,марихуана,экстремизм,18+",
         description="Запрещённые темы (через запятую в .env)",
         validation_alias=AliasChoices("FORBIDDEN_TOPICS", "forbidden_topics"),
     )

@@ -23,10 +23,10 @@ class ContentModerationService:
 
     def __init__(self) -> None:
         """Инициализация сервиса модерации."""
-        # Список запрещённых тем из настроек -> компилируем в word-boundary regex
+        # Список запрещённых тем из настроек -> компилируем в простой regex для кириллицы
         topics: List[str] = settings.get_forbidden_topics_list()
         self._topic_regexes: List[Pattern[str]] = [
-            re.compile(rf"\b{re.escape(topic)}\b", re.IGNORECASE) for topic in topics
+            re.compile(rf"{re.escape(topic)}", re.IGNORECASE) for topic in topics
         ]
 
         # Паттерны высокого уровня из конфигурации -> компилируем с границами слов
@@ -149,11 +149,6 @@ class ContentModerationService:
             "объясни",
         ]
 
-        # Если контекст учебный - пропускаем проверку
-        if any(context in text_lower for context in educational_contexts):
-            logger.info(f"✅ Разрешен учебный контекст: {text[:50]}...")
-            return True, None
-
         # Уровень 1: Проверка точных тем (по словам)
         for rx in self._topic_regexes:
             if rx.search(text):
@@ -179,6 +174,10 @@ class ContentModerationService:
             if any(rx.search(text) for rx in self._xss_regexes):
                 logger.warning("🚫 Заблокирован контент: XSS pattern")
                 return False, "Обнаружен потенциально опасный контент"
+
+        # Дополнительная проверка: если контент содержит учебные слова, но прошёл все проверки - разрешаем
+        if any(context in text_lower for context in educational_contexts):
+            logger.info(f"✅ Разрешен учебный контекст: {text[:50]}...")
 
         return True, None
 

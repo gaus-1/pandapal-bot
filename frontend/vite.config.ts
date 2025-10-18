@@ -20,8 +20,8 @@ export default defineConfig({
   build: {
     target: 'es2020',
     cssCodeSplit: true,
-    // Увеличиваем лимит для Three.js
-    chunkSizeWarningLimit: 600,
+    // Оптимизированный лимит размера
+    chunkSizeWarningLimit: 400,
     rollupOptions: {
       output: {
         // Оптимальное разделение бандла для стандартов 2025
@@ -30,10 +30,6 @@ export default defineConfig({
           'react-core': ['react', 'react-dom'],
           // Роутинг (нужен почти сразу)
           'react-router': ['react-router-dom'],
-          // Three.js (большая библиотека, ленивая загрузка)
-          'three-core': ['three'],
-          'three-fiber': ['@react-three/fiber'],
-          'three-drei': ['@react-three/drei'],
           // Zustand (легкий, но отдельно)
           'state': ['zustand'],
           // Web vitals (загружается асинхронно)
@@ -74,9 +70,6 @@ export default defineConfig({
       'react-dom',
       'react-router-dom',
       'zustand',
-      'three',
-      '@react-three/fiber',
-      '@react-three/drei',
     ],
     force: true, // Принудительная переоптимизация
   },
