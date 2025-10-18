@@ -62,7 +62,14 @@ export function PandaPalGo() {
   };
 
   return (
-    <div className="game-container flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 p-4">
+    <div className="game-container flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 p-4" style={{
+      // Предотвращаем прокрутку на мобильных устройствах
+      touchAction: 'none',
+      userSelect: 'none',
+      WebkitUserSelect: 'none',
+      WebkitTouchCallout: 'none',
+      WebkitTapHighlightColor: 'transparent'
+    }}>
       {/* Заголовок */}
       <div className="text-center mb-4">
         <h1 className="text-4xl font-bold text-gray-800 mb-2">
@@ -74,12 +81,30 @@ export function PandaPalGo() {
       </div>
 
       {/* Canvas игры */}
-      <div className="game-canvas-wrapper relative shadow-2xl rounded-lg overflow-hidden bg-white">
+      <div className="game-canvas-wrapper relative shadow-2xl rounded-lg overflow-hidden bg-white" style={{
+        // Предотвращаем проблемы с касанием на мобильных
+        touchAction: 'none',
+        userSelect: 'none',
+        WebkitUserSelect: 'none'
+      }}>
         <canvas
           ref={canvasRef}
-          className="game-canvas block"
-          width={800}
-          height={600}
+          className="game-canvas block w-full max-w-4xl h-auto"
+          width={1200}
+          height={800}
+          style={{
+            // Дополнительные стили для мобильных браузеров
+            touchAction: 'none',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            WebkitTouchCallout: 'none',
+            WebkitTapHighlightColor: 'transparent',
+            // Улучшенное сглаживание для четкой графики
+            imageRendering: 'pixelated',
+            // Предотвращаем выделение текста при касании
+            // @ts-ignore - WebkitUserDrag не в типах, но поддерживается браузерами
+            WebkitUserDrag: 'none'
+          }}
         />
 
         {/* Кнопки управления поверх canvas */}

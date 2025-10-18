@@ -66,10 +66,11 @@ export abstract class Level {
    * Создание платформы
    */
   protected createPaddle(): Paddle {
-    const paddleWidth = this.canvasWidth * 0.15;
-    const paddleHeight = 20;
+    // Адаптивная ширина платформы
+    const paddleWidth = Math.max(80, this.canvasWidth * 0.18);
+    const paddleHeight = Math.max(16, this.canvasWidth * 0.025);
     const paddleX = (this.canvasWidth - paddleWidth) / 2;
-    const paddleY = this.canvasHeight - 60;
+    const paddleY = this.canvasHeight - 80;
 
     return new Paddle(paddleX, paddleY, paddleWidth, paddleHeight);
   }
@@ -78,12 +79,13 @@ export abstract class Level {
    * Создание мяча
    */
   protected createBall(): Ball {
-    const radius = 10;
-    const x = this.canvasWidth / 2 - radius;
-    const y = this.canvasHeight - 100;
-    const speed = 0.4;
+    // Адаптивный размер мяча в зависимости от размера экрана
+    const baseRadius = Math.max(12, Math.min(20, this.canvasWidth * 0.02));
+    const x = this.canvasWidth / 2 - baseRadius;
+    const y = this.canvasHeight - 120;
+    const speed = 0.5; // Немного быстрее для лучшего геймплея
 
-    return new Ball(x, y, radius, speed, this.colorScheme);
+    return new Ball(x, y, baseRadius, speed, this.colorScheme);
   }
 
   /**
@@ -95,8 +97,9 @@ export abstract class Level {
     const problems = MathProblems.generateSet(layout.length, difficulty);
 
     return layout.map((brick, index) => {
-      const brickWidth = this.canvasWidth * 0.12;
-      const brickHeight = 30;
+      // Адаптивные размеры кирпичей
+      const brickWidth = Math.max(60, this.canvasWidth * 0.14);
+      const brickHeight = Math.max(24, this.canvasWidth * 0.03);
 
       return new Brick(
         brick.x,
