@@ -6,6 +6,7 @@ import { PlaygroundLevel } from '../levels/PlaygroundLevel';
 import { LibraryLevel } from '../levels/LibraryLevel';
 import { CollisionDetector } from '../physics/Collision';
 import { GameStateManager, GameStatus } from './GameState';
+import { PandaMessages } from '../utils/PandaMessages';
 
 /**
  * Главный класс игры
@@ -429,22 +430,48 @@ export class Game {
     this.currentLevel.render(this.ctx);
 
     // Оверлей
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // Поздравление
-    this.ctx.fillStyle = '#FFD700';
-    this.ctx.font = 'bold 48px Arial';
-    this.ctx.textAlign = 'center';
-    this.ctx.fillText('Уровень пройден!', this.canvas.width / 2, this.canvas.height / 2 - 50);
+    // Доска (школьная доска для текста)
+    const boardWidth = this.canvas.width * 0.8;
+    const boardHeight = this.canvas.height * 0.5;
+    const boardX = (this.canvas.width - boardWidth) / 2;
+    const boardY = (this.canvas.height - boardHeight) / 2;
 
-    // Очки
+    // Рисуем доску
+    this.ctx.fillStyle = '#2D5016';
+    this.ctx.fillRect(boardX, boardY, boardWidth, boardHeight);
+    this.ctx.strokeStyle = '#8B4513';
+    this.ctx.lineWidth = 8;
+    this.ctx.strokeRect(boardX, boardY, boardWidth, boardHeight);
+
+    // Сообщение от панды
+    const levelIndex = this.stateManager.getCurrentLevel();
+    const pandaMessage = PandaMessages.getLevelMessage(levelIndex);
+
+    // Рисуем текст "мелом" на доске
     this.ctx.fillStyle = '#FFFFFF';
-    this.ctx.font = '32px Arial';
+    this.ctx.font = 'bold 36px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+
+    // Разбиваем сообщение на строки
+    const lines = pandaMessage.split('\n');
+    const lineHeight = 50;
+    const startY = this.canvas.height / 2 - ((lines.length - 1) * lineHeight) / 2;
+
+    lines.forEach((line, index) => {
+      this.ctx.fillText(line, this.canvas.width / 2, startY + index * lineHeight);
+    });
+
+    // Очки внизу доски
+    this.ctx.font = '28px Arial';
+    this.ctx.fillStyle = '#FFD700';
     this.ctx.fillText(
       `Очки: ${this.currentLevel.getScore()}`,
       this.canvas.width / 2,
-      this.canvas.height / 2 + 20
+      boardY + boardHeight - 40
     );
   }
 
@@ -464,37 +491,62 @@ export class Game {
     this.ctx.fillStyle = gradient;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // Game Over
-    this.ctx.fillStyle = '#2D3748';
-    this.ctx.font = 'bold 56px Arial';
-    this.ctx.textAlign = 'center';
-
     const state = this.stateManager.getState();
     const isWin = state.currentLevel >= state.totalLevels;
 
+    // Доска для финального сообщения
+    const boardWidth = this.canvas.width * 0.85;
+    const boardHeight = this.canvas.height * 0.6;
+    const boardX = (this.canvas.width - boardWidth) / 2;
+    const boardY = (this.canvas.height - boardHeight) / 2;
+
+    // Рисуем доску
+    this.ctx.fillStyle = '#2D5016';
+    this.ctx.fillRect(boardX, boardY, boardWidth, boardHeight);
+    this.ctx.strokeStyle = '#8B4513';
+    this.ctx.lineWidth = 10;
+    this.ctx.strokeRect(boardX, boardY, boardWidth, boardHeight);
+
+    // Сообщение от панды
+    this.ctx.fillStyle = '#FFFFFF';
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+
     if (isWin) {
-      this.ctx.fillText('Победа!', this.canvas.width / 2, this.canvas.height / 3);
+      // Победное сообщение
+      const victoryMessage = PandaMessages.getVictoryMessage();
+      const lines = victoryMessage.split('\n');
+      this.ctx.font = 'bold 42px Arial';
+      const lineHeight = 60;
+      const startY = this.canvas.height / 2 - ((lines.length - 1) * lineHeight) / 2 - 30;
+
+      lines.forEach((line, index) => {
+        this.ctx.fillText(line, this.canvas.width / 2, startY + index * lineHeight);
+      });
     } else {
-      this.ctx.fillText('Игра окончена', this.canvas.width / 2, this.canvas.height / 3);
+      // Сообщение поддержки
+      const encouragement = PandaMessages.getEncouragementMessage();
+      this.ctx.font = 'bold 40px Arial';
+      this.ctx.fillText(encouragement, this.canvas.width / 2, this.canvas.height / 2 - 40);
     }
 
     // Итоговые очки
     this.ctx.font = '32px Arial';
-    this.ctx.fillStyle = '#4A5568';
+    this.ctx.fillStyle = '#FFD700';
     this.ctx.fillText(
       `Всего очков: ${state.totalScore}`,
       this.canvas.width / 2,
-      this.canvas.height / 2
+      boardY + boardHeight - 60
     );
 
     // Рекорд
-    if (state.totalScore >= state.highScore) {
+    if (state.totalScore >= state.highScore && state.highScore > 0) {
       this.ctx.fillStyle = '#FFD700';
-      this.ctx.font = 'bold 28px Arial';
+      this.ctx.font = 'bold 24px Arial';
       this.ctx.fillText(
-        '🎉 Новый рекорд! 🎉',
+        '⭐ Новый рекорд! ⭐',
         this.canvas.width / 2,
-        this.canvas.height / 2 + 50
+        boardY + boardHeight - 20
       );
     }
   }
