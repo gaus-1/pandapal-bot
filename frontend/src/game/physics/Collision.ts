@@ -162,14 +162,16 @@ export class CollisionDetector {
     // Двигаем мяч в направлении наименьшего перекрытия
     if (overlapX < overlapY) {
       // Горизонтальное разделение
-      if (ballCenter.x < brickBounds.left + brickBounds.width / 2) {
+      const brickCenterX = brickBounds.left + (brickBounds.right - brickBounds.left) / 2;
+      if (ballCenter.x < brickCenterX) {
         ball.setPosition(ball.x - overlapX - 1, ball.y);
       } else {
         ball.setPosition(ball.x + overlapX + 1, ball.y);
       }
     } else {
       // Вертикальное разделение
-      if (ballCenter.y < brickBounds.top + brickBounds.height / 2) {
+      const brickCenterY = brickBounds.top + (brickBounds.bottom - brickBounds.top) / 2;
+      if (ballCenter.y < brickCenterY) {
         ball.setPosition(ball.x, ball.y - overlapY - 1);
       } else {
         ball.setPosition(ball.x, ball.y + overlapY + 1);
@@ -181,7 +183,6 @@ export class CollisionDetector {
    * Принудительное разделение мяча и платформы
    */
   static separateBallFromPaddle(ball: Ball, paddle: Paddle): void {
-    const ballCenter = ball.getCenter();
     const paddleBounds = paddle.getBounds();
 
     // Всегда поднимаем мяч над платформой

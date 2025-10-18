@@ -54,51 +54,76 @@ export class Game {
   }
 
   /**
-   * Установка обработчиков событий
+   * Установка обработчиков событий с улучшенной мобильной поддержкой
    */
   private setupEventListeners(): void {
-    // Движение мыши
+    // Движение мыши (десктоп)
     this.canvas.addEventListener('mousemove', (e) => {
       if (this.stateManager.getStatus() === GameStatus.PLAYING && this.currentLevel) {
         const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
+        const scaleX = this.canvas.width / rect.width;
+        const x = (e.clientX - rect.left) * scaleX;
         this.currentLevel.getPaddle().setTargetX(x, this.canvas.width);
       }
     });
 
-    // Тач-события для мобильных
-    this.canvas.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      if (this.stateManager.getStatus() === GameStatus.PLAYING && this.currentLevel) {
-        const rect = this.canvas.getBoundingClientRect();
-        const touch = e.touches[0];
-        const x = touch.clientX - rect.left;
-        this.currentLevel.getPaddle().setTargetX(x, this.canvas.width);
-      }
-    }, { passive: false });
+    // Улучшенные тач-события для мобильных
+    let isTouching = false;
 
-    // Клик/тап для старта игры и паузы
-    this.canvas.addEventListener('click', () => {
-      const status = this.stateManager.getStatus();
-      if (status === GameStatus.MENU) {
-        this.startGame();
-      } else if (status === GameStatus.PAUSED) {
-        this.togglePause();
-      }
-    });
-
-    // Тап для мобильных устройств
     this.canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
+      isTouching = true;
+
+      const rect = this.canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      const scaleX = this.canvas.width / rect.width;
+      const x = (touch.clientX - rect.left) * scaleX;
+
+      if (this.stateManager.getStatus() === GameStatus.PLAYING && this.currentLevel) {
+        this.currentLevel.getPaddle().setTargetX(x, this.canvas.width);
+      } else if (this.stateManager.getStatus() === GameStatus.MENU) {
+        this.startGame();
+      } else if (this.stateManager.getStatus() === GameStatus.PAUSED) {
+        this.togglePause();
+      }
+    }, { passive: false });
+
+    this.canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (isTouching && this.stateManager.getStatus() === GameStatus.PLAYING && this.currentLevel) {
+        const rect = this.canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const scaleX = this.canvas.width / rect.width;
+        const x = (touch.clientX - rect.left) * scaleX;
+        this.currentLevel.getPaddle().setTargetX(x, this.canvas.width);
+      }
+    }, { passive: false });
+
+    this.canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      isTouching = false;
+    }, { passive: false });
+
+    // Предотвращаем прокрутку страницы при игре
+    this.canvas.addEventListener('touchcancel', (e) => {
+      e.preventDefault();
+      isTouching = false;
+    }, { passive: false });
+
+    // Клик для десктопа (старт игры и пауза)
+    this.canvas.addEventListener('click', (e) => {
+      // Предотвращаем клик если это было касание
+      if (e.detail === 0) return; // Это был программный клик от touch события
+
       const status = this.stateManager.getStatus();
       if (status === GameStatus.MENU) {
         this.startGame();
       } else if (status === GameStatus.PAUSED) {
         this.togglePause();
       }
-    }, { passive: false });
+    });
 
-    // Пауза на пробел
+    // Пауза на пробел (только для десктопа)
     window.addEventListener('keydown', (e) => {
       if (e.code === 'Space') {
         e.preventDefault();
@@ -106,35 +131,55 @@ export class Game {
       }
     });
 
-    // Предотвращаем прокрутку страницы при игре
-    this.canvas.addEventListener('touchstart', (e) => {
-      if (this.stateManager.getStatus() === GameStatus.PLAYING) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-
-    this.canvas.addEventListener('touchend', (e) => {
-      if (this.stateManager.getStatus() === GameStatus.PLAYING) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-
     // Ресайз окна
     window.addEventListener('resize', () => this.resize());
   }
 
   /**
-   * Адаптивный ресайз canvas
+   * Адаптивный ресайз canvas с поддержкой высокого разрешения
    */
   private resize(): void {
     const container = this.canvas.parentElement;
     if (!container) return;
 
-    const width = Math.min(container.clientWidth, 800);
-    const height = Math.min(container.clientHeight, 600);
+    // Определяем оптимальные размеры для устройства
+    const isMobile = window.innerWidth <= 768;
+    const isTablet = window.innerWidth <= 1024;
 
-    this.canvas.width = width;
-    this.canvas.height = height;
+    let targetWidth: number;
+    let targetHeight: number;
+
+    if (isMobile) {
+      // Мобильные устройства - портретная ориентация
+      targetWidth = Math.min(container.clientWidth - 32, 400); // 32px для отступов
+      targetHeight = Math.min(targetWidth * 1.6, window.innerHeight * 0.7); // 16:10 соотношение
+    } else if (isTablet) {
+      // Планшеты
+      targetWidth = Math.min(container.clientWidth - 48, 800);
+      targetHeight = Math.min(targetWidth * 0.75, window.innerHeight * 0.8);
+    } else {
+      // Десктоп - высокое разрешение
+      targetWidth = Math.min(container.clientWidth - 64, 1200);
+      targetHeight = Math.min(targetWidth * 0.67, 800);
+    }
+
+    // Устанавливаем размеры canvas
+    this.canvas.width = targetWidth;
+    this.canvas.height = targetHeight;
+
+    // Настройка высокого разрешения для четкой графики
+    const devicePixelRatio = window.devicePixelRatio || 1;
+
+    // Устанавливаем внутреннее разрешение
+    this.canvas.width = targetWidth * devicePixelRatio;
+    this.canvas.height = targetHeight * devicePixelRatio;
+
+    // Масштабируем для отображения
+    this.canvas.style.width = targetWidth + 'px';
+    this.canvas.style.height = targetHeight + 'px';
+
+    // Масштабируем контекст для четкости
+    this.ctx.scale(devicePixelRatio, devicePixelRatio);
 
     // Пересоздаем уровни с новыми размерами
     if (this.currentLevel) {
@@ -155,6 +200,13 @@ export class Game {
     this.isRunning = true;
     this.lastTime = performance.now();
     this.gameLoop(this.lastTime);
+  }
+
+  /**
+   * Запуск игры (алиас для совместимости)
+   */
+  startGame(): void {
+    this.start();
   }
 
   /**
@@ -359,24 +411,31 @@ export class Game {
   }
 
   /**
-   * Отрисовка UI
+   * Отрисовка UI с адаптивными размерами
    */
   private renderUI(): void {
     const state = this.stateManager.getState();
+    const isMobile = window.innerWidth <= 768;
+    const baseFontSize = isMobile ? Math.max(16, this.canvas.width * 0.04) : Math.max(20, this.canvas.width * 0.025);
+
+    // Фон для UI элементов для лучшей читаемости
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    this.ctx.fillRect(0, 0, this.canvas.width, 60);
 
     // Очки
-    this.ctx.fillStyle = '#2D3748';
-    this.ctx.font = 'bold 24px Arial';
+    this.ctx.fillStyle = '#FFFFFF';
+    this.ctx.font = `bold ${baseFontSize}px Arial`;
     this.ctx.textAlign = 'left';
-    this.ctx.fillText(`Очки: ${state.totalScore}`, 20, 35);
+    this.ctx.fillText(`Очки: ${state.totalScore}`, 15, 35);
 
     // Жизни
     this.ctx.textAlign = 'right';
-    this.ctx.fillText(`❤️ ${state.lives}`, this.canvas.width - 20, 35);
+    this.ctx.fillText(`❤️ ${state.lives}`, this.canvas.width - 15, 35);
 
     // Уровень
     this.ctx.textAlign = 'center';
-    this.ctx.font = 'bold 20px Arial';
+    this.ctx.font = `bold ${baseFontSize * 0.9}px Arial`;
+    this.ctx.fillStyle = '#FFD700';
     this.ctx.fillText(
       `Уровень ${state.currentLevel + 1}/${state.totalLevels}`,
       this.canvas.width / 2,
@@ -385,9 +444,11 @@ export class Game {
   }
 
   /**
-   * Отрисовка меню
+   * Отрисовка меню с адаптивным дизайном
    */
   private renderMenu(): void {
+    const isMobile = window.innerWidth <= 768;
+
     // Градиентный фон
     const gradient = this.ctx.createLinearGradient(
       0,
@@ -400,67 +461,89 @@ export class Game {
     this.ctx.fillStyle = gradient;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+    // Адаптивные размеры шрифтов
+    const titleFontSize = isMobile ? Math.max(32, this.canvas.width * 0.08) : Math.max(48, this.canvas.width * 0.06);
+    const subtitleFontSize = isMobile ? Math.max(18, this.canvas.width * 0.045) : Math.max(24, this.canvas.width * 0.03);
+    const buttonFontSize = isMobile ? Math.max(20, this.canvas.width * 0.05) : Math.max(28, this.canvas.width * 0.035);
+
     // Название игры
     this.ctx.fillStyle = '#2D3748';
-    this.ctx.font = 'bold 48px Arial';
+    this.ctx.font = `bold ${titleFontSize}px Arial`;
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('PandaPal Go', this.canvas.width / 2, this.canvas.height / 3);
+    this.ctx.fillText('🎮 PandaPal Go', this.canvas.width / 2, this.canvas.height / 3);
 
     // Подзаголовок
-    this.ctx.font = '24px Arial';
+    this.ctx.font = `${subtitleFontSize}px Arial`;
     this.ctx.fillStyle = '#4A5568';
     this.ctx.fillText(
       'Школьная головоломка',
       this.canvas.width / 2,
-      this.canvas.height / 3 + 50
+      this.canvas.height / 3 + (isMobile ? 40 : 50)
     );
 
-    // Кнопка старт
+    // Кнопка старт с адаптивным размером
+    const buttonWidth = isMobile ? this.canvas.width * 0.7 : 200;
+    const buttonHeight = isMobile ? 50 : 60;
+    const buttonX = this.canvas.width / 2 - buttonWidth / 2;
+    const buttonY = this.canvas.height / 2;
+
     this.ctx.fillStyle = '#48BB78';
     this.ctx.beginPath();
-    this.ctx.roundRect(
-      this.canvas.width / 2 - 100,
-      this.canvas.height / 2,
-      200,
-      60,
-      10
-    );
+    this.ctx.roundRect(buttonX, buttonY, buttonWidth, buttonHeight, 10);
     this.ctx.fill();
 
     this.ctx.fillStyle = '#FFFFFF';
-    this.ctx.font = 'bold 28px Arial';
-    this.ctx.fillText('Начать игру', this.canvas.width / 2, this.canvas.height / 2 + 40);
+    this.ctx.font = `bold ${buttonFontSize}px Arial`;
+    this.ctx.fillText('Начать игру', this.canvas.width / 2, buttonY + buttonHeight / 2 + 8);
 
     // Рекорд
     const highScore = this.stateManager.getHighScore();
     if (highScore > 0) {
       this.ctx.fillStyle = '#718096';
-      this.ctx.font = '20px Arial';
+      this.ctx.font = `${Math.max(16, this.canvas.width * 0.025)}px Arial`;
       this.ctx.fillText(
-        `Рекорд: ${highScore}`,
+        `🏆 Рекорд: ${highScore}`,
         this.canvas.width / 2,
-        this.canvas.height / 2 + 120
+        buttonY + buttonHeight + 40
       );
     }
 
-    // Подсказки для управления
+    // Подсказки для управления (адаптивные)
     this.ctx.fillStyle = '#4A5568';
-    this.ctx.font = '18px Arial';
-    this.ctx.fillText(
-      '💻 На компьютере: двигай мышью',
-      this.canvas.width / 2,
-      this.canvas.height / 2 + 160
-    );
-    this.ctx.fillText(
-      '📱 На телефоне: двигай пальцем',
-      this.canvas.width / 2,
-      this.canvas.height / 2 + 185
-    );
-    this.ctx.fillText(
-      '⏸️ Пробел или тап - пауза',
-      this.canvas.width / 2,
-      this.canvas.height / 2 + 210
-    );
+    const hintFontSize = isMobile ? Math.max(14, this.canvas.width * 0.035) : Math.max(18, this.canvas.width * 0.022);
+    this.ctx.font = `${hintFontSize}px Arial`;
+
+    const startY = buttonY + buttonHeight + (highScore > 0 ? 80 : 40);
+    const lineHeight = isMobile ? 25 : 30;
+
+    if (isMobile) {
+      this.ctx.fillText(
+        '📱 Двигай пальцем для управления',
+        this.canvas.width / 2,
+        startY
+      );
+      this.ctx.fillText(
+        '⏸️ Тап для паузы',
+        this.canvas.width / 2,
+        startY + lineHeight
+      );
+    } else {
+      this.ctx.fillText(
+        '💻 На компьютере: двигай мышью',
+        this.canvas.width / 2,
+        startY
+      );
+      this.ctx.fillText(
+        '📱 На телефоне: двигай пальцем',
+        this.canvas.width / 2,
+        startY + lineHeight
+      );
+      this.ctx.fillText(
+        '⏸️ Пробел или тап - пауза',
+        this.canvas.width / 2,
+        startY + lineHeight * 2
+      );
+    }
   }
 
   /**
@@ -540,28 +623,53 @@ export class Game {
   }
 
   /**
-   * Отрисовка перехода между уровнями
+   * Отрисовка перехода между уровнями с улучшенным дизайном
    */
   private renderLevelTransition(): void {
-    // Оверлей
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    // Оверлей с градиентом
+    const gradient = this.ctx.createRadialGradient(
+      this.canvas.width / 2,
+      this.canvas.height / 2,
+      0,
+      this.canvas.width / 2,
+      this.canvas.height / 2,
+      Math.max(this.canvas.width, this.canvas.height) / 2
+    );
+    gradient.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.9)');
+
+    this.ctx.fillStyle = gradient;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // Сообщение о переходе
+    // Анимированное сообщение о переходе
+    const state = this.stateManager.getState();
+    const nextLevelNumber = state.currentLevel + 1;
+
     this.ctx.fillStyle = '#FFFFFF';
-    this.ctx.font = 'bold 36px Arial';
+    this.ctx.font = `bold ${Math.max(24, this.canvas.width * 0.04)}px Arial`;
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
+
+    // Основное сообщение
     this.ctx.fillText(
-      'Переход на следующий уровень...',
+      '🎉 Отличная работа! 🎉',
       this.canvas.width / 2,
-      this.canvas.height / 2
+      this.canvas.height / 2 - 40
+    );
+
+    // Информация о следующем уровне
+    this.ctx.font = `bold ${Math.max(20, this.canvas.width * 0.03)}px Arial`;
+    this.ctx.fillStyle = '#FFD700';
+    this.ctx.fillText(
+      `Переходим к уровню ${nextLevelNumber}...`,
+      this.canvas.width / 2,
+      this.canvas.height / 2 + 20
     );
 
     // Автоматически переходим на следующий уровень
     setTimeout(() => {
       this.nextLevel();
-    }, 1000);
+    }, 2000); // 2 секунды на показ перехода
   }
 
   /**

@@ -1,5 +1,4 @@
 import { GameObject } from './GameObject';
-import { ColorPalette } from '../utils/ColorPalette';
 import { Easing } from '../utils/Easing';
 
 /**
@@ -9,13 +8,11 @@ import { Easing } from '../utils/Easing';
 export class Paddle extends GameObject {
   private targetX: number;
   private readonly speed: number = 0.15; // Плавное движение
-  private readonly colorScheme: typeof ColorPalette.PANDA;
   private animationTime: number = 0;
 
   constructor(x: number, y: number, width: number, height: number) {
     super(x, y, width, height);
     this.targetX = x;
-    this.colorScheme = ColorPalette.PANDA;
   }
 
   /**
@@ -48,35 +45,52 @@ export class Paddle extends GameObject {
   }
 
   /**
-   * Отрисовка деревянной доски в минималистичном стиле
+   * Отрисовка улучшенной деревянной доски
    */
   render(ctx: CanvasRenderingContext2D): void {
     const { x, y, width, height } = this;
 
-    // Основная деревянная доска
-    const woodColor = '#8B4513'; // Коричневый цвет дерева
-    const darkWood = '#654321'; // Темный коричневый для текстуры
+    // Тень под платформой
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 6;
 
-    // Основа доски
-    ctx.fillStyle = woodColor;
+    // Основная деревянная доска с градиентом
+    const gradient = ctx.createLinearGradient(x, y, x, y + height);
+    gradient.addColorStop(0, '#A0522D'); // SaddleBrown
+    gradient.addColorStop(0.5, '#8B4513'); // SaddleBrown
+    gradient.addColorStop(1, '#654321'); // Darker brown
+
+    ctx.fillStyle = gradient;
     ctx.beginPath();
     ctx.roundRect(x, y, width, height, height / 4);
     ctx.fill();
 
-    // Деревянная текстура (горизонтальные полосы)
-    ctx.fillStyle = darkWood;
-    const stripeHeight = height / 8;
-    for (let i = 0; i < 4; i++) {
+    // Сброс тени
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    // Улучшенная деревянная текстура
+    ctx.fillStyle = 'rgba(101, 67, 33, 0.6)'; // Полупрозрачный темный коричневый
+    const stripeHeight = height / 6;
+    for (let i = 0; i < 3; i++) {
       const stripeY = y + i * stripeHeight * 2 + stripeHeight / 2;
-      ctx.fillRect(x + width * 0.1, stripeY, width * 0.8, stripeHeight);
+      ctx.fillRect(x + width * 0.05, stripeY, width * 0.9, stripeHeight);
     }
 
-    // Металлические заклепки по краям
-    ctx.fillStyle = '#C0C0C0'; // Серебристый цвет
-    const rivetRadius = height * 0.15;
+    // Металлические заклепки с улучшенным дизайном
+    const rivetRadius = height * 0.2;
     const rivetY = y + height / 2;
 
+    // Градиент для заклепок
+    const rivetGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, rivetRadius);
+    rivetGradient.addColorStop(0, '#E8E8E8');
+    rivetGradient.addColorStop(0.7, '#C0C0C0');
+    rivetGradient.addColorStop(1, '#A0A0A0');
+
     // Левая заклепка
+    ctx.fillStyle = rivetGradient;
     ctx.beginPath();
     ctx.arc(x + rivetRadius, rivetY, rivetRadius, 0, Math.PI * 2);
     ctx.fill();
@@ -88,25 +102,22 @@ export class Paddle extends GameObject {
 
     // Центральная заклепка
     ctx.beginPath();
-    ctx.arc(x + width / 2, rivetY, rivetRadius * 0.8, 0, Math.PI * 2);
+    ctx.arc(x + width / 2, rivetY, rivetRadius * 0.9, 0, Math.PI * 2);
     ctx.fill();
 
-    // Обводка доски
+    // Обводка доски с улучшенной толщиной
     ctx.strokeStyle = '#654321';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.roundRect(x, y, width, height, height / 4);
     ctx.stroke();
 
-    // Тень для глубины
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetY = 4;
-
-    // Сброс тени
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
+    // Внутренняя обводка для глубины
+    ctx.strokeStyle = 'rgba(139, 69, 19, 0.8)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(x + 1, y + 1, width - 2, height - 2, height / 4 - 1);
+    ctx.stroke();
   }
 
   /**

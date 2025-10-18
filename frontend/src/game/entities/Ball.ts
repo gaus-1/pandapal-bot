@@ -126,15 +126,15 @@ export class Ball extends GameObject {
   }
 
   /**
-   * Отрисовка мяча с эффектом следа
+   * Отрисовка мяча с улучшенными эффектами
    */
   render(ctx: CanvasRenderingContext2D): void {
     const center = this.getCenter();
 
-    // Рисуем след (слабеющие круги)
+    // Улучшенный след с более длинным хвостом
     for (let i = 0; i < this.trail.length; i++) {
-      const alpha = (i / this.trail.length) * 0.3;
-      const trailRadius = this.radius * (0.5 + (i / this.trail.length) * 0.5);
+      const alpha = (i / this.trail.length) * 0.4;
+      const trailRadius = this.radius * (0.3 + (i / this.trail.length) * 0.7);
 
       ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
       ctx.beginPath();
@@ -142,10 +142,15 @@ export class Ball extends GameObject {
       ctx.fill();
     }
 
-    // Основной мяч с градиентом
+    // Тень под мячом для глубины
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 4;
+
+    // Основной мяч с улучшенным градиентом
     const gradient = ctx.createRadialGradient(
-      center.x - this.radius * 0.3,
-      center.y - this.radius * 0.3,
+      center.x - this.radius * 0.4,
+      center.y - this.radius * 0.4,
       0,
       center.x,
       center.y,
@@ -153,27 +158,44 @@ export class Ball extends GameObject {
     );
 
     gradient.addColorStop(0, this.colorScheme.accent);
-    gradient.addColorStop(1, this.colorScheme.primary);
+    gradient.addColorStop(0.7, this.colorScheme.primary);
+    gradient.addColorStop(1, this.colorScheme.secondary);
 
     ctx.fillStyle = gradient;
     ctx.beginPath();
     ctx.arc(center.x, center.y, this.radius, 0, Math.PI * 2);
     ctx.fill();
 
+    // Сброс тени
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
     // Обводка для четкости
     ctx.strokeStyle = this.colorScheme.text;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(center.x, center.y, this.radius, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Блик для объема
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    // Улучшенный блик для объема
+    const highlightGradient = ctx.createRadialGradient(
+      center.x - this.radius * 0.4,
+      center.y - this.radius * 0.4,
+      0,
+      center.x - this.radius * 0.4,
+      center.y - this.radius * 0.4,
+      this.radius * 0.5
+    );
+    highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+    highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
+
+    ctx.fillStyle = highlightGradient;
     ctx.beginPath();
     ctx.arc(
-      center.x - this.radius * 0.3,
-      center.y - this.radius * 0.3,
-      this.radius * 0.3,
+      center.x - this.radius * 0.4,
+      center.y - this.radius * 0.4,
+      this.radius * 0.5,
       0,
       Math.PI * 2
     );
