@@ -45,12 +45,6 @@ export const Hero: React.FC = React.memo(() => {
           Начать бесплатно
         </a>
         <a
-          href="/play"
-          className="px-10 py-5 rounded-full bg-gradient-to-r from-green-400 to-blue-500 text-white font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-100"
-        >
-          🎮 PandaPal Go
-        </a>
-        <a
           href="/docs"
           className="px-10 py-5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-100"
         >
