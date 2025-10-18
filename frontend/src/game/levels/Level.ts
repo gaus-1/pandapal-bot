@@ -71,19 +71,22 @@ export abstract class Level {
     const paddleHeight = Math.max(16, this.canvasWidth * 0.025);
     const paddleX = (this.canvasWidth - paddleWidth) / 2;
 
-    // ИСПРАВЛЕНИЕ: Более точное определение устройства
+    // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Платформа должна быть ВСЕГДА видна
     // Используем window.innerWidth для более точного определения
     const isMobile = window.innerWidth <= 768;
     const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
 
     let paddleY: number;
     if (isMobile) {
-      paddleY = this.canvasHeight - 60;  // Мобильные: ближе к низу
+      paddleY = this.canvasHeight - 40;  // Мобильные: очень близко к низу
     } else if (isTablet) {
-      paddleY = this.canvasHeight - 80;  // Планшеты: средний отступ
+      paddleY = this.canvasHeight - 50;  // Планшеты: близко к низу
     } else {
-      paddleY = this.canvasHeight - 50;  // Десктопы: минимальный отступ для видимости
+      paddleY = this.canvasHeight - 30;  // Десктопы: МИНИМАЛЬНЫЙ отступ - платформа должна быть видна!
     }
+
+    // Отладочная информация в консоль
+    console.log(`🔧 Paddle Debug: canvas=${this.canvasWidth}x${this.canvasHeight}, window=${window.innerWidth}x${window.innerHeight}, paddleY=${paddleY}`);
 
     return new Paddle(paddleX, paddleY, paddleWidth, paddleHeight);
   }
@@ -96,18 +99,21 @@ export abstract class Level {
     const baseRadius = Math.max(12, Math.min(20, this.canvasWidth * 0.02));
     const x = this.canvasWidth / 2 - baseRadius;
 
-    // ИСПРАВЛЕНИЕ: Более точное определение устройства для позиции мяча
+    // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Мяч должен быть ВЫШЕ платформы
     const isMobile = window.innerWidth <= 768;
     const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
 
     let y: number;
     if (isMobile) {
-      y = this.canvasHeight - 100;  // Мобильные: выше платформы
+      y = this.canvasHeight - 80;   // Мобильные: выше платформы (40px от низа)
     } else if (isTablet) {
-      y = this.canvasHeight - 120;  // Планшеты: средняя позиция
+      y = this.canvasHeight - 90;   // Планшеты: выше платформы (50px от низа)
     } else {
-      y = this.canvasHeight - 80;   // Десктопы: близко к платформе для видимости
+      y = this.canvasHeight - 60;   // Десктопы: выше платформы (30px от низа)
     }
+
+    // Отладочная информация в консоль
+    console.log(`⚽ Ball Debug: canvas=${this.canvasWidth}x${this.canvasHeight}, ballY=${y}`);
 
     const speed = 0.5; // Немного быстрее для лучшего геймплея
 
@@ -249,11 +255,11 @@ export abstract class Level {
 
     let y: number;
     if (isMobile) {
-      y = this.canvasHeight - 100;
+      y = this.canvasHeight - 80;   // Мобильные: выше платформы (40px от низа)
     } else if (isTablet) {
-      y = this.canvasHeight - 120;
+      y = this.canvasHeight - 90;   // Планшеты: выше платформы (50px от низа)
     } else {
-      y = this.canvasHeight - 80;
+      y = this.canvasHeight - 60;   // Десктопы: выше платформы (30px от низа)
     }
 
     this.ball.reset(x, y);

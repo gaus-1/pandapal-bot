@@ -50,6 +50,9 @@ export class Paddle extends GameObject {
   render(ctx: CanvasRenderingContext2D): void {
     const { x, y, width, height } = this;
 
+    // Отладочная информация - выводим позицию платформы
+    console.log(`🎯 Paddle Render: x=${x}, y=${y}, width=${width}, height=${height}`);
+
     // Тень под платформой
     ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
     ctx.shadowBlur = 12;
@@ -110,6 +113,13 @@ export class Paddle extends GameObject {
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.roundRect(x, y, width, height, height / 4);
+    ctx.stroke();
+
+    // КРИТИЧЕСКАЯ ОТЛАДКА: Яркая красная рамка для видимости платформы
+    ctx.strokeStyle = '#FF0000';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.rect(x - 2, y - 2, width + 4, height + 4);
     ctx.stroke();
 
     // Внутренняя обводка для глубины
