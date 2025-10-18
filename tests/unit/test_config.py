@@ -2,11 +2,12 @@
 Unit тесты для конфигурации
 """
 
-import pytest
 import os
 from unittest.mock import patch
 
-from bot.config import settings, AI_SYSTEM_PROMPT
+import pytest
+
+from bot.config import AI_SYSTEM_PROMPT, settings
 
 
 class TestConfig:
@@ -112,7 +113,7 @@ class TestConfig:
         assert isinstance(AI_SYSTEM_PROMPT, str)
         assert len(AI_SYSTEM_PROMPT) > 0
         assert "PandaPalAI" in AI_SYSTEM_PROMPT
-        assert "ребёнка" in AI_SYSTEM_PROMPT.lower()
+        assert "школьникам" in AI_SYSTEM_PROMPT.lower()
 
     @pytest.mark.unit
     @pytest.mark.config
