@@ -1,0 +1,626 @@
+openapi: 3.0.3
+info:
+  title: PandaPal Bot API
+  description: |
+    API для образовательного Telegram-бота PandaPal, предназначенного для школьников.
+
+    Основные возможности:
+    - AI-ассистент на базе Google Gemini
+    - Образовательная игра PandaPal Go
+    - Система родительского контроля
+    - Модерация контента
+    - Аналитика и мониторинг
+
+    Безопасность:
+    - OWASP Top 10 compliance
+    - Многоуровневая модерация контента
+    - Шифрование чувствительных данных
+    - Аудит всех операций
+  version: 1.0.0
+  contact:
+    name: PandaPal Support
+    email: 79516625803@ya.ru
+    url: https://pandapal.ru
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://pandapal-bot.onrender.com
+    description: Production server
+  - url: http://localhost:8000
+    description: Development server
+
+tags:
+  - name: AI Chat
+    description: Общение с AI ассистентом
+  - name: Game
+    description: PandaPal Go образовательная игра
+  - name: User Management
+    description: Управление пользователями и профилями
+  - name: Parental Control
+    description: Родительский контроль и мониторинг
+  - name: Analytics
+    description: Аналитика и метрики
+  - name: Security
+    description: Безопасность и модерация
+
+paths:
+  /api/v1/ai/chat:
+    post:
+      tags:
+        - AI Chat
+      summary: Отправка сообщения AI ассистенту
+      description: |
+        Отправляет сообщение AI ассистенту PandaPalAI на базе Google Gemini.
+        Поддерживает текстовые сообщения, изображения и голосовые сообщения.
+
+        Безопасность:
+        - Автоматическая модерация контента
+        - Адаптация ответов под возраст пользователя
+        - Сохранение истории для контекста
+      operationId: sendAiMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiChatRequest'
+            examples:
+              text_message:
+                summary: Текстовое сообщение
+                value:
+                  user_id: 123456789
+                  message_type: "text"
+                  content: "Помоги решить задачу по математике"
+                  age_group: "10-12"
+              image_message:
+                summary: Сообщение с изображением
+                value:
+                  user_id: 123456789
+                  message_type: "image"
+                  content: "base64_encoded_image_data"
+                  age_group: "10-12"
+      responses:
+        '200':
+          description: Успешный ответ AI ассистента
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiChatResponse'
+              examples:
+                success_response:
+                  summary: Успешный ответ
+                  value:
+                    success: true
+                    response: "Конечно! Давайте решим эту задачу по математике..."
+                    moderation_level: "safe"
+                    response_time_ms: 1250
+                    context_used: true
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Превышен лимит запросов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/game/start:
+    post:
+      tags:
+        - Game
+      summary: Запуск игры PandaPal Go
+      description: |
+        Запускает образовательную игру PandaPal Go для пользователя.
+        Игра адаптируется под возраст и уровень пользователя.
+      operationId: startGame
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameStartRequest'
+      responses:
+        '200':
+          description: Игра успешно запущена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameStartResponse'
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/game/progress:
+    get:
+      tags:
+        - Game
+      summary: Получение прогресса в игре
+      description: |
+        Возвращает статистику прогресса пользователя в игре PandaPal Go.
+      operationId: getGameProgress
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: ID пользователя
+      responses:
+        '200':
+          description: Статистика прогресса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameProgressResponse'
+
+  /api/v1/users/profile:
+    get:
+      tags:
+        - User Management
+      summary: Получение профиля пользователя
+      description: |
+        Возвращает информацию о профиле пользователя.
+      operationId: getUserProfile
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: ID пользователя
+      responses:
+        '200':
+          description: Профиль пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+  /api/v1/parental/activity:
+    get:
+      tags:
+        - Parental Control
+      summary: Получение активности ребенка
+      description: |
+        Возвращает статистику активности ребенка для родителя.
+      operationId: getChildActivity
+      parameters:
+        - name: parent_id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: ID родителя
+        - name: child_id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: ID ребенка
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 7
+          description: Количество дней для анализа
+      responses:
+        '200':
+          description: Статистика активности
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChildActivityResponse'
+
+  /api/v1/analytics/metrics:
+    get:
+      tags:
+        - Analytics
+      summary: Получение метрик системы
+      description: |
+        Возвращает ключевые метрики системы для мониторинга.
+      operationId: getSystemMetrics
+      responses:
+        '200':
+          description: Метрики системы
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemMetrics'
+
+  /api/v1/health:
+    get:
+      tags:
+        - Security
+      summary: Проверка состояния системы
+      description: |
+        Возвращает статус здоровья системы и всех компонентов.
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Система работает нормально
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+        '503':
+          description: Проблемы с системой
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+
+components:
+  schemas:
+    AiChatRequest:
+      type: object
+      required:
+        - user_id
+        - message_type
+        - content
+      properties:
+        user_id:
+          type: integer
+          description: ID пользователя
+          example: 123456789
+        message_type:
+          type: string
+          enum: [text, image, voice]
+          description: Тип сообщения
+          example: "text"
+        content:
+          type: string
+          description: Содержимое сообщения
+          example: "Помоги решить задачу по математике"
+        age_group:
+          type: string
+          enum: ["6-8", "9-12", "13-15", "16-18"]
+          description: Возрастная группа пользователя
+          example: "10-12"
+        context:
+          type: object
+          description: Дополнительный контекст
+          properties:
+            subject:
+              type: string
+              description: Предмет
+              example: "математика"
+            difficulty:
+              type: string
+              enum: ["easy", "medium", "hard"]
+              description: Сложность
+              example: "medium"
+
+    AiChatResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Статус успешности
+          example: true
+        response:
+          type: string
+          description: Ответ AI ассистента
+          example: "Конечно! Давайте решим эту задачу по математике..."
+        moderation_level:
+          type: string
+          enum: ["safe", "warning", "blocked"]
+          description: Уровень модерации
+          example: "safe"
+        response_time_ms:
+          type: integer
+          description: Время ответа в миллисекундах
+          example: 1250
+        context_used:
+          type: boolean
+          description: Использовался ли контекст из истории
+          example: true
+        suggestions:
+          type: array
+          items:
+            type: string
+          description: Дополнительные предложения
+          example: ["Показать пример", "Объяснить теорию"]
+
+    GameStartRequest:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: integer
+          description: ID пользователя
+          example: 123456789
+        level:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Начальный уровень
+          example: 1
+        difficulty:
+          type: string
+          enum: ["easy", "medium", "hard"]
+          description: Сложность
+          example: "medium"
+
+    GameStartResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Статус успешности
+          example: true
+        game_id:
+          type: string
+          description: ID игровой сессии
+          example: "game_123456789_1640995200"
+        level_info:
+          $ref: '#/components/schemas/LevelInfo'
+        controls:
+          type: object
+          description: Информация об управлении
+          properties:
+            mobile:
+              type: array
+              items:
+                type: string
+              example: ["Двигай пальцем для управления доской"]
+            desktop:
+              type: array
+              items:
+                type: string
+              example: ["Двигай мышью для управления доской"]
+
+    LevelInfo:
+      type: object
+      properties:
+        level_number:
+          type: integer
+          description: Номер уровня
+          example: 1
+        name:
+          type: string
+          description: Название уровня
+          example: "Спортзал"
+        description:
+          type: string
+          description: Описание уровня
+          example: "Математика на спортивную тематику"
+        math_problems:
+          type: array
+          items:
+            type: string
+          description: Математические задачи
+          example: ["2 + 3 = ?", "5 * 4 = ?"]
+
+    GameProgressResponse:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          description: ID пользователя
+          example: 123456789
+        total_score:
+          type: integer
+          description: Общий счет
+          example: 1250
+        levels_completed:
+          type: integer
+          description: Пройденные уровни
+          example: 3
+        current_level:
+          type: integer
+          description: Текущий уровень
+          example: 4
+        achievements:
+          type: array
+          items:
+            type: string
+          description: Полученные достижения
+          example: ["Первая победа", "Математический гений"]
+        play_time_minutes:
+          type: integer
+          description: Время игры в минутах
+          example: 45
+
+    UserProfile:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          description: ID пользователя
+          example: 123456789
+        username:
+          type: string
+          description: Имя пользователя
+          example: "Иван"
+        age_group:
+          type: string
+          enum: ["6-8", "9-12", "13-15", "16-18"]
+          description: Возрастная группа
+          example: "10-12"
+        user_type:
+          type: string
+          enum: ["child", "parent"]
+          description: Тип пользователя
+          example: "child"
+        registration_date:
+          type: string
+          format: date-time
+          description: Дата регистрации
+          example: "2024-01-15T10:30:00Z"
+        total_messages:
+          type: integer
+          description: Общее количество сообщений
+          example: 156
+        favorite_subjects:
+          type: array
+          items:
+            type: string
+          description: Любимые предметы
+          example: ["математика", "физика"]
+
+    ChildActivityResponse:
+      type: object
+      properties:
+        child_id:
+          type: integer
+          description: ID ребенка
+          example: 123456789
+        period_days:
+          type: integer
+          description: Период анализа в днях
+          example: 7
+        total_messages:
+          type: integer
+          description: Общее количество сообщений
+          example: 89
+        ai_interactions:
+          type: integer
+          description: Взаимодействия с AI
+          example: 67
+        game_sessions:
+          type: integer
+          description: Игровые сессии
+          example: 12
+        study_time_minutes:
+          type: integer
+          description: Время обучения в минутах
+          example: 180
+        most_active_hours:
+          type: array
+          items:
+            type: integer
+          description: Самые активные часы дня
+          example: [14, 15, 16, 20]
+        subject_distribution:
+          type: object
+          description: Распределение по предметам
+          additionalProperties:
+            type: integer
+          example:
+            "математика": 45
+            "русский язык": 23
+            "физика": 21
+
+    SystemMetrics:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Время сбора метрик
+          example: "2024-01-15T10:30:00Z"
+        active_users:
+          type: integer
+          description: Активные пользователи за последний час
+          example: 156
+        total_users:
+          type: integer
+          description: Общее количество пользователей
+          example: 1250
+        ai_requests_per_minute:
+          type: number
+          description: Запросы к AI в минуту
+          example: 12.5
+        game_sessions_active:
+          type: integer
+          description: Активные игровые сессии
+          example: 23
+        average_response_time_ms:
+          type: integer
+          description: Среднее время ответа AI в миллисекундах
+          example: 850
+        system_health:
+          type: string
+          enum: ["healthy", "warning", "critical"]
+          description: Состояние системы
+          example: "healthy"
+
+    HealthCheckResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: ["healthy", "degraded", "unhealthy"]
+          description: Общий статус системы
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          description: Время проверки
+          example: "2024-01-15T10:30:00Z"
+        components:
+          type: object
+          description: Статус компонентов
+          properties:
+            database:
+              type: string
+              enum: ["healthy", "degraded", "unhealthy"]
+              example: "healthy"
+            ai_service:
+              type: string
+              enum: ["healthy", "degraded", "unhealthy"]
+              example: "healthy"
+            redis:
+              type: string
+              enum: ["healthy", "degraded", "unhealthy"]
+              example: "healthy"
+            telegram_api:
+              type: string
+              enum: ["healthy", "degraded", "unhealthy"]
+              example: "healthy"
+        response_time_ms:
+          type: integer
+          description: Время выполнения проверки
+          example: 45
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Код ошибки
+          example: "INVALID_REQUEST"
+        message:
+          type: string
+          description: Описание ошибки
+          example: "Неверные параметры запроса"
+        details:
+          type: object
+          description: Дополнительные детали ошибки
+          example:
+            field: "user_id"
+            reason: "Пользователь не найден"
+        timestamp:
+          type: string
+          format: date-time
+          description: Время возникновения ошибки
+          example: "2024-01-15T10:30:00Z"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT токен для аутентификации API запросов.
+        Получить токен можно через Telegram OAuth.
+
+security:
+  - BearerAuth: []

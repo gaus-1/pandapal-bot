@@ -7,6 +7,7 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './App';
 import { Documentation } from './pages/Documentation';
+import ApiDocs from './pages/ApiDocs';
 
 // Ленивая загрузка игры для оптимизации
 const PandaPalGo = lazy(() => import('./game/PandaPalGo'));
@@ -25,6 +26,9 @@ export const AppRouter: React.FC = React.memo(() => {
 
         {/* Документация с переключением языков */}
         <Route path="/docs" element={<Documentation />} />
+
+        {/* API документация */}
+        <Route path="/api-docs" element={<ApiDocs />} />
 
         {/* Игра PandaPal Go */}
         <Route

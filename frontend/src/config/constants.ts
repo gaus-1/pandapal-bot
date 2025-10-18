@@ -62,4 +62,6 @@ export const SECTIONS: readonly Section[] = [
  */
 export const NAVIGATION_LINKS = [
   { href: '#parents', label: 'Для родителей' },
+  { href: '/docs', label: 'Документация' },
+  { href: '/api-docs', label: 'API Docs' },
 ] as const;
