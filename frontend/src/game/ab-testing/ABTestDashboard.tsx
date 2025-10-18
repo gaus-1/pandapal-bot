@@ -205,7 +205,7 @@ const ABTestDashboard: React.FC<ABTestDashboardProps> = ({ isVisible, onClose })
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .ab-test-dashboard-overlay {
           position: fixed;
           top: 0;

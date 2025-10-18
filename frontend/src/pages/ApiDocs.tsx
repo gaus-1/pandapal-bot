@@ -5,92 +5,9 @@
  * бота PandaPal, включая AI чат, игру, аналитику и безопасность.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 
 const ApiDocs: React.FC = () => {
-  const swaggerContainer = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Загружаем Swagger UI асинхронно
-    const loadSwaggerUI = async () => {
-      try {
-        // Динамический импорт Swagger UI
-        const { SwaggerUIBundle } = await import('swagger-ui-dist/swagger-ui-bundle.js');
-
-        if (swaggerContainer.current) {
-          SwaggerUIBundle({
-            url: '/api/openapi.yaml', // Путь к OpenAPI спецификации
-            dom_id: '#swagger-ui',
-            presets: [
-              SwaggerUIBundle.presets.apis,
-              SwaggerUIBundle.presets.standalone
-            ],
-            layout: 'StandaloneLayout',
-            deepLinking: true,
-            showExtensions: true,
-            showCommonExtensions: true,
-            docExpansion: 'list',
-            defaultModelsExpandDepth: 2,
-            defaultModelExpandDepth: 2,
-            tryItOutEnabled: true,
-            supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
-            onComplete: () => {
-              console.log('Swagger UI загружен успешно');
-            },
-            onFailure: (error: any) => {
-              console.error('Ошибка загрузки Swagger UI:', error);
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Ошибка импорта Swagger UI:', error);
-        // Fallback - показываем простое описание API
-        if (swaggerContainer.current) {
-          swaggerContainer.current.innerHTML = `
-            <div class="api-docs-fallback">
-              <h2>📋 PandaPal Bot API Documentation</h2>
-              <p>Swagger UI временно недоступен. Вот основные API endpoints:</p>
-              <div class="api-endpoints">
-                <h3>🤖 AI Chat API</h3>
-                <ul>
-                  <li><strong>POST /api/v1/ai/chat</strong> - Отправка сообщения AI ассистенту</li>
-                </ul>
-
-                <h3>🎮 Game API</h3>
-                <ul>
-                  <li><strong>POST /api/v1/game/start</strong> - Запуск игры PandaPal Go</li>
-                  <li><strong>GET /api/v1/game/progress</strong> - Получение прогресса в игре</li>
-                </ul>
-
-                <h3>👤 User Management API</h3>
-                <ul>
-                  <li><strong>GET /api/v1/users/profile</strong> - Получение профиля пользователя</li>
-                </ul>
-
-                <h3>👨‍👩‍👧‍👦 Parental Control API</h3>
-                <ul>
-                  <li><strong>GET /api/v1/parental/activity</strong> - Получение активности ребенка</li>
-                </ul>
-
-                <h3>📊 Analytics API</h3>
-                <ul>
-                  <li><strong>GET /api/v1/analytics/metrics</strong> - Получение метрик системы</li>
-                </ul>
-
-                <h3>🛡️ Security API</h3>
-                <ul>
-                  <li><strong>GET /api/v1/health</strong> - Проверка состояния системы</li>
-                </ul>
-              </div>
-              <p>Полная документация доступна в файле <code>docs/api/openapi.yaml</code></p>
-            </div>
-          `;
-        }
-      }
-    };
-
-    loadSwaggerUI();
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -126,9 +43,62 @@ const ApiDocs: React.FC = () => {
           </div>
         </div>
 
-        {/* Swagger UI контейнер */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div id="swagger-ui" ref={swaggerContainer}></div>
+        {/* API Endpoints */}
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden p-8">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">📋 API Endpoints</h2>
+              <p className="text-gray-600 mb-6">
+                Основные API endpoints для взаимодействия с PandaPal Bot.
+                Полная документация доступна в файле <code className="bg-gray-100 px-2 py-1 rounded">docs/api/openapi.yaml</code>
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">🤖 AI Chat API</h3>
+                <ul className="space-y-2">
+                  <li className="text-gray-700"><strong>POST /api/v1/ai/chat</strong> - Отправка сообщения AI ассистенту</li>
+                </ul>
+              </div>
+
+              <div className="border-l-4 border-green-500 bg-green-50 p-4 rounded">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">🎮 Game API</h3>
+                <ul className="space-y-2">
+                  <li className="text-gray-700"><strong>POST /api/v1/game/start</strong> - Запуск игры PandaPal Go</li>
+                  <li className="text-gray-700"><strong>GET /api/v1/game/progress</strong> - Получение прогресса в игре</li>
+                </ul>
+              </div>
+
+              <div className="border-l-4 border-purple-500 bg-purple-50 p-4 rounded">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">👤 User Management API</h3>
+                <ul className="space-y-2">
+                  <li className="text-gray-700"><strong>GET /api/v1/users/profile</strong> - Получение профиля пользователя</li>
+                </ul>
+              </div>
+
+              <div className="border-l-4 border-orange-500 bg-orange-50 p-4 rounded">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">👨‍👩‍👧‍👦 Parental Control API</h3>
+                <ul className="space-y-2">
+                  <li className="text-gray-700"><strong>GET /api/v1/parental/activity</strong> - Получение активности ребенка</li>
+                </ul>
+              </div>
+
+              <div className="border-l-4 border-indigo-500 bg-indigo-50 p-4 rounded">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">📊 Analytics API</h3>
+                <ul className="space-y-2">
+                  <li className="text-gray-700"><strong>GET /api/v1/analytics/metrics</strong> - Получение метрик системы</li>
+                </ul>
+              </div>
+
+              <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">🛡️ Security API</h3>
+                <ul className="space-y-2">
+                  <li className="text-gray-700"><strong>GET /api/v1/health</strong> - Проверка состояния системы</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Дополнительная информация */}
@@ -164,49 +134,6 @@ const ApiDocs: React.FC = () => {
           </div>
         </div>
 
-        {/* Стили для fallback */}
-        <style jsx>{`
-          .api-docs-fallback {
-            padding: 2rem;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          }
-
-          .api-docs-fallback h2 {
-            color: #1f2937;
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-          }
-
-          .api-docs-fallback h3 {
-            color: #374151;
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-          }
-
-          .api-endpoints ul {
-            list-style: none;
-            padding: 0;
-          }
-
-          .api-endpoints li {
-            background: #f9fafb;
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-            border-radius: 0.375rem;
-            border-left: 4px solid #3b82f6;
-          }
-
-          .api-endpoints code {
-            background: #1f2937;
-            color: #f9fafb;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            font-family: 'Courier New', monospace;
-          }
-        `}</style>
       </div>
     </div>
   );
