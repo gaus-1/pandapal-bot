@@ -75,14 +75,49 @@ export class Game {
         const x = touch.clientX - rect.left;
         this.currentLevel.getPaddle().setTargetX(x, this.canvas.width);
       }
+    }, { passive: false });
+
+    // Клик/тап для старта игры и паузы
+    this.canvas.addEventListener('click', () => {
+      const status = this.stateManager.getStatus();
+      if (status === GameStatus.MENU) {
+        this.startGame();
+      } else if (status === GameStatus.PAUSED) {
+        this.togglePause();
+      }
     });
+
+    // Тап для мобильных устройств
+    this.canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const status = this.stateManager.getStatus();
+      if (status === GameStatus.MENU) {
+        this.startGame();
+      } else if (status === GameStatus.PAUSED) {
+        this.togglePause();
+      }
+    }, { passive: false });
 
     // Пауза на пробел
     window.addEventListener('keydown', (e) => {
       if (e.code === 'Space') {
+        e.preventDefault();
         this.togglePause();
       }
     });
+
+    // Предотвращаем прокрутку страницы при игре
+    this.canvas.addEventListener('touchstart', (e) => {
+      if (this.stateManager.getStatus() === GameStatus.PLAYING) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    this.canvas.addEventListener('touchend', (e) => {
+      if (this.stateManager.getStatus() === GameStatus.PLAYING) {
+        e.preventDefault();
+      }
+    }, { passive: false });
 
     // Ресайз окна
     window.addEventListener('resize', () => this.resize());
@@ -245,6 +280,10 @@ export class Game {
     // Столкновение с платформой
     const paddleCollision = CollisionDetector.checkBallPaddle(ball, paddle);
     if (paddleCollision.collided) {
+      // Принудительное разделение (предотвращает застревание)
+      CollisionDetector.separateBallFromPaddle(ball, paddle);
+
+      // Обработка отскока от платформы
       CollisionDetector.resolveBallPaddleCollision(ball, paddle);
       ball.increaseSpeed(1.02); // Немного ускоряем мяч
     }
@@ -255,6 +294,10 @@ export class Game {
 
       const brickCollision = CollisionDetector.checkBallBrick(ball, brick);
       if (brickCollision.collided && brickCollision.normal) {
+        // Принудительное разделение (предотвращает застревание)
+        CollisionDetector.separateBallFromBrick(ball, brick);
+
+        // Отскок от кирпича
         CollisionDetector.resolveBallCollision(ball, brickCollision.normal);
 
         const destroyed = brick.hit();
@@ -295,6 +338,8 @@ export class Game {
       }
     } else if (status === GameStatus.LEVEL_COMPLETE) {
       this.renderLevelComplete();
+    } else if (status === GameStatus.TRANSITION) {
+      this.renderLevelTransition();
     } else if (status === GameStatus.GAME_OVER) {
       this.renderGameOver();
     }
@@ -397,6 +442,25 @@ export class Game {
         this.canvas.height / 2 + 120
       );
     }
+
+    // Подсказки для управления
+    this.ctx.fillStyle = '#4A5568';
+    this.ctx.font = '18px Arial';
+    this.ctx.fillText(
+      '💻 На компьютере: двигай мышью',
+      this.canvas.width / 2,
+      this.canvas.height / 2 + 160
+    );
+    this.ctx.fillText(
+      '📱 На телефоне: двигай пальцем',
+      this.canvas.width / 2,
+      this.canvas.height / 2 + 185
+    );
+    this.ctx.fillText(
+      '⏸️ Пробел или тап - пауза',
+      this.canvas.width / 2,
+      this.canvas.height / 2 + 210
+    );
   }
 
   /**
@@ -473,6 +537,31 @@ export class Game {
       this.canvas.width / 2,
       boardY + boardHeight - 40
     );
+  }
+
+  /**
+   * Отрисовка перехода между уровнями
+   */
+  private renderLevelTransition(): void {
+    // Оверлей
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Сообщение о переходе
+    this.ctx.fillStyle = '#FFFFFF';
+    this.ctx.font = 'bold 36px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(
+      'Переход на следующий уровень...',
+      this.canvas.width / 2,
+      this.canvas.height / 2
+    );
+
+    // Автоматически переходим на следующий уровень
+    setTimeout(() => {
+      this.nextLevel();
+    }, 1000);
   }
 
   /**

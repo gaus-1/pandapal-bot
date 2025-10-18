@@ -3,8 +3,8 @@ import { ColorPalette } from '../utils/ColorPalette';
 import { Easing } from '../utils/Easing';
 
 /**
- * Платформа-панда (игрок)
- * Отвечает за управление платформой и отрисовку панды
+ * Деревянная платформа (игрок)
+ * Отвечает за управление платформой и отрисовку деревянной доски
  */
 export class Paddle extends GameObject {
   private targetX: number;
@@ -48,84 +48,60 @@ export class Paddle extends GameObject {
   }
 
   /**
-   * Отрисовка панды в минималистичном стиле
+   * Отрисовка деревянной доски в минималистичном стиле
    */
   render(ctx: CanvasRenderingContext2D): void {
     const { x, y, width, height } = this;
-    const centerX = x + width / 2;
 
-    // Основное тело (белый прямоугольник с закругленными углами)
-    ctx.fillStyle = this.colorScheme.body;
+    // Основная деревянная доска
+    const woodColor = '#8B4513'; // Коричневый цвет дерева
+    const darkWood = '#654321'; // Темный коричневый для текстуры
+
+    // Основа доски
+    ctx.fillStyle = woodColor;
     ctx.beginPath();
-    ctx.roundRect(x, y, width, height, height / 2);
+    ctx.roundRect(x, y, width, height, height / 4);
     ctx.fill();
 
-    // Черные ушки
-    const earRadius = height * 0.4;
-    const earY = y + earRadius * 0.6;
+    // Деревянная текстура (горизонтальные полосы)
+    ctx.fillStyle = darkWood;
+    const stripeHeight = height / 8;
+    for (let i = 0; i < 4; i++) {
+      const stripeY = y + i * stripeHeight * 2 + stripeHeight / 2;
+      ctx.fillRect(x + width * 0.1, stripeY, width * 0.8, stripeHeight);
+    }
 
-    // Левое ухо
-    ctx.fillStyle = this.colorScheme.spots;
+    // Металлические заклепки по краям
+    ctx.fillStyle = '#C0C0C0'; // Серебристый цвет
+    const rivetRadius = height * 0.15;
+    const rivetY = y + height / 2;
+
+    // Левая заклепка
     ctx.beginPath();
-    ctx.arc(x + earRadius, earY, earRadius, 0, Math.PI * 2);
+    ctx.arc(x + rivetRadius, rivetY, rivetRadius, 0, Math.PI * 2);
     ctx.fill();
 
-    // Правое ухо
+    // Правая заклепка
     ctx.beginPath();
-    ctx.arc(x + width - earRadius, earY, earRadius, 0, Math.PI * 2);
+    ctx.arc(x + width - rivetRadius, rivetY, rivetRadius, 0, Math.PI * 2);
     ctx.fill();
 
-    // Лицо
-    const faceY = y + height * 0.6;
-
-    // Глаза (черные овалы)
-    const eyeWidth = height * 0.25;
-    const eyeHeight = height * 0.35;
-    const eyeOffsetX = width * 0.25;
-
-    // Левый глаз
-    ctx.fillStyle = this.colorScheme.eyes;
+    // Центральная заклепка
     ctx.beginPath();
-    ctx.ellipse(
-      centerX - eyeOffsetX,
-      faceY,
-      eyeWidth,
-      eyeHeight,
-      0,
-      0,
-      Math.PI * 2
-    );
+    ctx.arc(x + width / 2, rivetY, rivetRadius * 0.8, 0, Math.PI * 2);
     ctx.fill();
 
-    // Правый глаз
+    // Обводка доски
+    ctx.strokeStyle = '#654321';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.ellipse(
-      centerX + eyeOffsetX,
-      faceY,
-      eyeWidth,
-      eyeHeight,
-      0,
-      0,
-      Math.PI * 2
-    );
-    ctx.fill();
-
-    // Нос (маленький розовый треугольник)
-    const noseSize = height * 0.15;
-    const noseY = faceY + eyeHeight;
-
-    ctx.fillStyle = this.colorScheme.nose;
-    ctx.beginPath();
-    ctx.moveTo(centerX, noseY);
-    ctx.lineTo(centerX - noseSize, noseY - noseSize);
-    ctx.lineTo(centerX + noseSize, noseY - noseSize);
-    ctx.closePath();
-    ctx.fill();
+    ctx.roundRect(x, y, width, height, height / 4);
+    ctx.stroke();
 
     // Тень для глубины
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetY = 5;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 4;
 
     // Сброс тени
     ctx.shadowColor = 'transparent';

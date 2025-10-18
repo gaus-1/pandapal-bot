@@ -43,7 +43,14 @@ export class CollisionDetector {
 
     if (distance < ball.radius) {
       // Вычисляем нормаль столкновения
-      const normal = ballCenter.subtract(closestPoint).normalize();
+      let normal = ballCenter.subtract(closestPoint);
+
+      // Если мяч точно в центре кирпича, используем направление движения
+      if (normal.length() < 0.1) {
+        normal = ball.velocity.normalize();
+      } else {
+        normal = normal.normalize();
+      }
 
       return {
         collided: true,
@@ -133,6 +140,53 @@ export class CollisionDetector {
     const ballCenter = ball.getCenter();
     const hitPosition = paddle.getHitPosition(ballCenter.x);
     ball.bounceOffPaddle(hitPosition);
+  }
+
+  /**
+   * Принудительное разделение мяча и кирпича (предотвращает застревание)
+   */
+  static separateBallFromBrick(ball: Ball, brick: Brick): void {
+    const ballCenter = ball.getCenter();
+    const brickBounds = brick.getBounds();
+
+    // Вычисляем перекрытие
+    const overlapX = Math.min(
+      ballCenter.x + ball.radius - brickBounds.left,
+      brickBounds.right - (ballCenter.x - ball.radius)
+    );
+    const overlapY = Math.min(
+      ballCenter.y + ball.radius - brickBounds.top,
+      brickBounds.bottom - (ballCenter.y - ball.radius)
+    );
+
+    // Двигаем мяч в направлении наименьшего перекрытия
+    if (overlapX < overlapY) {
+      // Горизонтальное разделение
+      if (ballCenter.x < brickBounds.left + brickBounds.width / 2) {
+        ball.setPosition(ball.x - overlapX - 1, ball.y);
+      } else {
+        ball.setPosition(ball.x + overlapX + 1, ball.y);
+      }
+    } else {
+      // Вертикальное разделение
+      if (ballCenter.y < brickBounds.top + brickBounds.height / 2) {
+        ball.setPosition(ball.x, ball.y - overlapY - 1);
+      } else {
+        ball.setPosition(ball.x, ball.y + overlapY + 1);
+      }
+    }
+  }
+
+  /**
+   * Принудительное разделение мяча и платформы
+   */
+  static separateBallFromPaddle(ball: Ball, paddle: Paddle): void {
+    const ballCenter = ball.getCenter();
+    const paddleBounds = paddle.getBounds();
+
+    // Всегда поднимаем мяч над платформой
+    const newY = paddleBounds.top - ball.radius - 1;
+    ball.setPosition(ball.x, newY);
   }
 
   /**

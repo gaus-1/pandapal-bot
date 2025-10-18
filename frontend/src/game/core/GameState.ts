@@ -161,6 +161,10 @@ export class GameStateManager {
   completeLevel(levelScore: number): void {
     this.addScore(levelScore);
     this.state.status = GameStatus.LEVEL_COMPLETE;
+    // Автоматически переходим на следующий уровень через небольшую задержку
+    setTimeout(() => {
+      this.nextLevel();
+    }, 2000); // 2 секунды на показ сообщения
   }
 
   /**
