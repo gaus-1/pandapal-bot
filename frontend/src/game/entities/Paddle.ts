@@ -58,6 +58,12 @@ export class Paddle extends GameObject {
     ctx.shadowBlur = 12;
     ctx.shadowOffsetY = 6;
 
+    // КРИТИЧЕСКАЯ ОТЛАДКА: Яркий фон для видимости платформы
+    ctx.fillStyle = '#FF0000'; // Ярко-красный фон
+    ctx.beginPath();
+    ctx.rect(x, y, width, height);
+    ctx.fill();
+
     // Основная деревянная доска с градиентом
     const gradient = ctx.createLinearGradient(x, y, x, y + height);
     gradient.addColorStop(0, '#A0522D'); // SaddleBrown
