@@ -160,7 +160,7 @@ export class Game {
     } else {
       // Десктоп - высокое разрешение с большей высотой для видимости платформы
       targetWidth = Math.min(container.clientWidth - 64, 1200);
-      targetHeight = Math.min(targetWidth * 0.67, Math.min(900, window.innerHeight * 0.85));
+      targetHeight = Math.min(targetWidth * 0.75, Math.min(1000, window.innerHeight * 0.9));
     }
 
     // Устанавливаем размеры canvas
