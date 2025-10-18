@@ -232,8 +232,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- **📧 Email**: support@pandapal.ru
-- **💬 Telegram**: [@PandaPalSupport](https://t.me/PandaPalSupport)
+- **📧 Email**: 79516625803@ya.ru
+- **💬 Telegram**: [@SavinVE](https://t.me/SavinVE)
 - **🐛 Issues**: [GitHub Issues](https://github.com/your-username/PandaPal/issues)
 - **📖 Documentation**: [pandapal.ru/docs](https://pandapal.ru/docs)
 
