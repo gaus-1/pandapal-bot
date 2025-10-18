@@ -65,6 +65,17 @@ export class Ball extends GameObject {
   update(deltaTime: number): void {
     if (!this._active) return;
 
+    // Проверяем минимальную скорость (предотвращает застревание)
+    const currentSpeed = this._velocity.length();
+    if (currentSpeed < this.baseSpeed * 0.5) {
+      // Если скорость слишком мала, придаем импульс
+      const normalized = this._velocity.normalize();
+      this.setVelocity(
+        normalized.x * this.baseSpeed,
+        normalized.y * this.baseSpeed
+      );
+    }
+
     // Обновляем след
     this.trail.push(this.getCenter());
     if (this.trail.length > this.trailLength) {

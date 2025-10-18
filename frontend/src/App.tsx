@@ -39,16 +39,6 @@ const App: React.FC = () => {
           <Features />
         </section>
 
-        {/* Кнопка игры PandaPal Go */}
-        <section className="py-8 md:py-12 text-center">
-          <a
-            href="/play"
-            className="inline-block px-12 py-6 rounded-full bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white font-bold text-xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 active:scale-95"
-          >
-            🎮 Играть в PandaPal Go
-          </a>
-        </section>
-
         {/* Табы с информацией (Родители/Безопасность/Возможности) */}
         <InfoTabs />
 
