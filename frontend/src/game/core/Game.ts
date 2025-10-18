@@ -158,9 +158,9 @@ export class Game {
       targetWidth = Math.min(container.clientWidth - 48, 800);
       targetHeight = Math.min(targetWidth * 0.75, window.innerHeight * 0.8);
     } else {
-      // Десктоп - высокое разрешение
+      // Десктоп - высокое разрешение с большей высотой для видимости платформы
       targetWidth = Math.min(container.clientWidth - 64, 1200);
-      targetHeight = Math.min(targetWidth * 0.67, 800);
+      targetHeight = Math.min(targetWidth * 0.67, Math.min(900, window.innerHeight * 0.85));
     }
 
     // Устанавливаем размеры canvas

@@ -70,7 +70,13 @@ export abstract class Level {
     const paddleWidth = Math.max(80, this.canvasWidth * 0.18);
     const paddleHeight = Math.max(16, this.canvasWidth * 0.025);
     const paddleX = (this.canvasWidth - paddleWidth) / 2;
-    const paddleY = this.canvasHeight - 80;
+
+    // ИСПРАВЛЕНИЕ: Адаптивная позиция платформы для всех устройств
+    // На мобильных: ближе к низу, на десктопах: с отступом
+    const isMobile = this.canvasWidth <= 768;
+    const paddleY = isMobile
+      ? this.canvasHeight - 60  // Мобильные: ближе к низу
+      : this.canvasHeight - 100; // Десктопы: больше отступ
 
     return new Paddle(paddleX, paddleY, paddleWidth, paddleHeight);
   }
@@ -82,7 +88,13 @@ export abstract class Level {
     // Адаптивный размер мяча в зависимости от размера экрана
     const baseRadius = Math.max(12, Math.min(20, this.canvasWidth * 0.02));
     const x = this.canvasWidth / 2 - baseRadius;
-    const y = this.canvasHeight - 120;
+
+    // ИСПРАВЛЕНИЕ: Адаптивная позиция мяча для всех устройств
+    const isMobile = this.canvasWidth <= 768;
+    const y = isMobile
+      ? this.canvasHeight - 100  // Мобильные: выше платформы
+      : this.canvasHeight - 140; // Десктопы: еще выше
+
     const speed = 0.5; // Немного быстрее для лучшего геймплея
 
     return new Ball(x, y, baseRadius, speed, this.colorScheme);
