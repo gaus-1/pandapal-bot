@@ -71,12 +71,19 @@ export abstract class Level {
     const paddleHeight = Math.max(16, this.canvasWidth * 0.025);
     const paddleX = (this.canvasWidth - paddleWidth) / 2;
 
-    // ИСПРАВЛЕНИЕ: Адаптивная позиция платформы для всех устройств
-    // На мобильных: ближе к низу, на десктопах: с отступом
-    const isMobile = this.canvasWidth <= 768;
-    const paddleY = isMobile
-      ? this.canvasHeight - 60  // Мобильные: ближе к низу
-      : this.canvasHeight - 100; // Десктопы: больше отступ
+    // ИСПРАВЛЕНИЕ: Более точное определение устройства
+    // Используем window.innerWidth для более точного определения
+    const isMobile = window.innerWidth <= 768;
+    const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+
+    let paddleY: number;
+    if (isMobile) {
+      paddleY = this.canvasHeight - 60;  // Мобильные: ближе к низу
+    } else if (isTablet) {
+      paddleY = this.canvasHeight - 80;  // Планшеты: средний отступ
+    } else {
+      paddleY = this.canvasHeight - 50;  // Десктопы: минимальный отступ для видимости
+    }
 
     return new Paddle(paddleX, paddleY, paddleWidth, paddleHeight);
   }
@@ -89,11 +96,18 @@ export abstract class Level {
     const baseRadius = Math.max(12, Math.min(20, this.canvasWidth * 0.02));
     const x = this.canvasWidth / 2 - baseRadius;
 
-    // ИСПРАВЛЕНИЕ: Адаптивная позиция мяча для всех устройств
-    const isMobile = this.canvasWidth <= 768;
-    const y = isMobile
-      ? this.canvasHeight - 100  // Мобильные: выше платформы
-      : this.canvasHeight - 140; // Десктопы: еще выше
+    // ИСПРАВЛЕНИЕ: Более точное определение устройства для позиции мяча
+    const isMobile = window.innerWidth <= 768;
+    const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+
+    let y: number;
+    if (isMobile) {
+      y = this.canvasHeight - 100;  // Мобильные: выше платформы
+    } else if (isTablet) {
+      y = this.canvasHeight - 120;  // Планшеты: средняя позиция
+    } else {
+      y = this.canvasHeight - 80;   // Десктопы: близко к платформе для видимости
+    }
 
     const speed = 0.5; // Немного быстрее для лучшего геймплея
 
@@ -225,10 +239,23 @@ export abstract class Level {
     this.bricks = this.createBricks();
     this.particles.clear();
 
-    // Сбрасываем мяч
-    const radius = 10;
+    // Сбрасываем мяч с правильной позицией
+    const radius = this.ball.radius;
     const x = this.canvasWidth / 2 - radius;
-    const y = this.canvasHeight - 100;
+
+    // Используем ту же логику позиционирования что и при создании
+    const isMobile = window.innerWidth <= 768;
+    const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+
+    let y: number;
+    if (isMobile) {
+      y = this.canvasHeight - 100;
+    } else if (isTablet) {
+      y = this.canvasHeight - 120;
+    } else {
+      y = this.canvasHeight - 80;
+    }
+
     this.ball.reset(x, y);
   }
 }
