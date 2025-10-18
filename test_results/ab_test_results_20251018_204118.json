@@ -1,0 +1,438 @@
+{
+  "timestamp": "20251018_204118",
+  "analytics": {
+    "variant_b": {
+      "users": 3,
+      "avg_score": 2066.6666666666665,
+      "avg_levels_completed": 2.6666666666666665,
+      "avg_play_time": 583.3333333333334,
+      "avg_errors": 0.6666666666666666
+    },
+    "control": {
+      "users": 4,
+      "avg_score": 1900.0,
+      "avg_levels_completed": 2.0,
+      "avg_play_time": 500.0,
+      "avg_errors": 1.0
+    },
+    "variant_a": {
+      "users": 3,
+      "avg_score": 1900.0,
+      "avg_levels_completed": 3.0,
+      "avg_play_time": 500.0,
+      "avg_errors": 1.0
+    }
+  },
+  "raw_results": [
+    {
+      "user_id": "test_user_0",
+      "variant": "variant_b",
+      "events": [
+        {
+          "event": "game_started",
+          "timestamp": 1760809275.9728415,
+          "variant": "variant_b"
+        },
+        {
+          "event": "level_completed",
+          "level": 1,
+          "timestamp": 1760809275.9728415,
+          "variant": "variant_b"
+        },
+        {
+          "event": "level_completed",
+          "level": 2,
+          "timestamp": 1760809276.07525,
+          "variant": "variant_b"
+        },
+        {
+          "event": "level_completed",
+          "level": 3,
+          "timestamp": 1760809276.1756968,
+          "variant": "variant_b"
+        },
+        {
+          "event": "game_ended",
+          "timestamp": 1760809276.2761624,
+          "variant": "variant_b",
+          "score": 1500,
+          "play_time": 300,
+          "errors": 0
+        }
+      ],
+      "metrics": {
+        "levels_completed": 3,
+        "score": 1500,
+        "play_time": 300,
+        "errors": 0,
+        "success_rate": 60.0
+      }
+    },
+    {
+      "user_id": "test_user_1",
+      "variant": "control",
+      "events": [
+        {
+          "event": "game_started",
+          "timestamp": 1760809276.2761624,
+          "variant": "control"
+        },
+        {
+          "event": "level_completed",
+          "level": 1,
+          "timestamp": 1760809276.2761624,
+          "variant": "control"
+        },
+        {
+          "event": "level_completed",
+          "level": 2,
+          "timestamp": 1760809276.377038,
+          "variant": "control"
+        },
+        {
+          "event": "game_ended",
+          "timestamp": 1760809276.47793,
+          "variant": "control",
+          "score": 1600,
+          "play_time": 350,
+          "errors": 1
+        }
+      ],
+      "metrics": {
+        "levels_completed": 2,
+        "score": 1600,
+        "play_time": 350,
+        "errors": 1,
+        "success_rate": 40.0
+      }
+    },
+    {
+      "user_id": "test_user_2",
+      "variant": "variant_a",
+      "events": [
+        {
+          "event": "game_started",
+          "timestamp": 1760809276.47793,
+          "variant": "variant_a"
+        },
+        {
+          "event": "level_completed",
+          "level": 1,
+          "timestamp": 1760809276.47793,
+          "variant": "variant_a"
+        },
+        {
+          "event": "level_completed",
+          "level": 2,
+          "timestamp": 1760809276.5784247,
+          "variant": "variant_a"
+        },
+        {
+          "event": "level_completed",
+          "level": 3,
+          "timestamp": 1760809276.6788337,
+          "variant": "variant_a"
+        },
+        {
+          "event": "game_ended",
+          "timestamp": 1760809276.7790737,
+          "variant": "variant_a",
+          "score": 1700,
+          "play_time": 400,
+          "errors": 2
+        }
+      ],
+      "metrics": {
+        "levels_completed": 3,
+        "score": 1700,
+        "play_time": 400,
+        "errors": 2,
+        "success_rate": 60.0
+      }
+    },
+    {
+      "user_id": "test_user_3",
+      "variant": "control",
+      "events": [
+        {
+          "event": "game_started",
+          "timestamp": 1760809276.7790737,
+          "variant": "control"
+        },
+        {
+          "event": "level_completed",
+          "level": 1,
+          "timestamp": 1760809276.7790737,
+          "variant": "control"
+        },
+        {
+          "event": "level_completed",
+          "level": 2,
+          "timestamp": 1760809276.8797417,
+          "variant": "control"
+        },
+        {
+          "event": "game_ended",
+          "timestamp": 1760809276.9798534,
+          "variant": "control",
+          "score": 1800,
+          "play_time": 450,
+          "errors": 0
+        }
+      ],
+      "metrics": {
+        "levels_completed": 2,
+        "score": 1800,
+        "play_time": 450,
+        "errors": 0,
+        "success_rate": 40.0
+      }
+    },
+    {
+      "user_id": "test_user_4",
+      "variant": "variant_a",
+      "events": [
+        {
+          "event": "game_started",
+          "timestamp": 1760809276.9798534,
+          "variant": "variant_a"
+        },
+        {
+          "event": "level_completed",
+          "level": 1,
+          "timestamp": 1760809276.9798534,
+          "variant": "variant_a"
+        },
+        {
+          "event": "level_completed",
+          "level": 2,
+          "timestamp": 1760809277.0807936,
+          "variant": "variant_a"
+        },
+        {
+          "event": "level_completed",
+          "level": 3,
+          "timestamp": 1760809277.1812499,
+          "variant": "variant_a"
+        },
+        {
+          "event": "game_ended",
+          "timestamp": 1760809277.2814069,
+          "variant": "variant_a",
+          "score": 1900,
+          "play_time": 500,
+          "errors": 1
+        }
+      ],
+      "metrics": {
+        "levels_completed": 3,
+        "score": 1900,
+        "play_time": 500,
+        "errors": 1,
+        "success_rate": 60.0
+      }
+    },
+    {
+      "user_id": "test_user_5",
+      "variant": "control",
+      "events": [
+        {
+          "event": "game_started",
+          "timestamp": 1760809277.2814069,
+          "variant": "control"
+        },
+        {
+          "event": "level_completed",
+          "level": 1,
+          "timestamp": 1760809277.2814069,
+          "variant": "control"
+        },
+        {
+          "event": "level_completed",
+          "level": 2,
+          "timestamp": 1760809277.3823628,
+          "variant": "control"
+        },
+        {
+          "event": "game_ended",
+          "timestamp": 1760809277.4826915,
+          "variant": "control",
+          "score": 2000,
+          "play_time": 550,
+          "errors": 2
+        }
+      ],
+      "metrics": {
+        "levels_completed": 2,
+        "score": 2000,
+        "play_time": 550,
+        "errors": 2,
+        "success_rate": 40.0
+      }
+    },
+    {
+      "user_id": "test_user_6",
+      "variant": "variant_a",
+      "events": [
+        {
+          "event": "game_started",
+          "timestamp": 1760809277.4826915,
+          "variant": "variant_a"
+        },
+        {
+          "event": "level_completed",
+          "level": 1,
+          "timestamp": 1760809277.4826915,
+          "variant": "variant_a"
+        },
+        {
+          "event": "level_completed",
+          "level": 2,
+          "timestamp": 1760809277.5834866,
+          "variant": "variant_a"
+        },
+        {
+          "event": "level_completed",
+          "level": 3,
+          "timestamp": 1760809277.6843488,
+          "variant": "variant_a"
+        },
+        {
+          "event": "game_ended",
+          "timestamp": 1760809277.7848465,
+          "variant": "variant_a",
+          "score": 2100,
+          "play_time": 600,
+          "errors": 0
+        }
+      ],
+      "metrics": {
+        "levels_completed": 3,
+        "score": 2100,
+        "play_time": 600,
+        "errors": 0,
+        "success_rate": 60.0
+      }
+    },
+    {
+      "user_id": "test_user_7",
+      "variant": "control",
+      "events": [
+        {
+          "event": "game_started",
+          "timestamp": 1760809277.7848465,
+          "variant": "control"
+        },
+        {
+          "event": "level_completed",
+          "level": 1,
+          "timestamp": 1760809277.7848465,
+          "variant": "control"
+        },
+        {
+          "event": "level_completed",
+          "level": 2,
+          "timestamp": 1760809277.8866055,
+          "variant": "control"
+        },
+        {
+          "event": "game_ended",
+          "timestamp": 1760809277.987225,
+          "variant": "control",
+          "score": 2200,
+          "play_time": 650,
+          "errors": 1
+        }
+      ],
+      "metrics": {
+        "levels_completed": 2,
+        "score": 2200,
+        "play_time": 650,
+        "errors": 1,
+        "success_rate": 40.0
+      }
+    },
+    {
+      "user_id": "test_user_8",
+      "variant": "variant_b",
+      "events": [
+        {
+          "event": "game_started",
+          "timestamp": 1760809277.987225,
+          "variant": "variant_b"
+        },
+        {
+          "event": "level_completed",
+          "level": 1,
+          "timestamp": 1760809277.987225,
+          "variant": "variant_b"
+        },
+        {
+          "event": "level_completed",
+          "level": 2,
+          "timestamp": 1760809278.0884068,
+          "variant": "variant_b"
+        },
+        {
+          "event": "level_completed",
+          "level": 3,
+          "timestamp": 1760809278.18874,
+          "variant": "variant_b"
+        },
+        {
+          "event": "game_ended",
+          "timestamp": 1760809278.2892375,
+          "variant": "variant_b",
+          "score": 2300,
+          "play_time": 700,
+          "errors": 2
+        }
+      ],
+      "metrics": {
+        "levels_completed": 3,
+        "score": 2300,
+        "play_time": 700,
+        "errors": 2,
+        "success_rate": 60.0
+      }
+    },
+    {
+      "user_id": "test_user_9",
+      "variant": "variant_b",
+      "events": [
+        {
+          "event": "game_started",
+          "timestamp": 1760809278.2892375,
+          "variant": "variant_b"
+        },
+        {
+          "event": "level_completed",
+          "level": 1,
+          "timestamp": 1760809278.2892375,
+          "variant": "variant_b"
+        },
+        {
+          "event": "level_completed",
+          "level": 2,
+          "timestamp": 1760809278.3899913,
+          "variant": "variant_b"
+        },
+        {
+          "event": "game_ended",
+          "timestamp": 1760809278.4901037,
+          "variant": "variant_b",
+          "score": 2400,
+          "play_time": 750,
+          "errors": 0
+        }
+      ],
+      "metrics": {
+        "levels_completed": 2,
+        "score": 2400,
+        "play_time": 750,
+        "errors": 0,
+        "success_rate": 40.0
+      }
+    }
+  ]
+}
