@@ -78,11 +78,11 @@ export abstract class Level {
 
     let paddleY: number;
     if (isMobile) {
-      paddleY = this.canvasHeight - 40;  // Мобильные: очень близко к низу
+      paddleY = this.canvasHeight - 60;  // Мобильные: отступ 60px от низа
     } else if (isTablet) {
-      paddleY = this.canvasHeight - 50;  // Планшеты: близко к низу
+      paddleY = this.canvasHeight - 70;  // Планшеты: отступ 70px от низа
     } else {
-      paddleY = this.canvasHeight - 30;  // Десктопы: МИНИМАЛЬНЫЙ отступ - платформа должна быть видна!
+      paddleY = this.canvasHeight - 80;  // Десктопы: отступ 80px от низа - ГАРАНТИРОВАННО ВИДНА!
     }
 
     // Отладочная информация в консоль
@@ -105,11 +105,11 @@ export abstract class Level {
 
     let y: number;
     if (isMobile) {
-      y = this.canvasHeight - 80;   // Мобильные: выше платформы (40px от низа)
+      y = this.canvasHeight - 100;  // Мобильные: выше платформы (60px от низа)
     } else if (isTablet) {
-      y = this.canvasHeight - 90;   // Планшеты: выше платформы (50px от низа)
+      y = this.canvasHeight - 110;  // Планшеты: выше платформы (70px от низа)
     } else {
-      y = this.canvasHeight - 60;   // Десктопы: выше платформы (30px от низа)
+      y = this.canvasHeight - 120;  // Десктопы: выше платформы (80px от низа)
     }
 
     // Отладочная информация в консоль
@@ -255,11 +255,11 @@ export abstract class Level {
 
     let y: number;
     if (isMobile) {
-      y = this.canvasHeight - 80;   // Мобильные: выше платформы (40px от низа)
+      y = this.canvasHeight - 100;  // Мобильные: выше платформы (60px от низа)
     } else if (isTablet) {
-      y = this.canvasHeight - 90;   // Планшеты: выше платформы (50px от низа)
+      y = this.canvasHeight - 110;  // Планшеты: выше платформы (70px от низа)
     } else {
-      y = this.canvasHeight - 60;   // Десктопы: выше платформы (30px от низа)
+      y = this.canvasHeight - 120;  // Десктопы: выше платформы (80px от низа)
     }
 
     this.ball.reset(x, y);
