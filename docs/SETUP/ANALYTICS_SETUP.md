@@ -148,12 +148,12 @@
 2. **Что увидите:**
    ```
    📊 Статистика за последние 30 дней:
-   
+
    👥 Всего пользователей: XXXX
    📈 Новых за месяц: +XXX
    💬 Сообщений получено: XXXX
    📤 Сообщений отправлено: XXXX
-   
+
    График по дням ───────────
    ```
 
@@ -184,7 +184,7 @@
 -- Пользователь/пароль: из .env
 
 -- Общая статистика
-SELECT 
+SELECT
     COUNT(*) as total_users,
     COUNT(CASE WHEN is_active THEN 1 END) as active_users,
     COUNT(CASE WHEN user_type = 'child' THEN 1 END) as children,
@@ -192,7 +192,7 @@ SELECT
 FROM users;
 
 -- Пользователи по дням
-SELECT 
+SELECT
     DATE(created_at) as date,
     COUNT(*) as new_users
 FROM users
@@ -201,7 +201,7 @@ ORDER BY date DESC
 LIMIT 30;
 
 -- Самые активные пользователи
-SELECT 
+SELECT
     u.first_name,
     u.telegram_id,
     COUNT(ch.id) as message_count
@@ -212,7 +212,7 @@ ORDER BY message_count DESC
 LIMIT 20;
 
 -- Активность по часам
-SELECT 
+SELECT
     EXTRACT(HOUR FROM timestamp) as hour,
     COUNT(*) as messages
 FROM chat_history
@@ -221,7 +221,7 @@ GROUP BY EXTRACT(HOUR FROM timestamp)
 ORDER BY hour;
 
 -- Статистика сообщений
-SELECT 
+SELECT
     COUNT(*) as total_messages,
     COUNT(CASE WHEN message_type = 'user' THEN 1 END) as user_messages,
     COUNT(CASE WHEN message_type = 'ai' THEN 1 END) as ai_messages,
@@ -365,21 +365,21 @@ def get_stats():
             text("SELECT COUNT(*) FROM users WHERE is_active = true")
         ).scalar()
         total_messages = conn.execute(text("SELECT COUNT(*) FROM chat_history")).scalar()
-        
+
         # Сегодняшняя статистика
         today = datetime.now().date()
         messages_today = conn.execute(
             text("SELECT COUNT(*) FROM chat_history WHERE DATE(timestamp) = :today"),
             {"today": today}
         ).scalar()
-        
+
         # Новые пользователи за неделю
         week_ago = datetime.now() - timedelta(days=7)
         new_users_week = conn.execute(
             text("SELECT COUNT(*) FROM users WHERE created_at >= :week_ago"),
             {"week_ago": week_ago}
         ).scalar()
-        
+
         print("=" * 60)
         print("📊 СТАТИСТИКА PANDAPAL")
         print("=" * 60)
@@ -387,14 +387,14 @@ def get_stats():
         print(f"   Всего: {total_users}")
         print(f"   Активных: {active_users}")
         print(f"   Новых за неделю: {new_users_week}")
-        
+
         print(f"\n💬 СООБЩЕНИЯ:")
         print(f"   Всего: {total_messages}")
         print(f"   Сегодня: {messages_today}")
-        
+
         # Топ-10 активных пользователей
         result = conn.execute(text("""
-            SELECT 
+            SELECT
                 u.first_name,
                 u.telegram_id,
                 COUNT(ch.id) as msg_count
@@ -404,11 +404,11 @@ def get_stats():
             ORDER BY msg_count DESC
             LIMIT 10
         """))
-        
+
         print(f"\n🏆 ТОП-10 АКТИВНЫХ ПОЛЬЗОВАТЕЛЕЙ:")
         for i, row in enumerate(result, 1):
             print(f"   {i}. {row[0]} (@{row[1]}): {row[2]} сообщений")
-        
+
         print("\n" + "=" * 60)
 
 if __name__ == "__main__":
@@ -515,7 +515,7 @@ HTML_TEMPLATE = """
 <body>
     <div class="container">
         <h1>📊 PandaPal Analytics Dashboard</h1>
-        
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">Всего пользователей</div>
@@ -534,7 +534,7 @@ HTML_TEMPLATE = """
                 <div class="stat-value">{{ messages_today }}</div>
             </div>
         </div>
-        
+
         <h2>🏆 Топ-20 активных пользователей</h2>
         <table>
             <thead>
@@ -558,7 +558,7 @@ HTML_TEMPLATE = """
                 {% endfor %}
             </tbody>
         </table>
-        
+
         <p style="text-align: center; color: #999; margin-top: 30px;">
             Обновляется каждые 30 секунд
         </p>
@@ -577,17 +577,17 @@ def dashboard():
             text("SELECT COUNT(*) FROM users WHERE is_active = true")
         ).scalar()
         total_messages = conn.execute(text("SELECT COUNT(*) FROM chat_history")).scalar()
-        
+
         from datetime import datetime
         today = datetime.now().date()
         messages_today = conn.execute(
             text("SELECT COUNT(*) FROM chat_history WHERE DATE(timestamp) = :today"),
             {"today": today}
         ).scalar() or 0
-        
+
         # Топ пользователей
         top_users_result = conn.execute(text("""
-            SELECT 
+            SELECT
                 u.first_name,
                 u.telegram_id,
                 COUNT(ch.id) as msg_count,
@@ -599,7 +599,7 @@ def dashboard():
             LIMIT 20
         """))
         top_users = list(top_users_result)
-    
+
     return render_template_string(
         HTML_TEMPLATE,
         total_users=total_users,
@@ -723,25 +723,25 @@ async def send_daily_report():
     """Отправка ежедневной статистики"""
     bot = Bot(token=os.getenv("TELEGRAM_BOT_TOKEN"))
     admin_id = 963126718  # Ваш Telegram ID
-    
+
     # Получаем статистику
     engine = create_engine(os.getenv("DATABASE_URL"))
     with engine.connect() as conn:
         today = datetime.now().date()
         yesterday = today - timedelta(days=1)
-        
+
         new_users_today = conn.execute(
             text("SELECT COUNT(*) FROM users WHERE DATE(created_at) = :today"),
             {"today": today}
         ).scalar()
-        
+
         messages_today = conn.execute(
             text("SELECT COUNT(*) FROM chat_history WHERE DATE(timestamp) = :today"),
             {"today": today}
         ).scalar()
-        
+
         total_users = conn.execute(text("SELECT COUNT(*) FROM users")).scalar()
-    
+
     # Формируем отчет
     report = f"""
 📊 <b>Ежедневный отчет PandaPal</b>
@@ -761,7 +761,7 @@ async def send_daily_report():
 
 #отчет #статистика
 """
-    
+
     await bot.send_message(admin_id, report, parse_mode="HTML")
     print(f"✅ Отчет за {today} отправлен")
 
@@ -841,4 +841,3 @@ if __name__ == "__main__":
 **Начните отслеживать ваших пользователей уже сегодня! 📊🚀**
 
 *Документ обновлен: 2025-10-08*
-

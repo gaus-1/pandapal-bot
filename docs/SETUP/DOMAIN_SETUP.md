@@ -36,7 +36,7 @@ Type: CNAME
 Name: pandapal.ru
 Value: [render-provided-url]
 
-Type: CNAME  
+Type: CNAME
 Name: www.pandapal.ru
 Value: [render-provided-url]
 ```
