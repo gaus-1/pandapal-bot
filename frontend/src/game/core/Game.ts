@@ -164,6 +164,9 @@ export class Game {
       targetHeight = Math.min(targetWidth * 0.75, window.innerHeight * 0.7);
     }
 
+    // КРИТИЧЕСКАЯ ОТЛАДКА: Выводим размеры canvas
+    console.log(`🎮 CANVAS DEBUG: targetWidth=${targetWidth}, targetHeight=${targetHeight}, window=${window.innerWidth}x${window.innerHeight}`);
+
     // Устанавливаем размеры canvas
     this.canvas.width = targetWidth;
     this.canvas.height = targetHeight;
