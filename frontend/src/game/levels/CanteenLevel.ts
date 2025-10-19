@@ -1,6 +1,7 @@
 import { Level } from './Level';
 import type { ColorScheme } from '../utils/ColorPalette';
 import { ColorPalette } from '../utils/ColorPalette';
+import type { Game } from '../core/Game';
 
 /**
  * Уровень 3: Столовая 🍎
@@ -11,6 +12,9 @@ import { ColorPalette } from '../utils/ColorPalette';
  * - Конец: Сытость (полный поднос, довольная панда)
  */
 export class CanteenLevel extends Level {
+  constructor(game: Game) {
+    super(game);
+  }
   protected initColorScheme(): ColorScheme {
     return ColorPalette.CANTEEN;
   }

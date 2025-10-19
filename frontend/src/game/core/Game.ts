@@ -41,15 +41,12 @@ export class Game {
    * Инициализация всех уровней
    */
   private initializeLevels(): Level[] {
-    const width = this.canvas.width;
-    const height = this.canvas.height;
-
     return [
-      new GymLevel(width, height),
-      new ClassroomLevel(width, height),
-      new CanteenLevel(width, height),
-      new PlaygroundLevel(width, height),
-      new LibraryLevel(width, height),
+      new GymLevel(this),
+      new ClassroomLevel(this),
+      new CanteenLevel(this),
+      new PlaygroundLevel(this),
+      new LibraryLevel(this),
     ];
   }
 
