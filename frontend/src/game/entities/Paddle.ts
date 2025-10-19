@@ -52,7 +52,8 @@ export class Paddle extends GameObject {
 
     // Отладочная информация - выводим позицию платформы
     console.log(`🎯 Paddle Render: x=${x}, y=${y}, width=${width}, height=${height}`);
-    console.log(`🟢 ЗЕЛЕНЫЙ КВАДРАТ ДОЛЖЕН БЫТЬ ВИДЕН В ЛЕВОМ ВЕРХНЕМ УГЛУ!`);
+    console.log(`🔴 КРАСНАЯ ПЛАТФОРМА ДОЛЖНА БЫТЬ ВИДНА ВНИЗУ!`);
+    console.log(`🔴 КРАСНЫЙ КВАДРАТ ДОЛЖЕН БЫТЬ ВИДЕН В ЛЕВОМ ВЕРХНЕМ УГЛУ!`);
 
     // Тень под платформой
     ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
