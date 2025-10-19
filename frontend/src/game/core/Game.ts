@@ -402,13 +402,18 @@ export class Game {
    * Отрисовка игры
    */
   private renderGame(): void {
-    if (!this.currentLevel) return;
+    if (!this.currentLevel) {
+      console.log('❌ No current level!');
+      return;
+    }
 
+    console.log('🎮 Game Render Called!');
     // Рендерим уровень
     this.currentLevel.render(this.ctx);
 
     // Рендерим UI
     this.renderUI();
+    console.log('✅ Game Render Complete!');
   }
 
   /**
