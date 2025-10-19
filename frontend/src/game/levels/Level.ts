@@ -21,13 +21,18 @@ export abstract class Level {
   protected isComplete: boolean = false;
 
   constructor(protected game: Game) {
+    console.log('🚧 Level Constructor Called!');
     this.colorScheme = this.initColorScheme();
     this.particles = new ParticleSystem();
 
     // Создаем базовые объекты
+    console.log('🎯 Creating paddle...');
     this.paddle = this.createPaddle();
+    console.log('⚽ Creating ball...');
     this.ball = this.createBall();
+    console.log('🧱 Creating bricks...');
     this.bricks = this.createBricks();
+    console.log('✅ Level Constructor Complete!');
   }
 
   /**
@@ -226,11 +231,15 @@ export abstract class Level {
    * Отрисовка уровня
    */
   render(ctx: CanvasRenderingContext2D): void {
+    console.log('🎨 Level Render Called!');
     this.renderBackground(ctx);
     this.bricks.forEach((brick) => brick.render(ctx));
     this.particles.render(ctx);
+    console.log('🎯 Rendering paddle...');
     this.paddle.render(ctx);
+    console.log('⚽ Rendering ball...');
     this.ball.render(ctx);
+    console.log('✅ Level Render Complete!');
   }
 
   /**
