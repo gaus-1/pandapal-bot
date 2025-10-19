@@ -385,7 +385,7 @@ async def change_period(callback_query, state: FSMContext):
 
     # Определяем период
     if period_type == "week":
-        period = "week"
+        _ = "week"  # period для будущей реализации
         period_name = "неделю"
     elif period_type == "month":
         _ = "month"  # period для будущей реализации
