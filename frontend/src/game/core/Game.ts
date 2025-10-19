@@ -23,6 +23,7 @@ export class Game {
   private isRunning: boolean = false;
 
   constructor(canvas: HTMLCanvasElement) {
+    console.log('🎮 Game Constructor Called!');
     this.canvas = canvas;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
@@ -30,11 +31,15 @@ export class Game {
     }
     this.ctx = ctx;
 
+    console.log('🎯 Creating GameStateManager...');
     this.stateManager = new GameStateManager();
+    console.log('🎯 Initializing levels...');
     this.levels = this.initializeLevels();
+    console.log('✅ Levels initialized!');
 
     this.setupEventListeners();
     this.resize();
+    console.log('✅ Game Constructor Complete!');
   }
 
   /**
