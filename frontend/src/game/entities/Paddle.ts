@@ -60,14 +60,14 @@ export class Paddle extends GameObject {
     ctx.shadowOffsetY = 6;
 
     // КРИТИЧЕСКАЯ ОТЛАДКА: Яркий фон для видимости платформы
-    ctx.fillStyle = '#00FF00'; // ЯРКО-ЗЕЛЕНЫЙ фон для теста
+    ctx.fillStyle = '#FF0000'; // ЯРКО-КРАСНЫЙ фон для платформы
     ctx.beginPath();
     ctx.rect(x, y, width, height);
     ctx.fill();
 
-    // Дополнительная отладка - рисуем большой зеленый квадрат
-    ctx.fillStyle = '#00FF00';
-    ctx.fillRect(0, 0, 100, 100); // Зеленый квадрат в левом верхнем углу
+    // Дополнительная отладка - рисуем большой красный квадрат
+    ctx.fillStyle = '#FF0000';
+    ctx.fillRect(0, 0, 100, 100); // Красный квадрат в левом верхнем углу
 
     // Основная деревянная доска с градиентом
     const gradient = ctx.createLinearGradient(x, y, x, y + height);
