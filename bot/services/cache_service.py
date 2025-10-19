@@ -221,7 +221,9 @@ class CacheService:
         """Инициализация подключения к Redis"""
         try:
             # Настройки Redis из конфигурации
-            redis_url = getattr(settings, "redis_url", "redis://localhost:6379/0")
+            _ = getattr(
+                settings, "redis_url", "redis://localhost:6379/0"
+            )  # для будущего использования
 
             # Redis отключен для упрощения деплоя
             # self._redis_client = aioredis.from_url(

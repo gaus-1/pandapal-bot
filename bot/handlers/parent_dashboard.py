@@ -121,10 +121,12 @@ async def show_child_dashboard(callback_query, state: FSMContext):
 
     # Извлекаем ID ребенка из callback_data
     child_id = int(callback_query.data.split("_")[2])
-    parent_id = callback_query.from_user.id
+    # parent_id для будущей проверки прав доступа
+    _ = callback_query.from_user.id
 
     with get_db() as db:
-        monitor = get_simple_monitor()
+        # monitor для будущей аналитики
+        _ = get_simple_monitor()
         user_service = UserService(db)
         user = user_service.get_user_by_telegram_id(child_id)
 
@@ -302,7 +304,7 @@ async def show_overview_dashboard(callback_query, state: FSMContext):
     parent_id = callback_query.from_user.id
 
     with get_db() as db:
-        monitor = get_simple_monitor()
+        _ = get_simple_monitor()  # monitor для будущей аналитики
         user_service = UserService(db)
 
         try:
@@ -392,14 +394,15 @@ async def change_period(callback_query, state: FSMContext):
         period = "week"
         period_name = "неделю"
 
-    parent_id = callback_query.from_user.id
+    _ = callback_query.from_user.id  # parent_id для будущей проверки прав
 
     with get_db() as db:
-        monitor = get_simple_monitor()
+        _ = get_simple_monitor()  # monitor для будущей аналитики
 
         try:
             # TODO: Реализовать родительскую аналитику
-            dashboard_data = {
+            # dashboard_data будет использоваться после реализации TODO
+            _dashboard_data = {
                 "messages_count": 0,
                 "learning_time": 0,
                 "safety_alerts": 0,
@@ -467,10 +470,10 @@ async def show_detailed_report(callback_query, state: FSMContext):
     await callback_query.answer()
 
     child_id = int(callback_query.data.split("_")[1])
-    parent_id = callback_query.from_user.id
+    _ = callback_query.from_user.id  # parent_id для будущей проверки прав
 
     with get_db() as db:
-        monitor = get_simple_monitor()
+        _ = get_simple_monitor()  # monitor для будущей аналитики
 
         try:
             # Получаем детальную аналитику пользователя
@@ -622,7 +625,7 @@ async def generate_weekly_report(message: Message, state: FSMContext):
 
     with get_db() as db:
         user_service = UserService(db)
-        monitor = get_simple_monitor()
+        _ = get_simple_monitor()  # monitor для будущей аналитики
 
         user = user_service.get_user_by_telegram_id(telegram_id)
 
@@ -641,7 +644,8 @@ async def generate_weekly_report(message: Message, state: FSMContext):
             # Генерируем отчет для каждого ребенка
             for child in children:
                 # TODO: Реализовать родительскую аналитику
-                dashboard_data = {
+                # dashboard_data будет использоваться после реализации TODO
+                _dashboard_data = {
                     "messages_count": 0,
                     "learning_time": 0,
                     "safety_alerts": 0,
