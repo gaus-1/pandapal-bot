@@ -388,15 +388,15 @@ async def change_period(callback_query, state: FSMContext):
         period = "week"
         period_name = "неделю"
     elif period_type == "month":
-        period = "month"
+        _ = "month"  # period для будущей реализации
         period_name = "месяц"
     else:
-        period = "week"
+        _ = "week"  # period для будущей реализации
         period_name = "неделю"
 
     _ = callback_query.from_user.id  # parent_id для будущей проверки прав
 
-    with get_db() as db:
+    with get_db():  # db для будущей аналитики
         _ = get_simple_monitor()  # monitor для будущей аналитики
 
         try:
@@ -472,7 +472,7 @@ async def show_detailed_report(callback_query, state: FSMContext):
     child_id = int(callback_query.data.split("_")[1])
     _ = callback_query.from_user.id  # parent_id для будущей проверки прав
 
-    with get_db() as db:
+    with get_db():  # db для будущей аналитики
         _ = get_simple_monitor()  # monitor для будущей аналитики
 
         try:

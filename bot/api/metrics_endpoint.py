@@ -193,7 +193,7 @@ def setup_metrics_middleware(app: web.Application):
             response = await handler(request)
 
             # Записываем успешный запрос
-            response_time = asyncio.get_event_loop().time() - start_time
+            _ = asyncio.get_event_loop().time() - start_time  # response_time для будущих метрик
 
             # Можно добавить метрики для HTTP запросов
             # metrics.increment_counter('http_requests_total', {

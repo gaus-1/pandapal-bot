@@ -158,7 +158,7 @@ class MetricsIntegration:
 
                 # Обновляем счетчик активных пользователей
                 current_hour = time.strftime("%H")
-                activity_key = f"hour_{current_hour}"
+                _ = f"hour_{current_hour}"  # activity_key для будущего использования
                 self.metrics.set_gauge("user_activity_by_hour", 1, {"hour": current_hour})
 
                 return result
