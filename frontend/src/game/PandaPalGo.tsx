@@ -20,6 +20,12 @@ export function PandaPalGo() {
     const game = new Game(canvasRef.current);
     gameRef.current = game;
 
+    // АВТОМАТИЧЕСКИЙ ЗАПУСК ИГРЫ ДЛЯ ТЕСТИРОВАНИЯ
+    setTimeout(() => {
+      game.start();
+      console.log('🚀 Игра автоматически запущена для тестирования!');
+    }, 1000);
+
     // Обновление UI из игры
     const updateUI = () => {
       if (gameRef.current) {
@@ -103,7 +109,10 @@ export function PandaPalGo() {
             imageRendering: 'pixelated',
             // Предотвращаем выделение текста при касании
             // @ts-ignore - WebkitUserDrag не в типах, но поддерживается браузерами
-            WebkitUserDrag: 'none'
+            WebkitUserDrag: 'none',
+            // КРИТИЧЕСКАЯ ОТЛАДКА: Делаем canvas видимым
+            border: '5px solid red',
+            backgroundColor: 'yellow'
           }}
         />
 
