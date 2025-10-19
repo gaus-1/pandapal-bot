@@ -39,6 +39,7 @@ class MetricsEndpoint:
     """
 
     def __init__(self):
+        """Инициализация API endpoint для метрик"""
         self.enabled = METRICS_AVAILABLE
 
         if self.enabled:
@@ -203,9 +204,10 @@ def setup_metrics_middleware(app: web.Application):
 
             return response
 
-        except Exception as e:
+        except Exception:
             # Записываем ошибку
-            response_time = asyncio.get_event_loop().time() - start_time
+            # response_time вычисляется для будущего логирования
+            _ = asyncio.get_event_loop().time() - start_time
 
             # metrics.increment_counter('http_requests_total', {
             #     'method': request.method,

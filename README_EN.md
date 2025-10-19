@@ -1,6 +1,17 @@
-# 🐼 PandaPal Bot
+<div align="center">
+  <img src="https://raw.githubusercontent.com/gaus-1/pandapal-bot/main/frontend/public/logo.png" alt="PandaPal Logo" width="200"/>
 
-**Safe AI Friend for Kids** - Telegram bot with artificial intelligence, created specifically for educational purposes for children in grades 1-9.
+  # 🐼 PandaPal Bot
+
+  **Safe AI Friend for Kids**
+
+  Telegram bot with artificial intelligence, created specifically for educational purposes for children in grades 1-9.
+
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+  [![Telegram Bot](https://img.shields.io/badge/Telegram-Bot-blue?logo=telegram)](https://t.me/PandaPalBot)
+  [![React](https://img.shields.io/badge/React-18-61dafb?logo=react)](https://reactjs.org/)
+</div>
 
 ## 🎯 About the Project
 

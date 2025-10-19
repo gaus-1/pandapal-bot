@@ -64,6 +64,7 @@ class MetricsIntegration:
     """
 
     def __init__(self):
+        """Инициализация интеграции метрик"""
         self.enabled = METRICS_AVAILABLE
         self.metrics = None
 
@@ -133,6 +134,7 @@ class MetricsIntegration:
                 # Записываем ошибку
                 query_time = time.time() - start_time
                 self.metrics.increment_counter("errors_total", {"type": "database_error"})
+                logger.error(f"Database error after {query_time:.2f}s: {e}")
                 self.metrics.record_histogram("db_query_time_seconds", query_time)
 
                 raise
@@ -163,6 +165,7 @@ class MetricsIntegration:
 
             except Exception as e:
                 self.metrics.increment_counter("errors_total", {"type": "message_processing_error"})
+                logger.error(f"Message processing error: {e}")
                 raise
 
         return wrapper
@@ -196,6 +199,7 @@ class MetricsIntegration:
                 # Записываем ошибку
                 session_duration = time.time() - start_time
                 self.metrics.increment_counter("game_sessions_total", {"status": "error"})
+                logger.error(f"Game session error after {session_duration:.2f}s: {e}")
                 self.metrics.increment_counter("errors_total", {"type": "game_error"})
 
                 raise
