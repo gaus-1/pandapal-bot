@@ -6,7 +6,7 @@ info:
 
     Основные возможности:
     - AI-ассистент на базе Google Gemini
-    - Образовательная игра PandaPal Go
+    - Образовательный контент и задания
     - Система родительского контроля
     - Модерация контента
     - Аналитика и мониторинг
@@ -35,7 +35,7 @@ tags:
   - name: AI Chat
     description: Общение с AI ассистентом
   - name: Game
-    description: PandaPal Go образовательная игра
+    description: PandaPal образовательная платформа
   - name: User Management
     description: Управление пользователями и профилями
   - name: Parental Control
@@ -115,58 +115,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
-  /api/v1/game/start:
-    post:
-      tags:
-        - Game
-      summary: Запуск игры PandaPal Go
-      description: |
-        Запускает образовательную игру PandaPal Go для пользователя.
-        Игра адаптируется под возраст и уровень пользователя.
-      operationId: startGame
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GameStartRequest'
-      responses:
-        '200':
-          description: Игра успешно запущена
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GameStartResponse'
-        '400':
-          description: Неверный запрос
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/v1/game/progress:
-    get:
-      tags:
-        - Game
-      summary: Получение прогресса в игре
-      description: |
-        Возвращает статистику прогресса пользователя в игре PandaPal Go.
-      operationId: getGameProgress
-      parameters:
-        - name: user_id
-          in: query
-          required: true
-          schema:
-            type: integer
-          description: ID пользователя
-      responses:
-        '200':
-          description: Статистика прогресса
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GameProgressResponse'
 
   /api/v1/users/profile:
     get:
@@ -336,107 +284,6 @@ components:
             type: string
           description: Дополнительные предложения
           example: ["Показать пример", "Объяснить теорию"]
-
-    GameStartRequest:
-      type: object
-      required:
-        - user_id
-      properties:
-        user_id:
-          type: integer
-          description: ID пользователя
-          example: 123456789
-        level:
-          type: integer
-          minimum: 1
-          maximum: 5
-          description: Начальный уровень
-          example: 1
-        difficulty:
-          type: string
-          enum: ["easy", "medium", "hard"]
-          description: Сложность
-          example: "medium"
-
-    GameStartResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          description: Статус успешности
-          example: true
-        game_id:
-          type: string
-          description: ID игровой сессии
-          example: "game_123456789_1640995200"
-        level_info:
-          $ref: '#/components/schemas/LevelInfo'
-        controls:
-          type: object
-          description: Информация об управлении
-          properties:
-            mobile:
-              type: array
-              items:
-                type: string
-              example: ["Двигай пальцем для управления доской"]
-            desktop:
-              type: array
-              items:
-                type: string
-              example: ["Двигай мышью для управления доской"]
-
-    LevelInfo:
-      type: object
-      properties:
-        level_number:
-          type: integer
-          description: Номер уровня
-          example: 1
-        name:
-          type: string
-          description: Название уровня
-          example: "Спортзал"
-        description:
-          type: string
-          description: Описание уровня
-          example: "Математика на спортивную тематику"
-        math_problems:
-          type: array
-          items:
-            type: string
-          description: Математические задачи
-          example: ["2 + 3 = ?", "5 * 4 = ?"]
-
-    GameProgressResponse:
-      type: object
-      properties:
-        user_id:
-          type: integer
-          description: ID пользователя
-          example: 123456789
-        total_score:
-          type: integer
-          description: Общий счет
-          example: 1250
-        levels_completed:
-          type: integer
-          description: Пройденные уровни
-          example: 3
-        current_level:
-          type: integer
-          description: Текущий уровень
-          example: 4
-        achievements:
-          type: array
-          items:
-            type: string
-          description: Полученные достижения
-          example: ["Первая победа", "Математический гений"]
-        play_time_minutes:
-          type: integer
-          description: Время игры в минутах
-          example: 45
 
     UserProfile:
       type: object
