@@ -33,8 +33,7 @@ https://pandapal.ru/api-docs
 
 ### API Endpoints:
 - `POST /api/v1/ai/chat` - Отправка сообщения AI ассистенту
-- `POST /api/v1/game/start` - Запуск игры PandaPal Go
-- `GET /api/v1/game/progress` - Получение прогресса в игре
+- `POST /api/v1/content/educational` - Получение образовательного контента
 - `GET /api/v1/users/profile` - Получение профиля пользователя
 - `GET /api/v1/parental/activity` - Получение активности ребенка
 - `GET /api/v1/analytics/metrics` - Получение метрик системы

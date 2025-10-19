@@ -37,9 +37,9 @@ export const FEATURES: readonly Feature[] = [
     description: 'Фильтрация контента и защита персональных данных.',
   },
   {
-    id: 'gamification',
-    title: 'Игра',
-    description: 'Геймификация и система достижений для мотивации.',
+    id: 'interactive',
+    title: 'Интерактивность',
+    description: 'Интерактивные задания и система достижений для мотивации.',
   },
 ] as const;
 

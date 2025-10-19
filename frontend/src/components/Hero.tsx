@@ -24,11 +24,11 @@ export const Hero: React.FC = React.memo(() => {
 
       {/* Описание продукта */}
       <p className="text-lg md:text-xl text-gray-700 max-w-2xl mx-auto mb-8">
-        Адаптивное, игровое и безопасное обучение для 1-9 классов
+        Адаптивное и безопасное обучение для 1-9 классов
       </p>
 
-      {/* Главные CTA-кнопки (Call To Action) */}
-      <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
+      {/* Главная CTA-кнопка (Call To Action) */}
+      <div className="flex justify-center items-center">
         <a
           href={SITE_CONFIG.botUrl}
           target="_blank"
@@ -37,12 +37,6 @@ export const Hero: React.FC = React.memo(() => {
           aria-label="Начать использовать PandaPal в Telegram"
         >
           Начать использовать
-        </a>
-        <a
-          href="/play"
-          className="px-8 py-4 rounded-full bg-pink text-gray-900 font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
-        >
-          🎮 PandaPal Go
         </a>
       </div>
 
