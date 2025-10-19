@@ -1,6 +1,7 @@
 import { Level } from './Level';
 import type { ColorScheme } from '../utils/ColorPalette';
 import { ColorPalette } from '../utils/ColorPalette';
+import type { Game } from '../core/Game';
 
 /**
  * Уровень 4: Школьный двор 🌳
@@ -11,6 +12,10 @@ import { ColorPalette } from '../utils/ColorPalette';
  * - Конец: Порядок (все убрано)
  */
 export class PlaygroundLevel extends Level {
+  constructor(game: Game) {
+    super(game);
+  }
+
   protected initColorScheme(): ColorScheme {
     return ColorPalette.PLAYGROUND;
   }

@@ -5,6 +5,7 @@ import { ParticleSystem } from '../entities/Particle';
 import { MathProblems } from '../utils/MathProblems';
 import type { ColorScheme } from '../utils/ColorPalette';
 import { ColorPalette } from '../utils/ColorPalette';
+import type { Game } from '../core/Game';
 
 /**
  * Базовый класс для уровня
@@ -17,13 +18,9 @@ export abstract class Level {
   protected particles: ParticleSystem;
   protected score: number = 0;
   protected colorScheme: ColorScheme;
-  protected canvasWidth: number;
-  protected canvasHeight: number;
   protected isComplete: boolean = false;
 
-  constructor(canvasWidth: number, canvasHeight: number) {
-    this.canvasWidth = canvasWidth;
-    this.canvasHeight = canvasHeight;
+  constructor(protected game: Game) {
     this.colorScheme = this.initColorScheme();
     this.particles = new ParticleSystem();
 
@@ -66,10 +63,10 @@ export abstract class Level {
    * Создание платформы
    */
   protected createPaddle(): Paddle {
-    // Адаптивная ширина платформы
-    const paddleWidth = Math.max(80, this.canvasWidth * 0.18);
-    const paddleHeight = Math.max(16, this.canvasWidth * 0.025);
-    const paddleX = (this.canvasWidth - paddleWidth) / 2;
+    // Адаптивная ширина платформы - ИСПРАВЛЕНИЕ: используем актуальные размеры Canvas
+    const paddleWidth = Math.max(80, this.game.canvas.width * 0.18);
+    const paddleHeight = Math.max(16, this.game.canvas.width * 0.025);
+    const paddleX = (this.game.canvas.width - paddleWidth) / 2;
 
     // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Платформа должна быть ВСЕГДА видна
     // Используем window.innerWidth для более точного определения
@@ -78,15 +75,15 @@ export abstract class Level {
 
     let paddleY: number;
     if (isMobile) {
-      paddleY = this.canvasHeight - 60;  // Мобильные: отступ 60px от низа
+      paddleY = this.game.canvas.height - 60;  // Мобильные: отступ 60px от низа
     } else if (isTablet) {
-      paddleY = this.canvasHeight - 70;  // Планшеты: отступ 70px от низа
+      paddleY = this.game.canvas.height - 70;  // Планшеты: отступ 70px от низа
     } else {
-      paddleY = this.canvasHeight - 80;  // Десктопы: отступ 80px от низа - ГАРАНТИРОВАННО ВИДНА!
+      paddleY = this.game.canvas.height - 80;  // Десктопы: отступ 80px от низа - ГАРАНТИРОВАННО ВИДНА!
     }
 
-    // Отладочная информация в консоль
-    console.log(`🔧 Paddle Debug: canvas=${this.canvasWidth}x${this.canvasHeight}, window=${window.innerWidth}x${window.innerHeight}, paddleY=${paddleY}`);
+    // Отладочная информация в консоль - ИСПРАВЛЕНИЕ: используем актуальные размеры
+    console.log(`🔧 Paddle Debug: canvas=${this.game.canvas.width}x${this.game.canvas.height}, window=${window.innerWidth}x${window.innerHeight}, paddleY=${paddleY}`);
 
     return new Paddle(paddleX, paddleY, paddleWidth, paddleHeight);
   }
@@ -95,9 +92,9 @@ export abstract class Level {
    * Создание мяча
    */
   protected createBall(): Ball {
-    // Адаптивный размер мяча в зависимости от размера экрана
-    const baseRadius = Math.max(12, Math.min(20, this.canvasWidth * 0.02));
-    const x = this.canvasWidth / 2 - baseRadius;
+    // Адаптивный размер мяча в зависимости от размера экрана - ИСПРАВЛЕНИЕ: используем актуальные размеры
+    const baseRadius = Math.max(12, Math.min(20, this.game.canvas.width * 0.02));
+    const x = this.game.canvas.width / 2 - baseRadius;
 
     // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Мяч должен быть ВЫШЕ платформы
     const isMobile = window.innerWidth <= 768;
@@ -105,15 +102,15 @@ export abstract class Level {
 
     let y: number;
     if (isMobile) {
-      y = this.canvasHeight - 100;  // Мобильные: выше платформы (60px от низа)
+      y = this.game.canvas.height - 100;  // Мобильные: выше платформы (60px от низа)
     } else if (isTablet) {
-      y = this.canvasHeight - 110;  // Планшеты: выше платформы (70px от низа)
+      y = this.game.canvas.height - 110;  // Планшеты: выше платформы (70px от низа)
     } else {
-      y = this.canvasHeight - 120;  // Десктопы: выше платформы (80px от низа)
+      y = this.game.canvas.height - 120;  // Десктопы: выше платформы (80px от низа)
     }
 
-    // Отладочная информация в консоль
-    console.log(`⚽ Ball Debug: canvas=${this.canvasWidth}x${this.canvasHeight}, ballY=${y}`);
+    // Отладочная информация в консоль - ИСПРАВЛЕНИЕ: используем актуальные размеры
+    console.log(`⚽ Ball Debug: canvas=${this.game.canvas.width}x${this.game.canvas.height}, ballY=${y}`);
 
     const speed = 0.5; // Немного быстрее для лучшего геймплея
 
@@ -211,18 +208,18 @@ export abstract class Level {
    * Отрисовка фона уровня (может быть переопределена)
    */
   protected renderBackground(ctx: CanvasRenderingContext2D): void {
-    // Градиентный фон
+    // Градиентный фон - ИСПРАВЛЕНИЕ: используем актуальные размеры
     const gradient = ctx.createLinearGradient(
       0,
       0,
       0,
-      this.canvasHeight
+      this.game.canvas.height
     );
     gradient.addColorStop(0, this.colorScheme.background);
     gradient.addColorStop(1, ColorPalette.withAlpha(this.colorScheme.primary, 0.3));
 
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+    ctx.fillRect(0, 0, this.game.canvas.width, this.game.canvas.height);
   }
 
   /**
@@ -245,9 +242,9 @@ export abstract class Level {
     this.bricks = this.createBricks();
     this.particles.clear();
 
-    // Сбрасываем мяч с правильной позицией
+    // Сбрасываем мяч с правильной позицией - ИСПРАВЛЕНИЕ: используем актуальные размеры
     const radius = this.ball.radius;
-    const x = this.canvasWidth / 2 - radius;
+    const x = this.game.canvas.width / 2 - radius;
 
     // Используем ту же логику позиционирования что и при создании
     const isMobile = window.innerWidth <= 768;
@@ -255,11 +252,11 @@ export abstract class Level {
 
     let y: number;
     if (isMobile) {
-      y = this.canvasHeight - 100;  // Мобильные: выше платформы (60px от низа)
+      y = this.game.canvas.height - 100;  // Мобильные: выше платформы (60px от низа)
     } else if (isTablet) {
-      y = this.canvasHeight - 110;  // Планшеты: выше платформы (70px от низа)
+      y = this.game.canvas.height - 110;  // Планшеты: выше платформы (70px от низа)
     } else {
-      y = this.canvasHeight - 120;  // Десктопы: выше платформы (80px от низа)
+      y = this.game.canvas.height - 120;  // Десктопы: выше платформы (80px от низа)
     }
 
     this.ball.reset(x, y);
