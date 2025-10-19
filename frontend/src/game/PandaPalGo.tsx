@@ -15,10 +15,16 @@ export function PandaPalGo() {
 
   // Инициализация игры
   useEffect(() => {
-    if (!canvasRef.current) return;
+    console.log('🎮 PandaPalGo useEffect started!');
+    if (!canvasRef.current) {
+      console.log('❌ Canvas ref is null!');
+      return;
+    }
 
+    console.log('🎯 Creating Game instance...');
     const game = new Game(canvasRef.current);
     gameRef.current = game;
+    console.log('✅ Game instance created!');
 
     // АВТОМАТИЧЕСКИЙ ЗАПУСК ИГРЫ ДЛЯ ТЕСТИРОВАНИЯ
     setTimeout(() => {
