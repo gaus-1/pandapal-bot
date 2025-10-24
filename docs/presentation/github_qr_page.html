@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PandaPal - GitHub Repository</title>
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink: #FFC0CB;
+            --sky: #87CEEB;
+            --sky-light: rgba(135, 206, 235, 0.2);
+            --pink-light: rgba(255, 192, 203, 0.2);
+        }
+
+        body {
+            font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(180deg, var(--sky-light) 0%, var(--pink-light) 100%);
+            color: #333;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: clamp(20px, 4vh, 56px) clamp(16px, 4vw, 56px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            max-width: 1100px;
+            width: calc(100vw - 24px);
+            min-height: calc(100vh - 24px);
+            margin: 0 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(8px, 2vh, 24px);
+        }
+
+        .logo-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(2rem, 3vw + 1rem, 4rem);
+            background: linear-gradient(135deg, var(--sky) 0%, var(--pink) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: clamp(10px, 1.5vh, 20px);
+            font-size: 1.2em;
+            font-weight: 400;
+        }
+
+        .qr-container {
+            margin: clamp(10px, 2vh, 24px) 0;
+            padding: clamp(10px, 2vh, 24px);
+            background: linear-gradient(135deg, var(--sky-light) 0%, var(--pink-light) 100%);
+            border-radius: 20px;
+            display: inline-block;
+            box-shadow: 0 8px 24px rgba(135, 206, 235, 0.3);
+        }
+
+        .qr-image {
+            max-width: clamp(160px, 32vmin, 600px);
+            height: auto;
+            border-radius: 15px;
+            background: white;
+            padding: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .url {
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: var(--sky-light);
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            color: #111; /* высокая читаемость на светлом фоне */
+            font-weight: bold;
+            border: 2px solid var(--sky);
+        }
+
+        .description {
+            margin-top: 20px;
+            color: #666;
+            line-height: 1.6;
+            font-size: 1.1em;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: clamp(8px, 2vh, 18px);
+            margin-top: clamp(10px, 2vh, 20px);
+            text-align: left;
+            width: 100%;
+        }
+
+        .feature {
+            padding: clamp(10px, 2vh, 18px);
+            background: linear-gradient(135deg, var(--sky-light) 0%, var(--pink-light) 100%);
+            border-radius: 15px;
+            border-left: 5px solid var(--sky);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .feature:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(135, 206, 235, 0.3);
+        }
+
+        .feature-title {
+            font-weight: bold;
+            color: var(--sky);
+            margin-bottom: 6px;
+            font-size: clamp(0.9rem, 1.2vw, 1.05rem);
+        }
+
+        .feature-desc {
+            color: #666;
+            font-size: clamp(0.8rem, 1.1vw, 0.95rem);
+            line-height: 1.5;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .logo {
+                animation: none;
+            }
+        }
+
+        /* Анимации отключаются при системной настройке "уменьшить движение" */
+        @media (prefers-reduced-motion: reduce) {
+            .logo {
+                animation: none !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: clamp(1.5rem, 4vw + 0.5rem, 2.25rem);
+            }
+            .logo {
+                width: 48px;
+                height: 48px;
+            }
+            .container { padding: 20px; min-height: calc(100vh - 16px); }
+            .features { grid-template-columns: 1fr; }
+        }
+
+        /* Крупные экраны: усиливаем размеры для презентаций */
+        @media (min-width: 1280px) {
+            .container {
+                max-width: 1200px;
+                padding: clamp(36px, 5vh, 64px) clamp(36px, 5vw, 64px);
+            }
+            .qr-image {
+                max-width: clamp(240px, 36vmin, 680px);
+            }
+        }
+
+        /* Невысокие экраны (ноутбуки, проекторы с ограниченной высотой) */
+        @media (max-height: 800px) {
+            .qr-image { max-width: clamp(160px, 28vmin, 520px); }
+            .subtitle { margin-bottom: 12px; }
+            .features { gap: 12px; }
+        }
+
+        /* Частый случай: 1920x1080 с UI браузера (видимая высота ~880-930px) */
+        @media (max-height: 900px) {
+            .container { padding: 16px 20px; gap: 12px; }
+            .logo { width: 52px; height: 52px; }
+            h1 { font-size: clamp(1.6rem, 2.2vw + 0.7rem, 2.2rem); }
+            .qr-container { padding: 16px; margin: 12px 0; }
+            .qr-image { max-width: clamp(180px, 28vmin, 420px); }
+            .subtitle { margin-bottom: 12px; }
+            .url { padding: 12px 14px; }
+        }
+
+        @media (max-height: 640px) {
+            .qr-image { max-width: clamp(140px, 24vmin, 420px); }
+            .description { display: none; } /* экономим место, чтобы все блоки уместились */
+            .features { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        /* Дополнительная компрессия для невысоких вьюпортов (1366x768 и ниже видимой области) */
+        @media (max-height: 720px) {
+            .container { padding: 12px; gap: 10px; }
+            .logo { width: 44px; height: 44px; }
+            h1 { font-size: clamp(1.4rem, 2.2vw + 0.6rem, 1.9rem); }
+            .qr-container { padding: 12px; margin: 10px 0; }
+            .qr-image { max-width: clamp(150px, 26vmin, 360px); }
+            .url { padding: 10px 12px; font-size: 0.9rem; }
+            .features { gap: 10px; }
+            .feature { padding: 10px; }
+            .feature-title { font-size: 0.9rem; margin-bottom: 4px; }
+            .feature-desc { font-size: 0.85rem; }
+        }
+
+        @media (max-height: 660px) {
+            .subtitle { display: none; }
+            .feature-desc { display: none; }
+            .features { gap: 8px; }
+            .feature-title { font-size: 0.85rem; }
+        }
+
+        /* ===== Ширина экрана (Mobile First) ===== */
+        @media (max-width: 360px) {
+            .container { padding: 14px; gap: 12px; }
+            .qr-image { max-width: clamp(140px, 40vmin, 260px); }
+            .features { grid-template-columns: 1fr; }
+        }
+        @media (min-width: 361px) and (max-width: 400px) {
+            .qr-image { max-width: clamp(160px, 42vmin, 300px); }
+            .features { grid-template-columns: 1fr; }
+        }
+        @media (min-width: 401px) and (max-width: 430px) {
+            .qr-image { max-width: clamp(180px, 44vmin, 320px); }
+            .features { grid-template-columns: 1fr; }
+        }
+        @media (min-width: 431px) and (max-width: 480px) {
+            .qr-image { max-width: clamp(200px, 46vmin, 340px); }
+            .features { grid-template-columns: 1fr; }
+        }
+        @media (min-width: 481px) and (max-width: 540px) {
+            .qr-image { max-width: clamp(220px, 48vmin, 360px); }
+            .features { grid-template-columns: 1fr; }
+        }
+
+        @media (min-width: 600px) and (max-width: 768px) {
+            .container { max-width: 720px; }
+            .features { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (min-width: 768px) and (max-width: 810px) {
+            .container { max-width: 760px; }
+            .features { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (min-width: 811px) and (max-width: 900px) {
+            .container { max-width: 860px; }
+            .features { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (min-width: 960px) and (max-width: 1024px) {
+            .container { max-width: 980px; }
+            .features { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (min-width: 1025px) and (max-width: 1080px) {
+            .container { max-width: 1040px; }
+            .features { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (min-width: 1081px) and (max-width: 1200px) {
+            .container { max-width: 1160px; }
+            .features { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (min-width: 1024px) and (max-width: 1280px) {
+            .container { max-width: 1100px; }
+        }
+        @media (min-width: 1280px) and (max-width: 1366px) {
+            .container { max-width: 1180px; }
+        }
+        @media (min-width: 1440px) and (max-width: 1500px) {
+            .container { max-width: 1260px; }
+        }
+        @media (min-width: 1600px) and (max-width: 1680px) {
+            .container { max-width: 1340px; }
+        }
+
+        @media (min-width: 1680px) and (max-width: 1920px) {
+            .container { max-width: 1400px; }
+            .qr-image { max-width: clamp(260px, 34vmin, 700px); }
+        }
+        @media (min-width: 1920px) and (max-width: 2560px) {
+            .container { max-width: 1600px; }
+            .qr-image { max-width: clamp(300px, 32vmin, 760px); }
+        }
+        @media (min-width: 2560px) and (max-width: 3440px) {
+            .container { max-width: 1800px; }
+            .qr-image { max-width: clamp(340px, 30vmin, 820px); }
+        }
+        @media (min-width: 3840px) {
+            .container { max-width: 2200px; }
+            .qr-image { max-width: clamp(420px, 28vmin, 900px); }
+        }
+
+        /* Кнопка полноэкранного режима — улучшенная видимость */
+        .fullscreen-btn {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, var(--sky) 0%, var(--pink) 100%);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.9);
+            border-radius: 12px;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+            cursor: pointer;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            z-index: 1000;
+            opacity: 0.96;
+        }
+        .fullscreen-btn:hover { filter: brightness(0.95); opacity: 1; }
+        .fullscreen-btn:focus-visible { outline: 3px solid rgba(255,255,255,0.9); outline-offset: 2px; }
+        @media (max-width: 640px) { .fullscreen-btn { top: 10px; right: 10px; padding: 10px 12px; font-size: 0.9rem; } }
+
+        /* Невысокие экраны (ноутбуки, проекторы с ограниченной высотой) */
+        @media (max-height: 800px) {
+            .qr-image { max-width: clamp(160px, 28vmin, 520px); }
+            .subtitle { margin-bottom: 12px; }
+            .features { gap: 12px; }
+        }
+
+        @media (max-height: 640px) {
+            .qr-image { max-width: clamp(140px, 24vmin, 420px); }
+            .description { display: none; } /* экономим место, чтобы все блоки уместились */
+            .features { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <button class="fullscreen-btn" id="fsBtn" aria-label="Полноэкранный режим">Полноэкранный режим</button>
+    <div class="container">
+        <div class="logo-header">
+            <img src="logo.png" alt="PandaPal Logo" class="logo">
+            <h1>PandaPal</h1>
+        </div>
+        <div class="subtitle">Безопасный ИИ-друг для твоего ребенка</div>
+
+        <div class="qr-container">
+            <img src="pandapal_github_qr_large.png" alt="QR-код GitHub репозитория PandaPal" class="qr-image">
+        </div>
+
+        <div class="url">https://github.com/gaus-1/pandapal-bot</div>
+
+        <div class="description">
+            📱 <strong>Отсканируйте QR-код</strong>, чтобы перейти к исходному коду проекта на GitHub
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-title">🤖 AI-чат</div>
+                <div class="feature-desc">Умный помощник на базе Google Gemini</div>
+            </div>
+            <div class="feature">
+                <div class="feature-title">🛡️ Безопасность</div>
+                <div class="feature-desc">Родительский контроль и AI-модерация контента</div>
+            </div>
+            <div class="feature">
+                <div class="feature-title">🎓 Обучение</div>
+                <div class="feature-desc">Образовательный контент для детей 6-14 лет</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function(){
+            const btn = document.getElementById('fsBtn');
+            if (btn) {
+                const isFs = () => !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+                const req = (el) => (el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen).call(el);
+                const exit = () => (document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen).call(document);
+                function update(){ btn.textContent = isFs() ? 'Выйти из полного экрана' : 'Полноэкранный режим'; }
+                btn.addEventListener('click', () => { isFs() ? exit() : req(document.documentElement); });
+                document.addEventListener('fullscreenchange', update);
+                document.addEventListener('webkitfullscreenchange', update);
+                document.addEventListener('msfullscreenchange', update);
+                update();
+            }
+        })();
+    </script>
+</body>
+</html>
