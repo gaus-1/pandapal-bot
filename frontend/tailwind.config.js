@@ -11,8 +11,8 @@ export default {
         sky: '#87CEEB',
       },
       fontFamily: {
-        sans: ['Open Sans', 'ui-sans-serif', 'system-ui'],
-        display: ['Montserrat', 'ui-sans-serif', 'system-ui'],
+        sans: ['Merriweather', 'ui-serif', 'Georgia', 'serif'],
+        display: ['Manrope', 'ui-sans-serif', 'system-ui'],
       },
       // Safe areas для мобильных устройств с notch
       spacing: {
