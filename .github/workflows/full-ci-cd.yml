@@ -8,7 +8,7 @@ on:
 
 env:
   PYTHON_VERSION: '3.11'
-  NODE_VERSION: '18'
+  NODE_VERSION: '20'
 
 jobs:
   # Backend тестирование
@@ -83,7 +83,7 @@ jobs:
         pytest tests/ -v --cov=bot --cov-report=xml --cov-report=html || echo "Tests completed with warnings"
 
     - name: 📊 Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         flags: backend
@@ -124,7 +124,7 @@ jobs:
       run: npm run test:coverage
 
     - name: 📊 Upload frontend coverage
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./frontend/coverage/lcov.info
         flags: frontend
@@ -157,7 +157,7 @@ jobs:
         bandit -r bot/ -f json -o bandit-report.json || true
 
     - name: 📋 Upload security reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: security-reports
@@ -194,7 +194,7 @@ jobs:
         python scripts/load_testing.py --url http://localhost:8000 --users 5 --requests 5 --duration 30 --output load_test_report.txt || echo "Load tests completed with warnings"
 
     - name: 📊 Upload load test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: load-test-report
         path: load_test_report.txt

@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Large files (exceed GitHub Actions limit)
+docs/presentation/logo.png
 *.so
 .Python
 .venv/
