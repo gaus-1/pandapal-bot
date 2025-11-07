@@ -402,12 +402,13 @@ async def change_period(callback_query, state: FSMContext):
         try:
             # TODO: Реализовать родительскую аналитику
             # dashboard_data будет использоваться после реализации TODO
-            _dashboard_data = {
-                "messages_count": 0,
-                "learning_time": 0,
-                "safety_alerts": 0,
-                "progress_score": 0,
-            }
+            # Пока оставляем заглушку для будущей реализации
+            # _dashboard_data = {
+            #     "messages_count": 0,
+            #     "learning_time": 0,
+            #     "safety_alerts": 0,
+            #     "progress_score": 0,
+            # }
 
             # Формируем сообщение
             text = f"👶 <b>Дашборд за {period_name}</b>\n\n"
@@ -645,12 +646,13 @@ async def generate_weekly_report(message: Message, state: FSMContext):
             for child in children:
                 # TODO: Реализовать родительскую аналитику
                 # dashboard_data будет использоваться после реализации TODO
-                _dashboard_data = {
-                    "messages_count": 0,
-                    "learning_time": 0,
-                    "safety_alerts": 0,
-                    "progress_score": 0,
-                }
+                # Пока оставляем заглушку для будущей реализации
+                # _dashboard_data = {
+                #     "messages_count": 0,
+                #     "learning_time": 0,
+                #     "safety_alerts": 0,
+                #     "progress_score": 0,
+                # }
 
                 # Формируем отчет
                 report_text = "📊 <b>Еженедельный отчет</b>\n\n"

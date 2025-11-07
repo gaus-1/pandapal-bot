@@ -148,6 +148,13 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("FRONTEND_URL", "frontend_url"),
     )
 
+    # ============ WEBHOOK ============
+    webhook_domain: str = Field(
+        default="pandapal-bot.onrender.com",
+        description="Домен для webhook (без https://)",
+        validation_alias=AliasChoices("WEBHOOK_DOMAIN", "webhook_domain"),
+    )
+
     # ============ LOGGING ============
     log_level: str = Field(
         default="INFO",

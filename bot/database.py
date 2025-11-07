@@ -72,6 +72,27 @@ def init_db() -> None:
         raise
 
 
+async def init_database() -> None:
+    """
+    Асинхронная инициализация базы данных PostgreSQL.
+
+    Проверяет подключение к базе данных и валидирует её состояние.
+    В production используйте Alembic миграции для управления схемой БД!
+
+    Raises:
+        Exception: При ошибке подключения или проверки БД.
+    """
+    try:
+        # Проверяем подключение к БД
+        if DatabaseService.check_connection():
+            logger.info("✅ База данных подключена и готова к работе")
+        else:
+            logger.warning("⚠️ Проблема с подключением к базе данных")
+    except Exception as e:
+        logger.error(f"❌ Ошибка инициализации БД: {e}")
+        raise
+
+
 @contextmanager
 def get_db() -> Generator[Session, None, None]:
     """
@@ -129,9 +150,12 @@ class DatabaseService:
         """
         try:
             # Логируем URL для диагностики (без пароля)
-            db_url_clean = settings.database_url.replace(
-                settings.database_url.split("@")[0].split("//")[1], "***:***"
-            )
+            try:
+                db_url_clean = settings.database_url.replace(
+                    settings.database_url.split("@")[0].split("//")[1], "***:***"
+                )
+            except Exception:
+                db_url_clean = "***:***@***"
             logger.info(f"🔍 Подключение к БД: {db_url_clean}")
 
             with engine.connect() as conn:
@@ -141,5 +165,8 @@ class DatabaseService:
             return True
         except Exception as e:
             logger.error(f"❌ Ошибка подключения к БД: {e}")
-            logger.error(f"❌ URL БД (без пароля): {db_url_clean}")
+            try:
+                logger.error(f"❌ URL БД (без пароля): {db_url_clean}")
+            except NameError:
+                logger.error("❌ URL БД: не удалось определить")
             return False
