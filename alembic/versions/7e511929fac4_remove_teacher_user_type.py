@@ -4,7 +4,7 @@
 Теперь поддерживаются только 'child' и 'parent'.
 
 Revision ID: 7e511929fac4
-Revises: analytics_models
+Revises: 0fb5d4bc5f51
 Create Date: 2025-10-17 14:13:36.114736
 
 """
@@ -17,7 +17,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "7e511929fac4"
-down_revision: Union[str, None] = "analytics_models"
+down_revision: Union[str, None] = "0fb5d4bc5f51"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
