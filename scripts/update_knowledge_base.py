@@ -7,6 +7,7 @@
 Пример:
     python update_knowledge_base.py
 """
+
 import asyncio
 import sys
 from pathlib import Path

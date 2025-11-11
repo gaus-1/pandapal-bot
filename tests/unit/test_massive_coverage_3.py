@@ -2,11 +2,13 @@
 Massive coverage tests - Part 3: Models and Database
 """
 
-import pytest
-from unittest.mock import Mock, patch
-from bot.models import User, ChatHistory
-from bot.database import get_db, init_db
 from datetime import datetime
+from unittest.mock import Mock, patch
+
+import pytest
+
+from bot.database import get_db, init_db
+from bot.models import ChatHistory, User
 
 
 class TestModelsExtended:

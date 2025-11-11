@@ -54,8 +54,8 @@ const PandaLogo: React.FC<PandaLogoProps> = ({
   return (
     <div
       className={`panda-logo-container ${className}`}
-      style={{ 
-        width: size, 
+      style={{
+        width: size,
         height: size,
         cursor: onClick ? 'pointer' : 'default'
       }}
@@ -82,7 +82,7 @@ const PandaLogo: React.FC<PandaLogoProps> = ({
           strokeWidth="2"
           className="panda-head"
         />
-        
+
         {/* Уши */}
         <circle
           cx="35"
@@ -98,7 +98,7 @@ const PandaLogo: React.FC<PandaLogoProps> = ({
           fill="#333333"
           className="panda-ear-right"
         />
-        
+
         {/* Внутренняя часть ушей */}
         <circle
           cx="35"
@@ -114,7 +114,7 @@ const PandaLogo: React.FC<PandaLogoProps> = ({
           fill="#FFFFFF"
           className="panda-ear-inner-right"
         />
-        
+
         {/* Глаза (основные) */}
         <circle
           cx="40"
@@ -130,7 +130,7 @@ const PandaLogo: React.FC<PandaLogoProps> = ({
           fill="#333333"
           className="panda-eye-right"
         />
-        
+
         {/* Зрачки */}
         <circle
           cx="42"
@@ -146,7 +146,7 @@ const PandaLogo: React.FC<PandaLogoProps> = ({
           fill="#FFFFFF"
           className="panda-pupil-right"
         />
-        
+
         {/* Веки для моргания */}
         <ellipse
           cx="40"
@@ -164,7 +164,7 @@ const PandaLogo: React.FC<PandaLogoProps> = ({
           fill="#FFFFFF"
           className="panda-eyelid-right"
         />
-        
+
         {/* Нос */}
         <ellipse
           cx="50"
@@ -174,7 +174,7 @@ const PandaLogo: React.FC<PandaLogoProps> = ({
           fill="#333333"
           className="panda-nose"
         />
-        
+
         {/* Рот */}
         <path
           d="M 45 65 Q 50 70 55 65"
@@ -184,7 +184,7 @@ const PandaLogo: React.FC<PandaLogoProps> = ({
           strokeLinecap="round"
           className="panda-mouth"
         />
-        
+
         {/* Щеки (розовые) */}
         <circle
           cx="30"
@@ -202,7 +202,7 @@ const PandaLogo: React.FC<PandaLogoProps> = ({
           opacity="0.7"
           className="panda-cheek-right"
         />
-        
+
         {/* Loading пузырьки */}
         {loading && (
           <>

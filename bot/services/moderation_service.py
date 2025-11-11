@@ -188,10 +188,12 @@ class ContentModerationService:
         is_safe, reason = self.is_safe_content(response)
         if not is_safe:
             logger.error(f"⚠️ AI сгенерировал небезопасный контент! Причина: {reason}")
-            return "Извини, я не могу ответить на этот вопрос. " "Давай лучше поговорим об учёбе! 📚"
+            return (
+                "Извини, я не могу ответить на этот вопрос. " "Давай лучше поговорим об учёбе! 📚"
+            )
         return response
 
-    def get_safe_response_alternative(self, detected_topic: str) -> str:
+    def get_safe_response_alternative(self, detected_topic: str) -> str:  # noqa: ARG002
         """Получить безопасный альтернативный ответ при блокировке."""
         alternatives = [
             "Извини, но я не могу ответить на этот вопрос. Моя задача — помогать тебе с учебой, творчеством и другими полезными и безопасными темами! 🐼",
@@ -214,11 +216,11 @@ class ContentModerationService:
             from bot.database import get_db
             from bot.models import User
 
-            async with get_db() as db:
+            # get_db() - синхронный context manager, не async
+            with get_db() as db:
                 # Получаем пользователя
                 stmt = select(User).where(User.telegram_id == telegram_id)
-                user = await db.execute(stmt)
-                user_obj = user.scalar_one_or_none()
+                user_obj = db.execute(stmt).scalar_one_or_none()
 
                 if user_obj:
                     # Здесь можно добавить таблицу moderation_log в будущем

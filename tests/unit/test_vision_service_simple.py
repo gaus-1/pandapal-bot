@@ -4,18 +4,19 @@
 
 """
 
-import pytest
-from unittest.mock import Mock, patch, AsyncMock
 import io
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 from PIL import Image
 
+from bot.models import User
 from bot.services.vision_service import (
-    VisionService,
+    ImageAnalysisResult,
     ImageCategory,
     ImageSafetyLevel,
-    ImageAnalysisResult,
+    VisionService,
 )
-from bot.models import User
 
 
 class TestVisionServiceSimple:

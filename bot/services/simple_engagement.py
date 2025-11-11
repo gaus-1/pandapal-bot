@@ -5,7 +5,7 @@
 
 import asyncio
 from datetime import datetime, time, timedelta
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from aiogram import Bot
 from loguru import logger
@@ -22,7 +22,7 @@ class SimpleEngagementService:
         """Инициализация сервиса"""
         self.bot = bot
         self.is_running = False
-        self.last_reminder_sent = {}  # telegram_id -> datetime
+        self.last_reminder_sent: Dict[int, datetime] = {}  # telegram_id -> datetime
         logger.info("✅ Simple Engagement Service инициализирован")
 
     async def start(self):

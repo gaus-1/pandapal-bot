@@ -71,7 +71,7 @@ class IntegrityChecker:
             max_size: Максимальный размер в байтах (по умолчанию 1MB)
 
         Returns:
-            Optional[Dict[str, Any]]: Десериализованные данные или None при ошибке
+            Optional[Dict[str, Any]]: Десериализованные данные (только dict) или None при ошибке
         """
         try:
             # Проверка размера
@@ -82,12 +82,16 @@ class IntegrityChecker:
             # Безопасная десериализация (json.loads не выполняет код)
             data = json.loads(json_string)
 
-            # Дополнительная проверка типа
-            if not isinstance(data, (dict, list)):
-                logger.error("❌ JSON должен быть объектом или массивом")
+            # Принимаем только dict, не list
+            if not isinstance(data, dict):
+                logger.error("❌ JSON должен быть объектом (dict), не массивом")
                 return None
 
-            return data
+            # Гарантируем тип Dict[str, Any]
+            if isinstance(data, dict):
+                return dict(data)  # Преобразуем в обычный dict
+
+            return None
 
         except json.JSONDecodeError as e:
             logger.error(f"❌ Ошибка десериализации JSON: {e}")

@@ -2,13 +2,15 @@
 Complete bot coverage tests
 """
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
-from bot.config import settings, AI_SYSTEM_PROMPT, FORBIDDEN_PATTERNS
-from bot.models import User, ChatHistory
+
+from bot.config import AI_SYSTEM_PROMPT, FORBIDDEN_PATTERNS, settings
+from bot.keyboards.main_kb import get_main_menu_keyboard, get_settings_keyboard
+from bot.models import ChatHistory, User
 from bot.services.cache_service import MemoryCache
 from bot.services.moderation_service import ContentModerationService
-from bot.keyboards.main_kb import get_main_menu_keyboard, get_settings_keyboard
 
 
 class TestBotComponents:

@@ -2,11 +2,12 @@
 Comprehensive tests for Cache Service
 """
 
-import pytest
-from unittest.mock import Mock, patch
 import asyncio
+from unittest.mock import Mock, patch
 
-from bot.services.cache_service import MemoryCache, CacheService
+import pytest
+
+from bot.services.cache_service import CacheService, MemoryCache
 
 
 class TestMemoryCache:

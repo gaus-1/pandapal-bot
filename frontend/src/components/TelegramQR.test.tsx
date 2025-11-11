@@ -25,18 +25,18 @@ describe('TelegramQR Component', () => {
 
   it('должен открывать бота при клике на кнопку', () => {
     const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
-    
+
     render(<TelegramQR />);
     const button = screen.getByRole('button', { name: /Открыть PandaPal бота в Telegram/i });
-    
+
     fireEvent.click(button);
-    
+
     expect(windowOpenSpy).toHaveBeenCalledWith(
       SITE_CONFIG.botUrl,
       '_blank',
       'noopener,noreferrer'
     );
-    
+
     windowOpenSpy.mockRestore();
   });
 
@@ -53,4 +53,3 @@ describe('TelegramQR Component', () => {
     expect(qrImage).toHaveAttribute('loading', 'lazy');
   });
 });
-

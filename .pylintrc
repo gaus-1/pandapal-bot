@@ -1,15 +1,26 @@
 [MASTER]
-# Отключаем pylint для pytest импортов
-disable=import-error
+max-line-length=100
+ignore=tests,scripts,alembic,venv,.venv
 
 [MESSAGES CONTROL]
-# Игнорируем предупреждения об импорте pytest
-disable=import-error
+disable=
+    C0114,  # missing-module-docstring
+    C0115,  # missing-class-docstring
+    C0116,  # missing-function-docstring
+    R0903,  # too-few-public-methods
+    R0913,  # too-many-arguments
+    W0212,  # protected-access
+    C0103,  # invalid-name (для переменных типа db, app и т.д.)
+
+[FORMAT]
+max-line-length=100
+
+[DESIGN]
+max-attributes=15
+max-args=10
+max-branches=15
+max-returns=8
+max-statements=50
 
 [IMPORTS]
-# Добавляем путь к виртуальному окружению
-init-hook='import sys; sys.path.append("./venv/Lib/site-packages")'
-
-[VARIABLES]
-# Игнорируем неиспользуемые переменные в тестах
-dummy-variables-rgx=_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_
+load-plugins=pylint.extensions.check_annotations

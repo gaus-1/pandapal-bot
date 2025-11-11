@@ -197,7 +197,8 @@ class Settings(BaseSettings):
 
 # Singleton instance настроек
 # Создаётся один раз при импорте модуля
-settings = Settings()
+# Pydantic автоматически загружает значения из переменных окружения
+settings = Settings()  # type: ignore[call-arg]
 
 
 # Константы для AI промптов

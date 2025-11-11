@@ -3,19 +3,20 @@ Pytest конфигурация для PandaPal Bot
 Настройка тестового окружения для детского проекта
 """
 
-import pytest
 import asyncio
 import sys
 from pathlib import Path
-from unittest.mock import Mock, AsyncMock
-from typing import Generator, AsyncGenerator
+from typing import AsyncGenerator, Generator
+from unittest.mock import AsyncMock, Mock
+
+import pytest
 
 # Добавляем корневую директорию в путь
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from bot.models import ChatHistory, User
 from bot.services.ai_service_solid import GeminiAIService
 from bot.services.moderation_service import ContentModerationService
-from bot.models import User, ChatHistory
 
 
 @pytest.fixture(scope="session")

@@ -6,7 +6,6 @@
 
 import asyncio
 import base64
-import io
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
@@ -535,7 +534,8 @@ class VisionService:
         """Получить хэш изображения для кэширования"""
         import hashlib
 
-        return hashlib.md5(image_data).hexdigest()
+        # MD5 используется только для идентификации изображений, не для безопасности
+        return hashlib.md5(image_data, usedforsecurity=False).hexdigest()  # noqa: S324
 
     def _create_error_result(self, error_message: str) -> ImageAnalysisResult:
         """Создать результат с ошибкой"""

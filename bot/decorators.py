@@ -6,7 +6,7 @@
 
 import functools
 import time
-from typing import Any, Callable, Optional, TypeVar
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 from loguru import logger
 
@@ -36,7 +36,7 @@ def log_execution_time(func: F) -> F:
     """
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):  # type: ignore
         start_time = time.time()
         result = func(*args, **kwargs)
         execution_time = time.time() - start_time
@@ -44,7 +44,7 @@ def log_execution_time(func: F) -> F:
         logger.info(f"⏱️ {func.__name__} выполнена за {execution_time:.3f}s")
         return result
 
-    return wrapper
+    return wrapper  # type: ignore[return-value]
 
 
 def retry_on_exception(max_attempts: int = 3, delay: float = 1.0, exceptions: tuple = (Exception,)):
@@ -71,7 +71,7 @@ def retry_on_exception(max_attempts: int = 3, delay: float = 1.0, exceptions: tu
 
     def decorator(func: F) -> F:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs):  # type: ignore
             last_exception = None
 
             for attempt in range(max_attempts):
@@ -88,9 +88,9 @@ def retry_on_exception(max_attempts: int = 3, delay: float = 1.0, exceptions: tu
                     else:
                         logger.error(f"❌ {func.__name__} все попытки исчерпаны: {e}")
 
-            raise last_exception
+            raise last_exception  # type: ignore
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
@@ -106,7 +106,7 @@ def validate_input(**validators):
 
     def decorator(func: F) -> F:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs):  # type: ignore
             # Валидация kwargs
             for param_name, validator in validators.items():
                 if param_name in kwargs:
@@ -115,7 +115,7 @@ def validate_input(**validators):
 
             return func(*args, **kwargs)
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
@@ -130,11 +130,11 @@ def cache_result(ttl: Optional[int] = None):
     """
 
     def decorator(func: F) -> F:
-        cache = {}
-        cache_times = {}
+        cache: Dict[str, Any] = {}
+        cache_times: Dict[str, float] = {}
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs):  # type: ignore
             # Создаем ключ кэша
             cache_key = str(args) + str(sorted(kwargs.items()))
 
@@ -157,8 +157,8 @@ def cache_result(ttl: Optional[int] = None):
             return result
 
         # Добавляем метод очистки кэша
-        wrapper.clear_cache = lambda: cache.clear()
-        return wrapper
+        wrapper.clear_cache = lambda: cache.clear()  # type: ignore[attr-defined]
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
@@ -173,10 +173,10 @@ def rate_limit(calls_per_minute: int = 60):
     """
 
     def decorator(func: F) -> F:
-        call_times = []
+        call_times: List[float] = []
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs):  # type: ignore
             current_time = time.time()
 
             # Удаляем старые вызовы
@@ -189,7 +189,7 @@ def rate_limit(calls_per_minute: int = 60):
             call_times.append(current_time)
             return func(*args, **kwargs)
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
@@ -205,12 +205,12 @@ def security_check(check_function: Callable[[], bool]):
 
     def decorator(func: F) -> F:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs):  # type: ignore
             if not check_function():
                 raise SecurityError("❌ Проверка безопасности не пройдена")
             return func(*args, **kwargs)
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
@@ -226,11 +226,11 @@ def deprecated(reason: str = "Функция устарела"):
 
     def decorator(func: F) -> F:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs):  # type: ignore
             logger.warning(f"⚠️ Используется устаревшая функция {func.__name__}: {reason}")
             return func(*args, **kwargs)
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 
@@ -272,14 +272,14 @@ def memoize(func: F) -> F:
         F: Мемоизированная функция
     """
 
-    cache = {}
+    cache: Dict[str, Any] = {}
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):  # type: ignore
         key = str(args) + str(sorted(kwargs.items()))
         if key not in cache:
             cache[key] = func(*args, **kwargs)
         return cache[key]
 
-    wrapper.cache_clear = lambda: cache.clear()
-    return wrapper
+    wrapper.cache_clear = lambda: cache.clear()  # type: ignore[attr-defined]
+    return wrapper  # type: ignore[return-value]

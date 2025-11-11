@@ -256,7 +256,8 @@ class KnowledgeService:
         if not self.last_update:
             return True
 
-        return datetime.now() - self.last_update > self.update_interval
+        time_diff = datetime.now() - self.last_update
+        return bool(time_diff > self.update_interval)
 
     async def update_knowledge_base(self):
         """Обновить базу знаний из веб-источников."""

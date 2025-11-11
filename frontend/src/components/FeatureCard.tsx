@@ -38,4 +38,3 @@ export const FeatureCard: React.FC<FeatureCardProps> = React.memo(
 
 // Для React DevTools
 FeatureCard.displayName = 'FeatureCard';
-

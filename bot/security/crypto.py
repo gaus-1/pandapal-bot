@@ -34,9 +34,17 @@ class CryptoService:
         Инициализация криптосервиса.
 
         Args:
-            secret_key: Секретный ключ для шифрования (если None - генерируется)
+            secret_key: Секретный ключ для шифрования (str или bytes, если None - генерируется)
         """
-        self.secret_key = secret_key or self._generate_key()
+        if secret_key is None:
+            self.secret_key = self._generate_key()
+        elif isinstance(secret_key, bytes):
+            self.secret_key = secret_key
+        else:
+            # Если передан str, конвертируем в bytes через хеш
+            key_hash = hashlib.sha256(secret_key.encode("utf-8")).digest()
+            # Fernet требует ключ длиной 32 байта (base64 encoded)
+            self.secret_key = base64.urlsafe_b64encode(key_hash)
         self.fernet = Fernet(self.secret_key)
         logger.info("🔐 CryptoService инициализирован")
 
@@ -194,8 +202,8 @@ def get_crypto_service() -> CryptoService:
         from bot.config import settings
 
         # Используем SECRET_KEY из настроек как основу для ключа шифрования
-        secret_key = settings.secret_key.encode("utf-8")
-        _crypto_service = CryptoService(secret_key)
+        # CryptoService принимает str и сам конвертирует в bytes
+        _crypto_service = CryptoService(settings.secret_key)
     return _crypto_service
 
 

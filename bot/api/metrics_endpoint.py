@@ -170,7 +170,10 @@ def create_metrics_routes() -> list:
 
     logger.info("📊 Созданы маршруты для метрик:")
     for route in routes:
-        logger.info(f"  - {route.method} {route.resource}")
+        # Получаем информацию о маршруте безопасным способом
+        method = getattr(route, "method", "UNKNOWN")
+        path = getattr(route, "_path", getattr(route, "path", "unknown"))
+        logger.info(f"  - {method} {path}")
 
     return routes
 

@@ -2,12 +2,13 @@
 Unit тесты для моделей базы данных
 """
 
-import pytest
 from datetime import datetime
+
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from bot.models import User, ChatHistory, Base
+from bot.models import Base, ChatHistory, User
 
 
 class TestModels:

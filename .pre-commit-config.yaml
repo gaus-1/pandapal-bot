@@ -8,36 +8,74 @@ repos:
       - id: check-added-large-files
       - id: check-merge-conflict
       - id: check-json
+        exclude: ^(frontend/.*\.json$|.*tsconfig.*\.json$)
       - id: pretty-format-json
         args: ['--autofix', '--no-sort-keys']
+        exclude: ^(frontend/.*\.json$|.*tsconfig.*\.json$)
       - id: mixed-line-ending
 
   - repo: https://github.com/psf/black
-    rev: 23.12.1
+    rev: 25.9.0
     hooks:
       - id: black
         language_version: python3.11
         args: ['--line-length=100']
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+    rev: 6.1.0
     hooks:
       - id: isort
         args: ['--profile', 'black', '--line-length', '100']
 
   - repo: https://github.com/pycqa/flake8
-    rev: 7.0.0
+    rev: 7.3.0
     hooks:
       - id: flake8
         args: ['--max-line-length=100', '--extend-ignore=E203,W503,D205,D400,D200,F841,C901']
         additional_dependencies: [flake8-docstrings]
 
-  # Mypy временно отключен из-за большого количества legacy ошибок
-  # - repo: https://github.com/pre-commit/mirrors-mypy
-  #   rev: v1.8.0
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.18.2
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-requests
+          - types-setuptools
+          - types-aiofiles
+        args: ['--ignore-missing-imports', '--no-strict-optional', '--show-error-codes']
+        exclude: ^(tests/|scripts/)
+
+  - repo: https://github.com/pycqa/pylint
+    rev: v4.0.2
+    hooks:
+      - id: pylint
+        args: ['--max-line-length=100', '--disable=C0114,C0115,C0116,R0903,R0913', '--fail-under=8.0']
+        exclude: ^(tests/|scripts/|alembic/)
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: ['-r', 'bot/', '-ll', '--skip', 'B101,B601,B104', '-f', 'json']
+        exclude: ^(tests/|scripts/)
+        pass_filenames: false
+        verbose: true
+        stages: [manual]
+
+  # Safety проверка уязвимостей зависимостей
+  # Используем локальный вызов safety, так как pre-commit hook может быть нестабильным
+  # - repo: local
   #   hooks:
-  #     - id: mypy
-  #       additional_dependencies:
-  #         - types-requests
-  #         - types-setuptools
-  #       args: ['--ignore-missing-imports', '--no-strict-optional']
+  #     - id: safety
+  #       name: safety
+  #       entry: safety
+  #       language: system
+  #       args: ['check', '--continue-on-error']
+
+  # Vulture временно отключен - слишком много ложных срабатываний
+  # - repo: https://github.com/jendrikseipp/vulture
+  #   rev: v2.14
+  #   hooks:
+  #     - id: vulture
+  #       args: ['--min-confidence', '90', 'bot/']
+  #       exclude: ^(tests/|scripts/|alembic/|bot/interfaces\.py|bot/monitoring/sentry_config\.py|bot/services/web_scraper\.py|bot/services/moderation_service\.py)

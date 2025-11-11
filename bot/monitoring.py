@@ -132,7 +132,7 @@ class MonitoringService:
         unique_users = len(set(a.user_id for a in recent_activities))
         success_rate = sum(1 for a in recent_activities if a.success) / len(recent_activities)
 
-        action_counts = {}
+        action_counts: Dict[str, int] = {}
         for activity in recent_activities:
             action_counts[activity.action] = action_counts.get(activity.action, 0) + 1
 
@@ -269,7 +269,9 @@ def _get_memory_usage() -> float:
         import psutil
 
         process = psutil.Process()
-        return process.memory_info().rss / 1024 / 1024  # MB
+        memory_bytes = process.memory_info().rss
+        memory_mb = memory_bytes / 1024 / 1024  # MB
+        return float(memory_mb)
     except ImportError:
         return 0.0
 
@@ -279,7 +281,8 @@ def _get_cpu_usage() -> float:
     try:
         import psutil
 
-        return psutil.cpu_percent()
+        cpu_percent = psutil.cpu_percent()
+        return float(cpu_percent)
     except ImportError:
         return 0.0
 

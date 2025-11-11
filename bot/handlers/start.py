@@ -14,6 +14,7 @@
 """
 
 from datetime import datetime
+from typing import Dict
 
 from aiogram import F, Router
 from aiogram.filters import CommandStart
@@ -59,8 +60,12 @@ async def cmd_start(message: Message, state: FSMContext):
     logger.info(f"/start от пользователя {telegram_id} ({first_name})")
 
     # Защита от дублирования - проверяем время последнего сообщения
+    # Используем модульный уровень для хранения временных меток
+    if not hasattr(cmd_start, "_last_message_times"):
+        cmd_start._last_message_times: Dict[int, datetime] = {}  # type: ignore[attr-defined]
+
     current_time = datetime.now()
-    last_message_time = getattr(cmd_start, "_last_message_times", {})
+    last_message_time = cmd_start._last_message_times  # type: ignore[attr-defined]
 
     if telegram_id in last_message_time:
         time_diff = (current_time - last_message_time[telegram_id]).total_seconds()
@@ -71,9 +76,7 @@ async def cmd_start(message: Message, state: FSMContext):
             return
 
     # Обновляем время последнего сообщения
-    if not hasattr(cmd_start, "_last_message_times"):
-        cmd_start._last_message_times = {}
-    cmd_start._last_message_times[telegram_id] = current_time
+    last_message_time[telegram_id] = current_time
 
     # Работа с базой данных
     with get_db() as db:

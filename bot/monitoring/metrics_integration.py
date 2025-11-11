@@ -19,11 +19,11 @@ from typing import Any, Dict, Optional
 from loguru import logger
 
 try:
+    from .prometheus_metrics import track_ai_request  # noqa: F401
+    from .prometheus_metrics import track_game_session  # noqa: F401
+    from .prometheus_metrics import track_user_activity  # noqa: F401
     from .prometheus_metrics import (
         get_metrics,
-        track_ai_request,
-        track_game_session,
-        track_user_activity,
     )
 
     METRICS_AVAILABLE = True
