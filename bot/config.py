@@ -162,6 +162,13 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("LOG_LEVEL", "log_level"),
     )
 
+    # ============ ENVIRONMENT ============
+    environment: str = Field(
+        default="production",
+        description="Окружение приложения (development, test, production)",
+        validation_alias=AliasChoices("ENVIRONMENT", "environment"),
+    )
+
     def get_forbidden_topics_list(self) -> List[str]:
         """Получить список запрещённых тем."""
         return [topic.strip() for topic in self.forbidden_topics.split(",") if topic.strip()]

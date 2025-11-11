@@ -1,10 +1,17 @@
+"""
+Alembic environment configuration.
+
+This module configures Alembic for database migrations.
+It loads environment variables and sets up the database connection.
+"""
+
 import os
 from logging.config import fileConfig
 
 from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
-from alembic import context
+from alembic import context  # type: ignore[attr-defined]
 
 # Load environment variables
 load_dotenv()
@@ -16,6 +23,10 @@ config = context.config
 # Override sqlalchemy.url with environment variable
 database_url = os.getenv("DATABASE_URL") or os.getenv("database_url")
 if database_url:
+    # Нормализуем DATABASE_URL: заставляем использовать psycopg v3
+    # Это необходимо для совместимости с SQLAlchemy 2.0+
+    if database_url.startswith("postgresql://") and "+psycopg" not in database_url:
+        database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
     config.set_main_option("sqlalchemy.url", database_url)
 
 # Interpret the config file for Python logging.
@@ -25,7 +36,7 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from bot.models import Base
+from bot.models import Base  # noqa: E402
 
 target_metadata = Base.metadata
 
