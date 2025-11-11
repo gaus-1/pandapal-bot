@@ -87,7 +87,7 @@ class IAIService(ABC):
         user_message: str,
         chat_history: List[Dict[str, str]],
         user_age: Optional[int] = None,
-        user_grade: Optional[int] = None,
+        user_grade: Optional[int] = None,  # noqa: ARG002
     ) -> str:
         """Генерация ответа ИИ"""
         pass
@@ -122,7 +122,7 @@ class IChatHistoryService(ABC):
     @abstractmethod
     def get_formatted_history_for_ai(
         self, telegram_id: int, limit: int = 50
-    ) -> List[Dict[str, str]]:
+    ) -> List[Dict[str, Any]]:
         """Получить форматированную историю для ИИ"""
         pass
 
@@ -171,7 +171,7 @@ class IConfigService(ABC):
     """
 
     @abstractmethod
-    def get_setting(self, key: str, default: Any = None) -> Any:
+    def get_setting(self, key: str, default: Any = None) -> Any:  # noqa: ARG002
         """Получить настройку"""
         pass
 

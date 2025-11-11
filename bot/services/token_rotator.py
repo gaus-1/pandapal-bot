@@ -116,7 +116,10 @@ class TokenRotator:
                     self.current_index = i
                     break
 
-        return self.tokens[self.current_index]
+        current_token = self.tokens[self.current_index]
+        if current_token in self.failed_tokens:
+            return None
+        return str(current_token)  # Гарантируем тип str
 
     def mark_token_failed(self, token: str, reason: str = "quota_exceeded") -> None:
         """
@@ -177,9 +180,9 @@ class TokenRotator:
             "available_tokens": available,
             "failed_tokens": failed,
             "current_index": self.current_index,
-            "current_token": self.get_current_token()[:10] + "..."
-            if self.get_current_token()
-            else None,
+            "current_token": (
+                self.get_current_token()[:10] + "..." if self.get_current_token() else None
+            ),
         }
 
     def _reset_failed_tokens_if_needed(self) -> None:

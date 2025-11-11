@@ -9,9 +9,8 @@ import logging
 import sys
 from pathlib import Path
 
-from bot.config import get_settings
+from bot.config import settings
 from bot.database import init_database
-from bot.monitoring import setup_monitoring
 
 # Добавляем корневую папку в PYTHONPATH
 root_dir = Path(__file__).parent.parent
@@ -32,16 +31,11 @@ async def main():
         logger.info("🚀 Запуск PandaPal бота...")
 
         # Инициализация настроек
-        settings = get_settings()
-        logger.info(f"📋 Настройки загружены: {settings.app_name}")
+        logger.info("📋 Настройки загружены: PandaPal Bot")
 
         # Инициализация базы данных
         await init_database()
         logger.info("🗄️ База данных инициализирована")
-
-        # Настройка мониторинга
-        setup_monitoring()
-        logger.info("📊 Мониторинг настроен")
 
         # Здесь должен быть запуск Telegram бота
         # Пока что просто ждем для CI/CD тестов

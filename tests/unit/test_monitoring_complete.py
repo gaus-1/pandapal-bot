@@ -2,8 +2,10 @@
 Complete monitoring coverage tests
 """
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
+
 from bot.monitoring import log_user_activity, monitor_performance
 
 

@@ -48,4 +48,3 @@ services:
 # Persistent volumes для данных
 volumes:
   postgres_data:
-

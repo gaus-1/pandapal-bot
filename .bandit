@@ -1,0 +1,5 @@
+[bandit]
+exclude_dirs = tests,scripts,alembic,venv,.venv,__pycache__
+skips = B101,B601
+tests = bot/
+

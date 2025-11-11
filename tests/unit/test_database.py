@@ -2,8 +2,9 @@
 Comprehensive tests for Database
 """
 
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 from sqlalchemy.orm import Session
 
 from bot.database import get_db, init_db

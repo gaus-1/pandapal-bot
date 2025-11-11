@@ -22,10 +22,10 @@ describe('FeatureCard Component', () => {
    */
   it('должен отрендерить карточку с данными', () => {
     render(<FeatureCard feature={mockFeature} />);
-    
+
     // Проверяем заголовок
     expect(screen.getByText(mockFeature.title)).toBeInTheDocument();
-    
+
     // Проверяем описание
     expect(screen.getByText(mockFeature.description)).toBeInTheDocument();
   });
@@ -36,11 +36,11 @@ describe('FeatureCard Component', () => {
    */
   it('должен использовать semantic HTML (article, h3)', () => {
     render(<FeatureCard feature={mockFeature} />);
-    
+
     // Проверяем, что это article
     const article = screen.getByRole('article');
     expect(article).toBeInTheDocument();
-    
+
     // Проверяем heading level 3
     const heading = screen.getByRole('heading', { level: 3 });
     expect(heading).toHaveTextContent(mockFeature.title);
@@ -51,9 +51,9 @@ describe('FeatureCard Component', () => {
    */
   it('должен иметь правильные CSS классы', () => {
     render(<FeatureCard feature={mockFeature} />);
-    
+
     const article = screen.getByRole('article');
-    
+
     // Проверяем ключевые классы
     expect(article.className).toContain('rounded-2xl');
     expect(article.className).toContain('bg-white/80');
@@ -71,16 +71,16 @@ describe('FeatureCard Component', () => {
       title: 'Заголовок 1',
       description: 'Описание 1',
     };
-    
+
     const feature2: Feature = {
       id: '2',
       title: 'Заголовок 2',
       description: 'Описание 2',
     };
-    
+
     const { rerender } = render(<FeatureCard feature={feature1} />);
     expect(screen.getByText('Заголовок 1')).toBeInTheDocument();
-    
+
     rerender(<FeatureCard feature={feature2} />);
     expect(screen.getByText('Заголовок 2')).toBeInTheDocument();
   });
@@ -95,12 +95,12 @@ describe('FeatureCard Component', () => {
       title: '<script>alert("XSS")</script>',
       description: '<img src=x onerror=alert("XSS")>',
     };
-    
+
     render(<FeatureCard feature={maliciousFeature} />);
-    
+
     // React автоматически экранирует, но проверим
     expect(screen.queryByText('alert("XSS")')).not.toBeInTheDocument();
-    
+
     // Текст должен отобразиться как строка, а не выполниться
     const article = screen.getByRole('article');
     expect(article.innerHTML).not.toContain('<script>');
@@ -123,9 +123,9 @@ describe('FeatureCard Component', () => {
       title: '',
       description: '',
     };
-    
+
     render(<FeatureCard feature={emptyFeature} />);
-    
+
     // Компонент должен отрендериться без ошибок
     const article = screen.getByRole('article');
     expect(article).toBeInTheDocument();
@@ -141,10 +141,9 @@ describe('FeatureCard Component', () => {
       title: 'A'.repeat(200),
       description: 'B'.repeat(1000),
     };
-    
+
     render(<FeatureCard feature={longFeature} />);
-    
+
     expect(screen.getByRole('article')).toBeInTheDocument();
   });
 });
-

@@ -441,11 +441,7 @@ async def change_period(callback_query, state: FSMContext):
                         text="📆 За месяц", callback_data=f"period_month_{child_id}"
                     ),
                 ],
-                [
-                    InlineKeyboardButton(
-                        text="⬅️ Назад", callback_data=f"dashboard_child_{child_id}"
-                    )
-                ],
+                [InlineKeyboardButton(text="⬅️ Назад", callback_data=f"dashboard_child_{child_id}")],
             ]
 
             reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
@@ -580,11 +576,7 @@ async def show_safety_settings(callback_query, state: FSMContext):
                         text="📊 История активности", callback_data=f"activity_history_{child_id}"
                     ),
                 ],
-                [
-                    InlineKeyboardButton(
-                        text="⬅️ Назад", callback_data=f"dashboard_child_{child_id}"
-                    )
-                ],
+                [InlineKeyboardButton(text="⬅️ Назад", callback_data=f"dashboard_child_{child_id}")],
             ]
 
             reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
@@ -631,7 +623,9 @@ async def generate_weekly_report(message: Message, state: FSMContext):
         user = user_service.get_user_by_telegram_id(telegram_id)
 
         if not user or user.user_type != "parent":
-            await message.answer(text="❌ Эта функция доступна только родителям.", parse_mode="HTML")
+            await message.answer(
+                text="❌ Эта функция доступна только родителям.", parse_mode="HTML"
+            )
             return
 
         # Получаем список детей

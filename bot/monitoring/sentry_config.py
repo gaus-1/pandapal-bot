@@ -61,7 +61,7 @@ class SentryConfig:
 
         logging.info(f"✅ Sentry инициализирован для среды: {self.environment}")
 
-    def _before_send_filter(self, event, hint):
+    def _before_send_filter(self, event, hint):  # noqa: ARG002
         """
         Фильтрация событий перед отправкой в Sentry.
 
@@ -84,7 +84,7 @@ class SentryConfig:
 
         return event
 
-    def _before_send_transaction(self, event, hint):
+    def _before_send_transaction(self, event, hint):  # noqa: ARG002
         """
         Фильтрация транзакций перед отправкой в Sentry.
         """

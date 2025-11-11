@@ -5,7 +5,7 @@
 
 import os
 import tempfile
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from loguru import logger
 
@@ -87,21 +87,24 @@ class SpeechRecognitionService:
             logger.info(f"🎤 Распознавание речи: {temp_file_path}")
 
             # Параметры распознавания
-            transcribe_options = {"fp16": False, "verbose": False}  # CPU совместимость
+            transcribe_options: Dict[str, Any] = {
+                "fp16": False,
+                "verbose": False,
+            }  # CPU совместимость
 
             # Автоопределение языка или использование указанного
             if not auto_detect_language:
                 transcribe_options["language"] = language
 
             # Распознаем речь через Whisper
-            result = self.model.transcribe(temp_file_path, **transcribe_options)
+            result: Dict[str, Any] = self.model.transcribe(temp_file_path, **transcribe_options)
 
             # Логируем определенный язык
             detected_lang = result.get("language", "unknown")
             logger.info(f"🌍 Определен язык: {detected_lang}")
 
             # Получаем распознанный текст
-            text = result["text"].strip()
+            text: str = result.get("text", "").strip()
 
             logger.info(f"✅ Речь распознана: {text[:100]}...")
 

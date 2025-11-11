@@ -2,8 +2,10 @@
 Bot initialization and main module tests
 """
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
+
 import bot
 from bot import __init__ as bot_init
 

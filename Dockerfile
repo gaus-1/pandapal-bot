@@ -29,4 +29,3 @@ EXPOSE 8000
 
 # Запуск бота
 CMD ["python", "main.py"]
-

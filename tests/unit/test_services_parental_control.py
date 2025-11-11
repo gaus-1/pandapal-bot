@@ -2,16 +2,17 @@
 Comprehensive tests for Parental Control Service
 """
 
-import pytest
-from unittest.mock import Mock, AsyncMock, MagicMock
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, Mock
+
+import pytest
 from sqlalchemy.orm import Session
 
 from bot.services.parental_control import (
-    ParentalControlService,
+    ActivityRecord,
     ActivityType,
     AlertLevel,
-    ActivityRecord,
+    ParentalControlService,
     ParentReport,
 )
 

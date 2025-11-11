@@ -9,7 +9,7 @@ import asyncio
 import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin, urlparse
 
 import aiohttp
@@ -112,7 +112,7 @@ class WebScraperService:
         await self.start_session()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb):  # noqa: ARG002
         """Асинхронный контекстный менеджер - выход."""
         await self.close_session()
 
@@ -176,10 +176,12 @@ class WebScraperService:
 
                     for link in material_links:
                         try:
-                            material_url = urljoin(url, link["href"])
-                            task = await self._extract_nsportal_material(material_url, subject)
-                            if task:
-                                tasks.append(task)
+                            link_href = str(link.get("href", ""))
+                            if link_href:
+                                material_url = urljoin(url, link_href)
+                                task = await self._extract_nsportal_material(material_url, subject)
+                                if task:
+                                    tasks.append(task)
                         except Exception as e:
                             logger.debug(f"Ошибка извлечения материала: {e}")
                             continue
@@ -464,7 +466,7 @@ class WebScraperService:
         Returns:
             Dict[str, List[EducationalContent]]: Словарь с материалами по предметам.
         """
-        knowledge_base = {}
+        knowledge_base: Dict[str, List[EducationalContent]] = {}
 
         try:
             # Собираем материалы с nsportal.ru

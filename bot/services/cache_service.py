@@ -324,9 +324,10 @@ class CacheService:
         try:
             if self._use_redis and self._redis_client:
                 result = await self._redis_client.delete(key)
-                return result > 0
+                return bool(result and result > 0)
             else:
-                return await self._memory_cache.delete(key)
+                delete_result = await self._memory_cache.delete(key)
+                return bool(delete_result)
 
         except Exception as e:
             logger.error(f"❌ Ошибка удаления из кэша {key}: {e}")
@@ -345,9 +346,10 @@ class CacheService:
         try:
             if self._use_redis and self._redis_client:
                 result = await self._redis_client.exists(key)
-                return result > 0
+                return bool(result and result > 0)
             else:
-                return await self._memory_cache.exists(key)
+                exists_result = await self._memory_cache.exists(key)
+                return bool(exists_result)
 
         except Exception as e:
             logger.error(f"❌ Ошибка проверки существования ключа {key}: {e}")
@@ -373,7 +375,8 @@ class CacheService:
                         await self._redis_client.delete(*keys)
                 return True
             else:
-                return await self._memory_cache.clear()
+                clear_result = await self._memory_cache.clear()
+                return bool(clear_result)
 
         except Exception as e:
             logger.error(f"❌ Ошибка очистки кэша: {e}")
@@ -410,7 +413,8 @@ class CacheService:
 
         # Создаем хэш для длинных ключей
         if len(key_string) > 250:
-            key_hash = hashlib.md5(key_string.encode()).hexdigest()
+            # MD5 используется только для кэширования, не для безопасности
+            key_hash = hashlib.md5(key_string.encode(), usedforsecurity=False).hexdigest()  # noqa: S324
             return f"{prefix}:hash:{key_hash}"
 
         return key_string
@@ -473,7 +477,8 @@ class CacheService:
                     "hit_rate": self._calculate_hit_rate(info),
                 }
             else:
-                stats = await self._memory_cache.get_stats()
+                stats_result = await self._memory_cache.get_stats()
+                stats: Dict[str, Any] = dict(stats_result) if isinstance(stats_result, dict) else {}
                 stats["type"] = "memory"
                 stats["connected"] = False
                 return stats
@@ -491,7 +496,8 @@ class CacheService:
         if total == 0:
             return 0.0
 
-        return (hits / total) * 100
+        hit_rate = (hits / total) * 100
+        return float(hit_rate)
 
     async def close(self):
         """Закрыть соединения"""

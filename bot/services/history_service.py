@@ -11,7 +11,7 @@
 - Автоматическое управление размером истории
 """
 
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from loguru import logger
 from sqlalchemy import desc, select
@@ -138,7 +138,7 @@ class ChatHistoryService:
 
         return "\n".join(context_lines)
 
-    def get_formatted_history_for_ai(self, telegram_id: int) -> List[Dict[str, str]]:
+    def get_formatted_history_for_ai(self, telegram_id: int) -> List[Dict[str, Any]]:
         """
         Получить историю в формате для Gemini API.
 
@@ -146,15 +146,16 @@ class ChatHistoryService:
             telegram_id: Telegram ID пользователя
 
         Returns:
-            List[Dict]: История в формате [{'role': 'user', 'parts': ['text']}, ...]
+            List[Dict[str, Any]]: История в формате [{'role': 'user', 'parts': ['text']}, ...]
         """
         messages = self.get_recent_history(telegram_id)
 
-        formatted = []
+        formatted: List[Dict[str, Any]] = []
         for msg in messages:
             # Конвертируем наш message_type в формат Gemini
             role = "user" if msg.message_type == "user" else "model"
 
+            # Форматируем в формате Gemini API (с parts для совместимости)
             formatted.append({"role": role, "parts": [msg.message_text]})
 
         return formatted

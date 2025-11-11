@@ -1,26 +1,26 @@
 {
-    "include": [
-        "tests",
-        "bot"
-    ],
-    "exclude": [
-        "**/node_modules",
-        "**/__pycache__",
-        "**/.*"
-    ],
-    "pythonVersion": "3.13",
-    "pythonPlatform": "Windows",
-    "executionEnvironments": [
-        {
-            "root": ".",
-            "pythonVersion": "3.13",
-            "pythonPlatform": "Windows",
-            "extraPaths": [
-                "./venv/Lib/site-packages"
-            ]
-        }
-    ],
-    "reportMissingImports": false,
-    "reportMissingModuleSource": false,
-    "typeCheckingMode": "off"
+  "include": [
+    "tests",
+    "bot"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*"
+  ],
+  "pythonVersion": "3.13",
+  "pythonPlatform": "Windows",
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "pythonVersion": "3.13",
+      "pythonPlatform": "Windows",
+      "extraPaths": [
+        "./venv/Lib/site-packages"
+      ]
+    }
+  ],
+  "reportMissingImports": false,
+  "reportMissingModuleSource": false,
+  "typeCheckingMode": "off"
 }

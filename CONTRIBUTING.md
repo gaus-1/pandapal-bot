@@ -350,4 +350,3 @@ manualChunks: {
 ---
 
 © 2025 PandaPal. Все права защищены.
-
