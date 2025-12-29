@@ -37,9 +37,9 @@ export const FEATURES: readonly Feature[] = [
     description: 'Фильтрация контента и защита персональных данных.',
   },
   {
-    id: 'interactive',
-    title: 'Интерактивность',
-    description: 'Интерактивные задания и система достижений для мотивации.',
+    id: 'gamification',
+    title: 'Игра',
+    description: 'Геймификация и система достижений для мотивации.',
   },
 ] as const;
 
@@ -62,6 +62,4 @@ export const SECTIONS: readonly Section[] = [
  */
 export const NAVIGATION_LINKS = [
   { href: '#parents', label: 'Для родителей' },
-  { href: '/docs', label: 'Документация' },
-  { href: '/api-docs', label: 'API Docs' },
 ] as const;

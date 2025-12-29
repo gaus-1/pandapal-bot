@@ -7,17 +7,17 @@
 /**
  * Очистка строки от потенциально опасных символов
  * Защита от XSS при отображении пользовательских данных
- *
+ * 
  * @param input - Входная строка от пользователя
  * @returns Очищенная безопасная строка
- *
+ * 
  * @example
  * const safe = sanitizeInput('<script>alert("XSS")</script>');
  * // Результат: '&lt;script&gt;alert("XSS")&lt;/script&gt;'
  */
 export const sanitizeInput = (input: string): string => {
   if (!input) return '';
-
+  
   // Экранируем опасные HTML-символы
   const htmlEntities: Record<string, string> = {
     '&': '&amp;',
@@ -27,13 +27,13 @@ export const sanitizeInput = (input: string): string => {
     "'": '&#x27;',
     '/': '&#x2F;',
   };
-
+  
   return input.replace(/[&<>"'/]/g, (char) => htmlEntities[char] || char);
 };
 
 /**
  * Валидация email адреса
- *
+ * 
  * @param email - Email для проверки
  * @returns true если email валиден
  */
@@ -45,7 +45,7 @@ export const isValidEmail = (email: string): boolean => {
 /**
  * Валидация URL
  * Защита от Open Redirect (OWASP A01:2021)
- *
+ * 
  * @param url - URL для проверки
  * @param allowedDomains - Разрешённые домены
  * @returns true если URL безопасен
@@ -56,13 +56,13 @@ export const isValidURL = (
 ): boolean => {
   try {
     const parsedUrl = new URL(url);
-
+    
     // Проверяем протокол (только https)
     if (parsedUrl.protocol !== 'https:') return false;
-
+    
     // Проверяем домен
     const hostname = parsedUrl.hostname;
-    return allowedDomains.some((domain) =>
+    return allowedDomains.some((domain) => 
       hostname === domain || hostname.endsWith(`.${domain}`)
     );
   } catch {
@@ -72,7 +72,7 @@ export const isValidURL = (
 
 /**
  * Защита от SQL Injection в query параметрах
- *
+ * 
  * @param value - Значение параметра
  * @returns Очищенное значение
  */
@@ -83,7 +83,7 @@ export const sanitizeQueryParam = (value: string): string => {
 
 /**
  * Проверка на SQL Injection паттерны
- *
+ * 
  * @param input - Строка для проверки
  * @returns true если обнаружены опасные паттерны
  */
@@ -94,7 +94,7 @@ export const detectSQLInjection = (input: string): boolean => {
     /(\bOR\b|\bAND\b).*=.*=/i,
     /(\b(OR|AND)\b\s+['"]?\d+['"]?\s*=\s*['"]?\d+)/i,
   ];
-
+  
   return sqlPatterns.some((pattern) => pattern.test(input));
 };
 
@@ -104,10 +104,10 @@ export const detectSQLInjection = (input: string): boolean => {
  */
 export class RateLimiter {
   private attempts: Map<string, number[]> = new Map();
-
+  
   /**
    * Проверяет, не превышен ли лимит запросов
-   *
+   * 
    * @param key - Ключ (например, IP или user ID)
    * @param maxAttempts - Максимум попыток
    * @param windowMs - Временное окно в миллисекундах
@@ -120,23 +120,23 @@ export class RateLimiter {
   ): boolean {
     const now = Date.now();
     const userAttempts = this.attempts.get(key) || [];
-
+    
     // Фильтруем только попытки в текущем временном окне
     const recentAttempts = userAttempts.filter(
       (timestamp) => now - timestamp < windowMs
     );
-
+    
     if (recentAttempts.length >= maxAttempts) {
       return false; // Лимит превышен
     }
-
+    
     // Добавляем новую попытку
     recentAttempts.push(now);
     this.attempts.set(key, recentAttempts);
-
+    
     return true; // Лимит не превышен
   }
-
+  
   /**
    * Очистка истории попыток
    */
@@ -144,3 +144,4 @@ export class RateLimiter {
     this.attempts.delete(key);
   }
 }
+
