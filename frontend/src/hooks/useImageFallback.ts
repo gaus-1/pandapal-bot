@@ -8,10 +8,10 @@ import { useState, useCallback } from 'react';
 
 /**
  * Хук для fallback изображений
- *
+ * 
  * @param fallbackSrc - Путь к запасному изображению (показывается при ошибке)
  * @returns Объект с текущим src и обработчиком ошибки
- *
+ * 
  * @example
  * const { handleError } = useImageFallback('/placeholder.png');
  * <img src="/logo.png" onError={handleError} />
@@ -35,3 +35,4 @@ export const useImageFallback = (fallbackSrc: string = '/vite.svg') => {
 
   return { imgSrc, handleError };
 };
+

@@ -201,7 +201,6 @@
 /* ========== АДАПТИВНАЯ ТИПОГРАФИКА ========== */
 html {
   font-size: 16px;
-  font-family: 'Merriweather', ui-serif, Georgia, serif;
 }
 
 @media (min-width: 360px) {
@@ -213,78 +212,6 @@ html {
 @media (min-width: 1920px) {
   html {
     font-size: 18px;
-  }
-}
-
-/* ========== АДАПТИВНЫЕ ЗАГОЛОВКИ ========== */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Manrope', ui-sans-serif, system-ui;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-/* Адаптивные размеры заголовков */
-@media (max-width: 480px) {
-  h1 { font-size: 1.75rem; } /* 28px */
-  h2 { font-size: 1.5rem; }  /* 24px */
-  h3 { font-size: 1.25rem; } /* 20px */
-  h4 { font-size: 1.125rem; } /* 18px */
-}
-
-@media (min-width: 481px) and (max-width: 768px) {
-  h1 { font-size: 2rem; }    /* 32px */
-  h2 { font-size: 1.75rem; } /* 28px */
-  h3 { font-size: 1.5rem; }  /* 24px */
-  h4 { font-size: 1.25rem; } /* 20px */
-}
-
-@media (min-width: 769px) {
-  h1 { font-size: 2.5rem; }  /* 40px */
-  h2 { font-size: 2rem; }    /* 32px */
-  h3 { font-size: 1.75rem; } /* 28px */
-  h4 { font-size: 1.5rem; }  /* 24px */
-}
-
-/* ========== АДАПТИВНЫЙ ОСНОВНОЙ ТЕКСТ ========== */
-p, span, div, a, input, textarea {
-  font-family: 'Merriweather', ui-serif, Georgia, serif;
-  line-height: 1.6;
-}
-
-/* ========== КНОПКИ С MANROPE ========== */
-button, .btn, [role="button"] {
-  font-family: 'Manrope', ui-sans-serif, system-ui;
-  font-weight: 500;
-  line-height: 1.4;
-}
-
-@media (max-width: 480px) {
-  p, span, div, a, input, textarea {
-    font-size: 0.875rem; /* 14px */
-  }
-
-  button, .btn, [role="button"] {
-    font-size: 0.875rem; /* 14px */
-  }
-}
-
-@media (min-width: 481px) and (max-width: 768px) {
-  p, span, div, a, input, textarea {
-    font-size: 1rem; /* 16px */
-  }
-
-  button, .btn, [role="button"] {
-    font-size: 1rem; /* 16px */
-  }
-}
-
-@media (min-width: 769px) {
-  p, span, div, a, input, textarea {
-    font-size: 1.125rem; /* 18px */
-  }
-
-  button, .btn, [role="button"] {
-    font-size: 1rem; /* 16px - кнопки чуть меньше основного текста */
   }
 }
 
@@ -318,22 +245,6 @@ body {
   text-rendering: optimizeLegibility;
   font-feature-settings: "kern" 1;
   font-kerning: normal;
-  font-display: swap; /* Быстрая загрузка шрифтов */
-}
-
-/* Предзагрузка критических шрифтов */
-@font-face {
-  font-family: 'Montrope';
-  font-display: swap;
-  font-weight: 400 800;
-  src: url('https://fonts.googleapis.com/css2?family=Montrope:wght@400;500;600;700;800&display=swap');
-}
-
-@font-face {
-  font-family: 'Merriweather';
-  font-display: swap;
-  font-weight: 300 900;
-  src: url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&display=swap');
 }
 
 /* ========== ОРИЕНТАЦИЯ ========== */

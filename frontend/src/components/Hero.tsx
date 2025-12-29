@@ -14,34 +14,46 @@ import { ScrollIndicator } from './ScrollIndicator';
  */
 export const Hero: React.FC = React.memo(() => {
   return (
-    <section className="py-16 md:py-28 text-center">
+    <section className="py-16 md:py-28 text-center min-h-[85vh] flex flex-col justify-center">
       {/* Основной заголовок (H1 для SEO) */}
-      <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-6">
+      <h1 className="font-display text-5xl md:text-7xl font-bold leading-tight mb-6">
         Безопасный ИИ-друг
         <br />
         для твоего ребенка
       </h1>
 
       {/* Описание продукта */}
-      <p className="text-lg md:text-xl text-gray-700 max-w-2xl mx-auto mb-8">
-        Адаптивное и безопасное обучение для 1-9 классов
+      <p className="mt-6 text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto font-medium">
+        Адаптивное обучение для детей 6-18 лет с AI-модерацией 24/7
       </p>
 
-      {/* Главная CTA-кнопка (Call To Action) */}
-      <div className="flex justify-center items-center">
+      {/* Подзаголовок с деталями */}
+      <p className="mt-4 text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
+        Геймификация, персонализация и полная безопасность контента.
+        Присоединяйся к тысячам семей, доверяющих PandaPal!
+      </p>
+
+      {/* Главные CTA-кнопки (Call To Action) */}
+      <div className="mt-10 flex flex-col md:flex-row gap-4 justify-center">
         <a
           href={SITE_CONFIG.botUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-8 py-4 rounded-full bg-pink text-gray-900 font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+          className="px-10 py-5 rounded-full bg-pink text-gray-900 font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-100"
           aria-label="Начать использовать PandaPal в Telegram"
         >
-          Начать использовать
+          Начать бесплатно
+        </a>
+        <a
+          href="/docs"
+          className="px-10 py-5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-100"
+        >
+          📚 Документация
         </a>
       </div>
 
-      {/* Индикатор прокрутки */}
-      <div className="mt-16">
+      {/* Индикатор прокрутки (в стиле Montfort) */}
+      <div className="mt-16 md:mt-20">
         <ScrollIndicator />
       </div>
     </section>

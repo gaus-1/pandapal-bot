@@ -59,10 +59,10 @@ describe('PandaLogo', () => {
     it('вызывает onClick при клике', () => {
       const handleClick = vi.fn();
       render(<PandaLogo onClick={handleClick} />);
-
+      
       const container = document.querySelector('.panda-logo-container');
       fireEvent.click(container!);
-
+      
       expect(handleClick).toHaveBeenCalledTimes(1);
     });
 
@@ -70,10 +70,10 @@ describe('PandaLogo', () => {
       render(<PandaLogo />);
       const container = document.querySelector('.panda-logo-container');
       const svg = screen.getByRole('img');
-
+      
       fireEvent.mouseEnter(container!);
       expect(svg).toHaveClass('hovered');
-
+      
       fireEvent.mouseLeave(container!);
       expect(svg).not.toHaveClass('hovered');
     });
@@ -98,7 +98,7 @@ describe('PandaLogo', () => {
     it('содержит все необходимые элементы панды', () => {
       render(<PandaLogo />);
       const svg = screen.getByRole('img');
-
+      
       // Проверяем наличие основных элементов
       expect(svg.querySelector('.panda-head')).toBeInTheDocument();
       expect(svg.querySelector('.panda-eye-left')).toBeInTheDocument();
@@ -113,10 +113,10 @@ describe('PandaLogo', () => {
     it('не вызывает лишних ре-рендеров', () => {
       const { rerender } = render(<PandaLogo />);
       const svg = screen.getByRole('img');
-
+      
       // Ререндер с теми же пропсами
       rerender(<PandaLogo />);
-
+      
       // SVG должен остаться тем же элементом
       expect(screen.getByRole('img')).toBe(svg);
     });
@@ -148,7 +148,7 @@ describe('PandaLogo', () => {
       render(<PandaLogo />);
       const container = document.querySelector('.panda-logo-container');
       expect(container).toHaveStyle('cursor: default');
-
+      
       // Клик не должен вызывать ошибок
       expect(() => {
         fireEvent.click(container!);
@@ -164,7 +164,7 @@ describe('PandaLogo', () => {
           <PandaLogo size={80} />
         </div>
       );
-
+      
       const svg = screen.getByRole('img');
       expect(svg).toBeInTheDocument();
     });
@@ -176,7 +176,7 @@ describe('PandaLogo', () => {
           <span>PandaPal</span>
         </div>
       );
-
+      
       const container = document.querySelector('.panda-logo-container');
       expect(container).toHaveStyle('display: block');
     });

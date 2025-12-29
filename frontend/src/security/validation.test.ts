@@ -20,7 +20,7 @@ describe('Security: Input Validation (OWASP A04)', () => {
   describe('validateUsername', () => {
     it('должен принимать корректные имена', () => {
       const validUsernames = ['Вася', 'user123', 'test-user', 'мария_петрова'];
-
+      
       validUsernames.forEach((username) => {
         const result = validateUsername(username);
         expect(result.valid).toBe(true);
@@ -49,7 +49,7 @@ describe('Security: Input Validation (OWASP A04)', () => {
 
     it('должен отклонять спецсимволы', () => {
       const invalidUsernames = ['user@123', 'test<script>', 'name;DROP'];
-
+      
       invalidUsernames.forEach((username) => {
         const result = validateUsername(username);
         expect(result.valid).toBe(false);
@@ -67,7 +67,7 @@ describe('Security: Input Validation (OWASP A04)', () => {
         'user.name@example.co.uk',
         'user+tag@example.com',
       ];
-
+      
       validEmails.forEach((email) => {
         const result = validateEmail(email);
         expect(result.valid).toBe(true);
@@ -82,7 +82,7 @@ describe('Security: Input Validation (OWASP A04)', () => {
         'user@',
         'user @example.com',
       ];
-
+      
       invalidEmails.forEach((email) => {
         const result = validateEmail(email);
         expect(result.valid).toBe(false);
@@ -123,7 +123,7 @@ describe('Security: Input Validation (OWASP A04)', () => {
         '<script>alert("XSS")</script>',
         '<SCRIPT SRC=http://evil.com/xss.js></SCRIPT>',
       ];
-
+      
       xssMessages.forEach((message) => {
         const result = validateMessage(message);
         expect(result.valid).toBe(false);
@@ -141,7 +141,7 @@ describe('Security: Input Validation (OWASP A04)', () => {
         '<img src=x onerror=alert(1)>',
         '<div onclick="steal()">',
       ];
-
+      
       xssAttempts.forEach((attempt) => {
         const result = validateMessage(attempt);
         expect(result.valid).toBe(false);
@@ -215,3 +215,4 @@ describe('Security: Input Validation (OWASP A04)', () => {
     });
   });
 });
+

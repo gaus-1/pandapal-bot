@@ -12,13 +12,13 @@ export default defineConfig({
   test: {
     // Используем jsdom для эмуляции браузерного окружения
     environment: 'jsdom',
-
+    
     // Глобальные переменные (describe, it, expect)
     globals: true,
-
+    
     // Setup файл для конфигурации тестов
     setupFiles: './src/test/setup.ts',
-
+    
     // Coverage (покрытие кода тестами)
     coverage: {
       provider: 'v8',
@@ -36,10 +36,10 @@ export default defineConfig({
       functions: 70,
       lines: 70,
     },
-
+    
     // Таймаут для тестов
     testTimeout: 10000,
-
+    
     // Папки с тестами
     include: ['**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
   },
@@ -55,3 +55,4 @@ export default defineConfig({
     },
   },
 });
+

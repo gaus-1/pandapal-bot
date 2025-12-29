@@ -73,27 +73,27 @@ export const CORS_CONFIG = {
     'https://www.pandapal.ru',
     'https://pandapal-frontend.onrender.com',
   ],
-
+  
   // Разрешённые методы
   allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-
+  
   // Разрешённые заголовки
   allowedHeaders: [
     'Content-Type',
     'Authorization',
     'X-Requested-With',
   ],
-
+  
   // Credentials (cookies, auth headers)
   credentials: true,
-
+  
   // Max age для preflight кэша
   maxAge: 86400, // 24 часа
 } as const;
 
 /**
  * Проверка origin для CORS
- *
+ * 
  * @param origin - Origin из request headers
  * @returns true если origin разрешён
  */

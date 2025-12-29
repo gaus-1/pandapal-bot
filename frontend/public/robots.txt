@@ -47,3 +47,4 @@ Crawl-delay: 1
 
 # Уведомляем о файле подтверждения
 Allow: /yandex_verification.html
+
