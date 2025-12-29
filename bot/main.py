@@ -6,6 +6,7 @@
 
 import asyncio
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -56,8 +57,10 @@ async def main():
             async def health():
                 return {"status": "healthy", "service": "pandapal-bot"}
 
-            logger.info("🌐 Запуск тестового HTTP сервера на порту 8000...")
-            await uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+            test_host = os.getenv("TEST_SERVER_HOST", "127.0.0.1")
+            test_port = int(os.getenv("TEST_SERVER_PORT", "8000"))
+            logger.info("🌐 Запуск тестового HTTP сервера на %s:%s...", test_host, test_port)
+            await uvicorn.run(app, host=test_host, port=test_port, log_level="info")
 
         else:
             # Для продакшена - запуск Telegram бота
