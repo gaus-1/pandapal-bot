@@ -2,192 +2,32 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
-
-    <!-- Поддержка iOS Safe Area (для iPhone с вырезом) -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-
-    <!-- Адаптация под темную тему ОС -->
-    <meta name="color-scheme" content="light dark" />
-
-    <!-- ========== SEO META-ТЕГИ ДЛЯ GOOGLE И ЯНДЕКС ========== -->
-
-    <!-- Основные meta-теги -->
-    <title>PandaPal - AI-ассистент для обучения детей | Безопасный образовательный бот</title>
-    <meta name="description" content="PandaPal - умный AI-ассистент для школьников 6-18 лет. Помощь с уроками, безопасный чат, адаптивное обучение. Родительский контроль. Попробуйте бесплатно в Telegram!">
-    <meta name="keywords" content="AI для детей, образовательный бот, помощь с уроками, онлайн репетитор, telegram бот для учебы, безопасный AI, PandaPal, домашние задания, школьники, обучение с AI">
-
-    <!-- Автор и права -->
-    <meta name="author" content="PandaPal Team">
-    <meta name="copyright" content="PandaPal 2025">
-    <meta name="language" content="Russian">
-
-    <!-- Robots и индексация -->
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    <meta name="yandex" content="index, follow">
-    <meta name="bingbot" content="index, follow">
-
-    <!-- Canonical URL (предотвращение дублей) -->
-    <link rel="canonical" href="https://pandapal.ru/">
-
-    <!-- Языковые версии (hreflang) -->
-    <link rel="alternate" hreflang="ru" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="en" href="https://pandapal.ru/en">
-    <link rel="alternate" hreflang="x-default" href="https://pandapal.ru/">
-
-    <!-- ========== OPEN GRAPH (Facebook, VK, соц. сети) ========== -->
-    <meta property="og:title" content="PandaPal - AI-ассистент для обучения детей">
-    <meta property="og:description" content="Умный и безопасный AI-помощник для школьников 6-18 лет. Помогает с уроками, адаптируется под возраст и уровень знаний.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://pandapal.ru">
-    <meta property="og:image" content="https://pandapal.ru/og-image.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="PandaPal - AI-ассистент для обучения детей">
-    <meta property="og:site_name" content="PandaPal">
-    <meta property="og:locale" content="ru_RU">
-    <meta property="og:locale:alternate" content="en_US">
-
-    <!-- ========== TWITTER CARD ========== -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@pandapal_bot">
-    <meta name="twitter:creator" content="@pandapal_bot">
-    <meta name="twitter:title" content="PandaPal - AI-ассистент для обучения детей">
-    <meta name="twitter:description" content="Умный и безопасный AI-помощник для школьников. Помощь с уроками 24/7.">
-    <meta name="twitter:image" content="https://pandapal.ru/twitter-card.png">
-    <meta name="twitter:image:alt" content="PandaPal AI для детей">
-
-    <!-- ========== FAVICON И ИКОНКИ ========== -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#4F46E5">
-    <meta name="msapplication-TileColor" content="#4F46E5">
-
-    <!-- ========== PRECONNECT ДЛЯ СКОРОСТИ ========== -->
+    <link rel="icon" type="image/svg+xml" href="/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PandaPal — Безопасный ИИ-друг для твоего ребенка</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet">
-
-    <!-- ========== SCHEMA.ORG РАЗМЕТКА (JSON-LD) ========== -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "PandaPal",
-      "alternateName": "PandaPal AI",
-      "url": "https://pandapal.ru",
-      "logo": "https://pandapal.ru/logo.png",
-      "description": "AI-ассистент для обучения детей 6-18 лет с адаптивным контентом и родительским контролем",
-      "applicationCategory": "EducationalApplication",
-      "operatingSystem": "Web, iOS, Android",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "RUB"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "ratingCount": "1250",
-        "bestRating": "5",
-        "worstRating": "1"
-      },
-      "inLanguage": ["ru", "en"],
-      "creator": {
-        "@type": "Organization",
-        "name": "PandaPal Team",
-        "url": "https://pandapal.ru",
-        "logo": "https://pandapal.ru/logo.png",
-        "sameAs": [
-          "https://t.me/pandapal_bot",
-          "https://github.com/gaus-1/pandapal-bot"
-        ]
-      }
-    }
-    </script>
-
-    <!-- Организация для Google Knowledge Graph -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "PandaPal",
-      "url": "https://pandapal.ru",
-      "logo": "https://pandapal.ru/logo.png",
-      "description": "Образовательная платформа с AI для детей",
-      "foundingDate": "2024",
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "contactType": "Customer Service",
-        "availableLanguage": ["Russian", "English"],
-        "url": "https://t.me/pandapal_bot"
-      },
-      "sameAs": [
-        "https://t.me/pandapal_bot",
-        "https://github.com/gaus-1/pandapal-bot"
-      ]
-    }
-    </script>
-
-    <!-- BreadcrumbList для навигации -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Главная",
-          "item": "https://pandapal.ru/"
-        }
-      ]
-    }
-    </script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <meta name="description" content="PandaPal — ИИ-ассистент для безопасного и адаптивного обучения школьников 1–9 классов. Игровой формат, родительский контроль, персонализация.">
+    <meta property="og:title" content="PandaPal — Безопасный ИИ-друг для твоего ребенка">
+    <meta property="og:description" content="Адаптивное, игровое и безопасное обучение для 1–9 классов">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pandapal.ru">
+    <meta property="og:image" content="https://pandapal.ru/logo.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="PandaPal — Безопасный ИИ-друг для твоего ребенка">
+    <meta name="twitter:description" content="Адаптивное, игровое и безопасное обучение для 1–9 классов">
+    
     <!-- Content Security Policy - КРИТИЧЕСКИ ВАЖНО для защиты детей от XSS -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://telegram.org https://www.googletagmanager.com https://mc.yandex.ru; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' ws://localhost:* http://localhost:* https://api.pandapal.ru https://mc.yandex.ru https://region1.google-analytics.com https://www.google-analytics.com; frame-src 'self' https://mc.yandex.ru; base-uri 'self'; form-action 'self';">
-
-    <!-- Дополнительные заголовки безопасности (устанавливаются на сервере) -->
-    <!-- X-Frame-Options, X-Content-Type-Options, Referrer-Policy должны быть HTTP заголовками -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://telegram.org https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.pandapal.ru; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+    
+    <!-- Дополнительные заголовки безопасности -->
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
     <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
-
-    <!-- ========== GOOGLE ANALYTICS 4 ========== -->
-    <!-- Замените YOUR_GA4_ID на реальный ID из Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-XXXXXXXXXX', {
-        'page_title': 'PandaPal - AI для детей',
-        'send_page_view': true
-      });
-    </script>
-
-    <!-- Yandex.Metrika counter -->
-    <script type="text/javascript">
-      (function(m,e,t,r,i,k,a){
-        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-      })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=104525544', 'ym');
-
-      ym(104525544, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
-    </script>
-    <!-- /Yandex.Metrika counter -->
-
   </head>
   <body>
-    <!-- Noscript для Яндекс.Метрики -->
-    <noscript><div><img src="https://mc.yandex.ru/watch/104525544" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
