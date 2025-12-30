@@ -1,27 +1,26 @@
 /**
- * Главный компонент приложения PandaPal
+ * Главный компонент приложения
  * Отвечает за композицию всех секций страницы
  * @module App
- * @version 2.0.0 - Редизайн в стиле Montfort Trading
  */
 
 import React from 'react';
-import { Header, Hero, Features, InfoTabs, Mission, TelegramQR, Footer } from './components';
+import { Header, Hero, Features, Section, Footer } from './components';
+import { SECTIONS } from './config/constants';
 import './index.css';
 
 /**
  * Корневой компонент приложения PandaPal
  *
- * Архитектура (обновлено):
+ * Архитектура:
  * - Header: шапка с логотипом и навигацией
- * - Main: основной контент (Hero с scroll indicator, Features, Tabs, Mission)
- * - Footer: улучшенный подвал с 3 колонками
+ * - Main: основной контент (Hero, Features, динамические секции)
+ * - Footer: подвал с копирайтом
  *
  * Принципы:
  * - Модульность: каждый блок — отдельный компонент
- * - Премиальность: больше whitespace, анимации
+ * - Масштабируемость: новые секции добавляются через SECTIONS
  * - Производительность: все компоненты мемоизированы (React.memo)
- * - Адаптивность: mobile-first подход Tailwind CSS
  */
 const App: React.FC = () => {
   return (
@@ -31,35 +30,19 @@ const App: React.FC = () => {
 
       {/* Основной контент */}
       <main className="max-w-6xl mx-auto px-4">
-        {/* Hero-секция: заголовок + CTA + scroll indicator */}
+        {/* Hero-секция: заголовок + CTA */}
         <Hero />
 
-        {/* Блок преимуществ (3 карточки) - увеличенные отступы */}
-        <section id="features" className="py-8 md:py-12">
-          <Features />
-        </section>
+        {/* Блок преимуществ (3 карточки) */}
+        <Features />
 
-        {/* Кнопка игры PandaPal Go */}
-        <section className="py-8 md:py-12 text-center">
-          <a
-            href="/play"
-            className="inline-block px-12 py-6 rounded-full bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white font-bold text-xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 active:scale-95"
-          >
-            🎮 Играть в PandaPal Go
-          </a>
-        </section>
-
-        {/* Табы с информацией (Родители/Безопасность/Возможности) */}
-        <InfoTabs />
-
-        {/* Секция "Наша миссия" */}
-        <Mission />
-
-        {/* QR-код и кнопка для перехода в Telegram */}
-        <TelegramQR />
+        {/* Динамические секции (Для родителей, Для учителей и т.д.) */}
+        {SECTIONS.map((section) => (
+          <Section key={section.id} section={section} />
+        ))}
       </main>
 
-      {/* Улучшенный Footer */}
+      {/* Подвал */}
       <Footer />
     </div>
   );

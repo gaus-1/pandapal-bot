@@ -35,6 +35,7 @@ describe('Header Component', () => {
 
     // Проверяем якорные ссылки
     expect(screen.getByText('Для родителей')).toHaveAttribute('href', '#parents');
+    expect(screen.getByText('Для учителей')).toHaveAttribute('href', '#teachers');
 
     // Проверяем CTA-кнопку
     const startButton = screen.getByText('Начать');

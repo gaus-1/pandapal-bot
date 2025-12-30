@@ -6,7 +6,6 @@
 
 import React from 'react';
 import { SITE_CONFIG, NAVIGATION_LINKS } from '../config/constants';
-import './Header.css';
 
 /**
  * Шапка сайта с адаптивной навигацией
@@ -20,12 +19,10 @@ export const Header: React.FC = React.memo(() => {
         <img
           src={SITE_CONFIG.logo.src}
           alt={SITE_CONFIG.logo.alt}
-          className="w-12 h-12 rounded-full shadow-md panda-logo-animated cursor-pointer transition-all duration-300 hover:scale-110 hover:rotate-12 hover:shadow-lg"
-          loading="eager"
+          className="w-12 h-12 rounded-full shadow-md"
+          loading="eager" // Высокий приоритет загрузки (логотип важен)
           width="48"
           height="48"
-          onClick={() => window.location.href = '/'}
-          title="Кликни на меня! 🐼"
         />
         <span className="font-display text-2xl font-bold">
           {SITE_CONFIG.name}
@@ -64,4 +61,3 @@ export const Header: React.FC = React.memo(() => {
 
 // Для удобства отладки в React DevTools
 Header.displayName = 'Header';
-

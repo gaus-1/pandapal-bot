@@ -6,21 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:analyze": "npm run build && node scripts/analyze-bundle.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "test:watch": "vitest --watch",
-    "lighthouse": "lhci autorun"
+    "test:watch": "vitest --watch"
   },
   "dependencies": {
     "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "react-router-dom": "^6.28.0",
-    "web-vitals": "^4.2.4",
-    "zustand": "^4.5.7"
+    "react-dom": "^19.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

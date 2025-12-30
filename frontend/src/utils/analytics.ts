@@ -15,7 +15,6 @@ export const trackButtonClick = (buttonName: string): void => {
   // Проверяем наличие Google Analytics
   if (typeof window !== 'undefined' && 'gtag' in window) {
     // Отправляем событие в GA4
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).gtag('event', 'click', {
       event_category: 'Button',
       event_label: buttonName,
@@ -24,7 +23,6 @@ export const trackButtonClick = (buttonName: string): void => {
 
   // Можно добавить Yandex Metrika
   if (typeof window !== 'undefined' && 'ym' in window) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).ym(12345678, 'reachGoal', `button_${buttonName}`);
   }
 };
@@ -39,7 +37,6 @@ export const trackButtonClick = (buttonName: string): void => {
 export const trackPageView = (pagePath: string): void => {
   // Google Analytics 4
   if (typeof window !== 'undefined' && 'gtag' in window) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).gtag('event', 'page_view', {
       page_path: pagePath,
     });
