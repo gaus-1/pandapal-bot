@@ -22,7 +22,7 @@ const PATTERNS = {
   ALPHANUMERIC: /^[a-zA-Zа-яА-ЯёЁ0-9_-]+$/,
 
   // Email (RFC 5322 упрощённый)
-  EMAIL: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+  EMAIL: /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
 
   // Telegram username (@username)
   TELEGRAM: /^@?[a-zA-Z0-9_]{5,32}$/,

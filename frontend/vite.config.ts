@@ -4,9 +4,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -18,59 +16,18 @@ export default defineConfig({
     },
   },
   build: {
-    target: 'es2020',
-    cssCodeSplit: true,
-    // Оптимизированный лимит размера
-    chunkSizeWarningLimit: 400,
     rollupOptions: {
       output: {
-        // Оптимальное разделение бандла для стандартов 2025
         manualChunks: {
-          // React core (должен загружаться первым)
-          'react-core': ['react', 'react-dom'],
-          // Роутинг (нужен почти сразу)
-          'react-router': ['react-router-dom'],
-          // Zustand (легкий, но отдельно)
-          'state': ['zustand'],
-          // Web vitals (загружается асинхронно)
-          'monitoring': ['web-vitals'],
+          vendor: ['react', 'react-dom'],
         },
-        // Оптимизация имен файлов
-        entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
-    sourcemap: false, // Отключаем sourcemap в проде
-    minify: 'esbuild', // esbuild быстрее terser
-    reportCompressedSize: true,
-    // Оптимизация для детей (быстрая загрузка на медленных соединениях)
-    assetsInlineLimit: 4096, // Инлайним маленькие файлы < 4KB
+    sourcemap: false,
+    minify: 'terser',
   },
   server: {
-    host: 'localhost',
+    host: true,
     port: 5173,
-    strictPort: true,
-    // Стабильный HMR без сетевых проблем
-    hmr: {
-      overlay: true,
-      port: 5174,
-    },
-    // Отключаем предварительную оптимизацию для стабильности
-    preTransformRequests: false,
-    // Кэширование для стабильности
-    fs: {
-      strict: false,
-    },
-  },
-  // Оптимизация для dev сборки - упрощенная для стабильности
-  optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'react-router-dom',
-      'zustand',
-    ],
-    force: true, // Принудительная переоптимизация
   },
 })
