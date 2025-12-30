@@ -24,7 +24,7 @@ export default defineConfig({
       },
     },
     sourcemap: false,
-    minify: 'esbuild',
+    minify: 'terser',
   },
   server: {
     host: true,
