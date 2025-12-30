@@ -3,7 +3,7 @@ nixPkgs = ["python311", "nodejs_20", "postgresql"]
 
 [phases.install]
 cmds = [
-  "pip install -r requirements.txt",
+  "pip install -r requirements.railway.txt",
   "cd frontend && npm install"
 ]
 
