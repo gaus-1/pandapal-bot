@@ -2,22 +2,44 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Favicon (используем logo.png) -->
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+
+    <!-- Viewport для адаптивности -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#FFC0CB" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="PandaPal" />
+
     <title>PandaPal — Безопасный ИИ-друг для твоего ребенка</title>
+
     <!-- Google Fonts 2025: Poppins (заголовки) + Inter (текст) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- SEO Meta Tags -->
     <meta name="description" content="PandaPal — ИИ-ассистент для безопасного и адаптивного обучения школьников 1–9 классов. Игровой формат, родительский контроль, персонализация.">
+    <meta name="keywords" content="образование, дети, ИИ, обучение, школа, 1-9 класс, безопасность, Telegram бот">
+    <meta name="author" content="PandaPal Team">
+
+    <!-- Open Graph / Facebook -->
     <meta property="og:title" content="PandaPal — Безопасный ИИ-друг для твоего ребенка">
     <meta property="og:description" content="Адаптивное, игровое и безопасное обучение для 1–9 классов">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://pandapal.ru">
     <meta property="og:image" content="https://pandapal.ru/logo.png">
+
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="PandaPal — Безопасный ИИ-друг для твоего ребенка">
     <meta name="twitter:description" content="Адаптивное, игровое и безопасное обучение для 1–9 классов">
+    <meta name="twitter:image" content="https://pandapal.ru/logo.png">
   </head>
   <body>
     <div id="root"></div>

@@ -14,6 +14,7 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   /* Заголовки используют Poppins */
@@ -45,9 +46,49 @@
     @apply min-h-[44px] sm:min-h-[48px];
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* Изображения - lazy loading + responsive */
+  img {
+    @apply max-w-full h-auto;
+    loading: lazy;
+  }
 }
 
+/* =================================================================
+   АНИМАЦИИ (с уважением к prefers-reduced-motion)
+   ================================================================= */
+
 @layer utilities {
+  /* Fade in анимации */
+  .animate-fade-in {
+    animation: fadeIn 0.8s ease-out forwards;
+  }
+
+  .animate-fade-in-delay {
+    animation: fadeIn 0.8s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-delay-2 {
+    animation: fadeIn 0.8s ease-out 0.4s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-delay-3 {
+    animation: fadeIn 0.8s ease-out 0.6s forwards;
+    opacity: 0;
+  }
+
+  /* Bounce анимация для логотипа */
+  .animate-logo-bounce {
+    animation: logoBounce 2s ease-in-out infinite;
+  }
+
+  /* Плавное появление текста (буква за буквой) */
+  .animate-text-reveal {
+    animation: textReveal 1.5s ease-out forwards;
+  }
+
   /* Адаптивные утилиты для контейнеров */
   .container-responsive {
     @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
@@ -77,8 +118,67 @@
 }
 
 /* =================================================================
-   ТЕМНАЯ ТЕМА (prefers-color-scheme)
+   KEYFRAMES ДЛЯ АНИМАЦИЙ
    ================================================================= */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes logoBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes textReveal {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* =================================================================
+   ТЕМНАЯ ТЕМА (manual toggle + prefers-color-scheme)
+   ================================================================= */
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f4f6;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+}
+
+.dark {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --border-color: #374151;
+}
+
+.dark body {
+  @apply bg-gray-900 text-gray-100;
+}
+
+.dark .bg-gradient-to-b {
+  @apply from-gray-800 to-gray-900;
+}
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -108,6 +208,16 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  .animate-fade-in,
+  .animate-fade-in-delay,
+  .animate-fade-in-delay-2,
+  .animate-fade-in-delay-3,
+  .animate-logo-bounce,
+  .animate-text-reveal {
+    animation: none !important;
+    opacity: 1 !important;
+  }
 }
 
 /* =================================================================
@@ -122,4 +232,28 @@
   header, footer {
     display: none;
   }
+
+  .animate-fade-in,
+  .animate-fade-in-delay,
+  .animate-fade-in-delay-2,
+  .animate-fade-in-delay-3 {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* =================================================================
+   DARK MODE TOGGLE BUTTON
+   ================================================================= */
+
+.dark-mode-toggle {
+  @apply fixed top-4 right-4 z-50 p-3 rounded-full bg-gray-200 dark:bg-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer;
+}
+
+.dark-mode-toggle:hover {
+  @apply scale-110;
+}
+
+.dark-mode-toggle svg {
+  @apply w-6 h-6 text-gray-700 dark:text-yellow-300;
 }
