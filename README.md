@@ -77,6 +77,7 @@
 - **Pydantic v2** — валидация данных и настроек
 - **Alembic** — миграции базы данных
 - **aiohttp** — асинхронные HTTP-запросы
+- **In-Memory Cache** — LRU кеш в оперативной памяти (Redis готов, но отключён)
 
 ### **Frontend (React 18 + TypeScript)**
 - **React 18** — современный UI
