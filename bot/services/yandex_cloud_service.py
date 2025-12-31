@@ -232,9 +232,15 @@ class YandexCloudService:
             logger.info(f"📊 Vision API status code: {response.status_code}")
             logger.info(f"📊 Vision API response keys: {list(vision_result.keys())}")
 
-            # Логируем первые 500 символов ответа для анализа
-            response_preview = json.dumps(vision_result, ensure_ascii=False, indent=2)[:800]
-            logger.debug(f"📊 Vision API response preview:\n{response_preview}")
+            # Логируем ПОЛНЫЙ ответ для анализа структуры
+            response_full = json.dumps(vision_result, ensure_ascii=False, indent=2)
+            response_preview = response_full[:2000]  # Первые 2000 символов
+            logger.info(
+                f"📊 ПОЛНЫЙ Vision API response (первые 2000 символов):\n{response_preview}"
+            )
+
+            # Сохраняем полный ответ для детального анализа
+            logger.debug(f"📊 ВЕСЬ Vision API response:\n{response_full}")
 
             # Извлекаем распознанный текст (ВСЕ строки, не только первую!)
             recognized_text = ""
@@ -264,11 +270,41 @@ class YandexCloudService:
                                 lines = block.get("lines", [])
                                 logger.info(f"  📦 Блок {block_idx}: строк {len(lines)}")
 
+                                # Логируем структуру первого блока для анализа
+                                if block_idx == 0 and lines:
+                                    logger.info(
+                                        f"  🔍 Структура первой строки: {list(lines[0].keys())}"
+                                    )
+
                                 for line_idx, line in enumerate(lines):
+                                    # СПОСОБ 1: Прямой текст (line["text"])
                                     line_text = line.get("text", "").strip()
+
+                                    # СПОСОБ 2: Если текста нет, собираем из words
+                                    if not line_text and "words" in line:
+                                        words = []
+                                        for word in line.get("words", []):
+                                            word_text = word.get("text", "").strip()
+                                            if word_text:
+                                                words.append(word_text)
+                                        if words:
+                                            line_text = " ".join(words)
+
+                                    # СПОСОБ 3: Если и words нет, проверяем alternatives
+                                    if not line_text and "alternatives" in line:
+                                        for alt in line.get("alternatives", []):
+                                            alt_text = alt.get("text", "").strip()
+                                            if alt_text:
+                                                line_text = alt_text
+                                                break
+
                                     if line_text:
                                         all_lines.append(line_text)
-                                        logger.info(f"    ✅ Строка {line_idx}: {line_text[:50]}")
+                                        logger.info(f"    ✅ Строка {line_idx}: {line_text[:80]}")
+                                    else:
+                                        logger.warning(
+                                            f"    ⚠️ Строка {line_idx} пустая! Ключи: {list(line.keys())}"
+                                        )
 
                 recognized_text = "\n".join(all_lines)
 
