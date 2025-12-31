@@ -393,7 +393,6 @@ async def handle_image(message: Message, state: FSMContext):
                     child_telegram_id=message.from_user.id,
                     activity_type=ActivityType.MESSAGE_BLOCKED,
                     message_content=f"[ИЗОБРАЖЕНИЕ] {reason}",
-                    alert_level="WARNING",
                     moderation_result={"reason": reason, "type": "image_moderation"},
                 )
 
@@ -430,7 +429,6 @@ async def handle_image(message: Message, state: FSMContext):
                 child_telegram_id=message.from_user.id,
                 activity_type=ActivityType.MESSAGE_SENT,
                 message_content=f"[ИЗОБРАЖЕНИЕ] {caption}" if caption else "[ИЗОБРАЖЕНИЕ]",
-                alert_level="INFO",
                 moderation_result={"status": "safe", "type": "image_analysis"},
             )
 
