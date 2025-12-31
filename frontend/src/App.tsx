@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { Header, Hero, Features, Section, Footer } from './components';
+import { DarkModeToggle } from './components/DarkModeToggle';
 import { SECTIONS } from './config/constants';
 import './index.css';
 
@@ -16,6 +17,7 @@ import './index.css';
  * - Header: шапка с логотипом и навигацией
  * - Main: основной контент (Hero, Features, динамические секции)
  * - Footer: подвал с копирайтом
+ * - DarkModeToggle: переключатель темы
  *
  * Принципы:
  * - Модульность: каждый блок — отдельный компонент
@@ -24,7 +26,10 @@ import './index.css';
  */
 const App: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 text-gray-900">
+    <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 text-gray-900 smooth-scroll">
+      {/* Dark Mode Toggle */}
+      <DarkModeToggle />
+
       {/* Шапка сайта */}
       <Header />
 

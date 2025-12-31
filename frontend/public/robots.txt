@@ -1,0 +1,21 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://pandapal.ru/sitemap.xml
+
+# Yandex bot
+User-agent: Yandex
+Allow: /
+
+# Google bot
+User-agent: Googlebot
+Allow: /
+
+# Disallow admin/internal pages (если появятся)
+# Disallow: /admin/
+# Disallow: /api/
+
+# Crawl-delay (опционально, для вежливых ботов)
+Crawl-delay: 1

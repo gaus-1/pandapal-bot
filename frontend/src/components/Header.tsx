@@ -19,12 +19,12 @@ export const Header: React.FC = React.memo(() => {
         <img
           src={SITE_CONFIG.logo.src}
           alt={SITE_CONFIG.logo.alt}
-          className="w-12 h-12 rounded-full shadow-md"
-          loading="eager" // Высокий приоритет загрузки (логотип важен)
+          className="w-12 h-12 rounded-full shadow-md animate-logo-bounce"
+          loading="eager"
           width="48"
           height="48"
         />
-        <span className="font-display text-2xl font-bold">
+        <span className="font-display text-2xl font-bold animate-text-reveal">
           {SITE_CONFIG.name}
         </span>
       </div>
