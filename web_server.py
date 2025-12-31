@@ -34,7 +34,7 @@ from aiogram import Bot, Dispatcher  # noqa: E402
 from aiogram.client.default import DefaultBotProperties  # noqa: E402
 from aiogram.enums import ParseMode  # noqa: E402
 from aiogram.fsm.storage.memory import MemoryStorage  # noqa: E402
-from aiogram.webhook.aiohttp_server import setup_application  # noqa: E402
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler  # noqa: E402
 from aiohttp import web  # noqa: E402
 from loguru import logger  # noqa: E402
 
@@ -182,8 +182,11 @@ class PandaPalBotServer:
                 logger.debug("📊 Метрики недоступны (опционально)")
 
             # Настраиваем webhook handler ПОСЛЕ регистрации всех маршрутов
-            # Используем setup_application для правильной интеграции aiogram с aiohttp
-            setup_application(self.app, self.dp, bot=self.bot)
+            # Явно указываем путь /webhook для Railway
+            webhook_path = "/webhook"
+            webhook_handler = SimpleRequestHandler(dispatcher=self.dp, bot=self.bot)
+            webhook_handler.register(self.app, path=webhook_path)
+            logger.info(f"📡 Webhook handler зарегистрирован на пути: {webhook_path}")
 
             logger.info("✅ Веб-приложение создано")
             return self.app
