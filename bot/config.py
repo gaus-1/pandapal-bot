@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     Основной класс конфигурации приложения.
 
     Содержит все настройки для работы бота, включая:
-    - Подключения к внешним сервисам (БД, Telegram, Gemini AI)
+    - Подключения к внешним сервисам (БД, Telegram, Yandex Cloud AI)
     - Параметры безопасности и модерации
     - Лимиты и ограничения
     - Настройки для разработки и продакшена
@@ -30,9 +30,9 @@ class Settings(BaseSettings):
     Attributes:
         database_url (str): URL подключения к PostgreSQL базе данных.
         telegram_bot_token (str): Токен Telegram бота от @BotFather.
-        gemini_api_key (str): Основной API ключ для Google Gemini AI.
-        gemini_api_keys (Optional[str]): Дополнительные API ключи через запятую для ротации.
-        gemini_model (str): Модель Gemini для использования (по умолчанию gemini-2.0-flash).
+        yandex_cloud_api_key (str): API ключ для Yandex Cloud (YandexGPT, SpeechKit, Vision).
+        yandex_cloud_folder_id (str): Folder ID в Yandex Cloud.
+        yandex_gpt_model (str): Модель YandexGPT (yandexgpt-lite или yandexgpt).
         ai_temperature (float): Температура генерации AI (0.0-1.0).
         ai_max_tokens (int): Максимальное количество токенов в ответе AI.
         forbidden_topics (str): Запрещенные темы через запятую для модерации.
@@ -82,24 +82,11 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("YANDEX_GPT_MODEL", "yandex_gpt_model"),
     )
 
-    # ============ AI / GEMINI (DEPRECATED - FALLBACK) ============
-    # Оставлен для плавной миграции и возможности отката
-    gemini_api_key: Optional[str] = Field(
-        default=None,
-        description="Google Gemini API ключ (DEPRECATED, используется как fallback)",
-        validation_alias=AliasChoices("GEMINI_API_KEY", "gemini_api_key"),
-    )
-
-    gemini_api_keys: Optional[str] = Field(
-        default=None,
-        description="Список дополнительных API ключей для ротации (DEPRECATED)",
-        validation_alias=AliasChoices("GEMINI_API_KEYS", "gemini_api_keys"),
-    )
-
-    gemini_model: str = Field(
-        default="gemini-1.5-flash",
-        description="Модель Gemini (DEPRECATED, для fallback)",
-        validation_alias=AliasChoices("GEMINI_MODEL", "gemini_model"),
+    # ============ AI SETTINGS ============
+    ai_temperature: float = Field(
+        default=0.7,
+        description="Температура генерации AI (0.0 = детерминированно, 1.0 = креативно)",
+        validation_alias=AliasChoices("AI_TEMPERATURE", "ai_temperature"),
     )
 
     ai_temperature: float = Field(
@@ -228,21 +215,6 @@ class Settings(BaseSettings):
         """Проверка Yandex Cloud Folder ID."""
         if not v or v == "your_folder_id":
             raise ValueError("YANDEX_CLOUD_FOLDER_ID не установлен в .env")
-        return v
-
-    @field_validator("gemini_api_key")
-    @classmethod
-    def validate_gemini_key(cls, v: Optional[str]) -> Optional[str]:
-        """Проверка Gemini API ключа (опционально, для fallback)."""
-        # Теперь Gemini опционален
-        if v and v == "your_gemini_api_key_here":
-            return None
-        return v
-
-    @field_validator("gemini_api_keys")
-    @classmethod
-    def validate_gemini_keys(cls, v: Optional[str]) -> Optional[str]:
-        """Проверка дополнительных Gemini ключей (опционально)."""
         return v
 
 
