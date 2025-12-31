@@ -113,26 +113,30 @@ class YandexAIResponseGenerator:
             )
             web_context = self.knowledge_service.format_knowledge_for_ai(relevant_materials)
 
-            # Построение контекста (делегирование)
-            context = self.context_builder.build(user_message, chat_history, user_age)
-
-            # Добавляем веб-контекст
-            if web_context:
-                context += "\n\n" + web_context
-
             # Преобразуем историю в формат Yandex Cloud
             yandex_history = []
             if chat_history:
                 for msg in chat_history[-10:]:  # Последние 10 сообщений
                     role = "user" if msg.get("is_user") else "assistant"
-                    yandex_history.append({"role": role, "text": msg.get("text", "")})
+                    text = msg.get("text", "").strip()
+                    if text:  # Только непустые сообщения
+                        yandex_history.append({"role": role, "text": text})
+
+            # Формируем system_prompt с учетом возраста и веб-контекста
+            enhanced_system_prompt = AI_SYSTEM_PROMPT
+            if user_age:
+                enhanced_system_prompt += (
+                    f"\n\nВажно: Адаптируй ответ под возраст пользователя ({user_age} лет)."
+                )
+            if web_context:
+                enhanced_system_prompt += f"\n\nДополнительная информация:\n{web_context}"
 
             # Генерация ответа через Yandex Cloud
             logger.info("📤 Отправка запроса в YandexGPT...")
             response = await self.yandex_service.generate_text_response(
-                user_message=context,
+                user_message=user_message,  # Передаем чистое сообщение пользователя
                 chat_history=yandex_history,
-                system_prompt=AI_SYSTEM_PROMPT,
+                system_prompt=enhanced_system_prompt,
                 temperature=settings.ai_temperature,
                 max_tokens=settings.ai_max_tokens,
             )
