@@ -1,3 +1,125 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* =================================================================
+   ГЛОБАЛЬНЫЕ СТИЛИ 2025 - АДАПТИВНОСТЬ И ТИПОГРАФИКА
+   ================================================================= */
+
+@layer base {
+  /* Базовая типографика с новыми шрифтами */
+  body {
+    @apply font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Заголовки используют Poppins */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold;
+    letter-spacing: -0.02em;
+  }
+
+  /* Адаптивные размеры заголовков */
+  h1 {
+    @apply text-3xl sm:text-4xl lg:text-5xl;
+  }
+
+  h2 {
+    @apply text-2xl sm:text-3xl lg:text-4xl;
+  }
+
+  h3 {
+    @apply text-xl sm:text-2xl lg:text-3xl;
+  }
+
+  /* Параграфы - оптимальная читаемость */
+  p {
+    @apply text-base sm:text-lg leading-relaxed;
+  }
+
+  /* Оптимизация для touch-устройств */
+  button, a {
+    @apply min-h-[44px] sm:min-h-[48px];
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer utilities {
+  /* Адаптивные утилиты для контейнеров */
+  .container-responsive {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Безопасные отступы для мобильных notch/camera */
+  .safe-area-inset {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Скрытие скроллбара (опционально) */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Smooth scroll для всего приложения */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+}
+
+/* =================================================================
+   ТЕМНАЯ ТЕМА (prefers-color-scheme)
+   ================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+/* =================================================================
+   ACCESSIBILITY - высокая контрастность
+   ================================================================= */
+
+@media (prefers-contrast: high) {
+  body {
+    @apply contrast-125;
+  }
+}
+
+/* =================================================================
+   MOTION - уважение к prefers-reduced-motion
+   ================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =================================================================
+   PRINT - оптимизация для печати
+   ================================================================= */
+
+@media print {
+  body {
+    @apply bg-white text-black;
+  }
+
+  header, footer {
+    display: none;
+  }
+}
