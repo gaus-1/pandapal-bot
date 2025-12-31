@@ -34,17 +34,22 @@ from sqlalchemy.pool import NullPool
 from bot.config import settings
 from bot.models import Base
 
-# Создаём engine для подключения к PostgreSQL
+# Создаём engine для подключения к PostgreSQL или SQLite
 # NullPool для асинхронной работы (каждый запрос = новое подключение)
+# Условно настраиваем SSL только для PostgreSQL (не для SQLite)
+connect_args = {}
+if settings.database_url.startswith(("postgresql://", "postgres://")):
+    connect_args = {
+        "sslmode": "require",  # Требуем SSL для Render/Railway PostgreSQL
+        "connect_timeout": 10,  # Таймаут подключения 10 секунд
+    }
+
 engine = create_engine(
     settings.database_url,
     poolclass=NullPool,
     echo=False,  # True для отладки SQL-запросов
     future=True,
-    connect_args={
-        "sslmode": "require",  # Требуем SSL для Render PostgreSQL
-        "connect_timeout": 10,  # Таймаут подключения 10 секунд
-    },
+    connect_args=connect_args,
 )
 
 # Фабрика сессий

@@ -176,12 +176,22 @@ class Settings(BaseSettings):
     @field_validator("database_url")
     @classmethod
     def validate_database_url(cls, v: str) -> str:
-        """Проверка корректности DATABASE_URL."""
-        if not v.startswith("postgresql"):
-            raise ValueError("DATABASE_URL должен начинаться с postgresql://")
-        # Нормализуем драйвер: заставляем использовать psycopg v3
+        """Проверка корректности DATABASE_URL и нормализация драйвера."""
+        # Разрешаем SQLite для локальной разработки/тестов
+        if v.startswith("sqlite"):
+            return v
+
+        # Для продакшена требуем PostgreSQL
+        if not v.startswith(("postgresql://", "postgres://")):
+            raise ValueError("DATABASE_URL должен быть postgresql:// или sqlite:// (для тестов)")
+
+        # Нормализуем драйвер: заставляем использовать psycopg v3 для PostgreSQL
         if v.startswith("postgresql://") and "+psycopg" not in v:
             v = v.replace("postgresql://", "postgresql+psycopg://", 1)
+        elif v.startswith("postgres://"):
+            # Railway может использовать postgres:// вместо postgresql://
+            v = v.replace("postgres://", "postgresql+psycopg://", 1)
+
         return v
 
     @field_validator("gemini_api_key")
