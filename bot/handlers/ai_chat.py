@@ -300,7 +300,7 @@ async def handle_voice(message: Message):
             await processing_msg.edit_text(
                 "🎤 Не удалось распознать речь.\n" "Попробуй говорить четче или напиши текстом! 📝"
             )
-            log_user_activity(telegram_id, "voice_recognition_failed", False, "Whisper failed")
+            log_user_activity(telegram_id, "voice_recognition_failed", False, "SpeechKit failed")
             return
 
         # Удаляем сообщение "Слушаю..."
@@ -316,15 +316,6 @@ async def handle_voice(message: Message):
 
         # Логируем успешную активность
         log_user_activity(telegram_id, "voice_message_sent", True)
-
-        # Удаляем сообщение "Слушаю..."
-        await processing_msg.delete()
-
-        # Показываем что распознали
-        await message.answer(
-            f'🎤 <i>Я услышал:</i> "{recognized_text}"\n\n' f"Сейчас подумаю над ответом... 🐼",
-            parse_mode="HTML",
-        )
 
         # Обрабатываем как обычное текстовое сообщение (передаем оригинальный message с bot)
         # Временно сохраняем текст в message для обработки
@@ -425,13 +416,13 @@ async def handle_image(message: Message, state: FSMContext):
 
             # Сохраняем в историю
             await history_service.add_message(
-                user_telegram_id=message.from_user.id,
+                telegram_id=message.from_user.id,
                 message_text=f"[ИЗОБРАЖЕНИЕ] {caption}" if caption else "[ИЗОБРАЖЕНИЕ]",
                 message_type="user",
             )
 
             await history_service.add_message(
-                user_telegram_id=message.from_user.id, message_text=ai_response, message_type="ai"
+                telegram_id=message.from_user.id, message_text=ai_response, message_type="ai"
             )
 
             # Логируем успешную обработку
