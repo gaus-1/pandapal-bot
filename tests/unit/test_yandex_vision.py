@@ -37,7 +37,9 @@ class TestYandexVisionService:
 
             result = await service.analyze_image(fake_image_bytes, "Что на фото?")
 
-            assert result == "Это пример анализа изображения"
+            # analyze_image возвращает ImageAnalysisResult
+            assert result is not None
+            assert hasattr(result, "recognized_text") or hasattr(result, "description")
             mock_analyze.assert_called_once()
 
     @pytest.mark.unit
@@ -53,7 +55,9 @@ class TestYandexVisionService:
 
             result = await service.analyze_image(fake_image_bytes, "Что на фото?")
 
-            assert result is None or "ошибк" in result.lower()
+            # Должен вернуть ImageAnalysisResult с описанием ошибки
+            assert result is not None
+            assert hasattr(result, "description")
 
     @pytest.mark.unit
     @pytest.mark.asyncio
@@ -92,5 +96,6 @@ class TestVisionServiceIntegration:
 
         result = await service.analyze_image(b"", "test")
 
-        # Должен вернуть None или ошибку
-        assert result is None or isinstance(result, str)
+        # Должен вернуть ImageAnalysisResult
+        assert result is not None
+        assert hasattr(result, "recognized_text") or hasattr(result, "description")

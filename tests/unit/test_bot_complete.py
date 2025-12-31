@@ -17,10 +17,11 @@ class TestBotComponents:
 
     @pytest.mark.unit
     def test_config_all_settings(self):
+        """Тест настроек конфигурации (обновлено для Yandex Cloud)"""
         assert settings is not None
         assert settings.database_url is not None
         assert settings.telegram_bot_token is not None
-        assert settings.gemini_api_key is not None
+        assert settings.yandex_cloud_api_key is not None  # Обновлено
         assert settings.content_filter_level >= 1
         assert settings.daily_message_limit > 0
         assert settings.chat_history_limit > 0
@@ -28,9 +29,11 @@ class TestBotComponents:
 
     @pytest.mark.unit
     def test_ai_system_prompt_structure(self):
+        """Тест структуры AI промпта (обновлено для Yandex)"""
         assert AI_SYSTEM_PROMPT is not None
         assert len(AI_SYSTEM_PROMPT) > 100
-        assert "PandaPalAI" in AI_SYSTEM_PROMPT
+        assert "PandaPal" in AI_SYSTEM_PROMPT  # Обновлено
+        assert "РЕБЕН" in AI_SYSTEM_PROMPT  # Проверка на детскую направленность
 
     @pytest.mark.unit
     def test_forbidden_patterns_complete(self):
