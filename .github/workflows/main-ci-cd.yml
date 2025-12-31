@@ -80,7 +80,9 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pandapal_test
           TELEGRAM_BOT_TOKEN: 123456789:TEST_TOKEN_FOR_CI
-          GEMINI_API_KEY: test_gemini_key_for_ci
+          YANDEX_CLOUD_API_KEY: AQVTEST_KEY_FOR_CI
+          YANDEX_CLOUD_FOLDER_ID: b1gTEST_FOLDER_ID_FOR_CI
+          YANDEX_GPT_MODEL: yandexgpt-lite
           SECRET_KEY: test_secret_key_32_chars_minimum
           DEBUG: 'True'
         run: |
@@ -198,8 +200,8 @@ jobs:
       - name: ✅ Deploy complete
         run: |
           echo "✅ Railway автоматически деплоит из GitHub"
-          echo "🌐 URL: https://web-production-725aa.up.railway.app"
-          echo "📊 Health: https://web-production-725aa.up.railway.app/health"
+          echo "🌐 URL: https://pandapal.ru"
+          echo "📊 Health: https://pandapal.ru/health"
 
   # ============================================================================
   # SUMMARY: Итоговый отчет
