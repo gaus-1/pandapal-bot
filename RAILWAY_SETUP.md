@@ -61,7 +61,10 @@ WEBHOOK_DOMAIN=твой-проект.up.railway.app
 WEBHOOK_PATH=/webhook
 ```
 
-💡 WEBHOOK_DOMAIN скопируй из Railway после деплоя (Settings)
+💡 **ВАЖНО:**
+- `WEBHOOK_DOMAIN` скопируй из Railway Dashboard → Settings → Domains
+- Домен **БЕЗ** https:// (только: `project.up.railway.app`)
+- `FRONTEND_URL` — это ваш домен через Cloudflare: `https://pandapal.ru`
 
 ### **8. LOGGING**
 

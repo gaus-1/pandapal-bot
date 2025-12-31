@@ -87,6 +87,7 @@
 
 ### **Инфраструктура**
 - **Railway.app** — деплой бота и базы данных
+- **Cloudflare** — DNS, SSL, CDN (бесплатно, работает из РФ)
 - **GitHub Actions** — CI/CD (тесты, линтеры, автодеплой)
 - **Pre-commit hooks** — black, isort, flake8 для качества кода
 

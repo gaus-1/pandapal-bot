@@ -157,8 +157,8 @@ class Settings(BaseSettings):
 
     # ============ WEBHOOK ============
     webhook_domain: str = Field(
-        default="pandapal-bot.onrender.com",
-        description="Домен для webhook (без https://)",
+        default="pandapal-bot-production.up.railway.app",
+        description="Домен для webhook (без https://). Railway URL",
         validation_alias=AliasChoices("WEBHOOK_DOMAIN", "webhook_domain"),
     )
 
