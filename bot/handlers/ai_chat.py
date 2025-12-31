@@ -414,14 +414,14 @@ async def handle_image(message: Message, state: FSMContext):
                 user_age=user.age,
             )
 
-            # Сохраняем в историю
-            await history_service.add_message(
+            # Сохраняем в историю (синхронный метод, без await)
+            history_service.add_message(
                 telegram_id=message.from_user.id,
                 message_text=f"[ИЗОБРАЖЕНИЕ] {caption}" if caption else "[ИЗОБРАЖЕНИЕ]",
                 message_type="user",
             )
 
-            await history_service.add_message(
+            history_service.add_message(
                 telegram_id=message.from_user.id, message_text=ai_response, message_type="ai"
             )
 
