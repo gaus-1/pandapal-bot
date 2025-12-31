@@ -6,14 +6,14 @@
 для проверки здоровья БД.
 
 Основные компоненты:
-- **SQLAlchemy Engine**: Подключение к PostgreSQL на Render.com
+- **SQLAlchemy Engine**: Подключение к PostgreSQL на Railway.app
 - **Session Factory**: Создание изолированных сессий для транзакций
 - **Context Manager**: Безопасное управление жизненным циклом сессий
 - **DatabaseService**: Сервис для проверки состояния подключения
 
 Конфигурация:
 - **Connection Pool**: NullPool для асинхронной работы (новое подключение на запрос)
-- **SSL Mode**: Обязательный SSL для Render PostgreSQL
+- **SSL Mode**: Обязательный SSL для Railway PostgreSQL
 - **Timeout**: 10 секунд на установку подключения
 - **Transactional DDL**: Поддержка миграций Alembic
 

@@ -4,13 +4,13 @@
 Веб-сервер для запуска PandaPal Telegram бота через webhook.
 
 Этот модуль инициализирует aiogram Bot и Dispatcher, настраивает webhook
-для работы на Render.com и запускает aiohttp сервер для приема обновлений
+для работы на Railway.app и запускает aiohttp сервер для приема обновлений
 от Telegram.
 
 Основные компоненты:
 - Инициализация Bot и Dispatcher
 - Регистрация всех обработчиков из bot/handlers
-- Настройка webhook для Render.com
+- Настройка webhook для Railway.app
 - HTTP сервер для приема webhook запросов
 - Health check endpoints
 - Интеграция метрик
