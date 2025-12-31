@@ -1,5 +1,5 @@
 """
-Тесты для GeminiAIService (SOLID)
+Тесты для YandexAIService (SOLID)
 Тестирование фасада AI сервиса
 """
 
@@ -7,13 +7,13 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from bot.services.ai_service_solid import GeminiAIService, get_ai_service
+from bot.services.ai_service_solid import YandexAIService, get_ai_service
 
 
-class TestGeminiAIService:
+class TestYandexAIService:
     """Тесты для AI сервиса"""
 
-    @patch("bot.services.ai_service_solid.AIResponseGenerator")
+    @patch("bot.services.ai_service_solid.YandexAIResponseGenerator")
     @patch("bot.services.ai_service_solid.ContentModerator")
     @patch("bot.services.ai_service_solid.ContextBuilder")
     def test_init(self, mock_context_builder, mock_moderator, mock_generator):
@@ -21,7 +21,7 @@ class TestGeminiAIService:
         mock_generator_instance = Mock()
         mock_generator.return_value = mock_generator_instance
 
-        service = GeminiAIService()
+        service = YandexAIService()
 
         # Проверяем что зависимости были созданы
         mock_moderator.assert_called_once()
@@ -31,7 +31,7 @@ class TestGeminiAIService:
         # Проверяем что генератор был инжектирован
         assert service.response_generator == mock_generator_instance
 
-    @patch("bot.services.ai_service_solid.AIResponseGenerator")
+    @patch("bot.services.ai_service_solid.YandexAIResponseGenerator")
     @patch("bot.services.ai_service_solid.ContentModerator")
     @patch("bot.services.ai_service_solid.ContextBuilder")
     @pytest.mark.asyncio
@@ -41,7 +41,7 @@ class TestGeminiAIService:
         mock_generator_instance.generate_response = AsyncMock(return_value="Тестовый ответ")
         mock_generator.return_value = mock_generator_instance
 
-        service = GeminiAIService()
+        service = YandexAIService()
 
         result = await service.generate_response(
             "Привет!", [{"role": "user", "content": "Тест"}], 10

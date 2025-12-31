@@ -1,6 +1,6 @@
 """
-Тесты для AIResponseGenerator (SOLID)
-Тестирование генерации ответов с реальными сервисами
+Тесты для YandexYandexAIResponseGenerator (SOLID)
+Тестирование генерации ответов с Yandex Cloud
 """
 
 import asyncio
@@ -10,11 +10,11 @@ import pytest
 from bot.config import settings
 from bot.services.ai_context_builder import ContextBuilder
 from bot.services.ai_moderator import ContentModerator
-from bot.services.ai_response_generator_solid import AIResponseGenerator
+from bot.services.yandex_ai_response_generator import YandexAIResponseGenerator
 
 
-class TestAIResponseGenerator:
-    """Тесты для генератора ответов AI с реальными сервисами"""
+class TestYandexYandexAIResponseGenerator:
+    """Тесты для генератора ответов AI с Yandex Cloud"""
 
     def setup_method(self):
         """Настройка перед каждым тестом"""
@@ -23,17 +23,17 @@ class TestAIResponseGenerator:
 
     def test_init(self):
         """Тест инициализации с реальными сервисами"""
-        generator = AIResponseGenerator(self.moderator, self.context_builder)
+        generator = YandexYandexAIResponseGenerator(self.moderator, self.context_builder)
 
         assert generator.moderator == self.moderator
         assert generator.context_builder == self.context_builder
-        assert generator.model is not None
+        assert generator.yandex_service is not None
         assert generator.token_rotator is not None
 
     @pytest.mark.asyncio
     async def test_generate_response_safe_content(self):
         """Тест генерации ответа для безопасного контента"""
-        generator = AIResponseGenerator(self.moderator, self.context_builder)
+        generator = YandexAIResponseGenerator(self.moderator, self.context_builder)
 
         # Тестируем с реальным безопасным вопросом
         result = await generator.generate_response("Привет! Как дела?")
@@ -46,7 +46,7 @@ class TestAIResponseGenerator:
     @pytest.mark.asyncio
     async def test_generate_response_unsafe_content(self):
         """Тест генерации ответа для небезопасного контента"""
-        generator = AIResponseGenerator(self.moderator, self.context_builder)
+        generator = YandexAIResponseGenerator(self.moderator, self.context_builder)
 
         # Тестируем с реальным небезопасным вопросом
         result = await generator.generate_response("Как убить человека?")
@@ -58,7 +58,7 @@ class TestAIResponseGenerator:
     @pytest.mark.asyncio
     async def test_generate_response_with_age(self):
         """Тест генерации ответа с учетом возраста"""
-        generator = AIResponseGenerator(self.moderator, self.context_builder)
+        generator = YandexAIResponseGenerator(self.moderator, self.context_builder)
 
         # Тестируем с разными возрастами
         result_young = await generator.generate_response("Что такое математика?", user_age=7)
@@ -72,7 +72,7 @@ class TestAIResponseGenerator:
 
     def test_get_model_info(self):
         """Тест получения информации о модели"""
-        generator = AIResponseGenerator(self.moderator, self.context_builder)
+        generator = YandexAIResponseGenerator(self.moderator, self.context_builder)
 
         info = generator.get_model_info()
 
@@ -85,7 +85,7 @@ class TestAIResponseGenerator:
     @pytest.mark.asyncio
     async def test_generate_response_with_history(self):
         """Тест генерации ответа с историей чата"""
-        generator = AIResponseGenerator(self.moderator, self.context_builder)
+        generator = YandexAIResponseGenerator(self.moderator, self.context_builder)
 
         # Тестируем с историей чата
         history = [
@@ -106,7 +106,7 @@ class TestAIResponseGenerator:
         custom_moderator = ContentModerator()
         custom_context_builder = ContextBuilder()
 
-        generator = AIResponseGenerator(custom_moderator, custom_context_builder)
+        generator = YandexAIResponseGenerator(custom_moderator, custom_context_builder)
 
         assert generator.moderator is custom_moderator
         assert generator.context_builder is custom_context_builder
