@@ -7,14 +7,10 @@ aiogram==3.23.0
 pytokens==0.3.0
 magic-filter==1.0.12
 
-# ============ AI / GEMINI ============
-google-generativeai==0.8.6
-google-ai-generativelanguage==0.6.15
-google-api-core==2.28.1
-google-api-python-client==2.187.0
-google-auth==2.45.0
-google-auth-httplib2==0.3.0
-googleapis-common-protos==1.72.0
+# ============ AI / YANDEX CLOUD ============
+# Для YandexGPT, SpeechKit, Vision используем прямые API запросы
+# Требуется только requests (уже установлен в HTTP & NETWORKING секции)
+# Официальный SDK не нужен - работаем напрямую через REST API
 
 # ============ DATABASE ============
 SQLAlchemy==2.0.45
