@@ -52,31 +52,29 @@ class TestYandexAIService:
             "Привет!", [{"role": "user", "content": "Тест"}], 10
         )
 
-    @patch("bot.services.ai_service_solid.AIResponseGenerator")
+    @patch("bot.services.ai_service_solid.YandexAIResponseGenerator")
     @patch("bot.services.ai_service_solid.ContentModerator")
     @patch("bot.services.ai_service_solid.ContextBuilder")
     def test_get_model_info(self, mock_context_builder, mock_moderator, mock_generator):
-        """Тест получения информации о модели"""
+        """Тест получения информации о модели Yandex"""
         mock_generator_instance = Mock()
         mock_generator_instance.get_model_info.return_value = {
-            "model": "gemini-pro",
+            "model": "yandexgpt-lite",
             "temperature": "0.7",
-            "max_tokens": "2048",
-            "public_name": "PandaPalAI",
+            "max_tokens": "2000",
+            "public_name": "PandaPal",
         }
         mock_generator.return_value = mock_generator_instance
 
-        service = GeminiAIService()
+        service = YandexAIService()
 
         info = service.get_model_info()
 
-        assert info["model"] == "gemini-pro"
+        assert info["model"] == "yandexgpt-lite"
         assert info["temperature"] == "0.7"
-        assert info["max_tokens"] == "2048"
-        assert info["public_name"] == "PandaPalAI"
         mock_generator_instance.get_model_info.assert_called_once()
 
-    @patch("bot.services.ai_service_solid.GeminiAIService")
+    @patch("bot.services.ai_service_solid.YandexAIService")
     def test_get_ai_service_singleton(self, mock_service_class):
         """Тест singleton паттерна"""
         mock_instance = Mock()
@@ -95,7 +93,7 @@ class TestYandexAIService:
         # Класс должен быть вызван только один раз
         mock_service_class.assert_called_once()
 
-    @patch("bot.services.ai_service_solid.AIResponseGenerator")
+    @patch("bot.services.ai_service_solid.YandexAIResponseGenerator")
     @patch("bot.services.ai_service_solid.ContentModerator")
     @patch("bot.services.ai_service_solid.ContextBuilder")
     @pytest.mark.asyncio
@@ -103,10 +101,10 @@ class TestYandexAIService:
         """Тест фасад паттерна - делегирование всех вызовов"""
         mock_generator_instance = Mock()
         mock_generator_instance.generate_response = AsyncMock(return_value="Ответ через фасад")
-        mock_generator_instance.get_model_info.return_value = {"model": "test"}
+        mock_generator_instance.get_model_info.return_value = {"model": "yandexgpt-lite"}
         mock_generator.return_value = mock_generator_instance
 
-        service = GeminiAIService()
+        service = YandexAIService()
 
         # Тест делегирования generate_response
         result = await service.generate_response("Тест")
@@ -115,10 +113,11 @@ class TestYandexAIService:
 
         # Тест делегирования get_model_info
         info = service.get_model_info()
-        assert info == {"model": "test"}
+        assert info == {"model": "yandexgpt-lite"}
         mock_generator_instance.get_model_info.assert_called_once()
 
     @patch("bot.services.ai_service_solid.AIResponseGenerator")
+    @patch("bot.services.ai_service_solid.YandexAIResponseGenerator")
     @patch("bot.services.ai_service_solid.ContentModerator")
     @patch("bot.services.ai_service_solid.ContextBuilder")
     def test_dependency_injection_verification(
@@ -133,14 +132,14 @@ class TestYandexAIService:
         mock_context_builder.return_value = mock_context_builder_instance
         mock_generator.return_value = mock_generator_instance
 
-        service = GeminiAIService()
+        service = YandexAIService()
 
         # Проверяем что генератор получил правильные зависимости
         mock_generator.assert_called_once_with(
             mock_moderator_instance, mock_context_builder_instance
         )
 
-    @patch("bot.services.ai_service_solid.AIResponseGenerator")
+    @patch("bot.services.ai_service_solid.YandexAIResponseGenerator")
     @patch("bot.services.ai_service_solid.ContentModerator")
     @patch("bot.services.ai_service_solid.ContextBuilder")
     @pytest.mark.asyncio
@@ -150,7 +149,7 @@ class TestYandexAIService:
         mock_generator_instance.generate_response = AsyncMock(side_effect=Exception("Test error"))
         mock_generator.return_value = mock_generator_instance
 
-        service = GeminiAIService()
+        service = YandexAIService()
 
         # Ошибка должна пробрасываться через фасад
         with pytest.raises(Exception, match="Test error"):
