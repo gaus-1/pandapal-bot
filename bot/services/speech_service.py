@@ -1,154 +1,86 @@
 """
-Сервис распознавания речи через OpenAI Whisper
-Конвертирует голосовые сообщения в текст
+Сервис распознавания речи через Yandex SpeechKit.
+
+Миграция с OpenAI Whisper на Yandex Cloud SpeechKit STT.
+Поддерживает русский и английский языки.
 """
 
-import os
-import tempfile
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from loguru import logger
 
-# Whisper временно отключен для быстрого деплоя на Render
-try:
-    import whisper
-
-    WHISPER_AVAILABLE = True
-except ImportError:
-    WHISPER_AVAILABLE = False
-    logger.warning("⚠️ OpenAI Whisper не установлен - голосовые сообщения недоступны")
+from bot.services.yandex_cloud_service import get_yandex_cloud_service
 
 
 class SpeechRecognitionService:
     """
-    Сервис для распознавания речи через Whisper
-    Поддерживает русский и английский языки
+    Сервис для распознавания речи через Yandex SpeechKit STT.
+
+    Преимущества Yandex SpeechKit:
+    - Отличное распознавание русского языка
+    - Поддержка различных форматов аудио
+    - Низкая стоимость (₽0.30-0.60 за минуту)
+    - Не требует локальных ресурсов (облачный)
     """
 
-    def __init__(self, model_size: str = "tiny"):
-        """
-        Инициализация сервиса
-
-        Args:
-            model_size: Размер модели Whisper
-                - tiny (39M, быстро, менее точно)
-                - base (74M, баланс) ✅ РЕКОМЕНДУЕТСЯ для русского
-                - small (244M, точнее, медленнее)
-                - medium (769M, очень точно, очень медленно)
-                - large (1550M, максимальная точность)
-                - turbo (809M, быстро, только английский)
-
-        Примечание: turbo НЕ поддерживает русский язык!
-        Для русского используйте base или small.
-        """
-        logger.info(f"🎤 Инициализация распознавания речи: {model_size}")
-
-        if not WHISPER_AVAILABLE:
-            logger.warning("⚠️ Whisper недоступен - используется заглушка")
-            self.model = None
-            self.model_size = model_size
-            return
-
-        try:
-            self.model = whisper.load_model(model_size)
-            self.model_size = model_size
-            logger.info(f"✅ Whisper модель {model_size} загружена успешно")
-        except Exception as e:
-            logger.error(f"❌ Ошибка загрузки Whisper: {e}")
-            raise
+    def __init__(self):
+        """Инициализация сервиса распознавания речи."""
+        self.yandex_service = get_yandex_cloud_service()
+        logger.info("✅ Yandex SpeechKit STT сервис инициализирован")
 
     async def transcribe_voice(
         self, voice_file_bytes: bytes, language: str = "ru", auto_detect_language: bool = True
     ) -> Optional[str]:
         """
-        Распознать речь из голосового сообщения
+        Распознать речь из голосового сообщения через Yandex SpeechKit.
 
         Args:
-            voice_file_bytes: Байты аудио файла (.ogg)
-            language: Предполагаемый язык (ru/en) - используется если auto_detect=False
-            auto_detect_language: Автоопределение языка (рекомендуется)
+            voice_file_bytes: Байты аудио файла (.ogg, .mp3, .wav).
+            language: Язык распознавания (ru/en).
+            auto_detect_language: Автоопределение языка (не используется в Yandex).
 
         Returns:
-            str: Распознанный текст или None при ошибке
+            str: Распознанный текст или None при ошибке.
         """
-        # Проверка доступности Whisper
-        if not WHISPER_AVAILABLE or self.model is None:
-            logger.warning("⚠️ Whisper недоступен - возвращаем заглушку")
-            return "Извини, распознавание речи временно недоступно. Пожалуйста, напиши текстом! 📝"
-
-        temp_file_path = None
-
         try:
-            # Создаем временный файл для аудио
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".ogg") as temp_file:
-                temp_file.write(voice_file_bytes)
-                temp_file_path = temp_file.name
+            logger.info(f"🎤 Распознавание речи через Yandex SpeechKit (язык: {language})")
 
-            logger.info(f"🎤 Распознавание речи: {temp_file_path}")
+            # Определяем формат аудио
+            # Telegram отправляет голосовые в формате OGG Opus
+            audio_format = "oggopus"
 
-            # Параметры распознавания
-            transcribe_options: Dict[str, Any] = {
-                "fp16": False,
-                "verbose": False,
-            }  # CPU совместимость
+            # Язык в формате Yandex Cloud (ru-RU, en-US)
+            yandex_language = f"{language}-{language.upper()}"
 
-            # Автоопределение языка или использование указанного
-            if not auto_detect_language:
-                transcribe_options["language"] = language
+            # Распознаем речь через Yandex SpeechKit
+            recognized_text = await self.yandex_service.recognize_speech(
+                audio_data=voice_file_bytes, audio_format=audio_format, language=yandex_language
+            )
 
-            # Распознаем речь через Whisper
-            result: Dict[str, Any] = self.model.transcribe(temp_file_path, **transcribe_options)
+            if not recognized_text:
+                logger.warning("⚠️ Yandex SpeechKit не распознал речь")
+                return None
 
-            # Логируем определенный язык
-            detected_lang = result.get("language", "unknown")
-            logger.info(f"🌍 Определен язык: {detected_lang}")
-
-            # Получаем распознанный текст
-            text: str = result.get("text", "").strip()
-
-            logger.info(f"✅ Речь распознана: {text[:100]}...")
-
-            return text
+            logger.info(f"✅ Речь распознана: '{recognized_text[:100]}...'")
+            return recognized_text
 
         except Exception as e:
-            logger.error(f"❌ Ошибка распознавания речи: {e}")
+            logger.error(f"❌ Ошибка распознавания речи (Yandex SpeechKit): {e}")
             return None
 
-        finally:
-            # Удаляем временный файл
-            if temp_file_path and os.path.exists(temp_file_path):
-                try:
-                    os.unlink(temp_file_path)
-                except Exception as e:
-                    logger.warning(f"⚠️ Не удалось удалить временный файл: {e}")
 
-    def get_service_status(self) -> dict:
-        """Получить статус сервиса"""
-        return {
-            "service": "SpeechRecognitionService",
-            "status": "active" if self.model else "inactive",
-            "model": "whisper-base",
-            "languages": ["ru", "en"],
-        }
-
-
-# Глобальный экземпляр сервиса (Singleton)
+# Глобальный экземпляр (Singleton)
 _speech_service: Optional[SpeechRecognitionService] = None
 
 
 def get_speech_service() -> SpeechRecognitionService:
     """
-    Получить глобальный экземпляр сервиса распознавания речи.
-
-    Реализует паттерн Singleton для обеспечения единого экземпляра
-    сервиса Whisper во всем приложении. Создается один раз при первом вызове.
+    Получить глобальный экземпляр Yandex SpeechKit сервиса.
 
     Returns:
-        SpeechRecognitionService: Глобальный экземпляр сервиса распознавания речи.
+        SpeechRecognitionService: Глобальный экземпляр.
     """
     global _speech_service
-
     if _speech_service is None:
-        _speech_service = SpeechRecognitionService(model_size="base")
-
+        _speech_service = SpeechRecognitionService()
     return _speech_service

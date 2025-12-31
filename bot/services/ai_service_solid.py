@@ -1,6 +1,8 @@
 """
-AI сервис - Facade pattern + Dependency Injection
-Соблюдение SOLID принципов
+AI сервис - Facade для Yandex Cloud (YandexGPT).
+
+Миграция с Google Gemini на Yandex Cloud.
+Соблюдение SOLID принципов.
 """
 
 from typing import Dict, List, Optional
@@ -9,7 +11,7 @@ from loguru import logger
 
 from bot.services.ai_context_builder import ContextBuilder
 from bot.services.ai_moderator import ContentModerator
-from bot.services.ai_response_generator_solid import AIResponseGenerator
+from bot.services.yandex_ai_response_generator import YandexAIResponseGenerator
 
 # Безопасная интеграция метрик (опционально)
 try:
@@ -21,14 +23,16 @@ except ImportError:
 
     # Создаем пустой декоратор если метрики недоступны
     def safe_track_ai_service(func):
+        """Заглушка декоратора метрик."""
         return func
 
 
-class GeminiAIService:
+class YandexAIService:
     """
-    Facade для AI сервисов
+    Facade для Yandex Cloud AI сервисов.
+
     Соблюдает принципы SOLID:
-    - SRP: только координация
+    - SRP: только координация AI сервисов
     - OCP: можно расширять без изменения
     - LSP: можно заменить реализации
     - ISP: использует только нужные интерфейсы
@@ -36,43 +40,53 @@ class GeminiAIService:
     """
 
     def __init__(self):
-        """Dependency Injection - соблюдение DIP"""
-        # Создаем зависимости (в реальном проекте можно через DI контейнер)
+        """Dependency Injection - соблюдение DIP."""
+        # Создаем зависимости
         moderator = ContentModerator()
         context_builder = ContextBuilder()
 
-        # Инжектим зависимости
-        self.response_generator = AIResponseGenerator(moderator, context_builder)
+        # Инжектим зависимости в Yandex генератор
+        self.response_generator = YandexAIResponseGenerator(moderator, context_builder)
 
-        logger.info("✅ Gemini AI Service (SOLID) инициализирован")
+        logger.info("✅ Yandex Cloud AI Service (SOLID) инициализирован")
 
     @safe_track_ai_service
     async def generate_response(
         self, user_message: str, chat_history: List[Dict] = None, user_age: Optional[int] = None
     ) -> str:
-        """Генерация ответа - делегирование ответственности"""
+        """
+        Генерация ответа через YandexGPT.
+
+        Args:
+            user_message: Сообщение пользователя
+            chat_history: История чата
+            user_age: Возраст пользователя для адаптации
+
+        Returns:
+            str: Ответ от AI
+        """
         return await self.response_generator.generate_response(user_message, chat_history, user_age)
 
     def get_model_info(self) -> Dict[str, str]:
-        """Информация о модели - делегирование"""
+        """Информация о текущей модели."""
         return self.response_generator.get_model_info()
 
 
-# Глобальный экземпляр
-_ai_service = None
+# Глобальный экземпляр (Singleton)
+_ai_service: Optional[YandexAIService] = None
 
 
-def get_ai_service() -> GeminiAIService:
+def get_ai_service() -> YandexAIService:
     """
-    Получить глобальный экземпляр AI сервиса.
+    Получить глобальный экземпляр Yandex AI сервиса.
 
     Реализует паттерн Singleton для обеспечения единого экземпляра
-    AI сервиса во всем приложении.
+    во всем приложении.
 
     Returns:
-        GeminiAIService: Глобальный экземпляр AI сервиса.
+        YandexAIService: Глобальный экземпляр AI сервиса.
     """
     global _ai_service
     if _ai_service is None:
-        _ai_service = GeminiAIService()
+        _ai_service = YandexAIService()
     return _ai_service
