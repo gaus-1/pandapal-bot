@@ -317,11 +317,20 @@ async def handle_voice(message: Message):
         # Логируем успешную активность
         log_user_activity(telegram_id, "voice_message_sent", True)
 
-        # Создаем фейковое текстовое сообщение для handle_ai_message
-        message.text = recognized_text
+        # Создаем новое текстовое сообщение (нельзя изменять frozen message)
+        from aiogram.types import Chat, User
+
+        # Создаем копию для обработки как текст
+        text_message = Message(
+            message_id=message.message_id,
+            date=message.date,
+            chat=message.chat,
+            from_user=message.from_user,
+            text=recognized_text,  # Распознанный текст
+        )
 
         # Обрабатываем как обычное текстовое сообщение
-        await handle_ai_message(message, None)
+        await handle_ai_message(text_message, None)
 
     except Exception as e:
         logger.error(f"❌ Ошибка обработки голосового сообщения: {e}")
