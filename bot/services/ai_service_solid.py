@@ -71,6 +71,16 @@ class YandexAIService:
         """Информация о текущей модели."""
         return self.response_generator.get_model_info()
 
+    async def analyze_image(
+        self, image_data: bytes, user_message: Optional[str] = None, user_age: Optional[int] = None
+    ) -> str:
+        """Анализировать изображение через Yandex Vision."""
+        return await self.response_generator.analyze_image(image_data, user_message, user_age)
+
+    async def moderate_image_content(self, image_data: bytes) -> tuple[bool, str]:
+        """Проверить изображение на безопасность."""
+        return await self.response_generator.moderate_image_content(image_data)
+
 
 # Глобальный экземпляр (Singleton)
 _ai_service: Optional[YandexAIService] = None
