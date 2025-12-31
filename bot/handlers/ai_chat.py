@@ -317,20 +317,26 @@ async def handle_voice(message: Message):
         # Логируем успешную активность
         log_user_activity(telegram_id, "voice_message_sent", True)
 
-        # Создаем новое текстовое сообщение (нельзя изменять frozen message)
-        from aiogram.types import Chat, User
+        # Удаляем сообщение "Слушаю..."
+        await processing_msg.delete()
 
-        # Создаем копию для обработки как текст
-        text_message = Message(
-            message_id=message.message_id,
-            date=message.date,
-            chat=message.chat,
-            from_user=message.from_user,
-            text=recognized_text,  # Распознанный текст
+        # Показываем что распознали
+        await message.answer(
+            f'🎤 <i>Я услышал:</i> "{recognized_text}"\n\n' f"Сейчас подумаю над ответом... 🐼",
+            parse_mode="HTML",
         )
 
-        # Обрабатываем как обычное текстовое сообщение
-        await handle_ai_message(text_message, None)
+        # Обрабатываем как обычное текстовое сообщение (передаем оригинальный message с bot)
+        # Временно сохраняем текст в message для обработки
+        original_text = message.text
+        try:
+            # Используем __dict__ для обхода frozen instance
+            object.__setattr__(message, "text", recognized_text)
+            await handle_ai_message(message, None)
+        finally:
+            # Восстанавливаем оригинальный текст
+            if original_text is not None:
+                object.__setattr__(message, "text", original_text)
 
     except Exception as e:
         logger.error(f"❌ Ошибка обработки голосового сообщения: {e}")
@@ -415,7 +421,6 @@ async def handle_image(message: Message, state: FSMContext):
                 image_data=image_bytes,
                 user_message=caption,
                 user_age=user.age,
-                user_grade=user.grade,
             )
 
             # Сохраняем в историю
