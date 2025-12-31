@@ -63,22 +63,42 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("SENTRY_DSN", "sentry_dsn"),
     )
 
-    # ============ AI / GEMINI ============
-    gemini_api_key: str = Field(
+    # ============ AI / YANDEX CLOUD (ОСНОВНОЙ) ============
+    yandex_cloud_api_key: str = Field(
         ...,
-        description="Google Gemini API ключ",
+        description="Yandex Cloud API ключ для YandexGPT, SpeechKit, Vision",
+        validation_alias=AliasChoices("YANDEX_CLOUD_API_KEY", "yandex_cloud_api_key"),
+    )
+
+    yandex_cloud_folder_id: str = Field(
+        ...,
+        description="Yandex Cloud Folder ID (каталог)",
+        validation_alias=AliasChoices("YANDEX_CLOUD_FOLDER_ID", "yandex_cloud_folder_id"),
+    )
+
+    yandex_gpt_model: str = Field(
+        default="yandexgpt-lite",
+        description="Модель YandexGPT (yandexgpt-lite или yandexgpt)",
+        validation_alias=AliasChoices("YANDEX_GPT_MODEL", "yandex_gpt_model"),
+    )
+
+    # ============ AI / GEMINI (DEPRECATED - FALLBACK) ============
+    # Оставлен для плавной миграции и возможности отката
+    gemini_api_key: Optional[str] = Field(
+        default=None,
+        description="Google Gemini API ключ (DEPRECATED, используется как fallback)",
         validation_alias=AliasChoices("GEMINI_API_KEY", "gemini_api_key"),
     )
 
     gemini_api_keys: Optional[str] = Field(
         default=None,
-        description="Список дополнительных API ключей для ротации (через запятую)",
+        description="Список дополнительных API ключей для ротации (DEPRECATED)",
         validation_alias=AliasChoices("GEMINI_API_KEYS", "gemini_api_keys"),
     )
 
     gemini_model: str = Field(
         default="gemini-1.5-flash",
-        description="Модель Gemini для использования (с поддержкой Vision)",
+        description="Модель Gemini (DEPRECATED, для fallback)",
         validation_alias=AliasChoices("GEMINI_MODEL", "gemini_model"),
     )
 
@@ -194,21 +214,35 @@ class Settings(BaseSettings):
 
         return v
 
+    @field_validator("yandex_cloud_api_key")
+    @classmethod
+    def validate_yandex_api_key(cls, v: str) -> str:
+        """Проверка Yandex Cloud API ключа."""
+        if not v or v in ("your_yandex_key", "test_key"):
+            raise ValueError("YANDEX_CLOUD_API_KEY не установлен в .env")
+        return v
+
+    @field_validator("yandex_cloud_folder_id")
+    @classmethod
+    def validate_yandex_folder_id(cls, v: str) -> str:
+        """Проверка Yandex Cloud Folder ID."""
+        if not v or v == "your_folder_id":
+            raise ValueError("YANDEX_CLOUD_FOLDER_ID не установлен в .env")
+        return v
+
     @field_validator("gemini_api_key")
     @classmethod
-    def validate_gemini_key(cls, v: str) -> str:
-        """Проверка наличия Gemini API ключа."""
-        if not v or v == "your_gemini_api_key_here":
-            raise ValueError("GEMINI_API_KEY не установлен в .env")
+    def validate_gemini_key(cls, v: Optional[str]) -> Optional[str]:
+        """Проверка Gemini API ключа (опционально, для fallback)."""
+        # Теперь Gemini опционален
+        if v and v == "your_gemini_api_key_here":
+            return None
         return v
 
     @field_validator("gemini_api_keys")
     @classmethod
     def validate_gemini_keys(cls, v: Optional[str]) -> Optional[str]:
-        """Проверка корректности дополнительных API ключей."""
-        if v is None:
-            return None
-        # Просто возвращаем строку как есть - парсинг делается в token_rotator
+        """Проверка дополнительных Gemini ключей (опционально)."""
         return v
 
 
