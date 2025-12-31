@@ -116,7 +116,6 @@ class TestYandexAIService:
         assert info == {"model": "yandexgpt-lite"}
         mock_generator_instance.get_model_info.assert_called_once()
 
-    @patch("bot.services.ai_service_solid.AIResponseGenerator")
     @patch("bot.services.ai_service_solid.YandexAIResponseGenerator")
     @patch("bot.services.ai_service_solid.ContentModerator")
     @patch("bot.services.ai_service_solid.ContextBuilder")
