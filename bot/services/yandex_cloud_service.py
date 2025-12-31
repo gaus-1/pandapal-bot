@@ -228,20 +228,42 @@ class YandexCloudService:
             response.raise_for_status()
             vision_result = response.json()
 
-            # Извлекаем распознанный текст
+            # Извлекаем распознанный текст (ВСЕ строки, не только первую!)
             recognized_text = ""
             try:
                 text_annotation = vision_result["results"][0]["results"][0]["textDetection"]
-                recognized_text = (
-                    text_annotation.get("pages", [{}])[0]
-                    .get("blocks", [{}])[0]
-                    .get("lines", [{}])[0]
-                    .get("text", "")
-                )
-            except (KeyError, IndexError):
-                logger.warning("⚠️ Текст на изображении не найден")
 
-            logger.info(f"✅ Vision OCR: '{recognized_text[:100]}...'")
+                # Собираем ВСЕ строки текста с изображения
+                all_lines = []
+                for page in text_annotation.get("pages", []):
+                    for block in page.get("blocks", []):
+                        for line in block.get("lines", []):
+                            line_text = line.get("text", "").strip()
+                            if line_text:
+                                all_lines.append(line_text)
+
+                recognized_text = "\n".join(all_lines)
+
+            except (KeyError, IndexError) as e:
+                logger.warning(f"⚠️ Текст на изображении не найден: {e}")
+
+            logger.info(f"✅ Vision OCR: распознано {len(recognized_text)} символов")
+
+            # Если текст не распознан - просим переснять
+            if not recognized_text or len(recognized_text) < 10:
+                return {
+                    "recognized_text": "",
+                    "analysis": (
+                        "📷 Я не смог четко разглядеть текст на фотографии.\n\n"
+                        "Пожалуйста, сфотографируй задание еще раз:\n"
+                        "✅ При хорошем освещении\n"
+                        "✅ Четко и ровно\n"
+                        "✅ Крупным планом\n"
+                        "✅ Без бликов и теней\n\n"
+                        "Или попробуй написать задачу текстом! 📝"
+                    ),
+                    "has_text": False,
+                }
 
             # Шаг 2: Решаем через YandexGPT
             analysis_prompt = f"""
