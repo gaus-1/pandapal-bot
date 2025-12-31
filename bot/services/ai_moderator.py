@@ -28,7 +28,7 @@ from typing import Tuple
 from loguru import logger
 
 from bot.config import FORBIDDEN_PATTERNS
-from bot.services.ai_response_generator_solid import IModerator
+from bot.services.yandex_ai_response_generator import IModerator
 
 
 class ContentModerator(IModerator):

@@ -8,7 +8,7 @@
 
 from typing import Dict, List, Optional
 
-from bot.services.ai_response_generator_solid import IContextBuilder
+from bot.services.yandex_ai_response_generator import IContextBuilder
 
 
 class ContextBuilder(IContextBuilder):
