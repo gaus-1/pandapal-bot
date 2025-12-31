@@ -20,7 +20,7 @@ class TestConfig:
         assert settings is not None
         assert hasattr(settings, "database_url")
         assert hasattr(settings, "telegram_bot_token")
-        assert hasattr(settings, "gemini_api_key")
+        assert hasattr(settings, "yandex_cloud_api_key")
 
     @pytest.mark.unit
     @pytest.mark.config
@@ -40,19 +40,20 @@ class TestConfig:
 
     @pytest.mark.unit
     @pytest.mark.config
-    def test_gemini_api_key_configuration(self):
-        """Тест конфигурации API ключа Gemini"""
-        assert settings.gemini_api_key is not None
-        assert len(settings.gemini_api_key) > 0
-        assert settings.gemini_api_key.startswith("AIza")  # формат API ключа Google
+    def test_yandex_cloud_configuration(self):
+        """Тест конфигурации Yandex Cloud API"""
+        assert settings.yandex_cloud_api_key is not None
+        assert len(settings.yandex_cloud_api_key) > 0
+        assert settings.yandex_cloud_folder_id is not None
+        assert len(settings.yandex_cloud_folder_id) > 0
 
     @pytest.mark.unit
     @pytest.mark.config
-    def test_gemini_model_configuration(self):
-        """Тест конфигурации модели Gemini"""
-        assert settings.gemini_model is not None
-        assert len(settings.gemini_model) > 0
-        assert "gemini" in settings.gemini_model.lower()
+    def test_yandex_gpt_model_configuration(self):
+        """Тест конфигурации модели YandexGPT"""
+        assert settings.yandex_gpt_model is not None
+        assert len(settings.yandex_gpt_model) > 0
+        assert "yandexgpt" in settings.yandex_gpt_model.lower()
 
     @pytest.mark.unit
     @pytest.mark.config
@@ -120,7 +121,7 @@ class TestConfig:
     def test_environment_variables_present(self):
         """Тест наличия переменных окружения"""
         # Проверяем, что основные переменные окружения установлены
-        env_vars = ["DATABASE_URL", "TELEGRAM_BOT_TOKEN", "GEMINI_API_KEY", "SECRET_KEY"]
+        env_vars = ["DATABASE_URL", "TELEGRAM_BOT_TOKEN", "YANDEX_CLOUD_API_KEY", "SECRET_KEY"]
 
         for var in env_vars:
             value = os.getenv(var)
@@ -143,7 +144,12 @@ class TestConfig:
     def test_config_validation(self):
         """Тест валидации конфигурации"""
         # Проверяем, что все критически важные настройки присутствуют
-        critical_settings = ["database_url", "telegram_bot_token", "gemini_api_key", "secret_key"]
+        critical_settings = [
+            "database_url",
+            "telegram_bot_token",
+            "yandex_cloud_api_key",
+            "secret_key",
+        ]
 
         for setting in critical_settings:
             value = getattr(settings, setting)
@@ -159,5 +165,5 @@ class TestConfig:
         assert isinstance(settings.content_filter_level, int)
         assert isinstance(settings.log_level, str)
         assert isinstance(settings.forbidden_topics, str)
-        assert isinstance(settings.gemini_model, str)
+        assert isinstance(settings.yandex_gpt_model, str)
         assert isinstance(settings.frontend_url, str)

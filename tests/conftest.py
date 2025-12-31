@@ -15,7 +15,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from bot.models import ChatHistory, User
-from bot.services.ai_service_solid import GeminiAIService
+from bot.services.ai_service_solid import YandexAIService
 from bot.services.moderation_service import ContentModerationService
 
 
@@ -72,7 +72,7 @@ def mock_teacher_user() -> User:
 @pytest.fixture
 def mock_ai_service() -> Mock:
     """Мок AI сервиса"""
-    service = Mock(spec=GeminiAIService)
+    service = Mock(spec=YandexAIService)
     service.generate_response = AsyncMock(return_value="Тестовый ответ AI")
     service.analyze_sentiment = AsyncMock(return_value="positive")
     service.check_content_safety = AsyncMock(return_value=True)
