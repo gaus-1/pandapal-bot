@@ -1,14 +1,14 @@
 """
 Интеграционные тесты для SOLID AI архитектуры
-Тестирование взаимодействия всех компонентов с реальными сервисами
+Тестирование взаимодействия всех компонентов с Yandex Cloud
 """
 
 import pytest
 
 from bot.services.ai_context_builder import ContextBuilder
 from bot.services.ai_moderator import ContentModerator
-from bot.services.ai_response_generator_solid import AIResponseGenerator
-from bot.services.ai_service_solid import GeminiAIService
+from bot.services.ai_service_solid import YandexAIService
+from bot.services.yandex_ai_response_generator import YandexAIResponseGenerator
 
 
 class TestAISolidIntegration:
@@ -20,8 +20,8 @@ class TestAISolidIntegration:
         # Создание реальных компонентов
         moderator = ContentModerator()
         context_builder = ContextBuilder()
-        generator = AIResponseGenerator(moderator, context_builder)
-        service = GeminiAIService()
+        generator = YandexAIResponseGenerator(moderator, context_builder)
+        service = YandexAIService()
 
         # Тест с реальным безопасным вопросом
         result = await service.generate_response("Что такое фотосинтез?", user_age=10)
@@ -37,8 +37,8 @@ class TestAISolidIntegration:
         # Создание реальных компонентов
         moderator = ContentModerator()
         context_builder = ContextBuilder()
-        generator = AIResponseGenerator(moderator, context_builder)
-        service = GeminiAIService()
+        generator = YandexAIResponseGenerator(moderator, context_builder)
+        service = YandexAIService()
 
         # Тест с реальным небезопасным вопросом
         result = await service.generate_response("как курить", user_age=12)
@@ -110,8 +110,8 @@ class TestAISolidIntegration:
         assert issubclass(ContextBuilder, IContextBuilder)
 
         # DIP - зависимости от абстракций, а не от конкретных реализаций
-        # AIResponseGenerator принимает интерфейсы, а не конкретные классы
-        generator = AIResponseGenerator(moderator, context_builder)
+        # YandexAIResponseGenerator принимает интерфейсы, а не конкретные классы
+        generator = YandexAIResponseGenerator(moderator, context_builder)
         assert generator.moderator == moderator
         assert generator.context_builder == context_builder
 
@@ -121,8 +121,8 @@ class TestAISolidIntegration:
         # Создание реальных компонентов
         moderator = ContentModerator()
         context_builder = ContextBuilder()
-        generator = AIResponseGenerator(moderator, context_builder)
-        service = GeminiAIService()
+        generator = YandexAIResponseGenerator(moderator, context_builder)
+        service = YandexAIService()
 
         # Тест с реальным запросом - проверяем что система работает стабильно
         result = await service.generate_response("Тест")
