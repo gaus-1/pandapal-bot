@@ -389,7 +389,7 @@ async def handle_image(message: Message, state: FSMContext):
 
             if not is_safe:
                 # Логируем заблокированное изображение
-                await parental_control.log_child_activity(
+                await parental_control.record_child_activity(
                     child_telegram_id=message.from_user.id,
                     activity_type=ActivityType.MESSAGE_BLOCKED,
                     message_content=f"[ИЗОБРАЖЕНИЕ] {reason}",
@@ -426,7 +426,7 @@ async def handle_image(message: Message, state: FSMContext):
             )
 
             # Логируем успешную обработку
-            await parental_control.log_child_activity(
+            await parental_control.record_child_activity(
                 child_telegram_id=message.from_user.id,
                 activity_type=ActivityType.MESSAGE_SENT,
                 message_content=f"[ИЗОБРАЖЕНИЕ] {caption}" if caption else "[ИЗОБРАЖЕНИЕ]",
