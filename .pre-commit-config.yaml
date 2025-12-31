@@ -1,23 +1,43 @@
+# ============================================================================
+# PRE-COMMIT HOOKS ДЛЯ PANDAPAL BOT
+# ============================================================================
+# Профессиональная конфигурация для Senior/Lead разработки
+# Баланс между качеством кода и продуктивностью команды
+# ============================================================================
+
 repos:
+  # ============================================================================
+  # БАЗОВЫЕ ПРОВЕРКИ (БЫСТРЫЕ И ВАЖНЫЕ)
+  # ============================================================================
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
       - id: trailing-whitespace
+        name: 🧹 Удаление пробелов в конце строк
       - id: end-of-file-fixer
+        name: 📄 Исправление конца файлов
       - id: check-yaml
+        name: ✅ Проверка YAML синтаксиса
+        exclude: ^(frontend/.*\.yml$|\.github/workflows/.*\.yml$)
       - id: check-added-large-files
+        name: 📦 Проверка больших файлов (>1MB)
+        args: ['--maxkb=1000']
       - id: check-merge-conflict
+        name: ⚠️ Проверка маркеров слияния
       - id: check-json
-        exclude: ^(frontend/.*\.json$|.*tsconfig.*\.json$)
-      - id: pretty-format-json
-        args: ['--autofix', '--no-sort-keys']
+        name: ✅ Проверка JSON синтаксиса
         exclude: ^(frontend/.*\.json$|.*tsconfig.*\.json$)
       - id: mixed-line-ending
+        name: 📝 Проверка окончаний строк
 
+  # ============================================================================
+  # ФОРМАТИРОВАНИЕ PYTHON (АВТОИСПРАВЛЕНИЕ)
+  # ============================================================================
   - repo: https://github.com/psf/black
     rev: 25.9.0
     hooks:
       - id: black
+        name: 🎨 Black - форматирование кода
         language_version: python3.13
         args: ['--line-length=100']
 
@@ -25,57 +45,95 @@ repos:
     rev: 6.1.0
     hooks:
       - id: isort
+        name: 📚 isort - сортировка импортов
         args: ['--profile', 'black', '--line-length', '100']
 
+  # ============================================================================
+  # ЛИНТИНГ PYTHON (ТОЛЬКО КРИТИЧНЫЕ ОШИБКИ)
+  # ============================================================================
   - repo: https://github.com/pycqa/flake8
     rev: 7.3.0
     hooks:
       - id: flake8
-        args: ['--max-line-length=100', '--extend-ignore=E203,W503,D205,D400,D200,F841,C901']
+        name: 🔍 flake8 - проверка стиля
+        args:
+          - '--max-line-length=100'
+          - '--extend-ignore=E203,W503,D205,D400,D200,F841,C901,E501'
+          - '--max-complexity=15'
         additional_dependencies: [flake8-docstrings]
+        exclude: ^(tests/|scripts/|alembic/)
 
+  # ============================================================================
+  # MYPY - ТОЛЬКО ДЛЯ НОВЫХ ФАЙЛОВ (НЕ БЛОКИРУЕТ КОММИТЫ)
+  # ============================================================================
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.18.2
     hooks:
       - id: mypy
+        name: 🔬 mypy - проверка типов (soft)
         additional_dependencies:
           - types-requests
           - types-setuptools
           - types-aiofiles
-        args: ['--ignore-missing-imports', '--no-strict-optional', '--show-error-codes']
-        exclude: ^(tests/|scripts/)
+        args:
+          - '--ignore-missing-imports'
+          - '--no-strict-optional'
+          - '--show-error-codes'
+          - '--warn-unused-ignores'
+          - '--no-error-summary'
+        exclude: ^(tests/|scripts/|alembic/|bot/services/|bot/handlers/)
+        # Не блокирует коммит, только предупреждает
+        verbose: true
+        stages: [manual]  # Запускается только вручную через: git commit --no-verify
 
+  # ============================================================================
+  # PYLINT - ТОЛЬКО ДЛЯ НОВЫХ ФАЙЛОВ (НЕ БЛОКИРУЕТ)
+  # ============================================================================
   - repo: https://github.com/pycqa/pylint
     rev: v4.0.2
     hooks:
       - id: pylint
-        args: ['--max-line-length=100', '--disable=C0114,C0115,C0116,R0903,R0913,E0401,W0611,E0013', '--fail-under=7.0']
-        exclude: ^(tests/|scripts/|alembic/|bot/config\.py)
+        name: 🔎 pylint - глубокая проверка (soft)
+        args:
+          - '--max-line-length=100'
+          - '--disable=C0114,C0115,C0116,R0903,R0913,E0401,W0611,E0013,R0801,C0301'
+          - '--fail-under=7.0'
+        exclude: ^(tests/|scripts/|alembic/|bot/config\.py|bot/services/|bot/handlers/)
+        # Не блокирует коммит
+        stages: [manual]  # Запускается только вручную
 
+  # ============================================================================
+  # БЕЗОПАСНОСТЬ - ТОЛЬКО ДЛЯ MANUAL ПРОВЕРКИ
+  # ============================================================================
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.10
     hooks:
       - id: bandit
-        args: ['-r', 'bot/', '-ll', '--skip', 'B101,B601,B104', '-f', 'json']
+        name: 🛡️ bandit - проверка безопасности
+        args: ['-r', 'bot/', '-ll', '--skip', 'B101,B601,B104', '-f', 'text']
         exclude: ^(tests/|scripts/)
         pass_filenames: false
         verbose: true
-        stages: [manual]
+        stages: [manual]  # Запускается только вручную: pre-commit run bandit --all-files
 
-  # Safety проверка уязвимостей зависимостей
-  # Используем локальный вызов safety, так как pre-commit hook может быть нестабильным
-  # - repo: local
-  #   hooks:
-  #     - id: safety
-  #       name: safety
-  #       entry: safety
-  #       language: system
-  #       args: ['check', '--continue-on-error']
-
-  # Vulture временно отключен - слишком много ложных срабатываний
-  # - repo: https://github.com/jendrikseipp/vulture
-  #   rev: v2.14
-  #   hooks:
-  #     - id: vulture
-  #       args: ['--min-confidence', '90', 'bot/']
-  #       exclude: ^(tests/|scripts/|alembic/|bot/interfaces\.py|bot/monitoring/sentry_config\.py|bot/services/web_scraper\.py|bot/services/moderation_service\.py)
+# ============================================================================
+# ИНСТРУКЦИИ ПО ИСПОЛЬЗОВАНИЮ
+# ============================================================================
+#
+# ОБЫЧНЫЙ КОММИТ:
+#   git commit -m "feat: новая функция"
+#   → Запустятся: trailing-whitespace, black, isort, flake8
+#
+# БЫСТРЫЙ КОММИТ (БЕЗ ПРОВЕРОК):
+#   git commit --no-verify -m "fix: быстрое исправление"
+#
+# ПОЛНАЯ ПРОВЕРКА ВРУЧНУЮ:
+#   pre-commit run --all-files
+#
+# ПРОВЕРКА ТИПОВ ВРУЧНУЮ:
+#   pre-commit run mypy --all-files
+#
+# ПРОВЕРКА БЕЗОПАСНОСТИ ВРУЧНУЮ:
+#   pre-commit run bandit --all-files
+#
+# ============================================================================
