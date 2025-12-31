@@ -29,7 +29,7 @@ class SpeechRecognitionService:
         logger.info("✅ Yandex SpeechKit STT сервис инициализирован")
 
     async def transcribe_voice(
-        self, voice_file_bytes: bytes, language: str = "ru", auto_detect_language: bool = True
+        self, voice_file_bytes: bytes, language: str = "ru"
     ) -> Optional[str]:
         """
         Распознать речь из голосового сообщения через Yandex SpeechKit.
@@ -37,7 +37,6 @@ class SpeechRecognitionService:
         Args:
             voice_file_bytes: Байты аудио файла (.ogg, .mp3, .wav).
             language: Язык распознавания (ru/en).
-            auto_detect_language: Автоопределение языка (не используется в Yandex).
 
         Returns:
             str: Распознанный текст или None при ошибке.
