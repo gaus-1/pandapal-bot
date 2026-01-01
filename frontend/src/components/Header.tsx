@@ -17,25 +17,23 @@ export const Header: React.FC = React.memo(() => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 md:py-6 flex items-center justify-between">
         {/* Логотип и название */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="relative flex-shrink-0 p-1.5 bg-gradient-to-br from-blue-100/50 to-cyan-100/50 dark:from-slate-700/50 dark:to-slate-600/50 rounded-full backdrop-blur-sm">
-            <img
-              src={SITE_CONFIG.logo.src}
-              alt={SITE_CONFIG.logo.alt}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg ring-1 ring-blue-200/50 dark:ring-slate-500/50 animate-logo-bounce object-cover"
-              loading="eager"
-              width="48"
-              height="48"
-              onError={(e) => {
-                // Fallback если логотип не загрузится
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const emoji = document.createElement('div');
-                emoji.textContent = '🐼';
-                emoji.className = 'text-3xl sm:text-4xl';
-                target.parentElement?.appendChild(emoji);
-              }}
-            />
-          </div>
+          <img
+            src={SITE_CONFIG.logo.src}
+            alt={SITE_CONFIG.logo.alt}
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full animate-logo-bounce object-cover"
+            loading="eager"
+            width="48"
+            height="48"
+            onError={(e) => {
+              // Fallback если логотип не загрузится
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const emoji = document.createElement('div');
+              emoji.textContent = '🐼';
+              emoji.className = 'text-3xl sm:text-4xl animate-logo-bounce';
+              target.parentElement?.appendChild(emoji);
+            }}
+          />
           <span className="font-display text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-50 animate-text-reveal">
             {SITE_CONFIG.name}
           </span>

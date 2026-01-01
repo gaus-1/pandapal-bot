@@ -55,7 +55,7 @@ export const Hero: React.FC = React.memo(() => {
           href={SITE_CONFIG.botUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 dark:from-pink-600 dark:to-rose-600 text-white font-semibold text-base sm:text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-100 hover:-translate-y-1"
+          className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-500 dark:to-cyan-500 text-white font-semibold text-base sm:text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-100 hover:-translate-y-1"
           aria-label="Начать использовать PandaPal в Telegram"
           data-cta-variant="primary"
         >
@@ -64,8 +64,8 @@ export const Hero: React.FC = React.memo(() => {
 
         {/* Вторичная CTA */}
         <a
-          href="#features"
-          className="inline-block px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 font-semibold text-base sm:text-lg shadow-md hover:shadow-lg transition-all duration-300 border-2 border-gray-200 dark:border-slate-600 hover:border-pink-500 dark:hover:border-pink-400"
+          href="#cta"
+          className="inline-block px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 font-semibold text-base sm:text-lg shadow-md hover:shadow-lg transition-all duration-300 border-2 border-gray-200 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400"
           aria-label="Узнать больше о PandaPal"
           data-cta-variant="secondary"
         >
