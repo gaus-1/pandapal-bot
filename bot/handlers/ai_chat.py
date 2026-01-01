@@ -67,6 +67,10 @@ async def handle_ai_message(message: Message, state: FSMContext):
     """
     Обработка текстового сообщения для AI
 
+    ВАЖНО: Этот метод является ядром взаимодействия с пользователем.
+    Включает полную цепочку обработки с модерацией контента и историей чата.
+    Изменения могут повлиять на безопасность и качество ответов.
+
     Алгоритм:
     1. Получить пользователя из БД
     2. Загрузить историю сообщений (контекст для AI)
@@ -264,7 +268,14 @@ async def handle_ai_message(message: Message, state: FSMContext):
 async def handle_voice(message: Message):
     """
     Обработка голосовых сообщений
-    Использует OpenAI Whisper для распознавания речи
+
+    ВАЖНО: Интеграция с Yandex SpeechKit для распознавания речи.
+    Стабильная версия с проверенными параметрами.
+
+    Параметры распознавания:
+    - Формат: OGG Opus (Telegram стандарт)
+    - Язык: ru-RU
+    - API: Yandex Cloud SpeechKit STT
 
     Args:
         message: Голосовое сообщение от пользователя
@@ -341,7 +352,9 @@ async def handle_voice(message: Message):
 async def handle_audio(message: Message):
     """
     Обработка аудиофайлов (музыка, треки)
-    Использует Yandex SpeechKit для распознавания речи
+
+    ВАЖНО: Использует ту же логику распознавания что и голосовые сообщения.
+    Yandex SpeechKit STT с параметрами (voice_file_bytes, language).
 
     Args:
         message: Аудиофайл от пользователя
@@ -416,6 +429,10 @@ async def handle_audio(message: Message):
 async def handle_image(message: Message, state: FSMContext):
     """
     Обработка изображений через AI Vision
+
+    ВАЖНО: Полный цикл обработки изображений с модерацией.
+    Использует Yandex Vision OCR для извлечения текста и анализа содержимого.
+    Включает проверку безопасности контента на изображении.
 
     Args:
         message: Сообщение с изображением
