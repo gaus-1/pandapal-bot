@@ -13,18 +13,27 @@ import { SITE_CONFIG, NAVIGATION_LINKS } from '../config/constants';
  */
 export const Header: React.FC = React.memo(() => {
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-gray-200 dark:border-slate-700">
+    <header className="sticky top-0 z-40 backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border-b border-gray-200 dark:border-slate-700 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 md:py-6 flex items-center justify-between">
         {/* Логотип и название */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="relative flex-shrink-0">
+          <div className="relative flex-shrink-0 p-1 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-slate-800 dark:to-slate-700 rounded-full">
             <img
               src={SITE_CONFIG.logo.src}
               alt={SITE_CONFIG.logo.alt}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg ring-4 ring-blue-100 dark:ring-slate-700 animate-logo-bounce"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-xl ring-2 ring-blue-200 dark:ring-slate-600 animate-logo-bounce"
               loading="eager"
               width="48"
               height="48"
+              onError={(e) => {
+                // Fallback если логотип не загрузится
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const emoji = document.createElement('div');
+                emoji.textContent = '🐼';
+                emoji.className = 'text-3xl sm:text-4xl';
+                target.parentElement?.appendChild(emoji);
+              }}
             />
           </div>
           <span className="font-display text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-50 animate-text-reveal">
