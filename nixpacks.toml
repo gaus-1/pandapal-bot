@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["python311", "nodejs_20", "postgresql"]
+nixPkgs = ["python313", "nodejs_20", "postgresql"]
 
 [phases.install]
 cmds = [

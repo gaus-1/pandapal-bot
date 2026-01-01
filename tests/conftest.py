@@ -56,15 +56,15 @@ def mock_parent_user() -> User:
 
 
 @pytest.fixture
-def mock_teacher_user() -> User:
-    """Мок учителя для тестов"""
+def mock_admin_user() -> User:
+    """Мок администратора (родитель с правами) для тестов"""
     return User(
         telegram_id=456789123,
-        username="test_teacher",
+        username="test_admin",
         first_name="Тестовый",
-        last_name="Учитель",
-        user_type="teacher",
-        age=30,
+        last_name="Админ",
+        user_type="parent",
+        age=35,
         grade=None,
     )
 
@@ -93,12 +93,9 @@ def mock_security_service() -> Mock:
 def mock_chat_history() -> ChatHistory:
     """Мок истории чата"""
     return ChatHistory(
-        user_id=123456789,
-        message="Тестовое сообщение",
-        response="Тестовый ответ",
-        timestamp="2024-01-01 12:00:00",
-        message_type="text",
-        sentiment="positive",
+        user_telegram_id=123456789,
+        message_text="Тестовое сообщение",
+        message_type="user",
     )
 
 

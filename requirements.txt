@@ -142,7 +142,7 @@ propcache==0.4.1                # Property caching
 # GRPC (для будущего масштабирования)
 # =============================================================================
 grpcio==1.76.0                  # gRPC framework
-grpcio-status==1.71.2           # gRPC status codes
+grpcio-status==1.76.0           # gRPC status codes (must match grpcio)
 protobuf==5.29.5                # Protocol buffers
 proto-plus==1.27.0              # Protobuf utilities
 

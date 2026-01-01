@@ -7,7 +7,7 @@
 ### Безопасный ИИ-друг для твоего ребенка
 
 [![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://reactjs.org/)
+[![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://reactjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Railway](https://img.shields.io/badge/Railway-Deployed-0B0D0E?logo=railway&logoColor=white)](https://railway.app/)
 [![Tests](https://img.shields.io/badge/Tests-180%20passed-brightgreen?logo=pytest)](tests/)
@@ -51,7 +51,7 @@
 ✅ **Адаптивность** — контент подстраивается под возраст ребенка (1-9 класс)
 ✅ **Мультимодальность** — текст, голос, изображения
 ✅ **Родительский контроль** — полная прозрачность и статистика
-✅ **Современный стек** — Python 3.13, React 18, PostgreSQL 17
+✅ **Современный стек** — Python 3.13, React 19, PostgreSQL 17
 ✅ **Российский AI** — полная интеграция с Yandex Cloud (YandexGPT, SpeechKit, Vision)
 
 ### **Проблема:**
@@ -74,7 +74,7 @@ PandaPal — безопасный ИИ-помощник, который помо
 - ![Pydantic](https://img.shields.io/badge/-Pydantic%20V2-E92063?logo=pydantic&logoColor=white) — валидация данных
 
 ### **Frontend**
-- ![React](https://img.shields.io/badge/-React%2018-61DAFB?logo=react&logoColor=black) — UI фреймворк
+- ![React](https://img.shields.io/badge/-React%2019-61DAFB?logo=react&logoColor=black) — UI фреймворк
 - ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white) — типизированный JavaScript
 - ![Vite](https://img.shields.io/badge/-Vite-646CFF?logo=vite&logoColor=white) — сборщик модулей
 - ![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=white) — utility-first CSS
@@ -527,7 +527,7 @@ safety check
 
 ### **Технологический стек:**
 - **Backend:** Python 3.13, FastAPI, aiogram, SQLAlchemy
-- **Frontend:** React 18, TypeScript, Vite, Tailwind
+- **Frontend:** React 19, TypeScript, Vite 7, Tailwind
 - **Database:** PostgreSQL 17
 - **AI:** Yandex Cloud (YandexGPT, SpeechKit, Vision)
 - **Infrastructure:** Railway, Cloudflare, GitHub Actions
