@@ -492,7 +492,6 @@ FORBIDDEN_PATTERNS = [
 - **Uptime:** 99.5%+ (Railway)
 - **Response Time:** <500ms (median)
 - **Error Rate:** <1%
-- **Active Users:** 150+ семей
 - **Tests:** 447 passed (0 failures)
 - **Coverage:** 53.00%
 
