@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { SITE_CONFIG, NAVIGATION_LINKS } from '../config/constants';
+import { SITE_CONFIG } from '../config/constants';
 
 /**
  * Шапка сайта с адаптивной навигацией
