@@ -172,9 +172,21 @@ class DatabaseService:
         Получить новую сессию БД
         НЕ ЗАБУДЬТЕ закрыть сессию после использования!
 
+        .. deprecated:: 2025-01
+           Используйте `get_db()` context manager вместо этого метода.
+           Это обеспечивает автоматическое закрытие сессии и обработку ошибок.
+
         Returns:
             Session: Новая сессия SQLAlchemy
         """
+        import warnings
+
+        warnings.warn(
+            "DatabaseService.get_db_session() устарел. "
+            "Используйте get_db() context manager для безопасной работы с БД.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return SessionLocal()
 
     @staticmethod
