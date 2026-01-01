@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Круглый фон -->
+  <circle cx="50" cy="50" r="50" fill="#3b82f6"/>
+  <!-- Голова панды -->
+  <circle cx="50" cy="50" r="35" fill="#ffffff"/>
+  <!-- Левое ухо -->
+  <circle cx="25" cy="25" r="15" fill="#1f2937"/>
+  <!-- Правое ухо -->
+  <circle cx="75" cy="25" r="15" fill="#1f2937"/>
+  <!-- Левый глаз (пятно) -->
+  <ellipse cx="38" cy="45" rx="8" ry="12" fill="#1f2937"/>
+  <!-- Правый глаз (пятно) -->
+  <ellipse cx="62" cy="45" rx="8" ry="12" fill="#1f2937"/>
+  <!-- Левый зрачок -->
+  <circle cx="38" cy="47" r="3" fill="#ffffff"/>
+  <!-- Правый зрачок -->
+  <circle cx="62" cy="47" r="3" fill="#ffffff"/>
+  <!-- Нос -->
+  <ellipse cx="50" cy="60" rx="6" ry="4" fill="#1f2937"/>
+  <!-- Рот -->
+  <path d="M 50 62 Q 45 65, 40 63" stroke="#1f2937" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M 50 62 Q 55 65, 60 63" stroke="#1f2937" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>
