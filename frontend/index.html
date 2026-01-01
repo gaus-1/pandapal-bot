@@ -13,14 +13,20 @@
     <meta name="color-scheme" content="light dark" />
     <script>
       (function() {
+        // Проверяем сохраненную тему
         const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
+
+        // Если нет сохраненной темы - принудительно ставим светлую
+        if (!savedTheme || savedTheme === 'null' || savedTheme === 'undefined') {
+          localStorage.setItem('theme', 'light');
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
+        } else if (savedTheme === 'dark') {
           document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('light');
         } else {
           document.documentElement.classList.remove('dark');
-          if (!savedTheme) {
-            localStorage.setItem('theme', 'light');
-          }
+          document.documentElement.classList.add('light');
         }
       })();
     </script>
