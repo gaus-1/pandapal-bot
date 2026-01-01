@@ -4,13 +4,55 @@
 
 """
 
+import asyncio
 import functools
 import time
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 from loguru import logger
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 F = TypeVar("F", bound=Callable[..., Any])
+
+
+# === ASYNC RETRY С TENACITY ===
+def async_retry(
+    max_attempts: int = 3,
+    min_wait: float = 1.0,
+    max_wait: float = 10.0,
+    exceptions: tuple = (Exception,),
+):
+    """
+    Асинхронный декоратор retry с экспоненциальной задержкой.
+
+    Использует tenacity для надежного повтора при сбоях внешних сервисов
+    (Yandex Cloud, Telegram API, PostgreSQL).
+
+    Args:
+        max_attempts: Максимальное количество попыток
+        min_wait: Минимальная задержка между попытками (секунды)
+        max_wait: Максимальная задержка между попытками (секунды)
+        exceptions: Типы исключений для повтора
+
+    Example:
+        >>> @async_retry(max_attempts=3, exceptions=(aiohttp.ClientError,))
+        ... async def call_external_api():
+        ...     return await api.request()
+    """
+    return retry(
+        stop=stop_after_attempt(max_attempts),
+        wait=wait_exponential(multiplier=1, min=min_wait, max=max_wait),
+        retry=retry_if_exception_type(exceptions),
+        before_sleep=lambda retry_state: logger.warning(
+            f"🔄 Retry {retry_state.attempt_number}/{max_attempts} "
+            f"после ошибки: {retry_state.outcome.exception()}"
+        ),
+    )
 
 
 def log_execution_time(func: F) -> F:
@@ -249,7 +291,6 @@ def singleton(cls):
     Args:
         cls: Класс для применения Singleton
     """
-
     instances = {}
 
     def get_instance(*args, **kwargs):
@@ -271,7 +312,6 @@ def memoize(func: F) -> F:
     Returns:
         F: Мемоизированная функция
     """
-
     cache: Dict[str, Any] = {}
 
     @functools.wraps(func)

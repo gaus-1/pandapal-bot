@@ -12,10 +12,10 @@
 - **DatabaseService**: Сервис для проверки состояния подключения
 
 Конфигурация:
-- **Connection Pool**: NullPool для асинхронной работы (новое подключение на запрос)
+- **Connection Pool**: QueuePool для высокой нагрузки (переиспользование соединений)
 - **SSL Mode**: Обязательный SSL для Railway PostgreSQL
 - **Timeout**: 10 секунд на установку подключения
-- **Transactional DDL**: Поддержка миграций Alembic
+- **Pool Settings**: 5 соединений, max 20, recycle 1800s
 
 Best Practices:
 - Используйте get_db() как context manager для автоматического закрытия сессий
@@ -27,30 +27,62 @@ from contextlib import contextmanager
 from typing import Generator
 
 from loguru import logger
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import NullPool, QueuePool
 
 from bot.config import settings
 from bot.models import Base
 
-# Создаём engine для подключения к PostgreSQL или SQLite
-# NullPool для асинхронной работы (каждый запрос = новое подключение)
-# Условно настраиваем SSL только для PostgreSQL (не для SQLite)
+# Определяем тип пула в зависимости от окружения
+# SQLite не поддерживает QueuePool, PostgreSQL - поддерживает
+is_sqlite = settings.database_url.startswith("sqlite")
+
+# Настройки подключения
 connect_args = {}
-if settings.database_url.startswith(("postgresql://", "postgres://")):
+pool_class = NullPool  # По умолчанию NullPool для SQLite
+
+if not is_sqlite:
+    # PostgreSQL: используем QueuePool для высокой нагрузки
     connect_args = {
         "sslmode": "require",  # Требуем SSL для Render/Railway PostgreSQL
         "connect_timeout": 10,  # Таймаут подключения 10 секунд
     }
+    pool_class = QueuePool
+
+# Параметры пула соединений для PostgreSQL
+pool_kwargs = {}
+if pool_class == QueuePool:
+    pool_kwargs = {
+        "pool_size": 5,  # Базовое количество соединений
+        "max_overflow": 15,  # Дополнительные соединения при нагрузке (всего до 20)
+        "pool_timeout": 30,  # Таймаут ожидания свободного соединения
+        "pool_recycle": 1800,  # Пересоздание соединений каждые 30 минут
+        "pool_pre_ping": True,  # Проверка соединения перед использованием
+    }
 
 engine = create_engine(
     settings.database_url,
-    poolclass=NullPool,
+    poolclass=pool_class,
     echo=False,  # True для отладки SQL-запросов
     future=True,
     connect_args=connect_args,
+    **pool_kwargs,
 )
+
+
+# Event listener для логирования проблем с пулом
+@event.listens_for(engine, "checkout")
+def receive_checkout(dbapi_connection, connection_record, connection_proxy):
+    """Логирование при получении соединения из пула."""
+    logger.debug("🔗 Соединение получено из пула")
+
+
+@event.listens_for(engine, "checkin")
+def receive_checkin(dbapi_connection, connection_record):
+    """Логирование при возврате соединения в пул."""
+    logger.debug("🔙 Соединение возвращено в пул")
+
 
 # Фабрика сессий
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
