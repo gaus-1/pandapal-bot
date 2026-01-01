@@ -170,7 +170,25 @@ class PandaPalBotServer:
             # Настраиваем раздачу статики frontend
             frontend_dist = Path(__file__).parent / "frontend" / "dist"
             if frontend_dist.exists():
+                # Раздаем статические файлы из корня dist (logo.png, manifest.json и т.д.)
+                static_files = [
+                    "logo.png",
+                    "manifest.json",
+                    "robots.txt",
+                    "sitemap.xml",
+                    "vite.svg",
+                ]
+                for static_file in static_files:
+                    file_path = frontend_dist / static_file
+                    if file_path.exists():
+                        self.app.router.add_get(
+                            f"/{static_file}", lambda _, fp=file_path: web.FileResponse(fp)
+                        )
+
+                # Раздаем папку assets
                 self.app.router.add_static("/assets", frontend_dist / "assets", name="assets")
+
+                # Главная страница
                 self.app.router.add_get(
                     "/", lambda _: web.FileResponse(frontend_dist / "index.html")
                 )
