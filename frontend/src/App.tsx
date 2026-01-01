@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { Header, Hero, Features, Section, Footer } from './components';
+import { Header, Hero, Features, Section, Footer, CallToAction } from './components';
 import { DarkModeToggle } from './components/DarkModeToggle';
 import { SECTIONS } from './config/constants';
 import './index.css';
@@ -15,7 +15,7 @@ import './index.css';
  *
  * Архитектура:
  * - Header: шапка с логотипом и навигацией
- * - Main: основной контент (Hero, Features, динамические секции)
+ * - Main: основной контент (Hero, Features, CallToAction, динамические секции)
  * - Footer: подвал с копирайтом
  * - DarkModeToggle: переключатель темы
  *
@@ -26,7 +26,7 @@ import './index.css';
  */
 const App: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 text-gray-900 smooth-scroll">
+    <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
       {/* Dark Mode Toggle */}
       <DarkModeToggle />
 
@@ -41,7 +41,10 @@ const App: React.FC = () => {
         {/* Блок преимуществ (3 карточки) */}
         <Features />
 
-        {/* Динамические секции (Для родителей, Для учителей и т.д.) */}
+        {/* CTA с QR-кодом и кнопкой */}
+        <CallToAction />
+
+        {/* Динамические секции (Для родителей) */}
         {SECTIONS.map((section) => (
           <Section key={section.id} section={section} />
         ))}

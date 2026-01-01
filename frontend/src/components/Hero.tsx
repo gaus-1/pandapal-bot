@@ -37,35 +37,35 @@ export const Hero: React.FC = React.memo(() => {
       </script>
 
       {/* Основной заголовок (H1 для SEO) */}
-      <h1 className="font-display text-4xl md:text-6xl font-bold leading-tight animate-fade-in">
+      <h1 className="font-display text-4xl md:text-6xl font-bold leading-tight animate-fade-in text-gray-900 dark:text-slate-50">
         Безопасный ИИ-друг
         <br />
         для твоего ребенка
       </h1>
 
       {/* Описание продукта */}
-      <p className="mt-6 text-lg md:text-xl text-gray-700 max-w-2xl mx-auto animate-fade-in-delay">
+      <p className="mt-6 text-lg md:text-xl text-gray-700 dark:text-slate-300 max-w-2xl mx-auto animate-fade-in-delay">
         Адаптивное, игровое и безопасное обучение для 1–9 классов
       </p>
 
-      {/* CTA кнопки (A/B тест: 2 варианта) */}
+      {/* CTA кнопки */}
       <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-delay-2">
-        {/* Основная CTA - вариант A (розовая) */}
+        {/* Основная CTA */}
         <a
           href={SITE_CONFIG.botUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block px-8 py-4 rounded-full bg-pink text-gray-900 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-100 hover:-translate-y-1"
+          className="inline-block px-8 py-4 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-100 hover:-translate-y-1"
           aria-label="Начать использовать PandaPal в Telegram"
           data-cta-variant="primary"
         >
-          🐼 Начать бесплатно
+          Начать использовать
         </a>
 
-        {/* Вторичная CTA - узнать больше */}
+        {/* Вторичная CTA */}
         <a
           href="#features"
-          className="inline-block px-8 py-4 rounded-full bg-white text-gray-900 font-semibold shadow-md hover:shadow-lg transition-all duration-300 border-2 border-gray-200 hover:border-pink"
+          className="inline-block px-8 py-4 rounded-full bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 font-semibold shadow-md hover:shadow-lg transition-all duration-300 border-2 border-gray-200 dark:border-slate-600 hover:border-pink-500 dark:hover:border-pink-400"
           aria-label="Узнать больше о PandaPal"
           data-cta-variant="secondary"
         >

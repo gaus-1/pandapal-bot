@@ -12,3 +12,4 @@ export { FeatureCard } from './FeatureCard';
 export { Section } from './Section';
 export { Footer } from './Footer';
 export { DarkModeToggle } from './DarkModeToggle';
+export { CallToAction } from './CallToAction';
