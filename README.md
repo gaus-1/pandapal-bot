@@ -7,7 +7,7 @@
 ### Безопасный ИИ-друг для твоего ребенка
 
 [![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://reactjs.org/)
+[![React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://reactjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Railway](https://img.shields.io/badge/Railway-Deployed-0B0D0E?logo=railway&logoColor=white)](https://railway.app/)
 [![Tests](https://img.shields.io/badge/Tests-180%20passed-brightgreen?logo=pytest)](tests/)
@@ -16,7 +16,7 @@
 
 **Образовательная платформа для школьников 1-9 классов с Telegram-ботом и веб-интерфейсом**
 
-[🌐 **Сайт**](https://pandapal.ru) • [🤖 **Telegram Бот**](https://t.me/PandaPal_bot) • [📚 **Документация**](docs/) • [📊 **Анализ Проекта**](PROJECT_CRITICAL_ANALYSIS.md)
+[🌐 **Сайт**](https://pandapal.ru) • [🤖 **Telegram Бот**](https://t.me/PandaPalBot) • [📚 **Документация**](docs/) • [📊 **Анализ Проекта**](PROJECT_CRITICAL_ANALYSIS.md)
 
 </div>
 
@@ -51,7 +51,7 @@
 ✅ **Адаптивность** — контент подстраивается под возраст ребенка (1-9 класс)
 ✅ **Мультимодальность** — текст, голос, изображения
 ✅ **Родительский контроль** — полная прозрачность и статистика
-✅ **Современный стек** — Python 3.13, React 19, PostgreSQL 17
+✅ **Современный стек** — Python 3.13, React 18, PostgreSQL 17
 ✅ **Российский AI** — полная интеграция с Yandex Cloud (YandexGPT, SpeechKit, Vision)
 
 ### **Проблема:**
@@ -74,21 +74,20 @@ PandaPal — безопасный ИИ-помощник, который помо
 - ![Pydantic](https://img.shields.io/badge/-Pydantic%20V2-E92063?logo=pydantic&logoColor=white) — валидация данных
 
 ### **Frontend**
-- ![React](https://img.shields.io/badge/-React%2019-61DAFB?logo=react&logoColor=black) — UI фреймворк
+- ![React](https://img.shields.io/badge/-React%2018-61DAFB?logo=react&logoColor=black) — UI фреймворк
 - ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white) — типизированный JavaScript
 - ![Vite](https://img.shields.io/badge/-Vite-646CFF?logo=vite&logoColor=white) — сборщик модулей
 - ![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=white) — utility-first CSS
 
 ### **AI & External APIs**
-- ![Yandex Cloud](https://img.shields.io/badge/-Yandex%20Cloud-FF0000?logo=yandex&logoColor=white) — YandexGPT, SpeechKit, Vision
-- **In-Memory LRU Cache** — кеширование ответов
+- ![Yandex Cloud](https://img.shields.io/badge/-Yandex%20Cloud-FF0000?logo=yandex&logoColor=white) — YandexGPT Lite, SpeechKit STT, Vision OCR
+- **In-Memory LRU Cache** — кеширование AI ответов для производительности
 
 ### **DevOps & Infrastructure**
-- ![Railway](https://img.shields.io/badge/-Railway.app-0B0D0E?logo=railway&logoColor=white) — деплой и хостинг
+- ![Railway](https://img.shields.io/badge/-Railway.app-0B0D0E?logo=railway&logoColor=white) — деплой и хостинг (24/7, webhook mode)
 - ![Docker](https://img.shields.io/badge/-Docker-2496ED?logo=docker&logoColor=white) — контейнеризация
-- ![GitHub Actions](https://img.shields.io/badge/-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white) — CI/CD
-- ![Cloudflare](https://img.shields.io/badge/-Cloudflare-F38020?logo=cloudflare&logoColor=white) — SSL и CDN
-- **Pre-commit hooks** — качество кода
+- ![Cloudflare](https://img.shields.io/badge/-Cloudflare-F38020?logo=cloudflare&logoColor=white) — DNS и SSL
+- **Pre-commit hooks** — качество кода (Black, isort, flake8)
 
 ### **Testing**
 - ![Pytest](https://img.shields.io/badge/-Pytest-0A9EDC?logo=pytest&logoColor=white) — тестирование Python
@@ -101,35 +100,42 @@ PandaPal — безопасный ИИ-помощник, который помо
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    FRONTEND (React)                      │
-│              https://pandapal.ru                         │
-└───────────────────┬─────────────────────────────────────┘
-                    │ REST API (JSON)
-┌───────────────────┴─────────────────────────────────────┐
-│                 BACKEND (FastAPI)                        │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
-│  │ Bot Service  │  │ AI Service   │  │ User Service │  │
-│  └──────────────┘  └──────────────┘  └──────────────┘  │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │         Content Moderation (150+ filters)        │  │
-│  └──────────────────────────────────────────────────┘  │
-└───────────────────┬─────────────────────────────────────┘
-                    │
-    ┌───────────────┼───────────────┐
-    │               │               │
-    ▼               ▼               ▼
-┌─────────┐  ┌──────────────┐  ┌────────────┐
-│Telegram │  │ PostgreSQL   │  │ Yandex     │
-│   API   │  │   Database   │  │  Cloud     │
-└─────────┘  └──────────────┘  └────────────┘
+│             Railway.app (Production 24/7)               │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌───────────────────────────────────────────────────┐ │
+│  │      Web Service (Bot + Frontend)                 │ │
+│  │                                                   │ │
+│  │  ┌─────────────┐         ┌──────────────┐       │ │
+│  │  │   Webhook   │         │   Frontend   │       │ │
+│  │  │   Server    │◄────────┤   (React)    │       │ │
+│  │  │  (aiogram)  │         │   /dist      │       │ │
+│  │  └──────┬──────┘         └──────────────┘       │ │
+│  │         │                                        │ │
+│  │         │  ┌──────────────────────────────┐     │ │
+│  │         └──┤  Content Moderation (150+)   │     │ │
+│  │            └──────────────────────────────┘     │ │
+│  └──────────────────┬────────────────────────────┬─┘ │
+│                     │                            │   │
+│  ┌──────────────────▼─────┐   ┌─────────────────▼─┐ │
+│  │   PostgreSQL 17        │   │  Yandex Cloud     │ │
+│  │   (Railway Managed)    │   │  - YandexGPT Lite │ │
+│  │   - Connection Pool    │   │  - SpeechKit STT  │ │
+│  │   - SSL/TLS            │   │  - Vision OCR     │ │
+│  └────────────────────────┘   └───────────────────┘ │
+│                                                       │
+│  Domain: pandapal.ru (Cloudflare DNS)                │
+│  Webhook: web-production-725aa.up.railway.app        │
+└───────────────────────────────────────────────────────┘
 ```
 
 ### **Принципы проектирования:**
 
+- **Production-Ready** — 24/7 работа, автоматический рестарт при сбое
+- **Webhook Mode** — эффективнее polling, меньше нагрузка на Telegram API
+- **Unified Service** — бот + frontend в одном контейнере (экономия ресурсов)
+- **Database Isolation** — PostgreSQL в отдельном managed сервисе
 - **SOLID** — все сервисы следуют принципам
-- **DDD** — доменная модель изолирована
-- **Clean Architecture** — слои не зависят друг от друга
-- **API-First** — единая точка входа для всех клиентов
 - **Security-First** — безопасность на каждом уровне
 
 ---
@@ -140,12 +146,14 @@ PandaPal — безопасный ИИ-помощник, который помо
 
 #### **🤖 Telegram Бот**
 - ✅ Текстовые запросы с AI ответами
-- ✅ Голосовые сообщения (SpeechKit)
-- ✅ Анализ изображений (Vision API)
-- ✅ Решение задач с фото
+- ✅ Голосовые сообщения (Yandex SpeechKit)
+- ✅ Аудиофайлы (распознавание речи)
+- ✅ Анализ изображений (Yandex Vision)
+- ✅ Решение задач с фото (математика, физика, химия)
+- ✅ Поддержка всех школьных предметов (1-9 класс)
 - ✅ Экстренные номера России
 - ✅ Модерация контента 24/7
-- ✅ Адаптивные промпты для 1-9 классов
+- ✅ Адаптивные промпты для каждого класса
 
 #### **🔒 Безопасность**
 - ✅ 150+ запрещенных паттернов
@@ -410,7 +418,7 @@ YANDEX_GPT_MODEL=yandexgpt-lite
 SECRET_KEY=your-secret-key-min-32-chars
 
 # Domain
-WEBHOOK_DOMAIN=pandapal.ru
+WEBHOOK_DOMAIN=web-production-725aa.up.railway.app
 FRONTEND_URL=https://pandapal.ru
 ```
 
@@ -526,11 +534,11 @@ safety check
 **Lead Developer:** [@gaus-1](https://github.com/gaus-1)
 
 ### **Технологический стек:**
-- **Backend:** Python 3.13, FastAPI, aiogram, SQLAlchemy
-- **Frontend:** React 19, TypeScript, Vite 7, Tailwind
-- **Database:** PostgreSQL 17
-- **AI:** Yandex Cloud (YandexGPT, SpeechKit, Vision)
-- **Infrastructure:** Railway, Cloudflare, GitHub Actions
+- **Backend:** Python 3.13, aiogram 3.x, SQLAlchemy 2.0, Pydantic V2
+- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS
+- **Database:** PostgreSQL 17 (Railway Managed)
+- **AI:** Yandex Cloud (YandexGPT Lite, SpeechKit, Vision)
+- **Infrastructure:** Railway.app (webhook mode, 24/7 uptime)
 
 ### **Статистика проекта:**
 - **Коммитов:** 50+
@@ -544,8 +552,7 @@ safety check
 ## 📞 **Контакты**
 
 - **Website:** [pandapal.ru](https://pandapal.ru)
-- **Telegram Bot:** [@PandaPal_bot](https://t.me/PandaPal_bot)
-- **Email:** support@pandapal.ru
+- **Telegram Bot:** [@PandaPalBot](https://t.me/PandaPalBot)
 - **GitHub:** [github.com/gaus-1/pandapal-bot](https://github.com/gaus-1/pandapal-bot)
 
 ---
