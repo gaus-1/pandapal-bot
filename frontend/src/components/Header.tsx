@@ -13,7 +13,7 @@ import { SITE_CONFIG } from '../config/constants';
  */
 export const Header: React.FC = React.memo(() => {
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border-b border-gray-200 dark:border-slate-700 shadow-sm">
+    <header className="absolute top-0 left-0 right-0 z-40">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 md:py-6 flex items-center justify-between">
         {/* Логотип и название */}
         <div className="flex items-center gap-2 sm:gap-3">
