@@ -292,8 +292,7 @@ async def handle_voice(message: Message):
         # Распознаем речь с автоопределением языка
         recognized_text = await speech_service.transcribe_voice(
             audio_data,
-            language="ru",  # Предполагаем русский
-            auto_detect_language=True,  # Но определяем автоматически
+            language="ru",  # Русский язык
         )
 
         if not recognized_text:
@@ -371,7 +370,6 @@ async def handle_audio(message: Message):
         recognized_text = await speech_service.transcribe_voice(
             audio_data,
             language="ru",
-            auto_detect_language=True,
         )
 
         if not recognized_text:
