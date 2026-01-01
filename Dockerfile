@@ -1,5 +1,5 @@
-# Базовый образ Python 3.11
-FROM python:3.11.9-slim
+# Базовый образ Python 3.13
+FROM python:3.13-slim
 
 # Рабочая директория
 WORKDIR /app

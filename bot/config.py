@@ -85,15 +85,9 @@ class Settings(BaseSettings):
     # ============ AI SETTINGS ============
     ai_temperature: float = Field(
         default=0.7,
-        description="Температура генерации AI (0.0 = детерминированно, 1.0 = креативно)",
-        validation_alias=AliasChoices("AI_TEMPERATURE", "ai_temperature"),
-    )
-
-    ai_temperature: float = Field(
-        default=0.7,
         ge=0.0,
         le=1.0,
-        description="Температура генерации (0.0 = детерминированно, 1.0 = креативно)",
+        description="Температура генерации AI (0.0 = детерминированно, 1.0 = креативно)",
         validation_alias=AliasChoices("AI_TEMPERATURE", "ai_temperature"),
     )
 
