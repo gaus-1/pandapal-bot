@@ -11,7 +11,7 @@ describe('Header Component', () => {
   it('должен отображать логотип PandaPal', () => {
     render(<Header />);
 
-    const logo = screen.getByAlt(/pandapal/i);
+    const logo = screen.getByAltText(/pandapal/i);
     expect(logo).toBeInTheDocument();
     expect(logo).toHaveAttribute('src');
   });
@@ -50,7 +50,7 @@ describe('Header Component', () => {
   it('логотип должен иметь правильные размеры', () => {
     render(<Header />);
 
-    const logo = screen.getByAlt(/pandapal/i);
+    const logo = screen.getByAltText(/pandapal/i);
     expect(logo).toHaveAttribute('width', '48');
     expect(logo).toHaveAttribute('height', '48');
   });
@@ -58,7 +58,7 @@ describe('Header Component', () => {
   it('логотип должен загружаться с приоритетом', () => {
     render(<Header />);
 
-    const logo = screen.getByAlt(/pandapal/i);
+    const logo = screen.getByAltText(/pandapal/i);
     expect(logo).toHaveAttribute('loading', 'eager');
   });
 });

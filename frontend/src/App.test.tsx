@@ -17,7 +17,7 @@ describe('App Component', () => {
     render(<App />);
 
     // Проверяем наличие логотипа из Header
-    const logo = screen.getByAlt(/pandapal/i);
+    const logo = screen.getByAltText(/pandapal/i);
     expect(logo).toBeInTheDocument();
   });
 
@@ -62,7 +62,7 @@ describe('App Component', () => {
   });
 
   it('должен быть доступным (accessibility)', () => {
-    const { container } = render(<App />);
+    render(<App />);
 
     // Проверяем наличие semantic HTML
     const main = screen.getByRole('main');
