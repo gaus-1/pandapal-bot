@@ -8,7 +8,7 @@ import { SITE_CONFIG } from '../config/constants';
 
 export const CallToAction: React.FC = React.memo(() => {
   return (
-    <section className="py-16 px-4 bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-slate-800/50 dark:via-slate-900 dark:to-slate-800/50 rounded-3xl my-16 border border-gray-100 dark:border-slate-700">
+    <section id="cta" className="py-16 px-4 bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-slate-800/50 dark:via-slate-900 dark:to-slate-800/50 rounded-3xl my-16 border border-gray-100 dark:border-slate-700 scroll-mt-20">
       <div className="max-w-5xl mx-auto text-center">
         {/* Заголовок */}
         <h2 className="text-3xl md:text-4xl font-display font-bold mb-4 text-gray-900 dark:text-slate-50">
