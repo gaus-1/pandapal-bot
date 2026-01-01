@@ -48,16 +48,6 @@ export const Header: React.FC = React.memo(() => {
         >
           Начни
         </a>
-
-        {/* Мобильная CTA кнопка */}
-        <a
-          href={SITE_CONFIG.botUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="md:hidden inline-flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600 text-white font-semibold text-sm hover:shadow-lg active:scale-95 transition-all duration-200"
-        >
-          Начни
-        </a>
       </div>
     </header>
   );

@@ -47,7 +47,7 @@ export const DarkModeToggle: React.FC = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="fixed top-4 right-4 md:top-6 md:right-28 z-50 px-3 py-2.5 md:px-5 md:py-2.5 rounded-full bg-white dark:bg-slate-700 shadow-md hover:shadow-lg border-2 border-gray-200 dark:border-slate-600 transition-all duration-300 hover:scale-105 active:scale-95 text-sm font-semibold"
+      className="fixed top-4 right-4 md:right-28 z-50 w-10 h-10 md:w-auto md:h-auto md:px-5 md:py-2.5 rounded-full bg-white dark:bg-slate-700 shadow-md hover:shadow-lg border-2 border-gray-200 dark:border-slate-600 transition-all duration-300 hover:scale-105 active:scale-95 text-sm font-semibold flex items-center justify-center"
       aria-label={isDark ? 'Включить светлую тему' : 'Включить темную тему'}
       title={isDark ? 'Светлая тема' : 'Темная тема'}
     >
