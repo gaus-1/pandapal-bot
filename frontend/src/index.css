@@ -158,26 +158,50 @@
 
 :root {
   --bg-primary: #ffffff;
-  --bg-secondary: #f3f4f6;
+  --bg-secondary: #f9fafb;
   --text-primary: #111827;
-  --text-secondary: #6b7280;
+  --text-secondary: #4b5563;
   --border-color: #e5e7eb;
+  --accent-blue: #3b82f6;
+  --accent-pink: #ec4899;
 }
 
 .dark {
-  --bg-primary: #111827;
-  --bg-secondary: #1f2937;
-  --text-primary: #f9fafb;
-  --text-secondary: #9ca3af;
-  --border-color: #374151;
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --border-color: #334155;
+  --accent-blue: #60a5fa;
+  --accent-pink: #f472b6;
 }
 
 .dark body {
-  @apply bg-gray-900 text-gray-100;
+  @apply bg-slate-900 text-slate-100;
 }
 
 .dark .bg-gradient-to-b {
-  @apply from-gray-800 to-gray-900;
+  @apply from-slate-800 to-slate-900;
+}
+
+.dark h1, .dark h2, .dark h3 {
+  @apply text-slate-50;
+}
+
+.dark p {
+  @apply text-slate-300;
+}
+
+.dark .bg-white {
+  @apply bg-slate-800;
+}
+
+.dark .text-gray-900 {
+  @apply text-slate-100;
+}
+
+.dark .text-gray-700 {
+  @apply text-slate-300;
 }
 
 @media (prefers-color-scheme: dark) {

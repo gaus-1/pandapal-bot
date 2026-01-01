@@ -23,14 +23,16 @@ interface FeatureCardProps {
 export const FeatureCard: React.FC<FeatureCardProps> = React.memo(
   ({ feature }) => {
     return (
-      <article className="rounded-2xl bg-white/80 backdrop-blur p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+      <article className="rounded-2xl bg-white dark:bg-slate-800 p-6 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 dark:border-slate-700">
         {/* Заголовок преимущества */}
-        <h3 className="font-display text-xl font-semibold mb-2">
+        <h3 className="font-display text-xl font-bold mb-3 text-gray-900 dark:text-slate-100">
           {feature.title}
         </h3>
 
         {/* Описание преимущества */}
-        <p className="text-gray-700">{feature.description}</p>
+        <p className="text-gray-700 dark:text-slate-300 leading-relaxed">
+          {feature.description}
+        </p>
       </article>
     );
   }
@@ -38,4 +40,3 @@ export const FeatureCard: React.FC<FeatureCardProps> = React.memo(
 
 // Для React DevTools
 FeatureCard.displayName = 'FeatureCard';
-
