@@ -15,15 +15,15 @@ export const Header: React.FC = React.memo(() => {
   return (
     <header className="absolute top-0 left-0 right-0 z-40">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 md:py-6 flex items-center justify-between">
-        {/* Логотип и название */}
+      {/* Логотип и название */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <img
-            src={SITE_CONFIG.logo.src}
-            alt={SITE_CONFIG.logo.alt}
+        <img
+          src={SITE_CONFIG.logo.src}
+          alt={SITE_CONFIG.logo.alt}
             className="w-10 h-10 sm:w-12 sm:h-12 rounded-full animate-logo-bounce object-cover"
-            loading="eager"
-            width="48"
-            height="48"
+          loading="eager"
+          width="48"
+          height="48"
             onError={(e) => {
               // Fallback если логотип не загрузится
               const target = e.target as HTMLImageElement;
@@ -33,11 +33,11 @@ export const Header: React.FC = React.memo(() => {
               emoji.className = 'text-3xl sm:text-4xl animate-logo-bounce';
               target.parentElement?.appendChild(emoji);
             }}
-          />
+        />
           <span className="font-display text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-50 animate-text-reveal">
-            {SITE_CONFIG.name}
-          </span>
-        </div>
+          {SITE_CONFIG.name}
+        </span>
+      </div>
 
         {/* CTA-кнопка к Telegram-боту (десктоп) */}
         <a

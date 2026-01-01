@@ -181,6 +181,22 @@ class UserService:
 
         return True
 
+    def get_user_children(self, parent_telegram_id: int) -> list[User]:
+        """
+        Получить список детей родителя
+
+        Args:
+            parent_telegram_id: Telegram ID родителя
+
+        Returns:
+            list[User]: Список детей
+        """
+        stmt = select(User).where(
+            User.parent_telegram_id == parent_telegram_id, User.is_active.is_(True)
+        )
+        children = self.db.execute(stmt).scalars().all()
+        return list(children)
+
     def get_user_display_name(self, user: User) -> str:
         """
         Получить отображаемое имя пользователя
