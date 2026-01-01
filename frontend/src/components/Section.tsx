@@ -23,15 +23,15 @@ interface SectionProps {
 export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
   return (
     <section id={section.id} className="py-12 md:py-16">
-      {/* Контейнер с закруглёнными углами и размытым фоном */}
-      <div className="rounded-2xl bg-white/60 backdrop-blur p-8 md:p-12">
-        {/* Заголовок секции (H2 для иерархии) */}
-        <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+      {/* Контейнер с профессиональным дизайном */}
+      <div className="rounded-3xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 p-8 md:p-12 shadow-lg hover:shadow-xl transition-shadow duration-300">
+        {/* Заголовок секции */}
+        <h2 className="font-display text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-slate-50">
           {section.title}
         </h2>
 
         {/* Текст описания */}
-        <p className="text-lg text-gray-700 max-w-3xl">
+        <p className="text-lg text-gray-700 dark:text-slate-300 max-w-3xl leading-relaxed">
           {section.description}
         </p>
       </div>

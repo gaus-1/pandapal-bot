@@ -13,18 +13,20 @@ import { SITE_CONFIG, NAVIGATION_LINKS } from '../config/constants';
  */
 export const Header: React.FC = React.memo(() => {
   return (
-    <header className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+    <header className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between backdrop-blur-sm">
       {/* Логотип и название */}
       <div className="flex items-center gap-3">
-        <img
-          src={SITE_CONFIG.logo.src}
-          alt={SITE_CONFIG.logo.alt}
-          className="w-12 h-12 rounded-full shadow-md animate-logo-bounce"
-          loading="eager"
-          width="48"
-          height="48"
-        />
-        <span className="font-display text-2xl font-bold animate-text-reveal">
+        <div className="relative">
+          <img
+            src={SITE_CONFIG.logo.src}
+            alt={SITE_CONFIG.logo.alt}
+            className="w-12 h-12 rounded-full shadow-lg ring-2 ring-white/50 dark:ring-slate-700 animate-logo-bounce"
+            loading="eager"
+            width="48"
+            height="48"
+          />
+        </div>
+        <span className="font-display text-2xl font-bold text-gray-900 dark:text-slate-50 animate-text-reveal">
           {SITE_CONFIG.name}
         </span>
       </div>
@@ -39,7 +41,7 @@ export const Header: React.FC = React.memo(() => {
           <a
             key={link.href}
             href={link.href}
-            className="text-sm hover:text-pink transition-colors duration-200"
+            className="text-sm font-medium text-gray-700 dark:text-slate-300 hover:text-pink-500 dark:hover:text-pink-400 transition-colors duration-200"
           >
             {link.label}
           </a>
@@ -50,7 +52,7 @@ export const Header: React.FC = React.memo(() => {
           href={SITE_CONFIG.botUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-5 py-2 rounded-full bg-sky text-white hover:shadow-lg transition-shadow duration-200"
+          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200"
         >
           Начать
         </a>

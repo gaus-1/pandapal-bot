@@ -157,23 +157,29 @@
    ================================================================= */
 
 :root {
+  /* Светлая тема - мягкие пастельные тона */
   --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --border-color: #e5e7eb;
+  --bg-secondary: #f8fafc;
+  --bg-card: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --border-color: #e2e8f0;
   --accent-blue: #3b82f6;
   --accent-pink: #ec4899;
+  --shadow: rgba(0, 0, 0, 0.1);
 }
 
 .dark {
+  /* Темная тема - гармоничная палитра */
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
+  --bg-card: #1e293b;
   --text-primary: #f1f5f9;
   --text-secondary: #cbd5e1;
   --border-color: #334155;
   --accent-blue: #60a5fa;
   --accent-pink: #f472b6;
+  --shadow: rgba(0, 0, 0, 0.3);
 }
 
 .dark body {
@@ -181,7 +187,7 @@
 }
 
 .dark .bg-gradient-to-b {
-  @apply from-slate-800 to-slate-900;
+  @apply from-slate-900 via-slate-900 to-slate-800;
 }
 
 .dark h1, .dark h2, .dark h3 {
@@ -193,7 +199,7 @@
 }
 
 .dark .bg-white {
-  @apply bg-slate-800;
+  @apply bg-slate-800 border border-slate-700;
 }
 
 .dark .text-gray-900 {
@@ -202,6 +208,31 @@
 
 .dark .text-gray-700 {
   @apply text-slate-300;
+}
+
+.dark .text-gray-600 {
+  @apply text-slate-400;
+}
+
+.dark .bg-gray-50 {
+  @apply bg-slate-800;
+}
+
+.dark .border-gray-200 {
+  @apply border-slate-700;
+}
+
+/* Светлые блоки в темной теме */
+.dark .bg-gradient-to-br {
+  @apply from-slate-800 to-slate-900;
+}
+
+.dark .bg-blue-50 {
+  @apply bg-slate-800/50;
+}
+
+.dark .bg-pink-50 {
+  @apply bg-slate-800/50;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -264,20 +295,4 @@
     animation: none;
     opacity: 1;
   }
-}
-
-/* =================================================================
-   DARK MODE TOGGLE BUTTON
-   ================================================================= */
-
-.dark-mode-toggle {
-  @apply fixed top-4 right-4 z-50 p-3 rounded-full bg-gray-200 dark:bg-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer;
-}
-
-.dark-mode-toggle:hover {
-  @apply scale-110;
-}
-
-.dark-mode-toggle svg {
-  @apply w-6 h-6 text-gray-700 dark:text-yellow-300;
 }
