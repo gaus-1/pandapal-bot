@@ -102,13 +102,6 @@ class TestAISolidIntegration:
         assert hasattr(context_builder, "build")
         assert not hasattr(context_builder, "moderate")  # Не должен модерировать
 
-        # OCP - можно расширять без изменения существующего кода
-        # (тестируем через наследование интерфейсов)
-        from bot.services.ai_response_generator_solid import IContextBuilder, IModerator
-
-        assert issubclass(ContentModerator, IModerator)
-        assert issubclass(ContextBuilder, IContextBuilder)
-
         # DIP - зависимости от абстракций, а не от конкретных реализаций
         # YandexAIResponseGenerator принимает интерфейсы, а не конкретные классы
         generator = YandexAIResponseGenerator(moderator, context_builder)

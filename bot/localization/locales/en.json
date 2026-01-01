@@ -1,0 +1,30 @@
+{
+  "welcome": {
+    "greeting": "Hi! I'm PandaPal - your educational assistant! 🐼",
+    "help": "I'll help you with lessons, play educational games, and answer questions!",
+    "start_learning": "Let's start learning! 📚"
+  },
+  "game": {
+    "start": "Start PandaPal Go game! 🎮",
+    "pause": "Pause",
+    "resume": "Resume",
+    "level_complete": "Level completed! 🎉",
+    "game_over": "Game over! Try again! 💪"
+  },
+  "math": {
+    "solve_task": "Solve the task:",
+    "correct": "Correct! 🎯",
+    "incorrect": "Not quite right. Try again! 🤔",
+    "hint": "Hint: {hint}"
+  },
+  "errors": {
+    "generic": "An error occurred. Please try again!",
+    "network": "Network issues. Check your connection.",
+    "rate_limit": "Too many requests. Please wait a moment."
+  },
+  "parental_control": {
+    "activity_report": "Child activity report",
+    "time_spent": "Time spent: {minutes} minutes",
+    "levels_completed": "Levels completed: {count}"
+  }
+}
