@@ -164,13 +164,24 @@ class PandaPalBotServer:
                     }
                 )
 
-            async def root_handler(request: web.Request) -> web.Response:
-                """Root endpoint - редирект на health check."""
-                return await health_check(request)
-
             # Регистрируем маршруты ДО setup_application
             self.app.router.add_get("/health", health_check)
-            self.app.router.add_get("/", root_handler)
+
+            # Настраиваем раздачу статики frontend
+            frontend_dist = Path(__file__).parent / "frontend" / "dist"
+            if frontend_dist.exists():
+                self.app.router.add_static("/assets", frontend_dist / "assets", name="assets")
+                self.app.router.add_get(
+                    "/", lambda _: web.FileResponse(frontend_dist / "index.html")
+                )
+                logger.info(f"✅ Frontend настроен: {frontend_dist}")
+            else:
+                # Fallback - если frontend не собран
+                async def root_handler(request: web.Request) -> web.Response:
+                    return await health_check(request)
+
+                self.app.router.add_get("/", root_handler)
+                logger.warning("⚠️ Frontend не найден, используется fallback")
 
             # Интегрируем метрики (если доступны)
             try:
