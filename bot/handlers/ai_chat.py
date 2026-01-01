@@ -103,6 +103,24 @@ async def handle_ai_message(message: Message, state: FSMContext):
             moderation_service.log_blocked_content(telegram_id, user_message, reason)
             log_user_activity(telegram_id, "blocked_content", False, reason)
 
+            # Записываем метрику безопасности (базовая блокировка)
+            try:
+                with get_db() as db:
+                    user_service = UserService(db)
+                    user = user_service.get_user_by_telegram_id(telegram_id)
+                    if user and user.user_type == "child":
+                        from bot.services.analytics_service import AnalyticsService
+
+                        analytics_service = AnalyticsService(db)
+                        analytics_service.record_safety_metric(
+                            metric_name="blocked_messages",
+                            value=1.0,
+                            user_telegram_id=telegram_id,
+                            category="basic_moderation",
+                        )
+            except Exception as e:
+                logger.debug(f"⚠️ Не удалось записать метрику безопасности: {e}")
+
             safe_response = moderation_service.get_safe_response_alternative("blocked_content")
             await message.answer(text=safe_response)
             return
@@ -165,6 +183,24 @@ async def handle_ai_message(message: Message, state: FSMContext):
                                     "confidence": advanced_result.confidence,
                                 },
                             )
+
+                            # Записываем метрику безопасности
+                            try:
+                                from bot.services.analytics_service import AnalyticsService
+
+                                analytics_service = AnalyticsService(db)
+                                analytics_service.record_safety_metric(
+                                    metric_name="blocked_messages",
+                                    value=1.0,
+                                    user_telegram_id=telegram_id,
+                                    category=(
+                                        advanced_result.category.value
+                                        if advanced_result.category
+                                        else "unknown"
+                                    ),
+                                )
+                            except Exception as e:
+                                logger.debug(f"⚠️ Не удалось записать метрику безопасности: {e}")
                 except Exception as e:
                     logger.error(f"❌ Ошибка записи заблокированной активности: {e}")
 
@@ -247,6 +283,19 @@ async def handle_ai_message(message: Message, state: FSMContext):
                         },
                         message_content=user_message,
                     )
+
+                    # Записываем метрику образования
+                    try:
+                        from bot.services.analytics_service import AnalyticsService
+
+                        analytics_service = AnalyticsService(db)
+                        analytics_service.record_education_metric(
+                            metric_name="ai_interactions",
+                            value=1.0,
+                            user_telegram_id=telegram_id,
+                        )
+                    except Exception as e:
+                        logger.debug(f"⚠️ Не удалось записать метрику образования: {e}")
                 except Exception as e:
                     logger.error(f"❌ Ошибка записи активности в родительский контроль: {e}")
 

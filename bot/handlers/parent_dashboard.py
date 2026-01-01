@@ -82,6 +82,19 @@ async def start_parent_dashboard(message: Message, state: FSMContext):
             )
             return
 
+        # Записываем метрику просмотра дашборда родителем
+        try:
+            from bot.services.analytics_service import AnalyticsService
+
+            analytics_service = AnalyticsService(db)
+            analytics_service.record_parent_metric(
+                metric_name="dashboard_views",
+                value=1.0,
+                parent_telegram_id=telegram_id,
+            )
+        except Exception as e:
+            logger.debug(f"⚠️ Не удалось записать метрику родителя: {e}")
+
         # Создаем клавиатуру с детьми
         keyboard = []
         for child in children:
