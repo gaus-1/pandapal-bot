@@ -338,6 +338,81 @@ async def handle_voice(message: Message):
         log_user_activity(telegram_id, "voice_processing_error", False, str(e))
 
 
+@router.message(F.audio)
+async def handle_audio(message: Message):
+    """
+    Обработка аудиофайлов (музыка, треки)
+    Использует Yandex SpeechKit для распознавания речи
+
+    Args:
+        message: Аудиофайл от пользователя
+    """
+    telegram_id = message.from_user.id
+
+    try:
+        logger.info(f"🎵 Получен аудиофайл от {telegram_id}")
+
+        # Показываем что обрабатываем
+        processing_msg = await message.answer("🎵 Слушаю аудиофайл... Пожалуйста, подожди! 🐼")
+
+        # Скачиваем аудиофайл
+        audio_file = await message.bot.get_file(message.audio.file_id)
+        audio_bytes = await message.bot.download_file(audio_file.file_path)
+
+        # Читаем байты
+        audio_data = audio_bytes.read()
+
+        # Получаем сервис распознавания речи
+        from bot.services.speech_service import get_speech_service
+
+        speech_service = get_speech_service()
+
+        # Распознаем речь
+        recognized_text = await speech_service.transcribe_voice(
+            audio_data,
+            language="ru",
+            auto_detect_language=True,
+        )
+
+        if not recognized_text:
+            await processing_msg.edit_text(
+                "🎵 Не удалось распознать речь из аудио.\n"
+                "Попробуй голосовое сообщение или напиши текстом! 📝"
+            )
+            log_user_activity(telegram_id, "audio_recognition_failed", False, "SpeechKit failed")
+            return
+
+        # Удаляем сообщение "Слушаю..."
+        await processing_msg.delete()
+
+        # Показываем что было распознано
+        await message.answer(
+            f'🎵 <i>Я услышал:</i> "{recognized_text}"\n\n' f"Сейчас подумаю над ответом... 🐼",
+            parse_mode="HTML",
+        )
+
+        logger.info(f"✅ Речь из аудио распознана: {recognized_text[:100]}")
+
+        # Логируем успешную активность
+        log_user_activity(telegram_id, "audio_message_sent", True)
+
+        # Обрабатываем как обычное текстовое сообщение
+        original_text = message.text
+        try:
+            object.__setattr__(message, "text", recognized_text)
+            await handle_ai_message(message, None)
+        finally:
+            if original_text is not None:
+                object.__setattr__(message, "text", original_text)
+
+    except Exception as e:
+        logger.error(f"❌ Ошибка обработки аудиофайла: {e}")
+        await message.answer(
+            "😔 Произошла ошибка при обработке аудиофайла.\n" "Попробуй написать текстом! 📝"
+        )
+        log_user_activity(telegram_id, "audio_processing_error", False, str(e))
+
+
 @router.message(F.photo)
 @monitor_performance
 async def handle_image(message: Message, state: FSMContext):
