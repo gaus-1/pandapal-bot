@@ -1,16 +1,22 @@
-# 🐼 **PandaPal** - Безопасный ИИ-помощник для детей
-
 <div align="center">
 
-![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python)
-![React](https://img.shields.io/badge/React-18-61dafb?logo=react)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql)
-![Railway](https://img.shields.io/badge/Railway-Deployed-0B0D0E?logo=railway)
-![License](https://img.shields.io/badge/License-MIT-green)
+<img src="frontend/public/logo.png" alt="PandaPal Logo" width="150" height="150" style="border-radius: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+
+# 🐼 **PandaPal**
+
+### Безопасный ИИ-друг для твоего ребенка
+
+[![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://reactjs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Railway](https://img.shields.io/badge/Railway-Deployed-0B0D0E?logo=railway&logoColor=white)](https://railway.app/)
+[![Tests](https://img.shields.io/badge/Tests-180%20passed-brightgreen?logo=pytest)](tests/)
+[![Coverage](https://img.shields.io/badge/Coverage-39%25-yellow?logo=codecov)](htmlcov/)
+[![License](https://img.shields.io/badge/License-MIT-green?logo=opensourceinitiative&logoColor=white)](LICENSE)
 
 **Образовательная платформа для школьников 1-9 классов с Telegram-ботом и веб-интерфейсом**
 
-[🌐 Сайт](https://pandapal.ru) • [🤖 Telegram Бот](https://t.me/PandaPal_bot) • [📚 Документация](docs/)
+[🌐 **Сайт**](https://pandapal.ru) • [🤖 **Telegram Бот**](https://t.me/PandaPal_bot) • [📚 **Документация**](docs/) • [📊 **Анализ Проекта**](PROJECT_CRITICAL_ANALYSIS.md)
 
 </div>
 
@@ -18,17 +24,20 @@
 
 ## 📋 **Содержание**
 
-- [О проекте](#о-проекте)
-- [Технологии](#технологии)
-- [Архитектура](#архитектура)
-- [Функциональность](#функциональность)
-- [Установка](#установка)
-- [Структура проекта](#структура-проекта)
-- [Разработка](#разработка)
-- [Тестирование](#тестирование)
-- [Деплой](#деплой)
-- [Безопасность](#безопасность)
-- [Команда](#команда)
+- [О проекте](#-о-проекте)
+- [Технологии](#️-технологии)
+- [Архитектура](#️-архитектура)
+- [Функциональность](#-функциональность)
+- [Установка](#-установка)
+- [Структура проекта](#-структура-проекта)
+- [Разработка](#-разработка)
+- [Тестирование](#-тестирование)
+- [Деплой](#-деплой)
+- [Безопасность](#-безопасность)
+- [Мониторинг](#-мониторинг)
+- [Вклад в проект](#-вклад-в-проект)
+- [Лицензия](#-лицензия)
+- [Команда](#-команда)
 
 ---
 
@@ -43,36 +52,48 @@
 ✅ **Мультимодальность** — текст, голос, изображения
 ✅ **Родительский контроль** — полная прозрачность и статистика
 ✅ **Современный стек** — Python 3.13, React 18, PostgreSQL 17
+✅ **Российский AI** — полная интеграция с Yandex Cloud (YandexGPT, SpeechKit, Vision)
+
+### **Проблема:**
+Дети проводят много времени в интернете, сталкиваясь с небезопасным контентом и отвлекающими факторами.
+
+### **Решение:**
+PandaPal — безопасный ИИ-помощник, который помогает детям учиться, отвечает на вопросы и решает задачи, при этом защищая их от вредного контента.
 
 ---
 
 ## 🛠️ **Технологии**
 
 ### **Backend**
-- **Python 3.13** — основной язык
-- **FastAPI** — современный веб-фреймворк
-- **aiogram 3.x** — Telegram Bot API
-- **SQLAlchemy 2.0** — ORM с async поддержкой
-- **PostgreSQL 17** — реляционная база данных
-- **Alembic** — миграции БД
-- **Pydantic V2** — валидация данных
+- ![Python](https://img.shields.io/badge/-Python%203.13-3776AB?logo=python&logoColor=white) — основной язык
+- ![FastAPI](https://img.shields.io/badge/-FastAPI-009688?logo=fastapi&logoColor=white) — современный веб-фреймворк
+- ![aiogram](https://img.shields.io/badge/-aiogram%203.x-2CA5E0?logo=telegram&logoColor=white) — Telegram Bot API
+- ![SQLAlchemy](https://img.shields.io/badge/-SQLAlchemy%202.0-D71F00?logo=sqlalchemy&logoColor=white) — ORM с async поддержкой
+- ![PostgreSQL](https://img.shields.io/badge/-PostgreSQL%2017-336791?logo=postgresql&logoColor=white) — реляционная база данных
+- ![Alembic](https://img.shields.io/badge/-Alembic-EE0000?logo=python&logoColor=white) — миграции БД
+- ![Pydantic](https://img.shields.io/badge/-Pydantic%20V2-E92063?logo=pydantic&logoColor=white) — валидация данных
 
 ### **Frontend**
-- **React 18** — UI фреймворк
-- **TypeScript** — типизированный JavaScript
-- **Vite** — сборщик модулей
-- **Tailwind CSS** — utility-first CSS
+- ![React](https://img.shields.io/badge/-React%2018-61DAFB?logo=react&logoColor=black) — UI фреймворк
+- ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white) — типизированный JavaScript
+- ![Vite](https://img.shields.io/badge/-Vite-646CFF?logo=vite&logoColor=white) — сборщик модулей
+- ![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=white) — utility-first CSS
 
 ### **AI & External APIs**
-- **Yandex Cloud** — YandexGPT, SpeechKit, Vision
-- **In-Memory LRU Cache** — кеширование
+- ![Yandex Cloud](https://img.shields.io/badge/-Yandex%20Cloud-FF0000?logo=yandex&logoColor=white) — YandexGPT, SpeechKit, Vision
+- **In-Memory LRU Cache** — кеширование ответов
 
 ### **DevOps & Infrastructure**
-- **Railway.app** — деплой и хостинг
-- **Docker** — контейнеризация
-- **GitHub Actions** — CI/CD
-- **Cloudflare** — SSL и DNS
+- ![Railway](https://img.shields.io/badge/-Railway.app-0B0D0E?logo=railway&logoColor=white) — деплой и хостинг
+- ![Docker](https://img.shields.io/badge/-Docker-2496ED?logo=docker&logoColor=white) — контейнеризация
+- ![GitHub Actions](https://img.shields.io/badge/-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white) — CI/CD
+- ![Cloudflare](https://img.shields.io/badge/-Cloudflare-F38020?logo=cloudflare&logoColor=white) — SSL и CDN
 - **Pre-commit hooks** — качество кода
+
+### **Testing**
+- ![Pytest](https://img.shields.io/badge/-Pytest-0A9EDC?logo=pytest&logoColor=white) — тестирование Python
+- ![Vitest](https://img.shields.io/badge/-Vitest-6E9F18?logo=vitest&logoColor=white) — тестирование React
+- **Coverage:** 39% (180 passed tests)
 
 ---
 
@@ -83,12 +104,15 @@
 │                    FRONTEND (React)                      │
 │              https://pandapal.ru                         │
 └───────────────────┬─────────────────────────────────────┘
-                    │ REST API
+                    │ REST API (JSON)
 ┌───────────────────┴─────────────────────────────────────┐
 │                 BACKEND (FastAPI)                        │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
 │  │ Bot Service  │  │ AI Service   │  │ User Service │  │
 │  └──────────────┘  └──────────────┘  └──────────────┘  │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │         Content Moderation (150+ filters)        │  │
+│  └──────────────────────────────────────────────────┘  │
 └───────────────────┬─────────────────────────────────────┘
                     │
     ┌───────────────┼───────────────┐
@@ -106,6 +130,7 @@
 - **DDD** — доменная модель изолирована
 - **Clean Architecture** — слои не зависят друг от друга
 - **API-First** — единая точка входа для всех клиентов
+- **Security-First** — безопасность на каждом уровне
 
 ---
 
@@ -120,6 +145,7 @@
 - ✅ Решение задач с фото
 - ✅ Экстренные номера России
 - ✅ Модерация контента 24/7
+- ✅ Адаптивные промпты для 1-9 классов
 
 #### **🔒 Безопасность**
 - ✅ 150+ запрещенных паттернов
@@ -127,6 +153,8 @@
 - ✅ Блокировка нецензурной лексики
 - ✅ Защита от SQL/XSS
 - ✅ OWASP Top 10 compliance
+- ✅ Rate limiting
+- ✅ Аудит безопасности (Bandit, Safety)
 
 #### **👨‍👩‍👧 Родительский контроль**
 - ✅ Статистика использования
@@ -156,7 +184,7 @@
 
 ```bash
 # 1. Клонировать репозиторий
-git clone https://github.com/yourusername/pandapal-bot.git
+git clone https://github.com/gaus-1/pandapal-bot.git
 cd pandapal-bot
 
 # 2. Настроить backend
@@ -187,6 +215,16 @@ docker-compose up -d postgres
 python web_server.py
 ```
 
+### **Проверка базы данных**
+
+```bash
+# Проверить подключение и таблицы
+python check_database.py
+
+# Добавить тестовые данные
+python add_test_data.py
+```
+
 ---
 
 ## 📁 **Структура проекта**
@@ -204,24 +242,29 @@ PandaPal/
 │   │   ├── components/   # UI компоненты
 │   │   ├── features/     # Фичи
 │   │   └── services/     # API клиенты
-│   └── public/           # Статика
+│   └── public/           # Статика (logo.png)
 ├── 📁 tests/             # Тесты (180 passed, 39% coverage)
 │   ├── unit/             # Unit тесты
-│   └── integration/      # Интеграционные тесты
+│   ├── integration/      # Интеграционные тесты
+│   └── e2e/              # E2E тесты
 ├── 📁 config/            # Конфигурационные файлы
 ├── 📁 docs/              # Документация
+│   ├── DATABASE_SETUP.md
+│   └── RAILWAY_SETUP.md
 ├── 📁 scripts/           # Утилиты разработки
-├── 📁 sql/               # SQL миграции
-├── 📁 logs/              # Логи (gitignored)
-├── 📁 data/              # Локальные данные (gitignored)
-├── .env                  # Переменные окружения
-├── requirements.txt      # Python зависимости
-├── Dockerfile            # Docker конфигурация
-├── web_server.py         # Entry point
-└── README.md             # Этот файл
+├── 📁 sql/               # SQL скрипты
+├── 📁 alembic/           # Миграции БД
+├── 📄 .env               # Переменные окружения
+├── 📄 requirements.txt   # Python зависимости
+├── 📄 Dockerfile         # Docker конфигурация
+├── 📄 web_server.py      # Entry point
+├── 📄 check_database.py  # Утилита проверки БД
+├── 📄 add_test_data.py   # Утилита тестовых данных
+├── 📄 PROJECT_CRITICAL_ANALYSIS.md  # Критический анализ
+└── 📄 README.md          # Этот файл
 ```
 
-**Подробнее:** [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE_AUDIT.md)
+**Подробнее:** [docs/PROJECT_STRUCTURE_AUDIT.md](docs/PROJECT_STRUCTURE_AUDIT.md)
 
 ---
 
@@ -244,7 +287,10 @@ docker-compose up -d postgres
 
 ```bash
 # Проверка БД
-python scripts/check_db.py
+python check_database.py
+
+# Добавление тестовых данных
+python add_test_data.py
 
 # Поиск мертвого кода
 python scripts/check_dead_code.py
@@ -285,6 +331,7 @@ safety check
 - ✅ **180 passed** тестов
 - 📊 **39.12%** покрытие кода
 - 🎯 **90%+** покрытие критических компонентов
+- 🚀 **0 failures** (все тесты проходят)
 
 ### **Запуск тестов:**
 
@@ -301,16 +348,35 @@ pytest tests/unit/ -v
 # Только integration
 pytest tests/integration/ -v
 
+# E2E тесты
+pytest tests/e2e/ -v
+
 # Параллельно (быстрее)
 pytest tests/ -n auto
+
+# Открыть HTML отчет
+# Windows:
+explorer htmlcov/index.html
+# Linux/Mac:
+open htmlcov/index.html
 ```
 
 ### **Покрытие ключевых модулей:**
-- `models.py` — **94.71%**
-- `ai_service_solid.py` — **90.62%**
-- `speech_service.py` — **80.77%**
-- `moderation_service.py` — **76.39%**
-- `vision_service.py` — **65.91%**
+- `models.py` — **94.71%** ⭐⭐⭐⭐⭐
+- `ai_service_solid.py` — **90.62%** ⭐⭐⭐⭐⭐
+- `speech_service.py` — **80.77%** ⭐⭐⭐⭐
+- `moderation_service.py` — **76.39%** ⭐⭐⭐⭐
+- `vision_service.py` — **65.91%** ⭐⭐⭐⭐
+
+### **Frontend тесты:**
+
+```bash
+cd frontend
+npm run test
+npm run test:coverage
+```
+
+**Покрытие:** 7 компонентов протестировано (FeatureCard, Features, DarkModeToggle, Footer, Header, Hero, Section)
 
 ---
 
@@ -330,7 +396,7 @@ pytest tests/ -n auto
 
 ```env
 # Database
-DATABASE_URL=postgresql://...
+DATABASE_URL=postgresql://user:password@host:5432/pandapal_db
 
 # Telegram
 TELEGRAM_BOT_TOKEN=123456789:ABC...
@@ -372,6 +438,17 @@ FRONTEND_URL=https://pandapal.ru
 ✅ A07:2021 – Identification and Authentication Failures
 ✅ A09:2021 – Security Logging and Monitoring Failures
 
+### **Модерация контента:**
+
+```python
+# 150+ паттернов опасного контента
+FORBIDDEN_PATTERNS = [
+    "насилие", "оружие", "наркотики",
+    "алкоголь", "азартные игры", "18+",
+    # ... и еще 144 паттерна
+]
+```
+
 ---
 
 ## 📊 **Мониторинг**
@@ -381,11 +458,31 @@ FRONTEND_URL=https://pandapal.ru
 - **Response Time:** <500ms (median)
 - **Error Rate:** <1%
 - **Active Users:** 150+ семей
+- **Tests:** 180 passed (0 failures)
+- **Coverage:** 39.12%
 
 ### **Инструменты:**
 - **Railway Logs** — централизованное логирование
 - **Yandex Metrica** (ID: 104525544) — веб-аналитика
-- **Sentry** (опционально) — мониторинг ошибок
+- **Coverage Reports** — HTML/XML/Terminal
+- **Pre-commit hooks** — автоматические проверки
+
+### **Диагностика:**
+
+```bash
+# Проверка базы данных
+python check_database.py
+
+# Запуск тестов с покрытием
+pytest tests/ --cov=bot --cov-report=html
+
+# Проверка dead code
+python scripts/check_dead_code.py
+
+# Аудит безопасности
+bandit -r bot/
+safety check
+```
 
 ---
 
@@ -408,6 +505,14 @@ FRONTEND_URL=https://pandapal.ru
 - **Tests:** обязательны для новых фич
 - **Documentation:** обновляйте при изменениях API
 
+### **Checklist перед коммитом:**
+
+- [ ] Pre-commit hooks пройдены
+- [ ] Тесты пройдены локально (`pytest tests/`)
+- [ ] Coverage не упало (`pytest --cov=bot`)
+- [ ] Документация обновлена
+- [ ] UTF-8 encoding проверен
+
 ---
 
 ## 📄 **Лицензия**
@@ -427,6 +532,13 @@ FRONTEND_URL=https://pandapal.ru
 - **AI:** Yandex Cloud (YandexGPT, SpeechKit, Vision)
 - **Infrastructure:** Railway, Cloudflare, GitHub Actions
 
+### **Статистика проекта:**
+- **Коммитов:** 50+
+- **Строк кода:** 15,000+
+- **Тестов:** 180
+- **Покрытие:** 39%
+- **Звезд:** ⭐ (поставьте звезду!)
+
 ---
 
 ## 📞 **Контакты**
@@ -438,10 +550,27 @@ FRONTEND_URL=https://pandapal.ru
 
 ---
 
+## 📚 **Дополнительные Документы**
+
+- 📊 [Критический Анализ Проекта](PROJECT_CRITICAL_ANALYSIS.md) — подробный анализ сильных и слабых сторон
+- 🗄️ [Настройка Базы Данных](docs/DATABASE_SETUP.md) — инструкции по PostgreSQL
+- 🚀 [Деплой на Railway](docs/RAILWAY_SETUP.md) — гайд по развертыванию
+- 🏗️ [Структура Проекта](docs/PROJECT_STRUCTURE_AUDIT.md) — детальное описание архитектуры
+- 🧪 [Отчет по Тестам](TEST_REPORT.md) — результаты тестирования
+- 📋 [Статус Базы Данных](DATABASE_STATUS.md) — актуальное состояние БД
+
+---
+
 <div align="center">
 
 **Сделано с ❤️ для детей и их родителей**
 
-[⬆ Наверх](#-pandapal---безопасный-ии-помощник-для-детей)
+---
+
+### ⭐ **Если проект полезен, поставьте звезду!** ⭐
+
+---
+
+[⬆ Наверх](#-pandapal)
 
 </div>
