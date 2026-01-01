@@ -3,23 +3,21 @@
   <head>
     <meta charset="UTF-8" />
 
-    <!-- Favicon - SVG панда + PNG fallback -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/logo.png" />
+    <!-- Favicon - используем логотип панды -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/logo.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/logo.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/logo.png" />
-    <link rel="shortcut icon" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/logo.png" />
 
     <!-- Принудительная светлая тема по умолчанию -->
     <meta name="color-scheme" content="light dark" />
     <script>
-      // Устанавливаем светлую тему ДО загрузки страницы (предотвращаем мигание)
       (function() {
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark') {
           document.documentElement.classList.add('dark');
         } else {
           document.documentElement.classList.remove('dark');
-          // Явно сохраняем светлую тему при первом заходе
           if (!savedTheme) {
             localStorage.setItem('theme', 'light');
           }
