@@ -7,6 +7,13 @@
 для работы на Railway.app и запускает aiohttp сервер для приема обновлений
 от Telegram.
 
+ВАЖНО: Production-ready конфигурация для 24/7 работы.
+- Webhook режим (не polling) для стабильности
+- Автоматическая установка webhook при запуске
+- Раздача React frontend из /dist
+- Health check на /health
+- Порт 8080 (Railway стандарт)
+
 Основные компоненты:
 - Инициализация Bot и Dispatcher
 - Регистрация всех обработчиков из bot/handlers
