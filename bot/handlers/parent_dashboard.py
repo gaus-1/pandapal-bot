@@ -234,6 +234,7 @@ async def show_child_dashboard(callback_query, state: FSMContext):
                 )
                 text += f"• Индекс безопасности: {safety_index:.1f}%\n"
             else:
+                safety_index = 100.0  # Инициализируем для случая без сообщений
                 text += "• Индекс безопасности: 100%\n"
 
             # Уровень риска на основе индекса безопасности
