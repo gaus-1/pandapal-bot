@@ -22,11 +22,11 @@ export const Footer: React.FC = React.memo(() => {
     >
       {/* Логотип и название */}
       <div className="flex items-center justify-center gap-3 mb-4">
-        <div className="p-1 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-slate-800 dark:to-slate-700 rounded-full">
+        <div className="p-1.5 bg-gradient-to-br from-blue-100/50 to-cyan-100/50 dark:from-slate-700/50 dark:to-slate-600/50 rounded-full backdrop-blur-sm">
           <img
             src={SITE_CONFIG.logo.src}
             alt={SITE_CONFIG.logo.alt}
-            className="w-10 h-10 rounded-full ring-2 ring-blue-200 dark:ring-slate-600"
+            className="w-10 h-10 rounded-full ring-1 ring-blue-200/50 dark:ring-slate-500/50 object-cover"
             loading="lazy"
             width="40"
             height="40"
