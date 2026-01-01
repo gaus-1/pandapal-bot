@@ -8,88 +8,97 @@ import { SITE_CONFIG } from '../config/constants';
 
 export const CallToAction: React.FC = React.memo(() => {
   return (
-    <section className="py-16 px-4 bg-gradient-to-br from-blue-50 to-pink-50 dark:from-slate-800 dark:to-slate-900 rounded-3xl my-16">
+    <section className="py-16 px-4 bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-slate-800/50 dark:via-slate-900 dark:to-slate-800/50 rounded-3xl my-16 border border-gray-100 dark:border-slate-700">
       <div className="max-w-5xl mx-auto text-center">
         {/* Заголовок */}
         <h2 className="text-3xl md:text-4xl font-display font-bold mb-4 text-gray-900 dark:text-slate-50">
           Начни общение прямо сейчас! 🚀
         </h2>
-        <p className="text-lg text-gray-700 dark:text-slate-300 mb-12">
+        <p className="text-lg text-gray-600 dark:text-slate-400 mb-12">
           Отсканируй QR-код камерой телефона или нажми кнопку ниже
         </p>
 
-        {/* QR + Кнопка */}
-        <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+        {/* QR + Кнопка - профессиональная сетка */}
+        <div className="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-16 mb-12">
           {/* QR-код */}
-          <div className="bg-white dark:bg-slate-700 p-6 rounded-2xl shadow-xl">
-            <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(SITE_CONFIG.botUrl)}`}
-              alt="QR-код для перехода в Telegram бота"
-              className="w-48 h-48 md:w-56 md:h-56"
-              loading="lazy"
-            />
-            <p className="text-sm text-gray-600 dark:text-slate-400 mt-4">
+          <div className="flex flex-col items-center">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl border-2 border-gray-100 dark:border-slate-700">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(SITE_CONFIG.botUrl)}`}
+                alt="QR-код для перехода в Telegram бота"
+                className="w-52 h-52"
+                loading="lazy"
+              />
+            </div>
+            <p className="text-sm text-gray-600 dark:text-slate-400 mt-4 font-medium">
               Наведи камеру на QR-код
             </p>
           </div>
 
           {/* Разделитель "или" */}
           <div className="flex items-center justify-center">
-            <span className="text-xl font-semibold text-gray-500 dark:text-slate-400">
-              или
-            </span>
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-pink-100 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center shadow-md">
+              <span className="text-lg font-bold text-gray-700 dark:text-slate-300">
+                или
+              </span>
+            </div>
           </div>
 
           {/* Кнопка */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-4">
             <a
               href={SITE_CONFIG.botUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              className="inline-flex items-center justify-center gap-3 px-10 py-5 bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 hover:from-blue-600 hover:via-blue-700 hover:to-cyan-600 text-white font-bold text-lg rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.204-.657-.643.136-.953l11.566-4.458c.538-.196 1.006.128.832.941z"/>
               </svg>
               Открыть в Telegram
             </a>
-            <p className="text-sm text-center">
-              <span className="inline-flex items-center gap-1 text-yellow-600 dark:text-yellow-400">
-                💡 Совет:
-              </span>
-              <span className="text-gray-600 dark:text-slate-400 ml-1">
-                Если ты на телефоне — просто нажми кнопку выше!
-              </span>
-            </p>
+            <div className="flex items-start gap-2 max-w-xs text-left">
+              <span className="text-2xl">💡</span>
+              <p className="text-sm text-gray-600 dark:text-slate-400">
+                <span className="font-semibold text-yellow-600 dark:text-yellow-400">Совет:</span>
+                {' '}Если ты на телефоне — просто нажми кнопку выше!
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Преимущества внизу */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-16 text-center">
-          <div>
-            <div className="text-3xl mb-2">⚡</div>
-            <h3 className="font-bold text-gray-900 dark:text-slate-100 mb-1">
+        {/* Преимущества внизу - выровненная сетка */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-8 border-t border-gray-200 dark:border-slate-700">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 flex items-center justify-center text-3xl mb-3 shadow-md">
+              ⚡
+            </div>
+            <h3 className="font-bold text-lg text-gray-900 dark:text-slate-100 mb-2">
               Быстрый старт
             </h3>
-            <p className="text-sm text-gray-600 dark:text-slate-400">
+            <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
               Открой бота и отправь /start — мы сразу начнем!
             </p>
           </div>
-          <div>
-            <div className="text-3xl mb-2">🔒</div>
-            <h3 className="font-bold text-gray-900 dark:text-slate-100 mb-1">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-100 to-emerald-200 dark:from-green-900/30 dark:to-emerald-800/30 flex items-center justify-center text-3xl mb-3 shadow-md">
+              🔒
+            </div>
+            <h3 className="font-bold text-lg text-gray-900 dark:text-slate-100 mb-2">
               Безопасно
             </h3>
-            <p className="text-sm text-gray-600 dark:text-slate-400">
+            <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
               Все данные защищены, контент модерируется AI
             </p>
           </div>
-          <div>
-            <div className="text-3xl mb-2">🎁</div>
-            <h3 className="font-bold text-gray-900 dark:text-slate-100 mb-1">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-100 to-rose-200 dark:from-pink-900/30 dark:to-rose-800/30 flex items-center justify-center text-3xl mb-3 shadow-md">
+              🎁
+            </div>
+            <h3 className="font-bold text-lg text-gray-900 dark:text-slate-100 mb-2">
               Бесплатно
             </h3>
-            <p className="text-sm text-gray-600 dark:text-slate-400">
+            <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
               Полный доступ ко всем функциям без оплаты!
             </p>
           </div>
