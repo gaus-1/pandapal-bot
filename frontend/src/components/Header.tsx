@@ -46,9 +46,9 @@ export const Header: React.FC = React.memo(() => {
           href={SITE_CONFIG.botUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden md:inline-flex px-5 lg:px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold text-sm hover:shadow-lg hover:scale-105 transition-all duration-200"
+          className="hidden md:inline-flex items-center justify-center px-5 lg:px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600 text-white font-semibold text-sm hover:shadow-lg hover:scale-105 transition-all duration-200"
         >
-          Начать
+          Начни
         </a>
 
         {/* Мобильная CTA кнопка */}
@@ -56,9 +56,9 @@ export const Header: React.FC = React.memo(() => {
           href={SITE_CONFIG.botUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="md:hidden px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold text-sm hover:shadow-lg active:scale-95 transition-all duration-200"
+          className="md:hidden inline-flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600 text-white font-semibold text-sm hover:shadow-lg active:scale-95 transition-all duration-200"
         >
-          Начать
+          Начни
         </a>
       </div>
     </header>

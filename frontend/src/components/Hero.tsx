@@ -55,11 +55,11 @@ export const Hero: React.FC = React.memo(() => {
           href={SITE_CONFIG.botUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold text-base sm:text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-100 hover:-translate-y-1"
+          className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 dark:from-pink-600 dark:to-rose-600 text-white font-semibold text-base sm:text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-100 hover:-translate-y-1"
           aria-label="Начать использовать PandaPal в Telegram"
           data-cta-variant="primary"
         >
-          Начать использовать
+          Начни
         </a>
 
         {/* Вторичная CTA */}
