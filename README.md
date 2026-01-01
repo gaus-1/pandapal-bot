@@ -105,15 +105,15 @@ PandaPal — безопасный ИИ-помощник, который помо
 │             Railway.app (Production 24/7)               │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│  ┌───────────────────────────────────────────────────┐ │
-│  │      Web Service (Bot + Frontend)                 │ │
-│  │                                                   │ │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │      Web Service (Bot + Frontend)                 │  │
+│  │                                                   │  │
 │  │  ┌─────────────┐         ┌──────────────┐       │ │
 │  │  │   Webhook   │         │   Frontend   │       │ │
 │  │  │   Server    │◄────────┤   (React)    │       │ │
 │  │  │  (aiogram)  │         │   /dist      │       │ │
 │  │  └──────┬──────┘         └──────────────┘       │ │
-│  │         │                                        │ │
+│  │         │                                       │ │
 │  │         │  ┌──────────────────────────────┐     │ │
 │  │         └──┤  Content Moderation (150+)   │     │ │
 │  │            └──────────────────────────────┘     │ │
@@ -126,8 +126,8 @@ PandaPal — безопасный ИИ-помощник, который помо
 │  │   - SSL/TLS            │   │  - Vision OCR     │ │
 │  └────────────────────────┘   └───────────────────┘ │
 │                                                       │
-│  Domain: pandapal.ru (Cloudflare DNS)                │
-│  Webhook: web-production-725aa.up.railway.app        │
+│  Domain: pandapal.ru (Cloudflare DNS)                 │
+│  Webhook: web-production-725aa.up.railway.app         │
 └───────────────────────────────────────────────────────┘
 ```
 
@@ -242,24 +242,24 @@ python add_test_data.py
 
 ```
 PandaPal/
-├── 📁 bot/                      # Telegram Bot (aiogram)
-│   ├── handlers/                # Обработчики команд
-│   ├── services/                # Бизнес-логика
-│   ├── config/                  # Конфигурация (модульная структура)
-│   │   ├── settings.py          # Настройки приложения
-│   │   ├── prompts.py           # AI промпты
+├── 📁 bot/                       # Telegram Bot (aiogram)
+│   ├── handlers/                 # Обработчики команд
+│   ├── services/                 # Бизнес-логика
+│   ├── config/                   # Конфигурация (модульная структура)
+│   │   ├── settings.py           # Настройки приложения
+│   │   ├── prompts.py            # AI промпты
 │   │   └── forbidden_patterns.py # Запрещенные паттерны
-│   ├── models.py                # SQLAlchemy модели
-│   └── database.py              # Управление БД
+│   ├── models.py                 # SQLAlchemy модели
+│   └── database.py               # Управление БД
 ├── 📁 frontend/                 # React приложение
 │   ├── src/
 │   │   ├── components/          # UI компоненты
 │   │   ├── features/            # Фичи
 │   │   └── services/            # API клиенты
 │   └── public/                  # Статика (logo.png)
-├── 📁 tests/                     # Тесты (447 passed, 53% coverage)
+├── 📁 tests/                    # Тесты (447 passed, 53% coverage)
 │   ├── unit/                    # Unit тесты
-│   ├── integration/            # Интеграционные тесты
+│   ├── integration/             # Интеграционные тесты
 │   └── e2e/                     # E2E тесты
 ├── 📁 config/                   # Конфигурационные файлы
 ├── 📁 docs/                     # Документация
@@ -267,13 +267,13 @@ PandaPal/
 │   └── RAILWAY_SETUP.md
 ├── 📁 scripts/                  # Утилиты разработки
 │   ├── view_analytics_metrics.py # Просмотр бизнес-метрик
-│   └── export_metrics.py        # Экспорт метрик (CSV/JSON)
+│   └── export_metrics.py         # Экспорт метрик (CSV/JSON)
 ├── 📁 metrics/                  # Бизнес-метрики
-│   ├── exports/                 # Экспортированные метрики
+│   ├── exports/                  # Экспортированные метрики
 │   ├── reports/                  # Отчеты по метрикам
-│   └── dashboards/              # Дашборды
+│   └── dashboards/               # Дашборды
 ├── 📁 sql/                      # SQL скрипты
-├── 📁 alembic/                 # Миграции БД
+├── 📁 alembic/                  # Миграции БД
 ├── 📄 .env                      # Переменные окружения
 ├── 📄 requirements.txt          # Python зависимости
 ├── 📄 Dockerfile                # Docker конфигурация
