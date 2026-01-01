@@ -3,6 +3,10 @@
 
 Миграция с OpenAI Whisper на Yandex Cloud SpeechKit STT.
 Поддерживает русский и английский языки.
+
+⚠️ КРИТИЧЕСКИЙ МОДУЛЬ - РАБОТАЕТ СТАБИЛЬНО!
+⛔ НЕ ИЗМЕНЯТЬ сигнатуру transcribe_voice() без явного запроса!
+✅ Текущая сигнатура: transcribe_voice(voice_file_bytes: bytes, language: str = "ru")
 """
 
 from typing import Optional
