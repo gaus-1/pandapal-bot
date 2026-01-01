@@ -116,21 +116,27 @@ class Settings(BaseSettings):
 
     # ============ RATE LIMITING ============
     ai_rate_limit_per_minute: int = Field(
-        default=999999,
-        description="Без ограничений на AI запросы в минуту",
+        default=30,
+        ge=1,
+        le=1000,
+        description="Лимит AI запросов в минуту на пользователя (защита от abuse)",
         validation_alias=AliasChoices("AI_RATE_LIMIT_PER_MINUTE", "ai_rate_limit_per_minute"),
     )
 
     daily_message_limit: int = Field(
-        default=999999,
-        description="Без ограничений на количество сообщений",
+        default=500,
+        ge=10,
+        le=10000,
+        description="Дневной лимит сообщений на пользователя",
         validation_alias=AliasChoices("DAILY_MESSAGE_LIMIT", "daily_message_limit"),
     )
 
     # ============ MEMORY / HISTORY ============
     chat_history_limit: int = Field(
-        default=999999,
-        description="Без ограничений на количество сообщений в истории для контекста AI",
+        default=50,
+        ge=5,
+        le=500,
+        description="Количество сообщений в истории для контекста AI",
         validation_alias=AliasChoices("CHAT_HISTORY_LIMIT", "chat_history_limit"),
     )
 
