@@ -131,23 +131,19 @@ function MiniAppContent() {
         </Suspense>
       </div>
 
-      {/* Нижняя навигация - КОМПАКТНАЯ */}
-      <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg">
-        <div className="grid grid-cols-2 gap-0.5 p-1">
-          <NavButton
-            icon="🐼"
-            label="Panda чат"
-            isActive={currentScreen === 'ai-chat'}
-            onClick={() => navigateTo('ai-chat')}
-          />
-          <NavButton
-            icon="🚨"
-            label="SOS"
-            isActive={currentScreen === 'emergency'}
-            onClick={() => navigateTo('emergency')}
-          />
-        </div>
-      </nav>
+      {/* Нижняя навигация - ТОЛЬКО SOS (чат открыт по умолчанию) */}
+      {currentScreen === 'emergency' && (
+        <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg">
+          <div className="flex justify-start px-2 py-1.5">
+            <NavButton
+              icon="🚨"
+              label="SOS"
+              isActive={true}
+              onClick={() => navigateTo('emergency')}
+            />
+          </div>
+        </nav>
+      )}
     </div>
   );
 }
@@ -163,14 +159,14 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center py-1.5 px-2 rounded-lg transition-all shadow-sm ${
+      className={`flex flex-row items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg transition-all shadow-sm ${
         isActive
           ? 'bg-blue-400/90 text-white font-semibold shadow-md'
           : 'text-[var(--tg-theme-text-color)] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-blue-100/50 dark:hover:bg-blue-900/20 font-medium'
       }`}
     >
-      <span className="text-lg mb-0.5">{icon}</span>
-      <span className="text-[9px] font-semibold leading-tight opacity-90">{label}</span>
+      <span className="text-base">{icon}</span>
+      <span className="text-[10px] font-semibold leading-tight opacity-90">{label}</span>
     </button>
   );
 }
