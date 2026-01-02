@@ -4,14 +4,20 @@
  * @module App
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Header, Hero, Features, Section, Footer, CallToAction } from './components';
 import { DarkModeToggle } from './components/DarkModeToggle';
 import { SECTIONS } from './config/constants';
+import { telegram } from './services/telegram';
+import { MiniApp } from './MiniApp';
 import './index.css';
 
 /**
  * Корневой компонент приложения PandaPal
+ *
+ * Логика:
+ * - Если открыто в Telegram Mini App → показываем MiniApp
+ * - Если открыто в браузере → показываем лендинг
  *
  * Архитектура:
  * - Header: шапка с логотипом и навигацией
@@ -25,6 +31,36 @@ import './index.css';
  * - Производительность: все компоненты мемоизированы (React.memo)
  */
 const App: React.FC = () => {
+  const [isInTelegram, setIsInTelegram] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    // Проверяем, открыто ли приложение в Telegram
+    const inTelegram = telegram.isInTelegram();
+    setIsInTelegram(inTelegram);
+    setIsChecking(false);
+
+    console.log('🤖 Приложение запущено в:', inTelegram ? 'Telegram Mini App' : 'Браузере');
+  }, []);
+
+  // Показываем загрузку пока проверяем окружение
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-slate-900">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🐼</div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Если в Telegram → Mini App
+  if (isInTelegram) {
+    return <MiniApp />;
+  }
+
+  // Если в браузере → Лендинг
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
       {/* Dark Mode Toggle */}

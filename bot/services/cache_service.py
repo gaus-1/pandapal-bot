@@ -414,7 +414,9 @@ class CacheService:
         # Создаем хэш для длинных ключей
         if len(key_string) > 250:
             # MD5 используется только для кэширования, не для безопасности
-            key_hash = hashlib.md5(key_string.encode(), usedforsecurity=False).hexdigest()  # noqa: S324
+            key_hash = hashlib.md5(
+                key_string.encode(), usedforsecurity=False
+            ).hexdigest()  # noqa: S324
             return f"{prefix}:hash:{key_hash}"
 
         return key_string

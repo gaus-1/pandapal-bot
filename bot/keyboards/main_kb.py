@@ -26,6 +26,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     KeyboardButton,
     ReplyKeyboardMarkup,
+    WebAppInfo,
 )
 
 
@@ -49,6 +50,13 @@ def get_main_menu_keyboard(user_type: str = "child") -> ReplyKeyboardMarkup:
     """
     # Базовые кнопки для всех
     buttons = [
+        [
+            # Кнопка запуска Mini App (открывает React приложение)
+            KeyboardButton(
+                text="🎮 Открыть обучающее приложение",
+                web_app=WebAppInfo(url="https://pandapal.ru"),
+            ),
+        ],
         [
             KeyboardButton(text="💬 Общение с AI"),
             KeyboardButton(text="📚 Помощь с уроками"),
