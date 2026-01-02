@@ -151,12 +151,10 @@ class YandexCloudService:
                 "format": audio_format,
             }
 
-            # sampleRateHertz нужен для определенных форматов
+            # sampleRateHertz нужен ТОЛЬКО для lpcm (по документации Yandex SpeechKit)
+            # Для oggopus его НЕ нужно передавать
             if audio_format == "lpcm":
                 params["sampleRateHertz"] = "16000"
-            elif audio_format == "oggopus":
-                # После конвертации через ffmpeg используем 48000
-                params["sampleRateHertz"] = "48000"
 
             # Отправляем аудио
             response = requests.post(
