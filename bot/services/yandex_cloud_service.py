@@ -13,10 +13,11 @@ import base64
 import json
 from typing import Any, Dict, List, Optional
 
-import requests
+import httpx
 from loguru import logger
 
 from bot.config import settings
+from bot.services.ai_request_queue import get_ai_request_queue
 
 
 class YandexCloudService:
@@ -45,6 +46,14 @@ class YandexCloudService:
             "Authorization": f"Api-Key {self.api_key}",
             "Content-Type": "application/json",
         }
+
+        # Таймаут для всех запросов (30 секунд)
+        self.timeout = httpx.Timeout(30.0, connect=10.0)
+
+        # Очередь для управления одновременными запросами
+        # Максимум 12 одновременных запросов для баланса между производительностью
+        # и защитой от rate limiting Yandex Cloud API
+        self.request_queue = get_ai_request_queue(max_concurrent=12)
 
         logger.info(f"✅ YandexCloudService инициализирован: модель {self.gpt_model}")
 
@@ -102,11 +111,16 @@ class YandexCloudService:
 
             logger.info(f"📤 YandexGPT запрос: {len(user_message)} символов")
 
-            # Отправляем запрос
-            response = requests.post(self.gpt_url, headers=self.headers, json=payload, timeout=30)
+            # Внутренняя функция для выполнения запроса (оборачивается в очередь)
+            async def _execute_request():
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    response = await client.post(self.gpt_url, headers=self.headers, json=payload)
+                    response.raise_for_status()
+                    result = response.json()
+                    return result
 
-            response.raise_for_status()
-            result = response.json()
+            # Выполняем запрос через очередь для контроля параллелизма
+            result = await self.request_queue.process(_execute_request)
 
             # Извлекаем ответ
             ai_response = result["result"]["alternatives"][0]["message"]["text"]
@@ -114,10 +128,16 @@ class YandexCloudService:
             logger.info(f"✅ YandexGPT ответ: {len(ai_response)} символов")
             return ai_response
 
-        except requests.exceptions.RequestException as e:
-            logger.error(f"❌ Ошибка YandexGPT API: {e}")
-            if hasattr(e, "response") and e.response is not None:
+        except httpx.HTTPStatusError as e:
+            logger.error(f"❌ Ошибка YandexGPT API (HTTP {e.response.status_code}): {e}")
+            if e.response is not None:
                 logger.error(f"Response: {e.response.text}")
+            raise
+        except httpx.TimeoutException as e:
+            logger.error(f"❌ Таймаут YandexGPT API: {e}")
+            raise
+        except httpx.RequestError as e:
+            logger.error(f"❌ Ошибка запроса YandexGPT API: {e}")
             raise
         except Exception as e:
             logger.error(f"❌ Неожиданная ошибка YandexGPT: {e}")
@@ -156,19 +176,22 @@ class YandexCloudService:
             if audio_format == "lpcm":
                 params["sampleRateHertz"] = "16000"
 
-            # Отправляем аудио
-            response = requests.post(
-                self.stt_url,
-                headers={
-                    "Authorization": f"Api-Key {self.api_key}",
-                },
-                params=params,
-                data=audio_data,
-                timeout=30,
-            )
+            # Внутренняя функция для выполнения запроса (оборачивается в очередь)
+            async def _execute_request():
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    response = await client.post(
+                        self.stt_url,
+                        headers={
+                            "Authorization": f"Api-Key {self.api_key}",
+                        },
+                        params=params,
+                        content=audio_data,
+                    )
+                    response.raise_for_status()
+                    return response.json()
 
-            response.raise_for_status()
-            result = response.json()
+            # Выполняем запрос через очередь для контроля параллелизма
+            result = await self.request_queue.process(_execute_request)
 
             # Извлекаем текст
             recognized_text = result.get("result", "")
@@ -176,8 +199,14 @@ class YandexCloudService:
             logger.info(f"✅ SpeechKit STT: '{recognized_text}'")
             return recognized_text
 
-        except requests.exceptions.RequestException as e:
-            logger.error(f"❌ Ошибка SpeechKit STT: {e}")
+        except httpx.HTTPStatusError as e:
+            logger.error(f"❌ Ошибка SpeechKit STT (HTTP {e.response.status_code}): {e}")
+            raise
+        except httpx.TimeoutException as e:
+            logger.error(f"❌ Таймаут SpeechKit STT: {e}")
+            raise
+        except httpx.RequestError as e:
+            logger.error(f"❌ Ошибка запроса SpeechKit STT: {e}")
             raise
         except Exception as e:
             logger.error(f"❌ Неожиданная ошибка SpeechKit: {e}")
@@ -225,15 +254,19 @@ class YandexCloudService:
                 ],
             }
 
-            response = requests.post(
-                self.vision_url, headers=self.headers, json=vision_payload, timeout=30
-            )
+            # Внутренняя функция для выполнения запроса (оборачивается в очередь)
+            async def _execute_request():
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    response = await client.post(
+                        self.vision_url, headers=self.headers, json=vision_payload
+                    )
+                    response.raise_for_status()
+                    return response.json()
 
-            response.raise_for_status()
-            vision_result = response.json()
+            # Выполняем запрос через очередь для контроля параллелизма
+            vision_result = await self.request_queue.process(_execute_request)
 
             # 🔍 ДЕТАЛЬНОЕ ЛОГИРОВАНИЕ для отладки
-            logger.info(f"📊 Vision API status code: {response.status_code}")
             logger.info(f"📊 Vision API response keys: {list(vision_result.keys())}")
 
             # Логируем ПОЛНЫЙ ответ для анализа структуры

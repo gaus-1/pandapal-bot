@@ -236,13 +236,19 @@ class PandaPalBotServer:
                     # Дополнительно: регистрируем явные роуты для JS/CSS файлов (на случай проблем с add_static)
                     import os
 
+                    assets_files = []
                     for file in os.listdir(assets_dir):
                         if file.endswith((".js", ".css", ".map")):
                             file_path = assets_dir / file
+                            assets_files.append((file, file_path))
+                            # Используем замыкание через default параметр для правильной работы lambda
                             self.app.router.add_get(
-                                f"/assets/{file}", lambda _, fp=file_path: web.FileResponse(fp)
+                                f"/assets/{file}",
+                                lambda request, f=file, p=file_path: web.FileResponse(p),
                             )
-                    logger.info("✅ Явные роуты для assets файлов зарегистрированы")
+                    logger.info(
+                        f"✅ Явные роуты для {len(assets_files)} assets файлов зарегистрированы"
+                    )
 
                 # Главная страница
                 self.app.router.add_get(
