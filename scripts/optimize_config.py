@@ -8,6 +8,7 @@
 """
 
 import os
+import re
 import shutil
 from pathlib import Path
 
@@ -23,6 +24,84 @@ FILES_TO_OPTIMIZE = [
 ]
 
 
+def post_process_obfuscated_file(file_path: Path):
+    """Постобработка обфусцированного файла: удаление упоминаний PyArmor."""
+    try:
+        content = file_path.read_text(encoding="utf-8")
+        lines = content.split("\n")
+
+        # Удаляем первую строку с комментарием PyArmor (регистронезависимо)
+        if lines and (
+            "# Pyarmor" in lines[0] or "# PyArmor" in lines[0] or "# pyarmor" in lines[0]
+        ):
+            lines = lines[1:]
+            print(f"  [POST] Removed PyArmor comment from {file_path.name}")
+
+        # Заменяем импорт pyarmor_runtime на нейтральное имя
+        new_lines = []
+        runtime_dir_old = None
+        for line in lines:
+            # Ищем импорт pyarmor_runtime
+            match = re.search(r"from\s+(pyarmor_runtime_\w+)\s+import", line)
+            if match:
+                runtime_dir_old = match.group(1)
+                # Заменяем на нейтральное имя
+                new_line = line.replace(runtime_dir_old, "_runtime")
+                new_lines.append(new_line)
+                print(f"  [POST] Replaced runtime import in {file_path.name}")
+            else:
+                new_lines.append(line)
+
+        # Сохраняем обработанный файл
+        file_path.write_text("\n".join(new_lines), encoding="utf-8")
+
+        return runtime_dir_old
+    except Exception as e:
+        print(f"  [WARNING] Post-processing failed for {file_path.name}: {e}")
+        return None
+
+
+def rename_runtime_directory(optimized_dir: Path, old_name: str):
+    """Переименовывает директорию runtime в нейтральное имя."""
+    if not old_name:
+        return
+
+    old_runtime_dir = optimized_dir / old_name
+    new_runtime_dir = optimized_dir / "_runtime"
+
+    if old_runtime_dir.exists():
+        if new_runtime_dir.exists():
+            # Если новая директория уже существует, удаляем старую
+            try:
+                shutil.rmtree(old_runtime_dir)
+                print(f"  [POST] Removed old runtime directory: {old_name}")
+            except Exception as e:
+                print(f"  [WARNING] Failed to remove old runtime directory: {e}")
+        else:
+            # Переименовываем
+            try:
+                old_runtime_dir.rename(new_runtime_dir)
+                print(f"  [POST] Renamed runtime directory: {old_name} -> _runtime")
+            except Exception as e:
+                print(f"  [WARNING] Failed to rename runtime directory: {e}")
+
+    # Очищаем __init__.py в _runtime от упоминаний PyArmor
+    runtime_init = new_runtime_dir / "__init__.py"
+    if runtime_init.exists():
+        try:
+            content = runtime_init.read_text(encoding="utf-8")
+            lines = content.split("\n")
+            # Удаляем первую строку с комментарием PyArmor (регистронезависимо)
+            if lines and (
+                "# Pyarmor" in lines[0] or "# PyArmor" in lines[0] or "# pyarmor" in lines[0]
+            ):
+                lines = lines[1:]
+                runtime_init.write_text("\n".join(lines), encoding="utf-8")
+                print(f"  [POST] Cleaned PyArmor comment from _runtime/__init__.py")
+        except Exception as e:
+            print(f"  [WARNING] Failed to clean _runtime/__init__.py: {e}")
+
+
 def optimize_files():
     """Оптимизировать указанные файлы для продакшена."""
     print("[OPTIMIZE] Starting optimization of critical config files...")
@@ -30,26 +109,45 @@ def optimize_files():
     # Создаем директорию для оптимизированных файлов
     OPTIMIZED_DIR.mkdir(exist_ok=True)
 
-    # Оптимизируем каждый файл
+    # Оптимизируем все файлы одним вызовом PyArmor
+    source_files = [CONFIG_DIR / f for f in FILES_TO_OPTIMIZE if (CONFIG_DIR / f).exists()]
+
+    if not source_files:
+        print("[WARNING] No source files found!")
+        return
+
+    print(f"[OPTIMIZE] Processing {len(source_files)} files...")
+
+    # Команда для оптимизации всех файлов сразу
+    # Режим restrict обеспечивает максимальную защиту
+    files_str = " ".join(f'"{f}"' for f in source_files)
+    cmd = f'pyarmor gen --restrict --output "{OPTIMIZED_DIR}" {files_str}'
+    result = os.system(cmd)
+
+    if result == 0:
+        print(f"[SUCCESS] All files optimized")
+    else:
+        print(f"[ERROR] Optimization failed")
+
+    # Постобработка: удаляем упоминания PyArmor из всех файлов
+    print("[POST] Starting post-processing to remove PyArmor references...")
+    runtime_dirs_found = set()
+
     for filename in FILES_TO_OPTIMIZE:
-        source_file = CONFIG_DIR / filename
-        if not source_file.exists():
-            print(f"[WARNING] File not found: {source_file}")
-            continue
-
-        print(f"[OPTIMIZE] Processing: {filename}")
-
-        # Команда для оптимизации (использует PyArmor для защиты кода)
-        # Режим restrict обеспечивает максимальную защиту
-        cmd = f'pyarmor gen --restrict --output "{OPTIMIZED_DIR}" "{source_file}"'
-        result = os.system(cmd)
-
-        # Проверяем результат
         optimized_file = OPTIMIZED_DIR / filename
-        if optimized_file.exists() and result == 0:
-            print(f"[SUCCESS] File optimized: {filename}")
-        else:
-            print(f"[ERROR] Failed to optimize: {filename}")
+        if optimized_file.exists():
+            runtime_dir = post_process_obfuscated_file(optimized_file)
+            if runtime_dir:
+                runtime_dirs_found.add(runtime_dir)
+
+    # Переименовываем директории runtime (обрабатываем все найденные)
+    for runtime_dir in runtime_dirs_found:
+        rename_runtime_directory(OPTIMIZED_DIR, runtime_dir)
+
+    # Также проверяем и обрабатываем все директории pyarmor_runtime_*
+    for item in OPTIMIZED_DIR.iterdir():
+        if item.is_dir() and item.name.startswith("pyarmor_runtime_"):
+            rename_runtime_directory(OPTIMIZED_DIR, item.name)
 
     print("[SUCCESS] Optimization completed!")
     print(f"[INFO] Optimized files in: {OPTIMIZED_DIR}")
