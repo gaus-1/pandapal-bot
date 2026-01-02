@@ -115,6 +115,7 @@ typer==0.21.0                   # Modern CLI (built on Click)
 tenacity==9.1.2                 # Retry library
 tqdm==4.67.1                    # Progress bars
 tabulate==0.9.0                 # Table formatting for CLI
+pyarmor==9.2.3                  # Code obfuscation for production security
 
 # =============================================================================
 # DATA STRUCTURES
