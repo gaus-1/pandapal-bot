@@ -376,13 +376,10 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 user_message=user_message, chat_history=history, user_age=user.age
             )
 
-            # Сохраняем в историю
-            history_service.add_message(telegram_id, user_message, "user")
-            history_service.add_message(telegram_id, ai_response, "ai")
-
-            # Ограничиваем размер ответа для предотвращения "Content Too Large"
-            # Максимальный размер ответа: ~8000 символов (безопасный лимит для JSON)
-            MAX_RESPONSE_LENGTH = 8000
+            # Ограничиваем размер ответа ДО сохранения в историю
+            # Максимальный размер ответа: ~6000 символов (безопасный лимит для JSON + история)
+            MAX_RESPONSE_LENGTH = 6000
+            full_response = ai_response
             if len(ai_response) > MAX_RESPONSE_LENGTH:
                 logger.warning(
                     f"⚠️ Ответ AI слишком длинный ({len(ai_response)} символов), обрезаем до {MAX_RESPONSE_LENGTH}"
@@ -391,6 +388,10 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                     ai_response[:MAX_RESPONSE_LENGTH]
                     + "\n\n... (ответ обрезан, продолжение в следующем сообщении)"
                 )
+
+            # Сохраняем в историю (полный ответ для контекста, но отправляем обрезанный)
+            history_service.add_message(telegram_id, user_message, "user")
+            history_service.add_message(telegram_id, full_response, "ai")  # Сохраняем полный ответ
 
             return web.json_response({"success": True, "response": ai_response})
 

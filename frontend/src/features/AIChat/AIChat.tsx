@@ -246,16 +246,16 @@ export function AIChat({ user }: AIChatProps) {
             <span className="text-base sm:text-lg">📷</span>
           </button>
 
-          {/* Поле ввода текста - БОЛЬШЕ пространства, адаптивное */}
+          {/* Поле ввода текста - ВЫШЕ, больше места */}
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Задай вопрос..."
             disabled={isSending || isRecording}
-            className="flex-1 resize-none rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1.5 sm:py-2 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 text-xs sm:text-sm border border-gray-200 dark:border-slate-700 outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 disabled:opacity-50 transition-all"
-            rows={1}
-            style={{ maxHeight: '100px' }}
+            className="flex-1 resize-none rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-2.5 sm:py-3 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 text-sm sm:text-base border border-gray-200 dark:border-slate-700 outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 disabled:opacity-50 transition-all min-h-[44px] sm:min-h-[48px]"
+            rows={2}
+            style={{ maxHeight: '120px' }}
           />
 
           {/* Кнопка аудио / отправки - ПАСТЕЛЬНАЯ, адаптивная */}
