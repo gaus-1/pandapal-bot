@@ -240,7 +240,14 @@ class PandaPalBotServer:
 
                         file_path = assets_dir / filename
                         if not file_path.exists() or not file_path.is_file():
-                            logger.warning(f"⚠️ Assets файл не найден: /assets/{filename}")
+                            # Логируем с информацией о доступных файлах для отладки
+                            import os
+
+                            available_js = [f for f in os.listdir(assets_dir) if f.endswith(".js")]
+                            logger.warning(
+                                f"⚠️ Assets файл не найден: /assets/{filename} | "
+                                f"Доступные JS: {', '.join(available_js[:3])}{'...' if len(available_js) > 3 else ''}"
+                            )
                             return web.Response(status=404, text=f"Asset not found: {filename}")
 
                         # Определяем MIME тип

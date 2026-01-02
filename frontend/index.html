@@ -95,13 +95,17 @@
         // Перехватываем window.onerror для глобальных ошибок
         window.onerror = function(msg, url, line, col, error) {
           const message = String(msg || '');
+          const urlStr = String(url || '');
           if (
             message.includes('[SW]') ||
             message.includes('SW registration failed') ||
             message.includes('no controller') ||
             message.includes('MP-MTPROTO') ||
             message.includes('mtprotoworker') ||
-            message.includes('logger.ts')
+            message.includes('mtprotoworker.ts') ||
+            message.includes('logger.ts') ||
+            urlStr.includes('mtprotoworker.ts') ||
+            urlStr.includes('logger.ts')
           ) {
             return true; // Подавляем ошибку
           }
@@ -122,6 +126,7 @@
             message.includes('MP-MTPROTO') ||
             message.includes('Service Worker') ||
             message.includes('mtprotoworker') ||
+            message.includes('mtprotoworker.ts') ||
             message.includes('logger.ts') ||
             message.includes('telegramWebView.ts')
           ) {
