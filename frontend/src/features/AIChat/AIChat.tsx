@@ -217,17 +217,17 @@ export function AIChat({ user }: AIChatProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[var(--tg-theme-bg-color)]">
+    <div className="flex flex-col h-full bg-gradient-to-b from-blue-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
       {/* Заголовок */}
-      <div className="flex-shrink-0 bg-[var(--tg-theme-bg-color)] border-b border-[var(--tg-theme-hint-color)]/20 p-4">
+      <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg p-4">
         <div className="flex items-center gap-3">
-          <div className="text-4xl">🐼</div>
+          <div className="text-5xl drop-shadow-lg">🐼</div>
           <div>
-            <h1 className="text-xl font-bold text-[var(--tg-theme-text-color)]">
+            <h1 className="text-2xl font-bold text-white drop-shadow-md">
               PandaPal AI
             </h1>
-            <p className="text-sm text-[var(--tg-theme-hint-color)]">
-              Привет, {user.first_name}! Чем помочь? 🎓
+            <p className="text-sm text-blue-100">
+              Привет, {user.first_name}! Я помогу с учёбой 🎓
             </p>
           </div>
         </div>
@@ -253,17 +253,17 @@ export function AIChat({ user }: AIChatProps) {
           messages.map((msg, index) => (
             <div
               key={index}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
             >
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                className={`max-w-[80%] rounded-3xl px-5 py-3 shadow-lg ${
                   msg.role === 'user'
-                    ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)]'
-                    : 'bg-[var(--tg-theme-hint-color)]/10 text-[var(--tg-theme-text-color)]'
+                    ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white'
+                    : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700'
                 }`}
               >
-                <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                <p className="text-xs opacity-70 mt-1">
+                <p className="whitespace-pre-wrap break-words font-medium">{msg.content}</p>
+                <p className="text-xs opacity-70 mt-2">
                   {new Date(msg.timestamp).toLocaleTimeString('ru-RU', {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -275,14 +275,14 @@ export function AIChat({ user }: AIChatProps) {
         )}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-[var(--tg-theme-hint-color)]/10 rounded-2xl px-4 py-2">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl px-5 py-3 shadow-lg border border-gray-200 dark:border-slate-700">
               <div className="flex items-center gap-2">
                 <div className="flex gap-1">
-                  <span className="w-2 h-2 bg-[var(--tg-theme-hint-color)] rounded-full animate-bounce"></span>
-                  <span className="w-2 h-2 bg-[var(--tg-theme-hint-color)] rounded-full animate-bounce delay-100"></span>
-                  <span className="w-2 h-2 bg-[var(--tg-theme-hint-color)] rounded-full animate-bounce delay-200"></span>
+                  <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></span>
+                  <span className="w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-100"></span>
+                  <span className="w-2 h-2 bg-pink-500 rounded-full animate-bounce delay-200"></span>
                 </div>
-                <span className="text-sm text-[var(--tg-theme-hint-color)]">Думаю...</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">PandaPal думает...</span>
               </div>
             </div>
           </div>
@@ -291,7 +291,7 @@ export function AIChat({ user }: AIChatProps) {
       </div>
 
       {/* Поле ввода */}
-      <div className="flex-shrink-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20 p-4">
+      <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 p-4 shadow-lg">
         {/* Hidden file input */}
         <input
           ref={fileInputRef}
@@ -301,15 +301,15 @@ export function AIChat({ user }: AIChatProps) {
           className="hidden"
         />
 
-        <div className="flex items-end gap-2">
+        <div className="flex items-end gap-3">
           {/* Кнопка фото */}
           <button
             onClick={handlePhotoClick}
             disabled={isLoading || isRecording}
-            className="flex-shrink-0 w-12 h-12 rounded-full bg-[var(--tg-theme-hint-color)]/20 text-[var(--tg-theme-text-color)] flex items-center justify-center disabled:opacity-50 hover:bg-[var(--tg-theme-hint-color)]/30 transition-all active:scale-95"
+            className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-xl transition-all active:scale-95 shadow-md"
             title="Отправить фото"
           >
-            <span className="text-xl">📷</span>
+            <span className="text-2xl">📷</span>
           </button>
 
           {/* Поле ввода текста */}
@@ -317,43 +317,43 @@ export function AIChat({ user }: AIChatProps) {
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Напиши свой вопрос..."
+            placeholder="Задай вопрос..."
             disabled={isLoading || isRecording}
-            className="flex-1 resize-none rounded-2xl px-4 py-3 bg-[var(--tg-theme-hint-color)]/10 text-[var(--tg-theme-text-color)] placeholder:text-[var(--tg-theme-hint-color)] border-none outline-none focus:ring-2 focus:ring-[var(--tg-theme-button-color)] disabled:opacity-50"
+            className="flex-1 resize-none rounded-2xl px-5 py-4 bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-500 border-2 border-gray-200 dark:border-slate-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 disabled:opacity-50 transition-all font-medium"
             rows={1}
-            style={{ maxHeight: '100px' }}
+            style={{ maxHeight: '120px' }}
           />
 
           {/* Кнопка аудио / отправки */}
           {isRecording ? (
             <button
               onClick={handleVoiceStop}
-              className="flex-shrink-0 w-12 h-12 rounded-full bg-red-500 text-white flex items-center justify-center animate-pulse"
+              className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-pink-600 text-white flex items-center justify-center animate-pulse shadow-xl"
               title="Остановить запись"
             >
-              <span className="text-xl">⏹️</span>
+              <span className="text-2xl">⏹️</span>
             </button>
           ) : inputText.trim() ? (
             <button
               onClick={handleSend}
               disabled={isLoading}
-              className="flex-shrink-0 w-12 h-12 rounded-full bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+              className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 hover:shadow-xl shadow-md"
               title="Отправить сообщение"
             >
               {isLoading ? (
-                <div className="animate-spin">⏳</div>
+                <div className="animate-spin text-2xl">⏳</div>
               ) : (
-                <span className="text-xl">▶️</span>
+                <span className="text-2xl">▶️</span>
               )}
             </button>
           ) : (
             <button
               onClick={handleVoiceStart}
               disabled={isLoading}
-              className="flex-shrink-0 w-12 h-12 rounded-full bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] flex items-center justify-center disabled:opacity-50 transition-all active:scale-95"
+              className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-xl shadow-md"
               title="Записать голосовое сообщение"
             >
-              <span className="text-xl">🎤</span>
+              <span className="text-2xl">🎤</span>
             </button>
           )}
         </div>

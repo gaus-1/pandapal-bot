@@ -300,7 +300,7 @@ async def miniapp_get_chat_history(request: web.Request) -> web.Response:
 
         with get_db() as db:
             history_service = ChatHistoryService(db)
-            messages = history_service.get_recent_messages(telegram_id, limit=limit)
+            messages = history_service.get_recent_history(telegram_id, limit=limit)
 
             history = [
                 {
