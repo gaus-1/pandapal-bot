@@ -4,8 +4,17 @@
 
 export function registerServiceWorker(): void {
   // Подавляем ошибки Service Worker в Telegram WebView
-  if (typeof window !== 'undefined' && window.location.hostname.includes('telegram.org')) {
-    return; // Не регистрируем SW в Telegram WebView
+  if (typeof window !== 'undefined') {
+    // Проверяем, что приложение не запущено в Telegram Web App
+    const isTelegramWebApp =
+      window.Telegram?.WebApp?.initData ||
+      window.location.hostname.includes('telegram.org') ||
+      window.location.hostname.includes('web.telegram.org');
+
+    if (isTelegramWebApp) {
+      console.warn('⚠️ Service Worker не регистрируется: приложение запущено в Telegram Web App.');
+      return; // Не регистрируем SW в Telegram WebView
+    }
   }
 
   if ('serviceWorker' in navigator) {

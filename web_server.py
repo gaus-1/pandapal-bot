@@ -197,8 +197,13 @@ class PandaPalBotServer:
                             f"/{static_file}", lambda _, fp=file_path: web.FileResponse(fp)
                         )
 
-                # Раздаем папку assets
-                self.app.router.add_static("/assets", frontend_dist / "assets", name="assets")
+                # Раздаем папку assets ПЕРЕД SPA fallback (важен порядок!)
+                # Используем более специфичный паттерн для assets
+                assets_dir = frontend_dist / "assets"
+                if assets_dir.exists():
+                    # Регистрируем каждый файл из assets явно через статику
+                    self.app.router.add_static("/assets", assets_dir, name="assets")
+                    logger.info(f"✅ Assets директория зарегистрирована: {assets_dir}")
 
                 # Главная страница
                 self.app.router.add_get(
@@ -215,7 +220,8 @@ class PandaPalBotServer:
                     return web.FileResponse(frontend_dist / "index.html")
 
                 # Регистрируем fallback ПОСЛЕДНИМ (после всех API и static routes)
-                self.app.router.add_get("/{path:.*}", spa_fallback)
+                # Используем более специфичный паттерн, чтобы не перехватывать /assets
+                self.app.router.add_get("/{tail:(?!assets|api|webhook|health).*}", spa_fallback)
 
                 logger.info(f"✅ Frontend настроен: {frontend_dist}")
             else:
