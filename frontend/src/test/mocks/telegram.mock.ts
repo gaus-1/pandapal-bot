@@ -119,26 +119,26 @@ export const createTelegramMock = (options: {
 
     // CloudStorage
     CloudStorage: {
-      setItem: vi.fn((key, value, callback) => callback?.(null, true)),
-      getItem: vi.fn((key, callback) => callback?.(null, '')),
-      getItems: vi.fn((keys, callback) => callback?.(null, {})),
-      removeItem: vi.fn((key, callback) => callback?.(null, true)),
-      removeItems: vi.fn((keys, callback) => callback?.(null, true)),
+      setItem: vi.fn((_key, _value, callback) => callback?.(null, true)),
+      getItem: vi.fn((_key, callback) => callback?.(null, '')),
+      getItems: vi.fn((_keys, callback) => callback?.(null, {})),
+      removeItem: vi.fn((_key, callback) => callback?.(null, true)),
+      removeItems: vi.fn((_keys, callback) => callback?.(null, true)),
       getKeys: vi.fn((callback) => callback?.(null, [])),
     },
 
     // Popup
-    showPopup: vi.fn((params, callback) => {
+    showPopup: vi.fn((_params, callback) => {
       callback?.('ok');
       return Promise.resolve('ok');
     }),
 
-    showAlert: vi.fn((message, callback) => {
+    showAlert: vi.fn((_message, callback) => {
       callback?.();
       return Promise.resolve();
     }),
 
-    showConfirm: vi.fn((message, callback) => {
+    showConfirm: vi.fn((_message, callback) => {
       callback?.(true);
       return Promise.resolve(true);
     }),
@@ -151,7 +151,7 @@ export const createTelegramMock = (options: {
     openTelegramLink: vi.fn(),
 
     // Invoice
-    openInvoice: vi.fn((url, callback) => {
+    openInvoice: vi.fn((_url, callback) => {
       callback?.('paid');
       return Promise.resolve('paid');
     }),
@@ -182,7 +182,7 @@ export const createTelegramMock = (options: {
     },
 
     // Для проверки доступности
-    isVersionAtLeast: vi.fn((version) => true),
+    isVersionAtLeast: vi.fn((_version) => true),
   };
 
   return mockWebApp;
@@ -220,11 +220,11 @@ export const createTelegramServiceMock = (webApp = createTelegramMock()) => ({
   notifyError: vi.fn(() => {
     webApp.HapticFeedback.notificationOccurred('error');
   }),
-  showAlert: vi.fn((message: string) => webApp.showAlert(message)),
-  showConfirm: vi.fn((message: string) => webApp.showConfirm(message)),
+  showAlert: vi.fn((message: string) => webApp.showAlert(message, () => {})),
+  showConfirm: vi.fn((message: string) => webApp.showConfirm(message, () => {})),
   close: vi.fn(() => webApp.close()),
-  openLink: vi.fn((url: string) => webApp.openLink(url)),
-  openInvoice: vi.fn((url: string, callback?: (status: string) => void) =>
-    webApp.openInvoice(url, callback)
+  openLink: vi.fn((_url: string) => webApp.openLink(_url)),
+  openInvoice: vi.fn((_url: string, callback?: (status: string) => void) =>
+    webApp.openInvoice(_url, callback)
   ),
 });
