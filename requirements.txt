@@ -1,191 +1,143 @@
-# =============================================================================
-# PANDAPAL BOT - PRODUCTION DEPENDENCIES
-# =============================================================================
+# PandaPal Bot - Зависимости для продакшена
 # Python 3.13+ | Railway.app | PostgreSQL 17
-# Last Updated: 2025-01-01
-# =============================================================================
+# Обновлено: 2025-01-01
 
-# =============================================================================
-# TELEGRAM BOT FRAMEWORK
-# =============================================================================
-aiogram==3.23.0                 # Async Telegram Bot API
-pytokens==0.3.0                 # Token management
-magic-filter==1.0.12            # Filters для aiogram
+# Telegram Bot Framework
+aiogram==3.23.0                 # Асинхронный Telegram Bot API
+pytokens==0.3.0                 # Управление токенами
+magic-filter==1.0.12            # Фильтры для aiogram
 
-# =============================================================================
-# AI & YANDEX CLOUD
-# =============================================================================
-# YandexGPT, SpeechKit, Vision через REST API (requests ниже)
+# AI и Yandex Cloud
+# YandexGPT, SpeechKit, Vision работают через REST API (requests ниже)
 # Используем прямые HTTP запросы вместо тяжелого SDK
 
-# =============================================================================
-# DATABASE
-# =============================================================================
+# База данных
 SQLAlchemy==2.0.45              # ORM для PostgreSQL
-alembic==1.17.2                 # Database migrations
-psycopg==3.3.2                  # PostgreSQL driver (async)
-psycopg-binary==3.3.2           # Binary wheel для psycopg
-greenlet==3.3.0                 # SQLAlchemy async support
+alembic==1.17.2                 # Миграции базы данных
+psycopg==3.3.2                  # Драйвер PostgreSQL (асинхронный)
+psycopg-binary==3.3.2           # Бинарный wheel для psycopg
+greenlet==3.3.0                 # Поддержка async для SQLAlchemy
 
-# =============================================================================
-# WEB SERVER & API
-# =============================================================================
-fastapi==0.128.0                # Modern async web framework
-uvicorn[standard]==0.40.0       # ASGI server
-starlette==0.50.0               # FastAPI foundation
-aiohttp==3.13.2                 # Async HTTP client/server
-httpx==0.28.1                   # Modern HTTP client
+# Веб-сервер и API
+fastapi==0.128.0                # Современный асинхронный веб-фреймворк
+uvicorn[standard]==0.40.0       # ASGI сервер
+starlette==0.50.0               # Основа FastAPI
+aiohttp==3.13.2                 # Асинхронный HTTP клиент/сервер
+httpx==0.28.1                   # Современный HTTP клиент
 httpcore==1.0.9                 # HTTP core для httpx
-requests==2.32.5                # Sync HTTP (Yandex Cloud API)
-h11==0.16.0                     # HTTP/1.1 protocol
-anyio==4.12.0                   # Async abstraction
+requests==2.32.5                # Синхронный HTTP (для Yandex Cloud API)
+h11==0.16.0                     # Протокол HTTP/1.1
+anyio==4.12.0                   # Абстракция для async
 
-# =============================================================================
-# CACHING
-# =============================================================================
-redis==6.4.0                    # Redis client (готовы к масштабированию)
+# Кеширование
+redis==6.4.0                    # Redis клиент (готов к масштабированию)
 fakeredis==2.33.0               # Redis mock для тестов
-cachetools==6.2.4               # In-memory cache utilities
+cachetools==6.2.4               # In-memory кеш утилиты
 
-# =============================================================================
-# SECURITY & ENCRYPTION
-# =============================================================================
-cryptography==46.0.3            # Modern crypto library
+# Безопасность и шифрование
+cryptography==46.0.3            # Современная криптографическая библиотека
 cffi==2.0.0                     # C Foreign Function Interface
-pycparser==2.23                 # C parser для cffi
-rsa==4.9.1                      # RSA encryption
-pyasn1==0.6.1                   # ASN.1 types
-pyasn1_modules==0.4.2           # ASN.1 modules
-authlib==1.6.6                  # OAuth/JWT support
+pycparser==2.23                 # C парсер для cffi
+rsa==4.9.1                      # RSA шифрование
+pyasn1==0.6.1                   # ASN.1 типы
+pyasn1_modules==0.4.2           # ASN.1 модули
+authlib==1.6.6                 # Поддержка OAuth/JWT
 
-# =============================================================================
-# DATA VALIDATION
-# =============================================================================
-pydantic==2.12.5                # Data validation
-pydantic-settings==2.12.0       # Settings management
-pydantic_core==2.41.5           # Pydantic rust core
-python-dotenv==1.2.1            # .env file support
-PyYAML==6.0.3                   # YAML parser
-tomlkit==0.13.3                 # TOML parser
-marshmallow==4.1.2              # Object serialization
+# Валидация данных
+pydantic==2.12.5                # Валидация данных
+pydantic-settings==2.12.0       # Управление настройками
+pydantic_core==2.41.5           # Rust core для Pydantic
+python-dotenv==1.2.1            # Поддержка .env файлов
+PyYAML==6.0.3                   # YAML парсер
+tomlkit==0.13.3                 # TOML парсер
+marshmallow==4.1.2              # Сериализация объектов
 
-# =============================================================================
-# LOGGING & MONITORING
-# =============================================================================
-loguru==0.7.3                   # Modern logging
-sentry-sdk==2.48.0              # Error tracking
-rich==14.2.0                    # Console output
-colorama==0.4.6                 # Cross-platform colored output
-psutil==6.1.0                   # System monitoring
+# Логирование и мониторинг
+loguru==0.7.3                   # Современное логирование
+sentry-sdk==2.48.0              # Отслеживание ошибок
+rich==14.2.0                    # Красивый вывод в консоль
+colorama==0.4.6                 # Цветной вывод (кроссплатформенный)
+psutil==6.1.0                   # Мониторинг системы
 
-# =============================================================================
-# WEB SCRAPING & PARSING
-# =============================================================================
-beautifulsoup4==4.14.3          # HTML/XML parser
-lxml==6.0.2                     # Fast XML parser
-soupsieve==2.8.1                # CSS selectors для BS4
-regex==2025.11.3                # Advanced regex
+# Парсинг веб-страниц
+beautifulsoup4==4.14.3          # HTML/XML парсер
+lxml==6.0.2                     # Быстрый XML парсер
+soupsieve==2.8.1                # CSS селекторы для BS4
+regex==2025.11.3                # Продвинутые регулярные выражения
 nltk==3.9.2                     # Natural Language Toolkit
 
-# =============================================================================
-# IMAGE PROCESSING
-# =============================================================================
-pillow==11.1.0                  # PIL (image manipulation)
-qrcode[pil]==8.0                # QR code generation
+# Обработка изображений
+pillow==11.1.0                  # PIL (манипуляции с изображениями)
+qrcode[pil]==8.0                # Генерация QR кодов
 
-# =============================================================================
-# FILE SYSTEM
-# =============================================================================
-aiofiles==25.1.0                # Async file operations
-fsspec==2025.12.0               # File system abstraction
-filelock==3.20.1                # File locking
+# Файловая система
+aiofiles==25.1.0                # Асинхронные файловые операции
+fsspec==2025.12.0               # Абстракция файловой системы
+filelock==3.20.1                # Блокировка файлов
 
-# =============================================================================
-# TEMPLATING
-# =============================================================================
-Jinja2==3.1.6                   # Template engine
-MarkupSafe==3.0.3               # String escaping for Jinja2
-Mako==1.3.10                    # Alternative template engine
+# Шаблонизация
+Jinja2==3.1.6                   # Движок шаблонов
+MarkupSafe==3.0.3               # Экранирование строк для Jinja2
+Mako==1.3.10                    # Альтернативный движок шаблонов
 
-# =============================================================================
-# CLI & UTILITIES
-# =============================================================================
-click==8.3.1                    # CLI framework
-typer==0.21.0                   # Modern CLI (built on Click)
-tenacity==9.1.2                 # Retry library
-tqdm==4.67.1                    # Progress bars
-tabulate==0.9.0                 # Table formatting for CLI
-pyarmor==9.2.3                  # Code obfuscation for production security
+# CLI и утилиты
+click==8.3.1                    # CLI фреймворк
+typer==0.21.0                   # Современный CLI (на базе Click)
+tenacity==9.1.2                 # Библиотека для повторных попыток
+tqdm==4.67.1                    # Прогресс-бары
+tabulate==0.9.0                 # Форматирование таблиц для CLI
+pyarmor==9.2.3                  # Обфускация кода для безопасности в продакшене
 
-# =============================================================================
-# DATA STRUCTURES
-# =============================================================================
-sortedcontainers==2.4.0         # Sorted lists/dicts
-more-itertools==10.8.0          # Extended itertools
-packaging==25.0                 # Version parsing
-semantic-version==2.10.0        # Semantic versioning
-pathspec==0.12.1                # Gitignore-style patterns
+# Структуры данных
+sortedcontainers==2.4.0         # Отсортированные списки/словари
+more-itertools==10.8.0          # Расширенные itertools
+packaging==25.0                 # Парсинг версий
+semantic-version==2.10.0        # Семантическое версионирование
+pathspec==0.12.1               # Паттерны в стиле gitignore
 
-# =============================================================================
-# NETWORKING
-# =============================================================================
-urllib3==2.6.2                  # HTTP library
-httplib2==0.31.0                # Alternative HTTP client
-aiohappyeyeballs==2.6.1         # Fast async DNS
-aiosignal==1.4.0                # Async signals
-sniffio==1.3.1                  # Async library detection
-yarl==1.22.0                    # URL parsing
-uritemplate==4.2.0              # URI templates
-multidict==6.7.0                # Multi-value dicts
-frozenlist==1.8.0               # Frozen lists
-propcache==0.4.1                # Property caching
+# Сетевое взаимодействие
+urllib3==2.6.2                  # HTTP библиотека
+httplib2==0.31.0                # Альтернативный HTTP клиент
+aiohappyeyeballs==2.6.1         # Быстрый асинхронный DNS
+aiosignal==1.4.0                # Асинхронные сигналы
+sniffio==1.3.1                  # Определение async библиотек
+yarl==1.22.0                    # Парсинг URL
+uritemplate==4.2.0              # URI шаблоны
+multidict==6.7.0                # Словари с множественными значениями
+frozenlist==1.8.0               # Замороженные списки
+propcache==0.4.1                # Кеширование свойств
 
-# =============================================================================
-# GRPC (для будущего масштабирования)
-# =============================================================================
-grpcio==1.71.0                  # gRPC framework
-grpcio-status==1.71.0           # gRPC status codes (must match grpcio)
+# gRPC (для будущего масштабирования)
+grpcio==1.71.0                  # gRPC фреймворк
+grpcio-status==1.71.0           # Коды статусов gRPC (должны совпадать с grpcio)
 protobuf==5.29.5                # Protocol buffers
-proto-plus==1.27.0              # Protobuf utilities
+proto-plus==1.27.0              # Утилиты для protobuf
 
-# =============================================================================
-# TYPE HINTS
-# =============================================================================
-typing_extensions==4.15.0       # Backported type hints
-annotated-types==0.7.0          # Annotated types support
+# Подсказки типов
+typing_extensions==4.15.0       # Обратно совместимые подсказки типов
+annotated-types==0.7.0          # Поддержка аннотированных типов
 
-# =============================================================================
-# ENCODING & LOCALIZATION
-# =============================================================================
-idna==3.11                      # Internationalized domain names
-charset-normalizer==3.4.4       # Charset detection
-certifi==2025.11.12             # Root certificates
-tzdata==2025.3                  # Timezone database
+# Кодировки и локализация
+idna==3.11                      # Интернационализированные доменные имена
+charset-normalizer==3.4.4       # Определение кодировки
+certifi==2025.11.12             # Корневые сертификаты
+tzdata==2025.3                  # База данных часовых поясов
 
-# =============================================================================
-# MARKDOWN & FORMATTING
-# =============================================================================
-markdown-it-py==4.0.0           # Markdown parser
-mdurl==0.1.2                    # Markdown URL utilities
-Pygments==2.19.2                # Syntax highlighting
+# Markdown и форматирование
+markdown-it-py==4.0.0           # Markdown парсер
+mdurl==0.1.2                    # URL утилиты для Markdown
+Pygments==2.19.2                # Подсветка синтаксиса
 
-# =============================================================================
-# TESTING (DEV ONLY - исключить в production)
-# =============================================================================
-iniconfig==2.3.0                # INI parser для pytest
-pluggy==1.6.0                   # Plugin system
-attrs==25.4.0                   # Classes without boilerplate
+# Тестирование (только для разработки - исключить в продакшене)
+iniconfig==2.3.0                # INI парсер для pytest
+pluggy==1.6.0                   # Система плагинов
+attrs==25.4.0                   # Классы без boilerplate кода
 
-# =============================================================================
-# DEAD CODE DETECTION (DEV ONLY)
-# =============================================================================
-vulture==2.14                   # Unused code finder
+# Обнаружение мертвого кода (только для разработки)
+vulture==2.14                   # Поиск неиспользуемого кода
 
-# =============================================================================
-# NOTES
-# =============================================================================
-# - PyTorch & Whisper УДАЛЕНЫ (экономия 5+ GB Docker image)
-# - Yandex Cloud через REST API (без официального SDK)
-# - Redis готов к подключению (сейчас fallback на in-memory)
-# - Testing зависимости можно вынести в requirements-dev.txt
-# =============================================================================
+# Примечания
+# - PyTorch и Whisper удалены (экономия 5+ GB в Docker образе)
+# - Yandex Cloud работает через REST API (без официального SDK)
+# - Redis готов к подключению (сейчас используется fallback на in-memory)
+# - Зависимости для тестирования можно вынести в requirements-dev.txt
