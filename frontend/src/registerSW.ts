@@ -67,42 +67,19 @@ export function registerServiceWorker(): void {
     }
   }
 
+  // Отключаем Service Worker для обычного браузера (не в Telegram)
+  // Это предотвращает показ кнопки "Установить" в браузере
+  // PWA функциональность не нужна - сайт должен работать только в Telegram Mini App
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((registration) => {
-          console.log('✅ Service Worker зарегистрирован:', registration.scope);
-
-          // Обновление Service Worker
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (
-                  newWorker.state === 'installed' &&
-                  navigator.serviceWorker.controller
-                ) {
-                  console.log('🔄 Доступно обновление приложения');
-                  // Здесь можно показать уведомление пользователю
-                }
-              });
-            }
-          });
-        })
-        .catch((error) => {
-          // Подавляем ошибки SW в Telegram WebView (это нормально)
-          const errorMessage = error?.message || String(error);
-          if (
-            !errorMessage.includes('no controller') &&
-            !errorMessage.includes('peer changed') &&
-            !errorMessage.includes('no windows left') &&
-            !errorMessage.includes('it is not a window')
-          ) {
-            console.warn('⚠️ Service Worker:', errorMessage);
-          }
+    // Отменяем регистрацию всех существующих Service Workers
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => {
+        registration.unregister().catch(() => {
+          // Игнорируем ошибки при отмене регистрации
         });
+      });
     });
+    return; // Не регистрируем новый Service Worker
   }
 }
 
