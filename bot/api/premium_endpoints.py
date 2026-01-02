@@ -7,7 +7,7 @@ from loguru import logger
 
 from bot.config import settings
 from bot.database import get_db
-from bot.services import UserService
+from bot.services import SubscriptionService, UserService
 
 
 async def create_premium_invoice(request: web.Request) -> web.Response:
@@ -70,10 +70,13 @@ async def create_premium_invoice(request: web.Request) -> web.Response:
 
 async def handle_successful_payment(request: web.Request) -> web.Response:
     """
-    Обработка успешной оплаты Premium.
+    Обработка успешной оплаты Premium (fallback endpoint).
 
     POST /api/miniapp/premium/payment-success
     Body: { "telegram_id": 123, "plan_id": "month", "transaction_id": "..." }
+
+    Примечание: Основная обработка происходит через webhook в payment_handler.py
+    Этот endpoint используется как fallback или для ручной активации.
     """
     try:
         data = await request.json()
@@ -84,18 +87,46 @@ async def handle_successful_payment(request: web.Request) -> web.Response:
         if not telegram_id or not plan_id:
             return web.json_response({"error": "telegram_id and plan_id required"}, status=400)
 
-        # Здесь можно добавить логику активации Premium в БД
-        # Например, создать запись в таблице subscriptions
+        # Валидация plan_id
+        valid_plans = ["week", "month", "year"]
+        if plan_id not in valid_plans:
+            return web.json_response({"error": "Invalid plan_id"}, status=400)
 
-        logger.info(
-            f"💰 Успешная оплата Premium: user={telegram_id}, "
-            f"plan={plan_id}, tx={transaction_id}"
-        )
+        with get_db() as db:
+            user_service = UserService(db)
+            user = user_service.get_user_by_telegram_id(telegram_id)
 
-        return web.json_response({"success": True, "message": "Premium activated successfully"})
+            if not user:
+                return web.json_response({"error": "User not found"}, status=404)
 
+            # Активируем подписку
+            subscription_service = SubscriptionService(db)
+            subscription = subscription_service.activate_subscription(
+                telegram_id=telegram_id,
+                plan_id=plan_id,
+                transaction_id=transaction_id,
+            )
+
+            db.commit()
+
+            logger.info(
+                f"💰 Premium активирован через API: user={telegram_id}, "
+                f"plan={plan_id}, tx={transaction_id}, expires={subscription.expires_at}"
+            )
+
+            return web.json_response(
+                {
+                    "success": True,
+                    "message": "Premium activated successfully",
+                    "expires_at": subscription.expires_at.isoformat(),
+                }
+            )
+
+    except ValueError as e:
+        logger.error(f"❌ Ошибка валидации: {e}")
+        return web.json_response({"error": str(e)}, status=400)
     except Exception as e:
-        logger.error(f"❌ Ошибка обработки оплаты: {e}")
+        logger.error(f"❌ Ошибка обработки оплаты: {e}", exc_info=True)
         return web.json_response({"error": "Internal server error"}, status=500)
 
 

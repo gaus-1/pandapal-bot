@@ -79,6 +79,9 @@ class User(Base):
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
+    premium_until: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     parent: Mapped[Optional["User"]] = relationship(
         "User",
@@ -104,6 +107,13 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
         order_by="ChatHistory.timestamp.desc()",
+    )
+
+    subscriptions: Mapped[List["Subscription"]] = relationship(
+        "Subscription",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        order_by="Subscription.created_at.desc()",
     )
 
     # Constraints (ограничения)
@@ -563,3 +573,73 @@ class AnalyticsConfig(Base):
             f"<AnalyticsConfig(id={self.id}, key='{self.config_key}', "
             f"type='{self.config_type}', updated='{self.updated_at}')>"
         )
+
+
+class Subscription(Base):
+    """
+    Модель подписки на Premium доступ.
+
+    Хранит информацию о покупках Premium подписки пользователями,
+    включая срок действия, тип плана и транзакции.
+
+    Attributes:
+        id: Уникальный идентификатор подписки.
+        user_telegram_id: ID пользователя в Telegram.
+        plan_id: Тип плана ('week', 'month', 'year').
+        starts_at: Дата начала подписки.
+        expires_at: Дата окончания подписки.
+        is_active: Статус активности подписки.
+        transaction_id: ID транзакции от Telegram.
+        created_at: Дата создания записи.
+    """
+
+    __tablename__ = "subscriptions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_telegram_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("users.telegram_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    plan_id: Mapped[str] = mapped_column(String(20), nullable=False)
+    starts_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
+
+    transaction_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    invoice_payload: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    # Relationship
+    user: Mapped["User"] = relationship("User", back_populates="subscriptions")
+
+    __table_args__ = (
+        Index("idx_subscriptions_user_active", "user_telegram_id", "is_active"),
+        Index("idx_subscriptions_expires", "expires_at"),
+        CheckConstraint("plan_id IN ('week', 'month', 'year')", name="ck_subscriptions_plan_id"),
+    )
+
+    def __repr__(self) -> str:
+        """Строковое представление подписки"""
+        return (
+            f"<Subscription(id={self.id}, user={self.user_telegram_id}, "
+            f"plan={self.plan_id}, expires='{self.expires_at}', active={self.is_active})>"
+        )
+
+    def to_dict(self) -> Dict:
+        """Преобразование модели в словарь для API"""
+        return {
+            "id": self.id,
+            "plan_id": self.plan_id,
+            "starts_at": self.starts_at.isoformat() if self.starts_at else None,
+            "expires_at": self.expires_at.isoformat() if self.expires_at else None,
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }

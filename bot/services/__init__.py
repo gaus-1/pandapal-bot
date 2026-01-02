@@ -10,6 +10,7 @@ from bot.services.history_service import ChatHistoryService
 from bot.services.moderation_service import ContentModerationService
 from bot.services.simple_engagement import SimpleEngagementService, get_simple_engagement
 from bot.services.simple_monitor import SimpleMonitor, get_simple_monitor
+from bot.services.subscription_service import SubscriptionService
 from bot.services.user_service import UserService
 
 __all__ = [
@@ -19,6 +20,7 @@ __all__ = [
     "ChatHistoryService",
     "ContentModerationService",
     "UserService",
+    "SubscriptionService",
     "SimpleMonitor",
     "get_simple_monitor",
     "SimpleEngagementService",
