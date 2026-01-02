@@ -13,7 +13,7 @@ import { SITE_CONFIG } from '../config/constants';
  */
 export const Hero: React.FC = React.memo(() => {
   return (
-    <section className="py-12 sm:py-16 md:py-20 text-center px-4">
+    <section className="pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 text-center px-4">
       {/* Schema.org для SEO */}
       <script type="application/ld+json">
         {JSON.stringify({

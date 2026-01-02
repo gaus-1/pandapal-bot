@@ -5,7 +5,11 @@
 
 import React, { useEffect, useState } from 'react';
 
-export const DarkModeToggle: React.FC = () => {
+interface DarkModeToggleProps {
+  isInline?: boolean; // Если true - используется внутри Header, иначе fixed позиционирование
+}
+
+export const DarkModeToggle: React.FC<DarkModeToggleProps> = ({ isInline = false }) => {
   const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -44,10 +48,15 @@ export const DarkModeToggle: React.FC = () => {
   // Не показываем кнопку до монтирования (избегаем мигания)
   if (!mounted) return null;
 
+  // Стили в зависимости от режима (inline или fixed)
+  const buttonClassName = isInline
+    ? "w-10 h-10 rounded-full bg-white dark:bg-slate-700 shadow-md hover:shadow-lg border-2 border-gray-200 dark:border-slate-600 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center"
+    : "fixed top-4 right-4 md:right-28 z-50 w-10 h-10 md:w-auto md:h-auto md:px-5 md:py-2.5 rounded-full bg-white dark:bg-slate-700 shadow-md hover:shadow-lg border-2 border-gray-200 dark:border-slate-600 transition-all duration-300 hover:scale-105 active:scale-95 text-sm font-semibold flex items-center justify-center";
+
   return (
     <button
       onClick={toggleTheme}
-      className="fixed top-4 right-4 md:right-28 z-50 w-10 h-10 md:w-auto md:h-auto md:px-5 md:py-2.5 rounded-full bg-white dark:bg-slate-700 shadow-md hover:shadow-lg border-2 border-gray-200 dark:border-slate-600 transition-all duration-300 hover:scale-105 active:scale-95 text-sm font-semibold flex items-center justify-center"
+      className={buttonClassName}
       aria-label={isDark ? 'Включить светлую тему' : 'Включить темную тему'}
       title={isDark ? 'Светлая тема' : 'Темная тема'}
     >
