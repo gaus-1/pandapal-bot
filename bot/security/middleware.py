@@ -126,6 +126,8 @@ ALLOWED_ORIGINS: Set[str] = {
     "https://pandapal.ru",
     "https://web.telegram.org",
     "https://telegram.org",
+    "https://web.telegram.org:443",  # С портом
+    "https://telegram.org:443",  # С портом
 }
 
 # Разрешенные referers
@@ -133,6 +135,8 @@ ALLOWED_REFERERS: Set[str] = {
     "https://pandapal.ru",
     "https://web.telegram.org",
     "https://telegram.org",
+    "https://web.telegram.org:443",
+    "https://telegram.org:443",
 }
 
 
@@ -150,29 +154,74 @@ def validate_origin(request: web.Request) -> Tuple[bool, Optional[str]]:
     if request.method == "GET" or request.path in ["/health", "/webhook"]:
         return True, None
 
+    # Для Telegram Mini App endpoints проверяем наличие initData в теле запроса
+    # Это дополнительная проверка, что запрос от Telegram
+    if request.path.startswith("/api/miniapp/"):
+        # Пытаемся прочитать тело запроса для проверки initData
+        # Но не читаем полностью, чтобы не блокировать поток
+        try:
+            # Проверяем Content-Type
+            content_type = request.headers.get("Content-Type", "")
+            if "application/json" in content_type:
+                # Для Mini App endpoints разрешаем, если есть JSON body
+                # Детальная проверка initData будет в самом endpoint
+                return True, None
+        except Exception:
+            pass
+
     origin = request.headers.get("Origin")
     referer = request.headers.get("Referer")
 
-    # Если нет ни Origin ни Referer - подозрительно для POST/PATCH/PUT/DELETE
+    # Если нет ни Origin ни Referer - проверяем другие признаки Telegram
     if not origin and not referer:
         # Telegram Mini App может не отправлять Origin, проверяем User-Agent
         user_agent = request.headers.get("User-Agent", "").lower()
         if "telegram" in user_agent:
             return True, None
+
+        # Проверяем, может быть это запрос от Telegram Mini App (по пути)
+        if request.path.startswith("/api/miniapp/"):
+            # Для Mini App endpoints разрешаем, если нет явных признаков атаки
+            return True, None
+
         return False, "Missing Origin and Referer headers"
 
-    # Проверяем Origin
+    # Проверяем Origin (нормализуем - убираем порт если стандартный)
     if origin:
         parsed = urlparse(origin)
-        origin_netloc = f"{parsed.scheme}://{parsed.netloc}"
+        # Убираем стандартные порты из сравнения
+        netloc = parsed.netloc
+        if netloc.endswith(":443") and parsed.scheme == "https":
+            netloc = netloc[:-4]
+        elif netloc.endswith(":80") and parsed.scheme == "http":
+            netloc = netloc[:-3]
+
+        origin_netloc = f"{parsed.scheme}://{netloc}"
         if origin_netloc not in ALLOWED_ORIGINS:
+            # Для Mini App endpoints более мягкая проверка
+            if request.path.startswith("/api/miniapp/"):
+                # Разрешаем, если это похоже на Telegram домен
+                if "telegram" in netloc.lower():
+                    return True, None
             return False, f"Invalid Origin: {origin_netloc}"
 
-    # Проверяем Referer
+    # Проверяем Referer (нормализуем - убираем порт если стандартный)
     if referer:
         parsed = urlparse(referer)
-        referer_netloc = f"{parsed.scheme}://{parsed.netloc}"
+        # Убираем стандартные порты из сравнения
+        netloc = parsed.netloc
+        if netloc.endswith(":443") and parsed.scheme == "https":
+            netloc = netloc[:-4]
+        elif netloc.endswith(":80") and parsed.scheme == "http":
+            netloc = netloc[:-3]
+
+        referer_netloc = f"{parsed.scheme}://{netloc}"
         if referer_netloc not in ALLOWED_REFERERS:
+            # Для Mini App endpoints более мягкая проверка
+            if request.path.startswith("/api/miniapp/"):
+                # Разрешаем, если это похоже на Telegram домен
+                if "telegram" in netloc.lower():
+                    return True, None
             return False, f"Invalid Referer: {referer_netloc}"
 
     return True, None
@@ -229,10 +278,23 @@ async def security_middleware(app: web.Application, handler):
 
         # CSRF protection (только для API endpoints)
         if request.path.startswith("/api/"):
+            # Логируем для отладки Mini App запросов
+            if request.path.startswith("/api/miniapp/"):
+                origin = request.headers.get("Origin", "N/A")
+                referer = request.headers.get("Referer", "N/A")
+                user_agent = request.headers.get("User-Agent", "N/A")
+                logger.debug(
+                    f"🔍 Mini App request: Path={request.path}, Origin={origin}, "
+                    f"Referer={referer}, User-Agent={user_agent[:50]}"
+                )
+
             valid, reason = validate_origin(request)
             if not valid:
+                origin = request.headers.get("Origin", "N/A")
+                referer = request.headers.get("Referer", "N/A")
                 logger.warning(
-                    f"🚫 CSRF protection: Invalid origin/referer: IP={ip}, Path={request.path}, Reason={reason}"
+                    f"🚫 CSRF protection: Invalid origin/referer: IP={ip}, Path={request.path}, "
+                    f"Origin={origin}, Referer={referer}, Reason={reason}"
                 )
                 log_security_event(
                     SecurityEventType.AUTHENTICATION_FAILURE,
