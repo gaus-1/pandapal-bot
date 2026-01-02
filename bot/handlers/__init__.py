@@ -10,12 +10,14 @@ from bot.handlers.ai_chat import router as ai_chat_router
 from bot.handlers.emergency import router as emergency_router
 from bot.handlers.location import router as location_router
 from bot.handlers.menu import router as menu_router
+from bot.handlers.payment_handler import router as payment_router
 from bot.handlers.settings import router as settings_router
 from bot.handlers.start import router as start_router
 
 # Список всех роутеров для регистрации в main.py
 routers = [
     admin_commands_router,  # Административные команды (высший приоритет)
+    payment_router,  # Обработка платежей (высокий приоритет)
     start_router,
     emergency_router,  # Экстренные номера (важно для детей)
     menu_router,  # Обработка кнопок меню
