@@ -45,7 +45,7 @@ def get_main_menu_keyboard(user_type: str = "child") -> ReplyKeyboardMarkup:
         [
             # ЕДИНСТВЕННАЯ кнопка - запуск Mini App
             KeyboardButton(
-                text="🐼 Открыть PandaPal",
+                text="🐼 Нажми",
                 web_app=WebAppInfo(url="https://pandapal.ru"),
             ),
         ],
