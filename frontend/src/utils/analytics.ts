@@ -28,9 +28,9 @@ export const trackButtonClick = (buttonName: string): void => {
     });
   }
 
-  // Можно добавить Yandex Metrika
+  // Yandex Metrika
   if (typeof window !== 'undefined' && win.ym) {
-    win.ym(12345678, 'reachGoal', `button_${buttonName}`);
+    win.ym(104525544, 'reachGoal', `button_${buttonName}`);
   }
 };
 

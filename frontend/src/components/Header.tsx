@@ -7,6 +7,7 @@
 import React from 'react';
 import { SITE_CONFIG } from '../config/constants';
 import { DarkModeToggle } from './DarkModeToggle';
+import { trackButtonClick } from '../utils/analytics';
 
 /**
  * Шапка сайта с адаптивной навигацией
@@ -47,6 +48,7 @@ export const Header: React.FC = React.memo(() => {
             href={SITE_CONFIG.botUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackButtonClick('header_start_bot')}
             className="inline-flex items-center justify-center px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600 text-white font-semibold text-sm hover:shadow-lg hover:scale-105 transition-all duration-200"
           >
             Начни
