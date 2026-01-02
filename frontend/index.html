@@ -90,6 +90,23 @@
 
         const originalError = console.error;
         const originalWarn = console.warn;
+        const originalLog = console.log;
+
+        // Перехватываем window.onerror для глобальных ошибок
+        window.onerror = function(msg, url, line, col, error) {
+          const message = String(msg || '');
+          if (
+            message.includes('[SW]') ||
+            message.includes('SW registration failed') ||
+            message.includes('no controller') ||
+            message.includes('MP-MTPROTO') ||
+            message.includes('mtprotoworker') ||
+            message.includes('logger.ts')
+          ) {
+            return true; // Подавляем ошибку
+          }
+          return false; // Показываем остальные ошибки
+        };
 
         console.error = function(...args) {
           const message = String(args.join(' '));
@@ -105,7 +122,8 @@
             message.includes('MP-MTPROTO') ||
             message.includes('Service Worker') ||
             message.includes('mtprotoworker') ||
-            message.includes('logger.ts')
+            message.includes('logger.ts') ||
+            message.includes('telegramWebView.ts')
           ) {
             return; // Подавляем эти ошибки
           }
@@ -119,11 +137,25 @@
             message.includes('device-orientation') ||
             message.includes('Unrecognized feature') ||
             message.includes('Service Worker') ||
-            message.includes('logger.ts')
+            message.includes('logger.ts') ||
+            message.includes('telegramWebView.ts')
           ) {
             return; // Подавляем эти предупреждения
           }
           originalWarn.apply(console, args);
+        };
+
+        // Подавляем логи от Telegram WebView
+        console.log = function(...args) {
+          const message = String(args.join(' '));
+          if (
+            message.includes('[SW]') ||
+            message.includes('MP-MTPROTO') ||
+            message.includes('mtprotoworker')
+          ) {
+            return; // Подавляем эти логи
+          }
+          originalLog.apply(console, args);
         };
       })();
     </script>
