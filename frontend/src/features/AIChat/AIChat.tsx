@@ -83,9 +83,9 @@ export function AIChat({ user }: AIChatProps) {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[var(--tg-theme-bg-color)]">
+    <div className="flex flex-col h-full bg-[var(--tg-theme-bg-color)]">
       {/* Заголовок */}
-      <div className="sticky top-0 z-10 bg-[var(--tg-theme-bg-color)] border-b border-[var(--tg-theme-hint-color)]/20 p-4">
+      <div className="flex-shrink-0 bg-[var(--tg-theme-bg-color)] border-b border-[var(--tg-theme-hint-color)]/20 p-4">
         <div className="flex items-center gap-3">
           <div className="text-4xl">🐼</div>
           <div>
@@ -157,7 +157,7 @@ export function AIChat({ user }: AIChatProps) {
       </div>
 
       {/* Поле ввода */}
-      <div className="sticky bottom-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20 p-4">
+      <div className="flex-shrink-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20 p-4">
         <div className="flex items-end gap-2">
           <textarea
             value={inputText}

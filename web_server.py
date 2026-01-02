@@ -152,6 +152,9 @@ class PandaPalBotServer:
             # Создаем приложение
             self.app = web.Application()
 
+            # Добавляем bot в app context для использования в endpoints
+            self.app["bot"] = self.bot
+
             # Health check endpoints
             async def health_check(request: web.Request) -> web.Response:
                 """Health check endpoint."""
@@ -234,6 +237,15 @@ class PandaPalBotServer:
                 logger.info("💰 Premium API endpoints зарегистрированы")
             except ImportError as e:
                 logger.warning(f"⚠️ Не удалось загрузить Premium API: {e}")
+
+            # Интегрируем Location API
+            try:
+                from bot.api.location_endpoints import setup_location_routes
+
+                setup_location_routes(self.app)
+                logger.info("📍 Location API endpoints зарегистрированы")
+            except ImportError as e:
+                logger.warning(f"⚠️ Не удалось загрузить Location API: {e}")
 
             # Настраиваем webhook handler ПОСЛЕ регистрации всех маршрутов
             # Явно указываем путь /webhook для Railway
