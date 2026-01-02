@@ -38,8 +38,20 @@ self.addEventListener('activate', (event) => {
 
 // Обработка запросов
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+
+  // Игнорируем chrome-extension, telegram.org и другие внешние протоколы
+  if (
+    url.protocol === 'chrome-extension:' ||
+    url.protocol === 'moz-extension:' ||
+    url.hostname.includes('telegram.org') ||
+    url.hostname.includes('t.me')
+  ) {
+    return;
+  }
+
   // Игнорируем запросы к API - всегда через сеть
-  if (event.request.url.includes('/api/')) {
+  if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(event.request).catch(() => {
         return new Response(
@@ -56,11 +68,10 @@ self.addEventListener('fetch', (event) => {
 
   // Игнорируем запросы к метрике и внешним ресурсам
   if (
-    event.request.url.includes('yandex.ru') ||
-    event.request.url.includes('googleapis.com') ||
-    event.request.url.includes('gstatic.com')
+    url.hostname.includes('yandex.ru') ||
+    url.hostname.includes('googleapis.com') ||
+    url.hostname.includes('gstatic.com')
   ) {
-    event.respondWith(fetch(event.request));
     return;
   }
 
