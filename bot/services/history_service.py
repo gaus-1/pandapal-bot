@@ -138,17 +138,20 @@ class ChatHistoryService:
 
         return "\n".join(context_lines)
 
-    def get_formatted_history_for_ai(self, telegram_id: int) -> List[Dict[str, Any]]:
+    def get_formatted_history_for_ai(
+        self, telegram_id: int, limit: int = None
+    ) -> List[Dict[str, Any]]:
         """
         Получить историю в формате для Gemini API.
 
         Args:
             telegram_id: Telegram ID пользователя
+            limit: Количество сообщений (по умолчанию из settings)
 
         Returns:
             List[Dict[str, Any]]: История в формате [{'role': 'user', 'parts': ['text']}, ...]
         """
-        messages = self.get_recent_history(telegram_id)
+        messages = self.get_recent_history(telegram_id, limit=limit)
 
         formatted: List[Dict[str, Any]] = []
         for msg in messages:
