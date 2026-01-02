@@ -17,7 +17,7 @@ from datetime import datetime
 from typing import Dict
 
 from aiogram import F, Router
-from aiogram.filters import CommandStart
+from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from loguru import logger
@@ -129,3 +129,9 @@ async def cmd_start(message: Message, state: FSMContext):
 
     # Очищаем состояние (на случай если были в диалоге)
     await state.clear()
+
+
+@router.message(Command("menu"))
+async def cmd_menu(message: Message):
+    """Обновить клавиатуру с меню"""
+    await message.answer("🎮 Меню обновлено!", reply_markup=get_main_menu_keyboard())

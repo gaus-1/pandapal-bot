@@ -64,11 +64,14 @@ async def miniapp_auth(request: web.Request) -> web.Response:
                 last_name=user_data.get("last_name"),
             )
 
+            # Вызываем to_dict() ВНУТРИ сессии
+            user_dict = user.to_dict()
+
         # Возвращаем данные пользователя
         return web.json_response(
             {
                 "success": True,
-                "user": user.to_dict(),
+                "user": user_dict,
             }
         )
 
@@ -93,12 +96,14 @@ async def miniapp_get_user(request: web.Request) -> web.Response:
             if not user:
                 return web.json_response({"error": "User not found"}, status=404)
 
-            return web.json_response(
-                {
-                    "success": True,
-                    "user": user.to_dict(),
-                }
-            )
+            user_dict = user.to_dict()
+
+        return web.json_response(
+            {
+                "success": True,
+                "user": user_dict,
+            }
+        )
 
     except Exception as e:
         logger.error(f"❌ Ошибка получения пользователя: {e}")
@@ -126,12 +131,14 @@ async def miniapp_update_user(request: web.Request) -> web.Response:
             if not user:
                 return web.json_response({"error": "User not found"}, status=404)
 
-            return web.json_response(
-                {
-                    "success": True,
-                    "user": user.to_dict(),
-                }
-            )
+            user_dict = user.to_dict()
+
+        return web.json_response(
+            {
+                "success": True,
+                "user": user_dict,
+            }
+        )
 
     except Exception as e:
         logger.error(f"❌ Ошибка обновления пользователя: {e}")
@@ -154,10 +161,10 @@ async def miniapp_get_progress(request: web.Request) -> web.Response:
             if not user:
                 return web.json_response({"error": "User not found"}, status=404)
 
-            # Получаем прогресс из БД
+            # Получаем прогресс из БД ВНУТРИ сессии
             progress_items = [p.to_dict() for p in user.progress]
 
-            return web.json_response({"success": True, "progress": progress_items})
+        return web.json_response({"success": True, "progress": progress_items})
 
     except Exception as e:
         logger.error(f"❌ Ошибка получения прогресса: {e}")
