@@ -3,6 +3,8 @@ API endpoints для Telegram Mini App
 Обеспечивает взаимодействие между React frontend и Python backend
 """
 
+import base64
+
 from aiohttp import web
 from loguru import logger
 
@@ -13,6 +15,8 @@ from bot.services import (
     UserService,
 )
 from bot.services.ai_service_solid import get_ai_service
+from bot.services.speech_service import SpeechService
+from bot.services.vision_service import VisionService
 
 
 async def miniapp_auth(request: web.Request) -> web.Response:
@@ -250,15 +254,81 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
     Отправить сообщение AI и получить ответ.
 
     POST /api/miniapp/ai/chat
-    Body: { "telegram_id": 123, "message": "..." }
+    Body: {
+        "telegram_id": 123,
+        "message": "...",
+        "photo_base64": "data:image/jpeg;base64,...", # опционально
+        "audio_base64": "data:audio/webm;base64,..." # опционально
+    }
     """
     try:
         data = await request.json()
         telegram_id = data.get("telegram_id")
-        message = data.get("message")
+        message = data.get("message", "")
+        photo_base64 = data.get("photo_base64")
+        audio_base64 = data.get("audio_base64")
 
-        if not telegram_id or not message:
-            return web.json_response({"error": "telegram_id and message required"}, status=400)
+        if not telegram_id:
+            return web.json_response({"error": "telegram_id required"}, status=400)
+
+        user_message = message
+
+        # Обработка аудио (приоритетнее фото)
+        if audio_base64:
+            try:
+                logger.info(f"🎤 Mini App: Обработка голосового сообщения от {telegram_id}")
+                # Убираем data:audio/...;base64, префикс
+                if "base64," in audio_base64:
+                    audio_base64 = audio_base64.split("base64,")[1]
+                audio_bytes = base64.b64decode(audio_base64)
+
+                speech_service = SpeechService()
+                transcribed_text = await speech_service.transcribe_voice(audio_bytes, language="ru")
+
+                if transcribed_text:
+                    user_message = transcribed_text
+                    logger.info(f"✅ Аудио распознано: {transcribed_text[:100]}")
+                else:
+                    return web.json_response(
+                        {"error": "Не удалось распознать аудио. Попробуй еще раз!"},
+                        status=400,
+                    )
+            except Exception as e:
+                logger.error(f"❌ Ошибка обработки аудио: {e}", exc_info=True)
+                return web.json_response({"error": f"Ошибка обработки аудио: {str(e)}"}, status=500)
+
+        # Обработка фото
+        if photo_base64:
+            try:
+                logger.info(f"📷 Mini App: Обработка фото от {telegram_id}")
+                # Убираем data:image/...;base64, префикс
+                if "base64," in photo_base64:
+                    photo_base64 = photo_base64.split("base64,")[1]
+                photo_bytes = base64.b64decode(photo_base64)
+
+                with get_db() as db:
+                    user_service = UserService(db)
+                    user = user_service.get_user_by_telegram_id(telegram_id)
+
+                    if not user:
+                        return web.json_response({"error": "User not found"}, status=404)
+
+                    vision_service = VisionService()
+                    vision_result = await vision_service.analyze_image(
+                        image_data=photo_bytes,
+                        user_message=message or "Помоги мне разобраться с этой задачей",
+                        user_age=user.age,
+                    )
+
+                    user_message = f"[Фото с заданием]\n{vision_result.analysis}"
+                    logger.info(f"✅ Фото проанализировано: {user_message[:100]}")
+            except Exception as e:
+                logger.error(f"❌ Ошибка обработки фото: {e}", exc_info=True)
+                return web.json_response({"error": f"Ошибка обработки фото: {str(e)}"}, status=500)
+
+        # Если нет ни фото ни аудио - должно быть текстовое сообщение
+        if not user_message.strip():
+            return web.json_response({"error": "message, photo or audio required"}, status=400)
 
         with get_db() as db:
             user_service = UserService(db)
@@ -274,18 +344,18 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             # Генерируем ответ AI
             ai_service = get_ai_service()
             ai_response = await ai_service.generate_response(
-                user_message=message, chat_history=history, user_age=user.age
+                user_message=user_message, chat_history=history, user_age=user.age
             )
 
             # Сохраняем в историю
-            history_service.add_message(telegram_id, message, "user")
+            history_service.add_message(telegram_id, user_message, "user")
             history_service.add_message(telegram_id, ai_response, "ai")
 
             return web.json_response({"success": True, "response": ai_response})
 
     except Exception as e:
-        logger.error(f"❌ Ошибка AI чата: {e}")
-        return web.json_response({"error": "Internal server error"}, status=500)
+        logger.error(f"❌ Ошибка AI чата: {e}", exc_info=True)
+        return web.json_response({"error": f"Internal server error: {str(e)}"}, status=500)
 
 
 async def miniapp_get_chat_history(request: web.Request) -> web.Response:
