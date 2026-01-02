@@ -187,6 +187,8 @@ class PandaPalBotServer:
                     "robots.txt",
                     "sitemap.xml",
                     "vite.svg",
+                    "sw.js",  # Service Worker для PWA
+                    "offline.html",  # Offline fallback page
                 ]
                 for static_file in static_files:
                     file_path = frontend_dist / static_file
