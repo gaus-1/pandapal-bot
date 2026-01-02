@@ -1,8 +1,8 @@
 """
 Генератор ответов AI для Yandex Cloud (YandexGPT).
 
-Миграция с Google Gemini на Yandex Cloud.
-Сохраняет архитектуру SOLID.
+Использует Yandex Cloud AI сервисы (YandexGPT Lite, SpeechKit STT, Vision OCR).
+Соблюдает архитектуру SOLID.
 """
 
 import asyncio

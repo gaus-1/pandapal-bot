@@ -1,7 +1,7 @@
 """
-Сервис анализа изображений через Yandex Vision.
+Сервис анализа изображений через Yandex Vision OCR.
 
-Миграция с Google Gemini Vision на Yandex Cloud Vision OCR.
+Использует Yandex Cloud Vision API для распознавания текста на изображениях.
 Wrapper для совместимости с существующими handlers.
 """
 
@@ -25,9 +25,7 @@ class SafetyLevel(Enum):
 @dataclass
 class ImageAnalysisResult:
     """
-    Результат анализа изображения.
-
-    Совместимость с предыдущей версией (Gemini Vision).
+    Результат анализа изображения через Yandex Vision OCR.
     """
 
     recognized_text: str
