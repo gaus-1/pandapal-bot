@@ -9,14 +9,35 @@ import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AIChat } from '../AIChat';
 import * as api from '../../../services/api';
-import { createTelegramServiceMock } from '../../../test/mocks/telegram.mock';
-import { mockUserProfile, mockApiResponses } from '../../../test/mocks/api.mock';
+import type { UserProfile } from '../../../services/api';
 
-// Используем vi.hoisted для правильного hoisting
-const telegramMock = vi.hoisted(() => createTelegramServiceMock());
+// Mock user profile
+const mockUserProfile: UserProfile = {
+  telegram_id: 123,
+  first_name: 'Test',
+  user_type: 'child',
+};
+
+// Mock responses
+const mockApiResponses = {
+  getChatHistory: async () => [
+    { role: 'user' as const, content: 'Привет', timestamp: new Date().toISOString() },
+    { role: 'ai' as const, content: 'Привет! Чем помочь?', timestamp: new Date().toISOString() },
+  ],
+  sendAIMessage: async (_telegramId: number, message?: string) => ({
+    response: message?.includes('2x + 5 = 13')
+      ? 'Решение уравнения 2x + 5 = 13: x = 4'
+      : `AI response for: ${message}`,
+  }),
+};
 
 vi.mock('../../../services/telegram', () => ({
-  telegram: telegramMock,
+  telegram: {
+    hapticFeedback: vi.fn(),
+    showAlert: vi.fn(),
+    notifySuccess: vi.fn(),
+    notifyError: vi.fn(),
+  },
 }));
 
 vi.mock('../../../services/api', () => ({
@@ -24,10 +45,12 @@ vi.mock('../../../services/api', () => ({
   sendAIMessage: vi.fn(),
 }));
 
+let mockTelegram: any;
+
 describe('AIChat - Критические пути', () => {
   let queryClient: QueryClient;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -36,6 +59,11 @@ describe('AIChat - Критические пути', () => {
     });
 
     vi.clearAllMocks();
+
+    // Получаем telegram mock
+    const telegramModule = await import('../../../services/telegram');
+    mockTelegram = telegramModule.telegram;
+
     vi.mocked(api.getChatHistory).mockImplementation(mockApiResponses.getChatHistory);
     vi.mocked(api.sendAIMessage).mockImplementation(mockApiResponses.sendAIMessage);
   });
@@ -154,7 +182,7 @@ describe('AIChat - Критические пути', () => {
 
       // Проверяем что был вызван showAlert
       await waitFor(() => {
-        expect(telegramMock.showAlert).toHaveBeenCalled();
+        expect(mockTelegram.showAlert).toHaveBeenCalled();
       }, { timeout: 1000 });
     });
   });
@@ -267,7 +295,7 @@ describe('AIChat - Критические пути', () => {
 
       // Проверяем что была вызвана ошибка
       await waitFor(() => {
-        expect(telegramMock.notifyError).toHaveBeenCalled();
+        expect(mockTelegram.notifyError).toHaveBeenCalled();
       }, { timeout: 3000 });
     });
 

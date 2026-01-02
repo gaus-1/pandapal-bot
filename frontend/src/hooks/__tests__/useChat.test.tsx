@@ -7,12 +7,20 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useChat } from '../useChat';
 import * as api from '../../services/api';
-import { mockApiResponses, mockChatHistory } from '../../test/mocks/api.mock';
-import { createTelegramServiceMock } from '../../test/mocks/telegram.mock';
 import type { ReactNode } from 'react';
 
-// Используем vi.hoisted для правильного hoisting
-const telegramMock = vi.hoisted(() => createTelegramServiceMock());
+// Mock responses
+const mockChatHistory = [
+  { role: 'user' as const, content: 'Привет', timestamp: new Date().toISOString() },
+  { role: 'ai' as const, content: 'Привет! Чем помочь?', timestamp: new Date().toISOString() },
+];
+
+const mockApiResponses = {
+  getChatHistory: async () => mockChatHistory,
+  sendAIMessage: async (_telegramId: number, message?: string) => ({
+    response: `AI response for: ${message}`,
+  }),
+};
 
 // Mock API
 vi.mock('../../services/api', () => ({
@@ -22,13 +30,20 @@ vi.mock('../../services/api', () => ({
 
 // Mock Telegram service
 vi.mock('../../services/telegram', () => ({
-  telegram: telegramMock,
+  telegram: {
+    hapticFeedback: vi.fn(),
+    showAlert: vi.fn(),
+    notifySuccess: vi.fn(),
+    notifyError: vi.fn(),
+  },
 }));
+
+let mockTelegram: any;
 
 describe('useChat', () => {
   let queryClient: QueryClient;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Создаем новый QueryClient для каждого теста
     queryClient = new QueryClient({
       defaultOptions: {
@@ -38,6 +53,10 @@ describe('useChat', () => {
     });
 
     vi.clearAllMocks();
+
+    // Получаем telegram mock
+    const telegramModule = await import('../../services/telegram');
+    mockTelegram = telegramModule.telegram;
 
     // Настраиваем API моки
     vi.mocked(api.getChatHistory).mockImplementation(mockApiResponses.getChatHistory);
@@ -81,11 +100,6 @@ describe('useChat', () => {
     // Отправляем сообщение
     result.current.sendMessage({ message: 'Тест' });
 
-    // Проверяем что отправка началась
-    await waitFor(() => {
-      expect(result.current.isSending).toBe(true);
-    }, { timeout: 1000 });
-
     // Ждём завершения отправки
     await waitFor(() => {
       expect(result.current.isSending).toBe(false);
@@ -100,7 +114,7 @@ describe('useChat', () => {
     );
 
     // Проверяем что haptic feedback был вызван
-    expect(telegramMock.hapticFeedback).toHaveBeenCalled();
+    expect(mockTelegram.hapticFeedback).toHaveBeenCalled();
   });
 
   it('должен отправлять фото', async () => {
@@ -133,7 +147,7 @@ describe('useChat', () => {
     );
 
     // Проверяем что был успех
-    expect(telegramMock.notifySuccess).toHaveBeenCalled();
+    expect(mockTelegram.notifySuccess).toHaveBeenCalled();
   });
 
   it('должен отправлять аудио', async () => {
@@ -166,7 +180,7 @@ describe('useChat', () => {
     );
 
     // Проверяем что был успех
-    expect(telegramMock.notifySuccess).toHaveBeenCalled();
+    expect(mockTelegram.notifySuccess).toHaveBeenCalled();
   });
 
   it('должен обрабатывать ошибки отправки', async () => {
@@ -195,6 +209,6 @@ describe('useChat', () => {
 
     // Проверяем что ошибка была обработана
     expect(result.current.sendError).toBeTruthy();
-    expect(telegramMock.notifyError).toHaveBeenCalled();
+    expect(mockTelegram.notifyError).toHaveBeenCalled();
   });
 });

@@ -8,51 +8,72 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MiniApp } from '../MiniApp';
 import * as api from '../services/api';
-import { createTelegramServiceMock, createMockInitData } from '../test/mocks/telegram.mock';
-import { mockUserProfile, mockApiResponses } from '../test/mocks/api.mock';
+import type { UserProfile } from '../services/api';
 
-// Mock API с реалистичными ответами
+// Mock user profile
+const mockUserProfile: UserProfile = {
+  telegram_id: 123,
+  first_name: 'Test',
+  user_type: 'child',
+};
+
+// Mock initData
+const createMockInitData = (user = { id: 123, first_name: 'Test' }) => {
+  const userString = JSON.stringify(user);
+  const auth_date = Math.floor(Date.now() / 1000);
+  return `query_id=123&user=${encodeURIComponent(userString)}&auth_date=${auth_date}&hash=mockhash`;
+};
+
+// Mock API
 vi.mock('../services/api', () => ({
   authenticateUser: vi.fn(),
   getChatHistory: vi.fn(),
   sendAIMessage: vi.fn(),
 }));
 
-// Mock Telegram service - создаём мок внутри factory
-vi.mock('../services/telegram', () => {
-  const { createTelegramServiceMock } = require('../test/mocks/telegram.mock');
-  return {
-    telegram: createTelegramServiceMock(),
-  };
-});
+// Mock Telegram service
+vi.mock('../services/telegram', () => ({
+  telegram: {
+    init: vi.fn(),
+    showBackButton: vi.fn(),
+    hideBackButton: vi.fn(),
+    hapticFeedback: vi.fn(),
+    showAlert: vi.fn(),
+    notifySuccess: vi.fn(),
+    notifyError: vi.fn(),
+    getInitData: vi.fn(() => createMockInitData()),
+    getUser: vi.fn(() => ({ id: 123, first_name: 'Test' })),
+    isTelegramWebApp: vi.fn(() => true),
+    getPlatform: vi.fn(() => 'tdesktop'),
+  },
+}));
+
+let mockTelegram: any;
 
 describe('MiniApp Integration', () => {
-  let telegram: ReturnType<typeof createTelegramServiceMock>;
+  const mockApiResponses = {
+    authenticateUser: async () => mockUserProfile,
+    getChatHistory: async () => [
+      { role: 'user' as const, content: 'Привет', timestamp: new Date().toISOString() },
+      { role: 'ai' as const, content: 'Привет! Чем помочь?', timestamp: new Date().toISOString() },
+    ],
+    sendAIMessage: async (telegramId: number, message?: string) => ({
+      success: true,
+      response: `AI response for: ${message}`,
+    }),
+  };
 
   beforeEach(async () => {
-    // Очищаем все моки
     vi.clearAllMocks();
 
     // Получаем telegram mock
     const telegramModule = await import('../services/telegram');
-    telegram = telegramModule.telegram as any;
+    mockTelegram = telegramModule.telegram;
 
-    // Настраиваем API моки с реалистичными ответами
+    // Настраиваем API моки
     vi.mocked(api.authenticateUser).mockImplementation(mockApiResponses.authenticateUser);
     vi.mocked(api.getChatHistory).mockImplementation(mockApiResponses.getChatHistory);
     vi.mocked(api.sendAIMessage).mockImplementation(mockApiResponses.sendAIMessage);
-
-    // Убеждаемся что Telegram mock возвращает правильный initData
-    vi.mocked(telegram.getInitData).mockReturnValue(createMockInitData());
-    vi.mocked(telegram.getUser).mockReturnValue({
-      id: 123456789,
-      first_name: 'Test',
-      last_name: 'User',
-      username: 'testuser',
-      language_code: 'ru',
-      is_premium: false,
-    });
-    vi.mocked(telegram.isTelegramWebApp).mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -62,8 +83,8 @@ describe('MiniApp Integration', () => {
   it('должен инициализировать Telegram SDK при монтировании', async () => {
     render(<MiniApp />);
 
-    expect(telegram.init).toHaveBeenCalled();
-    expect(telegram.getInitData).toHaveBeenCalled();
+    expect(mockTelegram.init).toHaveBeenCalled();
+    expect(mockTelegram.getInitData).toHaveBeenCalled();
   });
 
   it('должен показать загрузку во время аутентификации', async () => {
@@ -104,7 +125,7 @@ describe('MiniApp Integration', () => {
 
   it('должен показать ошибку если initData пустой', async () => {
     // Mock возвращает пустой initData
-    vi.mocked(telegram.getInitData).mockReturnValue('');
+    vi.mocked(mockTelegram.getInitData).mockReturnValue('');
 
     render(<MiniApp />);
 
@@ -174,7 +195,7 @@ describe('MiniApp Integration', () => {
     await user.click(sosButton);
 
     // Проверяем что был вызван haptic feedback
-    expect(telegram.hapticFeedback).toHaveBeenCalledWith('medium');
+    expect(mockTelegram.hapticFeedback).toHaveBeenCalledWith('medium');
   });
 
   it('должен показать кнопку "Попробовать снова" при ошибке', async () => {
@@ -195,10 +216,8 @@ describe('MiniApp Integration', () => {
 
     // Mock window.location.reload
     const reloadMock = vi.fn();
-    Object.defineProperty(window.location, 'reload', {
-      configurable: true,
-      value: reloadMock,
-    });
+    delete (window.location as any).reload;
+    (window.location as any).reload = reloadMock;
 
     // Кликаем на кнопку
     await user.click(retryButton);
