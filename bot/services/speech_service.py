@@ -9,6 +9,9 @@
 ✅ Текущая сигнатура: transcribe_voice(voice_file_bytes: bytes, language: str = "ru")
 """
 
+import subprocess
+import tempfile
+from pathlib import Path
 from typing import Optional
 
 from loguru import logger
@@ -39,7 +42,7 @@ class SpeechRecognitionService:
         Распознать речь из голосового сообщения через Yandex SpeechKit.
 
         Args:
-            voice_file_bytes: Байты аудио файла (.ogg, .mp3, .wav).
+            voice_file_bytes: Байты аудио файла (.webm, .ogg, .mp3, .wav).
             language: Язык распознавания (ru/en).
 
         Returns:
@@ -48,11 +51,10 @@ class SpeechRecognitionService:
         try:
             logger.info(f"🎤 Распознавание речи через Yandex SpeechKit (язык: {language})")
 
+            # Конвертируем webm в oggopus через ffmpeg (если нужно)
+            audio_data = await self._convert_audio_if_needed(voice_file_bytes)
+
             # Определяем формат аудио
-            # Браузер записывает в формате WebM/Opus (audio/webm)
-            # Yandex SpeechKit поддерживает: oggopus, lpcm, mp3
-            # WebM содержит Opus кодек, попробуем отправить как oggopus
-            # Yandex может принять webm с opus кодеком как oggopus
             audio_format = "oggopus"
 
             # Язык в формате Yandex Cloud (ru-RU, en-US)
@@ -60,7 +62,7 @@ class SpeechRecognitionService:
 
             # Распознаем речь через Yandex SpeechKit
             recognized_text = await self.yandex_service.recognize_speech(
-                audio_data=voice_file_bytes, audio_format=audio_format, language=yandex_language
+                audio_data=audio_data, audio_format=audio_format, language=yandex_language
             )
 
             if not recognized_text:
@@ -73,6 +75,82 @@ class SpeechRecognitionService:
         except Exception as e:
             logger.error(f"❌ Ошибка распознавания речи (Yandex SpeechKit): {e}")
             return None
+
+    async def _convert_audio_if_needed(self, audio_bytes: bytes) -> bytes:
+        """
+        Конвертирует webm в oggopus через ffmpeg, если нужно.
+
+        Args:
+            audio_bytes: Исходные байты аудио
+
+        Returns:
+            bytes: Конвертированные байты (oggopus) или исходные, если конвертация не нужна
+        """
+        try:
+            # Проверяем, является ли это webm (первые байты: 1a 45 df a3)
+            if audio_bytes[:4] == b"\x1a\x45\xdf\xa3":  # WebM signature
+                logger.info("🔄 Конвертация WebM -> OGG Opus через ffmpeg...")
+
+                # Создаем временные файлы
+                with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as input_file:
+                    input_file.write(audio_bytes)
+                    input_path = input_file.name
+
+                with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as output_file:
+                    output_path = output_file.name
+
+                try:
+                    # Конвертируем через ffmpeg
+                    # -i input.webm -acodec libopus -ar 48000 -ac 1 output.ogg
+                    result = subprocess.run(
+                        [
+                            "ffmpeg",
+                            "-i",
+                            input_path,
+                            "-acodec",
+                            "libopus",
+                            "-ar",
+                            "48000",
+                            "-ac",
+                            "1",
+                            "-y",  # Перезаписать выходной файл
+                            output_path,
+                        ],
+                        capture_output=True,
+                        timeout=10,
+                        check=True,
+                    )
+
+                    # Читаем конвертированный файл
+                    with open(output_path, "rb") as f:
+                        converted_bytes = f.read()
+
+                    logger.info(
+                        f"✅ Конвертация успешна: {len(audio_bytes)} -> {len(converted_bytes)} байт"
+                    )
+                    return converted_bytes
+
+                except subprocess.CalledProcessError as e:
+                    logger.error(f"❌ Ошибка ffmpeg: {e.stderr.decode() if e.stderr else str(e)}")
+                    # Возвращаем исходные байты, попробуем отправить как есть
+                    return audio_bytes
+                except subprocess.TimeoutExpired:
+                    logger.error("❌ ffmpeg timeout - конвертация заняла слишком много времени")
+                    return audio_bytes
+                finally:
+                    # Удаляем временные файлы
+                    try:
+                        Path(input_path).unlink(missing_ok=True)
+                        Path(output_path).unlink(missing_ok=True)
+                    except Exception:
+                        pass
+
+            # Если не webm, возвращаем как есть
+            return audio_bytes
+
+        except Exception as e:
+            logger.warning(f"⚠️ Ошибка при проверке формата аудио: {e}, отправляем как есть")
+            return audio_bytes
 
 
 # Alias for backward compatibility

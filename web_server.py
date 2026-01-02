@@ -206,7 +206,12 @@ class PandaPalBotServer:
                 )
 
                 # SPA Fallback - все неизвестные роуты возвращают index.html
+                # НО исключаем /api, /assets, /webhook, /health
                 async def spa_fallback(request: web.Request) -> web.Response:
+                    path = request.path
+                    # Исключаем API, assets, webhook, health из SPA fallback
+                    if path.startswith(("/api/", "/assets/", "/webhook", "/health")):
+                        return web.Response(status=404, text="Not Found")
                     return web.FileResponse(frontend_dist / "index.html")
 
                 # Регистрируем fallback ПОСЛЕДНИМ (после всех API и static routes)
