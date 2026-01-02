@@ -275,7 +275,23 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
     }
     """
     try:
-        data = await request.json()
+        # Логируем размер запроса для отладки
+        content_length = request.headers.get("Content-Length")
+        if content_length:
+            logger.info(f"📊 Размер входящего запроса: {content_length} байт")
+
+        try:
+            data = await request.json()
+        except Exception as json_error:
+            logger.error(f"❌ Ошибка парсинга JSON: {json_error}", exc_info=True)
+            # Если ошибка "Content Too Large", это значит запрос слишком большой
+            if "Content Too Large" in str(json_error) or "too large" in str(json_error).lower():
+                return web.json_response(
+                    {"error": "Запрос слишком большой. Попробуй уменьшить размер фото или аудио."},
+                    status=413,
+                )
+            raise
+
         telegram_id = data.get("telegram_id")
         message = data.get("message", "")
         photo_base64 = data.get("photo_base64")
@@ -367,18 +383,25 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             if not user:
                 return web.json_response({"error": "User not found"}, status=404)
 
-            # Загружаем историю для контекста
-            history = history_service.get_formatted_history_for_ai(telegram_id, limit=20)
+            # Загружаем историю для контекста (ограничиваем размер)
+            history = history_service.get_formatted_history_for_ai(
+                telegram_id, limit=10
+            )  # Уменьшили до 10
+            history_size = sum(len(str(msg)) for msg in history)
+            logger.info(
+                f"📊 Размер истории чата: {history_size} символов, сообщений: {len(history)}"
+            )
 
             # Генерируем ответ AI
             ai_service = get_ai_service()
             ai_response = await ai_service.generate_response(
                 user_message=user_message, chat_history=history, user_age=user.age
             )
+            logger.info(f"📊 Размер ответа AI: {len(ai_response)} символов")
 
             # Ограничиваем размер ответа ДО сохранения в историю
-            # Максимальный размер ответа: ~6000 символов (безопасный лимит для JSON + история)
-            MAX_RESPONSE_LENGTH = 6000
+            # Максимальный размер ответа: ~4000 символов (безопасный лимит для JSON)
+            MAX_RESPONSE_LENGTH = 4000
             full_response = ai_response
             if len(ai_response) > MAX_RESPONSE_LENGTH:
                 logger.warning(
@@ -393,7 +416,22 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             history_service.add_message(telegram_id, user_message, "user")
             history_service.add_message(telegram_id, full_response, "ai")  # Сохраняем полный ответ
 
-            return web.json_response({"success": True, "response": ai_response})
+            # Проверяем размер JSON перед отправкой
+            import json as json_lib
+
+            response_data = {"success": True, "response": ai_response}
+            json_str = json_lib.dumps(response_data, ensure_ascii=False)
+            json_size = len(json_str.encode("utf-8"))
+
+            logger.info(f"📊 Размер JSON ответа: {json_size} байт ({len(json_str)} символов)")
+
+            # Если JSON слишком большой, обрезаем еще больше
+            if json_size > 50000:  # ~50KB лимит
+                logger.warning(f"⚠️ JSON слишком большой ({json_size} байт), обрезаем ответ")
+                ai_response = ai_response[:2000] + "\n\n... (ответ обрезан)"
+                response_data = {"success": True, "response": ai_response}
+
+            return web.json_response(response_data)
 
     except Exception as e:
         logger.error(f"❌ Ошибка AI чата: {e}", exc_info=True)
