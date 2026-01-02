@@ -4,12 +4,12 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MiniApp } from '../MiniApp';
 import * as api from '../services/api';
 import { createTelegramServiceMock, createMockInitData } from '../test/mocks/telegram.mock';
-import { mockUserProfile, mockChatHistory, mockApiResponses } from '../test/mocks/api.mock';
+import { mockUserProfile, mockApiResponses } from '../test/mocks/api.mock';
 
 // Mock API с реалистичными ответами
 vi.mock('../services/api', () => ({

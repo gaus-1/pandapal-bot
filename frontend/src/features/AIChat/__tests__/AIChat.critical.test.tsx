@@ -10,7 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AIChat } from '../AIChat';
 import * as api from '../../../services/api';
 import { createTelegramServiceMock } from '../../../test/mocks/telegram.mock';
-import { mockUserProfile, mockApiResponses, mockChatHistory } from '../../../test/mocks/api.mock';
+import { mockUserProfile, mockApiResponses } from '../../../test/mocks/api.mock';
 
 // Используем vi.hoisted для правильного hoisting
 const telegramMock = vi.hoisted(() => createTelegramServiceMock());
@@ -32,11 +32,6 @@ describe('AIChat - Критические пути', () => {
       defaultOptions: {
         queries: { retry: false },
         mutations: { retry: false },
-      },
-      logger: {
-        log: () => {},
-        warn: () => {},
-        error: () => {},
       },
     });
 
@@ -179,12 +174,15 @@ describe('AIChat - Критические пути', () => {
         state: 'inactive',
       };
 
-      global.MediaRecorder = vi.fn(() => mockMediaRecorder) as any;
-      global.navigator.mediaDevices = {
-        getUserMedia: vi.fn(() => Promise.resolve({
-          getTracks: () => [{ stop: vi.fn() }],
-        } as any)),
-      } as any;
+      window.MediaRecorder = vi.fn(() => mockMediaRecorder) as any;
+      Object.defineProperty(window.navigator, 'mediaDevices', {
+        writable: true,
+        value: {
+          getUserMedia: vi.fn(() => Promise.resolve({
+            getTracks: () => [{ stop: vi.fn() }],
+          } as any)),
+        },
+      });
 
       render(<AIChat user={mockUserProfile} />, { wrapper });
 
@@ -198,7 +196,7 @@ describe('AIChat - Критические пути', () => {
 
       // Проверяем что начали запись
       await waitFor(() => {
-        expect(global.navigator.mediaDevices.getUserMedia).toHaveBeenCalled();
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalled();
       }, { timeout: 1000 });
 
       // Останавливаем запись

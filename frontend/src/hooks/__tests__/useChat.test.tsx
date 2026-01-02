@@ -35,11 +35,6 @@ describe('useChat', () => {
         queries: { retry: false },
         mutations: { retry: false },
       },
-      logger: {
-        log: () => {},
-        warn: () => {},
-        error: () => {},
-      },
     });
 
     vi.clearAllMocks();
