@@ -151,12 +151,68 @@ async def init_database() -> None:
                         )
                     alembic_cfg.set_main_option("sqlalchemy.url", database_url)
 
-                logger.info("🔄 Применение миграций Alembic...")
-                command.upgrade(alembic_cfg, "head")
-                logger.info("✅ Миграции Alembic применены успешно")
-                migration_applied = True
+                # Проверяем, нужна ли миграция premium
+                from sqlalchemy import inspect, text
+
+                inspector = inspect(engine)
+                tables = inspector.get_table_names()
+                needs_premium_migration = False
+
+                # Проверяем наличие premium_until в users
+                if "users" in tables:
+                    columns = [col["name"] for col in inspector.get_columns("users")]
+                    if "premium_until" not in columns:
+                        needs_premium_migration = True
+                        logger.info("📋 Обнаружено: колонка premium_until отсутствует")
+
+                # Проверяем наличие таблицы subscriptions
+                if "subscriptions" not in tables:
+                    needs_premium_migration = True
+                    logger.info("📋 Обнаружено: таблица subscriptions отсутствует")
+
+                if needs_premium_migration:
+                    # Применяем SQL скрипт напрямую (надежнее чем Alembic для существующей БД)
+                    logger.info("🔄 Применение миграции premium через SQL...")
+                    try:
+                        from pathlib import Path
+
+                        # Путь относительно корня проекта
+                        project_root = Path(__file__).parent.parent
+                        sql_file = project_root / "sql" / "03_add_premium_subscriptions.sql"
+                        if sql_file.exists():
+                            with engine.connect() as conn:
+                                sql_content = sql_file.read_text(encoding="utf-8")
+                                # Выполняем SQL построчно для лучшей обработки ошибок
+                                for statement in sql_content.split(";"):
+                                    statement = statement.strip()
+                                    if statement and not statement.startswith("--"):
+                                        try:
+                                            conn.execute(text(statement))
+                                        except Exception as sql_err:
+                                            # Игнорируем ошибки "already exists" - это нормально
+                                            if "already exists" not in str(sql_err).lower():
+                                                logger.warning(
+                                                    f"⚠️ SQL ошибка (игнорируем): {sql_err}"
+                                                )
+                                conn.commit()
+                            logger.info("✅ SQL миграция premium применена успешно")
+                            migration_applied = True
+                        else:
+                            logger.warning(f"⚠️ SQL файл не найден: {sql_file}")
+                    except Exception as sql_err:
+                        logger.error(f"❌ Не удалось применить SQL миграцию: {sql_err}")
+                else:
+                    # Premium миграция не нужна, пробуем Alembic для других миграций
+                    logger.info("🔄 Применение миграций Alembic...")
+                    try:
+                        command.upgrade(alembic_cfg, "head")
+                        logger.info("✅ Миграции Alembic применены успешно")
+                        migration_applied = True
+                    except Exception as alembic_err:
+                        logger.warning(f"⚠️ Alembic миграция не удалась: {alembic_err}")
+                        migration_applied = False
             except Exception as e:
-                logger.warning(f"⚠️ Alembic миграция не удалась: {e}")
+                logger.warning(f"⚠️ Ошибка при проверке миграций: {e}")
                 logger.info("🔄 Пробуем применить SQL скрипт напрямую...")
 
                 # Fallback: применяем SQL скрипт напрямую
