@@ -324,7 +324,10 @@ async def security_middleware(app: web.Application, handler):
 
         # Добавляем security headers
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
+        # X-Frame-Options: разрешаем встраивание для Telegram (нужно для Mini App на ПК)
+        # Используем SAMEORIGIN вместо DENY, чтобы Telegram Web мог встроить сайт в iframe
+        # Дополнительная защита через CSP frame-ancestors
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
@@ -334,9 +337,32 @@ async def security_middleware(app: web.Application, handler):
                 "max-age=31536000; includeSubDomains; preload"
             )
 
-        # Content-Security-Policy для API responses
+        # Content-Security-Policy с разрешением встраивания для Telegram
+        # frame-ancestors контролирует, кто может встроить страницу в iframe
+        # Разрешаем только Telegram домены для Mini App
+        csp_frame_ancestors = (
+            "frame-ancestors 'self' https://web.telegram.org https://telegram.org;"
+        )
+
+        # Для API endpoints - более строгий CSP
         if request.path.startswith("/api/"):
-            response.headers["Content-Security-Policy"] = "default-src 'self'"
+            response.headers["Content-Security-Policy"] = (
+                f"default-src 'self'; {csp_frame_ancestors}"
+            )
+        else:
+            # Для frontend (Mini App) - разрешаем встраивание в Telegram
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; "
+                "script-src 'self' https://telegram.org https://web.telegram.org; "
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                "font-src 'self' https://fonts.gstatic.com; "
+                "img-src 'self' data: https:; "
+                f"connect-src 'self' https://api.pandapal.ru; "
+                f"{csp_frame_ancestors} "
+                "base-uri 'self'; "
+                "form-action 'self'; "
+                "upgrade-insecure-requests;"
+            )
 
         # Request ID для tracing
         response.headers["X-Request-ID"] = request_id
