@@ -114,12 +114,10 @@ export function AIChat({ user }: AIChatProps) {
       // Конвертируем в base64
       const reader = new FileReader();
       reader.onload = async () => {
-        // const base64 = reader.result as string; // TODO: использовать для отправки
-
-        // Отправляем на backend (TODO: добавить endpoint для фото)
+        // Пока Vision API не готов, отправляем текстовое описание
         const response = await sendAIMessage(
           user.telegram_id,
-          `Пользователь отправил фото. Анализирую изображение...`
+          `Я отправил фото. Можешь помочь разобраться с задачей?`
         );
 
         const aiMessage: Message = {
@@ -171,10 +169,10 @@ export function AIChat({ user }: AIChatProps) {
         setIsLoading(true);
 
         try {
-          // TODO: Отправить на backend для распознавания речи
+          // Пока Speech API не готов, отправляем текстовое сообщение
           const response = await sendAIMessage(
             user.telegram_id,
-            'Пользователь отправил голосовое сообщение. Обрабатываю...'
+            'Я записал голосовое сообщение. Можешь помочь с вопросом?'
           );
 
           const aiMessage: Message = {
@@ -218,16 +216,16 @@ export function AIChat({ user }: AIChatProps) {
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-blue-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
-      {/* Заголовок */}
-      <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg p-4">
-        <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="PandaPal" className="w-12 h-12 rounded-full bg-white p-1 shadow-lg" />
-          <div>
-            <h1 className="text-2xl font-bold text-white drop-shadow-md">
+      {/* Компактный заголовок */}
+      <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg p-3">
+        <div className="flex items-center gap-2">
+          <img src="/logo.png" alt="PandaPal" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white p-0.5 shadow-lg" />
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold text-white drop-shadow-md truncate">
               PandaPal AI
             </h1>
-            <p className="text-sm text-blue-100">
-              Привет, {user.first_name}! Я помогу с учёбой 🎓
+            <p className="text-xs text-blue-100 truncate">
+              Привет, {user.first_name}! 🎓
             </p>
           </div>
         </div>
@@ -290,8 +288,8 @@ export function AIChat({ user }: AIChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Поле ввода */}
-      <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 p-4 shadow-lg">
+      {/* Поле ввода - адаптивное */}
+      <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 p-2 sm:p-3 shadow-lg">
         {/* Hidden file input */}
         <input
           ref={fileInputRef}
@@ -301,59 +299,59 @@ export function AIChat({ user }: AIChatProps) {
           className="hidden"
         />
 
-        <div className="flex items-end gap-3">
-          {/* Кнопка фото */}
+        <div className="flex items-end gap-2">
+          {/* Кнопка фото - компактная */}
           <button
             onClick={handlePhotoClick}
             disabled={isLoading || isRecording}
-            className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-xl transition-all active:scale-95 shadow-md"
+            className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-lg transition-all active:scale-95 shadow-md"
             title="Отправить фото"
           >
-            <span className="text-2xl">📷</span>
+            <span className="text-xl sm:text-2xl">📷</span>
           </button>
 
-          {/* Поле ввода текста */}
+          {/* Поле ввода текста - БОЛЬШЕ */}
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Задай вопрос..."
             disabled={isLoading || isRecording}
-            className="flex-1 resize-none rounded-2xl px-5 py-4 bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-500 border-2 border-gray-200 dark:border-slate-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 disabled:opacity-50 transition-all font-medium"
+            className="flex-1 resize-none rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-500 text-sm sm:text-base border-2 border-gray-200 dark:border-slate-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 disabled:opacity-50 transition-all font-medium"
             rows={1}
             style={{ maxHeight: '120px' }}
           />
 
-          {/* Кнопка аудио / отправки */}
+          {/* Кнопка аудио / отправки - компактная */}
           {isRecording ? (
             <button
               onClick={handleVoiceStop}
-              className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-pink-600 text-white flex items-center justify-center animate-pulse shadow-xl"
+              className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-500 to-pink-600 text-white flex items-center justify-center animate-pulse shadow-lg"
               title="Остановить запись"
             >
-              <span className="text-2xl">⏹️</span>
+              <span className="text-xl sm:text-2xl">⏹️</span>
             </button>
           ) : inputText.trim() ? (
             <button
               onClick={handleSend}
               disabled={isLoading}
-              className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 hover:shadow-xl shadow-md"
+              className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 hover:shadow-lg shadow-md"
               title="Отправить сообщение"
             >
               {isLoading ? (
-                <div className="animate-spin text-2xl">⏳</div>
+                <div className="animate-spin text-xl sm:text-2xl">⏳</div>
               ) : (
-                <span className="text-2xl">▶️</span>
+                <span className="text-xl sm:text-2xl">▶️</span>
               )}
             </button>
           ) : (
             <button
               onClick={handleVoiceStart}
               disabled={isLoading}
-              className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-xl shadow-md"
+              className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-lg shadow-md"
               title="Записать голосовое сообщение"
             >
-              <span className="text-2xl">🎤</span>
+              <span className="text-xl sm:text-2xl">🎤</span>
             </button>
           )}
         </div>
