@@ -224,6 +224,13 @@ export class TelegramService {
   }
 
   /**
+   * Проверить, запущено ли приложение внутри Telegram
+   */
+  isTelegramWebApp(): boolean {
+    return this.webApp.initData !== '';
+  }
+
+  /**
    * Получить цветовую схему
    */
   getColorScheme(): 'light' | 'dark' {
