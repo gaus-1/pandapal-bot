@@ -57,6 +57,40 @@ class YandexCloudService:
 
         logger.info(f"✅ YandexCloudService инициализирован: модель {self.gpt_model}")
 
+    def _extract_text_from_line(self, line: Dict[str, Any]) -> str:
+        """
+        Извлечь текст из строки Vision API (уменьшает вложенность).
+
+        Args:
+            line: Строка из Vision API response
+
+        Returns:
+            str: Распознанный текст или пустая строка
+        """
+        # СПОСОБ 1: Прямой текст (line["text"])
+        line_text = line.get("text", "").strip()
+        if line_text:
+            return line_text
+
+        # СПОСОБ 2: Если текста нет, собираем из words
+        if "words" in line:
+            words = []
+            for word in line.get("words", []):
+                word_text = word.get("text", "").strip()
+                if word_text:
+                    words.append(word_text)
+            if words:
+                return " ".join(words)
+
+        # СПОСОБ 3: Если и words нет, проверяем alternatives
+        if "alternatives" in line:
+            for alt in line.get("alternatives", []):
+                alt_text = alt.get("text", "").strip()
+                if alt_text:
+                    return alt_text
+
+        return ""
+
     # ============================================================================
     # YANDEXGPT - ТЕКСТОВЫЕ ОТВЕТЫ
     # ============================================================================
@@ -314,27 +348,7 @@ class YandexCloudService:
                                     )
 
                                 for line_idx, line in enumerate(lines):
-                                    # СПОСОБ 1: Прямой текст (line["text"])
-                                    line_text = line.get("text", "").strip()
-
-                                    # СПОСОБ 2: Если текста нет, собираем из words
-                                    if not line_text and "words" in line:
-                                        words = []
-                                        for word in line.get("words", []):
-                                            word_text = word.get("text", "").strip()
-                                            if word_text:
-                                                words.append(word_text)
-                                        if words:
-                                            line_text = " ".join(words)
-
-                                    # СПОСОБ 3: Если и words нет, проверяем alternatives
-                                    if not line_text and "alternatives" in line:
-                                        for alt in line.get("alternatives", []):
-                                            alt_text = alt.get("text", "").strip()
-                                            if alt_text:
-                                                line_text = alt_text
-                                                break
-
+                                    line_text = self._extract_text_from_line(line)
                                     if line_text:
                                         all_lines.append(line_text)
                                         logger.info(f"    ✅ Строка {line_idx}: {line_text[:80]}")
