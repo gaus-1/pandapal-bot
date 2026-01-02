@@ -7,7 +7,15 @@ import base64
 
 from aiohttp import web
 from loguru import logger
+from pydantic import ValidationError
 
+from bot.api.validators import (
+    AIChatRequest,
+    AuthRequest,
+    UpdateUserRequest,
+    validate_limit,
+    validate_telegram_id,
+)
 from bot.database import get_db
 from bot.security.telegram_auth import TelegramWebAppAuth
 from bot.services import (
@@ -33,7 +41,18 @@ async def miniapp_auth(request: web.Request) -> web.Response:
     """
     try:
         data = await request.json()
-        init_data = data.get("initData")
+
+        # Валидация входных данных
+        try:
+            validated = AuthRequest(**data)
+        except ValidationError as e:
+            logger.warning(f"⚠️ Invalid auth request: {e.errors()}")
+            return web.json_response(
+                {"error": "Invalid request data", "details": e.errors()},
+                status=400,
+            )
+
+        init_data = validated.initData
 
         logger.info(
             f"📡 Получен запрос аутентификации. initData length: {len(init_data) if init_data else 0}"
@@ -105,7 +124,12 @@ async def miniapp_get_user(request: web.Request) -> web.Response:
     GET /api/miniapp/user/{telegram_id}
     """
     try:
-        telegram_id = int(request.match_info["telegram_id"])
+        # Безопасная валидация telegram_id
+        try:
+            telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+        except ValueError as e:
+            logger.warning(f"⚠️ Invalid telegram_id: {e}")
+            return web.json_response({"error": str(e)}, status=400)
 
         with get_db() as db:
             user_service = UserService(db)
@@ -136,11 +160,26 @@ async def miniapp_update_user(request: web.Request) -> web.Response:
     Body: { "age": 10, "grade": 4 }
     """
     try:
-        telegram_id = int(request.match_info["telegram_id"])
-        data = await request.json()
+        # Безопасная валидация telegram_id
+        try:
+            telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+        except ValueError as e:
+            logger.warning(f"⚠️ Invalid telegram_id: {e}")
+            return web.json_response({"error": str(e)}, status=400)
 
-        age = data.get("age")
-        grade = data.get("grade")
+        # Валидация входных данных
+        data = await request.json()
+        try:
+            validated = UpdateUserRequest(**data)
+        except ValidationError as e:
+            logger.warning(f"⚠️ Invalid update user request: {e.errors()}")
+            return web.json_response(
+                {"error": "Invalid request data", "details": e.errors()},
+                status=400,
+            )
+
+        age = validated.age
+        grade = validated.grade
 
         with get_db() as db:
             user_service = UserService(db)
@@ -170,7 +209,12 @@ async def miniapp_get_progress(request: web.Request) -> web.Response:
     GET /api/miniapp/progress/{telegram_id}
     """
     try:
-        telegram_id = int(request.match_info["telegram_id"])
+        # Безопасная валидация telegram_id
+        try:
+            telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+        except ValueError as e:
+            logger.warning(f"⚠️ Invalid telegram_id: {e}")
+            return web.json_response({"error": str(e)}, status=400)
 
         with get_db() as db:
             user_service = UserService(db)
@@ -196,7 +240,12 @@ async def miniapp_get_achievements(request: web.Request) -> web.Response:
     GET /api/miniapp/achievements/{telegram_id}
     """
     try:
-        telegram_id = int(request.match_info["telegram_id"])
+        # Безопасная валидация telegram_id
+        try:
+            telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+        except ValueError as e:
+            logger.warning(f"⚠️ Invalid telegram_id: {e}")
+            return web.json_response({"error": str(e)}, status=400)
 
         # Временные данные (в будущем из БД)
         achievements = [
@@ -238,7 +287,12 @@ async def miniapp_get_dashboard(request: web.Request) -> web.Response:
     GET /api/miniapp/dashboard/{telegram_id}
     """
     try:
-        telegram_id = int(request.match_info["telegram_id"])
+        # Безопасная валидация telegram_id
+        try:
+            telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+        except ValueError as e:
+            logger.warning(f"⚠️ Invalid telegram_id: {e}")
+            return web.json_response({"error": str(e)}, status=400)
 
         with get_db() as db:
             user_service = UserService(db)
@@ -293,13 +347,20 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 )
             raise
 
-        telegram_id = data.get("telegram_id")
-        message = data.get("message", "")
-        photo_base64 = data.get("photo_base64")
-        audio_base64 = data.get("audio_base64")
+        # Валидация входных данных
+        try:
+            validated = AIChatRequest(**data)
+        except ValidationError as e:
+            logger.warning(f"⚠️ Invalid AI chat request: {e.errors()}")
+            return web.json_response(
+                {"error": "Invalid request data", "details": e.errors()},
+                status=400,
+            )
 
-        if not telegram_id:
-            return web.json_response({"error": "telegram_id required"}, status=400)
+        telegram_id = validated.telegram_id
+        message = validated.message or ""
+        photo_base64 = validated.photo_base64
+        audio_base64 = validated.audio_base64
 
         user_message = message
 
@@ -446,8 +507,15 @@ async def miniapp_get_chat_history(request: web.Request) -> web.Response:
     GET /api/miniapp/chat/history/{telegram_id}?limit=50
     """
     try:
-        telegram_id = int(request.match_info["telegram_id"])
-        limit = int(request.query.get("limit", "50"))
+        # Безопасная валидация telegram_id
+        try:
+            telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+        except ValueError as e:
+            logger.warning(f"⚠️ Invalid telegram_id: {e}")
+            return web.json_response({"error": str(e)}, status=400)
+
+        # Безопасная валидация limit
+        limit = validate_limit(request.query.get("limit"), default=50, max_limit=100)
 
         with get_db() as db:
             history_service = ChatHistoryService(db)
