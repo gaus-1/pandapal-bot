@@ -47,10 +47,34 @@ function MiniAppContent() {
     // Проверяем что initData доступен
     const initData = telegram.getInitData();
     if (!initData) {
-      // Если нет initData, но мы в MiniApp - значит что-то не так
-      // Но не показываем ошибку, просто не инициализируем
-      console.warn('⚠️ initData недоступен, но приложение в MiniApp режиме');
-      useAppStore.getState().setIsLoading(false);
+      // Для web.telegram.org initData может появиться позже
+      // Ждем немного и проверяем снова
+      console.warn('⚠️ initData недоступен, ожидаем...');
+
+      const checkInitData = () => {
+        const currentInitData = telegram.getInitData();
+        if (currentInitData) {
+          console.log('✅ initData появился, продолжаем инициализацию');
+          authenticate();
+        } else {
+          // Если через 2 секунды все еще нет - показываем ошибку только если точно в Telegram
+          const isTelegramUA = typeof window !== 'undefined' &&
+            (window.navigator.userAgent.includes('Telegram') ||
+             window.location.hostname.includes('telegram.org'));
+
+          if (isTelegramUA) {
+            // В Telegram, но нет initData - возможно проблема с ботом
+            console.error('❌ initData не появился в Telegram');
+            useAppStore.getState().setError(
+              'Не удалось загрузить данные. Попробуйте перезапустить Mini App через кнопку в боте.'
+            );
+          }
+          useAppStore.getState().setIsLoading(false);
+        }
+      };
+
+      // Проверяем сразу и через 1 секунду
+      setTimeout(checkInitData, 1000);
       return;
     }
 

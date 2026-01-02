@@ -269,6 +269,9 @@ class PandaPalBotServer:
                         or path == "/health"
                         or path.startswith("/health/")
                     ):
+                        # Логируем 404 для assets для отладки
+                        if path.startswith("/assets/"):
+                            logger.warning(f"⚠️ Assets файл не найден: {path}")
                         return web.Response(status=404, text="Not Found")
                     return web.FileResponse(frontend_dist / "index.html")
 
