@@ -9,10 +9,9 @@ import { authenticateUser, type UserProfile } from './services/api';
 
 // Импорт экранов
 import { AIChat } from './features/AIChat/AIChat';
-import { LocationScreen } from './features/Location/LocationScreen';
 import { EmergencyScreen } from './features/Emergency/EmergencyScreen';
 
-type Screen = 'ai-chat' | 'location' | 'emergency';
+type Screen = 'ai-chat' | 'emergency';
 
 export function MiniApp() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('ai-chat');
@@ -114,24 +113,17 @@ export function MiniApp() {
       {/* Основной контент */}
       <div className="flex-1 overflow-y-auto">
         {currentScreen === 'ai-chat' && <AIChat user={user} />}
-        {currentScreen === 'location' && <LocationScreen user={user} />}
         {currentScreen === 'emergency' && <EmergencyScreen />}
       </div>
 
-      {/* Нижняя навигация - ТОЛЬКО безопасность */}
+      {/* Нижняя навигация - только AI и SOS */}
       <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20">
-        <div className="grid grid-cols-3 gap-2 p-2">
+        <div className="grid grid-cols-2 gap-2 p-2">
           <NavButton
             icon="💬"
             label="AI Чат"
             isActive={currentScreen === 'ai-chat'}
             onClick={() => navigateTo('ai-chat')}
-          />
-          <NavButton
-            icon="📍"
-            label="Где я?"
-            isActive={currentScreen === 'location'}
-            onClick={() => navigateTo('location')}
           />
           <NavButton
             icon="🚨"
