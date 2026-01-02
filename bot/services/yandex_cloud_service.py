@@ -149,8 +149,16 @@ class YandexCloudService:
                 "topic": "general",  # Общая тема
                 "lang": language,
                 "format": audio_format,
-                "sampleRateHertz": "48000" if audio_format == "oggopus" else "16000",
             }
+
+            # sampleRateHertz нужен только для определенных форматов
+            if audio_format == "lpcm":
+                params["sampleRateHertz"] = "16000"
+            elif audio_format == "oggopus":
+                # Для webm с opus кодеком пробуем без sampleRateHertz
+                # Если не сработает, добавим обратно
+                # params["sampleRateHertz"] = "48000"  # Временно отключено для webm
+                pass
 
             # Отправляем аудио
             response = requests.post(
