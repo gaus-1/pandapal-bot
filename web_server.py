@@ -177,6 +177,34 @@ class PandaPalBotServer:
             # Регистрируем маршруты ДО setup_application
             self.app.router.add_get("/health", health_check)
 
+            # ВАЖНО: Регистрируем API роуты ПЕРЕД frontend (чтобы они имели приоритет)
+            # Интегрируем Mini App API
+            try:
+                from bot.api.miniapp_endpoints import setup_miniapp_routes
+
+                setup_miniapp_routes(self.app)
+                logger.info("🎮 Mini App API routes зарегистрированы")
+            except ImportError as e:
+                logger.warning(f"⚠️ Не удалось загрузить Mini App API: {e}")
+
+            # Интегрируем Premium API
+            try:
+                from bot.api.premium_endpoints import setup_premium_routes
+
+                setup_premium_routes(self.app)
+                logger.info("💰 Premium API routes зарегистрированы")
+            except ImportError as e:
+                logger.warning(f"⚠️ Не удалось загрузить Premium API: {e}")
+
+            # Интегрируем Location API
+            try:
+                from bot.api.location_endpoints import setup_location_routes
+
+                setup_location_routes(self.app)
+                logger.info("📍 Location API routes зарегистрированы")
+            except ImportError as e:
+                logger.warning(f"⚠️ Не удалось загрузить Location API: {e}")
+
             # Настраиваем раздачу статики frontend
             frontend_dist = Path(__file__).parent / "frontend" / "dist"
             if frontend_dist.exists():
@@ -198,10 +226,9 @@ class PandaPalBotServer:
                         )
 
                 # Раздаем папку assets ПЕРЕД SPA fallback (важен порядок!)
-                # Используем более специфичный паттерн для assets
                 assets_dir = frontend_dist / "assets"
                 if assets_dir.exists():
-                    # Регистрируем каждый файл из assets явно через статику
+                    # Регистрируем assets через add_static - это создаст роуты для всех файлов
                     self.app.router.add_static("/assets", assets_dir, name="assets")
                     logger.info(f"✅ Assets директория зарегистрирована: {assets_dir}")
 
@@ -215,13 +242,21 @@ class PandaPalBotServer:
                 async def spa_fallback(request: web.Request) -> web.Response:
                     path = request.path
                     # Исключаем API, assets, webhook, health из SPA fallback
-                    if path.startswith(("/api/", "/assets/", "/webhook", "/health")):
+                    # Проверяем ТОЧНО, чтобы не перехватывать assets
+                    if (
+                        path.startswith("/api/")
+                        or path.startswith("/assets/")
+                        or path == "/webhook"
+                        or path.startswith("/webhook/")
+                        or path == "/health"
+                        or path.startswith("/health/")
+                    ):
                         return web.Response(status=404, text="Not Found")
                     return web.FileResponse(frontend_dist / "index.html")
 
                 # Регистрируем fallback ПОСЛЕДНИМ (после всех API и static routes)
-                # Используем более специфичный паттерн, чтобы не перехватывать /assets
-                self.app.router.add_get("/{tail:(?!assets|api|webhook|health).*}", spa_fallback)
+                # Используем простой паттерн - проверка пути внутри функции
+                self.app.router.add_get("/{tail:.*}", spa_fallback)
 
                 logger.info(f"✅ Frontend настроен: {frontend_dist}")
             else:
@@ -240,33 +275,6 @@ class PandaPalBotServer:
                 logger.info("📊 Метрики интегрированы в веб-сервер")
             except ImportError:
                 logger.debug("📊 Метрики недоступны (опционально)")
-
-            # Интегрируем Mini App API
-            try:
-                from bot.api.miniapp_endpoints import setup_miniapp_routes
-
-                setup_miniapp_routes(self.app)
-                logger.info("🎮 Mini App API endpoints зарегистрированы")
-            except ImportError as e:
-                logger.warning(f"⚠️ Не удалось загрузить Mini App API: {e}")
-
-            # Интегрируем Premium API
-            try:
-                from bot.api.premium_endpoints import setup_premium_routes
-
-                setup_premium_routes(self.app)
-                logger.info("💰 Premium API endpoints зарегистрированы")
-            except ImportError as e:
-                logger.warning(f"⚠️ Не удалось загрузить Premium API: {e}")
-
-            # Интегрируем Location API
-            try:
-                from bot.api.location_endpoints import setup_location_routes
-
-                setup_location_routes(self.app)
-                logger.info("📍 Location API endpoints зарегистрированы")
-            except ImportError as e:
-                logger.warning(f"⚠️ Не удалось загрузить Location API: {e}")
 
             # Настраиваем webhook handler ПОСЛЕ регистрации всех маршрутов
             # Явно указываем путь /webhook для Railway
