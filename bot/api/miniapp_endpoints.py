@@ -93,7 +93,8 @@ async def miniapp_auth(request: web.Request) -> web.Response:
         )
 
     except Exception as e:
-        logger.error(f"❌ Ошибка аутентификации Mini App: {e}", exc_info=True)
+        # Используем % для логирования чтобы избежать проблем с фигурными скобками в SQL
+        logger.error("❌ Ошибка аутентификации Mini App: %s", str(e), exc_info=True)
         return web.json_response({"error": f"Server error: {str(e)}"}, status=500)
 
 

@@ -126,7 +126,8 @@ async def handle_successful_payment(request: web.Request) -> web.Response:
         logger.error(f"❌ Ошибка валидации: {e}")
         return web.json_response({"error": str(e)}, status=400)
     except Exception as e:
-        logger.error(f"❌ Ошибка обработки оплаты: {e}", exc_info=True)
+        # Используем % для логирования чтобы избежать проблем с фигурными скобками в SQL
+        logger.error("❌ Ошибка обработки оплаты: %s", str(e), exc_info=True)
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
