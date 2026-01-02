@@ -44,8 +44,9 @@ def get_main_menu_keyboard(user_type: str = "child") -> ReplyKeyboardMarkup:
     buttons = [
         [
             # ЕДИНСТВЕННАЯ кнопка - запуск Mini App
+            # Текст кнопки должен совпадать с настройками в BotFather
             KeyboardButton(
-                text="🐼 Жми",
+                text="Нажми",  # Обновлено: должно совпадать с BotFather
                 web_app=WebAppInfo(url="https://pandapal.ru"),
             ),
         ],

@@ -219,23 +219,39 @@ export class TelegramService {
 
   /**
    * Проверка, запущено ли приложение в Telegram
+   * Проверяет несколько признаков для надежности
    */
   isInTelegram(): boolean {
-    return this.webApp.initData !== '';
+    // Проверяем наличие initData (основной признак)
+    const hasInitData = this.webApp.initData !== '' && this.webApp.initData !== undefined;
+
+    // Проверяем наличие объекта WebApp (дополнительная проверка)
+    const hasWebApp = typeof this.webApp !== 'undefined' && this.webApp !== null;
+
+    // Проверяем платформу (если есть, значит в Telegram)
+    const hasPlatform = this.webApp.platform !== undefined && this.webApp.platform !== '';
+
+    // Проверяем user agent (дополнительная проверка для ПК)
+    const isTelegramUserAgent = typeof window !== 'undefined' &&
+      (window.navigator.userAgent.includes('Telegram') ||
+       window.location.hostname.includes('telegram.org'));
+
+    return hasInitData || (hasWebApp && (hasPlatform || isTelegramUserAgent));
   }
 
   /**
    * Получить платформу
    */
   getPlatform(): string {
-    return this.webApp.platform;
+    return this.webApp.platform || 'unknown';
   }
 
   /**
    * Проверить, запущено ли приложение внутри Telegram
+   * Более строгая проверка - только по initData
    */
   isTelegramWebApp(): boolean {
-    return this.webApp.initData !== '';
+    return this.webApp.initData !== '' && this.webApp.initData !== undefined;
   }
 
   /**
