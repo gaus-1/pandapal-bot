@@ -10,6 +10,8 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from loguru import logger
+
 
 class LocalizationManager:
     """
@@ -19,6 +21,12 @@ class LocalizationManager:
     """
 
     def __init__(self, locale_dir: str = "bot/localization/locales"):
+        """
+        Инициализация менеджера локализации.
+
+        Args:
+            locale_dir: Путь к директории с файлами переводов
+        """
         self.locale_dir = Path(locale_dir)
         self.translations: Dict[str, Dict[str, Any]] = {}
         self.current_language = "ru"  # По умолчанию русский
@@ -38,7 +46,7 @@ class LocalizationManager:
                 with open(locale_file, "r", encoding="utf-8") as f:
                     self.translations[language] = json.load(f)
             except Exception as e:
-                print(f"❌ Ошибка загрузки переводов для {language}: {e}")
+                logger.error(f"❌ Ошибка загрузки переводов для {language}: {e}")
 
     def _create_default_translations(self):
         """Создание переводов по умолчанию."""
@@ -127,7 +135,7 @@ class LocalizationManager:
         if language in self.translations:
             self.current_language = language
         else:
-            print(f"⚠️ Язык {language} не найден, используется {self.current_language}")
+            logger.warning(f"⚠️ Язык {language} не найден, используется {self.current_language}")
 
     def get_language(self) -> str:
         """
@@ -171,7 +179,7 @@ class LocalizationManager:
             return translation
 
         except Exception as e:
-            print(f"❌ Ошибка перевода ключа {key}: {e}")
+            logger.error(f"❌ Ошибка перевода ключа {key}: {e}")
             return f"[{key}]"
 
     def _get_nested_value(self, key: str, language: str) -> Optional[str]:
