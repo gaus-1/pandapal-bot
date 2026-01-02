@@ -27,7 +27,7 @@ describe('Hero Component', () => {
   it('должен иметь две CTA-кнопки', () => {
     render(<Hero />);
 
-    const primaryCta = screen.getByRole('link', { name: /начать бесплатно/i });
+    const primaryCta = screen.getByRole('link', { name: /начать использовать pandapal/i });
     const secondaryCta = screen.getByRole('link', { name: /узнать больше/i });
 
     expect(primaryCta).toBeInTheDocument();
@@ -37,30 +37,23 @@ describe('Hero Component', () => {
   it('основная CTA должна вести на Telegram бота', () => {
     render(<Hero />);
 
-    const primaryCta = screen.getByRole('link', { name: /начать бесплатно/i });
-    expect(primaryCta).toHaveAttribute('href');
+    const primaryCta = screen.getByRole('link', { name: /начать использовать pandapal/i });
+    expect(primaryCta).toHaveAttribute('href', 'https://t.me/PandaPalBot');
     expect(primaryCta).toHaveAttribute('target', '_blank');
     expect(primaryCta).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('вторичная CTA должна вести на секцию #features', () => {
+  it('вторичная CTA должна вести на секцию #cta', () => {
     render(<Hero />);
 
     const secondaryCta = screen.getByRole('link', { name: /узнать больше/i });
-    expect(secondaryCta).toHaveAttribute('href', '#features');
-  });
-
-  it('должен показывать social proof', () => {
-    render(<Hero />);
-
-    const socialProof = screen.getByText(/150\+.*семьям/i);
-    expect(socialProof).toBeInTheDocument();
+    expect(secondaryCta).toHaveAttribute('href', '#cta');
   });
 
   it('CTA-кнопки должны иметь data-атрибуты для аналитики', () => {
     render(<Hero />);
 
-    const primaryCta = screen.getByRole('link', { name: /начать бесплатно/i });
+    const primaryCta = screen.getByRole('link', { name: /начать использовать pandapal/i });
     const secondaryCta = screen.getByRole('link', { name: /узнать больше/i });
 
     expect(primaryCta).toHaveAttribute('data-cta-variant', 'primary');
@@ -81,10 +74,15 @@ describe('Hero Component', () => {
     }
   });
 
-  it('должен показывать эмодзи панды в CTA', () => {
+  it('должен показывать кнопки CTA', () => {
     render(<Hero />);
 
-    const primaryCta = screen.getByRole('link', { name: /начать бесплатно/i });
-    expect(primaryCta).toHaveTextContent('🐼');
+    // Проверяем что есть кнопка "Начни"
+    const primaryCta = screen.getByRole('link', { name: /начать использовать pandapal/i });
+    expect(primaryCta).toHaveAttribute('href', 'https://t.me/PandaPalBot');
+
+    // Проверяем что есть кнопка "Узнать больше"
+    const secondaryCta = screen.getByRole('link', { name: /узнать больше/i });
+    expect(secondaryCta).toHaveAttribute('href', '#cta');
   });
 });
