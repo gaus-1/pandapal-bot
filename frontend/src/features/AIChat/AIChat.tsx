@@ -221,7 +221,7 @@ export function AIChat({ user }: AIChatProps) {
       {/* Заголовок */}
       <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg p-4">
         <div className="flex items-center gap-3">
-          <div className="text-5xl drop-shadow-lg">🐼</div>
+          <img src="/logo.png" alt="PandaPal" className="w-12 h-12 rounded-full bg-white p-1 shadow-lg" />
           <div>
             <h1 className="text-2xl font-bold text-white drop-shadow-md">
               PandaPal AI
@@ -241,7 +241,7 @@ export function AIChat({ user }: AIChatProps) {
           </div>
         ) : messages.length === 0 ? (
           <div className="text-center py-8">
-            <div className="text-6xl mb-4">🐼</div>
+            <img src="/logo.png" alt="PandaPal" className="w-24 h-24 mx-auto mb-4 rounded-full shadow-xl" />
             <h2 className="text-xl font-bold text-[var(--tg-theme-text-color)] mb-2">
               Начни общение!
             </h2>
