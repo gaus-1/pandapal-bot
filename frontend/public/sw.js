@@ -5,23 +5,15 @@
 const CACHE_NAME = 'pandapal-v1';
 const OFFLINE_URL = '/offline.html';
 
-// Файлы для кэширования
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/assets/index.css',
-  '/assets/index.js',
-  '/logo.png',
-  '/manifest.json',
-  OFFLINE_URL,
-];
-
-// Установка Service Worker
+// Установка Service Worker - НЕ кэшируем конкретные файлы сразу
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('📦 Кэширование файлов');
-      return cache.addAll(urlsToCache);
+      console.log('📦 Service Worker установлен');
+      // Кэшируем только оффлайн страницу
+      return cache.add(OFFLINE_URL).catch(err => {
+        console.warn('Не удалось закэшировать offline.html:', err);
+      });
     })
   );
   self.skipWaiting();
@@ -62,7 +54,39 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Для остальных запросов: Cache First, затем Network
+  // Игнорируем запросы к метрике и внешним ресурсам
+  if (
+    event.request.url.includes('yandex.ru') ||
+    event.request.url.includes('googleapis.com') ||
+    event.request.url.includes('gstatic.com')
+  ) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Network First для HTML файлов (всегда свежие)
+  if (event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Кэшируем успешный ответ
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+          return response;
+        })
+        .catch(() => {
+          // Если нет сети - пробуем из кэша, иначе оффлайн страница
+          return caches.match(event.request).then((cachedResponse) => {
+            return cachedResponse || caches.match(OFFLINE_URL);
+          });
+        })
+    );
+    return;
+  }
+
+  // Cache First для остальных ресурсов (JS, CSS, изображения)
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
@@ -71,11 +95,11 @@ self.addEventListener('fetch', (event) => {
 
       return fetch(event.request)
         .then((response) => {
-          // Кэшируем новые запросы
+          // Кэшируем только успешные запросы
           if (
             !response ||
             response.status !== 200 ||
-            response.type !== 'basic'
+            response.type === 'error'
           ) {
             return response;
           }
@@ -89,25 +113,12 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          // Если нет сети - показываем оффлайн страницу
-          return caches.match(OFFLINE_URL);
+          // Для изображений можно вернуть fallback
+          if (event.request.destination === 'image') {
+            return caches.match('/logo.png');
+          }
+          return new Response('Offline', { status: 503 });
         });
     })
   );
 });
-
-// Background Sync для отложенных запросов (опционально)
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-messages') {
-    event.waitUntil(syncMessages());
-  }
-});
-
-async function syncMessages() {
-  try {
-    // Синхронизация отложенных сообщений
-    console.log('🔄 Синхронизация сообщений');
-  } catch (error) {
-    console.error('❌ Ошибка синхронизации:', error);
-  }
-}

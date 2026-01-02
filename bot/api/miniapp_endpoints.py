@@ -43,10 +43,16 @@ async def miniapp_auth(request: web.Request) -> web.Response:
 
         # Извлекаем данные пользователя
         user_data = auth_validator.extract_user_data(validated_data)
+
+        if not user_data:
+            logger.error("❌ Не удалось извлечь user_data из validated_data")
+            return web.json_response({"error": "Failed to extract user data"}, status=400)
+
         telegram_id = user_data.get("id")
 
         if not telegram_id:
-            return web.json_response({"error": "No user data"}, status=400)
+            logger.error(f"❌ telegram_id отсутствует в user_data: {user_data}")
+            return web.json_response({"error": "No user ID in initData"}, status=400)
 
         # Получаем или создаем пользователя
         with get_db() as db:
@@ -67,8 +73,8 @@ async def miniapp_auth(request: web.Request) -> web.Response:
         )
 
     except Exception as e:
-        logger.error(f"❌ Ошибка аутентификации Mini App: {e}")
-        return web.json_response({"error": "Internal server error"}, status=500)
+        logger.error(f"❌ Ошибка аутентификации Mini App: {e}", exc_info=True)
+        return web.json_response({"error": f"Internal server error: {str(e)}"}, status=500)
 
 
 async def miniapp_get_user(request: web.Request) -> web.Response:
