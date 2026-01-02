@@ -30,14 +30,14 @@ def get_imports_from_file(filepath):
 
         return imports
     except Exception as e:
-        print(f"Oshibka v {filepath}: {e}")
+        print(f"Ошибка в {filepath}: {e}")
         return []
 
 
 def find_circular_imports(project_dir="bot"):
     """Найти циклические импорты в проекте."""
     print("=" * 60)
-    print("PROVERKA TSIKLICHESKIKH IMPORTOV")
+    print("ПРОВЕРКА ЦИКЛИЧЕСКИХ ИМПОРТОВ")
     print("=" * 60)
 
     project_path = Path(project_dir)
@@ -83,17 +83,17 @@ def find_circular_imports(project_dir="bot"):
             if has_cycle(module, visited, rec_stack):
                 cycles_found.append(module)
 
-    print(f"Provereno faylov: {len(python_files)}")
-    print(f"Moduley s zavisimostyami: {len(dependencies)}")
+    print(f"Проверено файлов: {len(python_files)}")
+    print(f"Модулей с зависимостями: {len(dependencies)}")
 
     if cycles_found:
-        print(f"\nWARNING: Naydeno tsiklicheskikh importov: {len(cycles_found)}")
+        print(f"\nWARNING: Найдено циклических импортов: {len(cycles_found)}")
         for cycle in cycles_found[:10]:
             print(f"  - {cycle}")
         return 1
     else:
-        print("\nOK: TSIKLICHESKIE IMPORTY NE NAYDENY!")
-        print("   Proekt chistyy!")
+        print("\nOK: ЦИКЛИЧЕСКИЕ ИМПОРТЫ НЕ НАЙДЕНЫ!")
+        print("   Проект чистый!")
         return 0
 
 

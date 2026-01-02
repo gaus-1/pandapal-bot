@@ -179,7 +179,7 @@ class LearningSession(Base):
     __table_args__ = (Index("idx_sessions_user_date", "user_telegram_id", "session_start"),)
 
     def __repr__(self) -> str:
-        """Строковое представление пользователя"""
+        """Строковое представление учебной сессии"""
         return f"<LearningSession(id={self.id}, subject={self.subject})>"
 
 
@@ -224,7 +224,7 @@ class UserProgress(Base):
     __table_args__ = (Index("idx_progress_user_subject", "user_telegram_id", "subject"),)
 
     def __repr__(self) -> str:
-        """Строковое представление пользователя"""
+        """Строковое представление прогресса пользователя"""
         return f"<UserProgress(user_id={self.user_telegram_id}, subject={self.subject}, level={self.level})>"
 
     def to_dict(self) -> Dict:
@@ -293,7 +293,7 @@ class ChatHistory(Base):
     )
 
     def __repr__(self) -> str:
-        """Строковое представление пользователя"""
+        """Строковое представление истории чата"""
         preview = (
             self.message_text[:50] + "..." if len(self.message_text) > 50 else self.message_text
         )
@@ -331,7 +331,7 @@ class AnalyticsMetric(Base):
     )
 
     def __repr__(self) -> str:
-        """Строковое представление пользователя"""
+        """Строковое представление аналитической метрики"""
         return (
             f"<AnalyticsMetric(id={self.id}, name='{self.metric_name}', "
             f"value={self.metric_value}, type='{self.metric_type}')>"
@@ -372,7 +372,7 @@ class UserSession(Base):
     )
 
     def __repr__(self) -> str:
-        """Строковое представление пользователя"""
+        """Строковое представление пользовательской сессии"""
         return (
             f"<UserSession(id={self.id}, user={self.user_telegram_id}, "
             f"start='{self.session_start}', duration={self.session_duration})>"
@@ -408,7 +408,7 @@ class UserEvent(Base):
     )
 
     def __repr__(self) -> str:
-        """Строковое представление пользователя"""
+        """Строковое представление события пользователя"""
         return (
             f"<UserEvent(id={self.id}, user={self.user_telegram_id}, "
             f"type='{self.event_type}', importance='{self.importance}')>"
@@ -444,7 +444,7 @@ class AnalyticsReport(Base):
     )
 
     def __repr__(self) -> str:
-        """Строковое представление пользователя"""
+        """Строковое представление аналитического отчета"""
         return (
             f"<AnalyticsReport(id={self.id}, type='{self.report_type}', "
             f"period='{self.report_period}', generated='{self.generated_at}')>"
@@ -480,7 +480,7 @@ class AnalyticsTrend(Base):
     )
 
     def __repr__(self) -> str:
-        """Строковое представление пользователя"""
+        """Строковое представление аналитического тренда"""
         return (
             f"<AnalyticsTrend(id={self.id}, metric='{self.metric_name}', "
             f"direction='{self.trend_direction}', strength={self.trend_strength:.2f})>"
@@ -519,7 +519,7 @@ class AnalyticsAlert(Base):
     )
 
     def __repr__(self) -> str:
-        """Строковое представление пользователя"""
+        """Строковое представление аналитического алерта"""
         return (
             f"<AnalyticsAlert(id={self.id}, type='{self.alert_type}', "
             f"level='{self.alert_level}', triggered='{self.triggered_at}')>"
@@ -558,7 +558,7 @@ class AnalyticsConfig(Base):
     )
 
     def __repr__(self) -> str:
-        """Строковое представление пользователя"""
+        """Строковое представление конфигурации аналитики"""
         return (
             f"<AnalyticsConfig(id={self.id}, key='{self.config_key}', "
             f"type='{self.config_type}', updated='{self.updated_at}')>"

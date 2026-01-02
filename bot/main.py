@@ -63,9 +63,10 @@ async def main():
             await uvicorn.run(app, host=test_host, port=test_port, log_level="info")
 
         else:
-            # Для продакшена - запуск Telegram бота
+            # Для продакшена используется web_server.py (webhook режим)
+            # Этот файл используется только для тестирования и CI/CD
             logger.info("🤖 Запуск Telegram бота...")
-            # TODO: Добавить запуск aiogram бота
+            logger.info("ℹ️ Для продакшена используйте web_server.py")
             await asyncio.sleep(3600)  # Ждем 1 час для тестов
 
     except Exception as e:
