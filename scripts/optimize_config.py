@@ -10,6 +10,7 @@
 import os
 import re
 import shutil
+import sys
 from pathlib import Path
 
 # Корневая директория проекта
