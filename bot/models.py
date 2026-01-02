@@ -120,6 +120,20 @@ class User(Base):
         """Строковое представление пользователя"""
         return f"<User(id={self.id}, telegram_id={self.telegram_id}, type={self.user_type})>"
 
+    def to_dict(self) -> Dict:
+        """Преобразование модели в словарь для API"""
+        return {
+            "telegram_id": self.telegram_id,
+            "username": self.username,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "age": self.age,
+            "grade": self.grade,
+            "user_type": self.user_type,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "is_active": self.is_active,
+        }
+
 
 class LearningSession(Base):
     """
@@ -213,6 +227,16 @@ class UserProgress(Base):
     def __repr__(self) -> str:
         """Строковое представление пользователя"""
         return f"<UserProgress(user_id={self.user_telegram_id}, subject={self.subject}, level={self.level})>"
+
+    def to_dict(self) -> Dict:
+        """Преобразование модели в словарь для API"""
+        return {
+            "subject": self.subject,
+            "level": self.level,
+            "points": self.points,
+            "last_activity": self.last_activity.isoformat() if self.last_activity else None,
+            "achievements": self.achievements or {},
+        }
 
 
 class ChatHistory(Base):

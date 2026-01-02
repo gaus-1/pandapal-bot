@@ -62,15 +62,7 @@ async def miniapp_auth(request: web.Request) -> web.Response:
         return web.json_response(
             {
                 "success": True,
-                "user": {
-                    "telegram_id": user.telegram_id,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "username": user.username,
-                    "age": user.age,
-                    "grade": user.grade,
-                    "user_type": user.user_type,
-                },
+                "user": user.to_dict(),
             }
         )
 
@@ -98,15 +90,7 @@ async def miniapp_get_user(request: web.Request) -> web.Response:
             return web.json_response(
                 {
                     "success": True,
-                    "user": {
-                        "telegram_id": user.telegram_id,
-                        "first_name": user.first_name,
-                        "last_name": user.last_name,
-                        "username": user.username,
-                        "age": user.age,
-                        "grade": user.grade,
-                        "user_type": user.user_type,
-                    },
+                    "user": user.to_dict(),
                 }
             )
 
@@ -139,11 +123,7 @@ async def miniapp_update_user(request: web.Request) -> web.Response:
             return web.json_response(
                 {
                     "success": True,
-                    "user": {
-                        "telegram_id": user.telegram_id,
-                        "age": user.age,
-                        "grade": user.grade,
-                    },
+                    "user": user.to_dict(),
                 }
             )
 
@@ -169,15 +149,7 @@ async def miniapp_get_progress(request: web.Request) -> web.Response:
                 return web.json_response({"error": "User not found"}, status=404)
 
             # Получаем прогресс из БД
-            progress_items = [
-                {
-                    "subject": p.subject,
-                    "level": p.level,
-                    "points": p.points,
-                    "last_activity": p.last_activity.isoformat() if p.last_activity else None,
-                }
-                for p in user.progress
-            ]
+            progress_items = [p.to_dict() for p in user.progress]
 
             return web.json_response({"success": True, "progress": progress_items})
 
