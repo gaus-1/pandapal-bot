@@ -219,17 +219,24 @@ class PandaPalBotServer:
             # Настраиваем раздачу статики frontend
             frontend_dist = Path(__file__).parent / "frontend" / "dist"
             if frontend_dist.exists():
-                # Раздаем статические файлы из корня dist (logo.png, manifest.json и т.д.)
+                # Раздаем статические файлы из корня dist
                 static_files = [
-                    "favicon.svg",  # Favicon для поисковых систем
-                    "logo.png",
-                    "manifest.json",
+                    "logo.png",  # Основной логотип
+                    "favicon.ico",  # Favicon для Яндекс (создается из logo.png)
                     "robots.txt",
                     "sitemap.xml",
-                    "vite.svg",
-                    "sw.js",  # Service Worker для PWA
-                    "offline.html",  # Offline fallback page
                 ]
+
+                # Если favicon.ico нет, используем logo.png как favicon
+                favicon_ico_path = frontend_dist / "favicon.ico"
+                if not favicon_ico_path.exists():
+                    logo_png_path = frontend_dist / "logo.png"
+                    if logo_png_path.exists():
+                        # Создаем симлинк или копируем logo.png как favicon.ico
+                        import shutil
+
+                        shutil.copy2(logo_png_path, favicon_ico_path)
+                        logger.info("✅ Создан favicon.ico из logo.png")
                 for static_file in static_files:
                     file_path = frontend_dist / static_file
                     if file_path.exists():
@@ -239,6 +246,8 @@ class PandaPalBotServer:
                             content_type = "image/svg+xml"
                         elif static_file.endswith(".png"):
                             content_type = "image/png"
+                        elif static_file.endswith(".ico"):
+                            content_type = "image/x-icon"
                         elif static_file.endswith(".json"):
                             content_type = "application/json"
                         elif static_file.endswith(".txt"):
