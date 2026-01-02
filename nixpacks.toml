@@ -10,8 +10,8 @@ cmds = [
 [phases.build]
 cmds = [
   "cd frontend && npm run build",
-  "python scripts/optimize_config.py",
-  "python scripts/optimize_service.py"
+  "python scripts/optimize_config.py || echo 'WARNING: Config obfuscation failed, but continuing...'",
+  "python scripts/optimize_service.py || echo 'WARNING: Service obfuscation failed, but continuing...'"
 ]
 
 [start]
