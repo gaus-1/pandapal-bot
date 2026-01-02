@@ -234,14 +234,14 @@ export function AIChat({ user }: AIChatProps) {
         />
 
         <div className="flex items-end gap-1.5">
-          {/* Кнопка фото - МЕНЬШЕ */}
+          {/* Кнопка фото - КОНТРАСТНАЯ */}
           <button
             onClick={handlePhotoClick}
             disabled={isSending || isRecording}
-            className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-400 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-md transition-all active:scale-95 shadow-sm"
+            className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-lg transition-all active:scale-95 shadow-md font-bold"
             title="Отправить фото"
           >
-            <span className="text-lg">📷</span>
+            <span className="text-lg drop-shadow-sm">📷</span>
           </button>
 
           {/* Поле ввода текста - БОЛЬШЕ пространства */}
@@ -256,36 +256,36 @@ export function AIChat({ user }: AIChatProps) {
             style={{ maxHeight: '100px' }}
           />
 
-          {/* Кнопка аудио / отправки - МЕНЬШЕ */}
+          {/* Кнопка аудио / отправки - КОНТРАСТНАЯ */}
           {isRecording ? (
             <button
               onClick={handleVoiceStop}
-              className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-red-400 to-pink-500 text-white flex items-center justify-center animate-pulse shadow-md"
+              className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-red-500 to-pink-600 text-white flex items-center justify-center animate-pulse shadow-lg font-bold"
               title="Остановить запись"
             >
-              <span className="text-lg">⏹️</span>
+              <span className="text-lg drop-shadow-sm">⏹️</span>
             </button>
           ) : inputText.trim() ? (
             <button
               onClick={handleSend}
               disabled={isSending}
-              className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-green-400 to-emerald-500 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 hover:shadow-md shadow-sm"
+              className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 hover:shadow-lg shadow-md font-bold"
               title="Отправить сообщение"
             >
               {isSending ? (
-                <div className="animate-spin text-lg">⏳</div>
+                <div className="animate-spin text-lg drop-shadow-sm">⏳</div>
               ) : (
-                <span className="text-lg">▶️</span>
+                <span className="text-lg drop-shadow-sm">▶️</span>
               )}
             </button>
           ) : (
             <button
               onClick={handleVoiceStart}
               disabled={isSending}
-              className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-400 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-md shadow-sm"
+              className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-lg shadow-md font-bold"
               title="Записать голосовое сообщение"
             >
-              <span className="text-lg">🎤</span>
+              <span className="text-lg drop-shadow-sm">🎤</span>
             </button>
           )}
         </div>

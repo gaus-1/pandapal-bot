@@ -3,6 +3,11 @@
  */
 
 export function registerServiceWorker(): void {
+  // Подавляем ошибки Service Worker в Telegram WebView
+  if (typeof window !== 'undefined' && window.location.hostname.includes('telegram.org')) {
+    return; // Не регистрируем SW в Telegram WebView
+  }
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker
@@ -27,7 +32,10 @@ export function registerServiceWorker(): void {
           });
         })
         .catch((error) => {
-          console.error('❌ Ошибка регистрации Service Worker:', error);
+          // Подавляем ошибки SW в Telegram WebView (это нормально)
+          if (!error.message?.includes('no controller') && !error.message?.includes('peer changed')) {
+            console.warn('⚠️ Service Worker:', error.message);
+          }
         });
     });
   }

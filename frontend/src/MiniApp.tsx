@@ -132,8 +132,8 @@ function MiniAppContent() {
       </div>
 
       {/* Нижняя навигация - КОМПАКТНАЯ */}
-      <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20">
-        <div className="grid grid-cols-2 gap-1 p-1.5">
+      <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg">
+        <div className="grid grid-cols-2 gap-0.5 p-1">
           <NavButton
             icon="🐼"
             label="Panda чат"
@@ -163,14 +163,14 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
+      className={`flex flex-col items-center justify-center py-1.5 px-2 rounded-lg transition-all shadow-sm ${
         isActive
-          ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)]'
-          : 'text-[var(--tg-theme-text-color)] hover:bg-[var(--tg-theme-hint-color)]/10'
+          ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] font-bold shadow-md'
+          : 'text-[var(--tg-theme-text-color)] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/20 font-medium'
       }`}
     >
-      <span className="text-xl mb-0.5">{icon}</span>
-      <span className="text-[10px] font-semibold leading-tight">{label}</span>
+      <span className="text-lg mb-0.5">{icon}</span>
+      <span className="text-[9px] font-bold leading-tight opacity-90">{label}</span>
     </button>
   );
 }
