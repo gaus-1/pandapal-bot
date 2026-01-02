@@ -156,6 +156,16 @@ class PandaPalBotServer:
             # Добавляем bot в app context для использования в endpoints
             self.app["bot"] = self.bot
 
+            # Настраиваем security middleware ПЕРВЫМ (выполняется первым)
+            try:
+                from bot.security.middleware import setup_security_middleware
+
+                setup_security_middleware(self.app)
+                logger.info("🛡️ Security middleware зарегистрирован")
+            except ImportError as e:
+                logger.error(f"❌ Не удалось загрузить security middleware: {e}")
+                raise
+
             # Health check endpoints
             async def health_check(request: web.Request) -> web.Response:
                 """Health check endpoint."""

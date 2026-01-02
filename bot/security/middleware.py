@@ -1,0 +1,296 @@
+"""
+Security middleware для aiohttp приложения.
+
+Защита от:
+- DDoS атак (rate limiting)
+- CSRF атак (origin/referer validation)
+- XSS (security headers)
+- Injection (input validation)
+
+OWASP Top 10 2021 compliance.
+"""
+
+import asyncio
+import time
+import uuid
+from collections import defaultdict
+from typing import Dict, Optional, Set, Tuple
+from urllib.parse import urlparse
+
+from aiohttp import web
+from loguru import logger
+
+from bot.config import settings
+from bot.security.audit_logger import SecurityEventSeverity, SecurityEventType, log_security_event
+
+
+class RateLimiter:
+    """
+    Rate limiter для защиты от DDoS атак.
+
+    Использует sliding window алгоритм для отслеживания запросов.
+    """
+
+    def __init__(self, max_requests: int = 60, window_seconds: int = 60):
+        """
+        Инициализация rate limiter.
+
+        Args:
+            max_requests: Максимальное количество запросов
+            window_seconds: Временное окно в секундах
+        """
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        # Храним временные метки запросов по IP
+        self._requests: Dict[str, list] = defaultdict(list)
+        # Блокированные IP (временная блокировка)
+        self._blocked: Dict[str, float] = {}
+        # Время блокировки в секундах
+        self._block_duration = 300  # 5 минут
+
+    def _cleanup_old_requests(self, ip: str, current_time: float) -> None:
+        """Удалить старые запросы из окна."""
+        cutoff = current_time - self.window_seconds
+        self._requests[ip] = [t for t in self._requests[ip] if t > cutoff]
+
+    def _cleanup_blocked(self, current_time: float) -> None:
+        """Удалить истекшие блокировки."""
+        expired = [ip for ip, block_time in self._blocked.items() if current_time > block_time]
+        for ip in expired:
+            del self._blocked[ip]
+
+    def is_allowed(self, ip: str) -> Tuple[bool, Optional[str]]:
+        """
+        Проверить, разрешен ли запрос.
+
+        Args:
+            ip: IP адрес клиента
+
+        Returns:
+            (allowed, reason): Разрешен ли запрос и причина если нет
+        """
+        current_time = time.time()
+
+        # Проверяем блокировку
+        self._cleanup_blocked(current_time)
+        if ip in self._blocked:
+            return False, "IP temporarily blocked due to excessive requests"
+
+        # Очищаем старые запросы
+        self._cleanup_old_requests(ip, current_time)
+
+        # Проверяем лимит
+        request_count = len(self._requests[ip])
+        if request_count >= self.max_requests:
+            # Блокируем IP на 5 минут
+            self._blocked[ip] = current_time + self._block_duration
+            log_security_event(
+                SecurityEventType.RATE_LIMIT_EXCEEDED,
+                f"Rate limit exceeded for IP {ip}",
+                SecurityEventSeverity.WARNING,
+                metadata={"ip": ip, "requests": request_count},
+            )
+            return False, f"Rate limit exceeded: {request_count}/{self.max_requests} requests"
+
+        # Регистрируем запрос
+        self._requests[ip].append(current_time)
+        return True, None
+
+
+# Глобальные rate limiters для разных типов endpoints
+_rate_limiter_api = RateLimiter(max_requests=60, window_seconds=60)  # 60 req/min для API
+_rate_limiter_auth = RateLimiter(max_requests=10, window_seconds=60)  # 10 req/min для auth
+_rate_limiter_ai = RateLimiter(max_requests=30, window_seconds=60)  # 30 req/min для AI
+
+
+def get_rate_limiter(path: str) -> RateLimiter:
+    """
+    Получить подходящий rate limiter для пути.
+
+    Args:
+        path: Путь запроса
+
+    Returns:
+        RateLimiter: Подходящий limiter
+    """
+    if "/auth" in path:
+        return _rate_limiter_auth
+    elif "/ai/chat" in path:
+        return _rate_limiter_ai
+    else:
+        return _rate_limiter_api
+
+
+# Разрешенные origins для CSRF protection
+ALLOWED_ORIGINS: Set[str] = {
+    "https://pandapal.ru",
+    "https://web.telegram.org",
+    "https://telegram.org",
+}
+
+# Разрешенные referers
+ALLOWED_REFERERS: Set[str] = {
+    "https://pandapal.ru",
+    "https://web.telegram.org",
+    "https://telegram.org",
+}
+
+
+def validate_origin(request: web.Request) -> Tuple[bool, Optional[str]]:
+    """
+    Проверить Origin/Referer для CSRF protection.
+
+    Args:
+        request: HTTP запрос
+
+    Returns:
+        (valid, reason): Валиден ли origin и причина если нет
+    """
+    # Исключаем GET запросы и health check
+    if request.method == "GET" or request.path in ["/health", "/webhook"]:
+        return True, None
+
+    origin = request.headers.get("Origin")
+    referer = request.headers.get("Referer")
+
+    # Если нет ни Origin ни Referer - подозрительно для POST/PATCH/PUT/DELETE
+    if not origin and not referer:
+        # Telegram Mini App может не отправлять Origin, проверяем User-Agent
+        user_agent = request.headers.get("User-Agent", "").lower()
+        if "telegram" in user_agent:
+            return True, None
+        return False, "Missing Origin and Referer headers"
+
+    # Проверяем Origin
+    if origin:
+        parsed = urlparse(origin)
+        origin_netloc = f"{parsed.scheme}://{parsed.netloc}"
+        if origin_netloc not in ALLOWED_ORIGINS:
+            return False, f"Invalid Origin: {origin_netloc}"
+
+    # Проверяем Referer
+    if referer:
+        parsed = urlparse(referer)
+        referer_netloc = f"{parsed.scheme}://{parsed.netloc}"
+        if referer_netloc not in ALLOWED_REFERERS:
+            return False, f"Invalid Referer: {referer_netloc}"
+
+    return True, None
+
+
+async def security_middleware(app: web.Application, handler):
+    """
+    Главный security middleware.
+
+    Применяет:
+    - Rate limiting
+    - CSRF protection
+    - Security headers
+    - Request ID для tracing
+    """
+
+    async def middleware_handler(request: web.Request) -> web.Response:
+        # Генерируем request ID для tracing
+        request_id = str(uuid.uuid4())
+        request["request_id"] = request_id
+
+        # Получаем IP адрес
+        # Проверяем X-Forwarded-For (для прокси/Cloudflare)
+        ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        if not ip:
+            ip = request.headers.get("X-Real-IP", "")
+        if not ip:
+            ip = request.remote
+
+        request["client_ip"] = ip
+
+        # Rate limiting (кроме webhook от Telegram)
+        if request.path != "/webhook":
+            rate_limiter = get_rate_limiter(request.path)
+            allowed, reason = rate_limiter.is_allowed(ip)
+            if not allowed:
+                logger.warning(
+                    f"🚫 Rate limit exceeded: IP={ip}, Path={request.path}, Reason={reason}"
+                )
+                log_security_event(
+                    SecurityEventType.RATE_LIMIT_EXCEEDED,
+                    f"Rate limit exceeded: {request.path}",
+                    SecurityEventSeverity.WARNING,
+                    metadata={"ip": ip, "path": request.path, "reason": reason},
+                )
+                return web.json_response(
+                    {
+                        "error": "Rate limit exceeded. Please try again later.",
+                        "request_id": request_id,
+                    },
+                    status=429,
+                    headers={"Retry-After": "60"},
+                )
+
+        # CSRF protection (только для API endpoints)
+        if request.path.startswith("/api/"):
+            valid, reason = validate_origin(request)
+            if not valid:
+                logger.warning(
+                    f"🚫 CSRF protection: Invalid origin/referer: IP={ip}, Path={request.path}, Reason={reason}"
+                )
+                log_security_event(
+                    SecurityEventType.AUTHENTICATION_FAILURE,
+                    f"CSRF protection triggered: {request.path}",
+                    SecurityEventSeverity.WARNING,
+                    metadata={"ip": ip, "path": request.path, "reason": reason},
+                )
+                return web.json_response(
+                    {"error": "Invalid request origin", "request_id": request_id},
+                    status=403,
+                )
+
+        # Выполняем запрос
+        try:
+            response = await handler(request)
+        except Exception as e:
+            logger.error(
+                f"❌ Error in request handler: {e}",
+                exc_info=True,
+                extra={"request_id": request_id, "ip": ip, "path": request.path},
+            )
+            # Возвращаем generic error без деталей
+            return web.json_response(
+                {"error": "Internal server error", "request_id": request_id},
+                status=500,
+            )
+
+        # Добавляем security headers
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+        # HSTS только для HTTPS
+        if request.scheme == "https":
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains; preload"
+            )
+
+        # Content-Security-Policy для API responses
+        if request.path.startswith("/api/"):
+            response.headers["Content-Security-Policy"] = "default-src 'self'"
+
+        # Request ID для tracing
+        response.headers["X-Request-ID"] = request_id
+
+        return response
+
+    return middleware_handler
+
+
+def setup_security_middleware(app: web.Application) -> None:
+    """
+    Настроить security middleware для приложения.
+
+    Args:
+        app: aiohttp приложение
+    """
+    # Регистрируем middleware ПЕРВЫМ (выполняется первым)
+    app.middlewares.append(security_middleware)
+    logger.info("🛡️ Security middleware настроен")

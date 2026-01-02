@@ -4,7 +4,13 @@ Premium endpoints - Обработка платежей через Telegram Star
 
 from aiohttp import web
 from loguru import logger
+from pydantic import ValidationError
 
+from bot.api.validators import (
+    PremiumInvoiceRequest,
+    PremiumPaymentRequest,
+    validate_telegram_id,
+)
 from bot.config import settings
 from bot.database import get_db
 from bot.services import SubscriptionService, UserService
@@ -19,11 +25,19 @@ async def create_premium_invoice(request: web.Request) -> web.Response:
     """
     try:
         data = await request.json()
-        telegram_id = data.get("telegram_id")
-        plan_id = data.get("plan_id")
 
-        if not telegram_id or not plan_id:
-            return web.json_response({"error": "telegram_id and plan_id required"}, status=400)
+        # Валидация входных данных
+        try:
+            validated = PremiumInvoiceRequest(**data)
+        except ValidationError as e:
+            logger.warning(f"⚠️ Invalid premium invoice request: {e.errors()}")
+            return web.json_response(
+                {"error": "Invalid request data", "details": e.errors()},
+                status=400,
+            )
+
+        telegram_id = validated.telegram_id
+        plan_id = validated.plan_id
 
         # Тарифные планы
         plans = {
@@ -80,17 +94,20 @@ async def handle_successful_payment(request: web.Request) -> web.Response:
     """
     try:
         data = await request.json()
-        telegram_id = data.get("telegram_id")
-        plan_id = data.get("plan_id")
-        transaction_id = data.get("transaction_id")
 
-        if not telegram_id or not plan_id:
-            return web.json_response({"error": "telegram_id and plan_id required"}, status=400)
+        # Валидация входных данных
+        try:
+            validated = PremiumPaymentRequest(**data)
+        except ValidationError as e:
+            logger.warning(f"⚠️ Invalid premium payment request: {e.errors()}")
+            return web.json_response(
+                {"error": "Invalid request data", "details": e.errors()},
+                status=400,
+            )
 
-        # Валидация plan_id
-        valid_plans = ["week", "month", "year"]
-        if plan_id not in valid_plans:
-            return web.json_response({"error": "Invalid plan_id"}, status=400)
+        telegram_id = validated.telegram_id
+        plan_id = validated.plan_id
+        transaction_id = validated.transaction_id
 
         with get_db() as db:
             user_service = UserService(db)
