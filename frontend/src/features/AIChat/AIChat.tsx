@@ -157,7 +157,7 @@ export function AIChat({ user }: AIChatProps) {
       </div>
 
       {/* Поле ввода */}
-      <div className="sticky bottom-20 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20 p-4">
+      <div className="sticky bottom-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20 p-4">
         <div className="flex items-end gap-2">
           <textarea
             value={inputText}
