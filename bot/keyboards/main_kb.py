@@ -51,22 +51,19 @@ def get_main_menu_keyboard(user_type: str = "child") -> ReplyKeyboardMarkup:
     # Базовые кнопки для всех
     buttons = [
         [
-            # Кнопка запуска Mini App (открывает React приложение)
-            KeyboardButton(
-                text="🎮 Открыть обучающее приложение",
-                web_app=WebAppInfo(url="https://pandapal.ru"),
-            ),
-        ],
-        [
             KeyboardButton(text="💬 Общение с AI"),
             KeyboardButton(text="📚 Помощь с уроками"),
         ],
         [
+            # Кнопка запуска Mini App (открывает React приложение)
+            KeyboardButton(
+                text="🎮 Приложение",
+                web_app=WebAppInfo(url="https://pandapal.ru"),
+            ),
             KeyboardButton(text="📊 Мой прогресс"),
-            KeyboardButton(text="🏆 Достижения"),
         ],
         [
-            KeyboardButton(text="📍 Где я"),
+            KeyboardButton(text="🏆 Достижения"),
             KeyboardButton(text="⚙️ Настройки"),
         ],
     ]
