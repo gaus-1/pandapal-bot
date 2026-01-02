@@ -12,13 +12,33 @@
 # Импортируем из оптимизированных модулей (production-ready версии)
 # Примечание: Оптимизированные файлы находятся в bot/config/_obfuscated/
 # Для разработчиков: см. bot/config/_obfuscated/__init__.py для деталей
+import os
+from pathlib import Path
+
+_optimized_available = False
 try:
     from bot.config._obfuscated import AI_SYSTEM_PROMPT, FORBIDDEN_PATTERNS
+
+    _optimized_available = True
 except ImportError:
-    # Fallback на оригинальные файлы для локальной разработки
-    from bot.config.forbidden_patterns import FORBIDDEN_PATTERNS
-    from bot.config.prompts import AI_SYSTEM_PROMPT
-from bot.config.settings import (
+    # Fallback на оригинальные файлы только для локальной разработки
+    # В продакшене оптимизированные файлы обязательны
+    env = os.getenv("ENVIRONMENT", os.getenv("environment", "development")).lower()
+    optimized_dir = Path(__file__).parent / "_obfuscated"
+    runtime_dir = optimized_dir / "_runtime"
+
+    # В продакшене обфусцированные файлы обязательны
+    # Также проверяем: если директория существует, но нет runtime - значит неполная копия
+    if env == "production" or (optimized_dir.exists() and not runtime_dir.exists()):
+        raise ImportError(
+            "Optimized configuration files are required. "
+            "Please ensure bot/config/_obfuscated/ directory exists with required files and _runtime/ subdirectory."
+        )
+
+    # Для разработки используем оригинальные файлы
+    from bot.config.forbidden_patterns import FORBIDDEN_PATTERNS  # noqa: E402
+    from bot.config.prompts import AI_SYSTEM_PROMPT  # noqa: E402
+from bot.config.settings import (  # noqa: E402
     ALLOWED_FILE_TYPES,
     MAX_AGE,
     MAX_FILE_SIZE_MB,
