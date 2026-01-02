@@ -233,6 +233,17 @@ class PandaPalBotServer:
                     self.app.router.add_static("/assets", assets_dir, name="assets")
                     logger.info(f"✅ Assets директория зарегистрирована: {assets_dir}")
 
+                    # Дополнительно: регистрируем явные роуты для JS/CSS файлов (на случай проблем с add_static)
+                    import os
+
+                    for file in os.listdir(assets_dir):
+                        if file.endswith((".js", ".css", ".map")):
+                            file_path = assets_dir / file
+                            self.app.router.add_get(
+                                f"/assets/{file}", lambda _, fp=file_path: web.FileResponse(fp)
+                            )
+                    logger.info("✅ Явные роуты для assets файлов зарегистрированы")
+
                 # Главная страница
                 self.app.router.add_get(
                     "/", lambda _: web.FileResponse(frontend_dist / "index.html")
