@@ -72,6 +72,9 @@ class SpeechRecognitionService:
             return None
 
 
+# Alias for backward compatibility
+SpeechService = SpeechRecognitionService
+
 # Глобальный экземпляр (Singleton)
 _speech_service: Optional[SpeechRecognitionService] = None
 
