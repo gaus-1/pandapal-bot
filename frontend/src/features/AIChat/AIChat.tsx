@@ -235,12 +235,12 @@ export function AIChat({ user }: AIChatProps) {
           className="hidden"
         />
 
-        <div className="flex items-end gap-1 sm:gap-1.5">
-          {/* Кнопка фото - выровнена по высоте с textarea */}
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          {/* Кнопка фото - выровнена по центру с textarea */}
           <button
             onClick={handlePhotoClick}
             disabled={isSending || isRecording}
-            className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-blue-400/90 to-indigo-400/90 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-md transition-all active:scale-95 shadow-sm"
+            className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-blue-400/90 to-indigo-400/90 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-md transition-all active:scale-95 shadow-sm self-center"
             title="Отправить фото"
           >
             <span className="text-base sm:text-lg">📷</span>
@@ -253,16 +253,16 @@ export function AIChat({ user }: AIChatProps) {
             onKeyPress={handleKeyPress}
             placeholder="Задай вопрос..."
             disabled={isSending || isRecording}
-            className="flex-1 resize-none rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-2.5 sm:py-3 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 text-sm sm:text-base border border-gray-200 dark:border-slate-700 outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 disabled:opacity-50 transition-all min-h-[44px] sm:min-h-[48px]"
-            rows={2}
-            style={{ maxHeight: '120px' }}
+            className="flex-1 resize-none rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-2 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 text-sm sm:text-base border border-gray-200 dark:border-slate-700 outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 disabled:opacity-50 transition-all h-[44px] sm:h-[48px] leading-tight"
+            rows={1}
+            style={{ maxHeight: '120px', minHeight: '44px' }}
           />
 
-          {/* Кнопка аудио / отправки - выровнена по высоте с textarea */}
+          {/* Кнопка аудио / отправки - выровнена по центру с textarea */}
           {isRecording ? (
             <button
               onClick={handleVoiceStop}
-              className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-red-400/90 to-pink-400/90 text-white flex items-center justify-center animate-pulse shadow-md"
+              className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-red-400/90 to-pink-400/90 text-white flex items-center justify-center animate-pulse shadow-md self-center"
               title="Остановить запись"
             >
               <span className="text-base sm:text-lg">⏹️</span>
@@ -271,7 +271,7 @@ export function AIChat({ user }: AIChatProps) {
             <button
               onClick={handleSend}
               disabled={isSending}
-              className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-green-400/90 to-emerald-400/90 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 hover:shadow-md shadow-sm"
+              className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-green-400/90 to-emerald-400/90 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 hover:shadow-md shadow-sm self-center"
               title="Отправить сообщение"
             >
               {isSending ? (
@@ -284,7 +284,7 @@ export function AIChat({ user }: AIChatProps) {
             <button
               onClick={handleVoiceStart}
               disabled={isSending}
-              className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-blue-400/90 to-indigo-400/90 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-md shadow-sm"
+              className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-blue-400/90 to-indigo-400/90 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-md shadow-sm self-center"
               title="Записать голосовое сообщение"
             >
               <span className="text-base sm:text-lg">🎤</span>

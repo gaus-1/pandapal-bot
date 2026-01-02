@@ -44,8 +44,13 @@ pool_class = NullPool  # По умолчанию NullPool для SQLite
 
 if not is_sqlite:
     # PostgreSQL: используем QueuePool для высокой нагрузки
+    # Определяем режим SSL: для localhost - prefer, для Railway/Render - require
+    db_url = settings.database_url
+    is_localhost = "localhost" in db_url or "127.0.0.1" in db_url
+    ssl_mode = "prefer" if is_localhost else "require"
+
     connect_args = {
-        "sslmode": "require",  # Требуем SSL для Render/Railway PostgreSQL
+        "sslmode": ssl_mode,  # prefer для localhost, require для Railway/Render
         "connect_timeout": 10,  # Таймаут подключения 10 секунд
     }
     pool_class = QueuePool
