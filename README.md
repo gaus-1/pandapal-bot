@@ -113,9 +113,9 @@ python web_server.py
 
 ```
 PandaPal/
-├── bot/                    # Telegram Bot (aiogram)
-│   ├── handlers/           # Обработчики команд
-│   ├── services/           # Бизнес-логика
+├── bot/                   # Telegram Bot (aiogram)
+│   ├── handlers/          # Обработчики команд
+│   ├── services/          # Бизнес-логика
 │   ├── config/            # Конфигурация
 │   ├── models.py          # SQLAlchemy модели
 │   └── database.py        # Управление БД
