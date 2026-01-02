@@ -226,6 +226,15 @@ class PandaPalBotServer:
             except ImportError as e:
                 logger.warning(f"⚠️ Не удалось загрузить Mini App API: {e}")
 
+            # Интегрируем Premium API
+            try:
+                from bot.api.premium_endpoints import setup_premium_routes
+
+                setup_premium_routes(self.app)
+                logger.info("💰 Premium API endpoints зарегистрированы")
+            except ImportError as e:
+                logger.warning(f"⚠️ Не удалось загрузить Premium API: {e}")
+
             # Настраиваем webhook handler ПОСЛЕ регистрации всех маршрутов
             # Явно указываем путь /webhook для Railway
             webhook_path = "/webhook"

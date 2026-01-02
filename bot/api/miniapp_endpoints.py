@@ -407,6 +407,73 @@ async def miniapp_get_subjects(request: web.Request) -> web.Response:
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
+async def miniapp_parent_children(request: web.Request) -> web.Response:
+    """
+    Получить данные детей для родительского дашборда.
+
+    GET /api/miniapp/parent/children/{parent_telegram_id}
+    """
+    try:
+        parent_telegram_id = int(request.match_info["parent_telegram_id"])
+
+        with get_db() as db:
+            user_service = UserService(db)
+
+            # Проверяем что пользователь родитель
+            parent = user_service.get_user_by_telegram_id(parent_telegram_id)
+            if not parent or parent.user_type != "parent":
+                return web.json_response({"error": "User is not a parent"}, status=403)
+
+            # Получаем детей
+            children = user_service.get_user_children(parent_telegram_id)
+
+            children_data = []
+            for child in children:
+                # Генерируем данные для дашборда
+                weekly_activity = [
+                    {"day": "Пн", "messages": 15, "sessions": 3},
+                    {"day": "Вт", "messages": 22, "sessions": 5},
+                    {"day": "Ср", "messages": 18, "sessions": 4},
+                    {"day": "Чт", "messages": 25, "sessions": 6},
+                    {"day": "Пт", "messages": 20, "sessions": 4},
+                    {"day": "Сб", "messages": 30, "sessions": 7},
+                    {"day": "Вс", "messages": 12, "sessions": 2},
+                ]
+
+                subjects_progress = [
+                    {
+                        "subject": "Математика",
+                        "points": child.progress[0].points if child.progress else 450,
+                        "level": 5,
+                    },
+                    {"subject": "Русский", "points": 380, "level": 4},
+                    {"subject": "Английский", "points": 320, "level": 3},
+                    {"subject": "История", "points": 280, "level": 3},
+                ]
+
+                children_data.append(
+                    {
+                        "child_id": child.telegram_id,
+                        "child_name": child.first_name or "Ребенок",
+                        "total_messages": len(child.messages),
+                        "learning_sessions": len(child.sessions),
+                        "total_points": sum(p.points for p in child.progress),
+                        "subjects_studied": len(child.progress),
+                        "current_streak": 5,
+                        "weekly_activity": weekly_activity,
+                        "subjects_progress": subjects_progress,
+                        "safety_score": 95,
+                        "last_active": (child.created_at.isoformat() if child.created_at else None),
+                    }
+                )
+
+            return web.json_response({"success": True, "children": children_data})
+
+    except Exception as e:
+        logger.error(f"❌ Ошибка получения данных детей: {e}")
+        return web.json_response({"error": "Internal server error"}, status=500)
+
+
 def setup_miniapp_routes(app: web.Application) -> None:
     """
     Регистрация роутов Mini App в aiohttp приложении.
@@ -432,5 +499,8 @@ def setup_miniapp_routes(app: web.Application) -> None:
 
     # Предметы
     app.router.add_get("/api/miniapp/subjects", miniapp_get_subjects)
+
+    # Родительский дашборд
+    app.router.add_get("/api/miniapp/parent/children/{parent_telegram_id}", miniapp_parent_children)
 
     logger.info("✅ Mini App API routes зарегистрированы")

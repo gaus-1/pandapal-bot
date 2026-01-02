@@ -7,15 +7,17 @@ import { useEffect, useState } from 'react';
 import { telegram } from './services/telegram';
 import { authenticateUser, type UserProfile } from './services/api';
 
-// Импорт будущих экранов
+// Импорт экранов
 import { AIChat } from './features/AIChat/AIChat';
 import { LessonsScreen } from './features/Lessons/LessonsScreen';
 import { ProgressScreen } from './features/Progress/ProgressScreen';
 import { AchievementsScreen } from './features/Achievements/AchievementsScreen';
 import { LocationScreen } from './features/Location/LocationScreen';
 import { SettingsScreen } from './features/Settings/SettingsScreen';
+import { ParentDashboard } from './features/ParentDashboard/ParentDashboard';
+import { PremiumScreen } from './features/Premium/PremiumScreen';
 
-type Screen = 'ai-chat' | 'lessons' | 'progress' | 'achievements' | 'location' | 'settings';
+type Screen = 'ai-chat' | 'lessons' | 'progress' | 'achievements' | 'location' | 'settings' | 'parent-dashboard' | 'premium';
 
 export function MiniApp() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('ai-chat');
@@ -114,11 +116,13 @@ export function MiniApp() {
         {currentScreen === 'achievements' && <AchievementsScreen user={user} />}
         {currentScreen === 'location' && <LocationScreen user={user} />}
         {currentScreen === 'settings' && <SettingsScreen user={user} onUserUpdate={setUser} />}
+        {currentScreen === 'parent-dashboard' && <ParentDashboard user={user} />}
+        {currentScreen === 'premium' && <PremiumScreen user={user} />}
       </div>
 
       {/* Нижняя навигация (как в Telegram боте) */}
       <nav className="fixed bottom-0 left-0 right-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20">
-        <div className="grid grid-cols-3 gap-1 p-2">
+        <div className="grid grid-cols-4 gap-1 p-2">
           {/* Первый ряд */}
           <NavButton
             icon="💬"
@@ -138,14 +142,14 @@ export function MiniApp() {
             isActive={currentScreen === 'progress'}
             onClick={() => navigateTo('progress')}
           />
-
-          {/* Второй ряд */}
           <NavButton
             icon="🏆"
             label="Достижения"
             isActive={currentScreen === 'achievements'}
             onClick={() => navigateTo('achievements')}
           />
+
+          {/* Второй ряд */}
           <NavButton
             icon="📍"
             label="Где я"
@@ -157,6 +161,20 @@ export function MiniApp() {
             label="Настройки"
             isActive={currentScreen === 'settings'}
             onClick={() => navigateTo('settings')}
+          />
+          {user.user_type === 'parent' && (
+            <NavButton
+              icon="👨‍👩‍👧"
+              label="Дашборд"
+              isActive={currentScreen === 'parent-dashboard'}
+              onClick={() => navigateTo('parent-dashboard')}
+            />
+          )}
+          <NavButton
+            icon="👑"
+            label="Premium"
+            isActive={currentScreen === 'premium'}
+            onClick={() => navigateTo('premium')}
           />
         </div>
       </nav>

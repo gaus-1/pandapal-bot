@@ -247,6 +247,17 @@ export class TelegramService {
       this.webApp.exitFullscreen();
     }
   }
+
+  /**
+   * Открыть форму оплаты Telegram (invoice)
+   */
+  openInvoice(url: string, callback?: (status: string) => void): void {
+    this.webApp.openInvoice(url, (status) => {
+      if (callback) {
+        callback(status);
+      }
+    });
+  }
 }
 
 // Singleton экземпляр
