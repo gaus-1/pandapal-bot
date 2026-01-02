@@ -150,15 +150,15 @@ export function AIChat({ user }: AIChatProps) {
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:to-slate-800">
-      {/* КОМПАКТНЫЙ заголовок */}
-      <div className="flex-shrink-0 bg-gradient-to-r from-sky-400 to-indigo-400 shadow-md p-2">
+      {/* КОНТРАСТНЫЙ заголовок */}
+      <div className="flex-shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg p-2.5 border-b-2 border-blue-700">
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="PandaPal" className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white p-0.5 shadow-md" />
+          <img src="/logo.png" alt="PandaPal" className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white p-0.5 shadow-lg" />
           <div className="flex-1 min-w-0">
-            <h1 className="text-base sm:text-lg font-bold text-white drop-shadow-md truncate">
+            <h1 className="text-base sm:text-lg font-bold text-white drop-shadow-lg truncate">
               PandaPal AI
             </h1>
-            <p className="text-xs text-sky-100 truncate">
+            <p className="text-xs text-blue-50 font-medium truncate">
               Привет, {user.first_name}! 🎓
             </p>
           </div>
@@ -188,14 +188,16 @@ export function AIChat({ user }: AIChatProps) {
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
             >
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-md ${
+                className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-lg ${
                   msg.role === 'user'
-                    ? 'bg-gradient-to-br from-sky-400 to-indigo-400 text-white'
-                    : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700'
+                    ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-2 border-blue-600'
+                    : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-slate-600'
                 }`}
               >
-                <p className="whitespace-pre-wrap break-words font-medium">{msg.content}</p>
-                <p className="text-xs opacity-70 mt-2">
+                <p className="whitespace-pre-wrap break-words font-semibold text-sm leading-relaxed">{msg.content}</p>
+                <p className={`text-xs mt-2 font-medium ${
+                  msg.role === 'user' ? 'text-blue-50' : 'text-gray-500 dark:text-gray-400'
+                }`}>
                   {new Date(msg.timestamp).toLocaleTimeString('ru-RU', {
                     hour: '2-digit',
                     minute: '2-digit',

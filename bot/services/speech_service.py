@@ -49,7 +49,10 @@ class SpeechRecognitionService:
             logger.info(f"🎤 Распознавание речи через Yandex SpeechKit (язык: {language})")
 
             # Определяем формат аудио
-            # Telegram отправляет голосовые в формате OGG Opus
+            # Браузер записывает в формате WebM/Opus (audio/webm)
+            # Yandex SpeechKit поддерживает: oggopus, lpcm, mp3
+            # WebM содержит Opus кодек, попробуем отправить как oggopus
+            # Yandex может принять webm с opus кодеком как oggopus
             audio_format = "oggopus"
 
             # Язык в формате Yandex Cloud (ru-RU, en-US)
