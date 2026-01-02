@@ -9,8 +9,15 @@
 Для обратной совместимости все экспортируется из корня пакета.
 """
 
-from bot.config.forbidden_patterns import FORBIDDEN_PATTERNS
-from bot.config.prompts import AI_SYSTEM_PROMPT
+# Импортируем из обфусцированных модулей (защита интеллектуальной собственности)
+# Примечание: Обфусцированные файлы находятся в bot/config/_obfuscated/
+# Для разработчиков: см. bot/config/_obfuscated/__init__.py для деталей
+try:
+    from bot.config._obfuscated import AI_SYSTEM_PROMPT, FORBIDDEN_PATTERNS
+except ImportError:
+    # Fallback на оригинальные файлы для локальной разработки
+    from bot.config.forbidden_patterns import FORBIDDEN_PATTERNS
+    from bot.config.prompts import AI_SYSTEM_PROMPT
 from bot.config.settings import (
     ALLOWED_FILE_TYPES,
     MAX_AGE,
