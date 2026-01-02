@@ -142,24 +142,24 @@ class ChatHistoryService:
         self, telegram_id: int, limit: int = None
     ) -> List[Dict[str, Any]]:
         """
-        Получить историю в формате для Gemini API.
+        Получить историю в формате для YandexGPT API.
 
         Args:
             telegram_id: Telegram ID пользователя
             limit: Количество сообщений (по умолчанию из settings)
 
         Returns:
-            List[Dict[str, Any]]: История в формате [{'role': 'user', 'parts': ['text']}, ...]
+            List[Dict[str, Any]]: История в формате [{'role': 'user', 'text': '...'}, ...]
         """
         messages = self.get_recent_history(telegram_id, limit=limit)
 
         formatted: List[Dict[str, Any]] = []
         for msg in messages:
-            # Конвертируем наш message_type в формат Gemini
-            role = "user" if msg.message_type == "user" else "model"
+            # Конвертируем наш message_type в формат YandexGPT
+            role = "user" if msg.message_type == "user" else "assistant"
 
-            # Форматируем в формате Gemini API (с parts для совместимости)
-            formatted.append({"role": role, "parts": [msg.message_text]})
+            # Форматируем в формате YandexGPT API
+            formatted.append({"role": role, "text": msg.message_text})
 
         return formatted
 
