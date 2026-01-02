@@ -12,7 +12,7 @@ import sys
 def find_dead_code():
     """Найти мертвый код в проекте."""
     print("=" * 60)
-    print("POISK MERTVOGO KODA (Dead Code Detection)")
+    print("ПОИСК МЕРТВОГО КОДА (Dead Code Detection)")
     print("=" * 60)
 
     cmd = [
@@ -29,22 +29,22 @@ def find_dead_code():
         result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
 
         if result.returncode == 0:
-            print("OK: MERTVYY KOD NE NAYDEN!")
-            print("   Proekt chistyy i optimalnyy!")
+            print("OK: МЕРТВЫЙ КОД НЕ НАЙДЕН!")
+            print("   Проект чистый и оптимальный!")
             return 0
         else:
-            print("WARNING: NAYDEN MERTVYY KOD:")
+            print("WARNING: НАЙДЕН МЕРТВЫЙ КОД:")
             print("-" * 60)
             print(result.stdout)
             print("-" * 60)
             count = result.stdout.count("unused")
-            print(f"   Naydeno problem: {count}")
-            print("   Rekomendatsiya: Udali neispolzuemyy kod ili dobav v .vulture_whitelist.py")
+            print(f"   Найдено проблем: {count}")
+            print("   Рекомендация: Удали неиспользуемый код или добавь в .vulture_whitelist.py")
             return 1
 
     except FileNotFoundError:
-        print("ERROR: vulture ne ustanovlen!")
-        print("   Ustanovi: pip install vulture")
+        print("ERROR: vulture не установлен!")
+        print("   Установи: pip install vulture")
         return 2
     except Exception as e:
         print(f"ERROR: {e}")

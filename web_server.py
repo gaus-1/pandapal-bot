@@ -229,8 +229,6 @@ class PandaPalBotServer:
                 # Раздаем папку assets ПЕРЕД SPA fallback (важен порядок!)
                 assets_dir = frontend_dist / "assets"
                 if assets_dir.exists():
-                    import os
-
                     # Универсальный обработчик для всех assets файлов
                     async def serve_asset(request: web.Request) -> web.Response:
                         """Раздача любого файла из assets директории."""
@@ -241,8 +239,6 @@ class PandaPalBotServer:
                         file_path = assets_dir / filename
                         if not file_path.exists() or not file_path.is_file():
                             # Логируем с информацией о доступных файлах для отладки
-                            import os
-
                             available_js = [f for f in os.listdir(assets_dir) if f.endswith(".js")]
                             logger.warning(
                                 f"⚠️ Assets файл не найден: /assets/{filename} | "

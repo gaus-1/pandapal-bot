@@ -203,14 +203,16 @@ class DatabaseService:
         Returns:
             bool: True если подключение работает
         """
+        # Логируем URL для диагностики (без пароля)
+        db_url_clean = "***:***@***"
         try:
-            # Логируем URL для диагностики (без пароля)
-            try:
-                db_url_clean = settings.database_url.replace(
-                    settings.database_url.split("@")[0].split("//")[1], "***:***"
-                )
-            except Exception:
-                db_url_clean = "***:***@***"
+            db_url_clean = settings.database_url.replace(
+                settings.database_url.split("@")[0].split("//")[1], "***:***"
+            )
+        except Exception:
+            pass
+
+        try:
             logger.info(f"🔍 Подключение к БД: {db_url_clean}")
 
             with engine.connect() as conn:
@@ -220,8 +222,5 @@ class DatabaseService:
             return True
         except Exception as e:
             logger.error(f"❌ Ошибка подключения к БД: {e}")
-            try:
-                logger.error(f"❌ URL БД (без пароля): {db_url_clean}")
-            except NameError:
-                logger.error("❌ URL БД: не удалось определить")
+            logger.error(f"❌ URL БД (без пароля): {db_url_clean}")
             return False
