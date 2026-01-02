@@ -165,12 +165,12 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
       onClick={onClick}
       className={`flex flex-col items-center justify-center py-1.5 px-2 rounded-lg transition-all shadow-sm ${
         isActive
-          ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] font-bold shadow-md'
-          : 'text-[var(--tg-theme-text-color)] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/20 font-medium'
+          ? 'bg-blue-400/90 text-white font-semibold shadow-md'
+          : 'text-[var(--tg-theme-text-color)] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-blue-100/50 dark:hover:bg-blue-900/20 font-medium'
       }`}
     >
       <span className="text-lg mb-0.5">{icon}</span>
-      <span className="text-[9px] font-bold leading-tight opacity-90">{label}</span>
+      <span className="text-[9px] font-semibold leading-tight opacity-90">{label}</span>
     </button>
   );
 }
