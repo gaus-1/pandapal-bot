@@ -351,9 +351,10 @@ async def security_middleware(app: web.Application, handler):
             )
         else:
             # Для frontend (Mini App) - разрешаем встраивание в Telegram
+            # 'unsafe-inline' нужен для inline скриптов в index.html (подавление ошибок Telegram WebView)
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
-                "script-src 'self' https://telegram.org https://web.telegram.org; "
+                "script-src 'self' 'unsafe-inline' https://telegram.org https://web.telegram.org; "
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
                 "font-src 'self' https://fonts.gstatic.com; "
                 "img-src 'self' data: https:; "
