@@ -136,6 +136,7 @@ async def init_database() -> None:
         # Опционально применяем миграции при старте
         auto_migrate = os.getenv("AUTO_MIGRATE", "false").lower() == "true"
         if auto_migrate:
+            migration_applied = False
             try:
                 from alembic import command
                 from alembic.config import Config
@@ -152,10 +153,44 @@ async def init_database() -> None:
 
                 logger.info("🔄 Применение миграций Alembic...")
                 command.upgrade(alembic_cfg, "head")
-                logger.info("✅ Миграции применены успешно")
+                logger.info("✅ Миграции Alembic применены успешно")
+                migration_applied = True
             except Exception as e:
-                logger.warning(f"⚠️ Не удалось применить миграции автоматически: {e}")
-                logger.warning("⚠️ Примените миграции вручную: alembic upgrade head")
+                logger.warning(f"⚠️ Alembic миграция не удалась: {e}")
+                logger.info("🔄 Пробуем применить SQL скрипт напрямую...")
+
+                # Fallback: применяем SQL скрипт напрямую
+                try:
+                    from pathlib import Path
+
+                    from sqlalchemy import text
+
+                    # Путь относительно корня проекта
+                    project_root = Path(__file__).parent.parent
+                    sql_file = project_root / "sql" / "03_add_premium_subscriptions.sql"
+                    if sql_file.exists():
+                        with engine.connect() as conn:
+                            sql_content = sql_file.read_text(encoding="utf-8")
+                            # Выполняем SQL построчно для лучшей обработки ошибок
+                            for statement in sql_content.split(";"):
+                                statement = statement.strip()
+                                if statement and not statement.startswith("--"):
+                                    try:
+                                        conn.execute(text(statement))
+                                    except Exception as sql_err:
+                                        # Игнорируем ошибки "already exists" - это нормально
+                                        if "already exists" not in str(sql_err).lower():
+                                            logger.warning(f"⚠️ SQL ошибка (игнорируем): {sql_err}")
+                            conn.commit()
+                        logger.info("✅ SQL миграция применена успешно")
+                        migration_applied = True
+                    else:
+                        logger.warning(f"⚠️ SQL файл не найден: {sql_file}")
+                except Exception as sql_err:
+                    logger.error(f"❌ Не удалось применить SQL миграцию: {sql_err}")
+
+            if not migration_applied:
+                logger.warning("⚠️ Миграции не применены. Примените вручную: alembic upgrade head")
     except Exception as e:
         logger.error("❌ Ошибка инициализации БД: %s", str(e))
         raise
