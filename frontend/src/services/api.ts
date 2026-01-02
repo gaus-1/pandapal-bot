@@ -48,24 +48,42 @@ export interface DashboardStats {
 export async function authenticateUser(): Promise<UserProfile> {
   const initData = telegram.getInitData();
 
+  console.log('📡 API: Начало аутентификации');
+  console.log('📡 API: initData length:', initData?.length || 0);
+  console.log('📡 API: API URL:', `${API_BASE_URL}/miniapp/auth`);
+
   if (!initData) {
-    throw new Error('Telegram initData недоступен');
+    console.error('❌ API: Telegram initData недоступен');
+    throw new Error('Telegram initData недоступен. Убедитесь, что приложение открыто через Telegram.');
   }
 
-  const response = await fetch(`${API_BASE_URL}/miniapp/auth`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ initData }),
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/miniapp/auth`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ initData }),
+    });
 
-  if (!response.ok) {
-    throw new Error('Ошибка аутентификации');
+    console.log('📡 API: Response status:', response.status);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      console.error('❌ API: Response error:', errorData);
+      throw new Error(`Ошибка аутентификации: ${errorData.error || response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ API: Успешная аутентификация');
+    return data.user;
+  } catch (error) {
+    console.error('❌ API: Network or fetch error:', error);
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error('Не удалось подключиться к серверу. Проверьте подключение к интернету.');
+    }
+    throw error;
   }
-
-  const data = await response.json();
-  return data.user;
 }
 
 /**

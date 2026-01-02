@@ -29,16 +29,24 @@ export function MiniApp() {
     // Инициализация Telegram Mini App
     telegram.init();
 
+    // Отладочная информация
+    console.log('🔍 DEBUG: Telegram initData:', telegram.getInitData());
+    console.log('🔍 DEBUG: Telegram user:', telegram.getUser());
+    console.log('🔍 DEBUG: Telegram platform:', telegram.getPlatform());
+    console.log('🔍 DEBUG: Is Telegram WebApp:', telegram.isTelegramWebApp());
+
     // Аутентификация пользователя
     authenticateUser()
       .then((userProfile) => {
+        console.log('✅ Аутентификация успешна:', userProfile);
         setUser(userProfile);
         setIsLoading(false);
         telegram.notifySuccess();
       })
       .catch((err) => {
-        console.error('Ошибка аутентификации:', err);
-        setError('Не удалось загрузить данные пользователя');
+        console.error('❌ Ошибка аутентификации:', err);
+        console.error('❌ Детали ошибки:', err.message);
+        setError(`Не удалось загрузить данные пользователя: ${err.message}`);
         setIsLoading(false);
         telegram.notifyError();
       });
