@@ -15,25 +15,25 @@ try:
 
     _optimized_service_available = True
 except ImportError:
-    # Fallback на оригинальную версию только для development
-    # В production обфусцированные файлы обязательны (создаются через railway_build.sh)
+    # Fallback на оригинальную версию
+    # ВАЖНО: В production обфусцированные файлы должны создаваться через nixpacks.toml build phase
+    # Если их нет - используем оригинальные файлы (временно, для стабильности)
     import os
 
     # Проверяем, находимся ли мы в production (Railway)
-    # Railway автоматически устанавливает переменную RAILWAY_ENVIRONMENT
     is_railway = bool(os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RAILWAY"))
-    env = os.getenv("ENVIRONMENT", "production" if is_railway else "development").lower()
 
-    # В production (Railway) обфусцированные файлы обязательны
-    # Они создаются через railway_build.sh перед запуском
-    if env == "production" or is_railway:
-        raise ImportError(
-            "Optimized service files are required in production. "
-            "Please ensure railway_build.sh was executed during build. "
-            "If running locally, set ENVIRONMENT=development to use original files."
+    # Логируем предупреждение, но не падаем
+    if is_railway:
+        import sys
+
+        print(
+            "⚠️ WARNING: Optimized service files not found in production. "
+            "Using original files. Check build logs for obfuscation script errors.",
+            file=sys.stderr,
         )
 
-    # Для development используем оригинальный файл
+    # Используем оригинальный файл (fallback)
     from bot.services.moderation_service import ContentModerationService  # noqa: E402
 
 from bot.services.simple_engagement import (  # noqa: E402

@@ -18,26 +18,26 @@ try:
 
     _optimized_available = True
 except ImportError:
-    # Fallback на оригинальные файлы только для development
-    # В production обфусцированные файлы обязательны (создаются через railway_build.sh)
+    # Fallback на оригинальные файлы
+    # ВАЖНО: В production обфусцированные файлы должны создаваться через nixpacks.toml build phase
+    # Если их нет - используем оригинальные файлы (временно, для стабильности)
     import os
     from pathlib import Path
 
     # Проверяем, находимся ли мы в production (Railway)
-    # Railway автоматически устанавливает переменную RAILWAY_ENVIRONMENT
     is_railway = bool(os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RAILWAY"))
-    env = os.getenv("ENVIRONMENT", "production" if is_railway else "development").lower()
 
-    # В production (Railway) обфусцированные файлы обязательны
-    # Они создаются через railway_build.sh перед запуском
-    if env == "production" or is_railway:
-        raise ImportError(
-            "Optimized configuration files are required in production. "
-            "Please ensure railway_build.sh was executed during build. "
-            "If running locally, set ENVIRONMENT=development to use original files."
+    # Логируем предупреждение, но не падаем
+    if is_railway:
+        import sys
+
+        print(
+            "⚠️ WARNING: Optimized config files not found in production. "
+            "Using original files. Check build logs for obfuscation script errors.",
+            file=sys.stderr,
         )
 
-    # Для development используем оригинальные файлы
+    # Используем оригинальные файлы (fallback)
     from bot.config.forbidden_patterns import FORBIDDEN_PATTERNS  # noqa: E402
     from bot.config.prompts import AI_SYSTEM_PROMPT  # noqa: E402
 from bot.config.settings import (  # noqa: E402
