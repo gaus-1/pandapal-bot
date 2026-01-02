@@ -6,3 +6,33 @@ import '@testing-library/jest-dom';
 afterEach(() => {
   cleanup();
 });
+
+// Mock для Web APIs которых нет в JSDOM
+if (typeof window !== 'undefined') {
+  // Mock scrollIntoView
+  Element.prototype.scrollIntoView = function() {
+    // no-op
+  };
+
+  // Mock matchMedia
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {}, // deprecated
+      removeListener: () => {}, // deprecated
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => {},
+    }),
+  });
+
+  // Mock ResizeObserver
+  global.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
