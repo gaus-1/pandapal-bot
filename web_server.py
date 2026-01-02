@@ -217,6 +217,15 @@ class PandaPalBotServer:
             except ImportError:
                 logger.debug("📊 Метрики недоступны (опционально)")
 
+            # Интегрируем Mini App API
+            try:
+                from bot.api.miniapp_endpoints import setup_miniapp_routes
+
+                setup_miniapp_routes(self.app)
+                logger.info("🎮 Mini App API endpoints зарегистрированы")
+            except ImportError as e:
+                logger.warning(f"⚠️ Не удалось загрузить Mini App API: {e}")
+
             # Настраиваем webhook handler ПОСЛЕ регистрации всех маршрутов
             # Явно указываем путь /webhook для Railway
             webhook_path = "/webhook"
