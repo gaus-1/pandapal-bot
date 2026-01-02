@@ -314,8 +314,8 @@ async def miniapp_get_chat_history(request: web.Request) -> web.Response:
             return web.json_response({"success": True, "history": history})
 
     except Exception as e:
-        logger.error(f"❌ Ошибка получения истории: {e}")
-        return web.json_response({"error": "Internal server error"}, status=500)
+        logger.error(f"❌ Ошибка получения истории: {e}", exc_info=True)
+        return web.json_response({"error": f"Internal server error: {str(e)}"}, status=500)
 
 
 async def miniapp_get_subjects(request: web.Request) -> web.Response:

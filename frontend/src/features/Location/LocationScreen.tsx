@@ -29,12 +29,23 @@ export function LocationScreen({ user }: LocationScreenProps) {
     setError(null);
     telegram.hapticFeedback('medium');
 
-    // Используем браузерный Geolocation API
+    // Проверяем поддержку геолокации
     if (!navigator.geolocation) {
       setError('❌ Геолокация недоступна в твоем устройстве');
       setIsSending(false);
       telegram.notifyError();
       return;
+    }
+
+    // Запрашиваем разрешение через Telegram WebApp (если доступно)
+    if (telegram.isInTelegram()) {
+      telegram.showPopup({
+        title: 'Доступ к местоположению',
+        message: 'Разреши доступ к геолокации в следующем окне браузера',
+        buttons: [
+          { id: 'ok', type: 'default', text: 'Понятно' }
+        ]
+      });
     }
 
     navigator.geolocation.getCurrentPosition(
