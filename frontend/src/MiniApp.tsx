@@ -116,12 +116,12 @@ export function MiniApp() {
         {currentScreen === 'emergency' && <EmergencyScreen />}
       </div>
 
-      {/* Нижняя навигация - только AI и SOS */}
+      {/* Нижняя навигация - КОМПАКТНАЯ */}
       <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20">
-        <div className="grid grid-cols-2 gap-2 p-2">
+        <div className="grid grid-cols-2 gap-1 p-1.5">
           <NavButton
-            icon="💬"
-            label="AI Чат"
+            icon="🐼"
+            label="Panda чат"
             isActive={currentScreen === 'ai-chat'}
             onClick={() => navigateTo('ai-chat')}
           />
@@ -148,14 +148,14 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all ${
+      className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
         isActive
           ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)]'
           : 'text-[var(--tg-theme-text-color)] hover:bg-[var(--tg-theme-hint-color)]/10'
       }`}
     >
-      <span className="text-2xl mb-1">{icon}</span>
-      <span className="text-xs font-semibold leading-tight">{label}</span>
+      <span className="text-xl mb-0.5">{icon}</span>
+      <span className="text-[10px] font-semibold leading-tight">{label}</span>
     </button>
   );
 }
