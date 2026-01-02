@@ -146,16 +146,6 @@ def get_settings_keyboard(user_type: str = "child") -> InlineKeyboardMarkup:
         ],
     ]
 
-    # Дополнительные настройки для родителей
-    if user_type == "parent":
-        buttons.append(
-            [
-                InlineKeyboardButton(
-                    text="👨‍👧 Связать с ребёнком", callback_data="settings:link_child"
-                ),
-            ]
-        )
-
     # Кнопка очистки истории
     buttons.append(
         [
