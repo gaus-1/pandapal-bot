@@ -219,24 +219,22 @@ export class TelegramService {
 
   /**
    * Проверка, запущено ли приложение в Telegram
-   * Проверяет несколько признаков для надежности
+   * СТРОГАЯ проверка - только по initData (самый надежный признак)
    */
   isInTelegram(): boolean {
-    // Проверяем наличие initData (основной признак)
-    const hasInitData = this.webApp.initData !== '' && this.webApp.initData !== undefined;
+    // СТРОГАЯ проверка: только initData (объект WebApp может существовать и вне Telegram)
+    const hasInitData = this.webApp.initData !== '' &&
+                       this.webApp.initData !== undefined &&
+                       this.webApp.initData !== null;
 
-    // Проверяем наличие объекта WebApp (дополнительная проверка)
-    const hasWebApp = typeof this.webApp !== 'undefined' && this.webApp !== null;
-
-    // Проверяем платформу (если есть, значит в Telegram)
-    const hasPlatform = this.webApp.platform !== undefined;
-
-    // Проверяем user agent (дополнительная проверка для ПК)
+    // Дополнительная проверка: user agent (для надежности)
     const isTelegramUserAgent = typeof window !== 'undefined' &&
       (window.navigator.userAgent.includes('Telegram') ||
-       window.location.hostname.includes('telegram.org'));
+       window.location.hostname.includes('telegram.org') ||
+       window.location.hostname.includes('web.telegram.org'));
 
-    return hasInitData || (hasWebApp && (hasPlatform || isTelegramUserAgent));
+    // Только если есть initData ИЛИ точно в Telegram по user agent
+    return hasInitData || isTelegramUserAgent;
   }
 
   /**

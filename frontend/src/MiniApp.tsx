@@ -47,10 +47,9 @@ function MiniAppContent() {
     // Проверяем что initData доступен
     const initData = telegram.getInitData();
     if (!initData) {
-      console.error('❌ КРИТИЧНО: initData пустой!');
-      useAppStore.getState().setError(
-        'Приложение должно открываться через Telegram Mini App. Пожалуйста, откройте бота в Telegram и нажмите кнопку Mini App.'
-      );
+      // Если нет initData, но мы в MiniApp - значит что-то не так
+      // Но не показываем ошибку, просто не инициализируем
+      console.warn('⚠️ initData недоступен, но приложение в MiniApp режиме');
       useAppStore.getState().setIsLoading(false);
       return;
     }

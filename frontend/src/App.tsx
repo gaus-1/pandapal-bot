@@ -35,11 +35,15 @@ const App: React.FC = () => {
 
   useEffect(() => {
     // Проверяем, открыто ли приложение в Telegram
-    const inTelegram = telegram.isInTelegram();
+    // СТРОГАЯ проверка: только если есть initData
+    const hasInitData = telegram.getInitData() !== '' && telegram.getInitData() !== undefined;
+    const inTelegram = hasInitData && telegram.isInTelegram();
+
     setIsInTelegram(inTelegram);
     setIsChecking(false);
 
     console.log('🤖 Приложение запущено в:', inTelegram ? 'Telegram Mini App' : 'Браузере');
+    console.log('🔍 InitData доступен:', hasInitData);
   }, []);
 
   // Показываем загрузку пока проверяем окружение
