@@ -1,23 +1,38 @@
 /**
  * Telegram Mini App - главный компонент
- * Навигация и экраны для всех функций бота
+ * Использует Zustand для состояния и TanStack Query для данных
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { queryClient } from './lib/queryClient';
+import { useAppStore, selectUser, selectCurrentScreen, selectIsLoading, selectError } from './store/appStore';
+import { useAuth } from './hooks/useAuth';
 import { telegram } from './services/telegram';
-import { authenticateUser, type UserProfile } from './services/api';
 
-// Импорт экранов
-import { AIChat } from './features/AIChat/AIChat';
-import { EmergencyScreen } from './features/Emergency/EmergencyScreen';
-
-type Screen = 'ai-chat' | 'emergency';
+// Lazy loading экранов для оптимизации
+const AIChat = lazy(() => import('./features/AIChat/AIChat').then(m => ({ default: m.AIChat })));
+const EmergencyScreen = lazy(() => import('./features/Emergency/EmergencyScreen').then(m => ({ default: m.EmergencyScreen })));
 
 export function MiniApp() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('ai-chat');
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  return (
+    <QueryClientProvider client={queryClient}>
+      <MiniAppContent />
+      {/* DevTools только в development */}
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+    </QueryClientProvider>
+  );
+}
+
+function MiniAppContent() {
+  // Используем Zustand селекторы для оптимизации re-renders
+  const user = useAppStore(selectUser);
+  const currentScreen = useAppStore(selectCurrentScreen);
+  const isLoading = useAppStore(selectIsLoading);
+  const error = useAppStore(selectError);
+  const { setCurrentScreen } = useAppStore();
+  const { authenticate } = useAuth();
 
   useEffect(() => {
     // Инициализация Telegram Mini App
@@ -29,21 +44,19 @@ export function MiniApp() {
     console.log('🔍 DEBUG: Telegram platform:', telegram.getPlatform());
     console.log('🔍 DEBUG: Is Telegram WebApp:', telegram.isTelegramWebApp());
 
-    // Аутентификация пользователя
-    authenticateUser()
-      .then((userProfile) => {
-        console.log('✅ Аутентификация успешна:', userProfile);
-        setUser(userProfile);
-        setIsLoading(false);
-        telegram.notifySuccess();
-      })
-      .catch((err) => {
-        console.error('❌ Ошибка аутентификации:', err);
-        console.error('❌ Детали ошибки:', err.message);
-        setError(`Не удалось загрузить данные пользователя: ${err.message}`);
-        setIsLoading(false);
-        telegram.notifyError();
-      });
+    // Проверяем что initData доступен
+    const initData = telegram.getInitData();
+    if (!initData) {
+      console.error('❌ КРИТИЧНО: initData пустой!');
+      useAppStore.getState().setError(
+        'Приложение должно открываться через Telegram Mini App. Пожалуйста, откройте бота в Telegram и нажмите кнопку Mini App.'
+      );
+      useAppStore.getState().setIsLoading(false);
+      return;
+    }
+
+    // Аутентификация через TanStack Query hook
+    authenticate();
 
     // Показываем кнопку "Назад" для навигации
     telegram.showBackButton(() => {
@@ -56,7 +69,7 @@ export function MiniApp() {
     return () => {
       telegram.hideBackButton();
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Обновляем кнопку "Назад" при смене экрана
   useEffect(() => {
@@ -68,9 +81,9 @@ export function MiniApp() {
         telegram.hapticFeedback('light');
       });
     }
-  }, [currentScreen]);
+  }, [currentScreen, setCurrentScreen]);
 
-  const navigateTo = (screen: Screen) => {
+  const navigateTo = (screen: 'ai-chat' | 'emergency') => {
     setCurrentScreen(screen);
     telegram.hapticFeedback('medium');
   };
@@ -110,10 +123,12 @@ export function MiniApp() {
 
   return (
     <div className="h-screen flex flex-col bg-[var(--tg-theme-bg-color)]">
-      {/* Основной контент */}
+      {/* Основной контент с Suspense для lazy loading */}
       <div className="flex-1 overflow-y-auto">
-        {currentScreen === 'ai-chat' && <AIChat user={user} />}
-        {currentScreen === 'emergency' && <EmergencyScreen />}
+        <Suspense fallback={<LoadingFallback />}>
+          {currentScreen === 'ai-chat' && user && <AIChat user={user} />}
+          {currentScreen === 'emergency' && <EmergencyScreen />}
+        </Suspense>
       </div>
 
       {/* Нижняя навигация - КОМПАКТНАЯ */}
@@ -157,5 +172,19 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
       <span className="text-xl mb-0.5">{icon}</span>
       <span className="text-[10px] font-semibold leading-tight">{label}</span>
     </button>
+  );
+}
+
+/**
+ * Fallback компонент для Suspense
+ */
+function LoadingFallback() {
+  return (
+    <div className="flex items-center justify-center h-full">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--tg-theme-button-color)]"></div>
+        <p className="mt-2 text-sm text-[var(--tg-theme-hint-color)]">Загрузка...</p>
+      </div>
+    </div>
   );
 }

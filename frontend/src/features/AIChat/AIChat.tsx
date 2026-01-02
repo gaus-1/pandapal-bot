@@ -1,81 +1,42 @@
 /**
  * AI Chat Screen - Общение с AI
+ * Использует TanStack Query для оптимизированного кэширования
  */
 
 import { useState, useEffect, useRef } from 'react';
 import { telegram } from '../../services/telegram';
-import { sendAIMessage, getChatHistory, type UserProfile } from '../../services/api';
-
-interface Message {
-  role: 'user' | 'ai';
-  content: string;
-  timestamp: string;
-}
+import { useChat } from '../../hooks/useChat';
+import type { UserProfile } from '../../services/api';
 
 interface AIChatProps {
   user: UserProfile;
 }
 
 export function AIChat({ user }: AIChatProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  // Используем оптимизированный хук с TanStack Query
+  const {
+    messages,
+    isLoadingHistory,
+    sendMessage,
+    isSending,
+  } = useChat({ telegramId: user.telegram_id, limit: 20 });
+
   const [inputText, setInputText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-
-  // Загрузка истории чата
-  useEffect(() => {
-    getChatHistory(user.telegram_id, 20)
-      .then((history) => {
-        setMessages(history);
-        setIsLoadingHistory(false);
-      })
-      .catch((err) => {
-        console.error('Ошибка загрузки истории:', err);
-        setIsLoadingHistory(false);
-      });
-  }, [user.telegram_id]);
 
   // Автоскролл к последнему сообщению
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!inputText.trim() || isLoading) return;
+  const handleSend = () => {
+    if (!inputText.trim() || isSending) return;
 
-    const userMessage: Message = {
-      role: 'user',
-      content: inputText,
-      timestamp: new Date().toISOString(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
+    sendMessage({ message: inputText });
     setInputText('');
-    setIsLoading(true);
-    telegram.hapticFeedback('medium');
-
-    try {
-      const response = await sendAIMessage(user.telegram_id, inputText);
-
-      const aiMessage: Message = {
-        role: 'ai',
-        content: response.response,
-        timestamp: new Date().toISOString(),
-      };
-
-      setMessages((prev) => [...prev, aiMessage]);
-      telegram.notifySuccess();
-    } catch (error) {
-      console.error('Ошибка отправки сообщения:', error);
-      telegram.notifyError();
-      await telegram.showAlert('Не удалось отправить сообщение. Попробуй еще раз!');
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -101,39 +62,19 @@ export function AIChat({ user }: AIChatProps) {
 
     telegram.hapticFeedback('medium');
 
-    // Показываем превью
-    const userMessage: Message = {
-      role: 'user',
-      content: `📷 Анализирую фото...`,
-      timestamp: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
     try {
       // Конвертируем в base64
       const reader = new FileReader();
-      reader.onload = async () => {
+      reader.onload = () => {
         const base64Data = reader.result as string;
 
-        // Отправляем РЕАЛЬНОЕ фото в API
-        const response = await sendAIMessage(
-          user.telegram_id,
-          inputText.trim() || 'Помоги мне с этой задачей',
-          base64Data, // photo_base64
-          undefined // audio_base64
-        );
+        // Отправляем через TanStack Query хук
+        sendMessage({
+          message: inputText.trim() || 'Помоги мне с этой задачей',
+          photoBase64: base64Data,
+        });
 
-        const aiMessage: Message = {
-          role: 'ai',
-          content: response.response,
-          timestamp: new Date().toISOString(),
-        };
-
-        setMessages((prev) => [...prev, aiMessage]);
-        setInputText(''); // Очищаем текстовое поле
-        telegram.notifySuccess();
-        setIsLoading(false);
+        setInputText('');
       };
 
       reader.readAsDataURL(file);
@@ -141,7 +82,6 @@ export function AIChat({ user }: AIChatProps) {
       console.error('Ошибка загрузки фото:', error);
       telegram.notifyError();
       await telegram.showAlert(error.message || 'Не удалось загрузить фото. Попробуй еще раз!');
-      setIsLoading(false);
     } finally {
       // Очищаем input
       if (fileInputRef.current) {
@@ -161,50 +101,28 @@ export function AIChat({ user }: AIChatProps) {
         audioChunks.push(event.data);
       };
 
-      mediaRecorder.onstop = async () => {
+      mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
 
         telegram.hapticFeedback('medium');
 
-        const userMessage: Message = {
-          role: 'user',
-          content: `🎤 Распознаю голос...`,
-          timestamp: new Date().toISOString(),
-        };
-        setMessages((prev) => [...prev, userMessage]);
-        setIsLoading(true);
-
         try {
           // Конвертируем аудио в base64
           const reader = new FileReader();
-          reader.onload = async () => {
+          reader.onload = () => {
             const base64Audio = reader.result as string;
 
-            // Отправляем РЕАЛЬНОЕ аудио в API
-            const response = await sendAIMessage(
-              user.telegram_id,
-              undefined, // message
-              undefined, // photo_base64
-              base64Audio // audio_base64
-            );
-
-            const aiMessage: Message = {
-              role: 'ai',
-              content: response.response,
-              timestamp: new Date().toISOString(),
-            };
-
-            setMessages((prev) => [...prev, aiMessage]);
-            telegram.notifySuccess();
-            setIsLoading(false);
+            // Отправляем через TanStack Query хук
+            sendMessage({
+              audioBase64: base64Audio,
+            });
           };
 
           reader.readAsDataURL(audioBlob);
         } catch (error: any) {
           console.error('Ошибка отправки аудио:', error);
           telegram.notifyError();
-          await telegram.showAlert(error.message || 'Не удалось отправить голосовое сообщение!');
-          setIsLoading(false);
+          telegram.showAlert(error.message || 'Не удалось отправить голосовое сообщение!');
         } finally {
           // Останавливаем поток
           stream.getTracks().forEach((track) => track.stop());
@@ -287,7 +205,7 @@ export function AIChat({ user }: AIChatProps) {
             </div>
           ))
         )}
-        {isLoading && (
+        {isSending && (
           <div className="flex justify-start">
             <div className="bg-white dark:bg-slate-800 rounded-3xl px-5 py-3 shadow-lg border border-gray-200 dark:border-slate-700">
               <div className="flex items-center gap-2">
@@ -319,7 +237,7 @@ export function AIChat({ user }: AIChatProps) {
           {/* Кнопка фото - МЕНЬШЕ */}
           <button
             onClick={handlePhotoClick}
-            disabled={isLoading || isRecording}
+            disabled={isSending || isRecording}
             className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-400 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-md transition-all active:scale-95 shadow-sm"
             title="Отправить фото"
           >
@@ -332,7 +250,7 @@ export function AIChat({ user }: AIChatProps) {
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Задай вопрос..."
-            disabled={isLoading || isRecording}
+            disabled={isSending || isRecording}
             className="flex-1 resize-none rounded-xl px-3 py-2 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 text-sm border border-gray-200 dark:border-slate-700 outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 disabled:opacity-50 transition-all"
             rows={1}
             style={{ maxHeight: '100px' }}
@@ -350,11 +268,11 @@ export function AIChat({ user }: AIChatProps) {
           ) : inputText.trim() ? (
             <button
               onClick={handleSend}
-              disabled={isLoading}
+              disabled={isSending}
               className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-green-400 to-emerald-500 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 hover:shadow-md shadow-sm"
               title="Отправить сообщение"
             >
-              {isLoading ? (
+              {isSending ? (
                 <div className="animate-spin text-lg">⏳</div>
               ) : (
                 <span className="text-lg">▶️</span>
@@ -363,7 +281,7 @@ export function AIChat({ user }: AIChatProps) {
           ) : (
             <button
               onClick={handleVoiceStart}
-              disabled={isLoading}
+              disabled={isSending}
               className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-400 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-md shadow-sm"
               title="Записать голосовое сообщение"
             >

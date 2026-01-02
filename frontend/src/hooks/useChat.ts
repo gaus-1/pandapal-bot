@@ -1,0 +1,115 @@
+/**
+ * Chat Hook - использует TanStack Query для кэширования истории
+ */
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getChatHistory, sendAIMessage } from '../services/api';
+import { queryKeys } from '../lib/queryClient';
+import { telegram } from '../services/telegram';
+
+interface UseChatOptions {
+  telegramId: number;
+  limit?: number;
+}
+
+/**
+ * Hook для работы с AI чатом
+ * Кэширует историю и оптимистично обновляет UI
+ */
+export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
+  const queryClient = useQueryClient();
+
+  // Получение истории чата
+  const {
+    data: messages = [],
+    isLoading: isLoadingHistory,
+    error: historyError,
+  } = useQuery({
+    queryKey: queryKeys.chatHistory(telegramId, limit),
+    queryFn: () => getChatHistory(telegramId, limit),
+    enabled: !!telegramId,
+  });
+
+  // Отправка сообщения AI
+  const sendMessageMutation = useMutation({
+    mutationFn: ({
+      message,
+      photoBase64,
+      audioBase64,
+    }: {
+      message?: string;
+      photoBase64?: string;
+      audioBase64?: string;
+    }) => sendAIMessage(telegramId, message, photoBase64, audioBase64),
+
+    // Оптимистичное обновление UI
+    onMutate: async (variables) => {
+      // Отменяем текущие запросы истории
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.chatHistory(telegramId, limit),
+      });
+
+      // Сохраняем предыдущее состояние для rollback
+      const previousMessages = queryClient.getQueryData(
+        queryKeys.chatHistory(telegramId, limit)
+      );
+
+      // Оптимистично добавляем сообщение пользователя
+      const userMessage = {
+        role: 'user' as const,
+        content: variables.photoBase64
+          ? '📷 Анализирую фото...'
+          : variables.audioBase64
+          ? '🎤 Распознаю голос...'
+          : variables.message || '',
+        timestamp: new Date().toISOString(),
+      };
+
+      queryClient.setQueryData(
+        queryKeys.chatHistory(telegramId, limit),
+        (old: any) => [...(old || []), userMessage]
+      );
+
+      telegram.hapticFeedback('medium');
+
+      return { previousMessages };
+    },
+
+    // Добавляем ответ AI к истории
+    onSuccess: (data) => {
+      const aiMessage = {
+        role: 'ai' as const,
+        content: data.response,
+        timestamp: new Date().toISOString(),
+      };
+
+      queryClient.setQueryData(
+        queryKeys.chatHistory(telegramId, limit),
+        (old: any) => [...(old || []), aiMessage]
+      );
+
+      telegram.notifySuccess();
+    },
+
+    // Rollback при ошибке
+    onError: (_error, _variables, context: any) => {
+      if (context?.previousMessages) {
+        queryClient.setQueryData(
+          queryKeys.chatHistory(telegramId, limit),
+          context.previousMessages
+        );
+      }
+      telegram.notifyError();
+      console.error('❌ Ошибка отправки сообщения:', _error);
+    },
+  });
+
+  return {
+    messages,
+    isLoadingHistory,
+    historyError,
+    sendMessage: sendMessageMutation.mutate,
+    isSending: sendMessageMutation.isPending,
+    sendError: sendMessageMutation.error,
+  };
+}
