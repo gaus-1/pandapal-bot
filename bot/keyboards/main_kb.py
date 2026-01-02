@@ -24,42 +24,22 @@ Reply клавиатуры (постоянно видимые) и Inline кла�
 from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
-    KeyboardButton,
-    ReplyKeyboardMarkup,
-    WebAppInfo,
+    ReplyKeyboardRemove,
 )
 
 
-def get_main_menu_keyboard(user_type: str = "child") -> ReplyKeyboardMarkup:
+def get_main_menu_keyboard(user_type: str = "child") -> ReplyKeyboardRemove:
     """
-    Главное меню бота (Reply клавиатура)
-    ТОЛЬКО Mini App - все функции там
+    Убираем reply keyboard - все функции в Mini App.
+    Mini App открывается через кнопку меню в Telegram (настроена в BotFather).
 
     Args:
-        user_type: Тип пользователя (child/parent/teacher)
+        user_type: Тип пользователя (child/parent/teacher) - не используется, для совместимости
 
     Returns:
-        ReplyKeyboardMarkup: Клавиатура с кнопкой Mini App
+        ReplyKeyboardRemove: Убирает reply клавиатуру
     """
-    buttons = [
-        [
-            # ЕДИНСТВЕННАЯ кнопка - запуск Mini App
-            # Текст кнопки должен совпадать с настройками в BotFather
-            KeyboardButton(
-                text="Нажми",  # Обновлено: должно совпадать с BotFather
-                web_app=WebAppInfo(url="https://pandapal.ru"),
-            ),
-        ],
-    ]
-
-    keyboard = ReplyKeyboardMarkup(
-        keyboard=buttons,
-        resize_keyboard=True,
-        one_time_keyboard=False,
-        input_field_placeholder="Нажми кнопку выше, чтобы открыть приложение",
-    )
-
-    return keyboard
+    return ReplyKeyboardRemove()
 
 
 def get_subjects_keyboard() -> InlineKeyboardMarkup:
