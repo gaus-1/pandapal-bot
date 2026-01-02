@@ -6,6 +6,7 @@
 """
 
 import asyncio
+import random
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
@@ -113,8 +114,6 @@ class YandexAIResponseGenerator:
                     "Давай лучше обсудим что-то интересное! 📖 Какой предмет изучаем сегодня?",
                     "О, а давай поговорим об учёбе! 🐼 Есть вопросы по школьным предметам?",
                 ]
-                import random
-
                 return random.choice(friendly_responses)
 
             # Получение релевантных материалов из веб-источников
