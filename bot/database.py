@@ -23,6 +23,7 @@ Best Practices:
 - Проверяйте здоровье БД через DatabaseService.check_connection()
 """
 
+import os
 from contextlib import contextmanager
 from typing import Generator
 
@@ -120,7 +121,7 @@ async def init_database() -> None:
     Асинхронная инициализация базы данных PostgreSQL.
 
     Проверяет подключение к базе данных и валидирует её состояние.
-    В production используйте Alembic миграции для управления схемой БД!
+    Опционально применяет миграции Alembic при старте (если AUTO_MIGRATE=true).
 
     Raises:
         Exception: При ошибке подключения или проверки БД.
@@ -131,8 +132,32 @@ async def init_database() -> None:
             logger.info("✅ База данных подключена и готова к работе")
         else:
             logger.warning("⚠️ Проблема с подключением к базе данных")
+
+        # Опционально применяем миграции при старте
+        auto_migrate = os.getenv("AUTO_MIGRATE", "false").lower() == "true"
+        if auto_migrate:
+            try:
+                from alembic import command
+                from alembic.config import Config
+
+                alembic_cfg = Config("alembic.ini")
+                # Переопределяем URL из переменной окружения
+                database_url = os.getenv("DATABASE_URL") or os.getenv("database_url")
+                if database_url:
+                    if database_url.startswith("postgresql://") and "+psycopg" not in database_url:
+                        database_url = database_url.replace(
+                            "postgresql://", "postgresql+psycopg://", 1
+                        )
+                    alembic_cfg.set_main_option("sqlalchemy.url", database_url)
+
+                logger.info("🔄 Применение миграций Alembic...")
+                command.upgrade(alembic_cfg, "head")
+                logger.info("✅ Миграции применены успешно")
+            except Exception as e:
+                logger.warning(f"⚠️ Не удалось применить миграции автоматически: {e}")
+                logger.warning("⚠️ Примените миграции вручную: alembic upgrade head")
     except Exception as e:
-        logger.error(f"❌ Ошибка инициализации БД: {e}")
+        logger.error("❌ Ошибка инициализации БД: %s", str(e))
         raise
 
 
@@ -160,7 +185,8 @@ def get_db() -> Generator[Session, None, None]:
         db.commit()  # Автоматический commit при успехе
     except Exception as e:
         db.rollback()  # Откат при ошибке
-        logger.error(f"❌ Database error: {e}")
+        # Используем % для логирования чтобы избежать проблем с фигурными скобками в SQL
+        logger.error("❌ Database error: %s", str(e))
         raise
     finally:
         db.close()  # Всегда закрываем сессию

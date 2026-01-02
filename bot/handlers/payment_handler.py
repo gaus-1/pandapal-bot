@@ -147,7 +147,8 @@ async def successful_payment_handler(message: Message):
             )
 
     except Exception as e:
-        logger.error(f"❌ Критическая ошибка активации Premium: {e}", exc_info=True)
+        # Используем % для логирования чтобы избежать проблем с фигурными скобками в SQL
+        logger.error("❌ Критическая ошибка активации Premium: %s", str(e), exc_info=True)
         try:
             await message.answer(
                 "❌ Произошла ошибка при активации Premium. "
