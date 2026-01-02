@@ -65,7 +65,11 @@ class SubscriptionService:
                 select(User).where(User.telegram_id == telegram_id)
             ).scalar_one_or_none()
             if user and user.premium_until:
-                return user.premium_until > now
+                # Убеждаемся что premium_until timezone-aware
+                premium_until = user.premium_until
+                if premium_until.tzinfo is None:
+                    premium_until = premium_until.replace(tzinfo=timezone.utc)
+                return premium_until > now
 
         return False
 
@@ -141,8 +145,15 @@ class SubscriptionService:
         ).scalar_one_or_none()
         if user:
             # Если уже есть premium_until и он больше текущей даты, продлеваем
-            if user.premium_until and user.premium_until > now:
-                user.premium_until = max(user.premium_until, expires_at)
+            if user.premium_until:
+                # Убеждаемся что premium_until timezone-aware для сравнения
+                premium_until = user.premium_until
+                if premium_until.tzinfo is None:
+                    premium_until = premium_until.replace(tzinfo=timezone.utc)
+                if premium_until > now:
+                    user.premium_until = max(premium_until, expires_at)
+                else:
+                    user.premium_until = expires_at
             else:
                 user.premium_until = expires_at
             self.db.flush()
