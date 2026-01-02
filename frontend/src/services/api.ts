@@ -143,11 +143,13 @@ export async function getDashboardStats(telegramId: number): Promise<DashboardSt
 }
 
 /**
- * Отправить сообщение AI
+ * Отправить сообщение AI (текст / фото / аудио)
  */
 export async function sendAIMessage(
   telegramId: number,
-  message: string
+  message?: string,
+  photoBase64?: string,
+  audioBase64?: string
 ): Promise<{ response: string }> {
   const response = await fetch(`${API_BASE_URL}/miniapp/ai/chat`, {
     method: 'POST',
@@ -156,12 +158,15 @@ export async function sendAIMessage(
     },
     body: JSON.stringify({
       telegram_id: telegramId,
-      message,
+      message: message || '',
+      photo_base64: photoBase64,
+      audio_base64: audioBase64,
     }),
   });
 
   if (!response.ok) {
-    throw new Error('Ошибка отправки сообщения');
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка отправки сообщения');
   }
 
   return await response.json();

@@ -204,6 +204,14 @@ class PandaPalBotServer:
                 self.app.router.add_get(
                     "/", lambda _: web.FileResponse(frontend_dist / "index.html")
                 )
+
+                # SPA Fallback - все неизвестные роуты возвращают index.html
+                async def spa_fallback(request: web.Request) -> web.Response:
+                    return web.FileResponse(frontend_dist / "index.html")
+
+                # Регистрируем fallback ПОСЛЕДНИМ (после всех API и static routes)
+                self.app.router.add_get("/{path:.*}", spa_fallback)
+
                 logger.info(f"✅ Frontend настроен: {frontend_dist}")
             else:
                 # Fallback - если frontend не собран

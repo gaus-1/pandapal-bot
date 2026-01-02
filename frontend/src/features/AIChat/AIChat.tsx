@@ -104,7 +104,7 @@ export function AIChat({ user }: AIChatProps) {
     // Показываем превью
     const userMessage: Message = {
       role: 'user',
-      content: `📷 Фото: ${file.name}`,
+      content: `📷 Анализирую фото...`,
       timestamp: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, userMessage]);
@@ -114,10 +114,14 @@ export function AIChat({ user }: AIChatProps) {
       // Конвертируем в base64
       const reader = new FileReader();
       reader.onload = async () => {
-        // Пока Vision API не готов, отправляем текстовое описание
+        const base64Data = reader.result as string;
+
+        // Отправляем РЕАЛЬНОЕ фото в API
         const response = await sendAIMessage(
           user.telegram_id,
-          `Я отправил фото. Можешь помочь разобраться с задачей?`
+          inputText.trim() || 'Помоги мне с этой задачей',
+          base64Data, // photo_base64
+          undefined // audio_base64
         );
 
         const aiMessage: Message = {
@@ -127,16 +131,18 @@ export function AIChat({ user }: AIChatProps) {
         };
 
         setMessages((prev) => [...prev, aiMessage]);
+        setInputText(''); // Очищаем текстовое поле
         telegram.notifySuccess();
+        setIsLoading(false);
       };
 
       reader.readAsDataURL(file);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Ошибка загрузки фото:', error);
       telegram.notifyError();
-      await telegram.showAlert('Не удалось загрузить фото. Попробуй еще раз!');
-    } finally {
+      await telegram.showAlert(error.message || 'Не удалось загрузить фото. Попробуй еще раз!');
       setIsLoading(false);
+    } finally {
       // Очищаем input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -156,43 +162,53 @@ export function AIChat({ user }: AIChatProps) {
       };
 
       mediaRecorder.onstop = async () => {
-        // const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // TODO: использовать для отправки
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
 
         telegram.hapticFeedback('medium');
 
         const userMessage: Message = {
           role: 'user',
-          content: `🎤 Голосовое сообщение`,
+          content: `🎤 Распознаю голос...`,
           timestamp: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, userMessage]);
         setIsLoading(true);
 
         try {
-          // Пока Speech API не готов, отправляем текстовое сообщение
-          const response = await sendAIMessage(
-            user.telegram_id,
-            'Я записал голосовое сообщение. Можешь помочь с вопросом?'
-          );
+          // Конвертируем аудио в base64
+          const reader = new FileReader();
+          reader.onload = async () => {
+            const base64Audio = reader.result as string;
 
-          const aiMessage: Message = {
-            role: 'ai',
-            content: response.response,
-            timestamp: new Date().toISOString(),
+            // Отправляем РЕАЛЬНОЕ аудио в API
+            const response = await sendAIMessage(
+              user.telegram_id,
+              undefined, // message
+              undefined, // photo_base64
+              base64Audio // audio_base64
+            );
+
+            const aiMessage: Message = {
+              role: 'ai',
+              content: response.response,
+              timestamp: new Date().toISOString(),
+            };
+
+            setMessages((prev) => [...prev, aiMessage]);
+            telegram.notifySuccess();
+            setIsLoading(false);
           };
 
-          setMessages((prev) => [...prev, aiMessage]);
-          telegram.notifySuccess();
-        } catch (error) {
+          reader.readAsDataURL(audioBlob);
+        } catch (error: any) {
           console.error('Ошибка отправки аудио:', error);
           telegram.notifyError();
-          await telegram.showAlert('Не удалось отправить голосовое сообщение!');
-        } finally {
+          await telegram.showAlert(error.message || 'Не удалось отправить голосовое сообщение!');
           setIsLoading(false);
+        } finally {
+          // Останавливаем поток
+          stream.getTracks().forEach((track) => track.stop());
         }
-
-        // Останавливаем поток
-        stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorder.start();
@@ -215,16 +231,16 @@ export function AIChat({ user }: AIChatProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-blue-50 to-purple-50 dark:from-slate-900 dark:to-slate-800">
-      {/* Компактный заголовок */}
-      <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg p-3">
+    <div className="flex flex-col h-full bg-gradient-to-b from-blue-50 via-white to-purple-50 dark:from-slate-900 dark:to-slate-800">
+      {/* КОМПАКТНЫЙ заголовок */}
+      <div className="flex-shrink-0 bg-gradient-to-r from-sky-400 to-indigo-400 shadow-md p-2">
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="PandaPal" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white p-0.5 shadow-lg" />
+          <img src="/logo.png" alt="PandaPal" className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white p-0.5 shadow-md" />
           <div className="flex-1 min-w-0">
-            <h1 className="text-lg sm:text-xl font-bold text-white drop-shadow-md truncate">
+            <h1 className="text-base sm:text-lg font-bold text-white drop-shadow-md truncate">
               PandaPal AI
             </h1>
-            <p className="text-xs text-blue-100 truncate">
+            <p className="text-xs text-sky-100 truncate">
               Привет, {user.first_name}! 🎓
             </p>
           </div>
@@ -254,9 +270,9 @@ export function AIChat({ user }: AIChatProps) {
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
             >
               <div
-                className={`max-w-[80%] rounded-3xl px-5 py-3 shadow-lg ${
+                className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-md ${
                   msg.role === 'user'
-                    ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white'
+                    ? 'bg-gradient-to-br from-sky-400 to-indigo-400 text-white'
                     : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700'
                 }`}
               >
@@ -288,8 +304,8 @@ export function AIChat({ user }: AIChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Поле ввода - адаптивное */}
-      <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 p-2 sm:p-3 shadow-lg">
+      {/* Поле ввода - КОМПАКТНОЕ */}
+      <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 p-2 shadow-md">
         {/* Hidden file input */}
         <input
           ref={fileInputRef}
@@ -299,59 +315,59 @@ export function AIChat({ user }: AIChatProps) {
           className="hidden"
         />
 
-        <div className="flex items-end gap-2">
-          {/* Кнопка фото - компактная */}
+        <div className="flex items-end gap-1.5">
+          {/* Кнопка фото - МЕНЬШЕ */}
           <button
             onClick={handlePhotoClick}
             disabled={isLoading || isRecording}
-            className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-lg transition-all active:scale-95 shadow-md"
+            className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-400 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-md transition-all active:scale-95 shadow-sm"
             title="Отправить фото"
           >
-            <span className="text-xl sm:text-2xl">📷</span>
+            <span className="text-lg">📷</span>
           </button>
 
-          {/* Поле ввода текста - БОЛЬШЕ */}
+          {/* Поле ввода текста - БОЛЬШЕ пространства */}
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Задай вопрос..."
             disabled={isLoading || isRecording}
-            className="flex-1 resize-none rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-500 text-sm sm:text-base border-2 border-gray-200 dark:border-slate-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 disabled:opacity-50 transition-all font-medium"
+            className="flex-1 resize-none rounded-xl px-3 py-2 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 text-sm border border-gray-200 dark:border-slate-700 outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 disabled:opacity-50 transition-all"
             rows={1}
-            style={{ maxHeight: '120px' }}
+            style={{ maxHeight: '100px' }}
           />
 
-          {/* Кнопка аудио / отправки - компактная */}
+          {/* Кнопка аудио / отправки - МЕНЬШЕ */}
           {isRecording ? (
             <button
               onClick={handleVoiceStop}
-              className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-500 to-pink-600 text-white flex items-center justify-center animate-pulse shadow-lg"
+              className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-red-400 to-pink-500 text-white flex items-center justify-center animate-pulse shadow-md"
               title="Остановить запись"
             >
-              <span className="text-xl sm:text-2xl">⏹️</span>
+              <span className="text-lg">⏹️</span>
             </button>
           ) : inputText.trim() ? (
             <button
               onClick={handleSend}
               disabled={isLoading}
-              className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 hover:shadow-lg shadow-md"
+              className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-green-400 to-emerald-500 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 hover:shadow-md shadow-sm"
               title="Отправить сообщение"
             >
               {isLoading ? (
-                <div className="animate-spin text-xl sm:text-2xl">⏳</div>
+                <div className="animate-spin text-lg">⏳</div>
               ) : (
-                <span className="text-xl sm:text-2xl">▶️</span>
+                <span className="text-lg">▶️</span>
               )}
             </button>
           ) : (
             <button
               onClick={handleVoiceStart}
               disabled={isLoading}
-              className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-lg shadow-md"
+              className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-400 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-md shadow-sm"
               title="Записать голосовое сообщение"
             >
-              <span className="text-xl sm:text-2xl">🎤</span>
+              <span className="text-lg">🎤</span>
             </button>
           )}
         </div>
