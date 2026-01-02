@@ -35,7 +35,12 @@ async def miniapp_auth(request: web.Request) -> web.Response:
         data = await request.json()
         init_data = data.get("initData")
 
+        logger.info(
+            f"📡 Получен запрос аутентификации. initData length: {len(init_data) if init_data else 0}"
+        )
+
         if not init_data:
+            logger.warning("⚠️ initData отсутствует в запросе")
             return web.json_response({"error": "initData required"}, status=400)
 
         # Валидация данных от Telegram
@@ -43,14 +48,20 @@ async def miniapp_auth(request: web.Request) -> web.Response:
         validated_data = auth_validator.validate_init_data(init_data)
 
         if not validated_data:
-            return web.json_response({"error": "Invalid initData"}, status=403)
+            logger.warning("⚠️ initData не прошёл валидацию")
+            return web.json_response(
+                {"error": "Invalid Telegram signature. Make sure app is opened via Telegram."},
+                status=403,
+            )
 
         # Извлекаем данные пользователя
         user_data = auth_validator.extract_user_data(validated_data)
 
         if not user_data:
             logger.error("❌ Не удалось извлечь user_data из validated_data")
-            return web.json_response({"error": "Failed to extract user data"}, status=400)
+            return web.json_response(
+                {"error": "Failed to extract user data from initData"}, status=400
+            )
 
         telegram_id = user_data.get("id")
 
@@ -71,6 +82,8 @@ async def miniapp_auth(request: web.Request) -> web.Response:
             # Вызываем to_dict() ВНУТРИ сессии
             user_dict = user.to_dict()
 
+        logger.info(f"✅ Пользователь {telegram_id} успешно аутентифицирован")
+
         # Возвращаем данные пользователя
         return web.json_response(
             {
@@ -81,7 +94,7 @@ async def miniapp_auth(request: web.Request) -> web.Response:
 
     except Exception as e:
         logger.error(f"❌ Ошибка аутентификации Mini App: {e}", exc_info=True)
-        return web.json_response({"error": f"Internal server error: {str(e)}"}, status=500)
+        return web.json_response({"error": f"Server error: {str(e)}"}, status=500)
 
 
 async def miniapp_get_user(request: web.Request) -> web.Response:

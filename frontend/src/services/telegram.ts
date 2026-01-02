@@ -32,8 +32,16 @@ export class TelegramService {
       this.applyTelegramTheme();
 
       console.log('✅ Telegram Mini App инициализирован');
-      console.log('Платформа:', this.webApp.platform);
-      console.log('Версия:', this.webApp.version);
+      console.log('📱 Платформа:', this.webApp.platform);
+      console.log('📦 Версия:', this.webApp.version);
+      console.log('🔐 InitData длина:', this.webApp.initData?.length || 0);
+      console.log('👤 Пользователь:', this.webApp.initDataUnsafe.user);
+
+      // Проверка доступности initData
+      if (!this.webApp.initData) {
+        console.warn('⚠️ КРИТИЧНО: initData недоступен! Приложение запущено НЕ через Telegram.');
+        console.warn('⚠️ Убедитесь что приложение открывается через кнопку Mini App в Telegram!');
+      }
     } catch (error) {
       console.error('❌ Ошибка инициализации Telegram Mini App:', error);
     }
