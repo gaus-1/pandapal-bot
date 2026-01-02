@@ -211,6 +211,7 @@ class PandaPalBotServer:
             if frontend_dist.exists():
                 # Раздаем статические файлы из корня dist (logo.png, manifest.json и т.д.)
                 static_files = [
+                    "favicon.svg",  # Favicon для поисковых систем
                     "logo.png",
                     "manifest.json",
                     "robots.txt",
@@ -222,8 +223,28 @@ class PandaPalBotServer:
                 for static_file in static_files:
                     file_path = frontend_dist / static_file
                     if file_path.exists():
+                        # Определяем MIME тип для статических файлов
+                        content_type = "application/octet-stream"
+                        if static_file.endswith(".svg"):
+                            content_type = "image/svg+xml"
+                        elif static_file.endswith(".png"):
+                            content_type = "image/png"
+                        elif static_file.endswith(".json"):
+                            content_type = "application/json"
+                        elif static_file.endswith(".txt"):
+                            content_type = "text/plain"
+                        elif static_file.endswith(".xml"):
+                            content_type = "application/xml"
+                        elif static_file.endswith(".js"):
+                            content_type = "application/javascript"
+                        elif static_file.endswith(".html"):
+                            content_type = "text/html"
+
                         self.app.router.add_get(
-                            f"/{static_file}", lambda _, fp=file_path: web.FileResponse(fp)
+                            f"/{static_file}",
+                            lambda _, fp=file_path, ct=content_type: web.FileResponse(
+                                fp, headers={"Content-Type": ct}
+                            ),
                         )
 
                 # Раздаем папку assets ПЕРЕД SPA fallback (важен порядок!)
