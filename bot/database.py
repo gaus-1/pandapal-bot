@@ -174,31 +174,73 @@ async def init_database() -> None:
                     # Применяем SQL скрипт напрямую (надежнее чем Alembic для существующей БД)
                     logger.info("🔄 Применение миграции premium через SQL...")
                     try:
-                        from pathlib import Path
+                        # Выполняем команды в правильном порядке
+                        # 1. Добавляем колонку premium_until
+                        try:
+                            with engine.begin() as conn:
+                                conn.execute(
+                                    text(
+                                        "ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_until TIMESTAMP WITH TIME ZONE"
+                                    )
+                                )
+                            logger.info("✅ Колонка premium_until добавлена")
+                        except Exception as e:
+                            if "already exists" not in str(e).lower():
+                                logger.warning(f"⚠️ Ошибка добавления колонки: {e}")
 
-                        # Путь относительно корня проекта
-                        project_root = Path(__file__).parent.parent
-                        sql_file = project_root / "sql" / "03_add_premium_subscriptions.sql"
-                        if sql_file.exists():
-                            with engine.connect() as conn:
-                                sql_content = sql_file.read_text(encoding="utf-8")
-                                # Выполняем SQL построчно для лучшей обработки ошибок
-                                for statement in sql_content.split(";"):
-                                    statement = statement.strip()
-                                    if statement and not statement.startswith("--"):
-                                        try:
-                                            conn.execute(text(statement))
-                                        except Exception as sql_err:
-                                            # Игнорируем ошибки "already exists" - это нормально
-                                            if "already exists" not in str(sql_err).lower():
-                                                logger.warning(
-                                                    f"⚠️ SQL ошибка (игнорируем): {sql_err}"
-                                                )
-                                conn.commit()
-                            logger.info("✅ SQL миграция premium применена успешно")
-                            migration_applied = True
-                        else:
-                            logger.warning(f"⚠️ SQL файл не найден: {sql_file}")
+                        # 2. Создаем таблицу subscriptions
+                        try:
+                            with engine.begin() as conn:
+                                conn.execute(
+                                    text(
+                                        """
+                                        CREATE TABLE IF NOT EXISTS subscriptions (
+                                            id SERIAL PRIMARY KEY,
+                                            user_telegram_id BIGINT NOT NULL,
+                                            plan_id VARCHAR(20) NOT NULL,
+                                            starts_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                            expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+                                            is_active BOOLEAN NOT NULL DEFAULT true,
+                                            transaction_id VARCHAR(255),
+                                            invoice_payload VARCHAR(255),
+                                            created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                            CONSTRAINT fk_subscriptions_user
+                                                FOREIGN KEY (user_telegram_id)
+                                                REFERENCES users(telegram_id)
+                                                ON DELETE CASCADE,
+                                            CONSTRAINT ck_subscriptions_plan_id
+                                                CHECK (plan_id IN ('week', 'month', 'year'))
+                                        )
+                                        """
+                                    )
+                                )
+                            logger.info("✅ Таблица subscriptions создана")
+                        except Exception as e:
+                            if "already exists" not in str(e).lower():
+                                logger.warning(f"⚠️ Ошибка создания таблицы: {e}")
+
+                        # 3. Создаем индексы
+                        indexes = [
+                            (
+                                "idx_subscriptions_user_active",
+                                "CREATE INDEX IF NOT EXISTS idx_subscriptions_user_active ON subscriptions(user_telegram_id, is_active)",
+                            ),
+                            (
+                                "idx_subscriptions_expires",
+                                "CREATE INDEX IF NOT EXISTS idx_subscriptions_expires ON subscriptions(expires_at)",
+                            ),
+                        ]
+                        for idx_name, idx_sql in indexes:
+                            try:
+                                with engine.begin() as conn:
+                                    conn.execute(text(idx_sql))
+                                logger.info(f"✅ Индекс {idx_name} создан")
+                            except Exception as e:
+                                if "already exists" not in str(e).lower():
+                                    logger.warning(f"⚠️ Ошибка создания индекса {idx_name}: {e}")
+
+                        logger.info("✅ SQL миграция premium применена успешно")
+                        migration_applied = True
                     except Exception as sql_err:
                         logger.error(f"❌ Не удалось применить SQL миграцию: {sql_err}")
                 else:
