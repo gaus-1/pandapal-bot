@@ -6,7 +6,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Header, Hero, Features, Section, Footer, CallToAction } from './components';
-import { DarkModeToggle } from './components/DarkModeToggle';
 import { SECTIONS } from './config/constants';
 import { telegram } from './services/telegram';
 import { MiniApp } from './MiniApp';
@@ -63,10 +62,7 @@ const App: React.FC = () => {
   // Если в браузере → Лендинг
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
-      {/* Dark Mode Toggle */}
-      <DarkModeToggle />
-
-      {/* Шапка сайта */}
+      {/* Шапка сайта (включает DarkModeToggle внутри) */}
       <Header />
 
       {/* Основной контент */}
