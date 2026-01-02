@@ -7,7 +7,12 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useChat } from '../useChat';
 import * as api from '../../services/api';
+import { mockApiResponses, mockChatHistory } from '../../test/mocks/api.mock';
+import { createTelegramServiceMock } from '../../test/mocks/telegram.mock';
 import type { ReactNode } from 'react';
+
+// Используем vi.hoisted для правильного hoisting
+const telegramMock = vi.hoisted(() => createTelegramServiceMock());
 
 // Mock API
 vi.mock('../../services/api', () => ({
@@ -17,11 +22,7 @@ vi.mock('../../services/api', () => ({
 
 // Mock Telegram service
 vi.mock('../../services/telegram', () => ({
-  telegram: {
-    hapticFeedback: vi.fn(),
-    notifySuccess: vi.fn(),
-    notifyError: vi.fn(),
-  },
+  telegram: telegramMock,
 }));
 
 describe('useChat', () => {
@@ -34,9 +35,18 @@ describe('useChat', () => {
         queries: { retry: false },
         mutations: { retry: false },
       },
+      logger: {
+        log: () => {},
+        warn: () => {},
+        error: () => {},
+      },
     });
 
     vi.clearAllMocks();
+
+    // Настраиваем API моки
+    vi.mocked(api.getChatHistory).mockImplementation(mockApiResponses.getChatHistory);
+    vi.mocked(api.sendAIMessage).mockImplementation(mockApiResponses.sendAIMessage);
   });
 
   const wrapper = ({ children }: { children: ReactNode }) => (
@@ -44,138 +54,152 @@ describe('useChat', () => {
   );
 
   it('должен загружать историю чата', async () => {
-    const mockHistory = [
-      { role: 'user' as const, content: 'Привет', timestamp: new Date().toISOString() },
-      { role: 'ai' as const, content: 'Привет! Чем помочь?', timestamp: new Date().toISOString() },
-    ];
-
-    vi.mocked(api.getChatHistory).mockResolvedValue(mockHistory);
-
     const { result } = renderHook(
-      () => useChat({ telegramId: 123, limit: 20 }),
+      () => useChat({ telegramId: 123456789, limit: 20 }),
       { wrapper }
     );
 
+    // Изначально загружается
     expect(result.current.isLoadingHistory).toBe(true);
 
+    // Ждём загрузки
     await waitFor(() => {
       expect(result.current.isLoadingHistory).toBe(false);
-    });
+    }, { timeout: 3000 });
 
-    expect(result.current.messages).toEqual(mockHistory);
-    expect(api.getChatHistory).toHaveBeenCalledWith(123, 20);
+    // Проверяем что история загрузилась
+    expect(result.current.messages).toEqual(mockChatHistory);
+    expect(api.getChatHistory).toHaveBeenCalledWith(123456789, 20);
   });
 
   it('должен отправлять текстовое сообщение', async () => {
-    const mockResponse = { response: 'Ответ AI' };
-
-    vi.mocked(api.getChatHistory).mockResolvedValue([]);
-    vi.mocked(api.sendAIMessage).mockResolvedValue(mockResponse);
-
     const { result } = renderHook(
-      () => useChat({ telegramId: 123, limit: 20 }),
+      () => useChat({ telegramId: 123456789, limit: 20 }),
       { wrapper }
     );
 
+    // Ждём загрузки истории
     await waitFor(() => {
       expect(result.current.isLoadingHistory).toBe(false);
-    });
+    }, { timeout: 3000 });
 
+    // Отправляем сообщение
     result.current.sendMessage({ message: 'Тест' });
 
+    // Проверяем что отправка началась
+    await waitFor(() => {
+      expect(result.current.isSending).toBe(true);
+    }, { timeout: 1000 });
+
+    // Ждём завершения отправки
     await waitFor(() => {
       expect(result.current.isSending).toBe(false);
-    });
+    }, { timeout: 3000 });
 
+    // Проверяем что API был вызван правильно
     expect(api.sendAIMessage).toHaveBeenCalledWith(
-      123,
+      123456789,
       'Тест',
       undefined,
       undefined
     );
+
+    // Проверяем что haptic feedback был вызван
+    expect(telegramMock.hapticFeedback).toHaveBeenCalled();
   });
 
   it('должен отправлять фото', async () => {
-    const mockResponse = { response: 'Анализ фото' };
     const photoBase64 = 'data:image/png;base64,test';
 
-    vi.mocked(api.getChatHistory).mockResolvedValue([]);
-    vi.mocked(api.sendAIMessage).mockResolvedValue(mockResponse);
-
     const { result } = renderHook(
-      () => useChat({ telegramId: 123, limit: 20 }),
+      () => useChat({ telegramId: 123456789, limit: 20 }),
       { wrapper }
     );
 
+    // Ждём загрузки истории
     await waitFor(() => {
       expect(result.current.isLoadingHistory).toBe(false);
-    });
+    }, { timeout: 3000 });
 
+    // Отправляем фото
     result.current.sendMessage({ photoBase64 });
 
+    // Ждём завершения отправки
     await waitFor(() => {
       expect(result.current.isSending).toBe(false);
-    });
+    }, { timeout: 3000 });
 
+    // Проверяем что API был вызван с фото
     expect(api.sendAIMessage).toHaveBeenCalledWith(
-      123,
+      123456789,
       undefined,
       photoBase64,
       undefined
     );
+
+    // Проверяем что был успех
+    expect(telegramMock.notifySuccess).toHaveBeenCalled();
   });
 
   it('должен отправлять аудио', async () => {
-    const mockResponse = { response: 'Распознанный текст' };
     const audioBase64 = 'data:audio/webm;base64,test';
 
-    vi.mocked(api.getChatHistory).mockResolvedValue([]);
-    vi.mocked(api.sendAIMessage).mockResolvedValue(mockResponse);
-
     const { result } = renderHook(
-      () => useChat({ telegramId: 123, limit: 20 }),
+      () => useChat({ telegramId: 123456789, limit: 20 }),
       { wrapper }
     );
 
+    // Ждём загрузки истории
     await waitFor(() => {
       expect(result.current.isLoadingHistory).toBe(false);
-    });
+    }, { timeout: 3000 });
 
+    // Отправляем аудио
     result.current.sendMessage({ audioBase64 });
 
+    // Ждём завершения отправки
     await waitFor(() => {
       expect(result.current.isSending).toBe(false);
-    });
+    }, { timeout: 3000 });
 
+    // Проверяем что API был вызван с аудио
     expect(api.sendAIMessage).toHaveBeenCalledWith(
-      123,
+      123456789,
       undefined,
       undefined,
       audioBase64
     );
+
+    // Проверяем что был успех
+    expect(telegramMock.notifySuccess).toHaveBeenCalled();
   });
 
   it('должен обрабатывать ошибки отправки', async () => {
     const mockError = new Error('Network error');
 
-    vi.mocked(api.getChatHistory).mockResolvedValue([]);
+    // Mock ошибки отправки
     vi.mocked(api.sendAIMessage).mockRejectedValue(mockError);
 
     const { result } = renderHook(
-      () => useChat({ telegramId: 123, limit: 20 }),
+      () => useChat({ telegramId: 123456789, limit: 20 }),
       { wrapper }
     );
 
+    // Ждём загрузки истории
     await waitFor(() => {
       expect(result.current.isLoadingHistory).toBe(false);
-    });
+    }, { timeout: 3000 });
 
+    // Отправляем сообщение (которое упадёт)
     result.current.sendMessage({ message: 'Тест' });
 
+    // Ждём завершения (с ошибкой)
     await waitFor(() => {
       expect(result.current.isSending).toBe(false);
-    });
+    }, { timeout: 3000 });
 
+    // Проверяем что ошибка была обработана
     expect(result.current.sendError).toBeTruthy();
+    expect(telegramMock.notifyError).toHaveBeenCalled();
   });
 });
