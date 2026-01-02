@@ -30,9 +30,11 @@ if (typeof window !== 'undefined') {
   });
 
   // Mock ResizeObserver
-  global.ResizeObserver = class ResizeObserver {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  };
+  if (!window.ResizeObserver) {
+    window.ResizeObserver = class ResizeObserver {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    };
+  }
 }
