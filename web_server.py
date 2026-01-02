@@ -229,26 +229,52 @@ class PandaPalBotServer:
                 # Раздаем папку assets ПЕРЕД SPA fallback (важен порядок!)
                 assets_dir = frontend_dist / "assets"
                 if assets_dir.exists():
-                    # Регистрируем assets через add_static - это создаст роуты для всех файлов
-                    self.app.router.add_static("/assets", assets_dir, name="assets")
-                    logger.info(f"✅ Assets директория зарегистрирована: {assets_dir}")
-
-                    # Дополнительно: регистрируем явные роуты для JS/CSS файлов (на случай проблем с add_static)
                     import os
 
-                    assets_files = []
-                    for file in os.listdir(assets_dir):
-                        if file.endswith((".js", ".css", ".map")):
-                            file_path = assets_dir / file
-                            assets_files.append((file, file_path))
-                            # Используем замыкание через default параметр для правильной работы lambda
-                            self.app.router.add_get(
-                                f"/assets/{file}",
-                                lambda request, f=file, p=file_path: web.FileResponse(p),
-                            )
-                    logger.info(
-                        f"✅ Явные роуты для {len(assets_files)} assets файлов зарегистрированы"
-                    )
+                    # Универсальный обработчик для всех assets файлов
+                    async def serve_asset(request: web.Request) -> web.Response:
+                        """Раздача любого файла из assets директории."""
+                        filename = request.match_info.get("filename", "")
+                        if not filename:
+                            return web.Response(status=404, text="Asset filename required")
+
+                        file_path = assets_dir / filename
+                        if not file_path.exists() or not file_path.is_file():
+                            logger.warning(f"⚠️ Assets файл не найден: /assets/{filename}")
+                            return web.Response(status=404, text=f"Asset not found: {filename}")
+
+                        # Определяем MIME тип
+                        content_type = "application/octet-stream"
+                        if filename.endswith(".js"):
+                            content_type = "application/javascript"
+                        elif filename.endswith(".css"):
+                            content_type = "text/css"
+                        elif filename.endswith(".map"):
+                            content_type = "application/json"
+                        elif filename.endswith(".png"):
+                            content_type = "image/png"
+                        elif filename.endswith(".jpg") or filename.endswith(".jpeg"):
+                            content_type = "image/jpeg"
+                        elif filename.endswith(".svg"):
+                            content_type = "image/svg+xml"
+                        elif filename.endswith(".woff") or filename.endswith(".woff2"):
+                            content_type = "font/woff2"
+
+                        return web.FileResponse(file_path, headers={"Content-Type": content_type})
+
+                    # Регистрируем универсальный роут для всех assets
+                    self.app.router.add_get("/assets/{filename:.*}", serve_asset)
+
+                    # Логируем все найденные файлы для отладки
+                    all_files = os.listdir(assets_dir)
+                    js_files = [f for f in all_files if f.endswith(".js")]
+                    logger.info(f"✅ Assets директория зарегистрирована: {assets_dir}")
+                    logger.info(f"📦 Найдено файлов в assets: {len(all_files)}")
+                    logger.info(f"📦 Найдено JS файлов: {len(js_files)}")
+                    if js_files:
+                        logger.info(
+                            f"📦 JS файлы: {', '.join(js_files[:5])}{'...' if len(js_files) > 5 else ''}"
+                        )
 
                 # Главная страница
                 self.app.router.add_get(
