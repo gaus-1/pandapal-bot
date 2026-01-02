@@ -229,7 +229,7 @@ export class TelegramService {
     const hasWebApp = typeof this.webApp !== 'undefined' && this.webApp !== null;
 
     // Проверяем платформу (если есть, значит в Telegram)
-    const hasPlatform = this.webApp.platform !== undefined && this.webApp.platform !== '';
+    const hasPlatform = this.webApp.platform !== undefined;
 
     // Проверяем user agent (дополнительная проверка для ПК)
     const isTelegramUserAgent = typeof window !== 'undefined' &&
