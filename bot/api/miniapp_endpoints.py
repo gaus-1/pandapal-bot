@@ -290,10 +290,16 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
         if audio_base64:
             try:
                 logger.info(f"🎤 Mini App: Обработка голосового сообщения от {telegram_id}")
+                logger.info(f"🎤 Mini App: audio_base64 length: {len(audio_base64)}")
                 # Убираем data:audio/...;base64, префикс
                 if "base64," in audio_base64:
                     audio_base64 = audio_base64.split("base64,")[1]
+                    logger.info(
+                        f"🎤 Mini App: После удаления префикса, length: {len(audio_base64)}"
+                    )
+
                 audio_bytes = base64.b64decode(audio_base64)
+                logger.info(f"🎤 Mini App: Декодировано {len(audio_bytes)} байт аудио")
 
                 speech_service = SpeechService()
                 transcribed_text = await speech_service.transcribe_voice(audio_bytes, language="ru")
@@ -302,6 +308,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                     user_message = transcribed_text
                     logger.info(f"✅ Аудио распознано: {transcribed_text[:100]}")
                 else:
+                    logger.warning("⚠️ Аудио не распознано - возвращаем ошибку")
                     return web.json_response(
                         {"error": "Не удалось распознать аудио. Попробуй еще раз!"},
                         status=400,
@@ -314,10 +321,16 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
         if photo_base64:
             try:
                 logger.info(f"📷 Mini App: Обработка фото от {telegram_id}")
+                logger.info(f"📷 Mini App: photo_base64 length: {len(photo_base64)}")
                 # Убираем data:image/...;base64, префикс
                 if "base64," in photo_base64:
                     photo_base64 = photo_base64.split("base64,")[1]
+                    logger.info(
+                        f"📷 Mini App: После удаления префикса, length: {len(photo_base64)}"
+                    )
+
                 photo_bytes = base64.b64decode(photo_base64)
+                logger.info(f"📷 Mini App: Декодировано {len(photo_bytes)} байт изображения")
 
                 with get_db() as db:
                     user_service = UserService(db)
@@ -327,6 +340,9 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                         return web.json_response({"error": "User not found"}, status=404)
 
                     vision_service = VisionService()
+                    logger.info(
+                        f"📷 Mini App: Вызываю analyze_image для пользователя {user.age} лет"
+                    )
                     vision_result = await vision_service.analyze_image(
                         image_data=photo_bytes,
                         user_message=message or "Помоги мне разобраться с этой задачей",
