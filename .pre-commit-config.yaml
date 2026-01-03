@@ -119,13 +119,15 @@ repos:
   # ============================================================================
   # ПРОВЕРКА УЯЗВИМОСТЕЙ ЗАВИСИМОСТЕЙ
   # ============================================================================
-  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
-    rev: v1.3.3
-    hooks:
-      - id: python-safety-dependencies
-        name: 🔒 safety - проверка уязвимостей Python
-        args: ['--continue-on-failure']
-        stages: [manual]  # Запускается вручную: pre-commit run python-safety-dependencies --all-files
+  # Временно отключен из-за проблемы с репозиторием hook'а
+  # Используйте: safety check для проверки уязвимостей вручную
+  # - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+  #   rev: v1.3.3
+  #   hooks:
+  #     - id: python-safety-dependencies
+  #       name: 🔒 safety - проверка уязвимостей Python
+  #       args: ['--continue-on-failure']
+  #       stages: [manual]  # Запускается вручную: pre-commit run python-safety-dependencies --all-files
 
   - repo: local
     hooks:
