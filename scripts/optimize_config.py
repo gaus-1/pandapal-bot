@@ -155,9 +155,9 @@ def optimize_files():
     print(f"[OPTIMIZE] Processing {len(source_files)} files...")
 
     # Команда для оптимизации всех файлов сразу
-    # Используем --enable-rft=0 чтобы отключить проверку окружения (для Railway)
+    # Не используем --restrict чтобы избежать проверки окружения на Railway
     files_str = " ".join(f'"{f}"' for f in source_files)
-    cmd = f'pyarmor gen --enable-rft=0 --output "{OPTIMIZED_DIR}" {files_str}'
+    cmd = f'pyarmor gen --output "{OPTIMIZED_DIR}" {files_str}'
     result = os.system(cmd)
 
     if result != 0:
