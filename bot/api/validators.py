@@ -81,6 +81,9 @@ class PremiumInvoiceRequest(BaseModel):
 
     telegram_id: int = Field(..., ge=1, description="Telegram ID пользователя")
     plan_id: str = Field(..., pattern="^(week|month|year)$", description="ID тарифного плана")
+    payment_method: Optional[str] = Field(
+        default="stars", pattern="^(stars)$", description="Способ оплаты (только stars для invoice)"
+    )
 
 
 class PremiumPaymentRequest(BaseModel):
@@ -89,6 +92,24 @@ class PremiumPaymentRequest(BaseModel):
     telegram_id: int = Field(..., ge=1, description="Telegram ID пользователя")
     plan_id: str = Field(..., pattern="^(week|month|year)$", description="ID тарифного плана")
     transaction_id: Optional[str] = Field(None, max_length=255, description="ID транзакции")
+    payment_method: Optional[str] = Field(
+        default="stars",
+        pattern="^(stars|yookassa_card|yookassa_sbp|yookassa_other)$",
+        description="Способ оплаты",
+    )
+
+
+class PremiumYooKassaRequest(BaseModel):
+    """Валидация запроса на создание платежа через ЮKassa."""
+
+    telegram_id: int = Field(..., ge=1, description="Telegram ID пользователя")
+    plan_id: str = Field(..., pattern="^(week|month|year)$", description="ID тарифного плана")
+    user_email: Optional[str] = Field(
+        None, max_length=255, description="Email пользователя (для чека)"
+    )
+    user_phone: Optional[str] = Field(
+        None, max_length=20, description="Телефон пользователя (для чека)"
+    )
 
 
 def validate_telegram_id(telegram_id_str: str) -> int:

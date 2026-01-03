@@ -1,0 +1,226 @@
+"""
+Сервис для работы с платежами через ЮKassa.
+
+Обеспечивает создание платежей, обработку webhook уведомлений
+и управление платежными транзакциями для Premium подписок.
+"""
+
+import uuid
+from typing import Optional
+
+from loguru import logger
+from yookassa import Configuration, Payment
+from yookassa.domain.exceptions import ApiError
+
+from bot.config import settings
+
+
+class PaymentService:
+    """
+    Сервис управления платежами через ЮKassa.
+
+    Обеспечивает:
+    - Создание платежей для Premium подписок
+    - Обработку webhook уведомлений от ЮKassa
+    - Валидацию платежей и активацию подписок
+    - Поддержку чеков для самозанятых
+    """
+
+    # Тарифные планы (цена в рублях)
+    PLANS = {
+        "week": {"name": "Premium на неделю", "price": 99.00, "days": 7},
+        "month": {"name": "Premium на месяц", "price": 399.00, "days": 30},
+        "year": {"name": "Premium на год", "price": 2990.00, "days": 365},
+    }
+
+    def __init__(self):
+        """Инициализация сервиса платежей."""
+        # Настройка ЮKassa
+        Configuration.account_id = settings.yookassa_shop_id
+        Configuration.secret_key = settings.yookassa_secret_key
+
+        if not settings.yookassa_shop_id or not settings.yookassa_secret_key:
+            logger.warning("⚠️ ЮKassa не настроен: отсутствуют shop_id или secret_key")
+
+    def create_payment(
+        self,
+        telegram_id: int,
+        plan_id: str,
+        user_email: Optional[str] = None,
+        user_phone: Optional[str] = None,
+    ) -> dict:
+        """
+        Создать платеж через ЮKassa.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+            plan_id: ID тарифного плана ('week', 'month', 'year')
+            user_email: Email пользователя (для чека)
+            user_phone: Телефон пользователя (для чека)
+
+        Returns:
+            dict: Данные платежа с confirmation_url
+
+        Raises:
+            ValueError: Если plan_id невалидный
+            ApiError: Если ошибка API ЮKassa
+        """
+        if plan_id not in self.PLANS:
+            raise ValueError(f"Invalid plan_id: {plan_id}")
+
+        plan = self.PLANS[plan_id]
+
+        # Генерируем уникальный idempotence_key для защиты от дубликатов
+        idempotence_key = str(uuid.uuid4())
+
+        # Формируем описание платежа
+        description = f"PandaPal Premium: {plan['name']}"
+
+        # Подготовка данных платежа
+        payment_data = {
+            "amount": {
+                "value": f"{plan['price']:.2f}",
+                "currency": "RUB",
+            },
+            "confirmation": {
+                "type": "redirect",
+                "return_url": settings.yookassa_return_url,
+            },
+            "capture": True,  # Автоматическое списание
+            "description": description,
+            "metadata": {
+                "telegram_id": str(telegram_id),
+                "plan_id": plan_id,
+            },
+        }
+
+        # Добавляем чек для самозанятого (если ИНН указан)
+        if settings.yookassa_inn:
+            receipt_data = {
+                "customer": {},
+                "items": [
+                    {
+                        "description": plan["name"],
+                        "quantity": "1.00",
+                        "amount": {
+                            "value": f"{plan['price']:.2f}",
+                            "currency": "RUB",
+                        },
+                        "vat_code": 1,  # НДС не облагается (для самозанятых)
+                    }
+                ],
+                "tax_system_code": 1,  # Общая система налогообложения (для самозанятых)
+            }
+
+            if user_email:
+                receipt_data["customer"]["email"] = user_email
+            if user_phone:
+                receipt_data["customer"]["phone"] = user_phone
+
+            payment_data["receipt"] = receipt_data
+
+        try:
+            # Создаем платеж через ЮKassa API
+            payment = Payment.create(payment_data, idempotence_key)
+
+            logger.info(
+                f"✅ Платеж создан: payment_id={payment.id}, "
+                f"user={telegram_id}, plan={plan_id}, amount={plan['price']} RUB"
+            )
+
+            return {
+                "payment_id": payment.id,
+                "status": payment.status,
+                "confirmation_url": payment.confirmation.confirmation_url if payment.confirmation else None,
+                "amount": {
+                    "value": float(payment.amount.value),
+                    "currency": payment.amount.currency,
+                },
+            }
+
+        except ApiError as e:
+            logger.error(f"❌ Ошибка создания платежа ЮKassa: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"❌ Неожиданная ошибка при создании платежа: {e}", exc_info=True)
+            raise
+
+    def get_payment_status(self, payment_id: str) -> Optional[dict]:
+        """
+        Получить статус платежа.
+
+        Args:
+            payment_id: ID платежа в ЮKassa
+
+        Returns:
+            dict: Данные платежа или None если не найден
+        """
+        try:
+            payment = Payment.find_one(payment_id)
+
+            return {
+                "payment_id": payment.id,
+                "status": payment.status,
+                "paid": payment.paid,
+                "amount": {
+                    "value": float(payment.amount.value),
+                    "currency": payment.amount.currency,
+                },
+                "metadata": payment.metadata or {},
+            }
+
+        except ApiError as e:
+            logger.error(f"❌ Ошибка получения статуса платежа {payment_id}: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"❌ Неожиданная ошибка при получении платежа: {e}", exc_info=True)
+            return None
+
+    def process_webhook(self, webhook_data: dict) -> Optional[dict]:
+        """
+        Обработать webhook уведомление от ЮKassa.
+
+        Args:
+            webhook_data: Данные webhook от ЮKassa
+
+        Returns:
+            dict: Результат обработки или None при ошибке
+        """
+        try:
+            event = webhook_data.get("event")
+            payment_object = webhook_data.get("object", {})
+
+            if event != "payment.succeeded":
+                logger.debug(f"⚠️ Игнорируем событие: {event}")
+                return None
+
+            payment_id = payment_object.get("id")
+            metadata = payment_object.get("metadata", {})
+            telegram_id_str = metadata.get("telegram_id")
+            plan_id = metadata.get("plan_id")
+
+            if not telegram_id_str or not plan_id:
+                logger.warning(f"⚠️ Отсутствуют telegram_id или plan_id в метаданных платежа {payment_id}")
+                return None
+
+            telegram_id = int(telegram_id_str)
+
+            logger.info(
+                f"💰 Webhook: платеж успешен payment_id={payment_id}, "
+                f"user={telegram_id}, plan={plan_id}"
+            )
+
+            return {
+                "payment_id": payment_id,
+                "telegram_id": telegram_id,
+                "plan_id": plan_id,
+                "amount": payment_object.get("amount", {}),
+            }
+
+        except (ValueError, KeyError) as e:
+            logger.error(f"❌ Ошибка парсинга webhook данных: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"❌ Неожиданная ошибка обработки webhook: {e}", exc_info=True)
+            return None
+

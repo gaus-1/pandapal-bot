@@ -114,12 +114,14 @@ async def successful_payment_handler(message: Message):
                 await message.answer("❌ Ошибка: пользователь не найден. Обратитесь в поддержку.")
                 return
 
-            # Активируем подписку
+            # Активируем подписку (Telegram Stars)
             subscription = subscription_service.activate_subscription(
                 telegram_id=telegram_id,
                 plan_id=plan_id,
                 transaction_id=payment.telegram_payment_charge_id,
                 invoice_payload=payment.invoice_payload,
+                payment_method="stars",
+                payment_id=payment.telegram_payment_charge_id,
             )
 
             db.commit()

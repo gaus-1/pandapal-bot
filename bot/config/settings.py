@@ -176,6 +176,37 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("ENVIRONMENT", "environment"),
     )
 
+    # ============ YOOKASSA PAYMENTS ============
+    yookassa_shop_id: str = Field(
+        default="",
+        description="Идентификатор магазина ЮKassa (shop_id)",
+        validation_alias=AliasChoices("YOOKASSA_SHOP_ID", "yookassa_shop_id"),
+    )
+
+    yookassa_secret_key: str = Field(
+        default="",
+        description="Секретный ключ ЮKassa",
+        validation_alias=AliasChoices("YOOKASSA_SECRET_KEY", "yookassa_secret_key"),
+    )
+
+    yookassa_return_url: str = Field(
+        default="https://pandapal.ru/premium/success",
+        description="URL возврата после оплаты",
+        validation_alias=AliasChoices("YOOKASSA_RETURN_URL", "yookassa_return_url"),
+    )
+
+    yookassa_is_test: bool = Field(
+        default=False,
+        description="Тестовый режим ЮKassa",
+        validation_alias=AliasChoices("YOOKASSA_IS_TEST", "yookassa_is_test"),
+    )
+
+    yookassa_inn: str = Field(
+        default="",
+        description="ИНН самозанятого для чеков",
+        validation_alias=AliasChoices("YOOKASSA_INN", "yookassa_inn"),
+    )
+
     def get_forbidden_topics_list(self) -> List[str]:
         """Получить список запрещённых тем."""
         return [topic.strip() for topic in self.forbidden_topics.split(",") if topic.strip()]

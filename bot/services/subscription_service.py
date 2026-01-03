@@ -108,6 +108,8 @@ class SubscriptionService:
         plan_id: str,
         transaction_id: Optional[str] = None,
         invoice_payload: Optional[str] = None,
+        payment_method: Optional[str] = None,
+        payment_id: Optional[str] = None,
     ) -> Subscription:
         """
         Активировать Premium подписку
@@ -115,8 +117,10 @@ class SubscriptionService:
         Args:
             telegram_id: Telegram ID пользователя
             plan_id: Тип плана ('week', 'month', 'year')
-            transaction_id: ID транзакции от Telegram
-            invoice_payload: Payload из invoice
+            transaction_id: ID транзакции от Telegram (для Stars)
+            invoice_payload: Payload из invoice (для Stars)
+            payment_method: Способ оплаты ('stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other')
+            payment_id: ID платежа в платежной системе
 
         Returns:
             Subscription: Созданная подписка
@@ -140,6 +144,8 @@ class SubscriptionService:
             is_active=True,
             transaction_id=transaction_id,
             invoice_payload=invoice_payload,
+            payment_method=payment_method,
+            payment_id=payment_id,
         )
 
         self.db.add(subscription)

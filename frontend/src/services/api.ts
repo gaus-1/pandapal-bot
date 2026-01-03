@@ -16,6 +16,17 @@ export interface UserProfile {
   age?: number;
   grade?: number;
   user_type: 'child' | 'parent';
+  premium_until?: string;
+  is_premium: boolean;
+  premium_days_left?: number;
+  active_subscription?: {
+    id: number;
+    plan_id: string;
+    starts_at: string;
+    expires_at: string;
+    is_active: boolean;
+    payment_method?: string;
+  };
 }
 
 export interface ProgressItem {
