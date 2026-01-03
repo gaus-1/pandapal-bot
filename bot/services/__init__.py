@@ -15,25 +15,27 @@ try:
 
     _optimized_service_available = True
 except ImportError:
-    # Fallback на оригинальную версию
-    # ВАЖНО: В production обфусцированные файлы должны создаваться через nixpacks.toml build phase
-    # Если их нет - используем оригинальные файлы (временно, для стабильности)
+    # Fallback на оригинальную версию ТОЛЬКО в development
+    # В production обфусцированные файлы ОБЯЗАТЕЛЬНЫ для защиты от копирования
     import os
 
-    # Проверяем, находимся ли мы в production (Railway)
+    # Определяем окружение
     is_railway = bool(os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RAILWAY"))
+    environment = os.getenv("ENVIRONMENT", "production" if is_railway else "development")
 
-    # Логируем предупреждение, но не падаем
-    if is_railway:
-        import sys
-
-        print(
-            "⚠️ WARNING: Optimized service files not found in production. "
-            "Using original files. Check build logs for obfuscation script errors.",
-            file=sys.stderr,
+    # В production БЕЗ обфусцированных файлов - ПАДАЕМ
+    # Это защита от копирования репозитория
+    if environment == "production" or is_railway:
+        raise ImportError(
+            "❌ КРИТИЧЕСКАЯ ОШИБКА: Optimized service files are required in production. "
+            "Обфусцированные файлы не найдены. Это может означать:\n"
+            "1. Проект скопирован без обфусцированных файлов (они в .gitignore)\n"
+            "2. Build скрипт не выполнился (проверьте railway_build.sh или nixpacks.toml)\n"
+            "3. PyArmor не установлен или не работает\n\n"
+            "Для локальной разработки установите ENVIRONMENT=development"
         )
 
-    # Используем оригинальный файл (fallback)
+    # В development используем оригинальный файл (fallback)
     from bot.services.moderation_service import ContentModerationService  # noqa: E402
 
 from bot.services.simple_engagement import (  # noqa: E402
