@@ -1,5 +1,5 @@
 """
-Premium endpoints - Обработка платежей через Telegram Stars и ЮKassa
+Premium endpoints - Обработка платежей через ЮKassa
 """
 
 from aiohttp import web
@@ -7,7 +7,6 @@ from loguru import logger
 from pydantic import ValidationError
 
 from bot.api.validators import (
-    PremiumInvoiceRequest,
     PremiumPaymentRequest,
     PremiumYooKassaRequest,
     validate_telegram_id,
@@ -17,40 +16,20 @@ from bot.database import get_db
 from bot.services import PaymentService, SubscriptionService, UserService
 
 
-async def create_premium_invoice(request: web.Request) -> web.Response:
+async def create_donation_invoice(request: web.Request) -> web.Response:
     """
-    Создать invoice для оплаты Premium через Telegram Stars.
+    Создать invoice для поддержки проекта через Telegram Stars (НЕ для Premium).
 
-    POST /api/miniapp/premium/create-invoice
-    Body: { "telegram_id": 123, "plan_id": "month", "payment_method": "stars" }
+    POST /api/miniapp/donation/create-invoice
+    Body: { "telegram_id": 123, "amount": 50 }
     """
     try:
         data = await request.json()
+        telegram_id = data.get("telegram_id")
+        amount = data.get("amount", 50)  # Минимальная сумма 50 Stars
 
-        # Валидация входных данных
-        try:
-            validated = PremiumInvoiceRequest(**data)
-        except ValidationError as e:
-            logger.warning(f"⚠️ Invalid premium invoice request: {e.errors()}")
-            return web.json_response(
-                {"error": "Invalid request data", "details": e.errors()},
-                status=400,
-            )
-
-        telegram_id = validated.telegram_id
-        plan_id = validated.plan_id
-        payment_method = getattr(validated, "payment_method", "stars")
-
-        # Тарифные планы для Telegram Stars (старые цены)
-        stars_plans = {
-            "week": {"name": "Premium на неделю", "price": 50, "days": 7},
-            "month": {"name": "Premium на месяц", "price": 150, "days": 30},
-            "year": {"name": "Premium на год", "price": 999, "days": 365},
-        }
-
-        plan = stars_plans.get(plan_id)
-        if not plan:
-            return web.json_response({"error": "Invalid plan_id"}, status=400)
+        if not telegram_id or amount < 50:
+            return web.json_response({"error": "Invalid request data"}, status=400)
 
         with get_db() as db:
             user_service = UserService(db)
@@ -59,34 +38,27 @@ async def create_premium_invoice(request: web.Request) -> web.Response:
             if not user:
                 return web.json_response({"error": "User not found"}, status=404)
 
-            # Создаем invoice через Telegram Bot API (только для Stars)
-            if payment_method == "stars":
-                from aiogram import Bot
+            from aiogram import Bot
 
-                bot = Bot(token=settings.telegram_bot_token)
+            bot = Bot(token=settings.telegram_bot_token)
 
-                # Создаем invoice с Telegram Stars
-                invoice = await bot.create_invoice_link(
-                    title=plan["name"],
-                    description=f"PandaPal Premium доступ на {plan['days']} дней",
-                    payload=f"premium_{plan_id}_{telegram_id}",
-                    currency="XTR",  # Telegram Stars currency
-                    prices=[{"label": plan["name"], "amount": plan["price"]}],
-                )
+            # Создаем invoice для поддержки проекта (НЕ активирует Premium)
+            invoice = await bot.create_invoice_link(
+                title="Поддержка проекта PandaPal",
+                description="Спасибо за поддержку! Это помогает развитию проекта.",
+                payload=f"donation_{telegram_id}_{amount}",  # НЕ "premium_"
+                currency="XTR",  # Telegram Stars currency
+                prices=[{"label": "Поддержка проекта", "amount": amount}],
+            )
 
-                await bot.session.close()
+            await bot.session.close()
 
-                logger.info(f"✅ Stars invoice создан для пользователя {telegram_id}: {plan_id}")
+            logger.info(f"✅ Stars donation invoice создан: user={telegram_id}, amount={amount}")
 
-                return web.json_response({"success": True, "invoice_link": invoice})
-            else:
-                return web.json_response(
-                    {"error": "Use /api/miniapp/premium/create-payment for card/SBP payments"},
-                    status=400,
-                )
+            return web.json_response({"success": True, "invoice_link": invoice})
 
     except Exception as e:
-        logger.error(f"❌ Ошибка создания invoice: {e}")
+        logger.error(f"❌ Ошибка создания donation invoice: {e}")
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
@@ -328,11 +300,12 @@ async def get_premium_status(request: web.Request) -> web.Response:
 
 
 def setup_premium_routes(app: web.Application) -> None:
-    """Регистрация роутов Premium"""
-    app.router.add_post("/api/miniapp/premium/create-invoice", create_premium_invoice)
+    """Регистрация роутов Premium (только ЮKassa)"""
     app.router.add_post("/api/miniapp/premium/create-payment", create_yookassa_payment)
     app.router.add_post("/api/miniapp/premium/payment-success", handle_successful_payment)
     app.router.add_post("/api/miniapp/premium/yookassa-webhook", yookassa_webhook)
     app.router.add_get("/api/miniapp/premium/status/{telegram_id}", get_premium_status)
+    # Donation endpoint (для поддержки проекта через Stars)
+    app.router.add_post("/api/miniapp/donation/create-invoice", create_donation_invoice)
 
-    logger.info("💰 Premium API routes зарегистрированы")
+    logger.info("💰 Premium API routes зарегистрированы (только ЮKassa)")
