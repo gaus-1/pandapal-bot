@@ -14,6 +14,7 @@ from bot.services.simple_engagement import (  # noqa: E402
     get_simple_engagement,
 )
 from bot.services.simple_monitor import SimpleMonitor, get_simple_monitor  # noqa: E402
+from bot.services.payment_service import PaymentService  # noqa: E402
 from bot.services.subscription_service import SubscriptionService  # noqa: E402
 from bot.services.user_service import UserService  # noqa: E402
 
@@ -25,6 +26,7 @@ __all__ = [
     "ContentModerationService",
     "UserService",
     "SubscriptionService",
+    "PaymentService",
     "SimpleMonitor",
     "get_simple_monitor",
     "SimpleEngagementService",

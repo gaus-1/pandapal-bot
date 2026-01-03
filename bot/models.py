@@ -131,6 +131,33 @@ class User(Base):
 
     def to_dict(self) -> Dict:
         """Преобразование модели в словарь для API"""
+        from datetime import datetime, timezone
+
+        now = datetime.now(timezone.utc)
+        is_premium = False
+        premium_days_left = None
+
+        if self.premium_until:
+            premium_until = self.premium_until
+            if premium_until.tzinfo is None:
+                premium_until = premium_until.replace(tzinfo=timezone.utc)
+            is_premium = premium_until > now
+            if is_premium:
+                delta = premium_until - now
+                premium_days_left = delta.days
+
+        # Получаем активную подписку если есть
+        active_subscription = None
+        if self.subscriptions:
+            for sub in self.subscriptions:
+                if sub.is_active:
+                    expires_at = sub.expires_at
+                    if expires_at.tzinfo is None:
+                        expires_at = expires_at.replace(tzinfo=timezone.utc)
+                    if expires_at > now:
+                        active_subscription = sub.to_dict()
+                        break
+
         return {
             "telegram_id": self.telegram_id,
             "username": self.username,
@@ -141,6 +168,10 @@ class User(Base):
             "user_type": self.user_type,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "is_active": self.is_active,
+            "premium_until": self.premium_until.isoformat() if self.premium_until else None,
+            "is_premium": is_premium,
+            "premium_days_left": premium_days_left,
+            "active_subscription": active_subscription,
         }
 
 
@@ -613,6 +644,14 @@ class Subscription(Base):
     transaction_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     invoice_payload: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
+    # Платежная информация
+    payment_method: Mapped[Optional[str]] = mapped_column(
+        String(20), nullable=True
+    )  # 'stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other'
+    payment_id: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True
+    )  # ID платежа в ЮKassa или Telegram
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -623,7 +662,12 @@ class Subscription(Base):
     __table_args__ = (
         Index("idx_subscriptions_user_active", "user_telegram_id", "is_active"),
         Index("idx_subscriptions_expires", "expires_at"),
+        Index("idx_subscriptions_payment_id", "payment_id"),
         CheckConstraint("plan_id IN ('week', 'month', 'year')", name="ck_subscriptions_plan_id"),
+        CheckConstraint(
+            "payment_method IS NULL OR payment_method IN ('stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other')",
+            name="ck_subscriptions_payment_method",
+        ),
     )
 
     def __repr__(self) -> str:
@@ -641,5 +685,6 @@ class Subscription(Base):
             "starts_at": self.starts_at.isoformat() if self.starts_at else None,
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
             "is_active": self.is_active,
+            "payment_method": self.payment_method,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
