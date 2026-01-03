@@ -9,6 +9,8 @@ import { Header, Hero, Features, Section, Footer, CallToAction } from './compone
 import { SECTIONS } from './config/constants';
 import { telegram } from './services/telegram';
 import { MiniApp } from './MiniApp';
+import { PremiumScreen } from './features/Premium/PremiumScreen';
+import { DonationScreen } from './features/Donation/DonationScreen';
 import './index.css';
 
 /**
@@ -32,6 +34,7 @@ import './index.css';
 const App: React.FC = () => {
   const [isInTelegram, setIsInTelegram] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [currentRoute, setCurrentRoute] = useState<string>('');
 
   useEffect(() => {
     // Проверяем, открыто ли приложение в Telegram
@@ -55,6 +58,33 @@ const App: React.FC = () => {
     console.log('🔍 Telegram User Agent:', isTelegramUserAgent);
   }, []);
 
+  // Роутинг через URL hash или pathname
+  useEffect(() => {
+    const updateRoute = () => {
+      if (typeof window !== 'undefined') {
+        const hash = window.location.hash.slice(1); // Убираем #
+        const pathname = window.location.pathname;
+
+        if (hash === 'premium' || pathname === '/premium') {
+          setCurrentRoute('premium');
+        } else if (hash === 'donation' || pathname === '/donation' || pathname === '/support') {
+          setCurrentRoute('donation');
+        } else {
+          setCurrentRoute('');
+        }
+      }
+    };
+
+    updateRoute();
+    window.addEventListener('hashchange', updateRoute);
+    window.addEventListener('popstate', updateRoute);
+
+    return () => {
+      window.removeEventListener('hashchange', updateRoute);
+      window.removeEventListener('popstate', updateRoute);
+    };
+  }, []);
+
   // Показываем загрузку пока проверяем окружение
   if (isChecking) {
     return (
@@ -72,7 +102,34 @@ const App: React.FC = () => {
     return <MiniApp />;
   }
 
-  // Если в браузере → Лендинг
+  // Если в браузере → Роутинг
+  // Premium страница
+  if (currentRoute === 'premium') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800">
+        <Header />
+        <main className="max-w-4xl mx-auto px-4 py-8">
+          <PremiumScreen user={null as any} />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Donation страница
+  if (currentRoute === 'donation') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800">
+        <Header />
+        <main className="max-w-4xl mx-auto px-4 py-8">
+          <DonationScreen user={null} />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Лендинг (главная страница)
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
       {/* Шапка сайта (включает DarkModeToggle внутри) */}

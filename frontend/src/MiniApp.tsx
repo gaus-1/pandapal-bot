@@ -15,6 +15,8 @@ import { telegram } from './services/telegram';
 const AIChat = lazy(() => import('./features/AIChat/AIChat').then(m => ({ default: m.AIChat })));
 const EmergencyScreen = lazy(() => import('./features/Emergency/EmergencyScreen').then(m => ({ default: m.EmergencyScreen })));
 const AchievementsScreen = lazy(() => import('./features/Achievements/AchievementsScreen').then(m => ({ default: m.AchievementsScreen })));
+const PremiumScreen = lazy(() => import('./features/Premium/PremiumScreen').then(m => ({ default: m.PremiumScreen })));
+const DonationScreen = lazy(() => import('./features/Donation/DonationScreen').then(m => ({ default: m.DonationScreen })));
 
 export function MiniApp() {
   return (
@@ -154,6 +156,8 @@ function MiniAppContent() {
           {currentScreen === 'ai-chat' && user && <AIChat user={user} />}
           {currentScreen === 'emergency' && <EmergencyScreen />}
           {currentScreen === 'achievements' && user && <AchievementsScreen user={user} />}
+          {currentScreen === 'premium' && user && <PremiumScreen user={user} />}
+          {currentScreen === 'donation' && <DonationScreen user={user} />}
         </Suspense>
       </div>
 
@@ -185,6 +189,26 @@ function MiniAppContent() {
                 isActive={currentScreen === 'achievements'}
                 onClick={() => navigateTo('achievements')}
               />
+            )}
+            {currentScreen === 'premium' && (
+              <>
+                <NavButton
+                  icon="💝"
+                  label="Поддержать"
+                  isActive={false}
+                  onClick={() => navigateTo('donation')}
+                />
+              </>
+            )}
+            {currentScreen === 'donation' && (
+              <>
+                <NavButton
+                  icon="👑"
+                  label="Premium"
+                  isActive={false}
+                  onClick={() => navigateTo('premium')}
+                />
+              </>
             )}
           </div>
         </nav>
