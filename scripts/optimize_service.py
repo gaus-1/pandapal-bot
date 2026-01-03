@@ -101,30 +101,14 @@ def rename_runtime_directory(optimized_dir: Path, old_name: str):
                 "# Pyarmor" in lines[0] or "# PyArmor" in lines[0] or "# pyarmor" in lines[0]
             ):
                 lines = lines[1:]
-            # Заменяем импорт pyarmor_runtime на _core
-            new_lines = []
-            for line in lines:
-                if "from .pyarmor_runtime import" in line:
-                    new_lines.append("from ._core import __pyarmor__")
-                    print(
-                        f"  [POST] Replaced pyarmor_runtime import with _core in _runtime/__init__.py"
-                    )
-                else:
-                    new_lines.append(line)
-            runtime_init.write_text("\n".join(new_lines), encoding="utf-8")
-            print(f"  [POST] Cleaned _runtime/__init__.py")
+            # НЕ меняем импорты - оставляем оригинальные имена pyarmor_runtime
+            runtime_init.write_text("\n".join(lines), encoding="utf-8")
+            print(f"  [POST] Cleaned PyArmor comment from _runtime/__init__.py")
         except Exception as e:
             print(f"  [WARNING] Failed to clean _runtime/__init__.py: {e}")
 
-    # Переименовываем pyarmor_runtime.pyd в _core.pyd
-    old_pyd = new_runtime_dir / "pyarmor_runtime.pyd"
-    new_pyd = new_runtime_dir / "_core.pyd"
-    if old_pyd.exists() and not new_pyd.exists():
-        try:
-            old_pyd.rename(new_pyd)
-            print(f"  [POST] Renamed pyarmor_runtime.pyd -> _core.pyd")
-        except Exception as e:
-            print(f"  [WARNING] Failed to rename .pyd file: {e}")
+    # НЕ переименовываем файлы runtime - они должны остаться с оригинальными именами
+    # Python ищет PyInit_pyarmor_runtime, а не PyInit__core
 
 
 def optimize_files():
