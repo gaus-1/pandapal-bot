@@ -9,8 +9,8 @@
 [![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://reactjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Tests](https://img.shields.io/badge/Tests-447%20passed-brightgreen?logo=pytest)](tests/)
-[![Coverage](https://img.shields.io/badge/Coverage-53%25-yellow?logo=codecov)](htmlcov/)
+[![Tests](https://img.shields.io/badge/Tests-330%2B%20passed-brightgreen?logo=pytest)](tests/)
+[![Coverage](https://img.shields.io/badge/Coverage-74%25%20critical-yellow?logo=codecov)](htmlcov/)
 [![License](https://img.shields.io/badge/License-Proprietary-red?logo=law&logoColor=white)](LICENSE)
 
 [Сайт](https://pandapal.ru) • [Telegram Бот](https://t.me/PandaPalBot) • [Документация](docs/)
@@ -126,10 +126,10 @@ PandaPal/
 │   │   ├── services/      # API клиенты
 │   │   └── store/         # Zustand store
 │   └── public/            # Статика
-├── tests/                 # Тесты (447 passed, 53% coverage)
-│   ├── unit/              # Unit тесты
+├── tests/                 # Тесты (330+ passed, 74% critical coverage)
+│   ├── unit/              # Unit тесты (реальные сервисы)
 │   ├── integration/       # Интеграционные тесты
-│   └── e2e/               # E2E тесты
+│   └── e2e/               # E2E тесты (реальные БД и сервисы)
 ├── docs/                  # Документация
 ├── scripts/               # Утилиты разработки
 ├── alembic/               # Миграции БД
@@ -192,10 +192,21 @@ python scripts/export_metrics.py --format csv --days 30
 
 ### Статистика
 
-- **447 passed** тестов
-- **53%** покрытие кода
-- **90%+** покрытие критических компонентов безопасности
+- **330+ passed** тестов
+- **74%** реальное покрытие критических модулей (без моков)
+- **91.7%** покрытие моделей БД
+- **11 E2E тестов** с реальными сервисами
 - **0 failures** — все тесты проходят
+
+### Реальное покрытие критических модулей
+
+- `moderation_service.py`: **76.4%** (безопасность детей)
+- `history_service.py`: **87.1%** (история чата)
+- `user_service.py`: **73.3%** (пользователи)
+- `subscription_service.py`: **70.6%** (подписки)
+- `knowledge_service.py`: **63.8%** (база знаний)
+- `analytics_service.py`: **74.4%** (аналитика)
+- `models.py`: **91.7%** (модели БД)
 
 ### Запуск тестов
 
@@ -206,8 +217,11 @@ pytest tests/ -v
 # С покрытием
 pytest tests/ --cov=bot --cov-report=html
 
-# Только unit
+# Только unit (реальные сервисы)
 pytest tests/unit/ -v
+
+# Только E2E (реальные БД и сервисы)
+pytest tests/e2e/ -v
 
 # Только integration
 pytest tests/integration/ -v
@@ -218,10 +232,11 @@ pytest tests/ -n auto
 
 ### Принципы тестирования
 
-- Моки только для внешних зависимостей (Telegram API, облачные AI API)
-- Реальная БД в интеграционных тестах (SQLite для изоляции)
-- Реальные сервисы (ContentModerationService, UserService, ChatHistoryService)
-- Проверка результата, а не реализации
+- **Реальное тестирование** — используем реальные БД, сервисы, модерацию
+- **Моки только для внешних API** — Telegram API, Yandex Cloud API (при отсутствии ключей)
+- **E2E тесты** — полный flow с реальными компонентами
+- **Критические модули** — тестируются реально без заглушек
+- **Проверка результата** — проверяем поведение, а не реализацию
 
 ### Frontend тесты
 
@@ -300,8 +315,8 @@ FRONTEND_URL=https://pandapal.ru
 - **Uptime:** 99.5%+ (Railway)
 - **Response Time:** <500ms (median)
 - **Error Rate:** <1%
-- **Tests:** 447 passed (0 failures)
-- **Coverage:** 53%
+- **Tests:** 330+ passed (0 failures)
+- **Coverage:** 74% критических модулей (реальное тестирование)
 
 ### Бизнес-метрики
 
