@@ -80,13 +80,13 @@ engine = create_engine(
 
 # Event listener для логирования проблем с пулом
 @event.listens_for(engine, "checkout")
-def receive_checkout(dbapi_connection, connection_record, connection_proxy):
+def receive_checkout(_dbapi_connection, _connection_record, _connection_proxy):  # noqa: ARG001
     """Логирование при получении соединения из пула."""
     logger.debug("🔗 Соединение получено из пула")
 
 
 @event.listens_for(engine, "checkin")
-def receive_checkin(dbapi_connection, connection_record):
+def receive_checkin(_dbapi_connection, _connection_record):  # noqa: ARG001
     """Логирование при возврате соединения в пул."""
     logger.debug("🔙 Соединение возвращено в пул")
 
