@@ -182,6 +182,23 @@ def optimize_files():
         print("[ERROR] Not all files were optimized successfully!")
         sys.exit(1)
 
+    # Создаем __init__.py для экспорта классов
+    init_file = OPTIMIZED_DIR / "__init__.py"
+    init_content = '''"""
+Оптимизированные сервисные модули для продакшена.
+
+Этот пакет содержит оптимизированные версии критичных сервисных файлов
+для использования в продакшене. Оригинальные файлы остаются для разработки.
+"""
+
+# Импортируем оптимизированные модули
+from bot.services._optimized.moderation_service import ContentModerationService
+
+__all__ = ["ContentModerationService"]
+'''
+    init_file.write_text(init_content, encoding="utf-8")
+    print(f"[SUCCESS] Created __init__.py in {OPTIMIZED_DIR}")
+
     print("[SUCCESS] Optimization completed!")
     print(f"[INFO] Optimized files in: {OPTIMIZED_DIR}")
 
