@@ -144,10 +144,11 @@ def optimize_files():
         cmd = f'pyarmor gen --obf-code 1 --restrict --output "{OPTIMIZED_DIR}" "{source_file}"'
         result = os.system(cmd)
 
-        if result == 0:
-            print(f"[SUCCESS] File optimized: {filename}")
-        else:
-            print(f"[ERROR] Failed to optimize: {filename}")
+        if result != 0:
+            print(f"[ERROR] Failed to optimize: {filename} (exit code {result})")
+            sys.exit(1)
+
+        print(f"[SUCCESS] File optimized: {filename}")
 
     # Постобработка: удаляем упоминания PyArmor из всех файлов
     print("[POST] Starting post-processing to remove PyArmor references...")
@@ -168,6 +169,18 @@ def optimize_files():
     for item in OPTIMIZED_DIR.iterdir():
         if item.is_dir() and item.name.startswith("pyarmor_runtime_"):
             rename_runtime_directory(OPTIMIZED_DIR, item.name)
+
+    # Проверяем что все файлы созданы
+    all_created = True
+    for filename in FILES_TO_OPTIMIZE:
+        optimized_file = OPTIMIZED_DIR / filename
+        if not optimized_file.exists():
+            print(f"[ERROR] Optimized file not found: {optimized_file}")
+            all_created = False
+
+    if not all_created:
+        print("[ERROR] Not all files were optimized successfully!")
+        sys.exit(1)
 
     print("[SUCCESS] Optimization completed!")
     print(f"[INFO] Optimized files in: {OPTIMIZED_DIR}")
