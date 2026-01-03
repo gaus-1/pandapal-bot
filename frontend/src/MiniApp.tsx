@@ -136,6 +136,7 @@ function MiniAppContent() {
           <button
             onClick={() => window.location.reload()}
             className="mt-4 px-6 py-2 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-lg"
+            aria-label="Перезагрузить страницу"
           >
             Попробовать снова
           </button>
@@ -156,7 +157,7 @@ function MiniAppContent() {
 
       {/* Нижняя навигация - ТОЛЬКО SOS (чат открыт по умолчанию) */}
       {currentScreen === 'emergency' && (
-        <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg">
+        <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg" aria-label="Основная навигация">
           <div className="flex justify-start px-2 py-1.5">
             <NavButton
               icon="🚨"
@@ -187,8 +188,10 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
           ? 'bg-blue-400/90 text-white font-semibold shadow-md'
           : 'text-[var(--tg-theme-text-color)] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-blue-100/50 dark:hover:bg-blue-900/20 font-medium'
       }`}
+      aria-label={label}
+      aria-current={isActive ? 'page' : undefined}
     >
-      <span className="text-base">{icon}</span>
+      <span className="text-base" aria-hidden="true">{icon}</span>
       <span className="text-[10px] font-semibold leading-tight opacity-90">{label}</span>
     </button>
   );

@@ -146,8 +146,9 @@ export function EmergencyScreen() {
             <button
               onClick={() => handleCall(emergency.number, emergency.title)}
               className={`w-full py-3 rounded-xl font-bold text-white transition-all ${emergency.color} hover:opacity-90 active:scale-95`}
+              aria-label={`Позвонить в ${emergency.title}: ${emergency.number}`}
             >
-              📞 Позвонить: {emergency.number}
+              <span aria-hidden="true">📞</span> Позвонить: {emergency.number}
             </button>
           </div>
         ))}
