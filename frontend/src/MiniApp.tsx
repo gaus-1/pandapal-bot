@@ -167,12 +167,6 @@ function MiniAppContent() {
               isActive={false}
               onClick={() => navigateTo('achievements')}
             />
-            <NavButton
-              icon="🚨"
-              label="SOS"
-              isActive={false}
-              onClick={() => navigateTo('emergency')}
-            />
           </div>
         </nav>
       ) : (
@@ -184,14 +178,6 @@ function MiniAppContent() {
               isActive={false}
               onClick={() => navigateTo('ai-chat')}
             />
-            {currentScreen === 'emergency' && (
-              <NavButton
-                icon="🚨"
-                label="SOS"
-                isActive={currentScreen === 'emergency'}
-                onClick={() => navigateTo('emergency')}
-              />
-            )}
             {currentScreen === 'achievements' && (
               <NavButton
                 icon="🏆"
