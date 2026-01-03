@@ -11,7 +11,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Tests](https://img.shields.io/badge/Tests-447%20passed-brightgreen?logo=pytest)](tests/)
 [![Coverage](https://img.shields.io/badge/Coverage-53%25-yellow?logo=codecov)](htmlcov/)
-[![License](https://img.shields.io/badge/License-AGPL--3.0-green?logo=gnu&logoColor=white)](LICENSE)
+[![License](https://img.shields.io/badge/License-Proprietary-red?logo=law&logoColor=white)](LICENSE)
 
 [Сайт](https://pandapal.ru) • [Telegram Бот](https://t.me/PandaPalBot) • [Документация](docs/)
 
@@ -352,9 +352,13 @@ python scripts/export_metrics.py --format csv --days 30
 
 ## Лицензия
 
-Этот проект лицензирован под **GNU Affero General Public License v3.0 (AGPL-3.0)** — см. [LICENSE](LICENSE).
+Этот проект использует **проприетарную лицензию** — см. [LICENSE](LICENSE).
 
-AGPL-3.0 — это свободная лицензия с копилефтом, специально разработанная для сетевых серверных приложений. Она гарантирует, что все модификации исходного кода остаются открытыми и доступными сообществу, даже при использовании на серверах.
+© 2026 Савин Вячеслав Евгеньевич. Все права защищены.
+
+Программа предоставляется для использования по прямому назначению в образовательных целях. Любое коммерческое использование, копирование, модификация или распространение исходного кода запрещено без письменного разрешения правообладателя.
+
+По вопросам коммерческой лицензии обращайтесь: 79516625803@ya.ru
 
 ---
 
