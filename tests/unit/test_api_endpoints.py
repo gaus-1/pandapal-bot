@@ -23,7 +23,6 @@ from bot.api.miniapp_endpoints import (
     miniapp_update_user,
 )
 from bot.api.premium_endpoints import create_premium_invoice, handle_successful_payment
-from bot.api.location_endpoints import miniapp_share_location
 from bot.api.metrics_endpoint import MetricsEndpoint
 from bot.models import Base
 
@@ -308,48 +307,6 @@ class TestPremiumEndpoints:
 
             response = await create_premium_invoice(request)
             assert response.status == 404
-
-
-class TestLocationEndpoints:
-    """Тесты для Location endpoints"""
-
-    @pytest.fixture(scope="function")
-    def real_db_session(self):
-        """Реальная БД для тестов"""
-        db_fd, db_path = tempfile.mkstemp(suffix=".db")
-        engine = create_engine(f"sqlite:///{db_path}", echo=False)
-        Base.metadata.create_all(engine)
-        SessionLocal = sessionmaker(bind=engine)
-        session = SessionLocal()
-
-        yield session
-
-        session.close()
-        engine.dispose()
-        os.close(db_fd)
-        os.unlink(db_path)
-
-    @pytest.mark.asyncio
-    async def test_miniapp_share_location_invalid_data(self, real_db_session):
-        """Тест отправки локации с невалидными данными"""
-        class MockRequest:
-            async def json(self):
-                return {"telegram_id": 123456, "latitude": "invalid", "longitude": 45.0}
-            
-            @property
-            def app(self):
-                mock_app = MagicMock()
-                mock_app.__getitem__ = lambda self, key: MagicMock() if key == "bot" else None
-                return mock_app
-
-        request = MockRequest()
-
-        with patch("bot.api.location_endpoints.get_db") as mock_get_db:
-            mock_get_db.return_value.__enter__.return_value = real_db_session
-            mock_get_db.return_value.__exit__.return_value = None
-
-            response = await miniapp_share_location(request)
-            assert response.status in [400, 422]
 
 
 class TestMetricsEndpoint:

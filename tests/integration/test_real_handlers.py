@@ -15,10 +15,7 @@ from bot.handlers import (
     admin_commands_router,
     ai_chat_router,
     emergency_router,
-    location_router,
     menu_router,
-    parent_dashboard_router,
-    parental_control_router,
     settings_router,
     start_router,
 )
@@ -35,11 +32,8 @@ class TestRealHandlersIntegration:
             ai_chat_router,
             settings_router,
             achievements_router,
-            location_router,
             emergency_router,
             admin_commands_router,
-            parent_dashboard_router,
-            parental_control_router,
         ]
 
         for router in routers:
@@ -66,11 +60,6 @@ class TestRealHandlersIntegration:
         """Тест что settings router существует"""
         assert settings_router is not None
         assert settings_router.__class__.__name__ == "Router"
-
-    def test_location_router_exists(self):
-        """Тест что location router существует"""
-        assert location_router is not None
-        assert location_router.__class__.__name__ == "Router"
 
 
 class TestRealKeyboardsIntegration:
@@ -103,25 +92,6 @@ class TestRealKeyboardsIntegration:
         keyboard_child = get_settings_keyboard("child")
 
         assert keyboard_child is not None
-
-    def test_location_keyboard_real(self):
-        """Тест реальной клавиатуры для геолокации"""
-        from bot.handlers.location import get_location_keyboard
-
-        keyboard = get_location_keyboard()
-
-        assert keyboard is not None
-        assert hasattr(keyboard, "keyboard")
-
-        # Должна быть кнопка с request_location
-        has_location_button = False
-        for row in keyboard.keyboard:
-            for button in row:
-                if hasattr(button, "request_location") and button.request_location:
-                    has_location_button = True
-                    break
-
-        assert has_location_button
 
 
 class TestRealConfigIntegration:
