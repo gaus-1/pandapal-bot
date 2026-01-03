@@ -163,6 +163,24 @@ def optimize_files():
         print("[ERROR] Not all files were optimized successfully!")
         sys.exit(1)
 
+    # Создаем __init__.py для экспорта переменных
+    init_file = OPTIMIZED_DIR / "__init__.py"
+    init_content = '''"""
+Оптимизированные модули конфигурации для продакшена.
+
+Этот пакет содержит оптимизированные версии критичных конфигурационных файлов
+для использования в продакшене. Оригинальные файлы остаются для разработки.
+"""
+
+# Импортируем оптимизированные модули
+from bot.config._obfuscated.forbidden_patterns import FORBIDDEN_PATTERNS
+from bot.config._obfuscated.prompts import AI_SYSTEM_PROMPT
+
+__all__ = ["AI_SYSTEM_PROMPT", "FORBIDDEN_PATTERNS"]
+'''
+    init_file.write_text(init_content, encoding="utf-8")
+    print(f"[SUCCESS] Created __init__.py in {OPTIMIZED_DIR}")
+
     print("[SUCCESS] Optimization completed!")
     print(f"[INFO] Optimized files in: {OPTIMIZED_DIR}")
 
