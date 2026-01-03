@@ -26,11 +26,36 @@ export function AIChat({ user }: AIChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordingStartTimeRef = useRef<number>(0);
 
   // Автоскролл к последнему сообщению
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Cleanup: останавливаем запись при размонтировании
+  useEffect(() => {
+    return () => {
+      // Останавливаем запись если она активна
+      if (mediaRecorderRef.current && isRecording) {
+        try {
+          mediaRecorderRef.current.stop();
+        } catch (e) {
+          console.warn('⚠️ Ошибка при остановке записи в cleanup:', e);
+        }
+      }
+
+      // Останавливаем все треки потока
+      if (mediaRecorderRef.current?.stream) {
+        mediaRecorderRef.current.stream.getTracks().forEach((track) => {
+          track.stop();
+        });
+      }
+
+      mediaRecorderRef.current = null;
+      setIsRecording(false);
+    };
+  }, [isRecording]);
 
   const handleSend = () => {
     if (!inputText.trim() || isSending) return;
@@ -102,49 +127,129 @@ export function AIChat({ user }: AIChatProps) {
       };
 
       mediaRecorder.onstop = () => {
+        // Проверяем что аудио записалось
+        if (audioChunks.length === 0) {
+          console.error('❌ Аудио не записалось - chunks пустой');
+          telegram.notifyError();
+          telegram.showAlert('Не удалось записать аудио. Попробуй еще раз!');
+          stream.getTracks().forEach((track) => track.stop());
+          setIsRecording(false);
+          return;
+        }
+
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+        // Проверяем размер аудио (максимум 10MB)
+        const MAX_AUDIO_SIZE = 10 * 1024 * 1024; // 10MB
+        if (audioBlob.size > MAX_AUDIO_SIZE) {
+          console.error(`❌ Аудио слишком большое: ${audioBlob.size} байт`);
+          telegram.notifyError();
+          telegram.showAlert('Аудио слишком длинное. Максимум 10MB. Попробуй записать короче!');
+          stream.getTracks().forEach((track) => track.stop());
+          setIsRecording(false);
+          return;
+        }
+
+        if (audioBlob.size === 0) {
+          console.error('❌ Аудио пустое (0 байт)');
+          telegram.notifyError();
+          telegram.showAlert('Аудио пустое. Попробуй записать заново!');
+          stream.getTracks().forEach((track) => track.stop());
+          setIsRecording(false);
+          return;
+        }
 
         telegram.hapticFeedback('medium');
 
         try {
           // Конвертируем аудио в base64
           const reader = new FileReader();
+
           reader.onload = () => {
             const base64Audio = reader.result as string;
+
+            if (!base64Audio || base64Audio.length === 0) {
+              console.error('❌ Base64 аудио пустое');
+              telegram.notifyError();
+              telegram.showAlert('Ошибка конвертации аудио. Попробуй еще раз!');
+              stream.getTracks().forEach((track) => track.stop());
+              setIsRecording(false);
+              return;
+            }
 
             // Отправляем через TanStack Query хук
             sendMessage({
               audioBase64: base64Audio,
             });
+
+            // Останавливаем поток после успешной отправки
+            stream.getTracks().forEach((track) => track.stop());
+            setIsRecording(false);
+          };
+
+          reader.onerror = (error) => {
+            console.error('❌ Ошибка FileReader:', error);
+            telegram.notifyError();
+            telegram.showAlert('Ошибка чтения аудио. Попробуй записать заново!');
+            stream.getTracks().forEach((track) => track.stop());
+            setIsRecording(false);
           };
 
           reader.readAsDataURL(audioBlob);
         } catch (error: any) {
-          console.error('Ошибка отправки аудио:', error);
+          console.error('❌ Ошибка отправки аудио:', error);
           telegram.notifyError();
           telegram.showAlert(error.message || 'Не удалось отправить голосовое сообщение!');
-        } finally {
-          // Останавливаем поток
           stream.getTracks().forEach((track) => track.stop());
+          setIsRecording(false);
         }
+      };
+
+      // Обработка ошибок MediaRecorder
+      mediaRecorder.onerror = (event: any) => {
+        console.error('❌ Ошибка MediaRecorder:', event);
+        telegram.notifyError();
+        telegram.showAlert('Ошибка записи аудио. Попробуй еще раз!');
+        stream.getTracks().forEach((track) => track.stop());
+        setIsRecording(false);
+        mediaRecorderRef.current = null;
       };
 
       mediaRecorder.start();
       mediaRecorderRef.current = mediaRecorder;
+      recordingStartTimeRef.current = Date.now();
       setIsRecording(true);
       telegram.hapticFeedback('heavy');
     } catch (error) {
-      console.error('Ошибка доступа к микрофону:', error);
+      console.error('❌ Ошибка доступа к микрофону:', error);
       telegram.notifyError();
       await telegram.showAlert('Не удалось получить доступ к микрофону. Разреши доступ в настройках браузера.');
+      setIsRecording(false);
     }
   };
 
   const handleVoiceStop = () => {
     if (mediaRecorderRef.current && isRecording) {
+      // Проверяем минимальную длину записи (0.5 секунды)
+      const recordingDuration = Date.now() - recordingStartTimeRef.current;
+      const MIN_RECORDING_DURATION = 500; // 0.5 секунды
+
+      if (recordingDuration < MIN_RECORDING_DURATION) {
+        console.warn('⚠️ Запись слишком короткая, отменяем');
+        mediaRecorderRef.current.stop();
+        // Очищаем chunks и останавливаем поток
+        if (mediaRecorderRef.current.stream) {
+          mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+        }
+        mediaRecorderRef.current = null;
+        setIsRecording(false);
+        telegram.hapticFeedback('light');
+        return;
+      }
+
       mediaRecorderRef.current.stop();
-      setIsRecording(false);
       telegram.hapticFeedback('medium');
+      // setIsRecording(false) будет вызван в onstop
     }
   };
 

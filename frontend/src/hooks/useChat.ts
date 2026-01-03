@@ -92,7 +92,7 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
     },
 
     // Rollback при ошибке
-    onError: (_error, _variables, context: any) => {
+    onError: (_error: any, _variables, context: any) => {
       if (context?.previousMessages) {
         queryClient.setQueryData(
           queryKeys.chatHistory(telegramId, limit),
@@ -101,6 +101,18 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
       }
       telegram.notifyError();
       console.error('❌ Ошибка отправки сообщения:', _error);
+
+      // Показываем понятное сообщение об ошибке
+      const errorMessage = _error?.message || 'Ошибка отправки сообщения';
+      if (errorMessage.includes('аудио') || errorMessage.includes('audio')) {
+        telegram.showAlert(errorMessage);
+      } else if (errorMessage.includes('фото') || errorMessage.includes('photo')) {
+        telegram.showAlert(errorMessage);
+      } else if (errorMessage.includes('больш') || errorMessage.includes('large') || errorMessage.includes('413')) {
+        telegram.showAlert('Файл слишком большой. Попробуй уменьшить размер!');
+      } else {
+        telegram.showAlert('Не удалось отправить сообщение. Попробуй еще раз!');
+      }
     },
   });
 

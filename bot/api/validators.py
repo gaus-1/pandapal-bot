@@ -49,10 +49,9 @@ class AIChatRequest(BaseModel):
     @classmethod
     def validate_message(cls, v: Optional[str]) -> Optional[str]:
         """Валидация сообщения."""
-        if v is not None:
-            # Проверяем минимальную длину (не пустое)
-            if len(v.strip()) == 0:
-                raise ValueError("Message cannot be empty")
+        # Если пустая строка - преобразуем в None (разрешено если есть фото/аудио)
+        if v is not None and len(v.strip()) == 0:
+            return None
         return v
 
     @field_validator("telegram_id")

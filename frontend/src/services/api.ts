@@ -158,9 +158,10 @@ export async function sendAIMessage(
     },
     body: JSON.stringify({
       telegram_id: telegramId,
-      message: message || '',
-      photo_base64: photoBase64,
-      audio_base64: audioBase64,
+      // Отправляем message только если он есть (не пустая строка)
+      ...(message && message.trim() ? { message } : {}),
+      ...(photoBase64 ? { photo_base64: photoBase64 } : {}),
+      ...(audioBase64 ? { audio_base64: audioBase64 } : {}),
     }),
   });
 
