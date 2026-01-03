@@ -259,7 +259,7 @@ export function AIChat({ user }: AIChatProps) {
       {/* КОМПАКТНЫЙ пастельный заголовок */}
       <div className="flex-shrink-0 bg-gradient-to-r from-blue-400/90 to-indigo-400/90 shadow-sm p-1.5 sm:p-2 border-b border-blue-300/50">
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <img src="/logo.png" alt="PandaPal" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 p-0.5 shadow-sm" />
+          <img src="/logo.png" alt="PandaPal" width={32} height={32} loading="lazy" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 p-0.5 shadow-sm" />
           <div className="flex-1 min-w-0">
             <h1 className="text-sm sm:text-base font-bold text-white drop-shadow-sm truncate">
               PandaPal AI
@@ -291,7 +291,7 @@ export function AIChat({ user }: AIChatProps) {
           </div>
         ) : messages.length === 0 ? (
           <div className="text-center py-8">
-            <img src="/logo.png" alt="PandaPal" className="w-24 h-24 mx-auto mb-4 rounded-full shadow-xl" />
+            <img src="/logo.png" alt="PandaPal" width={96} height={96} loading="lazy" className="w-24 h-24 mx-auto mb-4 rounded-full shadow-xl" />
             <h2 className="text-xl font-bold text-[var(--tg-theme-text-color)] mb-2">
               Начни общение!
             </h2>
