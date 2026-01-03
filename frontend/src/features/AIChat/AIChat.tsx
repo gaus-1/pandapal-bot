@@ -271,7 +271,7 @@ export function AIChat({ user }: AIChatProps) {
       </div>
 
       {/* Список сообщений */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4" role="log" aria-label="История сообщений чата" aria-live="polite" aria-atomic="false">
         {isLoadingHistory ? (
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--tg-theme-button-color)]"></div>
@@ -291,6 +291,8 @@ export function AIChat({ user }: AIChatProps) {
             <div
               key={index}
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
+              role="article"
+              aria-label={msg.role === 'user' ? 'Ваше сообщение' : 'Сообщение от PandaPal'}
             >
               <div
                 className={`max-w-[85%] sm:max-w-[80%] rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-md ${
@@ -300,14 +302,21 @@ export function AIChat({ user }: AIChatProps) {
                 }`}
               >
                 <p className="whitespace-pre-wrap break-words font-medium text-xs sm:text-sm leading-relaxed">{msg.content}</p>
-                <p className={`text-[10px] sm:text-xs mt-1.5 sm:mt-2 font-medium ${
-                  msg.role === 'user' ? 'text-blue-100/90' : 'text-gray-500 dark:text-gray-400'
-                }`}>
+                <time
+                  className={`text-[10px] sm:text-xs mt-1.5 sm:mt-2 font-medium block ${
+                    msg.role === 'user' ? 'text-blue-100/90' : 'text-gray-500 dark:text-gray-400'
+                  }`}
+                  dateTime={new Date(msg.timestamp).toISOString()}
+                  aria-label={`Время отправки: ${new Date(msg.timestamp).toLocaleTimeString('ru-RU', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}`}
+                >
                   {new Date(msg.timestamp).toLocaleTimeString('ru-RU', {
                     hour: '2-digit',
                     minute: '2-digit',
                   })}
-                </p>
+                </time>
               </div>
             </div>
           ))
@@ -347,8 +356,9 @@ export function AIChat({ user }: AIChatProps) {
             disabled={isSending || isRecording}
             className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-blue-400/90 to-indigo-400/90 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-md transition-all active:scale-95 shadow-sm self-center"
             title="Отправить фото"
+            aria-label="Отправить фото"
           >
-            <span className="text-base sm:text-lg">📷</span>
+            <span className="text-base sm:text-lg" aria-hidden="true">📷</span>
           </button>
 
           {/* Поле ввода текста */}
@@ -361,6 +371,7 @@ export function AIChat({ user }: AIChatProps) {
             className="flex-1 resize-none rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-2 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 text-sm sm:text-base border border-gray-200 dark:border-slate-700 outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 disabled:opacity-50 transition-all h-[44px] sm:h-[48px] leading-tight"
             rows={1}
             style={{ maxHeight: '120px', minHeight: '44px' }}
+            aria-label="Поле ввода сообщения"
           />
 
           {/* Кнопка аудио / отправки - выровнена по центру с textarea */}
@@ -369,8 +380,9 @@ export function AIChat({ user }: AIChatProps) {
               onClick={handleVoiceStop}
               className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-red-400/90 to-pink-400/90 text-white flex items-center justify-center animate-pulse shadow-md self-center"
               title="Остановить запись"
+              aria-label="Остановить запись голосового сообщения"
             >
-              <span className="text-base sm:text-lg">⏹️</span>
+              <span className="text-base sm:text-lg" aria-hidden="true">⏹️</span>
             </button>
           ) : inputText.trim() ? (
             <button
@@ -378,11 +390,12 @@ export function AIChat({ user }: AIChatProps) {
               disabled={isSending}
               className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-green-400/90 to-emerald-400/90 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 hover:shadow-md shadow-sm self-center"
               title="Отправить сообщение"
+              aria-label="Отправить текстовое сообщение"
             >
               {isSending ? (
-                <div className="animate-spin text-base sm:text-lg">⏳</div>
+                <div className="animate-spin text-base sm:text-lg" aria-hidden="true">⏳</div>
               ) : (
-                <span className="text-base sm:text-lg">▶️</span>
+                <span className="text-base sm:text-lg" aria-hidden="true">▶️</span>
               )}
             </button>
           ) : (
@@ -391,8 +404,9 @@ export function AIChat({ user }: AIChatProps) {
               disabled={isSending}
               className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-blue-400/90 to-indigo-400/90 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-md shadow-sm self-center"
               title="Записать голосовое сообщение"
+              aria-label="Записать голосовое сообщение"
             >
-              <span className="text-base sm:text-lg">🎤</span>
+              <span className="text-base sm:text-lg" aria-hidden="true">🎤</span>
             </button>
           )}
         </div>
