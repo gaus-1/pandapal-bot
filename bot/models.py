@@ -212,7 +212,7 @@ class UserProgress(Base):
     )
 
     # Предмет и уровень
-    subject: Mapped[Optional[str]] = mapped_column(String(100))
+    subject: Mapped[str] = mapped_column(String(100), nullable=False, default="general")
 
     level: Mapped[Optional[int]] = mapped_column(Integer)
 

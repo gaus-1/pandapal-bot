@@ -103,6 +103,7 @@ class GamificationService:
         if not progress:
             progress = UserProgress(
                 user_telegram_id=telegram_id,
+                subject="general",  # Дефолтный предмет для общего прогресса
                 points=0,
                 level=1,
                 achievements={},
