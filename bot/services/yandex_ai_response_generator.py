@@ -8,7 +8,7 @@
 import asyncio
 import random
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from loguru import logger
 
@@ -25,7 +25,7 @@ class IModerator(ABC):
     """
 
     @abstractmethod
-    def moderate(self, text: str) -> tuple[bool, str]:
+    def moderate(self, text: str) -> Tuple[bool, str]:
         """
         Проверить текст на соответствие правилам модерации.
 
@@ -219,7 +219,7 @@ class YandexAIResponseGenerator:
             logger.error(f"❌ Ошибка анализа изображения (Yandex): {e}")
             return "😔 Извини, у меня возникли проблемы с анализом изображения. Попробуй ещё раз!"
 
-    async def moderate_image_content(self, image_data: bytes) -> tuple[bool, str]:
+    async def moderate_image_content(self, image_data: bytes) -> Tuple[bool, str]:
         """
         Проверить изображение на безопасность.
 

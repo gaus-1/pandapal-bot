@@ -156,5 +156,5 @@ async def successful_payment_handler(message: Message):
                 "❌ Произошла ошибка при активации Premium. "
                 "Мы уже работаем над исправлением. Обратитесь в поддержку."
             )
-        except Exception:
-            pass
+        except Exception as send_error:
+            logger.warning("⚠️ Не удалось отправить сообщение об ошибке: %s", send_error)

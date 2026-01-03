@@ -166,8 +166,8 @@ def validate_origin(request: web.Request) -> Tuple[bool, Optional[str]]:
                 # Для Mini App endpoints разрешаем, если есть JSON body
                 # Детальная проверка initData будет в самом endpoint
                 return True, None
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Ошибка проверки content-type: %s", e)
 
     origin = request.headers.get("Origin")
     referer = request.headers.get("Referer")

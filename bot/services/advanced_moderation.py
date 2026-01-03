@@ -81,11 +81,12 @@ class AdvancedModerationService:
         patterns = {}
 
         # Насилие
+        violence_pattern = (
+            r"\b(убить|убийство|смерть|умереть|труп|кровь|ранен|бьют|"
+            r"драка|война|оружие|нож|пистолет|бомба|взрыв)\b"
+        )
         patterns[ContentCategory.VIOLENCE] = [
-            re.compile(
-                r"\b(убить|убийство|смерть|умереть|труп|кровь|ранен|бьют|драка|война|оружие|нож|пистолет|бомба|взрыв)\b",
-                re.IGNORECASE,
-            ),
+            re.compile(violence_pattern, re.IGNORECASE),
             re.compile(
                 r"\b(избить|изнасиловать|пытка|мучение|страдание|боль|убийца|преступник)\b",
                 re.IGNORECASE,
