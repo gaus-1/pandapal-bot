@@ -42,7 +42,33 @@ export const Header: React.FC = React.memo(() => {
         </div>
 
         {/* Кнопки в правом верхнем углу */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Навигация */}
+          <nav className="hidden sm:flex items-center gap-2">
+            <a
+              href="#premium"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.hash = 'premium';
+                trackButtonClick('header_premium');
+              }}
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              Premium
+            </a>
+            <a
+              href="#donation"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.hash = 'donation';
+                trackButtonClick('header_donation');
+              }}
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              Поддержать
+            </a>
+          </nav>
+
           {/* CTA-кнопка к Telegram-боту */}
           <a
             href={SITE_CONFIG.botUrl}

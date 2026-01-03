@@ -7,7 +7,7 @@ import { telegram } from '../../services/telegram';
 import type { UserProfile } from '../../services/api';
 
 interface PremiumScreenProps {
-  user: UserProfile;
+  user: UserProfile | null;
 }
 
 interface PremiumPlan {
@@ -83,13 +83,23 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
 
     try {
       // Оплата через ЮKassa (карта/СБП)
+      const telegramId = user?.telegram_id;
+      if (!telegramId) {
+        if (telegram.isInTelegram()) {
+          await telegram.showAlert('Пожалуйста, авторизуйтесь в боте для покупки Premium');
+        } else {
+          alert('Пожалуйста, авторизуйтесь в боте для покупки Premium');
+        }
+        return;
+      }
+
       const response = await fetch('/api/miniapp/premium/create-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          telegram_id: user.telegram_id,
+          telegram_id: telegramId,
           plan_id: plan.id,
-          user_email: user.username ? `${user.username}@telegram.local` : undefined,
+          user_email: user?.username ? `${user.username}@telegram.local` : undefined,
         }),
       });
 
@@ -134,7 +144,7 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
         <p className="text-[var(--tg-theme-hint-color)]">
           Получи максимум от обучения
         </p>
-        {user.is_premium && user.premium_days_left !== undefined && (
+        {user?.is_premium && user.premium_days_left !== undefined && (
           <div className="mt-3 px-4 py-2 bg-green-500/20 rounded-xl border border-green-500/50">
             <p className="text-sm text-green-600 dark:text-green-400 font-medium">
               ✅ Premium активен еще {user.premium_days_left} {user.premium_days_left === 1 ? 'день' : user.premium_days_left < 5 ? 'дня' : 'дней'}
