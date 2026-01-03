@@ -131,6 +131,7 @@ async def handle_successful_payment(request: web.Request) -> web.Response:
                 plan_id=plan_id,
                 transaction_id=transaction_id,
                 payment_method="stars",
+                payment_id=transaction_id,  # Для Stars используем transaction_id как payment_id
             )
 
             db.commit()
@@ -246,27 +247,32 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
             subscription_service = SubscriptionService(db)
 
             # Проверяем, не активирована ли уже подписка для этого платежа
-            from bot.models import Subscription
             from sqlalchemy import select
+
+            from bot.models import Subscription
 
             existing = db.execute(
                 select(Subscription).where(Subscription.payment_id == payment_id)
             ).scalar_one_or_none()
 
             if existing:
-                logger.warning(
-                    f"⚠️ Подписка уже активирована для платежа {payment_id}"
-                )
+                logger.warning(f"⚠️ Подписка уже активирована для платежа {payment_id}")
                 return web.json_response(
                     {"success": True, "message": "Subscription already activated"}
                 )
 
-            # Определяем способ оплаты из платежа
-            payment_status = payment_service.get_payment_status(payment_id)
-            payment_method = "yookassa_other"
-            if payment_status:
-                # Можно определить по payment_method в ответе, но для простоты используем общий
-                payment_method = "yookassa_card"  # По умолчанию карта
+            # Определяем способ оплаты из webhook данных
+            payment_object = data.get("object", {})
+            payment_method_data = payment_object.get("payment_method", {})
+            payment_method_type = payment_method_data.get("type", "")
+
+            # Маппинг типов оплаты ЮKassa на наши значения
+            if payment_method_type == "bank_card":
+                payment_method = "yookassa_card"
+            elif payment_method_type == "sberbank":
+                payment_method = "yookassa_sbp"
+            else:
+                payment_method = "yookassa_other"
 
             subscription = subscription_service.activate_subscription(
                 telegram_id=telegram_id,
@@ -306,7 +312,9 @@ async def get_premium_status(request: web.Request) -> web.Response:
 
             status_data = {
                 "is_premium": is_premium,
-                "active_subscription": active_subscription.to_dict() if active_subscription else None,
+                "active_subscription": (
+                    active_subscription.to_dict() if active_subscription else None
+                ),
             }
 
             return web.json_response({"success": True, **status_data})
