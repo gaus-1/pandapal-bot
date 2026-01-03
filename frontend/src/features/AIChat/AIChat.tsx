@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { telegram } from '../../services/telegram';
 import { useChat } from '../../hooks/useChat';
+import { useAppStore } from '../../store/appStore';
 import type { UserProfile } from '../../services/api';
 
 interface AIChatProps {
@@ -267,6 +268,18 @@ export function AIChat({ user }: AIChatProps) {
               Привет, {user.first_name}! 🎓
             </p>
           </div>
+          {/* Кнопка достижений */}
+          <button
+            onClick={() => {
+              useAppStore.getState().setCurrentScreen('achievements');
+              telegram.hapticFeedback('light');
+            }}
+            className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-white/20 hover:bg-white/30 active:scale-95 transition-all flex items-center justify-center shadow-sm"
+            aria-label="Достижения"
+            title="Достижения"
+          >
+            <span className="text-lg sm:text-xl">🏆</span>
+          </button>
         </div>
       </div>
 

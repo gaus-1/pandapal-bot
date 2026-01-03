@@ -8,7 +8,7 @@ import { devtools } from 'zustand/middleware';
 import type { UserProfile } from '../services/api';
 
 // Типы экранов приложения
-export type Screen = 'ai-chat' | 'emergency';
+export type Screen = 'ai-chat' | 'emergency' | 'achievements';
 
 // Интерфейс состояния приложения
 interface AppState {

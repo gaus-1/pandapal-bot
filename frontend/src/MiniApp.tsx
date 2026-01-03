@@ -14,6 +14,7 @@ import { telegram } from './services/telegram';
 // Lazy loading экранов для оптимизации
 const AIChat = lazy(() => import('./features/AIChat/AIChat').then(m => ({ default: m.AIChat })));
 const EmergencyScreen = lazy(() => import('./features/Emergency/EmergencyScreen').then(m => ({ default: m.EmergencyScreen })));
+const AchievementsScreen = lazy(() => import('./features/Achievements/AchievementsScreen').then(m => ({ default: m.AchievementsScreen })));
 
 export function MiniApp() {
   return (
@@ -106,7 +107,7 @@ function MiniAppContent() {
     }
   }, [currentScreen, setCurrentScreen]);
 
-  const navigateTo = (screen: 'ai-chat' | 'emergency') => {
+  const navigateTo = (screen: 'ai-chat' | 'emergency' | 'achievements') => {
     setCurrentScreen(screen);
     telegram.hapticFeedback('medium');
   };
@@ -152,19 +153,36 @@ function MiniAppContent() {
         <Suspense fallback={<LoadingFallback />}>
           {currentScreen === 'ai-chat' && user && <AIChat user={user} />}
           {currentScreen === 'emergency' && <EmergencyScreen />}
+          {currentScreen === 'achievements' && user && <AchievementsScreen user={user} />}
         </Suspense>
       </div>
 
-      {/* Нижняя навигация - ТОЛЬКО SOS (чат открыт по умолчанию) */}
-      {currentScreen === 'emergency' && (
+      {/* Нижняя навигация */}
+      {currentScreen !== 'ai-chat' && (
         <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg" aria-label="Основная навигация">
-          <div className="flex justify-start px-2 py-1.5">
+          <div className="flex justify-start gap-2 px-2 py-1.5">
             <NavButton
-              icon="🚨"
-              label="SOS"
-              isActive={true}
-              onClick={() => navigateTo('emergency')}
+              icon="💬"
+              label="Чат"
+              isActive={currentScreen === 'ai-chat'}
+              onClick={() => navigateTo('ai-chat')}
             />
+            {currentScreen === 'emergency' && (
+              <NavButton
+                icon="🚨"
+                label="SOS"
+                isActive={currentScreen === 'emergency'}
+                onClick={() => navigateTo('emergency')}
+              />
+            )}
+            {currentScreen === 'achievements' && (
+              <NavButton
+                icon="🏆"
+                label="Достижения"
+                isActive={currentScreen === 'achievements'}
+                onClick={() => navigateTo('achievements')}
+              />
+            )}
           </div>
         </nav>
       )}
