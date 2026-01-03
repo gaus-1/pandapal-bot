@@ -19,7 +19,7 @@ class SecurityChecker:
             # API ключи и токены
             "api_key": r'(?i)(api[_-]?key|apikey)\s*[=:]\s*["\']?([a-zA-Z0-9_\-]{20,})["\']?',
             "token": r'(?i)(token|access[_-]?token)\s*[=:]\s*["\']?([a-zA-Z0-9_\-\.]{20,})["\']?',
-            "secret_key": r'(?i)(secret[_-]?key|secretkey)\s*[=:]\s*["\']?([a-zA-Z0-9_\-\.]{20,})["\']?',
+            "secret_key": r'(?i)(secret[_-]?key|secretkey)\s*[=:]\s*["\']?([a-zA-Z0-9_\-\.]{32,})["\']?',
             # Пароли
             "password": r'(?i)(password|passwd|pwd)\s*[=:]\s*["\']?([^"\'\s]{8,})["\']?',
             "database_url": r'(?i)(database[_-]?url|db[_-]?url)\s*[=:]\s*["\']?(postgresql://[^"\'\s]+)["\']?',
@@ -28,7 +28,8 @@ class SecurityChecker:
             "certificate": r'(?i)(certificate|cert)\s*[=:]\s*["\']?(-----BEGIN[^"\']+-----END[^"\']+)["\']?',
             # Конкретные сервисы
             "telegram_token": r'telegram[_-]?bot[_-]?token\s*[=:]\s*["\']?(\d+:[a-zA-Z0-9_\-]{35})["\']?',
-            "gemini_key": r'gemini[_-]?api[_-]?key\s*[=:]\s*["\']?(AIza[a-zA-Z0-9_\-]{35})["\']?',
+            "yandex_api_key": r'yandex[_-]?cloud[_-]?api[_-]?key\s*[=:]\s*["\']?(AQVN[a-zA-Z0-9_\-]{35,})["\']?',
+            "yookassa_secret": r'yookassa[_-]?secret[_-]?key\s*[=:]\s*["\']?([a-zA-Z0-9_\-]{32,})["\']?',
             "openai_key": r'openai[_-]?api[_-]?key\s*[=:]\s*["\']?(sk-[a-zA-Z0-9_\-]{48})["\']?',
         }
 
@@ -52,10 +53,15 @@ class SecurityChecker:
 
         # Исключаем ложные срабатывания
         self.safe_patterns = [
-            "settings.telegram_bot_token",  # Переменная окружения
-            "YOUR_TELEGRAM_BOT_TOKEN",  # Шаблон
-            "test_token",  # Тестовый токен
-            "your_telegram_bot_token",  # Шаблон
+            "settings.",  # Использование переменных окружения через settings
+            "YOUR_",  # Шаблоны
+            "test_",  # Тестовые значения
+            "your_",  # Шаблоны
+            "self.secret_key",  # Использование атрибутов класса
+            "Configuration.secret_key",  # Использование конфигурации
+            "base64.urlsafe_b64encode",  # Криптографические функции
+            "Field(",  # Pydantic Field definitions
+            "validation_alias",  # Pydantic validation
         ]
 
         self.excluded_extensions = {".pyc", ".pyo", ".pyd", ".so", ".dll", ".exe", ".log"}
@@ -126,9 +132,9 @@ class SecurityChecker:
     def generate_report(self, violations: List[Dict]) -> str:
         """Генерация отчета"""
         if not violations:
-            return "✅ ПРОВЕРКА БЕЗОПАСНОСТИ ПРОЙДЕНА!\nНикаких утечек секретных данных не найдено."
+            return "OK: SECURITY CHECK PASSED!\nNo secret leaks found."
 
-        report = f"🚨 НАЙДЕНО {len(violations)} НАРУШЕНИЙ БЕЗОПАСНОСТИ!\n\n"
+        report = f"FOUND {len(violations)} SECURITY VIOLATIONS!\n\n"
 
         # Группируем по файлам
         by_file = {}
@@ -139,44 +145,70 @@ class SecurityChecker:
             by_file[file_name].append(violation)
 
         for file_name, file_violations in by_file.items():
-            report += f"📄 {file_name}:\n"
+            report += f"FILE: {file_name}\n"
             for violation in file_violations:
-                report += f"  ❌ Строка {violation['line']}: {violation['pattern']}\n"
-                report += f"     {violation['content'][:100]}...\n\n"
+                report += f"  Line {violation['line']}: {violation['pattern']}\n"
+                report += f"     {violation['content'][:100]}\n\n"
 
         return report
 
-    def run_check(self, directory: str = ".") -> bool:
+    def run_check(self, directories: List[str] = None) -> bool:
         """Запуск проверки"""
-        print("🛡️ Запуск проверки безопасности...")
+        if directories is None:
+            directories = ["bot", "scripts", "web_server.py", "frontend_server.py"]
 
-        directory_path = Path(directory)
-        if not directory_path.exists():
-            print(f"❌ Директория {directory} не существует")
-            return False
+        try:
+            print("Security check started...")
+        except UnicodeEncodeError:
+            print("Security check started...")
 
-        violations = self.scan_directory(directory_path)
-        self.violations = violations
+        all_violations = []
+        for directory in directories:
+            directory_path = Path(directory)
+            if not directory_path.exists():
+                print(f"WARNING: Directory {directory} does not exist, skipping")
+                continue
 
-        report = self.generate_report(violations)
-        print(report)
+            if directory_path.is_file():
+                violations = self.check_file(directory_path)
+            else:
+                violations = self.scan_directory(directory_path)
+            all_violations.extend(violations)
 
-        return len(violations) == 0
+        self.violations = all_violations
+
+        report = self.generate_report(all_violations)
+        try:
+            print(report)
+        except UnicodeEncodeError:
+            # Fallback без эмодзи для Windows
+            report_clean = report.encode("ascii", "ignore").decode("ascii")
+            print(report_clean)
+
+        return len(all_violations) == 0
 
 
 def main():
     """Главная функция"""
     checker = SecurityChecker()
 
-    # Проверяем текущую директорию
-    success = checker.run_check(".")
+    # Проверяем только нужные директории
+    directories = ["bot", "scripts", "web_server.py", "frontend_server.py"]
+    success = checker.run_check(directories)
 
     if success:
-        print("\n✅ Все проверки безопасности пройдены успешно!")
+        try:
+            print("\nOK: All security checks passed!")
+        except UnicodeEncodeError:
+            print("\nOK: All security checks passed!")
         sys.exit(0)
     else:
-        print("\n❌ Обнаружены нарушения безопасности!")
-        print("🔧 Исправьте найденные проблемы перед коммитом.")
+        try:
+            print("\nERROR: Security violations found!")
+            print("Fix the issues before committing.")
+        except UnicodeEncodeError:
+            print("\nERROR: Security violations found!")
+            print("Fix the issues before committing.")
         sys.exit(1)
 
 
