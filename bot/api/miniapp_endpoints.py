@@ -17,6 +17,7 @@ from bot.api.validators import (
     validate_telegram_id,
 )
 from bot.database import get_db
+from bot.models import ChatHistory
 from bot.security.telegram_auth import TelegramWebAppAuth
 from bot.services import (
     ChatHistoryService,
@@ -539,6 +540,8 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
 
             # Сохраняем в историю (полный ответ для контекста, но отправляем обрезанный)
             logger.info(f"💾 Начинаю сохранение в БД для telegram_id={telegram_id}")
+            user_msg = None
+            ai_msg = None
             try:
                 logger.info(f"💾 Сохраняю сообщение пользователя: {user_message[:50]}...")
                 user_msg = history_service.add_message(telegram_id, user_message, "user")
@@ -551,8 +554,20 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 # ЯВНЫЙ КОММИТ перед отправкой ответа
                 db.commit()
                 logger.info(
-                    f"✅✅✅ ТРАНЗАКЦИЯ ЗАКОММИЧЕНА: user_msg_id={user_msg.id}, ai_msg_id={ai_msg.id}, telegram_id={telegram_id}"
+                    f"✅✅✅ ТРАНЗАКЦИЯ ЗАКОММИЧЕНА: user_msg_id={user_msg.id if user_msg else None}, ai_msg_id={ai_msg.id if ai_msg else None}, telegram_id={telegram_id}"
                 )
+
+                # ПРОВЕРКА: читаем обратно из БД для подтверждения
+                check_msg = db.query(ChatHistory).filter_by(id=user_msg.id).first()
+                if check_msg:
+                    logger.info(
+                        f"✅✅✅ ПОДТВЕРЖДЕНО: сообщение {check_msg.id} существует в БД после коммита"
+                    )
+                else:
+                    logger.error(
+                        f"❌❌❌ ПРОБЛЕМА: сообщение {user_msg.id} НЕ найдено в БД после коммита!"
+                    )
+
             except Exception as save_error:
                 logger.error(
                     f"❌ КРИТИЧЕСКАЯ ОШИБКА сохранения в историю: {save_error}", exc_info=True
