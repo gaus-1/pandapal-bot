@@ -254,6 +254,6 @@ a0f1413 feat: Yandex Cloud migration complete
 
 ---
 
-**Автор:** AI Assistant
+**Автор:** Development Team
 **Дата:** 01.01.2026
 **Версия:** 1.0
