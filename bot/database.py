@@ -151,11 +151,47 @@ async def init_database() -> None:
                         )
                     alembic_cfg.set_main_option("sqlalchemy.url", database_url)
 
-                # Проверяем, нужна ли миграция premium
+                # Проверяем текущее состояние БД перед миграцией
                 from sqlalchemy import inspect, text
 
                 inspector = inspect(engine)
                 tables = inspector.get_table_names()
+
+                # Если таблицы уже существуют, пропускаем начальную миграцию Alembic
+                if "users" in tables and "chat_history" in tables:
+                    logger.info("📊 Таблицы уже существуют, проверяем только новые миграции...")
+                    # Пытаемся применить только новые миграции (не начальную схему)
+                    try:
+                        command.upgrade(alembic_cfg, "head")
+                        migration_applied = True
+                        logger.info("✅ Миграции Alembic применены успешно")
+                    except Exception as alembic_err:
+                        # Если ошибка связана с существующими таблицами - это нормально
+                        if (
+                            "already exists" in str(alembic_err).lower()
+                            or "duplicate" in str(alembic_err).lower()
+                        ):
+                            logger.info("ℹ️ Миграции уже применены, таблицы существуют")
+                            migration_applied = True
+                        else:
+                            logger.warning(f"⚠️ Alembic миграция не удалась: {alembic_err}")
+                else:
+                    # Применяем все миграции с нуля
+                    try:
+                        command.upgrade(alembic_cfg, "head")
+                        migration_applied = True
+                        logger.info("✅ Миграции Alembic применены успешно")
+                    except Exception as alembic_err:
+                        if (
+                            "already exists" in str(alembic_err).lower()
+                            or "duplicate" in str(alembic_err).lower()
+                        ):
+                            logger.info("ℹ️ Таблицы уже существуют, миграция не требуется")
+                            migration_applied = True
+                        else:
+                            logger.warning(f"⚠️ Alembic миграция не удалась: {alembic_err}")
+
+                # Проверяем, нужна ли миграция premium
                 needs_premium_migration = False
 
                 # Проверяем наличие premium_until в users
