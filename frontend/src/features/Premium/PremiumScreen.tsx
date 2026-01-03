@@ -234,15 +234,13 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
                   {selectedPaymentMethod === 'stars' ? `${plan.priceStars} ⭐` : `${plan.priceRub} ₽`}
                 </div>
                 <div className="text-xs text-[var(--tg-theme-hint-color)]">
-                  {selectedPaymentMethod === 'stars'
-                    ? (() => {
-                        const days = plan.id === 'week' ? 7 : plan.id === 'month' ? 30 : 365;
-                        return `${(plan.priceStars / days).toFixed(1)} ⭐/день`;
-                      })()
-                    : (() => {
-                        const days = plan.id === 'week' ? 7 : plan.id === 'month' ? 30 : 365;
-                        return `${(plan.priceRub / days).toFixed(0)} ₽/день`;
-                      })()}
+                  {(() => {
+                    const days = plan.id === 'week' ? 7 : plan.id === 'month' ? 30 : 365;
+                    if (selectedPaymentMethod === 'stars') {
+                      return `${(plan.priceStars / days).toFixed(1)} ⭐/день`;
+                    }
+                    return `${(plan.priceRub / days).toFixed(0)} ₽/день`;
+                  })()}
                 </div>
               </div>
             </div>
