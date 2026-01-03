@@ -102,10 +102,40 @@ def rename_runtime_directory(optimized_dir: Path, old_name: str):
                 "# Pyarmor" in lines[0] or "# PyArmor" in lines[0] or "# pyarmor" in lines[0]
             ):
                 lines = lines[1:]
-                runtime_init.write_text("\n".join(lines), encoding="utf-8")
-                print(f"  [POST] Cleaned PyArmor comment from _runtime/__init__.py")
+            # Заменяем импорт pyarmor_runtime на _core
+            new_lines = []
+            for line in lines:
+                if "from .pyarmor_runtime import" in line or "from pyarmor_runtime import" in line:
+                    new_lines.append("from ._core import __pyarmor__")
+                    print(
+                        f"  [POST] Replaced pyarmor_runtime import with _core in _runtime/__init__.py"
+                    )
+                else:
+                    new_lines.append(line)
+            runtime_init.write_text("\n".join(new_lines), encoding="utf-8")
+            print(f"  [POST] Cleaned _runtime/__init__.py")
         except Exception as e:
             print(f"  [WARNING] Failed to clean _runtime/__init__.py: {e}")
+
+    # Переименовываем pyarmor_runtime.pyd в _core.pyd если есть
+    old_pyd = new_runtime_dir / "pyarmor_runtime.pyd"
+    new_pyd = new_runtime_dir / "_core.pyd"
+    if old_pyd.exists() and not new_pyd.exists():
+        try:
+            old_pyd.rename(new_pyd)
+            print(f"  [POST] Renamed pyarmor_runtime.pyd -> _core.pyd")
+        except Exception as e:
+            print(f"  [WARNING] Failed to rename .pyd file: {e}")
+
+    # Также проверяем .so файлы для Linux
+    old_so = new_runtime_dir / "pyarmor_runtime.so"
+    new_so = new_runtime_dir / "_core.so"
+    if old_so.exists() and not new_so.exists():
+        try:
+            old_so.rename(new_so)
+            print(f"  [POST] Renamed pyarmor_runtime.so -> _core.so")
+        except Exception as e:
+            print(f"  [WARNING] Failed to rename .so file: {e}")
 
 
 def optimize_files():
@@ -125,9 +155,9 @@ def optimize_files():
     print(f"[OPTIMIZE] Processing {len(source_files)} files...")
 
     # Команда для оптимизации всех файлов сразу
-    # Режим restrict обеспечивает максимальную защиту
+    # Используем --enable-rft=0 чтобы отключить проверку окружения (для Railway)
     files_str = " ".join(f'"{f}"' for f in source_files)
-    cmd = f'pyarmor gen --restrict --output "{OPTIMIZED_DIR}" {files_str}'
+    cmd = f'pyarmor gen --enable-rft=0 --output "{OPTIMIZED_DIR}" {files_str}'
     result = os.system(cmd)
 
     if result != 0:
