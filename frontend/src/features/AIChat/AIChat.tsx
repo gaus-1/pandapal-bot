@@ -268,18 +268,32 @@ export function AIChat({ user }: AIChatProps) {
               Привет, {user.first_name}! 🎓
             </p>
           </div>
-          {/* Кнопка достижений */}
-          <button
-            onClick={() => {
-              useAppStore.getState().setCurrentScreen('achievements');
-              telegram.hapticFeedback('light');
-            }}
-            className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-white/20 hover:bg-white/30 active:scale-95 transition-all flex items-center justify-center shadow-sm"
-            aria-label="Достижения"
-            title="Достижения"
-          >
-            <span className="text-lg sm:text-xl">🏆</span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            {/* Кнопка достижений */}
+            <button
+              onClick={() => {
+                useAppStore.getState().setCurrentScreen('achievements');
+                telegram.hapticFeedback('light');
+              }}
+              className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-white/20 hover:bg-white/30 active:scale-95 transition-all flex items-center justify-center shadow-sm"
+              aria-label="Достижения"
+              title="Достижения"
+            >
+              <span className="text-lg sm:text-xl">🏆</span>
+            </button>
+            {/* Кнопка SOS */}
+            <button
+              onClick={() => {
+                useAppStore.getState().setCurrentScreen('emergency');
+                telegram.hapticFeedback('medium');
+              }}
+              className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-red-500/90 hover:bg-red-600/90 active:scale-95 transition-all flex items-center justify-center shadow-sm"
+              aria-label="Экстренные номера"
+              title="Экстренные номера"
+            >
+              <span className="text-base sm:text-lg">🚨</span>
+            </button>
+          </div>
         </div>
       </div>
 
