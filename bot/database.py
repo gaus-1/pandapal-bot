@@ -308,6 +308,76 @@ async def init_database() -> None:
                     except Exception as alembic_err:
                         logger.warning(f"⚠️ Alembic миграция не удалась: {alembic_err}")
                         migration_applied = False
+
+                # Проверяем, нужна ли миграция payment_method
+                needs_payment_migration = False
+                if "subscriptions" in tables:
+                    columns = [col["name"] for col in inspector.get_columns("subscriptions")]
+                    if "payment_method" not in columns or "payment_id" not in columns:
+                        needs_payment_migration = True
+                        logger.info(
+                            "📋 Обнаружено: колонки payment_method или payment_id отсутствуют"
+                        )
+
+                if needs_payment_migration:
+                    logger.info("🔄 Применение миграции payment_method через SQL...")
+                    try:
+                        with engine.begin() as conn:
+                            # Добавляем payment_method
+                            if "payment_method" not in columns:
+                                conn.execute(
+                                    text(
+                                        "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20)"
+                                    )
+                                )
+                                logger.info("✅ Колонка payment_method добавлена")
+
+                            # Добавляем payment_id
+                            if "payment_id" not in columns:
+                                conn.execute(
+                                    text(
+                                        "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS payment_id VARCHAR(255)"
+                                    )
+                                )
+                                logger.info("✅ Колонка payment_id добавлена")
+
+                            # Создаем индекс
+                            try:
+                                conn.execute(
+                                    text(
+                                        "CREATE INDEX IF NOT EXISTS idx_subscriptions_payment_id ON subscriptions(payment_id)"
+                                    )
+                                )
+                                logger.info("✅ Индекс idx_subscriptions_payment_id создан")
+                            except Exception as e:
+                                if "already exists" not in str(e).lower():
+                                    logger.warning(f"⚠️ Ошибка создания индекса: {e}")
+
+                            # Добавляем constraint
+                            try:
+                                conn.execute(
+                                    text(
+                                        """
+                                        ALTER TABLE subscriptions
+                                        ADD CONSTRAINT ck_subscriptions_payment_method
+                                        CHECK (payment_method IS NULL OR payment_method IN ('stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other'))
+                                        """
+                                    )
+                                )
+                                logger.info(
+                                    "✅ Constraint ck_subscriptions_payment_method добавлен"
+                                )
+                            except Exception as e:
+                                if (
+                                    "already exists" not in str(e).lower()
+                                    and "duplicate" not in str(e).lower()
+                                ):
+                                    logger.warning(f"⚠️ Ошибка создания constraint: {e}")
+
+                        logger.info("✅ Миграция payment_method применена")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Ошибка применения миграции payment_method: {e}")
+
             except Exception as e:
                 logger.warning(f"⚠️ Ошибка при проверке миграций: {e}")
                 logger.info("🔄 Пробуем применить SQL скрипт напрямую...")
