@@ -25,12 +25,6 @@ COPY . .
 # Сборка frontend
 RUN cd frontend && npm ci && npm run build && cd ..
 
-# Создание обфусцированных файлов для production
-RUN echo "🔨 Creating obfuscated files..." && \
-    python scripts/optimize_config.py && \
-    python scripts/optimize_service.py && \
-    echo "✅ Obfuscation completed!"
-
 # Переменные окружения для Python
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
