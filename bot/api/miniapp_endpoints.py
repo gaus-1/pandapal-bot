@@ -351,9 +351,29 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
         try:
             validated = AIChatRequest(**data)
         except ValidationError as e:
-            logger.warning(f"⚠️ Invalid AI chat request: {e.errors()}")
+            # Преобразуем ошибки валидации в сериализуемый формат
+            error_details = []
+            for error in e.errors():
+                error_dict = {
+                    "type": error.get("type", "validation_error"),
+                    "loc": error.get("loc", []),
+                    "msg": error.get("msg", "Validation error"),
+                }
+                # Преобразуем ctx если есть
+                if "ctx" in error and error["ctx"]:
+                    ctx = error["ctx"]
+                    if isinstance(ctx, dict):
+                        # Преобразуем ValueError в строку
+                        if "error" in ctx:
+                            ctx = {
+                                k: str(v) if isinstance(v, Exception) else v for k, v in ctx.items()
+                            }
+                        error_dict["ctx"] = ctx
+                error_details.append(error_dict)
+
+            logger.warning(f"⚠️ Invalid AI chat request: {error_details}")
             return web.json_response(
-                {"error": "Invalid request data", "details": e.errors()},
+                {"error": "Invalid request data", "details": error_details},
                 status=400,
             )
 
@@ -369,6 +389,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             try:
                 logger.info(f"🎤 Mini App: Обработка голосового сообщения от {telegram_id}")
                 logger.info(f"🎤 Mini App: audio_base64 length: {len(audio_base64)}")
+
                 # Убираем data:audio/...;base64, префикс
                 if "base64," in audio_base64:
                     audio_base64 = audio_base64.split("base64,")[1]
@@ -376,24 +397,60 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                         f"🎤 Mini App: После удаления префикса, length: {len(audio_base64)}"
                     )
 
+                # Проверяем размер base64 строки (примерно 4/3 от размера бинарных данных)
+                # Лимит: 10MB аудио = ~13.3MB base64
+                MAX_AUDIO_BASE64_SIZE = 14 * 1024 * 1024  # 14MB
+                if len(audio_base64) > MAX_AUDIO_BASE64_SIZE:
+                    logger.warning(f"⚠️ Аудио слишком большое: {len(audio_base64)} байт")
+                    return web.json_response(
+                        {
+                            "error": "Аудио слишком большое. Максимум 10MB. Попробуй записать короче!"
+                        },
+                        status=413,
+                    )
+
                 audio_bytes = base64.b64decode(audio_base64)
                 logger.info(f"🎤 Mini App: Декодировано {len(audio_bytes)} байт аудио")
+
+                # Проверяем размер декодированного аудио
+                MAX_AUDIO_SIZE = 10 * 1024 * 1024  # 10MB
+                if len(audio_bytes) > MAX_AUDIO_SIZE:
+                    logger.warning(
+                        f"⚠️ Декодированное аудио слишком большое: {len(audio_bytes)} байт"
+                    )
+                    return web.json_response(
+                        {
+                            "error": "Аудио слишком большое. Максимум 10MB. Попробуй записать короче!"
+                        },
+                        status=413,
+                    )
 
                 speech_service = SpeechService()
                 transcribed_text = await speech_service.transcribe_voice(audio_bytes, language="ru")
 
-                if transcribed_text:
+                if transcribed_text and transcribed_text.strip():
                     user_message = transcribed_text
                     logger.info(f"✅ Аудио распознано: {transcribed_text[:100]}")
                 else:
-                    logger.warning("⚠️ Аудио не распознано - возвращаем ошибку")
+                    logger.warning("⚠️ Аудио не распознано или пустое")
+                    # Возвращаем понятную ошибку пользователю
                     return web.json_response(
-                        {"error": "Не удалось распознать аудио. Попробуй еще раз!"},
+                        {
+                            "error": "Не удалось распознать речь. Попробуй говорить четче или напиши текстом!",
+                        },
                         status=400,
                     )
             except Exception as e:
                 logger.error(f"❌ Ошибка обработки аудио: {e}", exc_info=True)
-                return web.json_response({"error": f"Ошибка обработки аудио: {str(e)}"}, status=500)
+                # Возвращаем понятную ошибку пользователю
+                error_message = (
+                    "Ошибка обработки аудио. Попробуй записать заново или напиши текстом!"
+                )
+                if "timeout" in str(e).lower() or "time" in str(e).lower():
+                    error_message = "Аудио слишком длинное. Попробуй записать короче!"
+                elif "format" in str(e).lower() or "decode" in str(e).lower():
+                    error_message = "Неверный формат аудио. Попробуй записать заново!"
+                return web.json_response({"error": error_message}, status=500)
 
         # Обработка фото
         if photo_base64:
