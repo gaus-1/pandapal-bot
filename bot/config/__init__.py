@@ -18,26 +18,27 @@ try:
 
     _optimized_available = True
 except ImportError:
-    # Fallback на оригинальные файлы
-    # ВАЖНО: В production обфусцированные файлы должны создаваться через nixpacks.toml build phase
-    # Если их нет - используем оригинальные файлы (временно, для стабильности)
+    # Fallback на оригинальные файлы ТОЛЬКО в development
+    # В production обфусцированные файлы ОБЯЗАТЕЛЬНЫ для защиты от копирования
     import os
-    from pathlib import Path
 
-    # Проверяем, находимся ли мы в production (Railway)
+    # Определяем окружение
     is_railway = bool(os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RAILWAY"))
+    environment = os.getenv("ENVIRONMENT", "production" if is_railway else "development")
 
-    # Логируем предупреждение, но не падаем
-    if is_railway:
-        import sys
-
-        print(
-            "⚠️ WARNING: Optimized config files not found in production. "
-            "Using original files. Check build logs for obfuscation script errors.",
-            file=sys.stderr,
+    # В production БЕЗ обфусцированных файлов - ПАДАЕМ
+    # Это защита от копирования репозитория
+    if environment == "production" or is_railway:
+        raise ImportError(
+            "❌ КРИТИЧЕСКАЯ ОШИБКА: Optimized configuration files are required in production. "
+            "Обфусцированные файлы не найдены. Это может означать:\n"
+            "1. Проект скопирован без обфусцированных файлов (они в .gitignore)\n"
+            "2. Build скрипт не выполнился (проверьте railway_build.sh или nixpacks.toml)\n"
+            "3. PyArmor не установлен или не работает\n\n"
+            "Для локальной разработки установите ENVIRONMENT=development"
         )
 
-    # Используем оригинальные файлы (fallback)
+    # В development используем оригинальные файлы (fallback)
     from bot.config.forbidden_patterns import FORBIDDEN_PATTERNS  # noqa: E402
     from bot.config.prompts import AI_SYSTEM_PROMPT  # noqa: E402
 from bot.config.settings import (  # noqa: E402
