@@ -61,9 +61,9 @@ class TestCompleteUserJourney:
     def has_yandex_keys(self):
         """Проверяет наличие Yandex API ключей"""
         return bool(
-            settings.yandex_api_key
-            and settings.yandex_folder_id
-            and hasattr(settings, "yandex_api_key")
+            settings.yandex_cloud_api_key
+            and settings.yandex_cloud_folder_id
+            and hasattr(settings, "yandex_cloud_api_key")
         )
 
     @pytest.mark.e2e
@@ -97,8 +97,13 @@ class TestCompleteUserJourney:
         auth_request = make_mocked_request(
             "POST",
             "/api/miniapp/auth",
-            json={"initData": mock_init_data},
+            headers={"Content-Type": "application/json"},
         )
+        auth_request._json_data = {"initData": mock_init_data}
+        async def json():
+            return auth_request._json_data
+        auth_request.json = json
+        type(auth_request).remote = property(lambda self: "127.0.0.1")
 
         # Мокаем только валидацию Telegram подписи (это внешний компонент)
         # В реальности подпись проверяется через HMAC, для теста упрощаем
@@ -155,7 +160,9 @@ class TestCompleteUserJourney:
             assert user_response.status == 200
 
             # Проверяем что данные корректны
-            user_data = await user_response.json()
+            import json
+            body = user_response._body if hasattr(user_response, '_body') else b'{}'
+            user_data = json.loads(body.decode('utf-8')) if body else {}
             assert user_data["success"] is True
             assert user_data["user"]["telegram_id"] == telegram_id
             assert user_data["user"]["age"] == 10
@@ -168,11 +175,16 @@ class TestCompleteUserJourney:
         text_chat_request = make_mocked_request(
             "POST",
             "/api/miniapp/ai/chat",
-            json={
-                "telegram_id": telegram_id,
-                "message": text_message,
-            },
+            headers={"Content-Type": "application/json"},
         )
+        text_chat_request._json_data = {
+            "telegram_id": telegram_id,
+            "message": text_message,
+        }
+        async def json():
+            return text_chat_request._json_data
+        text_chat_request.json = json
+        type(text_chat_request).remote = property(lambda self: "127.0.0.1")
 
         # РЕАЛЬНАЯ модерация контента
         moderation_service = ContentModerationService()
@@ -199,24 +211,20 @@ class TestCompleteUserJourney:
                 mock_get_db.return_value.__enter__.return_value = real_db_session
                 mock_get_db.return_value.__exit__.return_value = None
 
-                # РЕАЛЬНАЯ модерация (не мокаем)
-                with patch("bot.api.miniapp_endpoints.ContentModerationService") as mock_mod_class:
-                    # Используем РЕАЛЬНЫЙ сервис модерации
-                    mock_mod_class.return_value = moderation_service
+                # РЕАЛЬНАЯ модерация (используется автоматически в miniapp_ai_chat)
+                text_chat_response = await miniapp_ai_chat(text_chat_request)
+                assert text_chat_response.status == 200
 
-                    text_chat_response = await miniapp_ai_chat(text_chat_request)
-                    assert text_chat_response.status == 200
+                # Проверяем что сообщения сохранены в РЕАЛЬНОЙ БД
+                history_service = ChatHistoryService(real_db_session)
+                history = history_service.get_recent_history(telegram_id, limit=10)
+                assert len(history) >= 2  # Сообщение пользователя + ответ AI
 
-                    # Проверяем что сообщения сохранены в РЕАЛЬНОЙ БД
-                    history_service = ChatHistoryService(real_db_session)
-                    history = history_service.get_recent_history(telegram_id, limit=10)
-                    assert len(history) >= 2  # Сообщение пользователя + ответ AI
-
-                    # Проверяем что РЕАЛЬНАЯ геймификация сработала
-                    gamification_service = GamificationService(real_db_session)
-                    progress = gamification_service.get_or_create_progress(telegram_id)
-                    assert progress.points > 0, "XP должен быть начислен за сообщение"
-                    assert progress.level >= 1
+                # Проверяем что РЕАЛЬНАЯ геймификация сработала
+                gamification_service = GamificationService(real_db_session)
+                progress = gamification_service.get_or_create_progress(telegram_id)
+                assert progress.points > 0, "XP должен быть начислен за сообщение"
+                assert progress.level >= 1
 
         finally:
             if ai_patch:
@@ -228,12 +236,17 @@ class TestCompleteUserJourney:
         photo_chat_request = make_mocked_request(
             "POST",
             "/api/miniapp/ai/chat",
-            json={
-                "telegram_id": telegram_id,
-                "message": "Что на этом фото?",
-                "photo_base64": photo_base64,
-            },
+            headers={"Content-Type": "application/json"},
         )
+        photo_chat_request._json_data = {
+            "telegram_id": telegram_id,
+            "message": "Что на этом фото?",
+            "photo_base64": photo_base64,
+        }
+        async def json():
+            return photo_chat_request._json_data
+        photo_chat_request.json = json
+        type(photo_chat_request).remote = property(lambda self: "127.0.0.1")
 
         # Мокаем Vision и AI только если нет ключей
         vision_patch = None
@@ -260,15 +273,13 @@ class TestCompleteUserJourney:
                 mock_get_db.return_value.__enter__.return_value = real_db_session
                 mock_get_db.return_value.__exit__.return_value = None
 
-                with patch("bot.api.miniapp_endpoints.ContentModerationService") as mock_mod_class:
-                    mock_mod_class.return_value = moderation_service
+                # РЕАЛЬНАЯ модерация (используется автоматически)
+                photo_chat_response = await miniapp_ai_chat(photo_chat_request)
+                assert photo_chat_response.status == 200
 
-                    photo_chat_response = await miniapp_ai_chat(photo_chat_request)
-                    assert photo_chat_response.status == 200
-
-                    # Проверяем что история обновилась в РЕАЛЬНОЙ БД
-                    history = history_service.get_recent_history(telegram_id, limit=10)
-                    assert len(history) >= 4  # +2 сообщения (фото + ответ)
+                # Проверяем что история обновилась в РЕАЛЬНОЙ БД
+                history = history_service.get_recent_history(telegram_id, limit=10)
+                assert len(history) >= 4  # +2 сообщения (фото + ответ)
 
         finally:
             if vision_patch:
@@ -282,11 +293,16 @@ class TestCompleteUserJourney:
         audio_chat_request = make_mocked_request(
             "POST",
             "/api/miniapp/ai/chat",
-            json={
-                "telegram_id": telegram_id,
-                "audio_base64": audio_base64,
-            },
+            headers={"Content-Type": "application/json"},
         )
+        audio_chat_request._json_data = {
+            "telegram_id": telegram_id,
+            "audio_base64": audio_base64,
+        }
+        async def json():
+            return audio_chat_request._json_data
+        audio_chat_request.json = json
+        type(audio_chat_request).remote = property(lambda self: "127.0.0.1")
 
         # Мокаем SpeechKit и AI только если нет ключей
         speech_patch = None
@@ -313,15 +329,13 @@ class TestCompleteUserJourney:
                 mock_get_db.return_value.__enter__.return_value = real_db_session
                 mock_get_db.return_value.__exit__.return_value = None
 
-                with patch("bot.api.miniapp_endpoints.ContentModerationService") as mock_mod_class:
-                    mock_mod_class.return_value = moderation_service
+                # РЕАЛЬНАЯ модерация (используется автоматически)
+                audio_chat_response = await miniapp_ai_chat(audio_chat_request)
+                assert audio_chat_response.status == 200
 
-                    audio_chat_response = await miniapp_ai_chat(audio_chat_request)
-                    assert audio_chat_response.status == 200
-
-                    # Проверяем что история обновилась в РЕАЛЬНОЙ БД
-                    history = history_service.get_recent_history(telegram_id, limit=10)
-                    assert len(history) >= 6  # +2 сообщения (аудио + ответ)
+                # Проверяем что история обновилась в РЕАЛЬНОЙ БД
+                history = history_service.get_recent_history(telegram_id, limit=10)
+                assert len(history) >= 6  # +2 сообщения (аудио + ответ)
 
         finally:
             if speech_patch:
@@ -345,7 +359,9 @@ class TestCompleteUserJourney:
             achievements_response = await miniapp_get_achievements(achievements_request)
             assert achievements_response.status == 200
 
-            achievements_data = await achievements_response.json()
+            import json
+            body = achievements_response._body if hasattr(achievements_response, '_body') else b'{}'
+            achievements_data = json.loads(body.decode('utf-8')) if body else {}
             assert achievements_data["success"] is True
             assert "achievements" in achievements_data
 
@@ -378,7 +394,9 @@ class TestCompleteUserJourney:
             assert user_response2.status == 200
 
             # Проверяем что данные актуальны
-            user_data2 = await user_response2.json()
+            import json
+            body = user_response2._body if hasattr(user_response2, '_body') else b'{}'
+            user_data2 = json.loads(body.decode('utf-8')) if body else {}
             assert user_data2["user"]["telegram_id"] == telegram_id
 
         # ========== ФИНАЛЬНАЯ ПРОВЕРКА: ВСЁ СОХРАНЕНО В РЕАЛЬНОЙ БД ==========

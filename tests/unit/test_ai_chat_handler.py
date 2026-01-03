@@ -103,15 +103,17 @@ class TestAIChatHandler:
             with patch("bot.handlers.ai_chat.get_db", side_effect=lambda: mock_get_db_real()):
                 await handle_ai_message(mock_message, mock_state)
 
-            # Проверяем результат работы, а не факт вызова методов
-            mock_message.answer.assert_called_once()
-            call_args = mock_message.answer.call_args
-            if call_args:
+            # Проверяем результат работы - может быть несколько вызовов (достижение + ответ AI)
+            assert mock_message.answer.call_count >= 1, "Должен быть хотя бы один ответ"
+            
+            # Проверяем что последний вызов содержит ответ
+            last_call = mock_message.answer.call_args_list[-1]
+            if last_call:
                 answer_text = ""
-                if call_args[0]:
-                    answer_text = call_args[0][0]
-                elif call_args[1] and "text" in call_args[1]:
-                    answer_text = call_args[1]["text"]
+                if last_call[0]:
+                    answer_text = last_call[0][0] if last_call[0] else ""
+                elif last_call[1] and "text" in last_call[1]:
+                    answer_text = last_call[1]["text"]
                 assert len(answer_text) > 0  # Проверяем результат, а не реализацию
         finally:
             real_session.close()
