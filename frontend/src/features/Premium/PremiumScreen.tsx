@@ -235,8 +235,14 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
                 </div>
                 <div className="text-xs text-[var(--tg-theme-hint-color)]">
                   {selectedPaymentMethod === 'stars'
-                    ? `${(plan.priceStars / (plan.id === 'week' ? 7 : plan.id === 'month' ? 30 : 365)).toFixed(1))} ⭐/день`
-                    : `${(plan.priceRub / (plan.id === 'week' ? 7 : plan.id === 'month' ? 30 : 365)).toFixed(0)} ₽/день`}
+                    ? (() => {
+                        const days = plan.id === 'week' ? 7 : plan.id === 'month' ? 30 : 365;
+                        return `${(plan.priceStars / days).toFixed(1)} ⭐/день`;
+                      })()
+                    : (() => {
+                        const days = plan.id === 'week' ? 7 : plan.id === 'month' ? 30 : 365;
+                        return `${(plan.priceRub / days).toFixed(0)} ₽/день`;
+                      })()}
                 </div>
               </div>
             </div>
