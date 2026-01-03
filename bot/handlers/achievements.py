@@ -39,7 +39,7 @@ router = Router(name="achievements")
 async def show_achievements(message: Message, state: FSMContext):
     """
     Обработчик кнопки "🏆 Достижения"
-    Показывает систему достижений пользователя
+    Показывает систему достижений пользователя с реальными данными
     """
     telegram_id = message.from_user.id
 
@@ -53,45 +53,43 @@ async def show_achievements(message: Message, state: FSMContext):
             await message.answer("❌ Пользователь не найден. Напиши /start для регистрации.")
             return
 
-    # Временная заглушка с информацией о разработке
-    achievements_text = f"""
-🏆 <b>Система достижений</b>
+        # Получаем реальные данные о прогрессе
+        from bot.services.gamification_service import GamificationService
+
+        gamification_service = GamificationService(db)
+        progress_summary = gamification_service.get_user_progress_summary(telegram_id)
+        achievements = gamification_service.get_achievements_with_progress(telegram_id)
+
+    # Формируем текст с реальными данными
+    achievements_text = f"""🏆 <b>Система достижений</b>
 
 👤 <b>{user.first_name}</b>
-🎯 Уровень: 1
-⭐ Опыт (XP): 0 / 100
+🎯 Уровень: {progress_summary['level']}
+⭐ Опыт (XP): {progress_summary['xp']} / {progress_summary['xp'] + progress_summary['xp_for_next_level']}
+📊 Достижений: {progress_summary['achievements_unlocked']}/{progress_summary['achievements_total']}
 
 <b>🎮 Доступные достижения:</b>
-
-🌟 <b>Первый шаг</b> - 10 XP
-   Отправь первое сообщение
-   <i>✅ Получено!</i>
-
-💬 <b>Болтун</b> - 50 XP
-   Отправь 100 сообщений
-   <i>Прогресс: 0/100</i>
-
-❓ <b>Любознательный</b> - 100 XP
-   Задай 50 вопросов
-   <i>Прогресс: 0/50</i>
-
-🔥 <b>Неделя подряд</b> - 200 XP
-   Используй бота 7 дней подряд
-   <i>Прогресс: 0/7</i>
-
-🎓 <b>Отличник</b> - 150 XP
-   Реши 20 задач правильно
-   <i>Прогресс: 0/20</i>
-
-📚 <b>Эрудит</b> - 300 XP
-   Задавай вопросы по 5+ предметам
-   <i>Прогресс: 0/5</i>
-
-<b>🚧 Система достижений активно дорабатывается!</b>
-<i>Скоро здесь будут настоящие награды и бейджи! 🎉</i>
-
-💡 <b>Продолжай учиться и собирай достижения!</b>
 """
+
+    # Показываем первые 6 достижений
+    for achievement in achievements[:6]:
+        status = "✅" if achievement["unlocked"] else "🔒"
+        progress_text = (
+            "✅ Получено!"
+            if achievement["unlocked"]
+            else f"Прогресс: {achievement['progress']}/{achievement['progress_max']}"
+        )
+
+        achievements_text += f"""
+{achievement['icon']} <b>{achievement['title']}</b> - {achievement['xp_reward']} XP
+   {achievement['description']}
+   <i>{status} {progress_text}</i>
+"""
+
+    if len(achievements) > 6:
+        achievements_text += f"\n<i>... и еще {len(achievements) - 6} достижений</i>\n"
+
+    achievements_text += "\n💡 <b>Продолжай учиться и собирай достижения!</b>"
 
     await message.answer(
         text=achievements_text, reply_markup=get_achievements_keyboard(), parse_mode="HTML"
@@ -100,13 +98,43 @@ async def show_achievements(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == "achievements:my")
 async def show_my_achievements(callback: CallbackQuery, state: FSMContext):
-    """Показать полученные достижения"""
+    """Показать полученные достижения с реальными данными"""
+    telegram_id = callback.from_user.id
+
+    with get_db() as db:
+        from bot.services.gamification_service import GamificationService
+
+        gamification_service = GamificationService(db)
+        achievements = gamification_service.get_achievements_with_progress(telegram_id)
+
+    # Фильтруем только разблокированные
+    unlocked = [a for a in achievements if a["unlocked"]]
+
+    if not unlocked:
+        text = "🏅 <b>Мои достижения</b>\n\n"
+        text += (
+            "<i>У тебя пока нет достижений. Продолжай общаться с PandaPal чтобы открыть новые!</i>"
+        )
+    else:
+        text = f"🏅 <b>Мои достижения</b> ({len(unlocked)}/{len(achievements)})\n\n"
+        for achievement in unlocked:
+            unlock_date = achievement.get("unlock_date")
+            date_str = ""
+            if unlock_date:
+                try:
+                    from datetime import datetime
+
+                    dt = datetime.fromisoformat(unlock_date.replace("Z", "+00:00"))
+                    date_str = f" ({dt.strftime('%d.%m.%Y')})"
+                except Exception:
+                    date_str = ""
+
+            text += f"{achievement['icon']} <b>{achievement['title']}</b>{date_str}\n"
+            text += f"   {achievement['description']}\n"
+            text += f"   +{achievement['xp_reward']} XP\n\n"
+
     await callback.message.edit_text(
-        text="🏅 <b>Мои достижения</b>\n\n"
-        "🌟 Первый шаг - ✅\n"
-        "💬 Болтун - 🔒 (0/100)\n"
-        "❓ Любознательный - 🔒 (0/50)\n\n"
-        "<i>Продолжай общаться с PandaPal чтобы открыть новые достижения!</i>",
+        text=text,
         reply_markup=get_achievements_keyboard(),
         parse_mode="HTML",
     )
@@ -115,20 +143,63 @@ async def show_my_achievements(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "achievements:available")
 async def show_available_achievements(callback: CallbackQuery, state: FSMContext):
-    """Показать доступные для получения достижения"""
+    """Показать доступные для получения достижения с реальными данными"""
+    telegram_id = callback.from_user.id
+
+    with get_db() as db:
+        from bot.services.gamification_service import GamificationService
+
+        gamification_service = GamificationService(db)
+        achievements = gamification_service.get_achievements_with_progress(telegram_id)
+
+    # Фильтруем только неразблокированные
+    available = [a for a in achievements if not a["unlocked"]]
+
+    if not available:
+        text = "🎯 <b>Доступные награды</b>\n\n"
+        text += "🎉 <b>Поздравляю! Ты получил все достижения!</b>"
+    else:
+        text = "🎯 <b>Доступные награды</b>\n\n"
+        text += "Вот что ты можешь получить:\n\n"
+
+        # Сортируем по прогрессу (ближайшие к разблокировке первыми)
+        available.sort(
+            key=lambda x: x["progress"] / x["progress_max"] if x["progress_max"] > 0 else 0,
+            reverse=True,
+        )
+
+        for achievement in available[:5]:
+            progress_pct = (
+                int((achievement["progress"] / achievement["progress_max"]) * 100)
+                if achievement["progress_max"] > 0
+                else 0
+            )
+            remaining = achievement["progress_max"] - achievement["progress"]
+            text += f"{achievement['icon']} <b>{achievement['title']}</b>\n"
+            text += (
+                f"   {achievement['progress']}/{achievement['progress_max']} ({progress_pct}%)\n"
+            )
+            if remaining > 0:
+                text += f"   Осталось: {remaining}\n"
+            text += f"   +{achievement['xp_reward']} XP\n\n"
+
+        if len(available) > 5:
+            text += f"<i>... и еще {len(available) - 5} достижений</i>\n\n"
+
+        # Находим ближайшее достижение
+        closest = available[0] if available else None
+        if closest:
+            remaining = closest["progress_max"] - closest["progress"]
+            text += f"<i>Ближайшая награда: <b>{closest['title']}</b> - еще {remaining}!</i>"
+
     await callback.message.edit_text(
-        text="🎯 <b>Доступные награды</b>\n\n"
-        "Вот что ты можешь получить:\n\n"
-        "💬 Болтун (40/100) - ещё 60 сообщений\n"
-        "❓ Любознательный (0/50) - задай 50 вопросов\n"
-        "🔥 Неделя подряд (0/7) - общайся 7 дней подряд\n"
-        "🎓 Отличник (0/20) - реши 20 задач\n"
-        "📚 Эрудит (0/5) - изучи 5 предметов\n\n"
-        "<i>Ближайшая награда: <b>Болтун</b> - еще 60 сообщений!</i>",
+        text=text,
         reply_markup=get_achievements_keyboard(),
         parse_mode="HTML",
     )
-    await callback.answer("💪 Ты близко к новой награде!")
+    await callback.answer(
+        "💪 Ты близко к новой награде!" if available else "🎉 Все достижения получены!"
+    )
 
 
 @router.callback_query(F.data == "achievements:leaderboard")

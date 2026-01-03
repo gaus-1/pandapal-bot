@@ -264,6 +264,35 @@ async def handle_ai_message(message: Message, state: FSMContext):
                 telegram_id=telegram_id, message_text=ai_response, message_type="ai"
             )
 
+            # Обрабатываем геймификацию (XP и достижения)
+            try:
+                from bot.services.gamification_service import GamificationService
+
+                gamification_service = GamificationService(db)
+                unlocked_achievements = gamification_service.process_message(
+                    telegram_id, user_message
+                )
+
+                # Если разблокировано новое достижение, уведомляем пользователя
+                if unlocked_achievements:
+                    for achievement_id in unlocked_achievements:
+                        # Находим достижение по ID
+                        from bot.services.gamification_service import ALL_ACHIEVEMENTS
+
+                        achievement = next(
+                            (a for a in ALL_ACHIEVEMENTS if a.id == achievement_id), None
+                        )
+                        if achievement:
+                            await message.answer(
+                                f"🏆 <b>Новое достижение!</b>\n\n"
+                                f"{achievement.icon} <b>{achievement.title}</b>\n"
+                                f"{achievement.description}\n\n"
+                                f"+{achievement.xp_reward} XP 🎉",
+                                parse_mode="HTML",
+                            )
+            except Exception as e:
+                logger.error(f"❌ Ошибка обработки геймификации: {e}", exc_info=True)
+
             logger.info(f"🤖 AI ответил пользователю {telegram_id}")
 
             # Логируем успешную активность пользователя
