@@ -1,0 +1,504 @@
+"""
+Сервис геймификации для PandaPal Bot.
+
+Реализует систему достижений, очков опыта (XP) и уровней для мотивации
+пользователей к активному обучению.
+
+Основные возможности:
+- Начисление XP за активность
+- Разблокировка достижений
+- Подсчет прогресса по различным метрикам
+- Система уровней
+"""
+
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Set
+
+from loguru import logger
+from sqlalchemy import and_, func, select
+from sqlalchemy.orm import Session
+
+from bot.models import ChatHistory, User, UserProgress
+
+
+class Achievement:
+    """Класс для определения достижения"""
+
+    def __init__(
+        self,
+        id: str,
+        title: str,
+        description: str,
+        icon: str,
+        xp_reward: int,
+        condition_type: str,
+        condition_value: int,
+    ):
+        """
+        Инициализация достижения.
+
+        Args:
+            id: Уникальный идентификатор достижения
+            title: Название достижения
+            description: Описание достижения
+            icon: Эмодзи-иконка достижения
+            xp_reward: Количество XP за получение достижения
+            condition_type: Тип условия ('messages', 'questions', 'days', 'subjects', 'tasks')
+            condition_value: Значение условия для разблокировки
+        """
+        self.id = id
+        self.title = title
+        self.description = description
+        self.icon = icon
+        self.xp_reward = xp_reward
+        self.condition_type = condition_type  # 'messages', 'questions', 'days', 'subjects', 'tasks'
+        self.condition_value = condition_value
+
+
+# Определения всех достижений
+ALL_ACHIEVEMENTS = [
+    Achievement("first_step", "Первый шаг", "Отправь первое сообщение", "🌟", 10, "messages", 1),
+    Achievement("chatterbox", "Болтун", "Отправь 100 сообщений", "💬", 50, "messages", 100),
+    Achievement("curious", "Любознательный", "Задай 50 вопросов", "❓", 100, "questions", 50),
+    Achievement(
+        "week_streak", "Неделя подряд", "Используй бота 7 дней подряд", "🔥", 200, "days", 7
+    ),
+    Achievement("excellent", "Отличник", "Реши 20 задач правильно", "🎓", 150, "tasks", 20),
+    Achievement("erudite", "Эрудит", "Задавай вопросы по 5+ предметам", "📚", 300, "subjects", 5),
+    Achievement("dedicated", "Преданный", "Отправь 500 сообщений", "💪", 400, "messages", 500),
+    Achievement("scholar", "Ученый", "Задай 200 вопросов", "🎓", 500, "questions", 200),
+    Achievement(
+        "month_streak", "Месяц подряд", "Используй бота 30 дней подряд", "⭐", 1000, "days", 30
+    ),
+]
+
+
+class GamificationService:
+    """Сервис геймификации для начисления XP и разблокировки достижений"""
+
+    def __init__(self, db: Session):
+        """
+        Инициализация сервиса геймификации.
+
+        Args:
+            db (Session): Сессия SQLAlchemy для работы с базой данных.
+        """
+        self.db = db
+        self.xp_per_message = 1  # XP за каждое сообщение
+        self.xp_per_question = 2  # XP за вопрос (определяется по наличию "?")
+
+    def get_or_create_progress(self, telegram_id: int) -> UserProgress:
+        """
+        Получить или создать запись прогресса пользователя.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+
+        Returns:
+            UserProgress: Запись прогресса пользователя
+        """
+        stmt = select(UserProgress).where(UserProgress.user_telegram_id == telegram_id)
+        progress = self.db.scalar(stmt)
+
+        if not progress:
+            progress = UserProgress(
+                user_telegram_id=telegram_id,
+                points=0,
+                level=1,
+                achievements={},
+            )
+            self.db.add(progress)
+            self.db.flush()
+            logger.info(f"✅ Создан прогресс для user={telegram_id}")
+
+        return progress
+
+    def add_xp(self, telegram_id: int, xp_amount: int, reason: str = "") -> int:
+        """
+        Добавить очки опыта пользователю.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+            xp_amount: Количество XP для добавления
+            reason: Причина начисления (для логирования)
+
+        Returns:
+            int: Новый уровень пользователя (если изменился)
+        """
+        progress = self.get_or_create_progress(telegram_id)
+        old_level = progress.level
+
+        progress.points += xp_amount
+        new_level = self._calculate_level(progress.points)
+
+        if new_level > old_level:
+            progress.level = new_level
+            logger.info(
+                f"🎉 User {telegram_id} достиг уровня {new_level}! "
+                f"(было {old_level}, XP: {progress.points})"
+            )
+
+        self.db.flush()
+
+        if reason:
+            logger.debug(f"➕ +{xp_amount} XP для user={telegram_id} ({reason})")
+
+        return new_level if new_level > old_level else 0
+
+    def _calculate_level(self, total_xp: int) -> int:
+        """
+        Вычислить уровень на основе общего количества XP.
+
+        Формула: level = floor(sqrt(total_xp / 100)) + 1
+        Уровень 1: 0-99 XP
+        Уровень 2: 100-399 XP
+        Уровень 3: 400-899 XP
+        И т.д.
+
+        Args:
+            total_xp: Общее количество XP
+
+        Returns:
+            int: Уровень пользователя
+        """
+        if total_xp < 100:
+            return 1
+        import math
+
+        level = int(math.sqrt(total_xp / 100)) + 1
+        return min(level, 50)  # Максимальный уровень 50
+
+    def process_message(self, telegram_id: int, message_text: str) -> List[str]:
+        """
+        Обработать сообщение пользователя и начислить XP, проверить достижения.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+            message_text: Текст сообщения
+
+        Returns:
+            List[str]: Список ID разблокированных достижений
+        """
+        unlocked_achievements = []
+
+        # Начисляем базовый XP за сообщение
+        self.add_xp(telegram_id, self.xp_per_message, "сообщение")
+
+        # Если это вопрос (содержит "?"), начисляем дополнительный XP
+        if "?" in message_text:
+            self.add_xp(telegram_id, self.xp_per_question, "вопрос")
+
+        # Проверяем достижения
+        unlocked = self.check_and_unlock_achievements(telegram_id)
+        unlocked_achievements.extend(unlocked)
+
+        return unlocked_achievements
+
+    def check_and_unlock_achievements(self, telegram_id: int) -> List[str]:
+        """
+        Проверить и разблокировать достижения пользователя.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+
+        Returns:
+            List[str]: Список ID разблокированных достижений
+        """
+        progress = self.get_or_create_progress(telegram_id)
+        unlocked_achievements = progress.achievements or {}
+        newly_unlocked = []
+
+        # Получаем статистику пользователя
+        stats = self.get_user_stats(telegram_id)
+
+        for achievement in ALL_ACHIEVEMENTS:
+            # Пропускаем уже разблокированные
+            if achievement.id in unlocked_achievements:
+                continue
+
+            # Проверяем условие достижения
+            if self._check_achievement_condition(achievement, stats):
+                # Разблокируем достижение
+                unlocked_achievements[achievement.id] = {
+                    "unlocked_at": datetime.utcnow().isoformat(),
+                    "xp_reward": achievement.xp_reward,
+                }
+
+                # Начисляем XP за достижение
+                self.add_xp(telegram_id, achievement.xp_reward, f"достижение: {achievement.title}")
+
+                newly_unlocked.append(achievement.id)
+                logger.info(
+                    f"🏆 Достижение разблокировано: {achievement.title} "
+                    f"(user={telegram_id}, +{achievement.xp_reward} XP)"
+                )
+
+        # Сохраняем обновленные достижения
+        progress.achievements = unlocked_achievements
+        self.db.flush()
+
+        return newly_unlocked
+
+    def _check_achievement_condition(self, achievement: Achievement, stats: Dict) -> bool:
+        """
+        Проверить условие достижения.
+
+        Args:
+            achievement: Достижение для проверки
+            stats: Статистика пользователя
+
+        Returns:
+            bool: True если условие выполнено
+        """
+        condition_type = achievement.condition_type
+        condition_value = achievement.condition_value
+
+        if condition_type == "messages":
+            return stats.get("total_messages", 0) >= condition_value
+        elif condition_type == "questions":
+            return stats.get("total_questions", 0) >= condition_value
+        elif condition_type == "days":
+            return stats.get("consecutive_days", 0) >= condition_value
+        elif condition_type == "subjects":
+            return stats.get("unique_subjects", 0) >= condition_value
+        elif condition_type == "tasks":
+            return stats.get("solved_tasks", 0) >= condition_value
+
+        return False
+
+    def get_user_stats(self, telegram_id: int) -> Dict:
+        """
+        Получить статистику пользователя для проверки достижений.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+
+        Returns:
+            Dict: Статистика пользователя
+        """
+        # Подсчет сообщений
+        messages_stmt = select(func.count(ChatHistory.id)).where(
+            and_(
+                ChatHistory.user_telegram_id == telegram_id,
+                ChatHistory.message_type == "user",
+            )
+        )
+        total_messages = self.db.scalar(messages_stmt) or 0
+
+        # Подсчет вопросов (сообщения с "?")
+        questions_stmt = select(func.count(ChatHistory.id)).where(
+            and_(
+                ChatHistory.user_telegram_id == telegram_id,
+                ChatHistory.message_type == "user",
+                ChatHistory.message_text.like("%?%"),
+            )
+        )
+        total_questions = self.db.scalar(questions_stmt) or 0
+
+        # Подсчет дней подряд
+        consecutive_days = self._calculate_consecutive_days(telegram_id)
+
+        # Подсчет уникальных предметов (пока упрощенно - по ключевым словам)
+        unique_subjects = self._count_unique_subjects(telegram_id)
+
+        # Решенные задачи (пока 0, будет реализовано позже)
+        solved_tasks = 0
+
+        return {
+            "total_messages": total_messages,
+            "total_questions": total_questions,
+            "consecutive_days": consecutive_days,
+            "unique_subjects": unique_subjects,
+            "solved_tasks": solved_tasks,
+        }
+
+    def _calculate_consecutive_days(self, telegram_id: int) -> int:
+        """
+        Вычислить количество дней подряд активности.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+
+        Returns:
+            int: Количество дней подряд
+        """
+        # Получаем все даты сообщений пользователя
+        stmt = (
+            select(func.date(ChatHistory.timestamp))
+            .where(ChatHistory.user_telegram_id == telegram_id)
+            .distinct()
+            .order_by(func.date(ChatHistory.timestamp).desc())
+        )
+
+        dates = [row[0] for row in self.db.execute(stmt).all()]
+
+        if not dates:
+            return 0
+
+        # Подсчитываем дни подряд
+        consecutive = 1
+        today = datetime.utcnow().date()
+
+        # Если последнее сообщение не сегодня, начинаем с вчера
+        if dates[0] != today:
+            return 0
+
+        for i in range(1, len(dates)):
+            expected_date = today - timedelta(days=i)
+            if dates[i] == expected_date:
+                consecutive += 1
+            else:
+                break
+
+        return consecutive
+
+    def _count_unique_subjects(self, telegram_id: int) -> int:
+        """
+        Подсчитать количество уникальных предметов по ключевым словам.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+
+        Returns:
+            int: Количество уникальных предметов
+        """
+        # Ключевые слова для определения предметов
+        subject_keywords = {
+            "математика": ["математик", "алгебр", "геометр", "уравнен", "задач", "пример"],
+            "русский": ["русск", "грамматик", "орфограф", "пунктуац", "сочинен"],
+            "литература": ["литератур", "стих", "поэт", "писатель", "произведен"],
+            "английский": ["английск", "english", "grammar", "vocabulary"],
+            "физика": ["физик", "механик", "электричеств", "оптик"],
+            "химия": ["хими", "реакц", "элемент", "веществ"],
+            "биология": ["биолог", "растен", "животн", "клетк"],
+            "география": ["географ", "страна", "столиц", "река", "гора"],
+            "история": ["истори", "дата", "событ", "войн"],
+        }
+
+        # Получаем все сообщения пользователя
+        stmt = select(ChatHistory.message_text).where(
+            and_(
+                ChatHistory.user_telegram_id == telegram_id,
+                ChatHistory.message_type == "user",
+            )
+        )
+
+        messages = self.db.execute(stmt).scalars().all()
+        found_subjects: Set[str] = set()
+
+        for message in messages:
+            message_lower = message.lower()
+            for subject, keywords in subject_keywords.items():
+                if any(keyword in message_lower for keyword in keywords):
+                    found_subjects.add(subject)
+                    break
+
+        return len(found_subjects)
+
+    def get_achievements_with_progress(self, telegram_id: int) -> List[Dict]:
+        """
+        Получить все достижения с прогрессом пользователя.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+
+        Returns:
+            List[Dict]: Список достижений с информацией о прогрессе
+        """
+        progress = self.get_or_create_progress(telegram_id)
+        unlocked_achievements = progress.achievements or {}
+        stats = self.get_user_stats(telegram_id)
+
+        result = []
+
+        for achievement in ALL_ACHIEVEMENTS:
+            is_unlocked = achievement.id in unlocked_achievements
+            progress_value = self._get_achievement_progress(achievement, stats)
+
+            result.append(
+                {
+                    "id": achievement.id,
+                    "title": achievement.title,
+                    "description": achievement.description,
+                    "icon": achievement.icon,
+                    "xp_reward": achievement.xp_reward,
+                    "unlocked": is_unlocked,
+                    "unlock_date": (
+                        unlocked_achievements.get(achievement.id, {}).get("unlocked_at")
+                        if is_unlocked
+                        else None
+                    ),
+                    "progress": progress_value,
+                    "progress_max": achievement.condition_value,
+                }
+            )
+
+        return result
+
+    def _get_achievement_progress(self, achievement: Achievement, stats: Dict) -> int:
+        """
+        Получить текущий прогресс по достижению.
+
+        Args:
+            achievement: Достижение
+            stats: Статистика пользователя
+
+        Returns:
+            int: Текущее значение прогресса
+        """
+        condition_type = achievement.condition_type
+
+        if condition_type == "messages":
+            return min(stats.get("total_messages", 0), achievement.condition_value)
+        elif condition_type == "questions":
+            return min(stats.get("total_questions", 0), achievement.condition_value)
+        elif condition_type == "days":
+            return min(stats.get("consecutive_days", 0), achievement.condition_value)
+        elif condition_type == "subjects":
+            return min(stats.get("unique_subjects", 0), achievement.condition_value)
+        elif condition_type == "tasks":
+            return min(stats.get("solved_tasks", 0), achievement.condition_value)
+
+        return 0
+
+    def get_user_progress_summary(self, telegram_id: int) -> Dict:
+        """
+        Получить сводку прогресса пользователя.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+
+        Returns:
+            Dict: Сводка прогресса (уровень, XP, достижения)
+        """
+        progress = self.get_or_create_progress(telegram_id)
+        stats = self.get_user_stats(telegram_id)
+        unlocked_count = len(progress.achievements or {})
+
+        # Вычисляем XP до следующего уровня
+        current_level_xp = self._get_level_xp_requirement(progress.level)
+        next_level_xp = self._get_level_xp_requirement(progress.level + 1)
+        xp_for_next_level = next_level_xp - progress.points
+
+        return {
+            "level": progress.level,
+            "xp": progress.points,
+            "xp_for_next_level": max(0, xp_for_next_level),
+            "achievements_unlocked": unlocked_count,
+            "achievements_total": len(ALL_ACHIEVEMENTS),
+            "stats": stats,
+        }
+
+    def _get_level_xp_requirement(self, level: int) -> int:
+        """
+        Получить требуемое количество XP для уровня.
+
+        Args:
+            level: Уровень
+
+        Returns:
+            int: Требуемое количество XP
+        """
+        if level <= 1:
+            return 0
+        return int(((level - 1) ** 2) * 100)

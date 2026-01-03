@@ -236,7 +236,7 @@ async def miniapp_get_progress(request: web.Request) -> web.Response:
 
 async def miniapp_get_achievements(request: web.Request) -> web.Response:
     """
-    Получить достижения пользователя.
+    Получить достижения пользователя с реальными данными из БД.
 
     GET /api/miniapp/achievements/{telegram_id}
     """
@@ -248,36 +248,33 @@ async def miniapp_get_achievements(request: web.Request) -> web.Response:
             logger.warning(f"⚠️ Invalid telegram_id: {e}")
             return web.json_response({"error": str(e)}, status=400)
 
-        # Временные данные (в будущем из БД)
-        achievements = [
-            {
-                "id": "1",
-                "title": "Первые шаги",
-                "description": "Отправь первое сообщение боту",
-                "icon": "🌟",
-                "unlocked": True,
-                "unlock_date": "2025-01-01T00:00:00Z",
-            },
-            {
-                "id": "2",
-                "title": "Знаток математики",
-                "description": "Реши 10 задач по математике",
-                "icon": "🧮",
-                "unlocked": False,
-            },
-            {
-                "id": "3",
-                "title": "Полиглот",
-                "description": "Изучи 3 языка",
-                "icon": "🗣️",
-                "unlocked": False,
-            },
-        ]
+        with get_db() as db:
+            from bot.services.gamification_service import GamificationService
+
+            gamification_service = GamificationService(db)
+            achievements_data = gamification_service.get_achievements_with_progress(telegram_id)
+
+        # Преобразуем в формат для API
+        achievements = []
+        for ach in achievements_data:
+            achievement_dict = {
+                "id": ach["id"],
+                "title": ach["title"],
+                "description": ach["description"],
+                "icon": ach["icon"],
+                "unlocked": ach["unlocked"],
+                "xp_reward": ach["xp_reward"],
+                "progress": ach["progress"],
+                "progress_max": ach["progress_max"],
+            }
+            if ach["unlocked"] and ach.get("unlock_date"):
+                achievement_dict["unlock_date"] = ach["unlock_date"]
+            achievements.append(achievement_dict)
 
         return web.json_response({"success": True, "achievements": achievements})
 
     except Exception as e:
-        logger.error(f"❌ Ошибка получения достижений: {e}")
+        logger.error(f"❌ Ошибка получения достижений: {e}", exc_info=True)
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
@@ -542,6 +539,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             logger.info(f"💾 Начинаю сохранение в БД для telegram_id={telegram_id}")
             user_msg = None
             ai_msg = None
+            unlocked_achievements = []  # Инициализируем в начале блока
             try:
                 logger.info(f"💾 Сохраняю сообщение пользователя: {user_message[:50]}...")
                 user_msg = history_service.add_message(telegram_id, user_message, "user")
@@ -550,6 +548,20 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 logger.info(f"💾 Сохраняю ответ AI: {full_response[:50]}...")
                 ai_msg = history_service.add_message(telegram_id, full_response, "ai")
                 logger.info(f"✅ Ответ AI добавлен в сессию: id={ai_msg.id}")
+
+                # Обрабатываем геймификацию (XP и достижения) ПЕРЕД коммитом
+                try:
+                    from bot.services.gamification_service import GamificationService
+
+                    gamification_service = GamificationService(db)
+                    unlocked_achievements = gamification_service.process_message(
+                        telegram_id, user_message
+                    )
+                    logger.info(
+                        f"🎮 Геймификация обработана: разблокировано {len(unlocked_achievements)} достижений"
+                    )
+                except Exception as e:
+                    logger.error(f"❌ Ошибка обработки геймификации: {e}", exc_info=True)
 
                 # ЯВНЫЙ КОММИТ перед отправкой ответа
                 db.commit()
@@ -580,6 +592,32 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             import json as json_lib
 
             response_data = {"success": True, "response": ai_response}
+
+            # Добавляем информацию о разблокированных достижениях
+            if unlocked_achievements:
+                try:
+                    from bot.services.gamification_service import ALL_ACHIEVEMENTS
+
+                    achievement_info = []
+                    for achievement_id in unlocked_achievements:
+                        achievement = next(
+                            (a for a in ALL_ACHIEVEMENTS if a.id == achievement_id), None
+                        )
+                        if achievement:
+                            achievement_info.append(
+                                {
+                                    "id": achievement.id,
+                                    "title": achievement.title,
+                                    "description": achievement.description,
+                                    "icon": achievement.icon,
+                                    "xp_reward": achievement.xp_reward,
+                                }
+                            )
+                    if achievement_info:
+                        response_data["achievements_unlocked"] = achievement_info
+                except Exception as e:
+                    logger.error(f"❌ Ошибка формирования информации о достижениях: {e}")
+
             json_str = json_lib.dumps(response_data, ensure_ascii=False)
             json_size = len(json_str.encode("utf-8"))
 
@@ -590,6 +628,9 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 logger.warning(f"⚠️ JSON слишком большой ({json_size} байт), обрезаем ответ")
                 ai_response = ai_response[:2000] + "\n\n... (ответ обрезан)"
                 response_data = {"success": True, "response": ai_response}
+                # Убираем достижения если JSON слишком большой
+                if "achievements_unlocked" in response_data:
+                    del response_data["achievements_unlocked"]
 
             return web.json_response(response_data)
 
