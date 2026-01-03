@@ -145,8 +145,8 @@ def optimize_files():
 
         # Команда для оптимизации с переименованием имен функций/переменных
         # --obf-code 1: переименовывает имена функций и переменных (уровень 1)
-        # --enable-rft=0: отключает проверку окружения (для Railway)
-        cmd = f'pyarmor gen --obf-code 1 --enable-rft=0 --output "{OPTIMIZED_DIR}" "{source_file}"'
+        # Не используем --restrict чтобы избежать проверки окружения на Railway
+        cmd = f'pyarmor gen --obf-code 1 --output "{OPTIMIZED_DIR}" "{source_file}"'
         result = os.system(cmd)
 
         if result != 0:
