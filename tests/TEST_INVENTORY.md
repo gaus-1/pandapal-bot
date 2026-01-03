@@ -61,7 +61,8 @@
 2. `test_sql_injection.py` - Защита от SQL инъекций ✅ НОВЫЙ
 
 ### E2E тесты (tests/e2e/)
-1. `test_full_user_flow.py` - Полный flow пользователя
+1. `test_full_user_flow.py` - Полный flow пользователя (backend)
+2. `test_complete_user_journey.py` - Комплексный тест: сайт -> Mini App -> AI -> геймификация -> БД -> кеш ✅ НОВЫЙ
 
 ## Frontend тесты (TypeScript/Vitest)
 
@@ -99,6 +100,7 @@
 - `tests/integration/test_miniapp_endpoints_real.py`
 - `frontend/src/__tests__/MiniApp.integration.test.tsx`
 - `frontend/e2e/miniapp.critical.spec.ts`
+- `tests/e2e/test_complete_user_journey.py` ✅ НОВЫЙ - Полный путь от сайта до достижений
 
 ### ✅ Работа базы данных
 - `tests/integration/test_real_database_integration.py`
