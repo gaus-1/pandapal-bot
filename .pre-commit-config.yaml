@@ -116,6 +116,27 @@ repos:
         verbose: true
         stages: [manual]  # Запускается только вручную: pre-commit run bandit --all-files
 
+  # ============================================================================
+  # ПРОВЕРКА УЯЗВИМОСТЕЙ ЗАВИСИМОСТЕЙ
+  # ============================================================================
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    rev: v1.3.3
+    hooks:
+      - id: python-safety-dependencies
+        name: 🔒 safety - проверка уязвимостей Python
+        args: ['--continue-on-failure']
+        stages: [manual]  # Запускается вручную: pre-commit run python-safety-dependencies --all-files
+
+  - repo: local
+    hooks:
+      - id: npm-audit
+        name: 🔒 npm audit - проверка уязвимостей Node.js
+        entry: bash -c 'cd frontend && npm audit --audit-level=moderate'
+        language: system
+        pass_filenames: false
+        always_run: false
+        stages: [manual]  # Запускается вручную: pre-commit run npm-audit --all-files
+
 # ============================================================================
 # ИНСТРУКЦИИ ПО ИСПОЛЬЗОВАНИЮ
 # ============================================================================
