@@ -77,11 +77,6 @@ class LocalizationManager:
                 "network": "Проблемы с интернетом. Проверь соединение.",
                 "rate_limit": "Слишком много запросов. Подожди немного.",
             },
-            "parental_control": {
-                "activity_report": "Отчет об активности ребенка",
-                "time_spent": "Время проведено: {minutes} минут",
-                "levels_completed": "Пройдено уровней: {count}",
-            },
         }
 
         # Английские переводы
@@ -108,11 +103,6 @@ class LocalizationManager:
                 "generic": "An error occurred. Please try again!",
                 "network": "Network issues. Check your connection.",
                 "rate_limit": "Too many requests. Please wait a moment.",
-            },
-            "parental_control": {
-                "activity_report": "Child activity report",
-                "time_spent": "Time spent: {minutes} minutes",
-                "levels_completed": "Levels completed: {count}",
             },
         }
 

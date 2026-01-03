@@ -38,7 +38,6 @@ from bot.monitoring import log_user_activity, monitor_performance
 from bot.services import ChatHistoryService, ContentModerationService, UserService
 from bot.services.advanced_moderation import ModerationResult
 from bot.services.ai_service_solid import get_ai_service
-from bot.services.parental_control import ActivityType, ParentalControlService
 
 # Создаём роутер для AI чата
 router = Router(name="ai_chat")
@@ -152,57 +151,24 @@ async def handle_ai_message(message: Message, state: FSMContext):
                     f"{advanced_result.category.value if advanced_result.category else 'unknown'}: {advanced_result.reason}",
                 )
 
-                # Записываем заблокированную активность в родительский контроль
+                # Записываем метрику безопасности
                 try:
                     with get_db() as db:
-                        user_service = UserService(db)
-                        user = user_service.get_user_by_telegram_id(telegram_id)
+                        from bot.services.analytics_service import AnalyticsService
 
-                        if user and user.user_type == "child":
-                            parental_service = ParentalControlService(db)
-                            await parental_service.record_child_activity(
-                                child_telegram_id=telegram_id,
-                                activity_type=ActivityType.MESSAGE_BLOCKED,
-                                details={
-                                    "category": (
-                                        advanced_result.category.value
-                                        if advanced_result.category
-                                        else "unknown"
-                                    ),
-                                    "confidence": advanced_result.confidence,
-                                    "reason": advanced_result.reason,
-                                },
-                                message_content=user_message,
-                                moderation_result={
-                                    "level": advanced_result.level.value,
-                                    "category": (
-                                        advanced_result.category.value
-                                        if advanced_result.category
-                                        else None
-                                    ),
-                                    "confidence": advanced_result.confidence,
-                                },
-                            )
-
-                            # Записываем метрику безопасности
-                            try:
-                                from bot.services.analytics_service import AnalyticsService
-
-                                analytics_service = AnalyticsService(db)
-                                analytics_service.record_safety_metric(
-                                    metric_name="blocked_messages",
-                                    value=1.0,
-                                    user_telegram_id=telegram_id,
-                                    category=(
-                                        advanced_result.category.value
-                                        if advanced_result.category
-                                        else "unknown"
-                                    ),
-                                )
-                            except Exception as e:
-                                logger.debug(f"⚠️ Не удалось записать метрику безопасности: {e}")
+                        analytics_service = AnalyticsService(db)
+                        analytics_service.record_safety_metric(
+                            metric_name="blocked_messages",
+                            value=1.0,
+                            user_telegram_id=telegram_id,
+                            category=(
+                                advanced_result.category.value
+                                if advanced_result.category
+                                else "unknown"
+                            ),
+                        )
                 except Exception as e:
-                    logger.error(f"❌ Ошибка записи заблокированной активности: {e}")
+                    logger.debug(f"⚠️ Не удалось записать метрику безопасности: {e}")
 
                 # Используем альтернативный ответ из продвинутой модерации
                 response_text = (
@@ -298,35 +264,18 @@ async def handle_ai_message(message: Message, state: FSMContext):
             # Логируем успешную активность пользователя
             log_user_activity(telegram_id, "ai_message_sent", True)
 
-            # Записываем активность в родительский контроль (если пользователь - ребенок)
-            if user.user_type == "child":
-                try:
-                    parental_service = ParentalControlService(db)
-                    await parental_service.record_child_activity(
-                        child_telegram_id=telegram_id,
-                        activity_type=ActivityType.AI_INTERACTION,
-                        details={
-                            "message_length": len(user_message),
-                            "response_length": len(ai_response),
-                            "history_messages": len(history),
-                        },
-                        message_content=user_message,
-                    )
+            # Записываем метрику образования
+            try:
+                from bot.services.analytics_service import AnalyticsService
 
-                    # Записываем метрику образования
-                    try:
-                        from bot.services.analytics_service import AnalyticsService
-
-                        analytics_service = AnalyticsService(db)
-                        analytics_service.record_education_metric(
-                            metric_name="ai_interactions",
-                            value=1.0,
-                            user_telegram_id=telegram_id,
-                        )
-                    except Exception as e:
-                        logger.debug(f"⚠️ Не удалось записать метрику образования: {e}")
-                except Exception as e:
-                    logger.error(f"❌ Ошибка записи активности в родительский контроль: {e}")
+                analytics_service = AnalyticsService(db)
+                analytics_service.record_education_metric(
+                    metric_name="ai_interactions",
+                    value=1.0,
+                    user_telegram_id=telegram_id,
+                )
+            except Exception as e:
+                logger.debug(f"⚠️ Не удалось записать метрику образования: {e}")
 
         # Отправляем ответ пользователю (без parse_mode для избежания ошибок форматирования)
         await message.answer(
@@ -549,21 +498,12 @@ async def handle_image(message: Message, state: FSMContext):
 
             # Получаем сервисы
             ai_service = get_ai_service()
-            parental_control = ParentalControlService(db)
             history_service = ChatHistoryService(db)
 
             # Проверяем модерацию изображения
             is_safe, reason = await ai_service.moderate_image_content(image_bytes)
 
             if not is_safe:
-                # Логируем заблокированное изображение
-                await parental_control.record_child_activity(
-                    child_telegram_id=message.from_user.id,
-                    activity_type=ActivityType.MESSAGE_BLOCKED,
-                    message_content=f"[ИЗОБРАЖЕНИЕ] {reason}",
-                    moderation_result={"reason": reason, "type": "image_moderation"},
-                )
-
                 await processing_msg.edit_text(
                     "🚫 Это изображение не подходит для детей. "
                     "Попробуй отправить что-то другое! 🐼"
@@ -590,14 +530,6 @@ async def handle_image(message: Message, state: FSMContext):
 
             history_service.add_message(
                 telegram_id=message.from_user.id, message_text=ai_response, message_type="ai"
-            )
-
-            # Логируем успешную обработку
-            await parental_control.record_child_activity(
-                child_telegram_id=message.from_user.id,
-                activity_type=ActivityType.MESSAGE_SENT,
-                message_content=f"[ИЗОБРАЖЕНИЕ] {caption}" if caption else "[ИЗОБРАЖЕНИЕ]",
-                moderation_result={"status": "safe", "type": "image_analysis"},
             )
 
             # Отправляем ответ

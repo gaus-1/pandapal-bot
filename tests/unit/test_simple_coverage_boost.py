@@ -197,11 +197,6 @@ class TestHandlersBasic:
 
         assert emergency is not None
 
-    def test_location_handler_exists(self):
-        """Location handler существует"""
-        from bot.handlers import location
-
-        assert location is not None
 
     def test_achievements_handler_exists(self):
         """Achievements handler существует"""

@@ -253,15 +253,6 @@ class PandaPalBotServer:
             except ImportError as e:
                 logger.warning(f"⚠️ Не удалось загрузить Premium API: {e}")
 
-            # Интегрируем Location API
-            try:
-                from bot.api.location_endpoints import setup_location_routes
-
-                setup_location_routes(self.app)
-                logger.info("📍 Location API routes зарегистрированы")
-            except ImportError as e:
-                logger.warning(f"⚠️ Не удалось загрузить Location API: {e}")
-
             # Настраиваем раздачу статики frontend
             frontend_dist = Path(__file__).parent / "frontend" / "dist"
             if frontend_dist.exists():

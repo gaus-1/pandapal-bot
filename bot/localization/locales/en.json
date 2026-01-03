@@ -21,10 +21,5 @@
     "generic": "An error occurred. Please try again!",
     "network": "Network issues. Check your connection.",
     "rate_limit": "Too many requests. Please wait a moment."
-  },
-  "parental_control": {
-    "activity_report": "Child activity report",
-    "time_spent": "Time spent: {minutes} minutes",
-    "levels_completed": "Levels completed: {count}"
   }
 }
