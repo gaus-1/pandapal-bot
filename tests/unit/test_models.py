@@ -212,3 +212,65 @@ class TestModels:
         assert chat_history.user_telegram_id == 12345
         assert chat_history.message_text == "Обязательное сообщение"
         assert chat_history.message_type == "user"
+
+    @pytest.mark.unit
+    @pytest.mark.database
+    def test_user_all_combinations(self, test_db_session):
+        """Тест создания пользователей с разными комбинациями полей"""
+        users = [
+            User(telegram_id=1),
+            User(telegram_id=2, username="user2"),
+            User(telegram_id=3, first_name="User3"),
+            User(telegram_id=4, last_name="User4"),
+            User(telegram_id=5, user_type="child"),
+            User(telegram_id=6, age=10),
+            User(telegram_id=7, grade=5),
+            User(telegram_id=8, username="u8", first_name="F8", last_name="L8"),
+            User(telegram_id=9, user_type="parent", age=35),
+            User(telegram_id=10, user_type="teacher", age=40),
+        ]
+
+        for user in users:
+            test_db_session.add(user)
+            assert user.telegram_id > 0
+
+        test_db_session.commit()
+
+    @pytest.mark.unit
+    @pytest.mark.database
+    def test_chat_history_all_types(self, test_db_session):
+        """Тест создания истории чата с разными типами сообщений"""
+        user = User(telegram_id=11111, first_name="Типы")
+        test_db_session.add(user)
+        test_db_session.commit()
+
+        for msg_type in ["user", "bot", "system"]:
+            h = ChatHistory(
+                user_telegram_id=11111, message_text=f"Test {msg_type}", message_type=msg_type
+            )
+            test_db_session.add(h)
+            assert h.message_type == msg_type
+
+        test_db_session.commit()
+
+    @pytest.mark.unit
+    @pytest.mark.database
+    def test_user_different_ages(self, test_db_session):
+        """Тест создания пользователей с разными возрастами"""
+        for age in [5, 8, 10, 12, 15, 18, 25, 35, 50]:
+            user = User(telegram_id=age * 1000, age=age)
+            test_db_session.add(user)
+            assert user.age == age
+
+        test_db_session.commit()
+
+    @pytest.mark.unit
+    @pytest.mark.database
+    def test_user_different_grades(self, test_db_session):
+        """Тест создания пользователей с разными классами"""
+        for grade in range(1, 12):
+            user = User(telegram_id=grade * 10000, grade=grade)
+            test_db_session.add(user)
+            assert user.grade == grade
+
+        test_db_session.commit()

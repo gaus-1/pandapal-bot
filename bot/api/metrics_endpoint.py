@@ -130,20 +130,54 @@ class MetricsEndpoint:
 
         Проверка состояния системы и метрик.
         """
+        components = {
+            "metrics": "healthy" if self.enabled else "disabled",
+            "api": "healthy",
+        }
+
+        # Проверка базы данных
+        db_status = "healthy"
+        try:
+            from bot.database import engine
+            from sqlalchemy import text
+
+            with engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+        except Exception as e:
+            db_status = "unhealthy"
+            logger.error(f"❌ Database health check failed: {e}")
+
+        components["database"] = db_status
+
+        # Проверка AI сервиса (базовая проверка доступности)
+        ai_status = "healthy"
+        try:
+            from bot.services.ai_service_solid import get_ai_service
+
+            ai_service = get_ai_service()
+            if not ai_service:
+                ai_status = "unavailable"
+        except Exception as e:
+            ai_status = "unhealthy"
+            logger.warning(f"⚠️ AI service health check failed: {e}")
+
+        components["ai_service"] = ai_status
+
+        # Общий статус
+        overall_status = "healthy" if all(
+            v in ("healthy", "disabled") for v in components.values()
+        ) else "degraded"
+
         health_data = {
-            "status": "healthy",
+            "status": overall_status,
             "timestamp": asyncio.get_event_loop().time(),
-            "components": {
-                "metrics": "healthy" if self.enabled else "disabled",
-                "api": "healthy",
-                "database": "healthy",  # Можно добавить реальную проверку
-                "ai_service": "healthy",  # Можно добавить реальную проверку
-            },
+            "components": components,
             "metrics_enabled": self.enabled,
             "version": "1.0.0",
         }
 
-        return web.json_response(health_data)
+        status_code = 200 if overall_status == "healthy" else 503
+        return web.json_response(health_data, status=status_code)
 
 
 def create_metrics_routes() -> list:

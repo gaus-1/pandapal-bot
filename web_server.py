@@ -168,21 +168,67 @@ class PandaPalBotServer:
 
             # Health check endpoints
             async def health_check(request: web.Request) -> web.Response:
-                """Health check endpoint."""
+                """Health check endpoint с проверкой компонентов."""
+                components = {}
+                overall_status = "ok"
+
+                # Проверка бота
                 bot_info = None
+                bot_status = "ok"
                 if self.bot:
                     try:
                         bot_info = await self.bot.get_me()
                     except Exception as bot_error:
+                        bot_status = "error"
+                        overall_status = "degraded"
                         logger.warning("⚠️ Не удалось получить информацию о боте: %s", bot_error)
+                else:
+                    bot_status = "not_initialized"
+                    overall_status = "error"
+
+                components["bot"] = bot_status
+
+                # Проверка базы данных
+                db_status = "ok"
+                try:
+                    from bot.database import engine
+                    from sqlalchemy import text
+
+                    with engine.connect() as conn:
+                        conn.execute(text("SELECT 1"))
+                except Exception as e:
+                    db_status = "error"
+                    overall_status = "error"
+                    logger.error(f"❌ Database health check failed: {e}")
+
+                components["database"] = db_status
+
+                # Проверка webhook
+                webhook_status = "ok"
+                if self.bot:
+                    try:
+                        webhook_info = await self.bot.get_webhook_info()
+                        if not webhook_info.url:
+                            webhook_status = "not_set"
+                            overall_status = "degraded"
+                    except Exception as e:
+                        webhook_status = "error"
+                        overall_status = "degraded"
+                        logger.warning(f"⚠️ Webhook check failed: {e}")
+
+                components["webhook"] = webhook_status
+
+                status_code = 200 if overall_status == "ok" else (503 if overall_status == "error" else 200)
 
                 return web.json_response(
                     {
-                        "status": "ok",
+                        "status": overall_status,
                         "mode": "webhook",
                         "webhook_url": f"https://{self.settings.webhook_domain}/webhook",
                         "bot_username": bot_info.username if bot_info else None,
-                    }
+                        "components": components,
+                    },
+                    status=status_code,
                 )
 
             # Регистрируем маршруты ДО setup_application
