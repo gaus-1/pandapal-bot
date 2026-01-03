@@ -158,7 +158,24 @@ function MiniAppContent() {
       </div>
 
       {/* Нижняя навигация */}
-      {currentScreen !== 'ai-chat' && (
+      {currentScreen === 'ai-chat' ? (
+        <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg" aria-label="Основная навигация">
+          <div className="flex justify-start gap-2 px-2 py-1.5">
+            <NavButton
+              icon="🏆"
+              label="Достижения"
+              isActive={false}
+              onClick={() => navigateTo('achievements')}
+            />
+            <NavButton
+              icon="🚨"
+              label="SOS"
+              isActive={false}
+              onClick={() => navigateTo('emergency')}
+            />
+          </div>
+        </nav>
+      ) : (
         <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg" aria-label="Основная навигация">
           <div className="flex justify-start gap-2 px-2 py-1.5">
             <NavButton

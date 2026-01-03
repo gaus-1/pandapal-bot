@@ -296,12 +296,22 @@ class PandaPalBotServer:
                         elif static_file.endswith(".html"):
                             content_type = "text/html"
 
-                        self.app.router.add_get(
-                            f"/{static_file}",
-                            lambda _, fp=file_path, ct=content_type: web.FileResponse(
-                                fp, headers={"Content-Type": ct}
-                            ),
-                        )
+                        # Кэширование для статических файлов (кроме HTML)
+                        # Используем замыкание с дефолтными аргументами для захвата переменных
+                        async def serve_static_file(
+                            request: web.Request,
+                            fp=file_path,
+                            ct=content_type,
+                            sf=static_file,
+                        ) -> web.Response:
+                            """Раздача статического файла с кэшированием."""
+                            headers = {"Content-Type": ct}
+                            # HTML не кэшируем (динамический контент)
+                            if not sf.endswith(".html"):
+                                headers["Cache-Control"] = "public, max-age=31536000, immutable"
+                            return web.FileResponse(fp, headers=headers)
+
+                        self.app.router.add_get(f"/{static_file}", serve_static_file)
 
                 # Раздаем папку assets ПЕРЕД SPA fallback (важен порядок!)
                 assets_dir = frontend_dist / "assets"
@@ -339,8 +349,15 @@ class PandaPalBotServer:
                             content_type = "image/svg+xml"
                         elif filename.endswith(".woff") or filename.endswith(".woff2"):
                             content_type = "font/woff2"
+                        elif filename.endswith(".webp"):
+                            content_type = "image/webp"
 
-                        return web.FileResponse(file_path, headers={"Content-Type": content_type})
+                        # Кэширование для статических ресурсов (хэшированные имена файлов)
+                        headers = {"Content-Type": content_type}
+                        if any(filename.endswith(ext) for ext in [".js", ".css", ".woff", ".woff2", ".png", ".jpg", ".jpeg", ".webp", ".svg"]):
+                            headers["Cache-Control"] = "public, max-age=31536000, immutable"
+
+                        return web.FileResponse(file_path, headers=headers)
 
                     # Регистрируем универсальный роут для всех assets
                     self.app.router.add_get("/assets/{filename:.*}", serve_asset)
