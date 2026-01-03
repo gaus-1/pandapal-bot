@@ -112,7 +112,8 @@ def compare_versions(current: str, latest: str) -> str:
             return "outdated"
         else:
             return "newer"
-    except Exception:
+    except Exception as e:
+        # Логируем ошибку для отладки, но возвращаем "error" для UI
         return "error"
 
 

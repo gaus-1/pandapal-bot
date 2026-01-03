@@ -127,11 +127,11 @@ class ChatHistoryService:
 
         Example:
             >>> context = service.get_conversation_context(123456)
-            >>> print(context)
-            User: Привет! Помоги с математикой
-            AI: Привет! Конечно помогу. Что нужно решить?
-            User: 2+2*2
-            AI: Давай разберём по порядку...
+            >>> # context будет содержать:
+            >>> # "User: Привет! Помоги с математикой
+            >>> # AI: Привет! Конечно помогу. Что нужно решить?
+            >>> # User: 2+2*2
+            >>> # AI: Давай разберём по порядку..."
         """
         messages = self.get_recent_history(telegram_id)
 

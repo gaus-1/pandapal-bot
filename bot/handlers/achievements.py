@@ -126,7 +126,8 @@ async def show_my_achievements(callback: CallbackQuery, state: FSMContext):
 
                     dt = datetime.fromisoformat(unlock_date.replace("Z", "+00:00"))
                     date_str = f" ({dt.strftime('%d.%m.%Y')})"
-                except Exception:
+                except Exception as e:
+                    logger.debug("Ошибка парсинга даты достижения: %s", e)
                     date_str = ""
 
             text += f"{achievement['icon']} <b>{achievement['title']}</b>{date_str}\n"

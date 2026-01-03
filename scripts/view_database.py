@@ -19,8 +19,9 @@ if sys.platform == "win32":
     os.system("chcp 65001 > nul")
     try:
         sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:
-        pass
+    except Exception as e:
+        # Игнорируем ошибки конфигурации кодировки на старых системах
+        pass  # noqa: S110
 
 from sqlalchemy import func, inspect, text
 from tabulate import tabulate

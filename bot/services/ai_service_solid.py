@@ -6,7 +6,7 @@ AI сервис для генерации ответов через Yandex Cloud
 Реализует паттерн Facade и следует принципам SOLID.
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from loguru import logger
 
@@ -96,7 +96,7 @@ class YandexAIService:
         """
         return await self.response_generator.analyze_image(image_data, user_message, user_age)
 
-    async def moderate_image_content(self, image_data: bytes) -> tuple[bool, str]:
+    async def moderate_image_content(self, image_data: bytes) -> Tuple[bool, str]:
         """
         Проверить изображение на безопасность через модерацию.
 
