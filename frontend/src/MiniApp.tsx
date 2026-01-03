@@ -164,7 +164,7 @@ function MiniAppContent() {
             <NavButton
               icon="💬"
               label="Чат"
-              isActive={currentScreen === 'ai-chat'}
+              isActive={false}
               onClick={() => navigateTo('ai-chat')}
             />
             {currentScreen === 'emergency' && (
