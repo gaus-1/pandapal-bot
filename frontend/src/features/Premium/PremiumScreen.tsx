@@ -1,5 +1,5 @@
 /**
- * Premium Screen - Премиум функции с оплатой через Telegram Stars и ЮKassa
+ * Premium Screen - Премиум функции с оплатой через ЮKassa
  */
 
 import { useState } from 'react';
@@ -13,7 +13,6 @@ interface PremiumScreenProps {
 interface PremiumPlan {
   id: string;
   name: string;
-  priceStars: number;
   priceRub: number;
   duration: string;
   features: string[];
@@ -24,7 +23,6 @@ const PREMIUM_PLANS: PremiumPlan[] = [
   {
     id: 'week',
     name: 'Неделя',
-    priceStars: 50,
     priceRub: 99,
     duration: '7 дней',
     features: [
@@ -37,7 +35,6 @@ const PREMIUM_PLANS: PremiumPlan[] = [
   {
     id: 'month',
     name: 'Месяц',
-    priceStars: 150,
     priceRub: 399,
     duration: '30 дней',
     features: [
@@ -53,7 +50,6 @@ const PREMIUM_PLANS: PremiumPlan[] = [
   {
     id: 'year',
     name: 'Год',
-    priceStars: 999,
     priceRub: 2990,
     duration: '365 дней',
     features: [
@@ -69,22 +65,15 @@ const PREMIUM_PLANS: PremiumPlan[] = [
   },
 ];
 
-type PaymentMethod = 'stars' | 'card';
-
 export function PremiumScreen({ user }: PremiumScreenProps) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('card');
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
-  const handlePurchase = async (plan: PremiumPlan, paymentMethod: PaymentMethod) => {
+  const handlePurchase = async (plan: PremiumPlan) => {
     telegram.hapticFeedback('medium');
 
-    const price = paymentMethod === 'stars' ? plan.priceStars : plan.priceRub;
-    const priceText =
-      paymentMethod === 'stars' ? `${price} ⭐ Telegram Stars` : `${price} ₽`;
-
     const confirmed = await telegram.showConfirm(
-      `Купить премиум на ${plan.duration} за ${priceText}?`
+      `Купить премиум на ${plan.duration} за ${plan.priceRub} ₽?`
     );
 
     if (!confirmed) return;
@@ -93,70 +82,36 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
     setSelectedPlan(plan.id);
 
     try {
-      if (paymentMethod === 'stars') {
-        // Оплата через Telegram Stars
-        const response = await fetch('/api/miniapp/premium/create-invoice', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            telegram_id: user.telegram_id,
-            plan_id: plan.id,
-            payment_method: 'stars',
-          }),
-        });
+      // Оплата через ЮKassa (карта/СБП)
+      const response = await fetch('/api/miniapp/premium/create-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telegram_id: user.telegram_id,
+          plan_id: plan.id,
+          user_email: user.username ? `${user.username}@telegram.local` : undefined,
+        }),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (data.success) {
-          telegram.openInvoice(data.invoice_link, (status) => {
-            if (status === 'paid') {
-              telegram.notifySuccess();
-              telegram.showAlert('🎉 Спасибо за покупку! Премиум активирован!');
-              // Обновляем страницу для отображения нового статуса
-              setTimeout(() => window.location.reload(), 1000);
-            } else if (status === 'cancelled') {
-              telegram.showAlert('❌ Оплата отменена');
-            } else if (status === 'failed') {
-              telegram.notifyError();
-              telegram.showAlert('❌ Ошибка оплаты. Попробуй еще раз!');
-            }
-          });
+      if (data.success && data.confirmation_url) {
+        // Открываем страницу оплаты ЮKassa
+        // В Telegram Mini App используем openLink, в браузере - window.open
+        if (telegram.isInTelegram()) {
+          telegram.openLink(data.confirmation_url);
+          telegram.showAlert(
+            '💳 Откройте страницу оплаты. После успешной оплаты Premium активируется автоматически!'
+          );
         } else {
-          telegram.notifyError();
-          await telegram.showAlert('Ошибка создания счета');
+          window.open(data.confirmation_url, '_blank');
+          telegram.showAlert(
+            '💳 Откройте страницу оплаты в новой вкладке. После успешной оплаты Premium активируется автоматически!'
+          );
         }
       } else {
-        // Оплата через ЮKassa (карта/СБП)
-        const response = await fetch('/api/miniapp/premium/create-payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            telegram_id: user.telegram_id,
-            plan_id: plan.id,
-            user_email: user.username ? `${user.username}@telegram.local` : undefined,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (data.success && data.confirmation_url) {
-          // Открываем страницу оплаты ЮKassa
-          // В Telegram Mini App используем openLink, в браузере - window.open
-          if (telegram.isInTelegram()) {
-            telegram.openLink(data.confirmation_url);
-            telegram.showAlert(
-              '💳 Откройте страницу оплаты. После успешной оплаты Premium активируется автоматически!'
-            );
-          } else {
-            window.open(data.confirmation_url, '_blank');
-            telegram.showAlert(
-              '💳 Откройте страницу оплаты в новой вкладке. После успешной оплаты Premium активируется автоматически!'
-            );
-          }
-        } else {
-          telegram.notifyError();
-          await telegram.showAlert('Ошибка создания платежа. Попробуй еще раз!');
-        }
+        telegram.notifyError();
+        await telegram.showAlert('Ошибка создания платежа. Попробуй еще раз!');
       }
     } catch (error) {
       console.error('Ошибка покупки:', error);
@@ -231,14 +186,11 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-[var(--tg-theme-text-color)]">
-                  {selectedPaymentMethod === 'stars' ? `${plan.priceStars} ⭐` : `${plan.priceRub} ₽`}
+                  {plan.priceRub} ₽
                 </div>
                 <div className="text-xs text-[var(--tg-theme-hint-color)]">
                   {(() => {
                     const days = plan.id === 'week' ? 7 : plan.id === 'month' ? 30 : 365;
-                    if (selectedPaymentMethod === 'stars') {
-                      return `${(plan.priceStars / days).toFixed(1)} ⭐/день`;
-                    }
                     return `${(plan.priceRub / days).toFixed(0)} ₽/день`;
                   })()}
                 </div>
@@ -256,32 +208,8 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
               ))}
             </ul>
 
-            {/* Выбор способа оплаты */}
-            <div className="mb-3 flex gap-2">
-              <button
-                onClick={() => setSelectedPaymentMethod('card')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                  selectedPaymentMethod === 'card'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-[var(--tg-theme-hint-color)]/20 text-[var(--tg-theme-text-color)]'
-                }`}
-              >
-                💳 Карта/СБП
-              </button>
-              <button
-                onClick={() => setSelectedPaymentMethod('stars')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                  selectedPaymentMethod === 'stars'
-                    ? 'bg-yellow-500 text-white'
-                    : 'bg-[var(--tg-theme-hint-color)]/20 text-[var(--tg-theme-text-color)]'
-                }`}
-              >
-                ⭐ Stars
-              </button>
-            </div>
-
             <button
-              onClick={() => handlePurchase(plan, selectedPaymentMethod)}
+              onClick={() => handlePurchase(plan)}
               disabled={isProcessing && selectedPlan === plan.id}
               className={`w-full py-3 rounded-xl font-medium transition-all ${
                 plan.popular
@@ -291,45 +219,27 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
             >
               {isProcessing && selectedPlan === plan.id
                 ? 'Обработка...'
-                : `Купить Premium за ${selectedPaymentMethod === 'stars' ? `${plan.priceStars} ⭐` : `${plan.priceRub} ₽`}`}
+                : `Купить Premium за ${plan.priceRub} ₽`}
             </button>
           </div>
         ))}
       </div>
 
       {/* Информация о способах оплаты */}
-      <div className="space-y-3">
-        <div className="p-4 bg-[var(--tg-theme-hint-color)]/10 rounded-2xl border border-[var(--tg-theme-hint-color)]/20">
-          <h3 className="text-lg font-semibold text-[var(--tg-theme-text-color)] mb-2 flex items-center gap-2">
-            <span>💳</span>
-            <span>Карта или СБП</span>
-          </h3>
-          <p className="text-sm text-[var(--tg-theme-hint-color)] mb-2">
-            Безопасная оплата через ЮKassa. Поддержка всех банковских карт и СБП!
-          </p>
-          <ul className="space-y-1 text-xs text-[var(--tg-theme-hint-color)]">
-            <li>• Оплата картой Visa, Mastercard, МИР</li>
-            <li>• Быстрая оплата через СБП</li>
-            <li>• Автоматическая отправка чека</li>
-            <li>• Мгновенная активация Premium</li>
-          </ul>
-        </div>
-
-        <div className="p-4 bg-[var(--tg-theme-hint-color)]/10 rounded-2xl border border-[var(--tg-theme-hint-color)]/20">
-          <h3 className="text-lg font-semibold text-[var(--tg-theme-text-color)] mb-2 flex items-center gap-2">
-            <span>⭐</span>
-            <span>Telegram Stars (поддержка проекта)</span>
-          </h3>
-          <p className="text-sm text-[var(--tg-theme-hint-color)] mb-2">
-            Поддержи проект через Telegram Stars. Это помогает развитию PandaPal!
-          </p>
-          <ul className="space-y-1 text-xs text-[var(--tg-theme-hint-color)]">
-            <li>• Оплата из баланса Telegram</li>
-            <li>• Мгновенная активация Premium</li>
-            <li>• Поддержка развития проекта</li>
-            <li>• Возврат средств в течение 72 часов</li>
-          </ul>
-        </div>
+      <div className="p-4 bg-[var(--tg-theme-hint-color)]/10 rounded-2xl border border-[var(--tg-theme-hint-color)]/20">
+        <h3 className="text-lg font-semibold text-[var(--tg-theme-text-color)] mb-2 flex items-center gap-2">
+          <span>💳</span>
+          <span>Безопасная оплата через ЮKassa</span>
+        </h3>
+        <p className="text-sm text-[var(--tg-theme-hint-color)] mb-2">
+          Поддержка всех банковских карт и СБП!
+        </p>
+        <ul className="space-y-1 text-xs text-[var(--tg-theme-hint-color)]">
+          <li>• Оплата картой Visa, Mastercard, МИР</li>
+          <li>• Быстрая оплата через СБП</li>
+          <li>• Автоматическая отправка чека</li>
+          <li>• Мгновенная активация Premium</li>
+        </ul>
       </div>
     </div>
   );
