@@ -65,13 +65,22 @@ class ChatHistoryService:
             message_type=message_type,
         )
 
-        self.db.add(message)
-        self.db.flush()  # Получаем ID не коммитя транзакцию
+        try:
+            self.db.add(message)
+            self.db.flush()  # Получаем ID не коммитя транзакцию
+            logger.info(
+                f"📝 Сообщение добавлено в сессию: user={telegram_id}, type={message_type}, id={message.id}"
+            )
+        except Exception as e:
+            logger.error(f"❌ Ошибка добавления сообщения в сессию: {e}", exc_info=True)
+            raise
 
         # Очищаем старые сообщения (храним только последние N)
         self._cleanup_old_messages(telegram_id)
 
-        logger.debug(f"📝 Добавлено сообщение: user={telegram_id}, type={message_type}")
+        logger.info(
+            f"✅ Сообщение готово к коммиту: user={telegram_id}, type={message_type}, id={message.id}"
+        )
 
         return message
 

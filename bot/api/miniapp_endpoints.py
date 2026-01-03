@@ -329,6 +329,12 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
         "audio_base64": "data:audio/webm;base64,..." # опционально
     }
     """
+    # Логируем ВСЕ запросы для отладки
+    client_ip = request.remote
+    logger.info(
+        f"📨 Mini App AI Chat запрос от IP: {client_ip}, метод: {request.method}, путь: {request.path_qs}"
+    )
+
     try:
         # Логируем размер запроса для отладки
         content_length = request.headers.get("Content-Length")
@@ -532,8 +538,28 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 )
 
             # Сохраняем в историю (полный ответ для контекста, но отправляем обрезанный)
-            history_service.add_message(telegram_id, user_message, "user")
-            history_service.add_message(telegram_id, full_response, "ai")  # Сохраняем полный ответ
+            logger.info(f"💾 Начинаю сохранение в БД для telegram_id={telegram_id}")
+            try:
+                logger.info(f"💾 Сохраняю сообщение пользователя: {user_message[:50]}...")
+                user_msg = history_service.add_message(telegram_id, user_message, "user")
+                logger.info(f"✅ Сообщение пользователя добавлено в сессию: id={user_msg.id}")
+
+                logger.info(f"💾 Сохраняю ответ AI: {full_response[:50]}...")
+                ai_msg = history_service.add_message(telegram_id, full_response, "ai")
+                logger.info(f"✅ Ответ AI добавлен в сессию: id={ai_msg.id}")
+
+                # ЯВНЫЙ КОММИТ перед отправкой ответа
+                db.commit()
+                logger.info(
+                    f"✅✅✅ ТРАНЗАКЦИЯ ЗАКОММИЧЕНА: user_msg_id={user_msg.id}, ai_msg_id={ai_msg.id}, telegram_id={telegram_id}"
+                )
+            except Exception as save_error:
+                logger.error(
+                    f"❌ КРИТИЧЕСКАЯ ОШИБКА сохранения в историю: {save_error}", exc_info=True
+                )
+                db.rollback()
+                logger.error("❌ Транзакция откачена из-за ошибки сохранения")
+                # Продолжаем работу, даже если сохранение не удалось
 
             # Проверяем размер JSON перед отправкой
             import json as json_lib

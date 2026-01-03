@@ -276,17 +276,17 @@ async def security_middleware(app: web.Application, handler):
                     headers={"Retry-After": "60"},
                 )
 
+        # Логируем ВСЕ запросы к API для отладки
+        if request.path.startswith("/api/"):
+            origin = request.headers.get("Origin", "N/A")
+            referer = request.headers.get("Referer", "N/A")
+            user_agent = request.headers.get("User-Agent", "N/A")[:100]
+            logger.info(
+                f"📥 API запрос: {request.method} {request.path}, IP={ip}, Origin={origin}, Referer={referer}, UA={user_agent}"
+            )
+
         # CSRF protection (только для API endpoints)
         if request.path.startswith("/api/"):
-            # Логируем для отладки Mini App запросов
-            if request.path.startswith("/api/miniapp/"):
-                origin = request.headers.get("Origin", "N/A")
-                referer = request.headers.get("Referer", "N/A")
-                user_agent = request.headers.get("User-Agent", "N/A")
-                logger.debug(
-                    f"🔍 Mini App request: Path={request.path}, Origin={origin}, "
-                    f"Referer={referer}, User-Agent={user_agent[:50]}"
-                )
 
             valid, reason = validate_origin(request)
             if not valid:
