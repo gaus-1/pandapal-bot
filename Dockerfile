@@ -38,5 +38,5 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Порт для веб-сервера
 EXPOSE 8000
 
-# Запуск бота
-CMD ["python", "main.py"]
+# Запуск веб-сервера
+CMD ["python", "web_server.py"]
