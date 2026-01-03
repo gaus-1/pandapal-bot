@@ -11,7 +11,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Tests](https://img.shields.io/badge/Tests-447%20passed-brightgreen?logo=pytest)](tests/)
 [![Coverage](https://img.shields.io/badge/Coverage-53%25-yellow?logo=codecov)](htmlcov/)
-[![License](https://img.shields.io/badge/License-MIT-green?logo=opensourceinitiative&logoColor=white)](LICENSE)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-green?logo=gnu&logoColor=white)](LICENSE)
 
 [Сайт](https://pandapal.ru) • [Telegram Бот](https://t.me/PandaPalBot) • [Документация](docs/)
 
@@ -352,7 +352,9 @@ python scripts/export_metrics.py --format csv --days 30
 
 ## Лицензия
 
-Этот проект лицензирован под **MIT License** — см. [LICENSE](LICENSE).
+Этот проект лицензирован под **GNU Affero General Public License v3.0 (AGPL-3.0)** — см. [LICENSE](LICENSE).
+
+AGPL-3.0 — это свободная лицензия с копилефтом, специально разработанная для сетевых серверных приложений. Она гарантирует, что все модификации исходного кода остаются открытыми и доступными сообществу, даже при использовании на серверах.
 
 ---
 
