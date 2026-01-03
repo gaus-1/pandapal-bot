@@ -7,7 +7,7 @@ import { useEffect, lazy, Suspense } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { queryClient } from './lib/queryClient';
-import { useAppStore, selectUser, selectCurrentScreen, selectIsLoading, selectError } from './store/appStore';
+import { useAppStore, selectUser, selectCurrentScreen, selectIsLoading, selectError, type Screen } from './store/appStore';
 import { useAuth } from './hooks/useAuth';
 import { telegram } from './services/telegram';
 
@@ -109,7 +109,7 @@ function MiniAppContent() {
     }
   }, [currentScreen, setCurrentScreen]);
 
-  const navigateTo = (screen: 'ai-chat' | 'emergency' | 'achievements') => {
+  const navigateTo = (screen: Screen) => {
     setCurrentScreen(screen);
     telegram.hapticFeedback('medium');
   };
