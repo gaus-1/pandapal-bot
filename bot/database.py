@@ -157,21 +157,40 @@ async def init_database() -> None:
                 inspector = inspect(engine)
                 tables = inspector.get_table_names()
 
-                # Если таблицы уже существуют, пропускаем начальную миграцию Alembic
+                # Если таблицы уже существуют, проверяем состояние Alembic
                 if "users" in tables and "chat_history" in tables:
                     logger.info("📊 Таблицы уже существуют, проверяем только новые миграции...")
-                    # Пытаемся применить только новые миграции (не начальную схему)
+                    # Проверяем таблицу alembic_version
+                    alembic_version_exists = "alembic_version" in tables
+                    if alembic_version_exists:
+                        try:
+                            with engine.connect() as conn:
+                                result = conn.execute(
+                                    text("SELECT version_num FROM alembic_version LIMIT 1")
+                                )
+                                current_revision = result.scalar()
+                                if current_revision:
+                                    logger.info(f"📋 Текущая версия миграции: {current_revision}")
+                        except Exception as e:
+                            logger.debug(f"Не удалось прочитать текущую версию: {e}")
+
+                    # Пытаемся применить только новые миграции
                     try:
                         command.upgrade(alembic_cfg, "head")
                         migration_applied = True
                         logger.info("✅ Миграции Alembic применены успешно")
                     except Exception as alembic_err:
                         # Если ошибка связана с существующими таблицами - это нормально
+                        error_str = str(alembic_err).lower()
                         if (
-                            "already exists" in str(alembic_err).lower()
-                            or "duplicate" in str(alembic_err).lower()
+                            "already exists" in error_str
+                            or "duplicate" in error_str
+                            or "relation" in error_str
+                            and "already exists" in error_str
                         ):
-                            logger.info("ℹ️ Миграции уже применены, таблицы существуют")
+                            logger.debug(
+                                f"ℹ️ Миграции уже применены (предупреждение: {alembic_err})"
+                            )
                             migration_applied = True
                         else:
                             logger.warning(f"⚠️ Alembic миграция не удалась: {alembic_err}")
