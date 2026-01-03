@@ -38,7 +38,7 @@ def post_process_obfuscated_file(file_path: Path):
             lines = lines[1:]
             print(f"  [POST] Removed PyArmor comment from {file_path.name}")
 
-        # Заменяем импорт pyarmor_runtime на нейтральное имя
+        # Заменяем импорт pyarmor_runtime на нейтральное имя с относительным путем
         new_lines = []
         runtime_dir_old = None
         for line in lines:
@@ -46,10 +46,15 @@ def post_process_obfuscated_file(file_path: Path):
             match = re.search(r"from\s+(pyarmor_runtime_\w+)\s+import", line)
             if match:
                 runtime_dir_old = match.group(1)
-                # Заменяем на нейтральное имя
-                new_line = line.replace(runtime_dir_old, "_runtime")
+                # Заменяем на относительный импорт _runtime
+                new_line = line.replace(runtime_dir_old, "._runtime")
                 new_lines.append(new_line)
                 print(f"  [POST] Replaced runtime import in {file_path.name}")
+            elif re.search(r"from\s+_runtime\s+import", line):
+                # Если уже есть импорт _runtime, делаем его относительным
+                new_line = line.replace("from _runtime import", "from ._runtime import")
+                new_lines.append(new_line)
+                print(f"  [POST] Made runtime import relative in {file_path.name}")
             else:
                 new_lines.append(line)
 
