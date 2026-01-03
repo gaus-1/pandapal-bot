@@ -1,5 +1,10 @@
-# Whitelist для vulture - исключения для ложных срабатываний
-# Формат: имя_переменной  # путь/к/файлу.py:номер_строки
+# flake8: noqa
+# type: ignore
+"""
+Whitelist для vulture - исключения для ложных срабатываний.
+Формат: имя_переменной  # путь/к/файлу.py:номер_строки
+Этот файл не является обычным Python модулем, а используется vulture для исключений.
+"""
 
 # Абстрактные методы - параметры нужны для сигнатуры интерфейса
 user_grade  # bot/interfaces.py:90
@@ -16,3 +21,7 @@ exc_tb  # bot/services/web_scraper.py:115
 
 # Параметры методов интерфейсов - могут использоваться в реализациях
 detected_topic  # bot/services/moderation_service.py:196
+details  # bot/interfaces.py:211
+
+# Параметры Pydantic model_post_init - требуются по сигнатуре
+__context  # bot/api/validators.py:65

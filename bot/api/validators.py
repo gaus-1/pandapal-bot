@@ -62,7 +62,7 @@ class AIChatRequest(BaseModel):
             raise ValueError("telegram_id must be positive")
         return v
 
-    def model_post_init(self, __context) -> None:
+    def model_post_init(self, __context) -> None:  # noqa: ARG002
         """Проверка что есть хотя бы одно поле (message, photo или audio)."""
         if not any([self.message, self.photo_base64, self.audio_base64]):
             raise ValueError(
