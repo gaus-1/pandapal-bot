@@ -707,7 +707,7 @@ class Payment(Base):
         amount: Сумма платежа.
         currency: Валюта платежа (RUB, XTR для Stars).
         status: Статус платежа ('pending', 'succeeded', 'cancelled', 'failed').
-        metadata: Дополнительные данные платежа (JSON).
+        payment_metadata: Дополнительные данные платежа (JSON).
         webhook_data: Полные данные webhook для отладки (JSON).
         created_at: Дата создания записи.
         updated_at: Дата последнего обновления.
