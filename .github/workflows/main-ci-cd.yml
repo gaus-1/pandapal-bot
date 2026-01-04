@@ -97,15 +97,6 @@ jobs:
           name: backend-coverage
         continue-on-error: true
 
-      - name: 🔐 Generate build attestation
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: 'pandapal-bot-backend'
-          subject-digest: ${{ steps.build.outputs.digest || 'sha256:' }}
-          push-to-registry: false
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        continue-on-error: true
-
   # ============================================================================
   # FRONTEND: React + TypeScript + Vite
   # ============================================================================
@@ -143,15 +134,6 @@ jobs:
           name: frontend-build
           path: frontend/dist/
           retention-days: 7
-
-      - name: 🔐 Generate build attestation
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: 'pandapal-bot-frontend'
-          subject-digest: ${{ steps.build.outputs.digest || 'sha256:' }}
-          push-to-registry: false
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        continue-on-error: true
 
   # ============================================================================
   # SECURITY: Безопасность и уязвимости
