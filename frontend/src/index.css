@@ -115,6 +115,32 @@
   .smooth-scroll {
     scroll-behavior: smooth;
   }
+
+  /* Навигационные ссылки в header - правильный hover для светлой и темной темы */
+  .nav-link-header {
+    @apply px-3 py-1.5 rounded-lg text-sm font-medium transition-colors;
+    color: rgb(55 65 81); /* text-gray-700 */
+  }
+
+  .nav-link-header:hover {
+    background-color: rgb(243 244 246); /* bg-gray-100 */
+  }
+
+  .dark .nav-link-header {
+    color: rgb(226 232 240); /* text-slate-200 */
+  }
+
+  .dark .nav-link-header:hover {
+    background-color: rgb(30 41 59) !important; /* bg-slate-800 */
+  }
+
+  .nav-link-header:active {
+    background-color: rgb(229 231 235); /* bg-gray-200 */
+  }
+
+  .dark .nav-link-header:active {
+    background-color: rgb(51 65 85) !important; /* bg-slate-700 */
+  }
 }
 
 /* =================================================================
