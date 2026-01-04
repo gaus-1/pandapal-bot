@@ -17,6 +17,10 @@ from loguru import logger
 
 from bot.config import settings
 
+# Константы
+SESSION_TTL_DAYS = 30  # Время жизни сессии в днях
+AUTH_EXPIRY_HOURS = 24  # Время действия авторизации Telegram
+
 # Попытка импорта Redis
 try:
     import redis.asyncio as aioredis
@@ -87,7 +91,7 @@ class SessionService:
         self._memory_sessions: Dict[str, SessionData] = {}
 
         # Конфигурация
-        self.session_ttl_days = 30
+        self.session_ttl_days = SESSION_TTL_DAYS
         self.redis_key_prefix = "session:"
 
         # Диагностика
