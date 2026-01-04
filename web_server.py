@@ -481,6 +481,12 @@ class PandaPalBotServer:
             await init_database()
             logger.info("📊 База данных инициализирована")
 
+            # Инициализация SessionService (для персистентных сессий)
+            from bot.services.session_service import get_session_service
+
+            session_service = get_session_service()
+            logger.info("🔐 SessionService инициализирован")
+
             # Инициализация бота
             await self.init_bot()
 
