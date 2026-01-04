@@ -57,6 +57,7 @@ class Achievement:
 
 # Определения всех достижений
 ALL_ACHIEVEMENTS = [
+    # Базовые достижения (доступны всем)
     Achievement("first_step", "Первый шаг", "Отправь первое сообщение", "🌟", 10, "messages", 1),
     Achievement("chatterbox", "Болтун", "Отправь 100 сообщений", "💬", 50, "messages", 100),
     Achievement("curious", "Любознательный", "Задай 50 вопросов", "❓", 100, "questions", 50),
@@ -69,6 +70,37 @@ ALL_ACHIEVEMENTS = [
     Achievement("scholar", "Ученый", "Задай 200 вопросов", "🎓", 500, "questions", 200),
     Achievement(
         "month_streak", "Месяц подряд", "Используй бота 30 дней подряд", "⭐", 1000, "days", 30
+    ),
+    # ЭКСКЛЮЗИВНЫЕ достижения для Premium (требуют premium статус)
+    Achievement(
+        "premium_master",
+        "Premium Мастер",
+        "Premium: 1000 AI запросов",
+        "👑",
+        1000,
+        "premium_requests",
+        1000,
+    ),
+    Achievement(
+        "premium_expert",
+        "Premium Эксперт",
+        "Premium: все предметы изучены",
+        "💎",
+        1500,
+        "premium_subjects",
+        8,
+    ),
+    Achievement(
+        "premium_champion",
+        "Premium Чемпион",
+        "Premium: 30 дней активности",
+        "🏆",
+        2000,
+        "premium_days",
+        30,
+    ),
+    Achievement(
+        "vip_legend", "VIP Легенда", "VIP: годовая подписка активна", "🌟", 5000, "vip_status", 1
     ),
 ]
 
@@ -209,13 +241,43 @@ class GamificationService:
         unlocked_achievements = progress.achievements or {}
         newly_unlocked = []
 
+        # Проверяем premium статус для эксклюзивных достижений
+        from bot.services.premium_features_service import PremiumFeaturesService
+
+        premium_service = PremiumFeaturesService(self.db)
+        is_premium = premium_service.is_premium_active(telegram_id)
+        premium_plan = premium_service.get_premium_plan(telegram_id)
+
         # Получаем статистику пользователя
         stats = self.get_user_stats(telegram_id)
+
+        # Добавляем premium статистику
+        if is_premium:
+            # Подсчитываем premium-специфичные метрики
+            stats["premium_requests"] = stats.get(
+                "total_messages", 0
+            )  # Все сообщения как premium запросы
+            stats["premium_subjects"] = stats.get("unique_subjects", 0)
+            stats["premium_days"] = stats.get("consecutive_days", 0)
+            stats["vip_status"] = 1 if premium_plan == "year" else 0
 
         for achievement in ALL_ACHIEVEMENTS:
             # Пропускаем уже разблокированные
             if achievement.id in unlocked_achievements:
                 continue
+
+            # Проверяем premium требования для эксклюзивных достижений
+            if (
+                achievement.condition_type.startswith("premium_")
+                or achievement.condition_type == "vip_status"
+            ):
+                if not is_premium:
+                    continue  # Пропускаем premium достижения для бесплатных
+
+            # Проверяем VIP требования
+            if achievement.id == "vip_legend":
+                if premium_plan != "year":
+                    continue  # VIP достижение только для годовой подписки
 
             # Проверяем условие достижения
             if self._check_achievement_condition(achievement, stats):
@@ -264,6 +326,14 @@ class GamificationService:
             return stats.get("unique_subjects", 0) >= condition_value
         elif condition_type == "tasks":
             return stats.get("solved_tasks", 0) >= condition_value
+        elif condition_type == "premium_requests":
+            return stats.get("premium_requests", 0) >= condition_value
+        elif condition_type == "premium_subjects":
+            return stats.get("premium_subjects", 0) >= condition_value
+        elif condition_type == "premium_days":
+            return stats.get("premium_days", 0) >= condition_value
+        elif condition_type == "vip_status":
+            return stats.get("vip_status", 0) >= condition_value
 
         return False
 

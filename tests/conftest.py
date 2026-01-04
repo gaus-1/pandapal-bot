@@ -4,6 +4,7 @@ Pytest конфигурация для PandaPal Bot
 """
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 from typing import AsyncGenerator, Generator
@@ -11,8 +12,51 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
+# Устанавливаем переменные окружения ДО импорта bot модулей
+# Это критично для тестов, которые не требуют реальных настроек
+if not os.environ.get("DATABASE_URL"):
+    os.environ.setdefault("DATABASE_URL", "sqlite:///test.db")
+if not os.environ.get("TELEGRAM_BOT_TOKEN"):
+    os.environ.setdefault("TELEGRAM_BOT_TOKEN", "test_token_12345")
+if not os.environ.get("YANDEX_CLOUD_API_KEY"):
+    os.environ.setdefault("YANDEX_CLOUD_API_KEY", "test_api_key")
+if not os.environ.get("YANDEX_CLOUD_FOLDER_ID"):
+    os.environ.setdefault("YANDEX_CLOUD_FOLDER_ID", "test_folder_id")
+if not os.environ.get("SECRET_KEY"):
+    os.environ.setdefault("SECRET_KEY", "test_secret_key_32_chars_long_12345")
+if not os.environ.get("YOOKASSA_SHOP_ID"):
+    os.environ.setdefault("YOOKASSA_SHOP_ID", "test_shop_id")
+if not os.environ.get("YOOKASSA_SECRET_KEY"):
+    os.environ.setdefault("YOOKASSA_SECRET_KEY", "test_secret_key")
+if not os.environ.get("YOOKASSA_RETURN_URL"):
+    os.environ.setdefault("YOOKASSA_RETURN_URL", "https://test.example.com/return")
+if not os.environ.get("YOOKASSA_INN"):
+    os.environ.setdefault("YOOKASSA_INN", "123456789012")
+
 # Добавляем корневую директорию в путь
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Мокаем yookassa для тестов (не нужен для Stars платежей)
+try:
+    import yookassa
+except ImportError:
+    # Создаём полный mock модуль yookassa
+    import sys
+    from types import ModuleType
+    from unittest.mock import MagicMock
+
+    # Создаём mock модули
+    mock_yookassa = ModuleType("yookassa")
+    mock_yookassa.Configuration = MagicMock()
+    mock_yookassa.Payment = MagicMock()
+
+    mock_domain = ModuleType("yookassa.domain")
+    mock_domain.exceptions = ModuleType("yookassa.domain.exceptions")
+    mock_domain.exceptions.ApiError = Exception
+
+    sys.modules["yookassa"] = mock_yookassa
+    sys.modules["yookassa.domain"] = mock_domain
+    sys.modules["yookassa.domain.exceptions"] = mock_domain.exceptions
 
 from bot.models import ChatHistory, User
 from bot.services.ai_service_solid import YandexAIService

@@ -32,7 +32,13 @@ async def pre_checkout_handler(query: PreCheckoutQuery):
         query: Объект PreCheckoutQuery от Telegram
     """
     try:
-        # Проверяем что это наш invoice (payload начинается с "premium_")
+        # Разрешаем донаты (payload начинается с "donation_")
+        if query.invoice_payload and query.invoice_payload.startswith("donation_"):
+            logger.info(f"💝 PreCheckout для доната: user={query.from_user.id}")
+            await query.answer(ok=True)
+            return
+
+        # Обрабатываем только Premium подписки
         if not query.invoice_payload or not query.invoice_payload.startswith("premium_"):
             logger.warning(f"⚠️ Неизвестный invoice payload: {query.invoice_payload}")
             await query.answer(ok=False, error_message="Неизвестный тип платежа")
@@ -89,6 +95,21 @@ async def successful_payment_handler(message: Message):
     try:
         payment: SuccessfulPayment = message.successful_payment
 
+        # Обрабатываем донаты (payload начинается с "donation_")
+        if payment.invoice_payload and payment.invoice_payload.startswith("donation_"):
+            # Это донат, не Premium подписка
+            logger.info(
+                f"💝 Донат получен: user={message.from_user.id}, "
+                f"amount={payment.total_amount}, currency={payment.currency}"
+            )
+            await message.answer(
+                "💝 <b>Спасибо за поддержку проекта PandaPal!</b>\n\n"
+                "Твоя поддержка помогает развитию бота и улучшению качества обучения для всех детей! 🎉",
+                parse_mode="HTML",
+            )
+            return
+
+        # Обрабатываем только Premium подписки
         if not payment.invoice_payload or not payment.invoice_payload.startswith("premium_"):
             logger.warning(f"⚠️ Неизвестный invoice payload в платеже: {payment.invoice_payload}")
             return

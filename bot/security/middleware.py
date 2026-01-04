@@ -100,10 +100,12 @@ class RateLimiter:
 # Глобальные rate limiters для разных типов endpoints
 _rate_limiter_api = RateLimiter(max_requests=60, window_seconds=60)  # 60 req/min для API
 _rate_limiter_auth = RateLimiter(max_requests=10, window_seconds=60)  # 10 req/min для auth
-_rate_limiter_ai = RateLimiter(max_requests=30, window_seconds=60)  # 30 req/min для AI
+_rate_limiter_ai = RateLimiter(
+    max_requests=30, window_seconds=60
+)  # 30 req/min для AI (только для бесплатных)
 
 
-def get_rate_limiter(path: str) -> RateLimiter:
+def get_rate_limiter(path: str) -> Optional[RateLimiter]:
     """
     Получить подходящий rate limiter для пути.
 
@@ -254,19 +256,22 @@ async def security_middleware(app: web.Application, handler):
         request["client_ip"] = ip
 
         # Rate limiting (кроме webhook от Telegram)
-        if request.path != "/webhook":
+        # Для AI endpoints rate limiting проверяется в самом endpoint с учетом premium
+        # Здесь применяем только базовый IP-based rate limiting для защиты от DDoS
+        if request.path != "/webhook" and "/ai/chat" not in request.path:
             rate_limiter = get_rate_limiter(request.path)
-            allowed, reason = rate_limiter.is_allowed(ip)
-            if not allowed:
-                logger.warning(
-                    f"🚫 Rate limit exceeded: IP={ip}, Path={request.path}, Reason={reason}"
-                )
-                log_security_event(
-                    SecurityEventType.RATE_LIMIT_EXCEEDED,
-                    f"Rate limit exceeded: {request.path}",
-                    SecurityEventSeverity.WARNING,
-                    metadata={"ip": ip, "path": request.path, "reason": reason},
-                )
+            if rate_limiter:
+                allowed, reason = rate_limiter.is_allowed(ip)
+                if not allowed:
+                    logger.warning(
+                        f"🚫 Rate limit exceeded: IP={ip}, Path={request.path}, Reason={reason}"
+                    )
+                    log_security_event(
+                        SecurityEventType.RATE_LIMIT_EXCEEDED,
+                        f"Rate limit exceeded: {request.path}",
+                        SecurityEventSeverity.WARNING,
+                        metadata={"ip": ip, "path": request.path, "reason": reason},
+                    )
                 return web.json_response(
                     {
                         "error": "Rate limit exceeded. Please try again later.",

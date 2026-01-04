@@ -6,7 +6,7 @@
 """
 
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from loguru import logger
 from sqlalchemy.orm import Session
@@ -178,3 +178,148 @@ class AnalyticsService:
             )
         except Exception as e:
             logger.error(f"❌ Ошибка записи технической метрики: {e}")
+
+    def get_messages_per_day(self, telegram_id: int, days: int = 7) -> Dict:
+        """
+        Получить статистику сообщений по дням (детальная аналитика для Premium).
+
+        Args:
+            telegram_id: Telegram ID пользователя
+            days: Количество дней для анализа
+
+        Returns:
+            Dict: Статистика по дням
+        """
+        from datetime import datetime, timedelta, timezone
+
+        from sqlalchemy import func, select
+
+        from bot.models import ChatHistory
+
+        now = datetime.now(timezone.utc)
+        start_date = now - timedelta(days=days)
+
+        # Подсчет сообщений по дням
+        stmt = (
+            select(
+                func.date(ChatHistory.timestamp).label("date"),
+                func.count(ChatHistory.id).label("count"),
+            )
+            .where(ChatHistory.user_telegram_id == telegram_id)
+            .where(ChatHistory.timestamp >= start_date)
+            .group_by(func.date(ChatHistory.timestamp))
+            .order_by(func.date(ChatHistory.timestamp))
+        )
+
+        results = self.db.execute(stmt).all()
+        messages_per_day = {str(row.date): row.count for row in results}
+
+        return {
+            "period_days": days,
+            "messages_per_day": messages_per_day,
+            "total_messages": sum(messages_per_day.values()),
+        }
+
+    def get_most_active_subjects(self, telegram_id: int, limit: int = 5) -> List[Dict]:
+        """
+        Получить наиболее активные предметы (детальная аналитика для Premium).
+
+        Args:
+            telegram_id: Telegram ID пользователя
+            limit: Максимальное количество предметов
+
+        Returns:
+            List[Dict]: Список предметов с активностью
+        """
+        from sqlalchemy import select
+
+        from bot.models import ChatHistory
+
+        # Получаем все сообщения пользователя
+        messages = (
+            self.db.execute(
+                select(ChatHistory.message_text)
+                .where(ChatHistory.user_telegram_id == telegram_id)
+                .where(ChatHistory.message_type == "user")
+            )
+            .scalars()
+            .all()
+        )
+
+        subject_keywords = {
+            "математика": ["математик", "алгебр", "геометр", "уравнен", "задач"],
+            "русский": ["русск", "грамматик", "орфограф"],
+            "английский": ["английск", "english"],
+            "физика": ["физик", "механик"],
+            "химия": ["хими", "реакц"],
+            "биология": ["биолог"],
+            "география": ["географ"],
+            "история": ["истори"],
+        }
+
+        subject_counts = {}
+        for message in messages:
+            message_lower = message.lower()
+            for subject, keywords in subject_keywords.items():
+                if any(kw in message_lower for kw in keywords):
+                    subject_counts[subject] = subject_counts.get(subject, 0) + 1
+                    break
+
+        # Сортируем по активности
+        sorted_subjects = sorted(subject_counts.items(), key=lambda x: x[1], reverse=True)[:limit]
+
+        return [{"subject": subject, "message_count": count} for subject, count in sorted_subjects]
+
+    def get_learning_trends(self, telegram_id: int) -> Dict:
+        """
+        Получить тренды обучения (детальная аналитика для Premium).
+
+        Args:
+            telegram_id: Telegram ID пользователя
+
+        Returns:
+            Dict: Тренды обучения
+        """
+        from datetime import datetime, timedelta, timezone
+
+        from sqlalchemy import func, select
+
+        from bot.models import ChatHistory
+
+        now = datetime.now(timezone.utc)
+        week_ago = now - timedelta(days=7)
+        month_ago = now - timedelta(days=30)
+
+        # Сообщения за неделю
+        week_count = (
+            self.db.scalar(
+                select(func.count(ChatHistory.id))
+                .where(ChatHistory.user_telegram_id == telegram_id)
+                .where(ChatHistory.timestamp >= week_ago)
+            )
+            or 0
+        )
+
+        # Сообщения за месяц
+        month_count = (
+            self.db.scalar(
+                select(func.count(ChatHistory.id))
+                .where(ChatHistory.user_telegram_id == telegram_id)
+                .where(ChatHistory.timestamp >= month_ago)
+            )
+            or 0
+        )
+
+        # Вычисляем тренд
+        if month_count > 0:
+            weekly_avg = month_count / 4
+            trend = "increasing" if week_count > weekly_avg else "decreasing"
+        else:
+            trend = "stable"
+
+        return {
+            "messages_last_week": week_count,
+            "messages_last_month": month_count,
+            "trend": trend,
+            "weekly_average": month_count / 4 if month_count > 0 else 0,
+        }
