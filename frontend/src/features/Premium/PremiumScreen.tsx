@@ -70,20 +70,17 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   const handlePurchase = async (plan: PremiumPlan) => {
+    const inTelegram = telegram.isInTelegram();
+
     // Если в Telegram - показываем confirm
-    if (telegram.isInTelegram()) {
+    if (inTelegram) {
       telegram.hapticFeedback('medium');
       const confirmed = await telegram.showConfirm(
         `Купить премиум на ${plan.duration} за ${plan.priceRub} ₽?`
       );
       if (!confirmed) return;
-    } else {
-      // На сайте - обычный confirm
-      const confirmed = window.confirm(
-        `Купить премиум на ${plan.duration} за ${plan.priceRub} ₽?`
-      );
-      if (!confirmed) return;
     }
+    // На сайте - БЕЗ confirm, сразу переходим к оплате
 
     setIsProcessing(true);
     setSelectedPlan(plan.id);
@@ -106,26 +103,32 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
 
       if (data.success && data.confirmation_url) {
         // Открываем страницу оплаты ЮKassa
-        // В Telegram Mini App используем openLink, в браузере - window.open
-        if (telegram.isInTelegram()) {
+        if (inTelegram) {
+          // В Telegram используем openLink
           telegram.openLink(data.confirmation_url);
           telegram.showAlert(
             '💳 Откройте страницу оплаты. После успешной оплаты Premium активируется автоматически!'
           );
         } else {
-          window.open(data.confirmation_url, '_blank');
-          telegram.showAlert(
-            '💳 Откройте страницу оплаты в новой вкладке. После успешной оплаты Premium активируется автоматически!'
-          );
+          // На сайте - прямой переход (не блокируется браузером)
+          window.location.href = data.confirmation_url;
         }
       } else {
-        telegram.notifyError();
-        await telegram.showAlert('Ошибка создания платежа. Попробуй еще раз!');
+        if (inTelegram) {
+          telegram.notifyError();
+          await telegram.showAlert('Ошибка создания платежа. Попробуй еще раз!');
+        } else {
+          alert('Ошибка создания платежа. Попробуй еще раз!');
+        }
       }
     } catch (error) {
       console.error('Ошибка покупки:', error);
-      telegram.notifyError();
-      await telegram.showAlert('Произошла ошибка. Попробуй позже!');
+      if (inTelegram) {
+        telegram.notifyError();
+        await telegram.showAlert('Произошла ошибка. Попробуй позже!');
+      } else {
+        alert('Произошла ошибка. Попробуй позже!');
+      }
     } finally {
       setIsProcessing(false);
       setSelectedPlan(null);

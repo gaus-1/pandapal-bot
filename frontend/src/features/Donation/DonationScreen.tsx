@@ -16,14 +16,17 @@ export function DonationScreen({ user }: DonationScreenProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number>(100);
   const [customAmount, setCustomAmount] = useState<string>('');
+  const inTelegram = telegram.isInTelegram();
 
   const handleDonate = async (amount: number) => {
+    // Telegram Stars работают ТОЛЬКО в Telegram
+    if (!inTelegram) {
+      alert('⭐ Поддержка звездами доступна только через Telegram Bot.\n\nОткройте @PandaPalBot в Telegram для поддержки проекта.');
+      return;
+    }
+
     if (amount < 50) {
-      if (telegram.isInTelegram()) {
-        await telegram.showAlert('Минимальная сумма поддержки: 50 ⭐');
-      } else {
-        alert('Минимальная сумма поддержки: 50 ⭐');
-      }
+      await telegram.showAlert('Минимальная сумма поддержки: 50 ⭐');
       return;
     }
 
@@ -40,13 +43,9 @@ export function DonationScreen({ user }: DonationScreenProps) {
     try {
       const telegramId = user?.telegram_id || 0;
 
-      // Если пользователь не авторизован, используем временный ID
+      // Если пользователь не авторизован
       if (!telegramId) {
-        if (telegram.isInTelegram()) {
-          await telegram.showAlert('Пожалуйста, авторизуйтесь в боте для поддержки проекта');
-        } else {
-          alert('Пожалуйста, авторизуйтесь в боте для поддержки проекта');
-        }
+        await telegram.showAlert('Пожалуйста, авторизуйтесь в боте для поддержки проекта');
         return;
       }
 
@@ -62,43 +61,25 @@ export function DonationScreen({ user }: DonationScreenProps) {
       const data = await response.json();
 
       if (data.success && data.invoice_link) {
-        if (telegram.isInTelegram()) {
-          telegram.openInvoice(data.invoice_link, (status) => {
-            if (status === 'paid') {
-              telegram.notifySuccess();
-              telegram.showAlert('🎉 Спасибо за поддержку проекта! Вы помогаете развитию PandaPal!');
-            } else if (status === 'cancelled') {
-              telegram.showAlert('❌ Оплата отменена');
-            } else if (status === 'failed') {
-              telegram.notifyError();
-              telegram.showAlert('❌ Ошибка оплаты. Попробуй еще раз!');
-            }
-          });
-        } else {
-          // Для сайта открываем в новой вкладке
-          window.open(data.invoice_link, '_blank');
-          if (telegram.isInTelegram()) {
-            telegram.showAlert('💳 Откройте страницу оплаты. Спасибо за поддержку!');
-          } else {
-            alert('💳 Откройте страницу оплаты в новой вкладке. Спасибо за поддержку!');
+        telegram.openInvoice(data.invoice_link, (status) => {
+          if (status === 'paid') {
+            telegram.notifySuccess();
+            telegram.showAlert('🎉 Спасибо за поддержку проекта! Вы помогаете развитию PandaPal!');
+          } else if (status === 'cancelled') {
+            telegram.showAlert('❌ Оплата отменена');
+          } else if (status === 'failed') {
+            telegram.notifyError();
+            telegram.showAlert('❌ Ошибка оплаты. Попробуй еще раз!');
           }
-        }
+        });
       } else {
         telegram.notifyError();
-        if (telegram.isInTelegram()) {
-          await telegram.showAlert('Ошибка создания счета. Попробуй еще раз!');
-        } else {
-          alert('Ошибка создания счета. Попробуй еще раз!');
-        }
+        await telegram.showAlert('Ошибка создания счета. Попробуй еще раз!');
       }
     } catch (error) {
       console.error('Ошибка поддержки проекта:', error);
       telegram.notifyError();
-      if (telegram.isInTelegram()) {
-        await telegram.showAlert('Произошла ошибка. Попробуй позже!');
-      } else {
-        alert('Произошла ошибка. Попробуй позже!');
-      }
+      await telegram.showAlert('Произошла ошибка. Попробуй позже!');
     } finally {
       setIsProcessing(false);
     }
@@ -107,10 +88,10 @@ export function DonationScreen({ user }: DonationScreenProps) {
   const handleCustomDonate = () => {
     const amount = parseInt(customAmount);
     if (isNaN(amount) || amount < 50) {
-      if (telegram.isInTelegram()) {
+      if (inTelegram) {
         telegram.showAlert('Введите сумму от 50 ⭐');
       } else {
-        alert('Введите сумму от 50 ⭐');
+        alert('⭐ Поддержка звездами доступна только через Telegram Bot.\n\nОткройте @PandaPalBot в Telegram для поддержки проекта.');
       }
       return;
     }
