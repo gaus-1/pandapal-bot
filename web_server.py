@@ -269,6 +269,15 @@ class PandaPalBotServer:
             except ImportError as e:
                 logger.warning(f"⚠️ Не удалось загрузить Premium API: {e}")
 
+            # Регистрируем Auth API routes
+            try:
+                from bot.api.auth_endpoints import setup_auth_routes
+
+                setup_auth_routes(self.app)
+                logger.info("🔐 Auth API routes зарегистрированы")
+            except ImportError as e:
+                logger.warning(f"⚠️ Не удалось загрузить Auth API: {e}")
+
             # Настраиваем раздачу статики frontend
             frontend_dist = Path(__file__).parent / "frontend" / "dist"
             if frontend_dist.exists():
