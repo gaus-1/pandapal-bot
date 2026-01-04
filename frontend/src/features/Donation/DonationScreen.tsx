@@ -237,7 +237,6 @@ export function DonationScreen({ user }: DonationScreenProps) {
         <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs sm:text-sm text-[var(--tg-theme-hint-color)]">
           <span>• Оплата из баланса Telegram</span>
           <span>• Безопасная оплата</span>
-          <span>• Возврат в течение 72 часов</span>
         </div>
       </div>
     </div>
