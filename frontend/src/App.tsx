@@ -109,7 +109,7 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
         <Header currentRoute={currentRoute} />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
-          <PremiumScreen user={null as any} />
+          <PremiumScreen user={null} />
         </main>
         <Footer />
       </div>

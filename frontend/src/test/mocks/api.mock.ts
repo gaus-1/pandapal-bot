@@ -140,13 +140,13 @@ export const mockApiResponses = {
     return mockUserProfile;
   },
 
-  getChatHistory: async (_telegramId: number, limit: number = 50) => {
+  getChatHistory: async (_telegramId: number, limit = 50) => {
     await delay(30);
     return mockChatHistory.slice(-limit);
   },
 
   sendAIMessage: async (
-    _telegramId: number,
+    telegramId: number,
     message?: string,
     photoBase64?: string,
     audioBase64?: string
@@ -163,22 +163,22 @@ export const mockApiResponses = {
     };
   },
 
-  getUserProfile: async (_telegramId: number): Promise<UserProfile> => {
+  getUserProfile: async (): Promise<UserProfile> => {
     await delay(30);
     return mockUserProfile;
   },
 
-  getUserProgress: async (_telegramId: number): Promise<ProgressItem[]> => {
+  getUserProgress: async (): Promise<ProgressItem[]> => {
     await delay(50);
     return mockProgress;
   },
 
-  getUserAchievements: async (_telegramId: number): Promise<Achievement[]> => {
+  getUserAchievements: async (): Promise<Achievement[]> => {
     await delay(50);
     return mockAchievements;
   },
 
-  getDashboardStats: async (_telegramId: number): Promise<DashboardStats> => {
+  getDashboardStats: async (): Promise<DashboardStats> => {
     await delay(50);
     return mockDashboardStats;
   },

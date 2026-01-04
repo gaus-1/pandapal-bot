@@ -104,10 +104,11 @@ export function AIChat({ user }: AIChatProps) {
       };
 
       reader.readAsDataURL(file);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Ошибка загрузки фото:', error);
       telegram.notifyError();
-      await telegram.showAlert(error.message || 'Не удалось загрузить фото. Попробуй еще раз!');
+      const errorMessage = error instanceof Error ? error.message : 'Не удалось загрузить фото. Попробуй еще раз!';
+      await telegram.showAlert(errorMessage);
     } finally {
       // Очищаем input
       if (fileInputRef.current) {
@@ -197,17 +198,18 @@ export function AIChat({ user }: AIChatProps) {
           };
 
           reader.readAsDataURL(audioBlob);
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('❌ Ошибка отправки аудио:', error);
           telegram.notifyError();
-          telegram.showAlert(error.message || 'Не удалось отправить голосовое сообщение!');
+          const errorMessage = error instanceof Error ? error.message : 'Не удалось отправить голосовое сообщение!';
+          telegram.showAlert(errorMessage);
           stream.getTracks().forEach((track) => track.stop());
           setIsRecording(false);
         }
       };
 
       // Обработка ошибок MediaRecorder
-      mediaRecorder.onerror = (event: any) => {
+      mediaRecorder.onerror = (event: Event) => {
         console.error('❌ Ошибка MediaRecorder:', event);
         telegram.notifyError();
         telegram.showAlert('Ошибка записи аудио. Попробуй еще раз!');

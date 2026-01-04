@@ -45,6 +45,7 @@ vi.mock('../../../services/api', () => ({
   sendAIMessage: vi.fn(),
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockTelegram: any;
 
 describe('AIChat - Критические пути', () => {
@@ -197,17 +198,21 @@ describe('AIChat - Критические пути', () => {
       const mockMediaRecorder = {
         start: mockStart,
         stop: mockStop,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ondataavailable: null as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onstop: null as any,
         state: 'inactive',
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       window.MediaRecorder = vi.fn(() => mockMediaRecorder) as any;
       Object.defineProperty(window.navigator, 'mediaDevices', {
         writable: true,
         value: {
           getUserMedia: vi.fn(() => Promise.resolve({
             getTracks: () => [{ stop: vi.fn() }],
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any)),
         },
       });
@@ -232,6 +237,7 @@ describe('AIChat - Критические пути', () => {
         // Эмулируем получение данных
         const blob = new Blob(['audio'], { type: 'audio/webm' });
         if (mockMediaRecorder.ondataavailable) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           mockMediaRecorder.ondataavailable({ data: blob } as any);
         }
         // Эмулируем остановку

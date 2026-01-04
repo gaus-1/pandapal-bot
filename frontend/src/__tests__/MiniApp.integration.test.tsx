@@ -48,6 +48,7 @@ vi.mock('../services/telegram', () => ({
   },
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockTelegram: any;
 
 describe('MiniApp Integration', () => {
@@ -216,7 +217,9 @@ describe('MiniApp Integration', () => {
 
     // Mock window.location.reload
     const reloadMock = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (window.location as any).reload;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window.location as any).reload = reloadMock;
 
     // Кликаем на кнопку

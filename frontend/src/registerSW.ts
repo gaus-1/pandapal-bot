@@ -7,7 +7,7 @@ export function registerServiceWorker(): void {
   if (typeof window !== 'undefined') {
     // Проверяем, что приложение не запущено в Telegram Web App
     // Используем type assertion для Telegram Web App API
-    const telegramWebApp = (window as any).Telegram?.WebApp;
+    const telegramWebApp = (window as Window & { Telegram?: { WebApp?: { initData?: string } } }).Telegram?.WebApp;
     const isTelegramWebApp =
       telegramWebApp?.initData ||
       window.location.hostname.includes('telegram.org') ||
@@ -20,7 +20,7 @@ export function registerServiceWorker(): void {
       const originalError = console.error;
       const originalWarn = console.warn;
 
-      console.error = (...args: any[]) => {
+      console.error = (...args: unknown[]) => {
         const message = args.join(' ');
         // Подавляем ошибки SW и Telegram WebView
         if (
@@ -38,7 +38,7 @@ export function registerServiceWorker(): void {
         originalError.apply(console, args);
       };
 
-      console.warn = (...args: any[]) => {
+      console.warn = (...args: unknown[]) => {
         const message = args.join(' ');
         // Подавляем предупреждения SW и Telegram WebView
         if (

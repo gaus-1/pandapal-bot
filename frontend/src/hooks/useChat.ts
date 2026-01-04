@@ -12,6 +12,12 @@ interface UseChatOptions {
   limit?: number;
 }
 
+type ChatMessage = {
+  role: 'user' | 'ai';
+  content: string;
+  timestamp: string;
+};
+
 /**
  * Hook для работы с AI чатом
  * Кэширует историю и оптимистично обновляет UI
@@ -50,12 +56,12 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
       });
 
       // Сохраняем предыдущее состояние для rollback
-      const previousMessages = queryClient.getQueryData(
+      const previousMessages = queryClient.getQueryData<ChatMessage[]>(
         queryKeys.chatHistory(telegramId, limit)
       );
 
       // Оптимистично добавляем сообщение пользователя
-      const userMessage = {
+      const userMessage: ChatMessage = {
         role: 'user' as const,
         content: variables.photoBase64
           ? '📷 Анализирую фото...'
@@ -65,9 +71,9 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
         timestamp: new Date().toISOString(),
       };
 
-      queryClient.setQueryData(
+      queryClient.setQueryData<ChatMessage[]>(
         queryKeys.chatHistory(telegramId, limit),
-        (old: any) => [...(old || []), userMessage]
+        (old) => [...(old || []), userMessage]
       );
 
       telegram.hapticFeedback('medium');
@@ -83,18 +89,18 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
         timestamp: new Date().toISOString(),
       };
 
-      queryClient.setQueryData(
+      queryClient.setQueryData<ChatMessage[]>(
         queryKeys.chatHistory(telegramId, limit),
-        (old: any) => [...(old || []), aiMessage]
+        (old) => [...(old || []), aiMessage]
       );
 
       telegram.notifySuccess();
     },
 
     // Rollback при ошибке
-    onError: (_error: any, _variables, context: any) => {
-      if (context?.previousMessages) {
-        queryClient.setQueryData(
+    onError: (_error: Error, _variables, context) => {
+      if (context && context.previousMessages) {
+        queryClient.setQueryData<ChatMessage[]>(
           queryKeys.chatHistory(telegramId, limit),
           context.previousMessages
         );

@@ -213,7 +213,8 @@ export class TelegramService {
     }>;
   }): Promise<string> {
     return new Promise((resolve) => {
-      this.webApp.showPopup(params as any, (buttonId) => resolve(buttonId || ''));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      this.webApp.showPopup(params as any, (buttonId: string | undefined) => resolve(buttonId || ''));
     });
   }
 

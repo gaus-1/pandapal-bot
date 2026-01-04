@@ -38,6 +38,7 @@ vi.mock('../../services/telegram', () => ({
   },
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockTelegram: any;
 
 describe('useChat', () => {

@@ -84,8 +84,8 @@ export const createTelegramMock = (options: {
     // BackButton
     BackButton: {
       isVisible: false,
-      show: vi.fn(function(this: any) { this.isVisible = true; }),
-      hide: vi.fn(function(this: any) { this.isVisible = false; }),
+      show: vi.fn(function(this: { isVisible: boolean }) { this.isVisible = true; }),
+      hide: vi.fn(function(this: { isVisible: boolean }) { this.isVisible = false; }),
       onClick: vi.fn(),
       offClick: vi.fn(),
     },
@@ -182,7 +182,7 @@ export const createTelegramMock = (options: {
     },
 
     // Для проверки доступности
-    isVersionAtLeast: vi.fn((_version) => true),
+    isVersionAtLeast: vi.fn(() => true),
   };
 
   return mockWebApp;
