@@ -63,7 +63,7 @@ export const Header: React.FC = React.memo(() => {
                 window.location.hash = 'premium';
                 trackButtonClick('header_premium');
               }}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 dark:active:bg-slate-600 active:bg-gray-200 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 dark:active:bg-slate-700 active:bg-gray-200 transition-colors"
             >
               Premium
             </a>
@@ -74,7 +74,7 @@ export const Header: React.FC = React.memo(() => {
                 window.location.hash = 'donation';
                 trackButtonClick('header_donation');
               }}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 dark:active:bg-slate-600 active:bg-gray-200 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 dark:active:bg-slate-700 active:bg-gray-200 transition-colors"
             >
               Поддержать
             </a>
