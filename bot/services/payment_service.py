@@ -131,7 +131,9 @@ class PaymentService:
             return {
                 "payment_id": payment.id,
                 "status": payment.status,
-                "confirmation_url": payment.confirmation.confirmation_url if payment.confirmation else None,
+                "confirmation_url": (
+                    payment.confirmation.confirmation_url if payment.confirmation else None
+                ),
                 "amount": {
                     "value": float(payment.amount.value),
                     "currency": payment.amount.currency,
@@ -166,7 +168,7 @@ class PaymentService:
                     "value": float(payment.amount.value),
                     "currency": payment.amount.currency,
                 },
-                "metadata": payment.metadata or {},
+                "payment_metadata": payment.payment_metadata or {},
             }
 
         except ApiError as e:
@@ -200,7 +202,9 @@ class PaymentService:
             plan_id = metadata.get("plan_id")
 
             if not telegram_id_str or not plan_id:
-                logger.warning(f"⚠️ Отсутствуют telegram_id или plan_id в метаданных платежа {payment_id}")
+                logger.warning(
+                    f"⚠️ Отсутствуют telegram_id или plan_id в метаданных платежа {payment_id}"
+                )
                 return None
 
             telegram_id = int(telegram_id_str)
@@ -223,4 +227,3 @@ class PaymentService:
         except Exception as e:
             logger.error(f"❌ Неожиданная ошибка обработки webhook: {e}", exc_info=True)
             return None
-

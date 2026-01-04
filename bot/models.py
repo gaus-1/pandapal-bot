@@ -748,7 +748,9 @@ class Payment(Base):
         String(20), nullable=False, default="pending", index=True
     )  # 'pending', 'succeeded', 'cancelled', 'failed'
 
-    metadata: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)  # Дополнительные данные
+    payment_metadata: Mapped[Optional[Dict]] = mapped_column(
+        JSON, nullable=True
+    )  # Дополнительные данные платежа
     webhook_data: Mapped[Optional[Dict]] = mapped_column(
         JSON, nullable=True
     )  # Полные данные webhook для отладки
@@ -806,7 +808,7 @@ class Payment(Base):
             "amount": self.amount,
             "currency": self.currency,
             "status": self.status,
-            "metadata": self.metadata,
+            "payment_metadata": self.payment_metadata,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "paid_at": self.paid_at.isoformat() if self.paid_at else None,

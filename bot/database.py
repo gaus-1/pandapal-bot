@@ -401,7 +401,7 @@ async def init_database() -> None:
                                         amount FLOAT NOT NULL,
                                         currency VARCHAR(10) NOT NULL DEFAULT 'RUB',
                                         status VARCHAR(20) NOT NULL DEFAULT 'pending',
-                                        metadata JSONB,
+                                        payment_metadata JSONB,
                                         webhook_data JSONB,
                                         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                         updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
