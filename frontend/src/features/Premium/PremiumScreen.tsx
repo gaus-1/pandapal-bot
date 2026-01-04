@@ -151,24 +151,23 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
 
   return (
     <div className="min-h-screen bg-[var(--tg-theme-bg-color)] p-4 sm:p-6 md:p-8 pb-24 sm:pb-28 max-w-4xl mx-auto">
-      {/* Кнопка "Назад" для браузера */}
-      {isInBrowser && (
-        <button
-          onClick={handleBackToHome}
-          className="mb-4 sm:mb-5 md:mb-6 flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gray-100/50 dark:bg-slate-800/50 hover:bg-gray-200/70 dark:hover:bg-slate-700/70 text-sm sm:text-base text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 transition-all duration-200 group shadow-sm hover:shadow-md active:scale-95"
-          aria-label="Вернуться на главную"
-        >
-          <span className="text-xl sm:text-2xl group-hover:-translate-x-1 transition-transform duration-200">←</span>
-          <span className="font-semibold">На главную</span>
-        </button>
-      )}
-
       {/* Заголовок */}
       <div className="mb-4 sm:mb-5 text-center">
         <div className="text-5xl sm:text-6xl md:text-7xl mb-2 sm:mb-3">👑</div>
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--tg-theme-text-color)] mb-1.5 sm:mb-2">
           PandaPal Premium
         </h1>
+        {/* Кнопка "Назад" для браузера - под заголовком */}
+        {isInBrowser && (
+          <button
+            onClick={handleBackToHome}
+            className="mx-auto mb-2 sm:mb-2.5 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg bg-gray-100/60 dark:bg-slate-800/60 hover:bg-gray-200 dark:hover:bg-slate-700 text-xs sm:text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 transition-all duration-200 group shadow-sm hover:shadow active:scale-95"
+            aria-label="Вернуться на главную"
+          >
+            <span className="text-sm sm:text-base group-hover:-translate-x-0.5 transition-transform duration-200">←</span>
+            <span className="font-medium">На главную</span>
+          </button>
+        )}
         <p className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">
           Получи максимум от обучения
         </p>
@@ -249,11 +248,7 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
             <button
               onClick={() => handlePurchase(plan)}
               disabled={isProcessing && selectedPlan === plan.id}
-              className={`w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all ${
-                plan.popular
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg active:scale-95'
-                  : 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] active:scale-95'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              className="w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 text-white shadow-lg dark:shadow-purple-500/20 hover:shadow-xl dark:hover:shadow-purple-500/30 hover:from-purple-600 hover:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isProcessing && selectedPlan === plan.id
                 ? 'Обработка...'
