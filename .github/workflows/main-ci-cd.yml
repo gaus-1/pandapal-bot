@@ -205,7 +205,6 @@ jobs:
           subject-name: 'pandapal-frontend'
           subject-digest: '${{ steps.digest-frontend.outputs.digest }}'
           push-to-registry: false
-        continue-on-error: true
 
   # ============================================================================
   # SECURITY: Безопасность и уязвимости
