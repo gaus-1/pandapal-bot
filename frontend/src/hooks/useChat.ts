@@ -95,6 +95,20 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
       );
 
       telegram.notifySuccess();
+
+      // Показываем уведомления о разблокированных достижениях
+      if (data.achievements_unlocked && data.achievements_unlocked.length > 0) {
+        data.achievements_unlocked.forEach((achievement) => {
+          setTimeout(() => {
+            telegram.showPopup({
+              title: `🏆 Новое достижение!`,
+              message: `${achievement.icon} ${achievement.title}\n\n${achievement.description}\n\n+${achievement.xp_reward} XP 🎉`,
+              buttons: [{ type: 'close', text: 'Отлично!' }],
+            });
+            telegram.hapticFeedback('heavy');
+          }, 500);
+        });
+      }
     },
 
     // Rollback при ошибке

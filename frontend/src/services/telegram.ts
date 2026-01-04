@@ -19,21 +19,29 @@ export class TelegramService {
 
   /**
    * Инициализация Mini App
+   * Следует современным стандартам 2026 года для Telegram Mini Apps
    */
   init(): void {
     try {
       // Сообщаем Telegram что приложение готово
       this.webApp.ready();
 
-      // Разворачиваем на весь экран
+      // Разворачиваем на весь экран для иммерсивного опыта
       this.webApp.expand();
 
-      // Адаптируем тему под Telegram
+      // Устанавливаем правильный viewport height для мобильных устройств
+      this.setViewportHeight();
+
+      // Адаптируем тему под Telegram (с динамическим обновлением)
       this.applyTelegramTheme();
+
+      // Включаем плавные анимации (60 FPS)
+      this.enableSmoothAnimations();
 
       console.log('✅ Telegram Mini App инициализирован');
       console.log('📱 Платформа:', this.webApp.platform);
       console.log('📦 Версия:', this.webApp.version);
+      console.log('🌓 Тема:', this.webApp.colorScheme);
       console.log('🔐 InitData длина:', this.webApp.initData?.length || 0);
       console.log('👤 Пользователь:', this.webApp.initDataUnsafe.user);
 
@@ -48,29 +56,84 @@ export class TelegramService {
   }
 
   /**
+   * Установить правильный viewport height для мобильных устройств
+   * Решает проблему с адресной строкой браузера на iOS/Android
+   */
+  private setViewportHeight(): void {
+    const setVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    setVH();
+    window.addEventListener('resize', setVH);
+    window.addEventListener('orientationchange', setVH);
+  }
+
+  /**
+   * Включить плавные анимации для 60 FPS
+   */
+  private enableSmoothAnimations(): void {
+    // Используем CSS переменные для плавных переходов
+    document.documentElement.style.setProperty('--transition-fast', '150ms cubic-bezier(0.4, 0, 0.2, 1)');
+    document.documentElement.style.setProperty('--transition-base', '200ms cubic-bezier(0.4, 0, 0.2, 1)');
+    document.documentElement.style.setProperty('--transition-slow', '300ms cubic-bezier(0.4, 0, 0.2, 1)');
+
+    // Включаем hardware acceleration для анимаций
+    const style = document.createElement('style');
+    style.textContent = `
+      * {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  /**
    * Применить тему Telegram к приложению
+   * Поддерживает динамическое обновление при смене темы
    */
   private applyTelegramTheme(): void {
-    const { themeParams } = this.webApp;
+    const applyTheme = () => {
+      const { themeParams } = this.webApp;
 
-    if (themeParams.bg_color) {
-      document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color);
-    }
-    if (themeParams.text_color) {
-      document.documentElement.style.setProperty('--tg-theme-text-color', themeParams.text_color);
-    }
-    if (themeParams.hint_color) {
-      document.documentElement.style.setProperty('--tg-theme-hint-color', themeParams.hint_color);
-    }
-    if (themeParams.link_color) {
-      document.documentElement.style.setProperty('--tg-theme-link-color', themeParams.link_color);
-    }
-    if (themeParams.button_color) {
-      document.documentElement.style.setProperty('--tg-theme-button-color', themeParams.button_color);
-    }
-    if (themeParams.button_text_color) {
-      document.documentElement.style.setProperty('--tg-theme-button-text-color', themeParams.button_text_color);
-    }
+      if (themeParams.bg_color) {
+        document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color);
+      }
+      if (themeParams.text_color) {
+        document.documentElement.style.setProperty('--tg-theme-text-color', themeParams.text_color);
+      }
+      if (themeParams.hint_color) {
+        document.documentElement.style.setProperty('--tg-theme-hint-color', themeParams.hint_color);
+      }
+      if (themeParams.link_color) {
+        document.documentElement.style.setProperty('--tg-theme-link-color', themeParams.link_color);
+      }
+      if (themeParams.button_color) {
+        document.documentElement.style.setProperty('--tg-theme-button-color', themeParams.button_color);
+      }
+      if (themeParams.button_text_color) {
+        document.documentElement.style.setProperty('--tg-theme-button-text-color', themeParams.button_text_color);
+      }
+
+      // Устанавливаем цветовую схему для CSS
+      const colorScheme = this.webApp.colorScheme || 'light';
+      document.documentElement.setAttribute('data-theme', colorScheme);
+      if (colorScheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    // Применяем тему сразу
+    applyTheme();
+
+    // Подписываемся на изменения темы (динамическое обновление)
+    this.webApp.onEvent('themeChanged', applyTheme);
   }
 
   /**

@@ -149,9 +149,9 @@ function MiniAppContent() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-[var(--tg-theme-bg-color)]">
+    <div className="h-screen flex flex-col bg-[var(--tg-theme-bg-color)] overflow-hidden">
       {/* Основной контент с Suspense для lazy loading */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-hidden">
         <Suspense fallback={<LoadingFallback />}>
           {currentScreen === 'ai-chat' && user && <AIChat user={user} />}
           {currentScreen === 'emergency' && <EmergencyScreen />}
@@ -161,10 +161,10 @@ function MiniAppContent() {
         </Suspense>
       </div>
 
-      {/* Нижняя навигация */}
+      {/* Нижняя навигация - фиксированная */}
       {currentScreen === 'ai-chat' ? (
-        <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg" aria-label="Основная навигация">
-          <div className="flex gap-2 sm:gap-3 md:gap-4 px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 max-w-full">
+        <nav className="flex-shrink-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
+          <div className="flex gap-2 sm:gap-3 md:gap-4 px-2 sm:px-3 md:px-4 py-2.5 sm:py-3 md:py-3.5 max-w-full">
             <NavButton
               icon="🏆"
               label="Достижения"
@@ -180,8 +180,8 @@ function MiniAppContent() {
           </div>
         </nav>
       ) : (
-        <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg" aria-label="Основная навигация">
-          <div className="flex gap-2 sm:gap-3 md:gap-4 px-2 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 max-w-full">
+        <nav className="flex-shrink-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
+          <div className="flex gap-2 sm:gap-3 md:gap-4 px-2 sm:px-3 md:px-4 py-2.5 sm:py-3 md:py-3.5 max-w-full">
             <NavButton
               icon="💬"
               label="Чат"
@@ -197,24 +197,20 @@ function MiniAppContent() {
               />
             )}
             {currentScreen === 'premium' && (
-              <>
-                <NavButton
-                  icon="💝"
-                  label="Поддержать"
-                  isActive={false}
-                  onClick={() => navigateTo('donation')}
-                />
-              </>
+              <NavButton
+                icon="💝"
+                label="Поддержать"
+                isActive={false}
+                onClick={() => navigateTo('donation')}
+              />
             )}
             {currentScreen === 'donation' && (
-              <>
-                <NavButton
-                  icon="👑"
-                  label="Premium"
-                  isActive={false}
-                  onClick={() => navigateTo('premium')}
-                />
-              </>
+              <NavButton
+                icon="👑"
+                label="Premium"
+                isActive={false}
+                onClick={() => navigateTo('premium')}
+              />
             )}
           </div>
         </nav>
@@ -234,16 +230,16 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex-1 flex flex-row items-center justify-center gap-1.5 sm:gap-2 md:gap-2.5 py-2.5 sm:py-3 md:py-3.5 px-3 sm:px-4 md:px-5 rounded-lg sm:rounded-xl md:rounded-2xl transition-all shadow-sm min-w-0 ${
+      className={`flex-1 flex flex-col items-center justify-center gap-1 sm:gap-1.5 py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg sm:rounded-xl transition-all min-w-0 min-h-[60px] sm:min-h-[64px] ${
         isActive
-          ? 'bg-blue-400/90 text-white font-semibold shadow-md'
-          : 'text-[var(--tg-theme-text-color)] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-blue-100/50 dark:hover:bg-blue-900/20 font-medium'
+          ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] font-semibold shadow-md'
+          : 'text-[var(--tg-theme-text-color)] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 active:bg-[var(--tg-theme-hint-color)]/20 font-medium'
       }`}
       aria-label={label}
       aria-current={isActive ? 'page' : undefined}
     >
-      <span className="text-lg sm:text-xl md:text-2xl flex-shrink-0" aria-hidden="true">{icon}</span>
-      <span className="text-xs sm:text-sm md:text-base font-semibold leading-tight opacity-90 truncate">{label}</span>
+      <span className="text-xl sm:text-2xl md:text-2xl flex-shrink-0 leading-none" aria-hidden="true">{icon}</span>
+      <span className="text-xs sm:text-xs md:text-sm font-medium leading-tight truncate w-full text-center">{label}</span>
     </button>
   );
 }
