@@ -164,7 +164,7 @@ function MiniAppContent() {
       {/* Нижняя навигация */}
       {currentScreen === 'ai-chat' ? (
         <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg" aria-label="Основная навигация">
-          <div className="flex justify-start gap-2 px-2 py-1.5">
+          <div className="flex gap-2 px-2 py-1.5 sm:px-3 sm:py-2">
             <NavButton
               icon="🏆"
               label="Достижения"
@@ -181,7 +181,7 @@ function MiniAppContent() {
         </nav>
       ) : (
         <nav className="bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg" aria-label="Основная навигация">
-          <div className="flex justify-start gap-2 px-2 py-1.5">
+          <div className="flex gap-2 px-2 py-1.5 sm:px-3 sm:py-2">
             <NavButton
               icon="💬"
               label="Чат"
@@ -234,7 +234,7 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-row items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg transition-all shadow-sm ${
+      className={`flex-1 flex flex-row items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg sm:rounded-xl transition-all shadow-sm ${
         isActive
           ? 'bg-blue-400/90 text-white font-semibold shadow-md'
           : 'text-[var(--tg-theme-text-color)] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-blue-100/50 dark:hover:bg-blue-900/20 font-medium'
@@ -242,8 +242,8 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
       aria-label={label}
       aria-current={isActive ? 'page' : undefined}
     >
-      <span className="text-base" aria-hidden="true">{icon}</span>
-      <span className="text-[10px] font-semibold leading-tight opacity-90">{label}</span>
+      <span className="text-base sm:text-lg md:text-xl" aria-hidden="true">{icon}</span>
+      <span className="text-[11px] sm:text-xs md:text-sm font-semibold leading-tight opacity-90">{label}</span>
     </button>
   );
 }

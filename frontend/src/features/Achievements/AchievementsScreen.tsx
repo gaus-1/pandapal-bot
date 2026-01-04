@@ -47,18 +47,18 @@ export function AchievementsScreen({ user }: AchievementsScreenProps) {
   const totalCount = achievements.length;
 
   return (
-    <div className="min-h-screen bg-[var(--tg-theme-bg-color)] p-4">
+    <div className="min-h-screen bg-[var(--tg-theme-bg-color)] p-4 sm:p-6 md:p-8 max-w-4xl mx-auto">
       {/* Заголовок */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-2">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
           🏆 Достижения
         </h1>
-        <p className="text-[var(--tg-theme-hint-color)]">
+        <p className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-hint-color)]">
           Получено {unlockedCount} из {totalCount}
         </p>
 
         {/* Progress bar */}
-        <div className="w-full h-3 bg-[var(--tg-theme-hint-color)]/20 rounded-full overflow-hidden mt-3">
+        <div className="w-full h-3 sm:h-4 md:h-5 bg-[var(--tg-theme-hint-color)]/20 rounded-full overflow-hidden mt-3 sm:mt-4">
           <div
             className="h-full bg-[var(--tg-theme-button-color)] transition-all duration-500"
             style={{ width: `${(unlockedCount / totalCount) * 100}%` }}
@@ -67,30 +67,30 @@ export function AchievementsScreen({ user }: AchievementsScreenProps) {
       </div>
 
       {/* Список достижений */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
         {achievements.map((achievement) => (
           <button
             key={achievement.id}
             onClick={() => handleAchievementClick(achievement)}
-            className={`p-4 rounded-2xl transition-all ${
+            className={`p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl transition-all ${
               achievement.unlocked
                 ? 'bg-[var(--tg-theme-button-color)]/20 active:scale-95'
                 : 'bg-[var(--tg-theme-hint-color)]/10 opacity-50'
             }`}
           >
-            <div className={`text-5xl mb-2 ${!achievement.unlocked ? 'grayscale' : ''}`}>
+            <div className={`text-5xl sm:text-6xl md:text-7xl mb-2 sm:mb-3 ${!achievement.unlocked ? 'grayscale' : ''}`}>
               {achievement.icon}
             </div>
-            <div className="text-sm font-semibold text-[var(--tg-theme-text-color)] mb-1">
+            <div className="text-sm sm:text-base md:text-lg font-semibold text-[var(--tg-theme-text-color)] mb-1 sm:mb-2">
               {achievement.title}
             </div>
             {achievement.unlocked && achievement.unlock_date && (
-              <div className="text-xs text-[var(--tg-theme-hint-color)]">
+              <div className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">
                 {new Date(achievement.unlock_date).toLocaleDateString('ru-RU')}
               </div>
             )}
             {!achievement.unlocked && (
-              <div className="text-xs text-[var(--tg-theme-hint-color)]">🔒 Заблокировано</div>
+              <div className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">🔒 Заблокировано</div>
             )}
           </button>
         ))}

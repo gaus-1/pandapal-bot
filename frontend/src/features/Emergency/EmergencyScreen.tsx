@@ -91,33 +91,33 @@ export function EmergencyScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--tg-theme-bg-color)] p-4">
+    <div className="min-h-screen bg-[var(--tg-theme-bg-color)] p-4 sm:p-6 md:p-8 max-w-4xl mx-auto">
       {/* Заголовок */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-2">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
           🚨 Экстренные номера
         </h1>
-        <p className="text-[var(--tg-theme-hint-color)]">
+        <p className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-hint-color)]">
           В опасности? Звони сразу! Все звонки бесплатные 24/7
         </p>
       </div>
 
       {/* Список номеров */}
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-5 md:space-y-6">
         {EMERGENCY_NUMBERS.map((emergency) => (
           <div
             key={emergency.number}
-            className="bg-[var(--tg-theme-secondary-bg-color)] rounded-2xl p-4 shadow-lg"
+            className="bg-[var(--tg-theme-secondary-bg-color)] rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg"
           >
             {/* Заголовок карточки */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="text-3xl">{emergency.icon}</div>
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="text-3xl sm:text-4xl md:text-5xl">{emergency.icon}</div>
                 <div>
-                  <h3 className="font-bold text-[var(--tg-theme-text-color)]">
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-[var(--tg-theme-text-color)]">
                     {emergency.title}
                   </h3>
-                  <p className="text-sm text-[var(--tg-theme-hint-color)]">
+                  <p className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-hint-color)]">
                     {emergency.description}
                   </p>
                 </div>
@@ -125,15 +125,15 @@ export function EmergencyScreen() {
             </div>
 
             {/* Когда звонить */}
-            <div className="mb-3">
-              <p className="text-sm font-semibold text-[var(--tg-theme-text-color)] mb-2">
+            <div className="mb-3 sm:mb-4">
+              <p className="text-sm sm:text-base md:text-lg font-semibold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
                 Звони, если:
               </p>
-              <ul className="space-y-1">
+              <ul className="space-y-1 sm:space-y-2">
                 {emergency.when.map((reason, idx) => (
                   <li
                     key={idx}
-                    className="text-sm text-[var(--tg-theme-hint-color)] flex items-start gap-2"
+                    className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-hint-color)] flex items-start gap-2"
                   >
                     <span className="text-[var(--tg-theme-link-color)] font-bold">•</span>
                     {reason}
@@ -145,7 +145,7 @@ export function EmergencyScreen() {
             {/* Кнопка звонка */}
             <button
               onClick={() => handleCall(emergency.number, emergency.title)}
-              className={`w-full py-3 rounded-xl font-bold text-white transition-all ${emergency.color} hover:opacity-90 active:scale-95`}
+              className={`w-full py-3 sm:py-4 md:py-5 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold text-white transition-all ${emergency.color} hover:opacity-90 active:scale-95`}
               aria-label={`Позвонить в ${emergency.title}: ${emergency.number}`}
             >
               <span aria-hidden="true">📞</span> Позвонить: {emergency.number}
@@ -155,8 +155,8 @@ export function EmergencyScreen() {
       </div>
 
       {/* Предупреждение */}
-      <div className="mt-6 bg-yellow-500/10 border-2 border-yellow-500/30 rounded-2xl p-4">
-        <p className="text-sm text-[var(--tg-theme-text-color)] text-center">
+      <div className="mt-6 sm:mt-8 bg-yellow-500/10 border-2 border-yellow-500/30 rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
+        <p className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-text-color)] text-center">
           <span className="font-bold">⚠️ Важно:</span> Не паникуй! Говори четко и спокойно. Назови
           свой адрес и опиши ситуацию.
         </p>

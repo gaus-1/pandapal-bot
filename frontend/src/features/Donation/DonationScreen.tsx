@@ -118,24 +118,24 @@ export function DonationScreen({ user }: DonationScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--tg-theme-bg-color)] p-4 pb-24">
+    <div className="min-h-screen bg-[var(--tg-theme-bg-color)] p-4 sm:p-6 md:p-8 pb-24 sm:pb-28 max-w-4xl mx-auto">
       {/* Заголовок */}
-      <div className="mb-6 text-center">
-        <div className="text-6xl mb-3">💝</div>
-        <h1 className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-2">
+      <div className="mb-6 sm:mb-8 text-center">
+        <div className="text-6xl sm:text-7xl md:text-8xl mb-3 sm:mb-4">💝</div>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
           Поддержать проект PandaPal
         </h1>
-        <p className="text-[var(--tg-theme-hint-color)]">
+        <p className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-hint-color)]">
           Ваша поддержка помогает развитию проекта
         </p>
       </div>
 
       {/* Информация о поддержке */}
-      <div className="mb-6 p-4 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-2xl border-2 border-pink-500/30">
-        <h2 className="text-lg font-semibold text-[var(--tg-theme-text-color)] mb-3">
+      <div className="mb-6 sm:mb-8 p-4 sm:p-5 md:p-6 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-2xl sm:rounded-3xl border-2 border-pink-500/30">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--tg-theme-text-color)] mb-3 sm:mb-4">
           🌟 Зачем поддерживать проект?
         </h2>
-        <ul className="space-y-2 text-sm text-[var(--tg-theme-text-color)]">
+        <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base md:text-lg text-[var(--tg-theme-text-color)]">
           <li>✨ <strong>Развитие функций</strong> — новые возможности для детей</li>
           <li>📚 <strong>Улучшение качества</strong> — лучшие ответы и материалы</li>
           <li>🎯 <strong>Доступность</strong> — бесплатные функции для всех</li>
@@ -144,16 +144,16 @@ export function DonationScreen({ user }: DonationScreenProps) {
       </div>
 
       {/* Выбор суммы */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-[var(--tg-theme-text-color)] mb-3">
+      <div className="mb-6 sm:mb-8">
+        <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--tg-theme-text-color)] mb-3 sm:mb-4">
           Выберите сумму поддержки:
         </h3>
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-5">
           {DONATION_AMOUNTS.map((amount) => (
             <button
               key={amount}
               onClick={() => setSelectedAmount(amount)}
-              className={`py-3 rounded-xl font-medium transition-all ${
+              className={`py-3 sm:py-4 md:py-5 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-medium transition-all ${
                 selectedAmount === amount
                   ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg'
                   : 'bg-[var(--tg-theme-hint-color)]/20 text-[var(--tg-theme-text-color)]'
@@ -165,23 +165,23 @@ export function DonationScreen({ user }: DonationScreenProps) {
         </div>
 
         {/* Произвольная сумма */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
+        <div className="mb-4 sm:mb-5">
+          <label className="block text-sm sm:text-base md:text-lg font-medium text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
             Или введите свою сумму (от 50 ⭐):
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 sm:gap-3">
             <input
               type="number"
               min="50"
               value={customAmount}
               onChange={(e) => setCustomAmount(e.target.value)}
               placeholder="50"
-              className="flex-1 px-4 py-2 rounded-xl bg-[var(--tg-theme-hint-color)]/20 text-[var(--tg-theme-text-color)] border border-[var(--tg-theme-hint-color)]/30"
+              className="flex-1 px-4 sm:px-5 md:px-6 py-2 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg bg-[var(--tg-theme-hint-color)]/20 text-[var(--tg-theme-text-color)] border border-[var(--tg-theme-hint-color)]/30"
             />
             <button
               onClick={handleCustomDonate}
               disabled={isProcessing || !customAmount}
-              className="px-4 py-2 rounded-xl bg-blue-500 text-white font-medium disabled:opacity-50"
+              className="px-4 sm:px-5 md:px-6 py-2 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg bg-blue-500 text-white font-medium disabled:opacity-50"
             >
               Поддержать
             </button>
@@ -192,22 +192,22 @@ export function DonationScreen({ user }: DonationScreenProps) {
         <button
           onClick={() => handleDonate(selectedAmount)}
           disabled={isProcessing}
-          className="w-full py-3 rounded-xl font-medium bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 sm:py-4 md:py-5 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-medium bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isProcessing ? 'Обработка...' : `Поддержать проект на ${selectedAmount} ⭐`}
         </button>
       </div>
 
       {/* Информация о способе оплаты */}
-      <div className="p-4 bg-[var(--tg-theme-hint-color)]/10 rounded-2xl border border-[var(--tg-theme-hint-color)]/20">
-        <h3 className="text-lg font-semibold text-[var(--tg-theme-text-color)] mb-2 flex items-center gap-2">
+      <div className="p-4 sm:p-5 md:p-6 bg-[var(--tg-theme-hint-color)]/10 rounded-2xl sm:rounded-3xl border border-[var(--tg-theme-hint-color)]/20">
+        <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3 flex items-center gap-2">
           <span>⭐</span>
           <span>Telegram Stars</span>
         </h3>
-        <p className="text-sm text-[var(--tg-theme-hint-color)] mb-2">
+        <p className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-hint-color)] mb-2 sm:mb-3">
           Поддержка проекта через Telegram Stars. Это помогает развитию PandaPal!
         </p>
-        <ul className="space-y-1 text-xs text-[var(--tg-theme-hint-color)]">
+        <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">
           <li>• Оплата из баланса Telegram</li>
           <li>• Безопасная оплата через Telegram</li>
           <li>• Поддержка развития проекта</li>

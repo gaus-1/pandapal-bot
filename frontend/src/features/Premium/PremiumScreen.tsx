@@ -134,14 +134,14 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--tg-theme-bg-color)] p-4 pb-24">
+    <div className="min-h-screen bg-[var(--tg-theme-bg-color)] p-4 sm:p-6 md:p-8 pb-24 sm:pb-28 max-w-4xl mx-auto">
       {/* Заголовок */}
-      <div className="mb-6 text-center">
-        <div className="text-6xl mb-3">👑</div>
-        <h1 className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-2">
+      <div className="mb-6 sm:mb-8 text-center">
+        <div className="text-6xl sm:text-7xl md:text-8xl mb-3 sm:mb-4">👑</div>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
           PandaPal Premium
         </h1>
-        <p className="text-[var(--tg-theme-hint-color)]">
+        <p className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-hint-color)]">
           Получи максимум от обучения
         </p>
         {user?.is_premium && user.premium_days_left !== undefined && (
@@ -154,11 +154,11 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
       </div>
 
       {/* Преимущества */}
-      <div className="mb-6 p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl border-2 border-purple-500/30">
-        <h2 className="text-lg font-semibold text-[var(--tg-theme-text-color)] mb-3">
+      <div className="mb-6 sm:mb-8 p-4 sm:p-5 md:p-6 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl sm:rounded-3xl border-2 border-purple-500/30">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--tg-theme-text-color)] mb-3 sm:mb-4">
           🌟 Что дает Premium?
         </h2>
-        <ul className="space-y-2 text-sm text-[var(--tg-theme-text-color)]">
+        <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base md:text-lg text-[var(--tg-theme-text-color)]">
           <li>✨ <strong>Неограниченные запросы</strong> к AI без лимитов</li>
           <li>📚 <strong>Все предметы</strong> и уровни сложности</li>
           <li>🎯 <strong>Персональный план</strong> обучения</li>
@@ -169,36 +169,36 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
       </div>
 
       {/* Тарифные планы */}
-      <div className="space-y-3 mb-6">
+      <div className="space-y-3 sm:space-y-4 md:space-y-5 mb-6 sm:mb-8">
         {PREMIUM_PLANS.map((plan) => (
           <div
             key={plan.id}
-            className={`p-4 rounded-2xl transition-all ${
+            className={`p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl transition-all ${
               plan.popular
                 ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50'
                 : 'bg-[var(--tg-theme-hint-color)]/10 border border-[var(--tg-theme-hint-color)]/20'
             }`}
           >
             {plan.popular && (
-              <div className="inline-block px-3 py-1 bg-purple-500 text-white text-xs font-bold rounded-full mb-2">
+              <div className="inline-block px-3 sm:px-4 py-1 sm:py-1.5 bg-purple-500 text-white text-xs sm:text-sm font-bold rounded-full mb-2 sm:mb-3">
                 🔥 ПОПУЛЯРНЫЙ
               </div>
             )}
 
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div>
-                <h3 className="text-xl font-bold text-[var(--tg-theme-text-color)]">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--tg-theme-text-color)]">
                   {plan.name}
                 </h3>
-                <p className="text-sm text-[var(--tg-theme-hint-color)]">
+                <p className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-hint-color)]">
                   {plan.duration}
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-[var(--tg-theme-text-color)]">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--tg-theme-text-color)]">
                   {plan.priceRub} ₽
                 </div>
-                <div className="text-xs text-[var(--tg-theme-hint-color)]">
+                <div className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">
                   {(() => {
                     const days = plan.id === 'week' ? 7 : plan.id === 'month' ? 30 : 365;
                     return `${(plan.priceRub / days).toFixed(0)} ₽/день`;
@@ -207,11 +207,11 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
               </div>
             </div>
 
-            <ul className="space-y-1 mb-4">
+            <ul className="space-y-1 sm:space-y-2 mb-4 sm:mb-5">
               {plan.features.map((feature, index) => (
                 <li
                   key={index}
-                  className="text-sm text-[var(--tg-theme-text-color)]"
+                  className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-text-color)]"
                 >
                   {feature}
                 </li>
@@ -221,7 +221,7 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
             <button
               onClick={() => handlePurchase(plan)}
               disabled={isProcessing && selectedPlan === plan.id}
-              className={`w-full py-3 rounded-xl font-medium transition-all ${
+              className={`w-full py-3 sm:py-4 md:py-5 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-medium transition-all ${
                 plan.popular
                   ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg active:scale-95'
                   : 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] active:scale-95'
@@ -236,15 +236,15 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
       </div>
 
       {/* Информация о способах оплаты */}
-      <div className="p-4 bg-[var(--tg-theme-hint-color)]/10 rounded-2xl border border-[var(--tg-theme-hint-color)]/20">
-        <h3 className="text-lg font-semibold text-[var(--tg-theme-text-color)] mb-2 flex items-center gap-2">
+      <div className="p-4 sm:p-5 md:p-6 bg-[var(--tg-theme-hint-color)]/10 rounded-2xl sm:rounded-3xl border border-[var(--tg-theme-hint-color)]/20">
+        <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3 flex items-center gap-2">
           <span>💳</span>
           <span>Безопасная оплата через ЮKassa</span>
         </h3>
-        <p className="text-sm text-[var(--tg-theme-hint-color)] mb-2">
+        <p className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-hint-color)] mb-2 sm:mb-3">
           Поддержка всех банковских карт и СБП!
         </p>
-        <ul className="space-y-1 text-xs text-[var(--tg-theme-hint-color)]">
+        <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">
           <li>• Оплата картой Visa, Mastercard, МИР</li>
           <li>• Быстрая оплата через СБП</li>
           <li>• Автоматическая отправка чека</li>
