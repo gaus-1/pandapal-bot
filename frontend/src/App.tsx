@@ -107,7 +107,7 @@ const App: React.FC = () => {
   if (currentRoute === 'premium') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
-        <Header />
+        <Header currentRoute={currentRoute} />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
           <PremiumScreen user={null as any} />
         </main>
@@ -120,7 +120,7 @@ const App: React.FC = () => {
   if (currentRoute === 'donation') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
-        <Header />
+        <Header currentRoute={currentRoute} />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
           <DonationScreen user={null} />
         </main>
@@ -133,7 +133,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
       {/* Шапка сайта (включает DarkModeToggle внутри) */}
-      <Header />
+      <Header currentRoute={currentRoute} />
 
       {/* Основной контент */}
       <main className="max-w-6xl mx-auto px-4">
