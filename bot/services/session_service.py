@@ -80,6 +80,8 @@ class SessionService:
         Автоматически подключается к Redis если доступен,
         иначе использует in-memory хранилище.
         """
+        logger.info("🔄 Инициализация SessionService...")
+
         self._redis_client: Optional[aioredis.Redis] = None
         self._use_redis = False
         self._memory_sessions: Dict[str, SessionData] = {}
@@ -88,12 +90,27 @@ class SessionService:
         self.session_ttl_days = 30
         self.redis_key_prefix = "session:"
 
+        # Диагностика
+        logger.info(f"📋 REDIS_AVAILABLE: {REDIS_AVAILABLE}")
+        logger.info(
+            f"📋 settings.redis_url: {'настроен' if hasattr(settings, 'redis_url') and settings.redis_url else 'не настроен'}"
+        )
+
         # Подключение к Redis
         if REDIS_AVAILABLE and hasattr(settings, "redis_url") and settings.redis_url:
+            logger.info("🔄 Попытка подключения к Redis...")
             self._init_redis()
         else:
+            reasons = []
+            if not REDIS_AVAILABLE:
+                reasons.append("redis пакет не установлен")
+            if not hasattr(settings, "redis_url"):
+                reasons.append("redis_url отсутствует в settings")
+            elif not settings.redis_url:
+                reasons.append("REDIS_URL не задан в переменных окружения")
+
             logger.warning(
-                "🔧 Сессии хранятся в памяти (Redis не настроен). "
+                f"🔧 Сессии хранятся в памяти (Redis не настроен: {', '.join(reasons)}). "
                 "Добавьте REDIS_URL в переменные окружения для персистентности."
             )
 
@@ -101,7 +118,7 @@ class SessionService:
         """Инициализация подключения к Redis."""
         try:
             redis_url = settings.redis_url
-            logger.info(f"🔄 Подключение к Redis: {redis_url[:20]}...")
+            logger.info(f"🔄 Подключение к Redis: {redis_url[:30]}...")
 
             self._redis_client = aioredis.from_url(
                 redis_url,
@@ -114,10 +131,13 @@ class SessionService:
             )
 
             self._use_redis = True
-            logger.info("✅ Redis подключен для хранения сессий")
+            logger.info("✅ Redis клиент создан (подключение произойдет при первом запросе)")
+            logger.info(
+                "📊 Сессии будут храниться в Redis с TTL={} дней".format(self.session_ttl_days)
+            )
 
         except Exception as e:
-            logger.error(f"❌ Ошибка подключения к Redis: {e}")
+            logger.error(f"❌ Ошибка создания Redis клиента: {e}", exc_info=True)
             logger.warning("⚠️ Fallback на in-memory хранилище сессий")
             self._redis_client = None
             self._use_redis = False
