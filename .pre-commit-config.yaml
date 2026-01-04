@@ -131,6 +131,15 @@ repos:
 
   - repo: local
     hooks:
+      - id: eslint
+        name: 🔍 ESLint - проверка TypeScript/JavaScript
+        entry: bash -c 'cd frontend && npm run lint'
+        language: system
+        types: [file]
+        files: ^frontend/src/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: false
+        always_run: false
+
       - id: npm-audit
         name: 🔒 npm audit - проверка уязвимостей Node.js
         entry: bash -c 'cd frontend && npm audit --audit-level=moderate'
@@ -145,7 +154,7 @@ repos:
 #
 # ОБЫЧНЫЙ КОММИТ:
 #   git commit -m "feat: новая функция"
-#   → Запустятся: trailing-whitespace, black, isort, flake8
+#   → Запустятся: trailing-whitespace, black, isort, flake8, eslint
 #
 # БЫСТРЫЙ КОММИТ (БЕЗ ПРОВЕРОК):
 #   git commit --no-verify -m "fix: быстрое исправление"
