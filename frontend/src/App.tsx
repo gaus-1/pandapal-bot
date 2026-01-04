@@ -133,7 +133,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
       {/* Шапка сайта (включает DarkModeToggle внутри) */}
-      <Header currentRoute={currentRoute} />
+      <Header />
 
       {/* Основной контент */}
       <main className="max-w-6xl mx-auto px-4">
