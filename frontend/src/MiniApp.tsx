@@ -171,6 +171,12 @@ function MiniAppContent() {
               isActive={false}
               onClick={() => navigateTo('achievements')}
             />
+            <NavButton
+              icon="👑"
+              label="Premium"
+              isActive={false}
+              onClick={() => navigateTo('premium')}
+            />
           </div>
         </nav>
       ) : (
