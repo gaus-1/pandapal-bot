@@ -88,7 +88,7 @@ export const Header: React.FC = React.memo(() => {
             onClick={() => trackButtonClick('header_start_bot')}
             className="inline-flex items-center justify-center px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600 text-white font-semibold text-sm hover:shadow-lg dark:hover:shadow-xl hover:scale-105 active:scale-100 transition-all duration-200"
           >
-            Начни
+            Войти
           </a>
 
           {/* Переключатель темы - встроен в header */}
