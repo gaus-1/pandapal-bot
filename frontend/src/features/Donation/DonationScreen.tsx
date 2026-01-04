@@ -32,12 +32,6 @@ export function DonationScreen({ user }: DonationScreenProps) {
 
     telegram.hapticFeedback('medium');
 
-    const confirmed = await telegram.showConfirm(
-      `Поддержать проект на ${amount} ⭐ Telegram Stars?`
-    );
-
-    if (!confirmed) return;
-
     setIsProcessing(true);
 
     try {
