@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Telegram Support
+    url: https://t.me/PandaPalBot
+    about: Получи помощь через Telegram бота
+  - name: 📚 Documentation
+    url: https://github.com/gaus-1/pandapal-bot/tree/main/docs
+    about: Посмотри документацию проекта
