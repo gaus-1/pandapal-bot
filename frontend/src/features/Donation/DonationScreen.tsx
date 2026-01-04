@@ -17,35 +17,6 @@ export function DonationScreen({ user }: DonationScreenProps) {
   const [selectedAmount, setSelectedAmount] = useState<number>(100);
   const [customAmount, setCustomAmount] = useState<string>('');
 
-  // Проверка доступности - только через Telegram Bot
-  if (!user || !user.telegram_id) {
-    return (
-      <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-12 md:py-16">
-          <div className="text-center">
-            <div className="text-6xl sm:text-7xl md:text-8xl mb-6">🐼</div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-[var(--tg-theme-text-color)]">
-              Откройте через Telegram Bot
-            </h1>
-            <p className="text-base sm:text-lg md:text-xl text-[var(--tg-theme-hint-color)] mb-8">
-              Для поддержки проекта звездами откройте приложение через
-              <br />
-              <strong className="text-[var(--tg-theme-link-color)]">@PandaPal_bot</strong> в Telegram
-            </p>
-            <a
-              href="https://t.me/PandaPal_bot"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block px-6 sm:px-8 py-3 sm:py-4 bg-blue-500 text-white text-base sm:text-lg font-semibold rounded-2xl hover:bg-blue-600 transition-colors"
-            >
-              Открыть бота →
-            </a>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const handleDonate = async (amount: number) => {
     if (amount < 50) {
       if (telegram.isInTelegram()) {
