@@ -66,7 +66,23 @@ export const Hero: React.FC = React.memo(() => {
 
         {/* Вторичная CTA */}
         <a
-          href="#cta"
+          href="#benefits"
+          onClick={(e) => {
+            e.preventDefault();
+            const element = document.getElementById('benefits');
+            if (element) {
+              // Учитываем высоту фиксированного Header при прокрутке
+              const headerOffset = 100;
+              const elementPosition = element.getBoundingClientRect().top;
+              const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+              window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth',
+              });
+            }
+            trackButtonClick('hero_learn_more');
+          }}
           className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 font-semibold text-base sm:text-lg shadow-md hover:shadow-lg transition-all duration-300 border-2 border-gray-200 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400"
           aria-label="Узнать больше о PandaPal"
           data-cta-variant="secondary"
