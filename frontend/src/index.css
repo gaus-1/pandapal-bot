@@ -8,13 +8,21 @@
 
 @layer base {
   /* Базовая типографика с новыми шрифтами */
+  html {
+    /* Используем правильный viewport height для мобильных */
+    height: 100%;
+    height: calc(var(--vh, 1vh) * 100);
+  }
+
   body {
     @apply font-sans antialiased;
     font-feature-settings: 'cv11', 'ss01';
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color var(--transition-base, 200ms ease), color var(--transition-base, 200ms ease);
+    min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
   }
 
   /* Заголовки используют Poppins */
@@ -100,6 +108,10 @@
     padding-right: env(safe-area-inset-right);
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-inset-bottom {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
   }
 
   /* Скрытие скроллбара (опционально) */

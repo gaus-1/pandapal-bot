@@ -134,7 +134,8 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--tg-theme-bg-color)] p-4 sm:p-6 md:p-8 pb-24 sm:pb-28 max-w-4xl mx-auto">
+    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 pb-20 sm:pb-24">
       {/* Заголовок */}
       <div className="mb-4 sm:mb-5 text-center">
         <div className="text-5xl sm:text-6xl md:text-7xl mb-2 sm:mb-3">👑</div>
@@ -245,6 +246,7 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
           <span>• Автоматический чек</span>
           <span>• Мгновенная активация</span>
         </div>
+      </div>
       </div>
     </div>
   );

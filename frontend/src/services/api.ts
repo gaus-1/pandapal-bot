@@ -43,6 +43,9 @@ export interface Achievement {
   icon: string;
   unlocked: boolean;
   unlock_date?: string;
+  xp_reward?: number;
+  progress?: number;
+  progress_max?: number;
 }
 
 export interface DashboardStats {
@@ -153,6 +156,14 @@ export async function getDashboardStats(telegramId: number): Promise<DashboardSt
   return data.stats;
 }
 
+export interface AchievementUnlocked {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  xp_reward: number;
+}
+
 /**
  * Отправить сообщение AI (текст / фото / аудио)
  */
@@ -161,7 +172,7 @@ export async function sendAIMessage(
   message?: string,
   photoBase64?: string,
   audioBase64?: string
-): Promise<{ response: string }> {
+): Promise<{ response: string; achievements_unlocked?: AchievementUnlocked[] }> {
   const response = await fetch(`${API_BASE_URL}/miniapp/ai/chat`, {
     method: 'POST',
     headers: {
