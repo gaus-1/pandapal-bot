@@ -468,6 +468,10 @@ class PandaPalBotServer:
         try:
             logger.info("🚀 Запуск PandaPal Bot Server...")
 
+            # СНАЧАЛА создаём приложение с базовыми роутами (чтобы порт открылся)
+            self.create_minimal_app()
+
+            # ПОТОМ инициализируем БД и бота в фоне
             # Инициализация базы данных
             await init_database()
             logger.info("📊 База данных инициализирована")
@@ -478,7 +482,7 @@ class PandaPalBotServer:
             # Настройка webhook
             webhook_url = await self.setup_webhook()
 
-            # Создание веб-приложения
+            # Создание полного веб-приложения
             self.create_app()
 
             logger.info("✅ Сервер готов к работе")
@@ -488,6 +492,18 @@ class PandaPalBotServer:
         except Exception as e:
             logger.error(f"❌ Ошибка запуска сервера: {e}")
             raise
+
+    def create_minimal_app(self) -> None:
+        """Создание минимального приложения для быстрого старта"""
+        self.app = web.Application(client_max_size=10 * 1024 * 1024)
+
+        # Минимальный health check
+        async def quick_health(request: web.Request) -> web.Response:
+            return web.json_response({"status": "starting"})
+
+        self.app.router.add_get("/health", quick_health)
+        self.app.router.add_get("/", quick_health)
+        logger.info("⚡ Минимальное приложение создано")
 
     async def shutdown(self) -> None:
         """Остановка сервера - очистка ресурсов."""
