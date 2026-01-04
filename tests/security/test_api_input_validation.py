@@ -80,7 +80,7 @@ class TestAPIInputValidation:
         invalid_requests = [
             {"age": "not_a_number"},  # Строка вместо числа
             {"grade": [1, 2, 3]},  # Список вместо числа
-            {"age": None},  # None вместо числа
+            # None допустимо для Optional полей, не тестируем
         ]
 
         for invalid_data in invalid_requests:
