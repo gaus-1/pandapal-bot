@@ -45,7 +45,7 @@ export const Hero: React.FC = React.memo(() => {
       </h1>
 
       {/* Описание продукта */}
-      <p className="mt-4 sm:mt-6 text-sm sm:text-lg md:text-xl text-gray-700 dark:text-slate-300 max-w-2xl mx-auto animate-fade-in-delay px-4">
+      <p className="mt-4 sm:mt-6 text-sm sm:text-lg md:text-xl text-gray-700 dark:text-slate-200 max-w-2xl mx-auto animate-fade-in-delay px-4">
         Адаптивное, игровое и безопасное обучение для 1–9 классов
       </p>
 
@@ -57,7 +57,7 @@ export const Hero: React.FC = React.memo(() => {
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => trackButtonClick('hero_start_bot')}
-          className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 font-semibold text-base sm:text-lg shadow-md hover:shadow-lg transition-all duration-300 border-2 border-gray-200 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400"
+          className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 font-semibold text-base sm:text-lg shadow-md hover:shadow-lg dark:hover:shadow-xl transition-all duration-300 border-2 border-gray-200 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400 active:bg-gray-50 dark:active:bg-slate-600"
           aria-label="Начать использовать PandaPal в Telegram"
           data-cta-variant="primary"
         >
@@ -83,7 +83,7 @@ export const Hero: React.FC = React.memo(() => {
             }
             trackButtonClick('hero_learn_more');
           }}
-          className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 font-semibold text-base sm:text-lg shadow-md hover:shadow-lg transition-all duration-300 border-2 border-gray-200 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400"
+          className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 font-semibold text-base sm:text-lg shadow-md hover:shadow-lg dark:hover:shadow-xl transition-all duration-300 border-2 border-gray-200 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400 active:bg-gray-50 dark:active:bg-slate-600"
           aria-label="Узнать больше о PandaPal"
           data-cta-variant="secondary"
         >
