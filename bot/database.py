@@ -378,6 +378,97 @@ async def init_database() -> None:
                     except Exception as e:
                         logger.warning(f"⚠️ Ошибка применения миграции payment_method: {e}")
 
+                # Проверяем, нужна ли миграция payments таблицы
+                needs_payments_table = False
+                if "payments" not in tables:
+                    needs_payments_table = True
+                    logger.info("📋 Обнаружено: таблица payments отсутствует")
+
+                if needs_payments_table:
+                    logger.info("🔄 Применение миграции payments через SQL...")
+                    try:
+                        with engine.begin() as conn:
+                            conn.execute(
+                                text(
+                                    """
+                                    CREATE TABLE IF NOT EXISTS payments (
+                                        id SERIAL PRIMARY KEY,
+                                        payment_id VARCHAR(255) NOT NULL UNIQUE,
+                                        user_telegram_id BIGINT NOT NULL,
+                                        subscription_id INTEGER,
+                                        payment_method VARCHAR(20) NOT NULL,
+                                        plan_id VARCHAR(20) NOT NULL,
+                                        amount FLOAT NOT NULL,
+                                        currency VARCHAR(10) NOT NULL DEFAULT 'RUB',
+                                        status VARCHAR(20) NOT NULL DEFAULT 'pending',
+                                        metadata JSONB,
+                                        webhook_data JSONB,
+                                        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                        paid_at TIMESTAMP WITH TIME ZONE,
+                                        CONSTRAINT fk_payments_user
+                                            FOREIGN KEY (user_telegram_id)
+                                            REFERENCES users(telegram_id)
+                                            ON DELETE CASCADE,
+                                        CONSTRAINT fk_payments_subscription
+                                            FOREIGN KEY (subscription_id)
+                                            REFERENCES subscriptions(id)
+                                            ON DELETE SET NULL,
+                                        CONSTRAINT ck_payments_payment_method
+                                            CHECK (payment_method IN ('stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other')),
+                                        CONSTRAINT ck_payments_plan_id
+                                            CHECK (plan_id IN ('week', 'month', 'year')),
+                                        CONSTRAINT ck_payments_status
+                                            CHECK (status IN ('pending', 'succeeded', 'cancelled', 'failed'))
+                                    )
+                                    """
+                                )
+                            )
+                            logger.info("✅ Таблица payments создана")
+
+                            # Создаем индексы
+                            indexes = [
+                                (
+                                    "idx_payments_payment_id",
+                                    "CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_payment_id ON payments(payment_id)",
+                                ),
+                                (
+                                    "idx_payments_user_telegram_id",
+                                    "CREATE INDEX IF NOT EXISTS idx_payments_user_telegram_id ON payments(user_telegram_id)",
+                                ),
+                                (
+                                    "idx_payments_subscription_id",
+                                    "CREATE INDEX IF NOT EXISTS idx_payments_subscription_id ON payments(subscription_id)",
+                                ),
+                                (
+                                    "idx_payments_status",
+                                    "CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status)",
+                                ),
+                                (
+                                    "idx_payments_user_status",
+                                    "CREATE INDEX IF NOT EXISTS idx_payments_user_status ON payments(user_telegram_id, status)",
+                                ),
+                                (
+                                    "idx_payments_created",
+                                    "CREATE INDEX IF NOT EXISTS idx_payments_created ON payments(created_at)",
+                                ),
+                                (
+                                    "idx_payments_paid",
+                                    "CREATE INDEX IF NOT EXISTS idx_payments_paid ON payments(paid_at)",
+                                ),
+                            ]
+                            for idx_name, idx_sql in indexes:
+                                try:
+                                    conn.execute(text(idx_sql))
+                                    logger.info(f"✅ Индекс {idx_name} создан")
+                                except Exception as e:
+                                    if "already exists" not in str(e).lower():
+                                        logger.warning(f"⚠️ Ошибка создания индекса {idx_name}: {e}")
+
+                        logger.info("✅ Миграция payments применена")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Ошибка применения миграции payments: {e}")
+
             except Exception as e:
                 logger.warning(f"⚠️ Ошибка при проверке миграций: {e}")
                 logger.info("🔄 Пробуем применить SQL скрипт напрямую...")
