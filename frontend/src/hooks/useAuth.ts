@@ -23,7 +23,7 @@ export function useAuth() {
       setError(null);
       telegram.notifySuccess();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       console.error('❌ Ошибка аутентификации:', error);
 
       let errorMessage = 'Не удалось загрузить приложение.';

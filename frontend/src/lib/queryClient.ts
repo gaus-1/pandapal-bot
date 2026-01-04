@@ -19,9 +19,10 @@ export const queryClient = new QueryClient({
       gcTime: 10 * 60 * 1000,
 
       // Автоматический retry с экспоненциальной задержкой
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: unknown) => {
         // Не делаем retry для 4xx ошибок (ошибки клиента)
-        if (error?.response?.status >= 400 && error?.response?.status < 500) {
+        const httpError = error as { response?: { status?: number } };
+        if (httpError?.response?.status && httpError.response.status >= 400 && httpError.response.status < 500) {
           return false;
         }
         // Максимум 3 попытки для 5xx ошибок
