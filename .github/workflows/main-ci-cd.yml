@@ -47,6 +47,10 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
       - name: 🐍 Setup Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
@@ -97,6 +101,23 @@ jobs:
           name: backend-coverage
         continue-on-error: true
 
+      - name: 🐳 Build Docker image (backend)
+        id: build-backend
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker build -t pandapal-backend:${{ github.sha }} -t pandapal-backend:latest .
+          docker save pandapal-backend:${{ github.sha }} -o backend-image.tar
+        continue-on-error: true
+
+      - name: 🔐 Generate build attestation (backend)
+        uses: actions/attest-build-provenance@v1
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.build-backend.outcome == 'success'
+        with:
+          subject-name: 'pandapal-backend'
+          subject-digest: 'sha256:$(docker inspect --format="{{index .RepoDigests 0}}" pandapal-backend:${{ github.sha }} | cut -d@ -f2 || echo "")'
+          push-to-registry: false
+        continue-on-error: true
+
   # ============================================================================
   # FRONTEND: React + TypeScript + Vite
   # ============================================================================
@@ -134,6 +155,25 @@ jobs:
           name: frontend-build
           path: frontend/dist/
           retention-days: 7
+
+      - name: 🐳 Build Docker image (frontend)
+        id: build-frontend
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          # Используем основной Dockerfile, который включает frontend
+          docker build -t pandapal-frontend:${{ github.sha }} .
+          IMAGE_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' pandapal-frontend:${{ github.sha }} 2>/dev/null | cut -d@ -f2 || docker images --digests --format "{{.Digest}}" pandapal-frontend:${{ github.sha }} | head -1 || echo "")
+          echo "digest=$IMAGE_DIGEST" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: 🔐 Generate build attestation (frontend)
+        uses: actions/attest-build-provenance@v1
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.build-frontend.outcome == 'success' && steps.build-frontend.outputs.digest != ''
+        with:
+          subject-name: 'pandapal-frontend'
+          subject-digest: 'sha256:${{ steps.build-frontend.outputs.digest }}'
+          push-to-registry: false
+        continue-on-error: true
 
   # ============================================================================
   # SECURITY: Безопасность и уязвимости
