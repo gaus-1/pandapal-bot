@@ -22,6 +22,7 @@ def setup_auth_routes(app: web.Application) -> None:
     app.router.add_post("/api/auth/telegram/login", telegram_login)
     app.router.add_get("/api/auth/telegram/verify", verify_session)
     app.router.add_post("/api/auth/telegram/logout", logout)
+    app.router.add_get("/api/auth/stats", session_stats)
 
     logger.info("✅ Auth API routes зарегистрированы")
 
@@ -200,4 +201,28 @@ async def logout(request: web.Request) -> web.Response:
 
     except Exception as e:
         logger.error(f"❌ Ошибка выхода из системы: {e}", exc_info=True)
+        return web.json_response({"success": False, "error": "Internal server error"}, status=500)
+
+
+async def session_stats(request: web.Request) -> web.Response:
+    """
+    Статистика по сессиям (для мониторинга).
+
+    GET /api/auth/stats
+
+    Response:
+        {
+            "storage": "Redis" | "In-Memory",
+            "total_sessions": 10,
+            "redis_connected": true
+        }
+    """
+    try:
+        session_service = get_session_service()
+        stats = await session_service.get_stats()
+        logger.info(f"📊 Статистика сессий: {stats}")
+        return web.json_response({"success": True, "stats": stats})
+
+    except Exception as e:
+        logger.error(f"❌ Ошибка получения статистики: {e}", exc_info=True)
         return web.json_response({"success": False, "error": "Internal server error"}, status=500)
