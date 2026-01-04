@@ -104,9 +104,14 @@ jobs:
       - name: 🐳 Build Docker image (backend)
         id: build-backend
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          docker build -t pandapal-backend:${{ github.sha }} -t pandapal-backend:latest .
-          docker save pandapal-backend:${{ github.sha }} -o backend-image.tar
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: pandapal-backend:${{ github.sha }}
+          outputs: type=docker,dest=/tmp/backend-image.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
         continue-on-error: true
 
       - name: 🔐 Generate build attestation (backend)
@@ -114,7 +119,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.build-backend.outcome == 'success'
         with:
           subject-name: 'pandapal-backend'
-          subject-digest: 'sha256:$(docker inspect --format="{{index .RepoDigests 0}}" pandapal-backend:${{ github.sha }} | cut -d@ -f2 || echo "")'
+          subject-digest: 'sha256:${{ steps.build-backend.outputs.digest }}'
           push-to-registry: false
         continue-on-error: true
 
