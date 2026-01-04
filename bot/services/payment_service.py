@@ -96,8 +96,13 @@ class PaymentService:
 
         # Добавляем чек для самозанятого (если ИНН указан)
         if settings.yookassa_inn:
+            # Для анонимных платежей (без email/phone) используем no-reply email
+            # Это требование 54-ФЗ - чек должен быть отправлен
+            customer_email = user_email or "no-reply@pandapal.ru"
+            customer_phone = user_phone
+
             receipt_data = {
-                "customer": {},
+                "customer": {"email": customer_email},
                 "items": [
                     {
                         "description": plan["name"],
@@ -112,10 +117,9 @@ class PaymentService:
                 "tax_system_code": 1,  # Общая система налогообложения (для самозанятых)
             }
 
-            if user_email:
-                receipt_data["customer"]["email"] = user_email
-            if user_phone:
-                receipt_data["customer"]["phone"] = user_phone
+            # Если есть телефон - добавляем и его
+            if customer_phone:
+                receipt_data["customer"]["phone"] = customer_phone
 
             payment_data["receipt"] = receipt_data
 
