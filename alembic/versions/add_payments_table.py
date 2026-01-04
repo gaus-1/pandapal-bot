@@ -59,7 +59,7 @@ def upgrade() -> None:
             nullable=False,
             server_default="pending",
         ),  # 'pending', 'succeeded', 'cancelled', 'failed'
-        sa.Column("metadata", postgresql.JSON(astext_type=sa.Text()), nullable=True),
+        sa.Column("payment_metadata", postgresql.JSON(astext_type=sa.Text()), nullable=True),
         sa.Column("webhook_data", postgresql.JSON(astext_type=sa.Text()), nullable=True),
         sa.Column(
             "created_at",

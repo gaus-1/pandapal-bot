@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS payments (
     amount FLOAT NOT NULL,  -- Сумма платежа
     currency VARCHAR(10) NOT NULL DEFAULT 'RUB',
     status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- 'pending', 'succeeded', 'cancelled', 'failed'
-    metadata JSONB,  -- Дополнительные данные платежа
+    payment_metadata JSONB,  -- Дополнительные данные платежа
     webhook_data JSONB,  -- Полные данные webhook для отладки
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
