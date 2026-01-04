@@ -47,12 +47,15 @@ class TestWebhookAndSecurityReal:
     @pytest.mark.asyncio
     async def test_security_headers(self):
         """Тест: Security headers устанавливаются"""
-        request = make_mocked_request("GET", "/test")
-        handler = lambda req: web.Response(text="OK")
+        app = web.Application()
+        request = make_mocked_request("GET", "/test", app=app)
+
+        async def handler(req):
+            return web.Response(text="OK")
 
         # Применяем middleware
-        wrapped_handler = security_middleware(handler)
-        response = await wrapped_handler(request)
+        middleware = security_middleware(app, handler)
+        response = await middleware(request)
 
         # Проверяем security headers
         assert "X-Content-Type-Options" in response.headers
@@ -67,11 +70,14 @@ class TestWebhookAndSecurityReal:
     @pytest.mark.asyncio
     async def test_csp_headers(self):
         """Тест: CSP headers для Telegram WebView"""
-        request = make_mocked_request("GET", "/test")
-        handler = lambda req: web.Response(text="OK")
+        app = web.Application()
+        request = make_mocked_request("GET", "/test", app=app)
 
-        wrapped_handler = security_middleware(handler)
-        response = await wrapped_handler(request)
+        async def handler(req):
+            return web.Response(text="OK")
+
+        middleware = security_middleware(app, handler)
+        response = await middleware(request)
 
         # Проверяем CSP
         assert "Content-Security-Policy" in response.headers
@@ -85,19 +91,23 @@ class TestWebhookAndSecurityReal:
     @pytest.mark.asyncio
     async def test_rate_limiting_middleware(self):
         """Тест: Rate limiting в middleware"""
-        request = make_mocked_request(
-            "GET",
-            "/api/miniapp/ai/chat",
-            headers={"X-Forwarded-For": "192.168.1.100"},
-        )
-        handler = lambda req: web.Response(text="OK")
+        app = web.Application()
 
-        wrapped_handler = security_middleware(handler)
+        async def handler(req):
+            return web.Response(text="OK")
+
+        middleware = security_middleware(app, handler)
 
         # Делаем множество запросов с одного IP
         responses = []
         for _ in range(100):
-            response = await wrapped_handler(request)
+            request = make_mocked_request(
+                "GET",
+                "/api/miniapp/ai/chat",
+                headers={"X-Forwarded-For": "192.168.1.100"},
+                app=app,
+            )
+            response = await middleware(request)
             responses.append(response.status)
 
         # Некоторые запросы должны быть ограничены
@@ -160,11 +170,14 @@ class TestWebhookAndSecurityReal:
             },
         }
 
+        # Создаём request с JSON данными
         request = make_mocked_request(
             "POST",
             "/api/miniapp/premium/yookassa-webhook",
-            json=webhook_data,
+            app=web.Application(),
         )
+        # Мокаем метод json()
+        request.json = lambda: webhook_data
 
         with patch("bot.api.premium_endpoints.get_db", mock_get_db):
             with patch("bot.api.premium_endpoints.PaymentService") as mock_payment:
@@ -191,8 +204,9 @@ class TestWebhookAndSecurityReal:
         request = make_mocked_request(
             "POST",
             "/api/miniapp/premium/yookassa-webhook",
-            json={"invalid": "data"},
+            app=web.Application(),
         )
+        request.json = lambda: {"invalid": "data"}
 
         response = await yookassa_webhook(request)
         # Должна быть ошибка
@@ -206,9 +220,10 @@ class TestWebhookAndSecurityReal:
         request = make_mocked_request(
             "POST",
             "/api/miniapp/premium/yookassa-webhook",
-            json={"type": "payment.succeeded"},
             headers={},  # Нет подписи
+            app=web.Application(),
         )
+        request.json = lambda: {"type": "payment.succeeded"}
 
         response = await yookassa_webhook(request)
         # Должна быть ошибка или игнорирование
@@ -241,16 +256,19 @@ class TestWebhookAndSecurityReal:
     @pytest.mark.asyncio
     async def test_csrf_protection(self):
         """Тест: CSRF защита"""
+        app = web.Application()
         request = make_mocked_request(
             "POST",
             "/api/miniapp/ai/chat",
             headers={"Origin": "https://evil.com"},
+            app=app,
         )
 
-        handler = lambda req: web.Response(text="OK")
-        wrapped_handler = security_middleware(handler)
+        async def handler(req):
+            return web.Response(text="OK")
 
-        response = await wrapped_handler(request)
+        middleware = security_middleware(app, handler)
+        response = await middleware(request)
 
         # В зависимости от настроек CSRF защиты
         # Может быть блокировка или разрешение

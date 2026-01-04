@@ -28,14 +28,13 @@ class AIRequestQueue:
         semaphore: Semaphore для контроля параллелизма
     """
 
-    def __init__(self, max_concurrent: int = 12):
+    def __init__(self, max_concurrent: int = 50):
         """
         Инициализация очереди AI запросов.
 
         Args:
             max_concurrent: Максимальное количество одновременных запросов
-                          (по умолчанию 12 для баланса между производительностью
-                          и защитой от rate limiting)
+                          (увеличено до 50 для очень высокой нагрузки, было 30)
         """
         self.max_concurrent = max_concurrent
         self.semaphore = Semaphore(max_concurrent)

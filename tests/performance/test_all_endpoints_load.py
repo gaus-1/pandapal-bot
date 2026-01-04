@@ -24,9 +24,9 @@ from bot.api.premium_endpoints import (
     get_premium_status,
 )
 from bot.api.premium_features_endpoints import (
-    get_bonus_lessons,
-    get_learning_plan,
-    get_support_queue_status,
+    miniapp_get_bonus_lessons,
+    miniapp_get_learning_plan,
+    miniapp_get_support_queue_status,
 )
 
 
@@ -255,7 +255,7 @@ class TestAllEndpointsLoad:
                     "/api/miniapp/premium/learning-plan/999888777",
                     match_info={"telegram_id": "999888777"},
                 )
-                return await get_learning_plan(request)
+                return await miniapp_get_learning_plan(request)
 
             async def make_bonus_lessons():
                 request = make_mocked_request(
@@ -263,7 +263,7 @@ class TestAllEndpointsLoad:
                     "/api/miniapp/premium/bonus-lessons/999888777",
                     match_info={"telegram_id": "999888777"},
                 )
-                return await get_bonus_lessons(request)
+                return await miniapp_get_bonus_lessons(request)
 
             async def make_support_queue():
                 request = make_mocked_request(
@@ -271,7 +271,7 @@ class TestAllEndpointsLoad:
                     "/api/miniapp/premium/support-queue/999888777",
                     match_info={"telegram_id": "999888777"},
                 )
-                return await get_support_queue_status(request)
+                return await miniapp_get_support_queue_status(request)
 
             # Создаём смешанную нагрузку
             tasks = []
