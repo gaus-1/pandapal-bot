@@ -162,6 +162,8 @@ async def init_database() -> None:
                     logger.info("📊 Таблицы уже существуют, проверяем только новые миграции...")
                     # Проверяем таблицу alembic_version
                     alembic_version_exists = "alembic_version" in tables
+                    current_revision = None
+
                     if alembic_version_exists:
                         try:
                             with engine.connect() as conn:
@@ -174,26 +176,48 @@ async def init_database() -> None:
                         except Exception as e:
                             logger.debug(f"Не удалось прочитать текущую версию: {e}")
 
-                    # Пытаемся применить только новые миграции
-                    try:
-                        command.upgrade(alembic_cfg, "head")
-                        migration_applied = True
-                        logger.info("✅ Миграции Alembic применены успешно")
-                    except Exception as alembic_err:
-                        # Если ошибка связана с существующими таблицами - это нормально
-                        error_str = str(alembic_err).lower()
-                        if (
-                            "already exists" in error_str
-                            or "duplicate" in error_str
-                            or "relation" in error_str
-                            and "already exists" in error_str
-                        ):
-                            logger.debug(
-                                f"ℹ️ Миграции уже применены (предупреждение: {alembic_err})"
-                            )
+                    # Если таблицы есть, но версия Alembic не установлена - помечаем текущее состояние
+                    if not current_revision:
+                        logger.info(
+                            "📋 Таблицы существуют, но версия Alembic не установлена. Помечаем текущее состояние..."
+                        )
+                        try:
+                            command.stamp(alembic_cfg, "head")
+                            logger.info("✅ Текущее состояние БД помечено как актуальное")
                             migration_applied = True
-                        else:
-                            logger.warning(f"⚠️ Alembic миграция не удалась: {alembic_err}")
+                        except Exception as stamp_err:
+                            logger.warning(f"⚠️ Не удалось пометить текущее состояние: {stamp_err}")
+                            # Продолжаем попытку upgrade
+
+                    # Пытаемся применить только новые миграции
+                    if not migration_applied:
+                        try:
+                            command.upgrade(alembic_cfg, "head")
+                            migration_applied = True
+                            logger.info("✅ Миграции Alembic применены успешно")
+                        except Exception as alembic_err:
+                            # Если ошибка связана с существующими таблицами - это нормально
+                            error_str = str(alembic_err).lower()
+                            if (
+                                "already exists" in error_str
+                                or "duplicate" in error_str
+                                or ("relation" in error_str and "already exists" in error_str)
+                            ):
+                                logger.debug(
+                                    f"ℹ️ Миграции уже применены (предупреждение: {alembic_err})"
+                                )
+                                # Если версия не была установлена, пытаемся установить её сейчас
+                                if not current_revision:
+                                    try:
+                                        command.stamp(alembic_cfg, "head")
+                                        logger.info(
+                                            "✅ Текущее состояние БД помечено как актуальное"
+                                        )
+                                    except Exception:
+                                        pass
+                                migration_applied = True
+                            else:
+                                logger.warning(f"⚠️ Alembic миграция не удалась: {alembic_err}")
                 else:
                     # Применяем все миграции с нуля
                     try:
