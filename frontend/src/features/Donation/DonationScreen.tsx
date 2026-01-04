@@ -153,7 +153,10 @@ export function DonationScreen({ user }: DonationScreenProps) {
           {DONATION_AMOUNTS.map((amount) => (
             <button
               key={amount}
-              onClick={() => setSelectedAmount(amount)}
+              onClick={() => {
+                setSelectedAmount(amount);
+                setCustomAmount(amount.toString());
+              }}
               className={`py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm md:text-base font-medium transition-all ${
                 selectedAmount === amount
                   ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg'
@@ -182,21 +185,12 @@ export function DonationScreen({ user }: DonationScreenProps) {
             <button
               onClick={handleCustomDonate}
               disabled={isProcessing || !customAmount}
-              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base bg-blue-500 text-white font-medium disabled:opacity-50"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base bg-blue-500 text-white font-medium disabled:opacity-50 active:scale-95"
             >
               Поддержать
             </button>
           </div>
         </div>
-
-        {/* Кнопка поддержки */}
-        <button
-          onClick={() => handleDonate(selectedAmount)}
-          disabled={isProcessing}
-          className="w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isProcessing ? 'Обработка...' : `Поддержать проект на ${selectedAmount} ⭐`}
-        </button>
       </div>
 
       {/* Информация о способе оплаты */}
