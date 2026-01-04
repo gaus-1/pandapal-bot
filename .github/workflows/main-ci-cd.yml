@@ -114,12 +114,25 @@ jobs:
           cache-to: type=gha,mode=max
         continue-on-error: true
 
+      - name: 🔍 Extract image digest (backend)
+        id: digest-backend
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.build-backend.outcome == 'success'
+        run: |
+          docker load -i /tmp/backend-image.tar
+          digest=$(docker image inspect pandapal-backend:${{ github.sha }} --format='{{index .RepoDigests 0}}' | cut -d'@' -f2)
+          if [ -z "$digest" ]; then
+            image_id=$(docker image inspect pandapal-backend:${{ github.sha }} --format='{{.Id}}' | cut -d':' -f2)
+            digest="sha256:$image_id"
+          fi
+          echo "digest=$digest" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
       - name: 🔐 Generate build attestation (backend)
         uses: actions/attest-build-provenance@v1
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.build-backend.outcome == 'success'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.digest-backend.outcome == 'success' && steps.digest-backend.outputs.digest != ''
         with:
           subject-name: 'pandapal-backend'
-          subject-digest: 'sha256:${{ steps.build-backend.outputs.digest }}'
+          subject-digest: '${{ steps.digest-backend.outputs.digest }}'
           push-to-registry: false
         continue-on-error: true
 
@@ -173,12 +186,25 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: 🔍 Extract image digest (frontend)
+        id: digest-frontend
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.build-frontend.outcome == 'success'
+        run: |
+          docker load -i /tmp/frontend-image.tar
+          digest=$(docker image inspect pandapal-frontend:${{ github.sha }} --format='{{index .RepoDigests 0}}' | cut -d'@' -f2)
+          if [ -z "$digest" ]; then
+            image_id=$(docker image inspect pandapal-frontend:${{ github.sha }} --format='{{.Id}}' | cut -d':' -f2)
+            digest="sha256:$image_id"
+          fi
+          echo "digest=$digest" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
       - name: 🔐 Generate build attestation (frontend)
         uses: actions/attest-build-provenance@v1
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.build-frontend.outcome == 'success'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.digest-frontend.outcome == 'success' && steps.digest-frontend.outputs.digest != ''
         with:
           subject-name: 'pandapal-frontend'
-          subject-digest: 'sha256:${{ steps.build-frontend.outputs.digest }}'
+          subject-digest: '${{ steps.digest-frontend.outputs.digest }}'
           push-to-registry: false
         continue-on-error: true
 
