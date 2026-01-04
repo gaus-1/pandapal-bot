@@ -20,6 +20,7 @@ from bot.services.simple_engagement import (  # noqa: E402
 )
 from bot.services.simple_monitor import SimpleMonitor, get_simple_monitor  # noqa: E402
 from bot.services.subscription_service import SubscriptionService  # noqa: E402
+from bot.services.telegram_auth_service import TelegramAuthService  # noqa: E402
 from bot.services.user_service import UserService  # noqa: E402
 
 __all__ = [
@@ -31,6 +32,7 @@ __all__ = [
     "UserService",
     "SubscriptionService",
     "PaymentService",
+    "TelegramAuthService",
     "PremiumFeaturesService",
     "PersonalTutorService",
     "PrioritySupportService",
