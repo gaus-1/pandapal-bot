@@ -9,27 +9,53 @@ import { SITE_CONFIG } from '../config/constants';
 import { DarkModeToggle } from './DarkModeToggle';
 import { trackButtonClick } from '../utils/analytics';
 
+interface HeaderProps {
+  currentRoute?: string;
+}
+
 /**
  * Шапка сайта с адаптивной навигацией
  * На мобильных устройствах навигация скрыта (можно добавить гамбургер-меню)
  */
-export const Header: React.FC = React.memo(() => {
+export const Header: React.FC<HeaderProps> = React.memo(({ currentRoute = '' }) => {
+  const isOnSubPage = currentRoute === 'premium' || currentRoute === 'donation';
+
+  const handleBackToHome = () => {
+    window.location.hash = '';
+    window.history.pushState(null, '', '/');
+    window.dispatchEvent(new Event('popstate'));
+    trackButtonClick('header_back_home');
+  };
+
   return (
     <header className="absolute top-0 left-0 right-0 z-40">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 md:py-6 flex items-center justify-between">
-        {/* Логотип и название - кликабельные для возврата на главную */}
-        <a
-          href="/"
-          onClick={(e) => {
-            e.preventDefault();
-            window.location.hash = '';
-            window.history.pushState(null, '', '/');
-            window.dispatchEvent(new Event('popstate'));
-            trackButtonClick('header_logo_home');
-          }}
-          className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity cursor-pointer"
-          aria-label="На главную"
-        >
+        <div className="flex items-center gap-3 sm:gap-4">
+          {/* Кнопка "На главную" для Premium/Donation страниц */}
+          {isOnSubPage && (
+            <button
+              onClick={handleBackToHome}
+              className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 dark:active:bg-slate-600 active:bg-gray-200 transition-colors group"
+              aria-label="Вернуться на главную"
+            >
+              <span className="text-lg sm:text-xl group-hover:-translate-x-1 transition-transform duration-200">←</span>
+              <span className="font-semibold hidden sm:inline">На главную</span>
+            </button>
+          )}
+
+          {/* Логотип и название - кликабельные для возврата на главную */}
+          <a
+            href="/"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.hash = '';
+              window.history.pushState(null, '', '/');
+              window.dispatchEvent(new Event('popstate'));
+              trackButtonClick('header_logo_home');
+            }}
+            className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+            aria-label="На главную"
+          >
           <img
             src={SITE_CONFIG.logo.src}
             alt={SITE_CONFIG.logo.alt}
@@ -63,7 +89,7 @@ export const Header: React.FC = React.memo(() => {
                 window.location.hash = 'premium';
                 trackButtonClick('header_premium');
               }}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 dark:active:bg-slate-600 active:bg-gray-200 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700/80 dark:active:bg-slate-600 active:bg-gray-200 transition-colors"
             >
               Premium
             </a>
@@ -74,7 +100,7 @@ export const Header: React.FC = React.memo(() => {
                 window.location.hash = 'donation';
                 trackButtonClick('header_donation');
               }}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 dark:active:bg-slate-600 active:bg-gray-200 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700/80 dark:active:bg-slate-600 active:bg-gray-200 transition-colors"
             >
               Поддержать
             </a>
