@@ -109,8 +109,6 @@ jobs:
           context: .
           load: true
           tags: pandapal-backend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
         continue-on-error: true
 
       - name: 🔍 Extract image digest (backend)
@@ -181,8 +179,6 @@ jobs:
           context: .
           load: true
           tags: pandapal-frontend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: 🔍 Extract image digest (frontend)
         id: digest-frontend
