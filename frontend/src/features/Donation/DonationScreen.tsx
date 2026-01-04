@@ -21,7 +21,8 @@ export function DonationScreen({ user }: DonationScreenProps) {
   const handleDonate = async (amount: number) => {
     // Telegram Stars работают ТОЛЬКО в Telegram
     if (!inTelegram) {
-      alert('⭐ Поддержка звездами доступна только через Telegram Bot.\n\nОткройте @PandaPalBot в Telegram для поддержки проекта.');
+      // Для обычного сайта - сразу открываем бота
+      window.open('https://t.me/PandaPalBot', '_blank');
       return;
     }
 
@@ -85,7 +86,8 @@ export function DonationScreen({ user }: DonationScreenProps) {
       if (inTelegram) {
         telegram.showAlert('Введите сумму от 50 ⭐');
       } else {
-        alert('⭐ Поддержка звездами доступна только через Telegram Bot.\n\nОткройте @PandaPalBot в Telegram для поддержки проекта.');
+        // Для обычного сайта - сразу открываем бота
+        window.open('https://t.me/PandaPalBot', '_blank');
       }
       return;
     }
