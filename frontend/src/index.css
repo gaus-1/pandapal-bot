@@ -118,12 +118,15 @@
 
   /* Навигационные ссылки в header - правильный hover для светлой и темной темы */
   .nav-link-header {
-    @apply px-3 py-1.5 rounded-lg text-sm font-medium transition-colors;
+    @apply px-3 py-2 rounded-lg text-sm font-medium transition-colors;
+    @apply inline-flex items-center;
     color: rgb(55 65 81); /* text-gray-700 */
+    outline: none;
+    border: none;
   }
 
   .nav-link-header:hover {
-    background-color: rgb(243 244 246); /* bg-gray-100 */
+    background-color: rgb(229 231 235); /* bg-gray-200 - более темный, без ореола */
   }
 
   .dark .nav-link-header {
@@ -135,11 +138,16 @@
   }
 
   .nav-link-header:active {
-    background-color: rgb(229 231 235); /* bg-gray-200 */
+    background-color: rgb(209 213 219); /* bg-gray-300 */
   }
 
   .dark .nav-link-header:active {
     background-color: rgb(51 65 85) !important; /* bg-slate-700 */
+  }
+
+  .nav-link-header:focus {
+    outline: none;
+    box-shadow: none;
   }
 }
 
