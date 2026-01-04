@@ -352,13 +352,14 @@ async def security_middleware(app: web.Application, handler):
         else:
             # Для frontend (Mini App) - разрешаем встраивание в Telegram
             # 'unsafe-inline' нужен для inline скриптов в index.html (подавление ошибок Telegram WebView)
+            # https://mc.yandex.ru нужен для Яндекс.Метрики
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' https://telegram.org https://web.telegram.org; "
+                "script-src 'self' 'unsafe-inline' https://telegram.org https://web.telegram.org https://mc.yandex.ru; "
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
                 "font-src 'self' https://fonts.gstatic.com; "
                 "img-src 'self' data: https:; "
-                f"connect-src 'self' https://api.pandapal.ru; "
+                f"connect-src 'self' https://api.pandapal.ru https://mc.yandex.ru; "
                 f"{csp_frame_ancestors} "
                 "base-uri 'self'; "
                 "form-action 'self'; "
