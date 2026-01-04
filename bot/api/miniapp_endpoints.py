@@ -299,7 +299,13 @@ async def miniapp_get_dashboard(request: web.Request) -> web.Response:
             if not user:
                 return web.json_response({"error": "User not found"}, status=404)
 
-            # Собираем статистику
+            # Проверяем premium для детальной аналитики
+            from bot.services.premium_features_service import PremiumFeaturesService
+
+            premium_service = PremiumFeaturesService(db)
+            is_premium = premium_service.is_premium_active(telegram_id)
+
+            # Базовая статистика (доступна всем)
             stats = {
                 "total_messages": len(user.messages),
                 "learning_sessions": len(user.sessions),
@@ -308,7 +314,18 @@ async def miniapp_get_dashboard(request: web.Request) -> web.Response:
                 "current_streak": 1,  # Временно hardcode
             }
 
-            return web.json_response({"success": True, "stats": stats})
+            # Детальная аналитика только для Premium
+            if is_premium:
+                from bot.services.analytics_service import AnalyticsService
+
+                analytics_service = AnalyticsService(db)
+                stats["detailed_analytics"] = {
+                    "messages_per_day": analytics_service.get_messages_per_day(telegram_id),
+                    "most_active_subjects": analytics_service.get_most_active_subjects(telegram_id),
+                    "learning_trends": analytics_service.get_learning_trends(telegram_id),
+                }
+
+            return web.json_response({"success": True, "stats": stats, "is_premium": is_premium})
 
     except Exception as e:
         logger.error(f"❌ Ошибка получения дашборда: {e}")
@@ -506,10 +523,28 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             if not user:
                 return web.json_response({"error": "User not found"}, status=404)
 
-            # Загружаем историю для контекста (ограничиваем размер)
-            history = history_service.get_formatted_history_for_ai(
-                telegram_id, limit=10
-            )  # Уменьшили до 10
+            # КРИТИЧНО: Проверка Premium для неограниченных запросов
+            from bot.services.premium_features_service import PremiumFeaturesService
+
+            premium_service = PremiumFeaturesService(db)
+            can_request, limit_reason = premium_service.can_make_ai_request(telegram_id)
+
+            if not can_request:
+                logger.warning(f"🚫 AI запрос заблокирован для user={telegram_id}: {limit_reason}")
+                return web.json_response(
+                    {
+                        "error": limit_reason,
+                        "error_code": "RATE_LIMIT_EXCEEDED",
+                        "is_premium": False,
+                    },
+                    status=429,
+                )
+
+            # Для premium - больше истории для контекста
+            history_limit = 50 if premium_service.is_premium_active(telegram_id) else 10
+
+            # Загружаем историю для контекста
+            history = history_service.get_formatted_history_for_ai(telegram_id, limit=history_limit)
             history_size = sum(len(str(msg)) for msg in history)
             logger.info(
                 f"📊 Размер истории чата: {history_size} символов, сообщений: {len(history)}"
@@ -678,13 +713,22 @@ async def miniapp_get_chat_history(request: web.Request) -> web.Response:
 
 async def miniapp_get_subjects(request: web.Request) -> web.Response:
     """
-    Получить список предметов.
+    Получить список предметов с учетом Premium статуса.
 
-    GET /api/miniapp/subjects
+    GET /api/miniapp/subjects?telegram_id=123
     """
     try:
+        # Получаем telegram_id из query параметров (опционально)
+        telegram_id = None
+        telegram_id_str = request.query.get("telegram_id")
+        if telegram_id_str:
+            try:
+                telegram_id = validate_telegram_id(telegram_id_str)
+            except ValueError:
+                pass  # Игнорируем невалидный ID
+
         # Предметы (в будущем можно вынести в БД)
-        subjects = [
+        all_subjects = [
             {
                 "id": "math",
                 "name": "Математика",
@@ -743,6 +787,29 @@ async def miniapp_get_subjects(request: web.Request) -> web.Response:
             },
         ]
 
+        # Если telegram_id указан, проверяем Premium и ограничиваем доступ
+        if telegram_id:
+            with get_db() as db:
+                from bot.services.premium_features_service import PremiumFeaturesService
+
+                premium_service = PremiumFeaturesService(db)
+                is_premium = premium_service.is_premium_active(telegram_id)
+
+                # Для бесплатных - только базовые предметы
+                if not is_premium:
+                    free_subjects_ids = ["math", "russian", "english"]
+                    subjects = [s for s in all_subjects if s["id"] in free_subjects_ids]
+                    # Добавляем информацию о premium для остальных
+                    for subject in all_subjects:
+                        if subject["id"] not in free_subjects_ids:
+                            subject["premium_required"] = True
+                            subject["locked"] = True
+                else:
+                    subjects = all_subjects
+        else:
+            # Если telegram_id не указан, возвращаем все предметы
+            subjects = all_subjects
+
         return web.json_response({"success": True, "subjects": subjects})
 
     except Exception as e:
@@ -775,5 +842,27 @@ def setup_miniapp_routes(app: web.Application) -> None:
 
     # Предметы
     app.router.add_get("/api/miniapp/subjects", miniapp_get_subjects)
+
+    # Premium функции
+    from bot.api.premium_features_endpoints import (
+        miniapp_get_bonus_lesson_content,
+        miniapp_get_bonus_lessons,
+        miniapp_get_learning_plan,
+        miniapp_get_premium_features_status,
+    )
+
+    app.router.add_get(
+        "/api/miniapp/premium/learning-plan/{telegram_id}", miniapp_get_learning_plan
+    )
+    app.router.add_get(
+        "/api/miniapp/premium/bonus-lessons/{telegram_id}", miniapp_get_bonus_lessons
+    )
+    app.router.add_get(
+        "/api/miniapp/premium/bonus-lessons/{telegram_id}/{lesson_id}",
+        miniapp_get_bonus_lesson_content,
+    )
+    app.router.add_get(
+        "/api/miniapp/premium/features/{telegram_id}", miniapp_get_premium_features_status
+    )
 
     logger.info("✅ Mini App API routes зарегистрированы")

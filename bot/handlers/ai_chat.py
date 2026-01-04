@@ -196,8 +196,25 @@ async def handle_ai_message(message: Message, state: FSMContext):
                 last_name=message.from_user.last_name,
             )
 
+            # КРИТИЧНО: Проверка Premium для неограниченных запросов
+            from bot.services.premium_features_service import PremiumFeaturesService
+
+            premium_service = PremiumFeaturesService(db)
+            can_request, limit_reason = premium_service.can_make_ai_request(telegram_id)
+
+            if not can_request:
+                logger.warning(f"🚫 AI запрос заблокирован для user={telegram_id}: {limit_reason}")
+                await message.answer(
+                    f"🚫 {limit_reason}\n\n"
+                    f"💎 Купи Premium для неограниченных AI запросов! /premium"
+                )
+                return
+
+            # Для premium - больше истории для контекста
+            history_limit = 50 if premium_service.is_premium_active(telegram_id) else 10
+
             # Загружаем историю сообщений для контекста
-            history = history_service.get_formatted_history_for_ai(telegram_id)
+            history = history_service.get_formatted_history_for_ai(telegram_id, limit=history_limit)
 
             logger.info(
                 f"💬 Сообщение от {telegram_id} ({user.first_name}): "

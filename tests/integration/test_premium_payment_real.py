@@ -14,7 +14,7 @@
 import os
 import tempfile
 from datetime import datetime, timedelta, timezone
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiogram import Bot, Dispatcher
@@ -30,6 +30,8 @@ from aiogram.types import User as TelegramUser
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+# Импортируем conftest_payment ПЕРЕД импортом bot модулей
+import tests.integration.conftest_payment  # noqa: F401
 from bot.models import Base, Subscription, User
 from bot.services import SubscriptionService, UserService
 
@@ -84,64 +86,73 @@ class TestPremiumPaymentReal:
         return Chat(id=999888777, type="private")
 
     @pytest.mark.asyncio
-    async def test_create_invoice_endpoint(self, real_db_session, test_user):
-        """КРИТИЧНО: Проверка создания invoice через API endpoint"""
+    async def test_create_donation_invoice_endpoint(self, real_db_session, test_user):
+        """КРИТИЧНО: Проверка создания donation invoice через API endpoint"""
+        from contextlib import contextmanager
         from unittest.mock import AsyncMock, MagicMock, patch
 
-        from bot.api.premium_endpoints import create_premium_invoice
+        from bot.api.premium_endpoints import create_donation_invoice
+
+        # Мокаем get_db чтобы использовать нашу SQLite сессию
+        @contextmanager
+        def mock_get_db():
+            yield real_db_session
 
         # Создаём тестовый запрос
-        request_data = {"telegram_id": 999888777, "plan_id": "month"}
+        request_data = {"telegram_id": 999888777, "amount": 100}
 
-        # Создаём mock request с json данными
         class MockRequest:
             async def json(self):
                 return request_data
 
         request = MockRequest()
 
-        # Мокаем Bot для создания invoice (импортируется внутри функции)
-        with patch("aiogram.Bot") as mock_bot_class:
-            mock_bot = MagicMock()
-            mock_bot.create_invoice_link = AsyncMock(return_value="https://t.me/invoice/test123")
-            mock_bot.session.close = AsyncMock()
-            mock_bot_class.return_value = mock_bot
+        # Мокаем Bot для создания invoice
+        with patch("bot.api.premium_endpoints.get_db", mock_get_db):
+            with patch("aiogram.Bot") as mock_bot_class:
+                mock_bot = MagicMock()
+                mock_bot.create_invoice_link = AsyncMock(
+                    return_value="https://t.me/invoice/donation123"
+                )
+                mock_bot.session.close = AsyncMock()
+                mock_bot_class.return_value = mock_bot
 
-            # Вызываем endpoint
-            response = await create_premium_invoice(request)
-            response_data = await response.json()
+                # Вызываем endpoint
+                response = await create_donation_invoice(request)
 
-            # Проверяем результат
-            assert response.status == 200
-            assert response_data["success"] is True
-            assert "invoice_link" in response_data
-            assert response_data["invoice_link"].startswith("https://")
+                # aiohttp Response - читаем _body и парсим JSON
+                import json
 
-            # Проверяем что Bot был вызван правильно
-            mock_bot.create_invoice_link.assert_called_once()
-            call_args = mock_bot.create_invoice_link.call_args
-            assert call_args[1]["currency"] == "XTR"  # Telegram Stars
-            assert call_args[1]["payload"].startswith("premium_month_999888777")
+                if hasattr(response, "_body") and response._body:
+                    response_data = json.loads(response._body.decode("utf-8"))
+                else:
+                    # Если _body пустой, используем json() метод
+                    response_data = await response.json()
+
+                # Проверяем результат
+                assert response.status == 200
+                assert response_data["success"] is True
+                assert "invoice_link" in response_data
+                assert response_data["invoice_link"].startswith("https://")
+
+                # Проверяем что Bot был вызван правильно
+                mock_bot.create_invoice_link.assert_called_once()
+                call_args = mock_bot.create_invoice_link.call_args
+                assert call_args[1]["currency"] == "XTR"  # Telegram Stars
+                assert call_args[1]["payload"].startswith("donation_999888777_100")
 
     @pytest.mark.asyncio
     async def test_pre_checkout_query_handler(self, real_db_session, test_user):
         """КРИТИЧНО: Проверка обработки PreCheckoutQuery"""
+        from contextlib import contextmanager
         from unittest.mock import AsyncMock, MagicMock, patch
 
         from bot.handlers.payment_handler import pre_checkout_handler
 
-        # Создаём PreCheckoutQuery
-        query = PreCheckoutQuery(
-            id="test_query_123",
-            from_user=TelegramUser(
-                id=999888777,
-                is_bot=False,
-                first_name="Тестовый",
-            ),
-            currency="XTR",
-            total_amount=150,
-            invoice_payload="premium_month_999888777",
-        )
+        # Мокаем get_db чтобы использовать нашу тестовую БД
+        @contextmanager
+        def mock_get_db():
+            yield real_db_session
 
         # Мокаем метод answer через MagicMock (обход frozen модели)
         mock_answer = AsyncMock()
@@ -153,8 +164,9 @@ class TestPremiumPaymentReal:
         query.invoice_payload = "premium_month_999888777"
         query.answer = mock_answer
 
-        # Вызываем обработчик
-        await pre_checkout_handler(query)
+        # Вызываем обработчик с моком get_db
+        with patch("bot.handlers.payment_handler.get_db", mock_get_db):
+            await pre_checkout_handler(query)
 
         # Проверяем что ответ был отправлен с ok=True
         mock_answer.assert_called_once()
@@ -215,12 +227,22 @@ class TestPremiumPaymentReal:
         subscription_service = SubscriptionService(real_db_session)
         assert not subscription_service.is_premium_active(999888777)
 
-        # Вызываем обработчик
-        await successful_payment_handler(message)
+        # Мокаем get_db и message.answer
+        from contextlib import contextmanager
 
-        # Вызываем обработчик с моком answer
-        with patch.object(message, "answer", new_callable=AsyncMock) as mock_answer:
-            await successful_payment_handler(message)
+        @contextmanager
+        def mock_get_db():
+            yield real_db_session
+
+        # Создаём mock для message.answer (не можем патчить frozen объект)
+        mock_answer = AsyncMock()
+        message_mock = MagicMock()
+        message_mock.successful_payment = successful_payment
+        message_mock.answer = mock_answer
+
+        # Вызываем обработчик с моком get_db
+        with patch("bot.handlers.payment_handler.get_db", mock_get_db):
+            await successful_payment_handler(message_mock)
 
             # Проверяем что подписка активирована
             assert subscription_service.is_premium_active(999888777)
@@ -231,7 +253,12 @@ class TestPremiumPaymentReal:
             assert subscription.plan_id == "month"
             assert subscription.is_active is True
             assert subscription.transaction_id == "test_charge_123"
-            assert subscription.expires_at > datetime.now(timezone.utc)
+
+            # Убеждаемся что expires_at timezone-aware для сравнения
+            expires_at = subscription.expires_at
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            assert expires_at > datetime.now(timezone.utc)
 
             # Проверяем что premium_until обновлен в User
             user = real_db_session.query(User).filter_by(telegram_id=999888777).first()
@@ -435,7 +462,20 @@ class TestPremiumPaymentReal:
         with patch("bot.api.premium_endpoints.get_db", mock_get_db):
             # Вызываем endpoint
             response = await handle_successful_payment(request)
-            response_data = await response.json()
+
+            # aiohttp Response имеет метод json() который возвращает корутину
+            # Но в тестах response может быть уже разобранным
+            if hasattr(response, "_body"):
+                import json
+
+                response_data = json.loads(response._body.decode("utf-8"))
+            elif hasattr(response, "text"):
+                import json
+
+                response_data = json.loads(await response.text())
+            else:
+                # Если это уже dict
+                response_data = response if isinstance(response, dict) else {}
 
             # Коммитим изменения
             real_db_session.commit()
