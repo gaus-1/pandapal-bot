@@ -77,6 +77,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({ currentRoute = '' }) 
             {SITE_CONFIG.name}
           </span>
         </a>
+        </div>
 
         {/* Кнопки в правом верхнем углу */}
         <div className="flex items-center gap-2 sm:gap-3">
