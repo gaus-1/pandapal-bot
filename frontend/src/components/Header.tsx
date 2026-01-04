@@ -17,8 +17,19 @@ export const Header: React.FC = React.memo(() => {
   return (
     <header className="absolute top-0 left-0 right-0 z-40">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 md:py-6 flex items-center justify-between">
-        {/* Логотип и название */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Логотип и название - кликабельные для возврата на главную */}
+        <a
+          href="/"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.hash = '';
+            window.history.pushState(null, '', '/');
+            window.dispatchEvent(new Event('popstate'));
+            trackButtonClick('header_logo_home');
+          }}
+          className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+          aria-label="На главную"
+        >
           <img
             src={SITE_CONFIG.logo.src}
             alt={SITE_CONFIG.logo.alt}
@@ -39,7 +50,7 @@ export const Header: React.FC = React.memo(() => {
           <span className="font-display text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-50 animate-text-reveal">
             {SITE_CONFIG.name}
           </span>
-        </div>
+        </a>
 
         {/* Кнопки в правом верхнем углу */}
         <div className="flex items-center gap-2 sm:gap-3">
