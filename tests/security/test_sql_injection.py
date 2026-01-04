@@ -5,9 +5,10 @@
 
 import os
 import tempfile
+import time
 
 import pytest
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, func, select, text
 from sqlalchemy.orm import sessionmaker
 
 from bot.models import Base, User
