@@ -207,6 +207,13 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("YOOKASSA_INN", "yookassa_inn"),
     )
 
+    # ============ REDIS (SESSION STORAGE) ============
+    redis_url: str = Field(
+        default="",
+        description="Redis URL для хранения сессий (опционально, fallback на in-memory)",
+        validation_alias=AliasChoices("REDIS_URL", "redis_url"),
+    )
+
     def get_forbidden_topics_list(self) -> List[str]:
         """Получить список запрещённых тем."""
         return [topic.strip() for topic in self.forbidden_topics.split(",") if topic.strip()]
