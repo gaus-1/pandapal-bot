@@ -132,7 +132,6 @@ jobs:
           subject-name: 'pandapal-backend'
           subject-digest: '${{ steps.digest-backend.outputs.digest }}'
           push-to-registry: false
-        continue-on-error: true
 
   # ============================================================================
   # FRONTEND: React + TypeScript + Vite
