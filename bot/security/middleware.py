@@ -98,11 +98,16 @@ class RateLimiter:
 
 
 # Глобальные rate limiters для разных типов endpoints
-_rate_limiter_api = RateLimiter(max_requests=60, window_seconds=60)  # 60 req/min для API
-_rate_limiter_auth = RateLimiter(max_requests=10, window_seconds=60)  # 10 req/min для auth
+# Увеличены лимиты для нормальной работы в продакшене
+_rate_limiter_api = RateLimiter(
+    max_requests=300, window_seconds=60
+)  # 300 req/min для API (было 60)
+_rate_limiter_auth = RateLimiter(
+    max_requests=20, window_seconds=60
+)  # 20 req/min для auth (было 10)
 _rate_limiter_ai = RateLimiter(
-    max_requests=30, window_seconds=60
-)  # 30 req/min для AI (только для бесплатных)
+    max_requests=100, window_seconds=60
+)  # 100 req/min для AI (было 30, только для бесплатных)
 
 
 def get_rate_limiter(path: str) -> Optional[RateLimiter]:
@@ -255,10 +260,44 @@ async def security_middleware(app: web.Application, handler):
 
         request["client_ip"] = ip
 
-        # Rate limiting (кроме webhook от Telegram)
+        # Rate limiting (исключаем статические файлы, webhook, мини-апп)
         # Для AI endpoints rate limiting проверяется в самом endpoint с учетом premium
         # Здесь применяем только базовый IP-based rate limiting для защиты от DDoS
-        if request.path != "/webhook" and "/ai/chat" not in request.path:
+        excluded_paths = [
+            "/webhook",  # Telegram webhook
+            "/ai/chat",  # AI chat (своя логика rate limiting)
+            "/health",  # Health check
+            "/metrics",  # Metrics endpoint
+        ]
+
+        # Исключаем статические файлы (CSS, JS, images, fonts, etc.)
+        static_extensions = [
+            ".css",
+            ".js",
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".gif",
+            ".svg",
+            ".ico",
+            ".woff",
+            ".woff2",
+            ".ttf",
+            ".eot",
+            ".map",
+        ]
+        is_static_file = any(request.path.endswith(ext) for ext in static_extensions)
+
+        # Исключаем мини-апп endpoints (они имеют свою логику rate limiting)
+        is_miniapp_endpoint = request.path.startswith("/api/miniapp/")
+
+        # Применяем rate limiting только к API endpoints (не мини-апп и не статика)
+        if (
+            not any(request.path.startswith(excluded) for excluded in excluded_paths)
+            and not is_static_file
+            and not is_miniapp_endpoint
+            and request.path.startswith("/api/")
+        ):
             rate_limiter = get_rate_limiter(request.path)
             if rate_limiter:
                 allowed, reason = rate_limiter.is_allowed(ip)
@@ -272,14 +311,14 @@ async def security_middleware(app: web.Application, handler):
                         SecurityEventSeverity.WARNING,
                         metadata={"ip": ip, "path": request.path, "reason": reason},
                     )
-                return web.json_response(
-                    {
-                        "error": "Rate limit exceeded. Please try again later.",
-                        "request_id": request_id,
-                    },
-                    status=429,
-                    headers={"Retry-After": "60"},
-                )
+                    return web.json_response(
+                        {
+                            "error": "Rate limit exceeded. Please try again later.",
+                            "request_id": request_id,
+                        },
+                        status=429,
+                        headers={"Retry-After": "60"},
+                    )
 
         # Логируем ВСЕ запросы к API для отладки
         if request.path.startswith("/api/"):
