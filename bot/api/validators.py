@@ -102,7 +102,9 @@ class PremiumPaymentRequest(BaseModel):
 class PremiumYooKassaRequest(BaseModel):
     """Валидация запроса на создание платежа через ЮKassa."""
 
-    telegram_id: int = Field(..., ge=1, description="Telegram ID пользователя")
+    telegram_id: int = Field(
+        ..., ge=0, description="Telegram ID пользователя (0 для анонимных платежей)"
+    )
     plan_id: str = Field(..., pattern="^(week|month|year)$", description="ID тарифного плана")
     user_email: Optional[str] = Field(
         None, max_length=255, description="Email пользователя (для чека)"
