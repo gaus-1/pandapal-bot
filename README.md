@@ -7,7 +7,7 @@
 **Образовательная платформа для школьников 1-9 классов**
 
 [![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://reactjs.org/)
+[![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://reactjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Tests](https://img.shields.io/badge/Tests-330%2B%20passed-brightgreen?logo=pytest)](tests/)
 [![Coverage](https://img.shields.io/badge/Coverage-74%25%20critical-yellow?logo=codecov)](htmlcov/)
@@ -25,14 +25,16 @@ PandaPal — образовательная платформа, объединя
 
 ### Основные возможности
 
-- **Мультимодальное взаимодействие**: текст, голос, изображения
-- **Безопасность**: 150+ фильтров контента, модерация 24/7, адаптация под возраст
-- **Telegram Mini App**: полнофункциональное веб-приложение внутри Telegram
-- **Геймификация**: система достижений, уровней и наград для мотивации
-- **Экстренные номера**: быстрый доступ к службам спасения России
-- **Premium подписки**: расширенные возможности через Telegram Stars
-- **Поддержка всех школьных предметов**: математика, физика, химия, биология и другие
-- **Упрощенные объяснения**: формулы и уравнения через простые слова и таблицы
+- **Мультимодальное взаимодействие**: текст, голос (SpeechKit), изображения (Vision API)
+- **Безопасность**: 150+ фильтров контента, 5-уровневая модерация, адаптация под возраст (6-18 лет)
+- **Telegram Mini App**: полнофункциональное веб-приложение внутри Telegram (React 19)
+- **Геймификация**: система достижений, уровней, XP и наград для мотивации
+- **Экстренные номера**: быстрый доступ к службам спасения России (112, 101, 102, 103)
+- **Premium подписки**: расширенные возможности через ЮKassa (карты, СБП, банковские переводы)
+- **Donation система**: поддержка проекта через добровольные пожертвования
+- **Поддержка всех школьных предметов**: математика, физика, химия, биология, языки и другие
+- **Упрощенные объяснения**: формулы и уравнения через простые слова и таблицы (без LaTeX)
+- **Аналитика для родителей**: отчеты о активности, безопасность, прогресс обучения
 
 ---
 
@@ -40,25 +42,30 @@ PandaPal — образовательная платформа, объединя
 
 ### Backend
 - **Python 3.13** — основной язык разработки
-- **aiogram 3.x** — Telegram Bot API фреймворк
-- **SQLAlchemy 2.0** — асинхронная ORM
-- **Pydantic V2** — валидация данных
-- **PostgreSQL 17** — база данных
-- **Alembic** — миграции БД
-- **FFmpeg** — обработка аудио
+- **aiogram 3.23.0** — асинхронный Telegram Bot API фреймворк
+- **SQLAlchemy 2.0.45** — асинхронная ORM для PostgreSQL
+- **Pydantic V2** — валидация данных и настроек
+- **PostgreSQL 17** — база данных (psycopg 3.3.2)
+- **Alembic 1.17.2** — миграции БД
+- **aiohttp 3.13.2** — асинхронный веб-сервер (webhook mode)
+- **Yandex Cloud API** — YandexGPT, SpeechKit, Vision (REST API)
 
 ### Frontend
-- **React 19** — UI фреймворк
-- **TypeScript** — типизированный JavaScript
-- **Vite** — сборщик модулей
-- **TanStack Query** — управление серверным состоянием
-- **Zustand** — клиентское состояние
-- **Tailwind CSS** — стилизация
+- **React 19.1.1** — UI фреймворк с современными хуками
+- **TypeScript 5.8.3** — типизированный JavaScript
+- **Vite 7.1.7** — быстрый сборщик модулей
+- **TanStack Query 5.90.16** — управление серверным состоянием
+- **Zustand 5.0.9** — легковесное клиентское состояние
+- **Tailwind CSS 3.4.17** — utility-first стилизация
+- **Telegram Mini App SDK** — интеграция с Telegram WebView
 
-### Infrastructure
-- **Railway.app** — хостинг и деплой (24/7, webhook mode)
-- **Cloudflare** — DNS и SSL
-- **Docker** — контейнеризация
+### Infrastructure & AI
+- **Railway.app** — хостинг и деплой (24/7, webhook mode, автоматический CI/CD)
+- **Cloudflare** — DNS, SSL (Full Strict), CDN
+- **Docker** — контейнеризация (build attestations в CI/CD)
+- **GitHub Actions** — автоматическая сборка и тестирование
+- **Yandex Cloud** — AI сервисы (YandexGPT, SpeechKit, Vision)
+- **ЮKassa** — платежная система (карты, СБП, банковские переводы)
 
 ---
 
@@ -116,27 +123,32 @@ python web_server.py
 
 ```
 PandaPal/
-├── bot/                   # Telegram Bot (aiogram)
-│   ├── handlers/          # Обработчики команд
-│   ├── services/          # Бизнес-логика
-│   ├── config/            # Конфигурация
-│   ├── models.py          # SQLAlchemy модели
-│   └── database.py        # Управление БД
-├── frontend/              # React приложение
+├── bot/                   # Telegram Bot (aiogram 3.23.0)
+│   ├── handlers/          # Обработчики команд (start, ai_chat, menu, payment)
+│   ├── services/          # Бизнес-логика (AI, модерация, аналитика, Premium)
+│   ├── config/            # Конфигурация (настройки, промпты, паттерны)
+│   ├── security/          # Безопасность (middleware, валидация, overload protection)
+│   ├── api/               # API endpoints (Mini App, Premium, Donation, метрики)
+│   ├── models.py          # SQLAlchemy модели (User, ChatHistory, Subscription, Payment)
+│   └── database.py        # Управление БД (connection pool, миграции)
+├── frontend/              # React 19 приложение (Telegram Mini App)
 │   ├── src/
-│   │   ├── components/    # UI компоненты
-│   │   ├── features/      # Фичи (AIChat, Emergency)
-│   │   ├── services/      # API клиенты
-│   │   └── store/         # Zustand store
-│   └── public/            # Статика
+│   │   ├── components/    # UI компоненты (Header, Hero, FeatureCard)
+│   │   ├── features/      # Фичи (AIChat, Emergency, Premium, Donation, Achievements)
+│   │   ├── services/      # API клиенты (Telegram, Backend)
+│   │   └── store/         # Zustand store (глобальное состояние)
+│   └── public/            # Статика (logo, favicon)
 ├── tests/                 # Тесты (330+ passed, 74% critical coverage)
-│   ├── unit/              # Unit тесты (реальные сервисы)
-│   ├── integration/       # Интеграционные тесты
-│   └── e2e/               # E2E тесты (реальные БД и сервисы)
-├── docs/                  # Документация
-├── scripts/               # Утилиты разработки
-├── alembic/               # Миграции БД
-└── sql/                   # SQL скрипты
+│   ├── unit/              # Unit тесты (реальные сервисы, без моков)
+│   ├── integration/       # Интеграционные тесты (БД, API, Premium)
+│   ├── e2e/               # E2E тесты (Playwright, реальные сервисы)
+│   ├── security/          # Тесты безопасности (OWASP Top 10, SQL injection)
+│   ├── performance/       # Performance тесты (нагрузочное тестирование)
+│   └── resilience/        # Resilience тесты (degradation, memory leaks)
+├── docs/                  # Документация (архитектура, деплой, тестирование)
+├── scripts/               # Утилиты разработки (аналитика, оптимизация)
+├── alembic/               # Миграции БД (версионирование схемы)
+└── sql/                   # SQL скрипты (ручные миграции)
 ```
 
 ---
@@ -195,11 +207,19 @@ python scripts/export_metrics.py --format csv --days 30
 
 ### Статистика
 
-- **330+ passed** тестов
+**Backend (Python):**
+- **330+ passed** тестов (pytest)
 - **74%** реальное покрытие критических модулей (без моков)
 - **91.7%** покрытие моделей БД
-- **11 E2E тестов** с реальными сервисами
+- **11 E2E тестов** с реальными сервисами (Yandex Cloud API)
+- **Comprehensive security tests** — SQL injection, DDoS/Slowloris, API authorization, resilience
 - **0 failures** — все тесты проходят
+
+**Frontend (React/TypeScript):**
+- **78 passed** тестов (Vitest)
+- **85%+** покрытие кода (Statements, Branches, Functions, Lines)
+- **6 E2E тестов** (Playwright) — полный user journey
+- **44 security теста** — OWASP Top 10 проверки
 
 ### Реальное покрытие критических модулей
 
@@ -245,8 +265,17 @@ pytest tests/ -n auto
 
 ```bash
 cd frontend
+
+# Unit тесты (Vitest)
 npm run test
-npm run test:coverage
+npm run test:ui          # UI интерфейс для тестов
+npm run test:coverage    # С покрытием кода
+
+# E2E тесты (Playwright)
+npm run test:e2e         # Headless режим
+npm run test:e2e:headed  # С открытым браузером
+npm run test:e2e:ui      # UI для E2E тестов
+npm run test:e2e:debug   # Отладка конкретного теста
 ```
 
 ---
@@ -272,16 +301,23 @@ DATABASE_URL=postgresql://user:password@host:5432/pandapal_db
 # Telegram
 TELEGRAM_BOT_TOKEN=123456789:ABC...
 
-# AI Cloud Services
-AI_CLOUD_API_KEY=AQVN...
-AI_CLOUD_FOLDER_ID=b1g...
+# Yandex Cloud AI Services
+YANDEX_CLOUD_API_KEY=AQVN...
+YANDEX_CLOUD_FOLDER_ID=b1g...
+YANDEX_GPT_MODEL=yandexgpt-lite  # или yandexgpt
 
 # Security
 SECRET_KEY=your-secret-key-min-32-chars
 
-# Domain
-WEBHOOK_DOMAIN=web-production-725aa.up.railway.app
+# Domain & Webhook
+WEBHOOK_DOMAIN=pandapal-bot-production.up.railway.app
 FRONTEND_URL=https://pandapal.ru
+
+# Payments (ЮKassa)
+YOOKASSA_SHOP_ID=your_shop_id
+YOOKASSA_SECRET_KEY=your_secret_key
+YOOKASSA_RETURN_URL=https://pandapal.ru/premium/success
+YOOKASSA_IS_TEST=false
 ```
 
 Полный список: [config/env.template](config/env.template)
@@ -292,14 +328,19 @@ FRONTEND_URL=https://pandapal.ru
 
 ### Реализованные меры
 
-- Валидация входных данных (Pydantic схемы)
-- Защита от SQL Injection (параметризованные запросы)
-- Защита от XSS (CSP заголовки, санитизация)
-- Модерация контента (150+ паттернов)
-- Rate Limiting (защита от abuse)
-- Секреты в переменных окружения
-- HTTPS (Cloudflare Full Strict)
-- Аудит безопасности (Bandit, Safety)
+- **Валидация входных данных** — Pydantic V2 схемы для всех API endpoints
+- **Защита от SQL Injection** — параметризованные запросы SQLAlchemy, ORM
+- **Защита от XSS** — CSP заголовки, санитизация HTML, экранирование
+- **Модерация контента** — 150+ паттернов, 5-уровневая система фильтрации
+- **Rate Limiting** — защита от DDoS (60 req/min API, 30 req/min AI)
+- **Overload Protection** — защита от перегрузки при 1000+ одновременных запросах
+- **CSRF Protection** — проверка Origin/Referer для веб-запросов
+- **Security Headers** — X-Content-Type-Options, X-Frame-Options, HSTS
+- **Comprehensive Security Tests** — SQL injection, DDoS/Slowloris, API authorization тесты
+- **Секреты** — только в переменных окружения, без хардкода
+- **HTTPS** — Cloudflare Full Strict, автоматический SSL
+- **Аудит безопасности** — Bandit, Safety, регулярные проверки
+- **Родительский контроль** — мониторинг активности, аналитика безопасности
 
 ### OWASP Top 10
 
@@ -392,9 +433,10 @@ python scripts/export_metrics.py --format csv --days 30
 
 - [Настройка Базы Данных](docs/DATABASE_SETUP.md) — инструкции по PostgreSQL
 - [Деплой на Railway](docs/RAILWAY_SETUP.md) — гайд по развертыванию
-- [Структура Проекта](docs/PROJECT_STRUCTURE_AUDIT.md) — детальное описание архитектуры
+- [Структура Проекта](docs/ARCHITECTURE/BOT_FUNCTIONALITY_MAP.md) — карта функционала бота
 - [Руководство по Метрикам](docs/ANALYTICS_METRICS_GUIDE.md) — работа с бизнес-метриками
-- [Критический Анализ Проекта](PROJECT_CRITICAL_ANALYSIS.md) — подробный анализ
+- [Безопасность](docs/SECURITY/SECURITY_IMPLEMENTATION.md) — реализация системы безопасности
+- [Тестирование](docs/TESTING/TESTING.md) — руководство по тестированию (frontend и backend)
 
 ---
 
