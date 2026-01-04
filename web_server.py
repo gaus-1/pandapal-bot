@@ -551,6 +551,9 @@ class PandaPalBotServer:
             logger.info(f"✅ Сервер запущен на порту {port}")
             logger.info("📡 Ожидание обновлений от Telegram...")
 
+            # Запускаем keep-alive пинг в фоне (для Railway Free)
+            asyncio.create_task(self._keep_alive_ping(port))
+
             # Ждем бесконечно (сервер работает)
             await asyncio.Event().wait()
 
@@ -559,6 +562,36 @@ class PandaPalBotServer:
             raise
         finally:
             await self.shutdown()
+
+    async def _keep_alive_ping(self, port: int) -> None:
+        """
+        Keep-alive пинг для предотвращения засыпания контейнера на Railway Free.
+
+        Пингует локальный /health endpoint каждые 4 минуты.
+        """
+        import aiohttp
+
+        await asyncio.sleep(30)  # Даем серверу 30 сек на полный запуск
+
+        logger.info("🔄 Keep-alive пинг запущен (каждые 4 минуты)")
+
+        while True:
+            try:
+                await asyncio.sleep(240)  # 4 минуты
+
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(f"http://localhost:{port}/health", timeout=5) as resp:
+                        if resp.status == 200:
+                            logger.debug("💓 Keep-alive ping OK")
+                        else:
+                            logger.warning(f"⚠️ Keep-alive ping failed: {resp.status}")
+
+            except asyncio.CancelledError:
+                logger.info("🛑 Keep-alive пинг остановлен")
+                break
+            except Exception as e:
+                logger.warning(f"⚠️ Keep-alive ping error: {e}")
+                await asyncio.sleep(60)  # При ошибке ждем 1 минуту и пробуем снова
 
 
 async def main() -> None:
