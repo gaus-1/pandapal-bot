@@ -14,6 +14,7 @@ from bot.services.payment_service import PaymentService  # noqa: E402
 from bot.services.personal_tutor_service import PersonalTutorService  # noqa: E402
 from bot.services.premium_features_service import PremiumFeaturesService  # noqa: E402
 from bot.services.priority_support_service import PrioritySupportService  # noqa: E402
+from bot.services.session_service import SessionService, get_session_service  # noqa: E402
 from bot.services.simple_engagement import (  # noqa: E402
     SimpleEngagementService,
     get_simple_engagement,
@@ -33,6 +34,8 @@ __all__ = [
     "SubscriptionService",
     "PaymentService",
     "TelegramAuthService",
+    "SessionService",
+    "get_session_service",
     "PremiumFeaturesService",
     "PersonalTutorService",
     "PrioritySupportService",
