@@ -107,9 +107,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: false
+          load: true
           tags: pandapal-backend:${{ github.sha }}
-          outputs: type=docker,dest=/tmp/backend-image.tar
           cache-from: type=gha
           cache-to: type=gha,mode=max
         continue-on-error: true
@@ -118,12 +117,8 @@ jobs:
         id: digest-backend
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.build-backend.outcome == 'success'
         run: |
-          docker load -i /tmp/backend-image.tar
-          digest=$(docker image inspect pandapal-backend:${{ github.sha }} --format='{{index .RepoDigests 0}}' | cut -d'@' -f2)
-          if [ -z "$digest" ]; then
-            image_id=$(docker image inspect pandapal-backend:${{ github.sha }} --format='{{.Id}}' | cut -d':' -f2)
-            digest="sha256:$image_id"
-          fi
+          image_id=$(docker image inspect pandapal-backend:${{ github.sha }} --format='{{.Id}}' | cut -d':' -f2)
+          digest="sha256:$image_id"
           echo "digest=$digest" >> $GITHUB_OUTPUT
         continue-on-error: true
 
@@ -174,15 +169,18 @@ jobs:
           path: frontend/dist/
           retention-days: 7
 
+      - name: 🐳 Set up Docker Buildx (frontend)
+        uses: docker/setup-buildx-action@v3
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
       - name: 🐳 Build Docker image (frontend)
         id: build-frontend
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: false
+          load: true
           tags: pandapal-frontend:${{ github.sha }}
-          outputs: type=docker,dest=/tmp/frontend-image.tar
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -190,12 +188,8 @@ jobs:
         id: digest-frontend
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.build-frontend.outcome == 'success'
         run: |
-          docker load -i /tmp/frontend-image.tar
-          digest=$(docker image inspect pandapal-frontend:${{ github.sha }} --format='{{index .RepoDigests 0}}' | cut -d'@' -f2)
-          if [ -z "$digest" ]; then
-            image_id=$(docker image inspect pandapal-frontend:${{ github.sha }} --format='{{.Id}}' | cut -d':' -f2)
-            digest="sha256:$image_id"
-          fi
+          image_id=$(docker image inspect pandapal-frontend:${{ github.sha }} --format='{{.Id}}' | cut -d':' -f2)
+          digest="sha256:$image_id"
           echo "digest=$digest" >> $GITHUB_OUTPUT
         continue-on-error: true
 
