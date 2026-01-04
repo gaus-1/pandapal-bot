@@ -8,7 +8,7 @@ import { SITE_CONFIG } from '../config/constants';
 
 export const CallToAction: React.FC = React.memo(() => {
   return (
-    <section id="cta" className="py-16 px-4 bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-slate-800/50 dark:via-slate-900 dark:to-slate-800/50 rounded-3xl my-16 border border-gray-100 dark:border-slate-700 scroll-mt-20">
+    <section id="cta" className="py-16 px-4 bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-slate-800/60 dark:via-slate-900 dark:to-slate-800/60 rounded-3xl my-16 border border-gray-100 dark:border-slate-700 dark:border-slate-600/50 scroll-mt-20">
       <div className="max-w-5xl mx-auto text-center">
         {/* Заголовок */}
         <h2 className="text-3xl md:text-4xl font-display font-bold mb-4 text-gray-900 dark:text-slate-50">
@@ -22,7 +22,7 @@ export const CallToAction: React.FC = React.memo(() => {
         <div className="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-16 mb-12">
           {/* QR-код */}
           <div className="flex flex-col items-center">
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl border-2 border-gray-100 dark:border-slate-700">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl dark:shadow-2xl border-2 border-gray-100 dark:border-slate-700 dark:border-slate-600/50">
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(SITE_CONFIG.botUrl)}`}
                 alt="QR-код для перехода в Telegram бота"
@@ -50,7 +50,7 @@ export const CallToAction: React.FC = React.memo(() => {
               href={SITE_CONFIG.botUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 px-10 py-5 bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 hover:from-blue-600 hover:via-blue-700 hover:to-cyan-600 text-white font-bold text-lg rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+              className="inline-flex items-center justify-center gap-3 px-10 py-5 bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 dark:from-blue-600 dark:via-blue-700 dark:to-cyan-600 hover:from-blue-600 hover:via-blue-700 hover:to-cyan-600 dark:hover:from-blue-700 dark:hover:via-blue-800 dark:hover:to-cyan-700 text-white font-bold text-lg rounded-2xl shadow-xl dark:shadow-2xl hover:shadow-2xl dark:hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform hover:scale-105 active:scale-100 transition-all duration-300"
             >
               <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.204-.657-.643.136-.953l11.566-4.458c.538-.196 1.006.128.832.941z"/>
