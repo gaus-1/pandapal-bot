@@ -156,11 +156,13 @@ async def create_yookassa_payment(request: web.Request) -> web.Response:
         user_phone = getattr(validated, "user_phone", None)
 
         with get_db() as db:
-            user_service = UserService(db)
-            user = user_service.get_user_by_telegram_id(telegram_id)
+            # Для анонимных платежей (telegram_id=0) не требуем наличия пользователя в БД
+            if telegram_id > 0:
+                user_service = UserService(db)
+                user = user_service.get_user_by_telegram_id(telegram_id)
 
-            if not user:
-                return web.json_response({"error": "User not found"}, status=404)
+                if not user:
+                    return web.json_response({"error": "User not found"}, status=404)
 
             # Создаем платеж через ЮKassa
             payment_service = PaymentService()
