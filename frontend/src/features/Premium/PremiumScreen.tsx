@@ -221,11 +221,7 @@ export function PremiumScreen({ user }: PremiumScreenProps) {
             <button
               onClick={() => handlePurchase(plan)}
               disabled={isProcessing && selectedPlan === plan.id}
-              className={`w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all ${
-                plan.popular
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg active:scale-95'
-                  : 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] active:scale-95'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              className="w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isProcessing && selectedPlan === plan.id
                 ? 'Обработка...'
