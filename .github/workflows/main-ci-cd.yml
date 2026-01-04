@@ -29,6 +29,11 @@ jobs:
     name: 🐍 Backend (Python 3.13)
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+
     services:
       postgres:
         image: postgres:17
@@ -121,7 +126,7 @@ jobs:
         continue-on-error: true
 
       - name: 🔐 Generate build attestation (backend)
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v3
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.digest-backend.outcome == 'success' && steps.digest-backend.outputs.digest != ''
         with:
           subject-name: 'pandapal-backend'
@@ -135,6 +140,11 @@ jobs:
   frontend:
     name: ⚛️ Frontend (React 18)
     runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
 
     steps:
       - name: 📥 Checkout code
@@ -190,7 +200,7 @@ jobs:
         continue-on-error: true
 
       - name: 🔐 Generate build attestation (frontend)
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v3
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.digest-frontend.outcome == 'success' && steps.digest-frontend.outputs.digest != ''
         with:
           subject-name: 'pandapal-frontend'
