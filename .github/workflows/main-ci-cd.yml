@@ -128,6 +128,7 @@ jobs:
       - name: 🔐 Generate build attestation (backend)
         uses: actions/attest-build-provenance@v3
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.digest-backend.outcome == 'success' && steps.digest-backend.outputs.digest != ''
+        continue-on-error: true
         with:
           subject-name: 'pandapal-backend'
           subject-digest: '${{ steps.digest-backend.outputs.digest }}'
@@ -201,6 +202,7 @@ jobs:
       - name: 🔐 Generate build attestation (frontend)
         uses: actions/attest-build-provenance@v3
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.digest-frontend.outcome == 'success' && steps.digest-frontend.outputs.digest != ''
+        continue-on-error: true
         with:
           subject-name: 'pandapal-frontend'
           subject-digest: '${{ steps.digest-frontend.outputs.digest }}'
