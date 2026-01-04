@@ -30,8 +30,8 @@ from bot.services import (
     PaymentService,
     PremiumFeaturesService,
     SubscriptionService,
-    YandexCloudService,
 )
+from bot.services.yandex_cloud_service import YandexCloudService
 
 
 class TestAllComponentsResilience:

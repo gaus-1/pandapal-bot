@@ -151,7 +151,13 @@ class PandaPalBotServer:
 
             # Создаем приложение с увеличенным лимитом для больших запросов (фото, аудио)
             # По умолчанию aiohttp имеет лимит ~1MB, увеличиваем до 10MB для base64 медиа
-            self.app = web.Application(client_max_size=10 * 1024 * 1024)  # 10MB
+            # Настройки для очень высокой нагрузки (1000+ одновременных запросов)
+            self.app = web.Application(
+                client_max_size=10 * 1024 * 1024,  # 10MB для медиа
+                # Лимиты для очень высокой нагрузки
+                limit=20000,  # Максимум одновременных соединений (увеличено с 10000)
+                limit_per_host=10000,  # Максимум соединений с одного хоста (увеличено с 5000)
+            )
 
             # Добавляем bot в app context для использования в endpoints
             self.app["bot"] = self.bot
@@ -165,6 +171,15 @@ class PandaPalBotServer:
             except ImportError as e:
                 logger.error(f"❌ Не удалось загрузить security middleware: {e}")
                 raise
+
+            # Добавляем защиту от перегрузки
+            try:
+                from bot.security.overload_protection import overload_protection_middleware
+
+                self.app.middlewares.append(overload_protection_middleware)
+                logger.info("✅ Защита от перегрузки активирована")
+            except ImportError:
+                logger.warning("⚠️ Защита от перегрузки недоступна")
 
             # Health check endpoints
             async def health_check(request: web.Request) -> web.Response:
@@ -191,8 +206,9 @@ class PandaPalBotServer:
                 # Проверка базы данных
                 db_status = "ok"
                 try:
-                    from bot.database import engine
                     from sqlalchemy import text
+
+                    from bot.database import engine
 
                     with engine.connect() as conn:
                         conn.execute(text("SELECT 1"))
@@ -218,7 +234,9 @@ class PandaPalBotServer:
 
                 components["webhook"] = webhook_status
 
-                status_code = 200 if overall_status == "ok" else (503 if overall_status == "error" else 200)
+                status_code = (
+                    200 if overall_status == "ok" else (503 if overall_status == "error" else 200)
+                )
 
                 return web.json_response(
                     {
@@ -354,7 +372,20 @@ class PandaPalBotServer:
 
                         # Кэширование для статических ресурсов (хэшированные имена файлов)
                         headers = {"Content-Type": content_type}
-                        if any(filename.endswith(ext) for ext in [".js", ".css", ".woff", ".woff2", ".png", ".jpg", ".jpeg", ".webp", ".svg"]):
+                        if any(
+                            filename.endswith(ext)
+                            for ext in [
+                                ".js",
+                                ".css",
+                                ".woff",
+                                ".woff2",
+                                ".png",
+                                ".jpg",
+                                ".jpeg",
+                                ".webp",
+                                ".svg",
+                            ]
+                        ):
                             headers["Cache-Control"] = "public, max-age=31536000, immutable"
 
                         return web.FileResponse(file_path, headers=headers)
@@ -498,11 +529,25 @@ class PandaPalBotServer:
 
             logger.info(f"🌐 Запуск веб-сервера на {host}:{port}")
 
-            # Запускаем веб-сервер
-            runner = web.AppRunner(self.app)
+            # Запускаем веб-сервер с настройками для высокой нагрузки
+            runner = web.AppRunner(
+                self.app,
+                # Настройки для обработки высокой нагрузки
+                access_log=None,  # Отключаем access log для производительности (опционально)
+                keepalive_timeout=75,  # Keep-alive таймаут (увеличено с 30)
+                enable_cleanup_closed=True,  # Автоматическая очистка закрытых соединений
+            )
             await runner.setup()
 
-            site = web.TCPSite(runner, host, port)
+            site = web.TCPSite(
+                runner,
+                host,
+                port,
+                # Настройки TCP для высокой нагрузки
+                backlog=1000,  # Размер очереди ожидающих соединений (по умолчанию 128)
+                reuse_address=True,  # Переиспользование адреса
+                reuse_port=False,  # Не используем SO_REUSEPORT (может вызвать проблемы)
+            )
             await site.start()
 
             logger.info(f"✅ Сервер запущен на порту {port}")

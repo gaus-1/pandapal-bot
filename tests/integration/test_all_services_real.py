@@ -23,13 +23,13 @@ from bot.models import Base, Subscription, User
 from bot.services import (
     AnalyticsService,
     BonusLessonsService,
-    GamificationService,
     PersonalTutorService,
     PremiumFeaturesService,
     PrioritySupportService,
     SubscriptionService,
     UserService,
 )
+from bot.services.gamification_service import GamificationService
 
 
 class TestAllServicesReal:
@@ -139,7 +139,7 @@ class TestAllServicesReal:
         service = PersonalTutorService(real_db_session)
 
         with pytest.raises(PermissionError):
-            await service.get_learning_plan(111222333)
+            service.get_learning_plan(111222333)  # Не async метод
 
     @pytest.mark.asyncio
     async def test_personal_tutor_service_premium_user(self, real_db_session, premium_user):
