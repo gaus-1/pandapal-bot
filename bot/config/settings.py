@@ -259,7 +259,7 @@ class Settings(BaseSettings):
 # Singleton instance настроек
 # Создаётся один раз при импорте модуля
 # Pydantic автоматически загружает значения из переменных окружения
-settings = Settings()  # type: ignore[call-arg]
+settings = Settings()  # type: Settings  # Явный тип вместо ignore
 
 # Возрастные границы
 MIN_AGE = 6
