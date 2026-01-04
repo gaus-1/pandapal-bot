@@ -13,37 +13,39 @@ export const DarkModeToggle: React.FC<DarkModeToggleProps> = ({ isInline = false
   const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Загрузить тему из localStorage при монтировании
-  useEffect(() => {
-    setMounted(true);
-    const savedTheme = localStorage.getItem('theme');
+      // Загрузить тему из localStorage при монтировании
+      useEffect(() => {
+        setMounted(true);
+        const savedTheme = localStorage.getItem('theme');
 
-    // Если тема сохранена - используем её, иначе светлая по умолчанию
-    if (savedTheme === 'dark') {
-      setIsDark(true);
-      document.documentElement.classList.add('dark');
-    } else {
-      // Явно устанавливаем светлую тему
-      setIsDark(false);
-      document.documentElement.classList.remove('dark');
-      if (!savedTheme) {
-        localStorage.setItem('theme', 'light');
-      }
-    }
-  }, []);
+        // Если тема сохранена и это dark - используем её, иначе светлая по умолчанию
+        if (savedTheme === 'dark') {
+          setIsDark(true);
+          document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('light');
+        } else {
+          // Явно устанавливаем светлую тему
+          setIsDark(false);
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
+          localStorage.setItem('theme', 'light');
+        }
+      }, []);
 
-  // Переключение темы
-  const toggleTheme = () => {
-    if (isDark) {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-      setIsDark(false);
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-      setIsDark(true);
-    }
-  };
+      // Переключение темы
+      const toggleTheme = () => {
+        if (isDark) {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
+          localStorage.setItem('theme', 'light');
+          setIsDark(false);
+        } else {
+          document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('light');
+          localStorage.setItem('theme', 'dark');
+          setIsDark(true);
+        }
+      };
 
   // Не показываем кнопку до монтирования (избегаем мигания)
   if (!mounted) return null;

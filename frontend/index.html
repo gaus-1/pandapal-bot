@@ -15,19 +15,10 @@
     <meta name="color-scheme" content="light dark" />
     <script>
       (function() {
-        // Проверяем сохраненную тему
-        const savedTheme = localStorage.getItem('theme');
-
-        // Если нет сохраненной темы - принудительно ставим светлую
-        if (!savedTheme || savedTheme === 'null' || savedTheme === 'undefined' || savedTheme === '') {
-          localStorage.setItem('theme', 'light');
-          document.documentElement.classList.remove('dark');
-        } else if (savedTheme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-          localStorage.setItem('theme', 'light');
-        }
+        // ПРИНУДИТЕЛЬНО устанавливаем светлую тему по умолчанию
+        localStorage.setItem('theme', 'light');
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
       })();
     </script>
 
