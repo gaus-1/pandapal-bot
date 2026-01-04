@@ -216,7 +216,37 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
         telegram_id = webhook_result["telegram_id"]
         plan_id = webhook_result["plan_id"]
 
-        # Активируем подписку
+        # ВАЖНО: Анонимные платежи (telegram_id=0) с сайта не могут быть автоматически активированы
+        # т.к. в БД нет пользователя с ID=0. Такие платежи сохраняются в таблице payments
+        # и могут быть активированы позже вручную через /start в боте
+        if telegram_id == 0:
+            logger.warning(
+                f"⚠️ Анонимный платёж с сайта: payment_id={payment_id}, plan={plan_id}. "
+                "Подписка НЕ активирована автоматически. Нужна привязка к пользователю."
+            )
+            # Сохраняем платёж в таблице payments для дальнейшей обработки
+            with get_db() as db:
+                from datetime import datetime
+
+                from bot.models import Payment as PaymentModel
+
+                payment = PaymentModel(
+                    payment_id=payment_id,
+                    telegram_id=0,  # Анонимный платёж
+                    amount=float(webhook_result.get("amount", {}).get("value", 0)),
+                    currency="RUB",
+                    status="succeeded",
+                    plan_id=plan_id,
+                    created_at=datetime.utcnow(),
+                )
+                db.add(payment)
+                db.commit()
+
+            return web.json_response(
+                {"success": True, "message": "Anonymous payment saved, awaiting user link"}
+            )
+
+        # Активируем подписку для зарегистрированных пользователей
         with get_db() as db:
             subscription_service = SubscriptionService(db)
 
