@@ -119,7 +119,7 @@ ALL_ACHIEVEMENTS = [
         10,
     ),
     Achievement(
-        "hangman_master", "Мастер виселицы", "10 побед в виселицу", "🎯", 150, "hangman_wins", 10
+        "checkers_master", "Мастер шашек", "10 побед в шашки", "🎯", 150, "checkers_wins", 10
     ),
     Achievement(
         "2048_legend", "Легенда 2048", "Набери 2048 очков", "🔢", 200, "2048_best_score", 2048
@@ -362,8 +362,8 @@ class GamificationService:
             return stats.get("total_game_sessions", 0) >= condition_value
         elif condition_type == "tic_tac_toe_wins":
             return stats.get("tic_tac_toe_wins", 0) >= condition_value
-        elif condition_type == "hangman_wins":
-            return stats.get("hangman_wins", 0) >= condition_value
+        elif condition_type == "checkers_wins":
+            return stats.get("checkers_wins", 0) >= condition_value
         elif condition_type == "2048_best_score":
             return stats.get("2048_best_score", 0) >= condition_value
 
@@ -416,7 +416,7 @@ class GamificationService:
         total_game_wins = 0
         total_game_sessions = 0
         tic_tac_toe_wins = 0
-        hangman_wins = 0
+        checkers_wins = 0
         game_2048_best_score = 0
 
         for gs in game_stats_list:
@@ -424,8 +424,8 @@ class GamificationService:
             total_game_sessions += gs.total_games
             if gs.game_type == "tic_tac_toe":
                 tic_tac_toe_wins = gs.wins
-            elif gs.game_type == "hangman":
-                hangman_wins = gs.wins
+            elif gs.game_type == "checkers":
+                checkers_wins = gs.wins
             elif gs.game_type == "2048":
                 if gs.best_score and gs.best_score > game_2048_best_score:
                     game_2048_best_score = gs.best_score
@@ -439,7 +439,7 @@ class GamificationService:
             "total_game_wins": total_game_wins,
             "total_game_sessions": total_game_sessions,
             "tic_tac_toe_wins": tic_tac_toe_wins,
-            "hangman_wins": hangman_wins,
+            "checkers_wins": checkers_wins,
             "2048_best_score": game_2048_best_score,
         }
 
@@ -595,8 +595,8 @@ class GamificationService:
             return min(stats.get("total_game_sessions", 0), achievement.condition_value)
         elif condition_type == "tic_tac_toe_wins":
             return min(stats.get("tic_tac_toe_wins", 0), achievement.condition_value)
-        elif condition_type == "hangman_wins":
-            return min(stats.get("hangman_wins", 0), achievement.condition_value)
+        elif condition_type == "checkers_wins":
+            return min(stats.get("checkers_wins", 0), achievement.condition_value)
         elif condition_type == "2048_best_score":
             return min(stats.get("2048_best_score", 0), achievement.condition_value)
 

@@ -845,7 +845,7 @@ class GameSession(Base):
 
     game_type: Mapped[str] = mapped_column(
         String(50), nullable=False
-    )  # 'tic_tac_toe', 'hangman', '2048'
+    )  # 'tic_tac_toe', 'checkers', '2048'
     game_state: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)  # Состояние игры (JSON)
     result: Mapped[Optional[str]] = mapped_column(
         String(20), nullable=True
@@ -867,7 +867,7 @@ class GameSession(Base):
         Index("idx_game_sessions_user_type", "user_telegram_id", "game_type"),
         Index("idx_game_sessions_started", "started_at"),
         CheckConstraint(
-            "game_type IN ('tic_tac_toe', 'hangman', '2048')", name="ck_game_sessions_game_type"
+            "game_type IN ('tic_tac_toe', 'checkers', '2048')", name="ck_game_sessions_game_type"
         ),
         CheckConstraint(
             "result IS NULL OR result IN ('win', 'loss', 'draw', 'in_progress')",
@@ -937,7 +937,7 @@ class GameStats(Base):
         Index("idx_game_stats_user_type", "user_telegram_id", "game_type"),
         Index("idx_game_stats_updated", "updated_at"),
         CheckConstraint(
-            "game_type IN ('tic_tac_toe', 'hangman', '2048')", name="ck_game_stats_game_type"
+            "game_type IN ('tic_tac_toe', 'checkers', '2048')", name="ck_game_stats_game_type"
         ),
         # Уникальность: один статистика на пользователя + тип игры
         Index("uq_game_stats_user_type", "user_telegram_id", "game_type", unique=True),

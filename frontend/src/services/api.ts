@@ -285,7 +285,7 @@ export async function updateUserProfile(
 
 export interface GameSession {
   id: number;
-  game_type: 'tic_tac_toe' | 'hangman' | '2048';
+  game_type: 'tic_tac_toe' | 'checkers' | '2048';
   game_state: Record<string, unknown>;
   result: 'win' | 'loss' | 'draw' | 'in_progress' | null;
   score: number | null;

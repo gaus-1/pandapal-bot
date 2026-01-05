@@ -18,11 +18,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Удаляем старый constraint
+    # Шаг 1: Обновляем все записи с 'hangman' на 'checkers' (или удаляем их)
+    # Удаляем старые сессии с hangman, так как эта игра больше не поддерживается
+    op.execute("DELETE FROM game_sessions WHERE game_type = 'hangman'")
+    op.execute("DELETE FROM game_stats WHERE game_type = 'hangman'")
+
+    # Шаг 2: Удаляем старый constraint
     op.drop_constraint("ck_game_sessions_game_type", "game_sessions", type_="check")
     op.drop_constraint("ck_game_stats_game_type", "game_stats", type_="check")
 
-    # Создаем новый constraint с checkers вместо hangman
+    # Шаг 3: Создаем новый constraint с checkers вместо hangman
     op.create_check_constraint(
         "ck_game_sessions_game_type",
         "game_sessions",
