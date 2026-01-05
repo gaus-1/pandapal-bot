@@ -205,65 +205,66 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         {/* Игровая доска */}
         <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1 mb-4 overflow-x-auto -mx-3 sm:mx-0">
           {board.length > 0 ? (
-            <div className="grid grid-cols-8 gap-0.5 w-full max-w-full mx-auto" style={{ maxWidth: 'min(100vw - 1rem, 260px)' }}>
-              {board.map((row, rowIndex) =>
-                row.map((_, colIndex) => {
-                  const isDark = isDarkCell(rowIndex, colIndex);
-                  const cell = board[rowIndex]?.[colIndex];
-                  const selected = isSelected(rowIndex, colIndex);
+            <div className="w-full max-w-full mx-auto aspect-square" style={{ maxWidth: 'min(100vw - 1rem, 400px)' }}>
+              <div className="grid grid-cols-8 gap-0.5 w-full h-full">
+                {board.map((row, rowIndex) =>
+                  row.map((_, colIndex) => {
+                    const isDark = isDarkCell(rowIndex, colIndex);
+                    const cell = board[rowIndex]?.[colIndex];
+                    const selected = isSelected(rowIndex, colIndex);
 
-                  return (
-                    <button
-                      key={`${rowIndex}-${colIndex}`}
-                      onClick={() => handleCellClick(rowIndex, colIndex)}
-                      disabled={!isUserTurn || isLoading || gameOver}
-                      className={`
-                        aspect-square rounded-md
-                        relative flex items-center justify-center
-                        transition-all duration-200 touch-manipulation
-                        min-h-[40px] sm:min-h-[48px] md:min-h-[56px]
-                        w-full
-                        ${
-                          isDark
-                            ? "bg-[var(--tg-theme-button-color)]"
-                            : "bg-[var(--tg-theme-bg-color)]"
-                        }
-                        ${
-                          selected
-                            ? "ring-2 sm:ring-4 ring-yellow-400 ring-opacity-75"
-                            : ""
-                        }
-                        ${
-                          board[rowIndex][colIndex] === "user" && !gameOver && !isLoading
-                            ? "hover:opacity-80 active:scale-95 cursor-pointer"
-                            : ""
-                        }
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                      `}
-                      aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
-                    >
-                      {cell === "user" && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-[85%] h-[85%] sm:w-[90%] sm:h-[90%] rounded-full bg-white border-[3px] border-gray-300 shadow-lg flex items-center justify-center aspect-square">
-                            {isKing(rowIndex, colIndex) && (
-                              <span className="text-sm sm:text-base md:text-lg font-bold text-gray-700">♔</span>
-                            )}
+                    return (
+                      <button
+                        key={`${rowIndex}-${colIndex}`}
+                        onClick={() => handleCellClick(rowIndex, colIndex)}
+                        disabled={!isUserTurn || isLoading || gameOver}
+                        className={`
+                          aspect-square rounded-md
+                          relative flex items-center justify-center
+                          transition-all duration-200 touch-manipulation
+                          w-full h-full
+                          ${
+                            isDark
+                              ? "bg-[var(--tg-theme-button-color)]"
+                              : "bg-[var(--tg-theme-bg-color)]"
+                          }
+                          ${
+                            selected
+                              ? "ring-2 sm:ring-4 ring-yellow-400 ring-opacity-75"
+                              : ""
+                          }
+                          ${
+                            board[rowIndex][colIndex] === "user" && !gameOver && !isLoading
+                              ? "hover:opacity-80 active:scale-95 cursor-pointer"
+                              : ""
+                          }
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                        `}
+                        aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
+                      >
+                        {cell === "user" && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-[85%] h-[85%] sm:w-[90%] sm:h-[90%] rounded-full bg-white border-[3px] border-gray-300 shadow-lg flex items-center justify-center">
+                              {isKing(rowIndex, colIndex) && (
+                                <span className="text-sm sm:text-base md:text-lg font-bold text-gray-700">♔</span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      {cell === "ai" && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-[85%] h-[85%] sm:w-[90%] sm:h-[90%] rounded-full bg-gray-800 border-[3px] border-gray-900 shadow-lg flex items-center justify-center aspect-square">
-                            {isKing(rowIndex, colIndex) && (
-                              <span className="text-sm sm:text-base md:text-lg font-bold text-white">♚</span>
-                            )}
+                        )}
+                        {cell === "ai" && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-[85%] h-[85%] sm:w-[90%] sm:h-[90%] rounded-full bg-gray-800 border-[3px] border-gray-900 shadow-lg flex items-center justify-center">
+                              {isKing(rowIndex, colIndex) && (
+                                <span className="text-sm sm:text-base md:text-lg font-bold text-white">♚</span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })
-              )}
+                        )}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
             </div>
           ) : (
             <div className="text-center text-[var(--tg-theme-hint-color)] py-8">
