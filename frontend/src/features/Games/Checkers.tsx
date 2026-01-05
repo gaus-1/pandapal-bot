@@ -206,9 +206,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl sm:rounded-2xl p-1.5 sm:p-2 md:p-4 mb-4 sm:mb-6 overflow-x-auto">
+        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl sm:rounded-2xl p-1.5 sm:p-2 md:p-4 mb-4 sm:mb-6 overflow-x-auto -mx-3 sm:mx-0">
           {board.length > 0 ? (
-            <div className="grid grid-cols-8 gap-0.5 sm:gap-1 md:gap-1.5 min-w-[280px] sm:min-w-[320px]">
+            <div className="grid grid-cols-8 gap-0.5 sm:gap-1 md:gap-1.5 w-full max-w-full mx-auto" style={{ maxWidth: 'min(100vw - 2rem, 400px)' }}>
               {board.map((row, rowIndex) =>
                 row.map((_, colIndex) => {
                   const isDark = isDarkCell(rowIndex, colIndex);
@@ -222,9 +222,10 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       disabled={!isUserTurn || isLoading || gameOver}
                       className={`
                         aspect-square rounded-sm sm:rounded-md
-                        flex items-center justify-center text-xl sm:text-2xl md:text-3xl
+                        flex items-center justify-center text-lg sm:text-xl md:text-2xl
                         transition-all duration-200 touch-manipulation
-                        min-h-[32px] sm:min-h-[38px] md:min-h-[45px]
+                        min-h-[35px] sm:min-h-[40px] md:min-h-[48px]
+                        w-full
                         ${
                           isDark
                             ? "bg-[var(--tg-theme-button-color)]"

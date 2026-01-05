@@ -290,13 +290,13 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
         {/* Игровая доска с поддержкой swipe */}
         <div
-          className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl sm:rounded-2xl p-2 sm:p-4 mb-4 sm:mb-6 touch-none select-none"
+          className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 mb-4 sm:mb-6 touch-none select-none w-full max-w-md mx-auto"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
           {board.length > 0 ? (
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2 md:gap-2.5 w-full">
               {board.flat().map((value, index) => {
                 const isNewTile = newTileIndices.has(index);
                 return (
@@ -304,7 +304,8 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
                     key={index}
                     className={`
                       aspect-square rounded-md sm:rounded-lg flex items-center justify-center
-                      font-bold min-h-[50px] sm:min-h-[70px]
+                      font-bold min-h-[60px] sm:min-h-[75px] md:min-h-[85px]
+                      w-full
                       ${
                         value === 0
                           ? "bg-[var(--tg-theme-bg-color)]"

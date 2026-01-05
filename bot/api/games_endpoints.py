@@ -71,11 +71,28 @@ async def create_game(request: web.Request) -> web.Response:
             # Инициализация состояния игры
             initial_state = {}
             if validated.game_type == "tic_tac_toe":
-                initial_state = {"board": [None] * 9}
+                from bot.services.game_engines import TicTacToe
+
+                game = TicTacToe()
+                state = game.get_state()
+                initial_state = {"board": state["board"]}
             elif validated.game_type == "checkers":
-                initial_state = {"board": games_service._init_checkers_board()}
+                from bot.services.game_engines import CheckersGame
+
+                game = CheckersGame()
+                state = game.get_board_state()
+                initial_state = {"board": state["board"], "current_player": state["current_player"]}
             elif validated.game_type == "2048":
-                initial_state = {"board": games_service._init_2048_board(), "score": 0}
+                from bot.services.game_engines import Game2048
+
+                game = Game2048()
+                state = game.get_state()
+                initial_state = {
+                    "board": state["board"],
+                    "score": state["score"],
+                    "won": state["won"],
+                    "game_over": state["game_over"],
+                }
 
             session = games_service.create_game_session(
                 telegram_id, validated.game_type, initial_state

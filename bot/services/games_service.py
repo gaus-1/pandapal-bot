@@ -13,6 +13,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from bot.models import GameSession, GameStats
+from bot.services.game_engines import CheckersGame, Game2048, TicTacToe
 from bot.services.gamification_service import GamificationService
 
 
@@ -494,117 +495,133 @@ class GamesService:
         if not session:
             raise ValueError(f"Game session {session_id} not found")
 
-        # Получаем текущее состояние доски
+        # Восстанавливаем или создаем игру
         if session.game_state and isinstance(session.game_state, dict):
-            board = session.game_state.get("board", [None] * 9)
+            game_state = session.game_state
+            saved_board = game_state.get("board", [None] * 9)
+            # Восстанавливаем игру из сохраненного состояния
+            game = TicTacToe()
+            # Восстанавливаем доску из сохраненного состояния
+            for i, cell in enumerate(saved_board):
+                if i < 9:  # Проверяем границы
+                    row, col = i // 3, i % 3
+                    if cell == "X":
+                        game.board[row][col] = 1
+                        game.moves_count += 1
+                    elif cell == "O":
+                        game.board[row][col] = 2
+                        game.moves_count += 1
+            # Определяем текущего игрока по количеству ходов
+            game.current_player = 1 if game.moves_count % 2 == 0 else 2
+            # Проверяем, не закончена ли уже игра
+            if game_state.get("winner"):
+                game.winner = 1 if game_state.get("winner") == "user" else 2
+            if game_state.get("is_draw"):
+                game.is_draw = True
         else:
-            board = [None] * 9
+            game = TicTacToe()
+
+        # Конвертируем position (0-8) в row, col
+        row, col = position // 3, position % 3
 
         # Проверяем валидность позиции
         if position < 0 or position >= 9:
             raise ValueError(f"Invalid position: {position}. Must be between 0 and 8")
 
-        if board[position] is not None:
+        if game.board[row][col] is not None:
             raise ValueError("Position already taken")
 
-        # Ход пользователя
-        board[position] = user_symbol
-        ai_symbol = "O"
+        # Ход пользователя (1 = X)
+        if not game.make_move(row, col):
+            raise ValueError("Invalid move")
 
-        # Проверяем победу пользователя после его хода
-        winner = self._check_tic_tac_toe_winner(board)
-        if winner == user_symbol:
+        # Проверяем победу пользователя
+        if game.winner == 1:
+            state = game.get_state()
             self.finish_game_session(session_id, "win")
             return {
-                "board": board,
+                "board": state["board"],
                 "winner": "user",
                 "game_over": True,
                 "ai_move": None,
             }
 
-        # Ход AI (панда) - только если игра не закончилась
-        ai_position = self.tic_tac_toe_ai.get_best_move(board, ai_symbol)
-
-        # Проверяем, что AI может сделать ход
-        if ai_position == -1 or ai_position >= len(board) or board[ai_position] is not None:
-            # Если доска заполнена, это ничья
-            if all(cell is not None for cell in board):
-                self.finish_game_session(session_id, "draw")
-                self.db.commit()
-                return {
-                    "board": board,
-                    "winner": None,
-                    "game_over": True,
-                    "ai_move": None,
-                }
-            # Если есть свободные клетки, но AI не может сделать ход - это ошибка AI
-            # В этом случае просто продолжаем игру без хода AI
-            logger.warning(f"AI cannot make a move but board is not full. Board: {board}")
-            self.update_game_session(session_id, {"board": board}, "in_progress")
+        # Проверяем ничью
+        if game.is_draw:
+            state = game.get_state()
+            self.finish_game_session(session_id, "draw")
             self.db.commit()
             return {
-                "board": board,
+                "board": state["board"],
                 "winner": None,
-                "game_over": False,
+                "game_over": True,
                 "ai_move": None,
             }
 
-        # Делаем ход AI
-        board[ai_position] = ai_symbol
+        # Ход AI (2 = O)
+        # Находим лучший ход через AI
+        frontend_board = game.get_state()["board"]
+        ai_position = self.tic_tac_toe_ai.get_best_move(frontend_board, "O")
+        if ai_position == -1 or ai_position >= 9:
+            # Нет доступных ходов - ничья
+            state = game.get_state()
+            self.finish_game_session(session_id, "draw")
+            self.db.commit()
+            return {
+                "board": state["board"],
+                "winner": None,
+                "game_over": True,
+                "ai_move": None,
+            }
 
-        # Проверяем победу AI после его хода
-        winner = self._check_tic_tac_toe_winner(board)
-        if winner == ai_symbol:
+        ai_row, ai_col = ai_position // 3, ai_position % 3
+        if not game.make_move(ai_row, ai_col):
+            # AI не может сделать ход - ничья
+            state = game.get_state()
+            self.finish_game_session(session_id, "draw")
+            self.db.commit()
+            return {
+                "board": state["board"],
+                "winner": None,
+                "game_over": True,
+                "ai_move": None,
+            }
+
+        # Проверяем победу AI
+        if game.winner == 2:
+            state = game.get_state()
             self.finish_game_session(session_id, "loss")
             self.db.commit()
             return {
-                "board": board,
+                "board": state["board"],
                 "winner": "ai",
                 "game_over": True,
                 "ai_move": ai_position,
             }
 
-        # Проверяем ничью после хода AI (все клетки заполнены)
-        if all(cell is not None for cell in board):
+        # Проверяем ничью после хода AI
+        if game.is_draw:
+            state = game.get_state()
             self.finish_game_session(session_id, "draw")
             self.db.commit()
             return {
-                "board": board,
+                "board": state["board"],
                 "winner": None,
                 "game_over": True,
                 "ai_move": ai_position,
             }
 
-        # Обновляем состояние игры в БД
-        self.update_game_session(session_id, {"board": board}, "in_progress")
+        # Сохраняем состояние
+        state = game.get_state()
+        self.update_game_session(session_id, {"board": state["board"]}, "in_progress")
         self.db.commit()
 
         return {
-            "board": board,
+            "board": state["board"],
             "winner": None,
             "game_over": False,
-            "ai_move": ai_position if ai_position != -1 else None,
+            "ai_move": ai_position,
         }
-
-    def _check_tic_tac_toe_winner(self, board: List[Optional[str]]) -> Optional[str]:
-        """Проверить победителя в крестиках-ноликах"""
-        lines = [
-            [0, 1, 2],
-            [3, 4, 5],
-            [6, 7, 8],
-            [0, 3, 6],
-            [1, 4, 7],
-            [2, 5, 8],
-            [0, 4, 8],
-            [2, 4, 6],
-        ]
-
-        for line in lines:
-            values = [board[i] for i in line]
-            if values[0] and values[0] == values[1] == values[2]:
-                return values[0]
-
-        return None
 
     def checkers_move(
         self, session_id: int, from_row: int, from_col: int, to_row: int, to_col: int
@@ -626,55 +643,95 @@ class GamesService:
         if not session:
             raise ValueError(f"Game session {session_id} not found")
 
-        # Получаем текущее состояние доски
+        # Восстанавливаем или создаем игру
         if session.game_state and isinstance(session.game_state, dict):
-            board_data = session.game_state.get("board")
+            game_state = session.game_state
+            board_data = game_state.get("board")
             if board_data and isinstance(board_data, list) and len(board_data) == 8:
-                board = board_data
+                # Восстанавливаем игру из сохраненного состояния
+                game = CheckersGame()
+                # Конвертируем frontend формат ('user', 'ai', None) в engine формат (1, 2, 0)
+                for r in range(8):
+                    for c in range(8):
+                        cell = (
+                            board_data[r][c]
+                            if r < len(board_data) and c < len(board_data[r])
+                            else None
+                        )
+                        if cell == "user":
+                            game.board[r][c] = 1
+                        elif cell == "ai":
+                            game.board[r][c] = 2
+                        else:
+                            game.board[r][c] = 0
+                # Восстанавливаем текущего игрока и другие состояния
+                game.current_player = game_state.get("current_player", 1)
             else:
-                board = self._init_checkers_board()
+                game = CheckersGame()
         else:
-            board = self._init_checkers_board()
+            game = CheckersGame()
 
-        # Проверяем валидность хода
-        if not self._is_valid_move(board, from_row, from_col, to_row, to_col, "user"):
+        # Ход пользователя (player = 1)
+        if not game.make_move(from_row, from_col, to_row, to_col):
             raise ValueError("Invalid move")
 
-        # Делаем ход пользователя
-        board = self._make_move(board, from_row, from_col, to_row, to_col, "user")
-
         # Проверяем победу пользователя
-        if self._check_checkers_winner(board) == "user":
+        if game.winner == 1:
+            state = game.get_board_state()
             self.finish_game_session(session_id, "win")
             return {
-                "board": board,
+                "board": state["board"],
                 "winner": "user",
                 "game_over": True,
                 "ai_move": None,
             }
 
-        # Ход AI (панда)
-        ai_move = self.checkers_ai.get_best_move(board, "ai")
+        # Ход AI (player = 2)
+        # Получаем все возможные ходы для AI
+        valid_moves = game.get_valid_moves(2)
+        if not valid_moves:
+            # AI не может сделать ход - пользователь победил
+            state = game.get_board_state()
+            self.finish_game_session(session_id, "win")
+            return {
+                "board": state["board"],
+                "winner": "user",
+                "game_over": True,
+                "ai_move": None,
+            }
+
+        # Выбираем лучший ход через AI
+        # Конвертируем формат для старого AI
+        frontend_board = game.get_board_state()["board"]
+        ai_move = self.checkers_ai.get_best_move(frontend_board, "ai")
         if ai_move:
             ai_from_row, ai_from_col, ai_to_row, ai_to_col = ai_move
-            board = self._make_move(board, ai_from_row, ai_from_col, ai_to_row, ai_to_col, "ai")
+            if game.make_move(ai_from_row, ai_from_col, ai_to_row, ai_to_col):
+                # Проверяем победу AI
+                if game.winner == 2:
+                    state = game.get_board_state()
+                    self.finish_game_session(session_id, "loss")
+                    return {
+                        "board": state["board"],
+                        "winner": "ai",
+                        "game_over": True,
+                        "ai_move": ai_move,
+                    }
 
-            # Проверяем победу AI
-            if self._check_checkers_winner(board) == "ai":
-                self.finish_game_session(session_id, "loss")
-                return {
-                    "board": board,
-                    "winner": "ai",
-                    "game_over": True,
-                    "ai_move": ai_move,
-                }
-
-        # Обновляем состояние игры в БД
-        self.update_game_session(session_id, {"board": board}, "in_progress")
+        # Сохраняем состояние
+        state = game.get_board_state()
+        self.update_game_session(
+            session_id,
+            {
+                "board": state["board"],
+                "current_player": game.current_player,
+            },
+            "in_progress",
+        )
         self.db.commit()
 
         return {
-            "board": board,
+            "board": state["board"],
             "winner": None,
             "game_over": False,
             "ai_move": ai_move if ai_move else None,
@@ -811,42 +868,63 @@ class GamesService:
         if not session:
             raise ValueError(f"Game session {session_id} not found")
 
-        board = session.game_state.get("board", self._init_2048_board())
+        # Восстанавливаем или создаем игру
+        if session.game_state and isinstance(session.game_state, dict):
+            game_state = session.game_state
+            board_data = game_state.get("board")
+            if board_data and isinstance(board_data, list) and len(board_data) == 4:
+                game = Game2048()
+                game.board = [row[:] for row in board_data]
+                game.score = game_state.get("score", 0)
+                game.won = game_state.get("won", False)
+                game.game_over = game_state.get("game_over", False)
+            else:
+                game = Game2048()
+        else:
+            game = Game2048()
 
         # Делаем ход
-        new_board, new_score = self._move_2048(board, direction)
-
-        # Добавляем новую клетку только если доска изменилась
-        board_changed = new_board != board
-        if board_changed:
-            new_board = self._add_random_tile(new_board)
-
-        # Проверяем поражение
-        if self._is_2048_game_over(new_board):
-            self.finish_game_session(session_id, "loss", new_score)
-            self.db.commit()
+        if not game.move(direction):
+            # Ход не изменил доску
+            state = game.get_state()
             return {
-                "board": new_board,
-                "score": new_score,
-                "game_over": True,
-                "won": False,
+                "board": state["board"],
+                "score": state["score"],
+                "game_over": state["game_over"],
+                "won": state["won"],
             }
 
-        # Проверяем победу (2048)
-        if any(any(cell == 2048 for cell in row) for row in new_board):
-            if session.game_state.get("won") is None:
-                session.game_state["won"] = True
+        state = game.get_state()
+
+        # Проверяем поражение
+        if state["game_over"]:
+            self.finish_game_session(session_id, "loss", state["score"])
+            self.db.commit()
+            return {
+                "board": state["board"],
+                "score": state["score"],
+                "game_over": True,
+                "won": state["won"],
+            }
 
         # Обновляем состояние
         self.update_game_session(
-            session_id, {"board": new_board, "score": new_score}, "in_progress"
+            session_id,
+            {
+                "board": state["board"],
+                "score": state["score"],
+                "won": state["won"],
+                "game_over": state["game_over"],
+            },
+            "in_progress",
         )
+        self.db.commit()
 
         return {
-            "board": new_board,
-            "score": new_score,
+            "board": state["board"],
+            "score": state["score"],
             "game_over": False,
-            "won": session.game_state.get("won", False),
+            "won": state["won"],
         }
 
     def _init_2048_board(self) -> List[List[int]]:

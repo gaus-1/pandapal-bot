@@ -11,7 +11,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from bot.models import Base, GameSession, GameStats, User
-from bot.services.games_service import GamesService, HangmanAI, TicTacToeAI
+from bot.services.games_service import GamesService, TicTacToeAI
 
 
 @pytest.fixture(scope="function")
@@ -89,33 +89,6 @@ class TestTicTacToeAI:
         board = [None] * 9
         move = ai.get_best_move(board, "O")
         assert 0 <= move <= 8
-
-
-class TestHangmanAI:
-    """Тесты для AI виселицы"""
-
-    def test_get_word_by_age(self):
-        """Получение слова по возрасту"""
-        ai = HangmanAI()
-        word = ai.get_word(6)
-        assert word.isupper()
-        assert len(word) > 0
-
-    def test_get_word_default(self):
-        """Получение слова без возраста"""
-        ai = HangmanAI()
-        word = ai.get_word()
-        assert word.isupper()
-        assert len(word) > 0
-
-    def test_get_hint_when_many_mistakes(self):
-        """Подсказка при большом количестве ошибок"""
-        ai = HangmanAI()
-        word = "КОТ"
-        guessed = ["А", "Б", "В", "Г", "Д"]
-        hint = ai.get_hint(word, guessed, 5)
-        assert hint is not None
-        assert "Попробуй букву" in hint
 
 
 class TestGamesService:
@@ -216,69 +189,6 @@ class TestTicTacToeGame:
         # Пытаемся поставить в занятую клетку (позиция 0 уже занята X)
         with pytest.raises(ValueError, match="Position already taken"):
             games_service.tic_tac_toe_make_move(session.id, 0)
-
-
-class TestHangmanGame:
-    """Тесты для игры виселица"""
-
-    def test_hangman_correct_guess(self, games_service, test_user):
-        """Правильное угадывание буквы"""
-        session = games_service.create_game_session(
-            test_user.telegram_id,
-            "hangman",
-            {"word": "КОТ", "guessed_letters": [], "mistakes": 0},
-        )
-        games_service.db.commit()
-
-        result = games_service.hangman_guess_letter(session.id, "К")
-        games_service.db.commit()
-        assert "К" in result["guessed_letters"]
-        assert result["mistakes"] == 0
-        assert not result["game_over"]
-
-    def test_hangman_wrong_guess(self, games_service, test_user):
-        """Неправильное угадывание буквы"""
-        session = games_service.create_game_session(
-            test_user.telegram_id,
-            "hangman",
-            {"word": "КОТ", "guessed_letters": [], "mistakes": 0},
-        )
-        games_service.db.commit()
-
-        result = games_service.hangman_guess_letter(session.id, "А")
-        games_service.db.commit()
-        assert "А" in result["guessed_letters"]
-        assert result["mistakes"] == 1
-        assert not result["game_over"]
-
-    def test_hangman_win(self, games_service, test_user):
-        """Победа в виселице"""
-        session = games_service.create_game_session(
-            test_user.telegram_id,
-            "hangman",
-            {"word": "КОТ", "guessed_letters": ["К", "О"], "mistakes": 0},
-        )
-        games_service.db.commit()
-
-        result = games_service.hangman_guess_letter(session.id, "Т")
-        games_service.db.commit()
-        assert result["game_over"]
-        assert result["won"] is True
-
-    def test_hangman_loss(self, games_service, test_user):
-        """Поражение в виселице"""
-        session = games_service.create_game_session(
-            test_user.telegram_id,
-            "hangman",
-            {"word": "КОТ", "guessed_letters": ["А", "Б", "В", "Г", "Д", "Е"], "mistakes": 6},
-        )
-        games_service.db.commit()
-
-        # Уже 6 ошибок, следующая должна завершить игру
-        result = games_service.hangman_guess_letter(session.id, "Ж")
-        games_service.db.commit()
-        assert result["game_over"]
-        assert result["won"] is False
 
 
 class TestGame2048:
