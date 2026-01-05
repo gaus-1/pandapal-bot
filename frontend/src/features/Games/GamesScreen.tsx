@@ -55,8 +55,10 @@ export function GamesScreen({ user }: GamesScreenProps) {
   const loadStats = async () => {
     try {
       const allStats = await getGameStats(user.telegram_id);
-      if (typeof allStats === 'object' && !Array.isArray(allStats)) {
-        setStats(allStats);
+      if (typeof allStats === 'object' && !Array.isArray(allStats) && allStats !== null) {
+        // Проверяем, что это Record<string, GameStats>, а не просто GameStats
+        const statsRecord = allStats as Record<string, GameStats>;
+        setStats(statsRecord);
       }
     } catch (err) {
       console.error('Ошибка загрузки статистики:', err);

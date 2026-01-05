@@ -26,8 +26,13 @@ def db_session():
     yield session
 
     session.close()
-    os.close(db_fd)
-    os.unlink(db_path)
+    engine.dispose()
+    try:
+        os.close(db_fd)
+        os.unlink(db_path)
+    except (PermissionError, OSError):
+        # Игнорируем ошибки удаления на Windows
+        pass
 
 
 @pytest.fixture
@@ -181,37 +186,34 @@ class TestTicTacToeGame:
 
     def test_tic_tac_toe_user_win(self, games_service, test_user):
         """Пользователь выигрывает"""
+        # Создаем доску с почти выигрышной комбинацией для пользователя
+        # Доска: X X _ | O O _ | _ _ _
+        # Пользователь ставит X в позицию 2 и выигрывает
+        winning_board = {"board": ["X", "X", None, "O", "O", None, None, None, None]}
         session = games_service.create_game_session(
-            test_user.telegram_id, "tic_tac_toe", {"board": [None] * 9}
+            test_user.telegram_id, "tic_tac_toe", winning_board
         )
         games_service.db.commit()
 
-        # Делаем ходы для победы пользователя
-        # X X X в первой строке
-        result1 = games_service.tic_tac_toe_make_move(session.id, 0)  # X
+        # Пользователь ставит X в позицию 2 и выигрывает
+        result = games_service.tic_tac_toe_make_move(session.id, 2)
         games_service.db.commit()
-        assert not result1["game_over"]
-
-        result2 = games_service.tic_tac_toe_make_move(session.id, 1)  # X
-        games_service.db.commit()
-        assert not result2["game_over"]
-
-        result3 = games_service.tic_tac_toe_make_move(session.id, 2)  # X - победа
-        games_service.db.commit()
-        assert result3["game_over"]
-        assert result3["winner"] == "user"
+        assert result["game_over"], f"Game should be over, but got: {result}"
+        assert (
+            result["winner"] == "user"
+        ), f"Winner should be 'user', but got: {result.get('winner')}"
 
     def test_tic_tac_toe_invalid_move(self, games_service, test_user):
         """Невалидный ход"""
+        # Создаем доску, где позиция 0 уже занята X
+        # Это проще, чем пытаться перезагрузить сессию после хода AI
+        board_with_occupied = {"board": ["X", None, None, None, None, None, None, None, None]}
         session = games_service.create_game_session(
-            test_user.telegram_id, "tic_tac_toe", {"board": [None] * 9}
+            test_user.telegram_id, "tic_tac_toe", board_with_occupied
         )
         games_service.db.commit()
 
-        games_service.tic_tac_toe_make_move(session.id, 0)
-        games_service.db.commit()
-
-        # Пытаемся поставить в занятую клетку
+        # Пытаемся поставить в занятую клетку (позиция 0 уже занята X)
         with pytest.raises(ValueError, match="Position already taken"):
             games_service.tic_tac_toe_make_move(session.id, 0)
 

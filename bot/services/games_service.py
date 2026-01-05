@@ -248,13 +248,32 @@ class GamesService:
         if not session:
             raise ValueError(f"Game session {session_id} not found")
 
-        session.game_state = game_state
+        if game_state:
+            if session.game_state is None:
+                session.game_state = {}
+            if isinstance(game_state, dict):
+                # SQLAlchemy JSON требует явного присваивания нового объекта
+                current_state = (
+                    dict(session.game_state) if isinstance(session.game_state, dict) else {}
+                )
+                current_state.update(game_state)
+                session.game_state = current_state
+            else:
+                session.game_state = game_state
+
         if result:
             session.result = result
             if result != "in_progress":
                 session.finished_at = datetime.now(timezone.utc)
                 if session.started_at:
-                    delta = session.finished_at - session.started_at
+                    # Нормализуем timezone для обоих datetime
+                    finished = session.finished_at
+                    started = session.started_at
+                    if finished.tzinfo is None:
+                        finished = finished.replace(tzinfo=timezone.utc)
+                    if started.tzinfo is None:
+                        started = started.replace(tzinfo=timezone.utc)
+                    delta = finished - started
                     session.duration_seconds = int(delta.total_seconds())
 
         self.db.flush()
@@ -322,6 +341,8 @@ class GamesService:
             stats.draws += 1
 
         if score is not None:
+            if stats.total_score is None:
+                stats.total_score = 0
             stats.total_score += score
             if stats.best_score is None or score > stats.best_score:
                 stats.best_score = score
@@ -332,25 +353,27 @@ class GamesService:
         """Проверить и разблокировать игровые достижения"""
         gamification_service = GamificationService(self.db)
 
-        # Получаем статистику игры
+        # Получаем статистику игры (возвращает dict)
         stats = self.get_game_stats(telegram_id, game_type)
 
         # Проверяем достижения
         if result == "win":
+            wins = stats.get("wins", 0)
             # "Победил панду 1 раз"
-            if stats.wins == 1:
+            if wins == 1:
                 gamification_service.check_and_unlock_achievements(telegram_id)
 
             # "Победил панду 10 раз"
-            if stats.wins == 10:
+            if wins == 10:
                 gamification_service.check_and_unlock_achievements(telegram_id)
 
             # "Победил панду 50 раз"
-            if stats.wins == 50:
+            if wins == 50:
                 gamification_service.check_and_unlock_achievements(telegram_id)
 
         # "Сыграл 100 партий"
-        if stats.total_games == 100:
+        total_games = stats.get("total_games", 0)
+        if total_games == 100:
             gamification_service.check_and_unlock_achievements(telegram_id)
 
     def get_game_stats(self, telegram_id: int, game_type: Optional[str] = None) -> Dict:
@@ -440,7 +463,16 @@ class GamesService:
         if not session:
             raise ValueError(f"Game session {session_id} not found")
 
-        board = session.game_state.get("board", [None] * 9)
+        # Получаем текущее состояние доски
+        if session.game_state and isinstance(session.game_state, dict):
+            board = session.game_state.get("board", [None] * 9)
+        else:
+            board = [None] * 9
+
+        # Проверяем валидность позиции
+        if position < 0 or position >= 9:
+            raise ValueError(f"Invalid position: {position}. Must be between 0 and 8")
+
         if board[position] is not None:
             raise ValueError("Position already taken")
 
@@ -459,9 +491,10 @@ class GamesService:
                 "ai_move": None,
             }
 
-        # Проверяем ничью
+        # Проверяем ничью (все клетки заняты)
         if all(cell is not None for cell in board):
             self.finish_game_session(session_id, "draw")
+            self.db.commit()
             return {
                 "board": board,
                 "winner": None,
@@ -469,15 +502,16 @@ class GamesService:
                 "ai_move": None,
             }
 
-        # Ход AI (панда)
+        # Ход AI (панда) - только если игра не закончилась
         ai_position = self.tic_tac_toe_ai.get_best_move(board, ai_symbol)
-        if ai_position != -1:
+        if ai_position != -1 and ai_position < len(board) and board[ai_position] is None:
             board[ai_position] = ai_symbol
 
-            # Проверяем победу AI
+            # Проверяем победу AI после его хода
             winner = self._check_tic_tac_toe_winner(board)
             if winner == ai_symbol:
                 self.finish_game_session(session_id, "loss")
+                self.db.commit()
                 return {
                     "board": board,
                     "winner": "ai",
@@ -485,14 +519,26 @@ class GamesService:
                     "ai_move": ai_position,
                 }
 
-        # Обновляем состояние
+            # Проверяем ничью после хода AI
+            if all(cell is not None for cell in board):
+                self.finish_game_session(session_id, "draw")
+                self.db.commit()
+                return {
+                    "board": board,
+                    "winner": None,
+                    "game_over": True,
+                    "ai_move": ai_position,
+                }
+
+        # Обновляем состояние игры в БД
         self.update_game_session(session_id, {"board": board}, "in_progress")
+        self.db.commit()
 
         return {
             "board": board,
             "winner": None,
             "game_over": False,
-            "ai_move": ai_position,
+            "ai_move": ai_position if ai_position != -1 else None,
         }
 
     def _check_tic_tac_toe_winner(self, board: List[Optional[str]]) -> Optional[str]:
@@ -575,6 +621,7 @@ class GamesService:
 
         # Обновляем состояние
         self.update_game_session(session_id, state, "in_progress")
+        self.db.commit()
 
         return {
             "word": word,
@@ -611,10 +658,11 @@ class GamesService:
 
         # Проверяем поражение
         if self._is_2048_game_over(new_board):
-            self.finish_game_session(session_id, "loss", score)
+            self.finish_game_session(session_id, "loss", new_score)
+            self.db.commit()
             return {
                 "board": new_board,
-                "score": score,
+                "score": new_score,
                 "game_over": True,
                 "won": False,
             }
