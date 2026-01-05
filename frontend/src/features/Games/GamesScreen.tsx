@@ -163,16 +163,18 @@ export function GamesScreen({ user }: GamesScreenProps) {
                   text-white shadow-lg hover:shadow-xl transform hover:scale-105
                   active:scale-100 transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
-                  text-left h-[140px] flex flex-col overflow-hidden
+                  text-left h-[150px] flex flex-col overflow-hidden
                 `}
               >
                 <div className="text-3xl mb-1.5 flex-shrink-0">{game.icon}</div>
                 <h3 className="text-base font-bold mb-1 flex-shrink-0">{game.name}</h3>
-                <p className="text-xs opacity-90 mb-2 h-[32px] overflow-hidden" style={{
+                <p className="text-xs opacity-90 mb-2 overflow-hidden" style={{
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
-                  lineHeight: '16px'
+                  lineHeight: '1.5',
+                  minHeight: '40px',
+                  maxHeight: '40px'
                 }}>{game.description}</p>
 
                 {/* Статистика - всегда резервируем место */}
