@@ -7,14 +7,14 @@ import { useState, useEffect } from 'react';
 import { telegram } from '../../services/telegram';
 import { createGame, getGameStats, type GameStats, type UserProfile } from '../../services/api';
 import { TicTacToe } from './TicTacToe';
-import { Hangman } from './Hangman';
+import { Checkers } from './Checkers';
 import { Game2048 } from './Game2048';
 
 interface GamesScreenProps {
   user: UserProfile;
 }
 
-type GameType = 'tic_tac_toe' | 'hangman' | '2048' | null;
+type GameType = 'tic_tac_toe' | 'checkers' | '2048' | null;
 
 const GAMES = [
   {
@@ -25,10 +25,10 @@ const GAMES = [
     color: 'from-blue-500 to-cyan-500',
   },
   {
-    id: 'hangman',
-    name: 'Виселица',
-    icon: '🎯',
-    description: 'Угадай слово по буквам! Панда поможет, если нужно.',
+    id: 'checkers',
+    name: 'Шашки',
+    icon: '🔴',
+    description: 'Играй против панды! Кто первым возьмет все фишки?',
     color: 'from-purple-500 to-pink-500',
   },
   {
@@ -107,8 +107,8 @@ export function GamesScreen({ user }: GamesScreenProps) {
             onGameEnd={handleGameEnd}
           />
         )}
-        {selectedGame === 'hangman' && (
-          <Hangman
+        {selectedGame === 'checkers' && (
+          <Checkers
             sessionId={sessionId}
             user={user}
             onBack={handleBack}
@@ -201,7 +201,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
                 >
                   <div className="text-sm text-[var(--tg-theme-hint-color)] mb-1">
                     {stat.game_type === 'tic_tac_toe' && '⭕ Крестики-нолики'}
-                    {stat.game_type === 'hangman' && '🎯 Виселица'}
+                    {stat.game_type === 'checkers' && '🔴 Шашки'}
                     {stat.game_type === '2048' && '🔢 2048'}
                   </div>
                   <div className="text-lg font-bold text-[var(--tg-theme-text-color)]">

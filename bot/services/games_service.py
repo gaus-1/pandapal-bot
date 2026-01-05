@@ -148,53 +148,74 @@ class TicTacToeAI:
         return all(cell is not None for cell in board)
 
 
-class HangmanAI:
-    """AI для виселицы - выбор слова и подсказок"""
+class CheckersAI:
+    """AI для шашек (панда)"""
 
-    WORDS_BY_AGE = {
-        6: ["кот", "дом", "мама", "папа", "солнце", "вода", "хлеб", "книга"],
-        7: ["школа", "учитель", "ученик", "тетрадь", "ручка", "карандаш"],
-        8: ["математика", "чтение", "письмо", "рисование", "музыка"],
-        9: ["география", "история", "биология", "физика", "химия"],
-        10: ["эксперимент", "лаборатория", "исследование", "открытие"],
-        11: ["литература", "произведение", "автор", "персонаж"],
-        12: ["алгебра", "геометрия", "уравнение", "формула"],
-        13: ["философия", "логика", "анализ", "синтез"],
-        14: ["программирование", "алгоритм", "структура", "функция"],
-        15: ["квантовая", "релятивистская", "теоретическая", "практическая"],
-    }
-
-    def get_word(self, age: Optional[int] = None) -> str:
-        """Получить слово для игры"""
-        if age and age in self.WORDS_BY_AGE:
-            words = self.WORDS_BY_AGE[age]
-        else:
-            # Объединяем все слова
-            words = []
-            for age_words in self.WORDS_BY_AGE.values():
-                words.extend(age_words)
-
-        return random.choice(words).upper()
-
-    def get_hint(self, word: str, guessed_letters: List[str], mistakes: int) -> Optional[str]:
+    def get_best_move(
+        self, board: List[List[Optional[str]]], player: str
+    ) -> Optional[Tuple[int, int, int, int]]:
         """
-        Получить подсказку для игрока (панда помогает).
+        Получить лучший ход для AI.
 
         Args:
-            word: Загаданное слово
-            guessed_letters: Уже угаданные буквы
-            mistakes: Количество ошибок
+            board: Доска 8x8 (список списков: None, 'user', 'ai')
+            player: Символ AI ('ai')
 
         Returns:
-            Optional[str]: Подсказка или None
+            Optional[Tuple[int, int, int, int]]: (from_row, from_col, to_row, to_col) или None
         """
-        if mistakes >= 5:  # Помогаем когда много ошибок
-            missing_letters = [c for c in word if c not in guessed_letters]
-            if missing_letters:
-                # Подсказываем частую букву
-                return f"Попробуй букву '{missing_letters[0]}'"
+        # Ищем все возможные ходы
+        moves = self._get_all_moves(board, player)
+        if not moves:
+            return None
 
-        return None
+        # Приоритет: взятие фишки > движение вперед > случайный ход
+        capture_moves = [m for m in moves if self._is_capture_move(board, m, player)]
+        if capture_moves:
+            return random.choice(capture_moves)
+
+        forward_moves = [m for m in moves if self._is_forward_move(m, player)]
+        if forward_moves:
+            return random.choice(forward_moves)
+
+        return random.choice(moves)
+
+    def _get_all_moves(
+        self, board: List[List[Optional[str]]], player: str
+    ) -> List[Tuple[int, int, int, int]]:
+        """Получить все возможные ходы для игрока"""
+        moves = []
+        for row in range(8):
+            for col in range(8):
+                if board[row][col] == player:
+                    # Проверяем возможные ходы из этой позиции
+                    # AI двигается вниз (увеличение row, так как он вверху доски)
+                    for dr, dc in [(1, -1), (1, 1)]:
+                        new_row, new_col = row + dr, col + dc
+                        if 0 <= new_row < 8 and 0 <= new_col < 8:
+                            if board[new_row][new_col] is None:
+                                moves.append((row, col, new_row, new_col))
+                            elif board[new_row][new_col] == "user":
+                                # Проверяем возможность взятия
+                                jump_row, jump_col = new_row + dr, new_col + dc
+                                if 0 <= jump_row < 8 and 0 <= jump_col < 8:
+                                    if board[jump_row][jump_col] is None:
+                                        moves.append((row, col, jump_row, jump_col))
+        return moves
+
+    def _is_capture_move(
+        self, board: List[List[Optional[str]]], move: Tuple[int, int, int, int], player: str
+    ) -> bool:
+        """Проверить, является ли ход взятием фишки"""
+        from_row, from_col, to_row, to_col = move
+        # Если ход на 2 клетки по диагонали - это взятие
+        return abs(to_row - from_row) == 2 and abs(to_col - from_col) == 2
+
+    def _is_forward_move(self, move: Tuple[int, int, int, int], player: str) -> bool:
+        """Проверить, является ли ход движением вперед"""
+        from_row, _, to_row, _ = move
+        # Для AI (который вверху) движение вперед = движение вниз (увеличение row)
+        return to_row > from_row
 
 
 class GamesService:
@@ -203,7 +224,7 @@ class GamesService:
     def __init__(self, db: Session):  # noqa: D107
         self.db = db
         self.tic_tac_toe_ai = TicTacToeAI(difficulty="medium")
-        self.hangman_ai = HangmanAI()
+        self.checkers_ai = CheckersAI()
 
     def create_game_session(
         self, telegram_id: int, game_type: str, initial_state: Optional[Dict] = None
@@ -575,13 +596,18 @@ class GamesService:
 
         return None
 
-    def hangman_guess_letter(self, session_id: int, letter: str) -> Dict:
+    def checkers_move(
+        self, session_id: int, from_row: int, from_col: int, to_row: int, to_col: int
+    ) -> Dict:
         """
-        Угадать букву в виселице.
+        Сделать ход в шашках.
 
         Args:
             session_id: ID сессии
-            letter: Буква (одна)
+            from_row: Начальная строка (0-7)
+            from_col: Начальный столбец (0-7)
+            to_row: Конечная строка (0-7)
+            to_col: Конечный столбец (0-7)
 
         Returns:
             Dict: Обновленное состояние игры
@@ -590,74 +616,171 @@ class GamesService:
         if not session:
             raise ValueError(f"Game session {session_id} not found")
 
-        state = session.game_state
-        word = state.get("word", "")
-        guessed_letters = state.get("guessed_letters", [])
-        mistakes = state.get("mistakes", 0)
-
-        # Приводим букву к верхнему регистру для регистронезависимого сравнения
-        letter = letter.upper()
-        # Убеждаемся, что слово тоже в верхнем регистре
-        word = word.upper()
-
-        # Проверяем, что это одна буква алфавита
-        if not letter.isalpha() or len(letter) != 1:
-            raise ValueError("Letter must be a single alphabetic character")
-
-        # Обработка повторных букв: не засчитываем как ошибку, но и не приносим пользы
-        if letter in guessed_letters:
-            raise ValueError("Letter already guessed")
-
-        # Проверяем наличие буквы в слове (регистронезависимо)
-        if letter in word:
-            # Правильная буква - добавляем в угаданные
-            guessed_letters.append(letter)
-            state["guessed_letters"] = guessed_letters
-            state["word"] = word
+        # Получаем текущее состояние доски
+        if session.game_state and isinstance(session.game_state, dict):
+            board = session.game_state.get("board", self._init_checkers_board())
         else:
-            # Неправильная буква - увеличиваем счетчик ошибок
-            mistakes += 1
-            guessed_letters.append(letter)
-            state["mistakes"] = mistakes
-            state["guessed_letters"] = guessed_letters
-            state["word"] = word
+            board = self._init_checkers_board()
 
-        # Проверяем победу: все уникальные буквы слова угаданы
-        # Согласно описанию: победа = отсутствие заполнителей в состоянии отгадывания
-        # Это означает, что все буквы слова (игнорируя не-буквенные символы) угаданы
-        unique_letters_in_word = set(c for c in word if c.isalpha())
-        if unique_letters_in_word.issubset(set(guessed_letters)):
+        # Проверяем валидность хода
+        if not self._is_valid_move(board, from_row, from_col, to_row, to_col, "user"):
+            raise ValueError("Invalid move")
+
+        # Делаем ход пользователя
+        board = self._make_move(board, from_row, from_col, to_row, to_col, "user")
+
+        # Проверяем победу пользователя
+        if self._check_checkers_winner(board) == "user":
             self.finish_game_session(session_id, "win")
             return {
-                "word": word,
-                "guessed_letters": guessed_letters,
-                "mistakes": mistakes,
+                "board": board,
+                "winner": "user",
                 "game_over": True,
-                "won": True,
+                "ai_move": None,
             }
 
-        # Проверяем поражение: счетчик ошибок достиг максимума (6)
-        if mistakes >= 6:
-            self.finish_game_session(session_id, "loss")
-            return {
-                "word": word,
-                "guessed_letters": guessed_letters,
-                "mistakes": mistakes,
-                "game_over": True,
-                "won": False,
-            }
+        # Ход AI (панда)
+        ai_move = self.checkers_ai.get_best_move(board, "ai")
+        if ai_move:
+            ai_from_row, ai_from_col, ai_to_row, ai_to_col = ai_move
+            board = self._make_move(board, ai_from_row, ai_from_col, ai_to_row, ai_to_col, "ai")
 
-        # Обновляем состояние
-        self.update_game_session(session_id, state, "in_progress")
+            # Проверяем победу AI
+            if self._check_checkers_winner(board) == "ai":
+                self.finish_game_session(session_id, "loss")
+                return {
+                    "board": board,
+                    "winner": "ai",
+                    "game_over": True,
+                    "ai_move": ai_move,
+                }
+
+        # Обновляем состояние игры в БД
+        self.update_game_session(session_id, {"board": board}, "in_progress")
         self.db.commit()
 
         return {
-            "word": word,
-            "guessed_letters": guessed_letters,
-            "mistakes": mistakes,
+            "board": board,
+            "winner": None,
             "game_over": False,
-            "won": None,
+            "ai_move": ai_move if ai_move else None,
         }
+
+    def _init_checkers_board(self) -> List[List[Optional[str]]]:
+        """Инициализировать доску шашек 8x8"""
+        board = [[None] * 8 for _ in range(8)]
+        # Пользователь (внизу визуально) - последние 3 ряда
+        for row in range(5, 8):
+            for col in range(8):
+                if (row + col) % 2 == 1:
+                    board[row][col] = "user"
+        # AI (вверху визуально) - первые 3 ряда
+        for row in range(3):
+            for col in range(8):
+                if (row + col) % 2 == 1:
+                    board[row][col] = "ai"
+        return board
+
+    def _is_valid_move(
+        self,
+        board: List[List[Optional[str]]],
+        from_row: int,
+        from_col: int,
+        to_row: int,
+        to_col: int,
+        player: str,
+    ) -> bool:
+        """Проверить валидность хода"""
+        # Проверяем границы
+        if not (0 <= from_row < 8 and 0 <= from_col < 8):
+            return False
+        if not (0 <= to_row < 8 and 0 <= to_col < 8):
+            return False
+
+        # Проверяем, что на начальной позиции есть фишка игрока
+        if board[from_row][from_col] != player:
+            return False
+
+        # Проверяем, что конечная позиция свободна
+        if board[to_row][to_col] is not None:
+            return False
+
+        # Проверяем, что ход по диагонали
+        row_diff = to_row - from_row
+        col_diff = to_col - from_col
+        if abs(row_diff) != abs(col_diff):
+            return False
+
+        # Пользователь двигается вверх (уменьшение row, так как он внизу доски)
+        if player == "user":
+            if row_diff >= 0:
+                return False
+            # Обычный ход - на 1 клетку
+            if abs(row_diff) == 1:
+                return True
+            # Взятие - на 2 клетки
+            if abs(row_diff) == 2:
+                mid_row, mid_col = from_row + row_diff // 2, from_col + col_diff // 2
+                return board[mid_row][mid_col] == "ai"
+
+        return False
+
+    def _make_move(
+        self,
+        board: List[List[Optional[str]]],
+        from_row: int,
+        from_col: int,
+        to_row: int,
+        to_col: int,
+        player: str,
+    ) -> List[List[Optional[str]]]:
+        """Сделать ход на доске"""
+        new_board = [row[:] for row in board]
+        new_board[to_row][to_col] = new_board[from_row][from_col]
+        new_board[from_row][from_col] = None
+
+        # Если это взятие, удаляем фишку противника
+        row_diff = to_row - from_row
+        col_diff = to_col - from_col
+        if abs(row_diff) == 2:
+            mid_row, mid_col = from_row + row_diff // 2, from_col + col_diff // 2
+            new_board[mid_row][mid_col] = None
+
+        return new_board
+
+    def _check_checkers_winner(self, board: List[List[Optional[str]]]) -> Optional[str]:
+        """Проверить победителя в шашках"""
+        user_count = sum(1 for row in board for cell in row if cell == "user")
+        ai_count = sum(1 for row in board for cell in row if cell == "ai")
+
+        if user_count == 0:
+            return "ai"
+        if ai_count == 0:
+            return "user"
+
+        # Проверяем, есть ли у игрока возможные ходы
+        user_has_moves = self._has_valid_moves(board, "user")
+        ai_has_moves = self._has_valid_moves(board, "ai")
+
+        if not user_has_moves:
+            return "ai"
+        if not ai_has_moves:
+            return "user"
+
+        return None
+
+    def _has_valid_moves(self, board: List[List[Optional[str]]], player: str) -> bool:
+        """Проверить, есть ли у игрока возможные ходы"""
+        for row in range(8):
+            for col in range(8):
+                if board[row][col] == player:
+                    # Проверяем все возможные ходы из этой позиции
+                    for dr, dc in [(-1, -1), (-1, 1), (1, -1), (1, 1)]:
+                        new_row, new_col = row + dr, col + dc
+                        if 0 <= new_row < 8 and 0 <= new_col < 8:
+                            if self._is_valid_move(board, row, col, new_row, new_col, player):
+                                return True
+        return False
 
     def game_2048_move(self, session_id: int, direction: str) -> Dict:
         """

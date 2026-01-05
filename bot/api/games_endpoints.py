@@ -8,13 +8,13 @@ from pydantic import BaseModel, ValidationError
 
 from bot.api.validators import validate_telegram_id
 from bot.database import get_db
-from bot.services.games_service import GamesService, HangmanAI
+from bot.services.games_service import GamesService
 
 
 class CreateGameRequest(BaseModel):  # noqa: D101
     """Request для создания игры"""
 
-    game_type: str  # 'tic_tac_toe', 'hangman', '2048'
+    game_type: str  # 'tic_tac_toe', 'checkers', '2048'
 
 
 class TicTacToeMoveRequest(BaseModel):  # noqa: D101
@@ -23,10 +23,13 @@ class TicTacToeMoveRequest(BaseModel):  # noqa: D101
     position: int  # 0-8
 
 
-class HangmanGuessRequest(BaseModel):  # noqa: D101
-    """Request для угадывания буквы в виселице"""
+class CheckersMoveRequest(BaseModel):  # noqa: D101
+    """Request для хода в шашках"""
 
-    letter: str  # одна буква
+    from_row: int  # 0-7
+    from_col: int  # 0-7
+    to_row: int  # 0-7
+    to_col: int  # 0-7
 
 
 class Game2048MoveRequest(BaseModel):  # noqa: D101
@@ -40,7 +43,7 @@ async def create_game(request: web.Request) -> web.Response:
     Создать новую игровую сессию.
 
     POST /api/miniapp/games/create
-    Body: { "game_type": "tic_tac_toe" | "hangman" | "2048" }
+    Body: { "game_type": "tic_tac_toe" | "checkers" | "2048" }
     """
     try:
         data = await request.json()
@@ -59,7 +62,7 @@ async def create_game(request: web.Request) -> web.Response:
                 {"error": "Invalid request", "details": e.errors()}, status=400
             )
 
-        if validated.game_type not in ["tic_tac_toe", "hangman", "2048"]:
+        if validated.game_type not in ["tic_tac_toe", "checkers", "2048"]:
             return web.json_response({"error": "Invalid game_type"}, status=400)
 
         with get_db() as db:
@@ -69,21 +72,8 @@ async def create_game(request: web.Request) -> web.Response:
             initial_state = {}
             if validated.game_type == "tic_tac_toe":
                 initial_state = {"board": [None] * 9}
-            elif validated.game_type == "hangman":
-                # Получаем возраст пользователя для выбора слова
-                from bot.services import UserService
-
-                user_service = UserService(db)
-                user = user_service.get_user_by_telegram_id(telegram_id)
-                age = user.age if user else None
-
-                hangman_ai = HangmanAI()
-                word = hangman_ai.get_word(age)
-                initial_state = {
-                    "word": word,
-                    "guessed_letters": [],
-                    "mistakes": 0,
-                }
+            elif validated.game_type == "checkers":
+                initial_state = {"board": games_service._init_checkers_board()}
             elif validated.game_type == "2048":
                 initial_state = {"board": games_service._init_2048_board(), "score": 0}
 
@@ -150,41 +140,50 @@ async def tic_tac_toe_move(request: web.Request) -> web.Response:
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
-async def hangman_guess(request: web.Request) -> web.Response:
+async def checkers_move(request: web.Request) -> web.Response:
     """
-    Угадать букву в виселице.
+    Сделать ход в шашках.
 
-    POST /api/miniapp/games/hangman/{session_id}/guess
-    Body: { "letter": "а" }
+    POST /api/miniapp/games/checkers/{session_id}/move
+    Body: { "from_row": 0-7, "from_col": 0-7, "to_row": 0-7, "to_col": 0-7 }
     """
     try:
         session_id = int(request.match_info["session_id"])
         data = await request.json()
 
         try:
-            validated = HangmanGuessRequest(**data)
+            validated = CheckersMoveRequest(**data)
         except ValidationError as e:
             return web.json_response(
                 {"error": "Invalid request", "details": e.errors()}, status=400
             )
 
-        if len(validated.letter) != 1 or not validated.letter.isalpha():
+        if not all(
+            0 <= x < 8
+            for x in [validated.from_row, validated.from_col, validated.to_row, validated.to_col]
+        ):
             return web.json_response(
-                {"error": "Letter must be a single alphabetic character"}, status=400
+                {"error": "All coordinates must be between 0 and 7"}, status=400
             )
 
         with get_db() as db:
             games_service = GamesService(db)
-            result = games_service.hangman_guess_letter(session_id, validated.letter)
+            result = games_service.checkers_move(
+                session_id,
+                validated.from_row,
+                validated.from_col,
+                validated.to_row,
+                validated.to_col,
+            )
             db.commit()
 
         return web.json_response({"success": True, **result})
 
     except ValueError as e:
-        logger.warning(f"⚠️ Invalid guess: {e}")
+        logger.warning(f"⚠️ Invalid move: {e}")
         return web.json_response({"error": str(e)}, status=400)
     except Exception as e:
-        logger.error(f"❌ Ошибка угадывания: {e}", exc_info=True)
+        logger.error(f"❌ Ошибка хода: {e}", exc_info=True)
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
@@ -282,7 +281,7 @@ def setup_games_routes(app: web.Application) -> None:
     """Регистрация роутов игр"""
     app.router.add_post("/api/miniapp/games/{telegram_id}/create", create_game)
     app.router.add_post("/api/miniapp/games/tic-tac-toe/{session_id}/move", tic_tac_toe_move)
-    app.router.add_post("/api/miniapp/games/hangman/{session_id}/guess", hangman_guess)
+    app.router.add_post("/api/miniapp/games/checkers/{session_id}/move", checkers_move)
     app.router.add_post("/api/miniapp/games/2048/{session_id}/move", game_2048_move)
     app.router.add_get("/api/miniapp/games/{telegram_id}/stats", get_game_stats)
     app.router.add_get("/api/miniapp/games/session/{session_id}", get_game_session)

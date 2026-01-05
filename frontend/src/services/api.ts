@@ -334,26 +334,36 @@ export async function ticTacToeMove(sessionId: number, position: number): Promis
 }
 
 /**
- * Угадать букву в виселице
+ * Сделать ход в шашках
  */
-export async function hangmanGuess(sessionId: number, letter: string): Promise<{
-  word: string;
-  guessed_letters: string[];
-  mistakes: number;
+export async function checkersMove(
+  sessionId: number,
+  fromRow: number,
+  fromCol: number,
+  toRow: number,
+  toCol: number
+): Promise<{
+  board: (string | null)[][];
+  winner: 'user' | 'ai' | null;
   game_over: boolean;
-  won: boolean | null;
+  ai_move: [number, number, number, number] | null;
 }> {
-  const response = await fetch(`${API_BASE_URL}/miniapp/games/hangman/${sessionId}/guess`, {
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/checkers/${sessionId}/move`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ letter }),
+    body: JSON.stringify({
+      from_row: fromRow,
+      from_col: fromCol,
+      to_row: toRow,
+      to_col: toCol,
+    }),
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(errorData.error || 'Ошибка угадывания');
+    throw new Error(errorData.error || 'Ошибка хода');
   }
 
   const data = await response.json();
