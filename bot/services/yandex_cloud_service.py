@@ -405,14 +405,18 @@ class YandexCloudService:
             # Шаг 2: Определяем язык текста и переводим если не русский
             translated_text = recognized_text
             language_info = ""
-            
+
             try:
                 from bot.services.translate_service import get_translate_service
-                
+
                 translate_service = get_translate_service()
                 detected_lang = await translate_service.detect_language(recognized_text)
-                
-                if detected_lang and detected_lang != "ru" and detected_lang in translate_service.SUPPORTED_LANGUAGES:
+
+                if (
+                    detected_lang
+                    and detected_lang != "ru"
+                    and detected_lang in translate_service.SUPPORTED_LANGUAGES
+                ):
                     lang_name = translate_service.get_language_name(detected_lang)
                     logger.info(f"🌍 OCR: Обнаружен текст на {lang_name} ({detected_lang})")
                     translated_text = await translate_service.translate_text(
@@ -422,8 +426,10 @@ class YandexCloudService:
                         language_info = f"\n\n🌍 ОБНАРУЖЕН ИНОСТРАННЫЙ ЯЗЫК: {lang_name}\n📝 Оригинал: {recognized_text}\n🇷🇺 Перевод: {translated_text}\n\n"
                         logger.info(f"✅ Текст переведен с {detected_lang} на русский")
             except Exception as e:
-                logger.warning(f"⚠️ Ошибка перевода OCR текста: {e}, продолжаем с оригинальным текстом")
-            
+                logger.warning(
+                    f"⚠️ Ошибка перевода OCR текста: {e}, продолжаем с оригинальным текстом"
+                )
+
             # Шаг 3: Решаем через YandexGPT (даже если текста мало)
             logger.info(
                 f"🤖 Отправляю распознанный текст ({len(translated_text)} символов) в YandexGPT"
