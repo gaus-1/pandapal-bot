@@ -480,7 +480,7 @@ class GamesService:
         board[position] = user_symbol
         ai_symbol = "O"
 
-        # Проверяем победу пользователя
+        # Проверяем победу пользователя после его хода
         winner = self._check_tic_tac_toe_winner(board)
         if winner == user_symbol:
             self.finish_game_session(session_id, "win")
@@ -491,35 +491,12 @@ class GamesService:
                 "ai_move": None,
             }
 
-        # Проверяем ничью (все клетки заняты)
-        if all(cell is not None for cell in board):
-            self.finish_game_session(session_id, "draw")
-            self.db.commit()
-            return {
-                "board": board,
-                "winner": None,
-                "game_over": True,
-                "ai_move": None,
-            }
-
         # Ход AI (панда) - только если игра не закончилась
         ai_position = self.tic_tac_toe_ai.get_best_move(board, ai_symbol)
-        if ai_position != -1 and ai_position < len(board) and board[ai_position] is None:
-            board[ai_position] = ai_symbol
 
-            # Проверяем победу AI после его хода
-            winner = self._check_tic_tac_toe_winner(board)
-            if winner == ai_symbol:
-                self.finish_game_session(session_id, "loss")
-                self.db.commit()
-                return {
-                    "board": board,
-                    "winner": "ai",
-                    "game_over": True,
-                    "ai_move": ai_position,
-                }
-
-            # Проверяем ничью после хода AI
+        # Проверяем, что AI может сделать ход
+        if ai_position == -1 or ai_position >= len(board) or board[ai_position] is not None:
+            # Если доска заполнена, это ничья
             if all(cell is not None for cell in board):
                 self.finish_game_session(session_id, "draw")
                 self.db.commit()
@@ -527,8 +504,45 @@ class GamesService:
                     "board": board,
                     "winner": None,
                     "game_over": True,
-                    "ai_move": ai_position,
+                    "ai_move": None,
                 }
+            # Если есть свободные клетки, но AI не может сделать ход - это ошибка AI
+            # В этом случае просто продолжаем игру без хода AI
+            logger.warning(f"AI cannot make a move but board is not full. Board: {board}")
+            self.update_game_session(session_id, {"board": board}, "in_progress")
+            self.db.commit()
+            return {
+                "board": board,
+                "winner": None,
+                "game_over": False,
+                "ai_move": None,
+            }
+
+        # Делаем ход AI
+        board[ai_position] = ai_symbol
+
+        # Проверяем победу AI после его хода
+        winner = self._check_tic_tac_toe_winner(board)
+        if winner == ai_symbol:
+            self.finish_game_session(session_id, "loss")
+            self.db.commit()
+            return {
+                "board": board,
+                "winner": "ai",
+                "game_over": True,
+                "ai_move": ai_position,
+            }
+
+        # Проверяем ничью после хода AI (все клетки заполнены)
+        if all(cell is not None for cell in board):
+            self.finish_game_session(session_id, "draw")
+            self.db.commit()
+            return {
+                "board": board,
+                "winner": None,
+                "game_over": True,
+                "ai_move": ai_position,
+            }
 
         # Обновляем состояние игры в БД
         self.update_game_session(session_id, {"board": board}, "in_progress")
