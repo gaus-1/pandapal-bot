@@ -82,15 +82,17 @@ export function EmergencyScreen() {
 
   // Автоскролл при открытии экрана - показываем начало контента
   useEffect(() => {
-    // Небольшая задержка для рендеринга
-    setTimeout(() => {
+    // Задержка для рендеринга контента
+    const scrollTimeout = setTimeout(() => {
       if (containerRef.current) {
-        // Скроллим к началу контейнера
+        // Скроллим контейнер в начало
         containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        // Также скроллим window
+        // Также скроллим window в начало
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-    }, 100);
+    }, 150);
+
+    return () => clearTimeout(scrollTimeout);
   }, []);
 
   const handleCall = (number: string, title: string) => {
