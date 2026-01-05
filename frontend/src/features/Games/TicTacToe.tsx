@@ -90,15 +90,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
               .showPopup({
                 title: "🎉 Победа!",
                 message: "Ты победил панду! Отличная игра!",
-                buttons: [
-                  { type: "default", text: "Поделиться", id: "share" },
-                  { type: "close", text: "Закрыть" },
-                ],
-              })
-              .then((buttonId) => {
-                if (buttonId === "share") {
-                  telegram.shareGameResult("Крестики-нолики", "win");
-                }
+                buttons: [{ type: "close", text: "Закрыть" }],
               });
           }, 500);
         } else if (result.winner === "ai") {

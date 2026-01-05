@@ -80,13 +80,17 @@ const EMERGENCY_NUMBERS: EmergencyNumber[] = [
 export function EmergencyScreen() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Автоскролл вверх при открытии экрана
+  // Автоскролл при открытии экрана - показываем начало контента
   useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      // Также скроллим window на случай если контейнер не скроллится
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    // Небольшая задержка для рендеринга
+    setTimeout(() => {
+      if (containerRef.current) {
+        // Скроллим к началу контейнера
+        containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Также скроллим window
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 100);
   }, []);
 
   const handleCall = (number: string, title: string) => {
