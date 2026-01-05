@@ -124,21 +124,28 @@ class CheckersGame:
 
     def get_board_state(self) -> Dict:
         """Возвращает состояние игры для фронтенда"""
-        # Преобразуем в формат для фронтенда: 'user', 'ai', None
+        # Преобразуем в формат для фронтенда: 'user', 'ai', None, и информацию о дамках
         frontend_board = []
-        for row in self.board:
+        kings_info = []
+        for row_idx, row in enumerate(self.board):
             frontend_row = []
-            for cell in row:
+            kings_row = []
+            for col_idx, cell in enumerate(row):
                 if cell == 1 or cell == 3:
                     frontend_row.append("user")
+                    kings_row.append(cell == 3)  # True если дамка
                 elif cell == 2 or cell == 4:
                     frontend_row.append("ai")
+                    kings_row.append(cell == 4)  # True если дамка
                 else:
                     frontend_row.append(None)
+                    kings_row.append(False)
             frontend_board.append(frontend_row)
+            kings_info.append(kings_row)
 
         return {
             "board": frontend_board,
+            "kings": kings_info,  # Информация о дамках
             "current_player": self.current_player,
             "winner": self.winner,
             "must_capture": self.must_capture_from,
@@ -201,14 +208,15 @@ class CheckersGame:
             directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
 
         for dr, dc in directions:
-            # Простые ходы
+            # Простые ходы (только если нет обязательного взятия)
+            # Но мы собираем все ходы, а фильтрация на уровне get_valid_moves
             nr, nc = r + dr, c + dc
             if 0 <= nr < 8 and 0 <= nc < 8 and self.board[nr][nc] == 0:
                 moves.append({"from": (r, c), "to": (nr, nc), "capture": None})
 
             # Взятия
             if is_king:
-                # Дамка бьет на любом расстоянии
+                # Дамка бьет на любом расстоянии и может приземлиться на любое свободное поле за врагом
                 jump_r, jump_c = r + dr, c + dc
                 while 0 <= jump_r < 8 and 0 <= jump_c < 8:
                     mid_piece = self.board[jump_r][jump_c]
@@ -218,20 +226,21 @@ class CheckersGame:
                             piece in [2, 4] and mid_piece in [1, 3]
                         )
                         if is_enemy:
-                            # Проверяем клетку за врагом
+                            # Проверяем все свободные клетки за врагом на этой диагонали
                             land_r, land_c = jump_r + dr, jump_c + dc
-                            if (
-                                0 <= land_r < 8
-                                and 0 <= land_c < 8
-                                and self.board[land_r][land_c] == 0
-                            ):
-                                moves.append(
-                                    {
-                                        "from": (r, c),
-                                        "to": (land_r, land_c),
-                                        "capture": (jump_r, jump_c),
-                                    }
-                                )
+                            while 0 <= land_r < 8 and 0 <= land_c < 8:
+                                if self.board[land_r][land_c] == 0:
+                                    moves.append(
+                                        {
+                                            "from": (r, c),
+                                            "to": (land_r, land_c),
+                                            "capture": (jump_r, jump_c),
+                                        }
+                                    )
+                                else:
+                                    break  # Препятствие за врагом
+                                land_r += dr
+                                land_c += dc
                         break  # Препятствие найдено
                     jump_r += dr
                     jump_c += dc

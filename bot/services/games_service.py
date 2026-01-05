@@ -650,7 +650,8 @@ class GamesService:
             if board_data and isinstance(board_data, list) and len(board_data) == 8:
                 # Восстанавливаем игру из сохраненного состояния
                 game = CheckersGame()
-                # Конвертируем frontend формат ('user', 'ai', None) в engine формат (1, 2, 0)
+                kings_data = game_state.get("kings", [])
+                # Конвертируем frontend формат ('user', 'ai', None) в engine формат (1, 2, 0, 3, 4)
                 for r in range(8):
                     for c in range(8):
                         cell = (
@@ -658,14 +659,22 @@ class GamesService:
                             if r < len(board_data) and c < len(board_data[r])
                             else None
                         )
+                        is_king = (
+                            kings_data[r][c]
+                            if r < len(kings_data) and c < len(kings_data[r])
+                            else False
+                        )
                         if cell == "user":
-                            game.board[r][c] = 1
+                            game.board[r][c] = 3 if is_king else 1
                         elif cell == "ai":
-                            game.board[r][c] = 2
+                            game.board[r][c] = 4 if is_king else 2
                         else:
                             game.board[r][c] = 0
                 # Восстанавливаем текущего игрока и другие состояния
                 game.current_player = game_state.get("current_player", 1)
+                must_capture = game_state.get("must_capture")
+                if must_capture and isinstance(must_capture, list) and len(must_capture) == 2:
+                    game.must_capture_from = tuple(must_capture)
             else:
                 game = CheckersGame()
         else:
@@ -681,6 +690,7 @@ class GamesService:
             self.finish_game_session(session_id, "win")
             return {
                 "board": state["board"],
+                "kings": state.get("kings"),
                 "winner": "user",
                 "game_over": True,
                 "ai_move": None,
@@ -695,6 +705,7 @@ class GamesService:
             self.finish_game_session(session_id, "win")
             return {
                 "board": state["board"],
+                "kings": state.get("kings"),
                 "winner": "user",
                 "game_over": True,
                 "ai_move": None,
@@ -713,6 +724,7 @@ class GamesService:
                     self.finish_game_session(session_id, "loss")
                     return {
                         "board": state["board"],
+                        "kings": state.get("kings"),
                         "winner": "ai",
                         "game_over": True,
                         "ai_move": ai_move,
@@ -724,6 +736,7 @@ class GamesService:
             session_id,
             {
                 "board": state["board"],
+                "kings": state.get("kings"),
                 "current_player": game.current_player,
             },
             "in_progress",
@@ -732,6 +745,7 @@ class GamesService:
 
         return {
             "board": state["board"],
+            "kings": state.get("kings"),
             "winner": None,
             "game_over": False,
             "ai_move": ai_move if ai_move else None,

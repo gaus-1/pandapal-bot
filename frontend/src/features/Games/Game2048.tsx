@@ -339,46 +339,50 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
             <div className="text-xs sm:text-sm text-[var(--tg-theme-hint-color)] mb-2 sm:mb-3 text-center">
               Используй кнопки или свайп по доске
             </div>
-            <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-xs mx-auto">
               <div /> {/* Spacer */}
               <button
                 onClick={() => handleMove("up")}
                 disabled={isLoading}
-                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation text-2xl sm:text-3xl min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[50px] sm:min-h-[60px] min-w-[50px] sm:min-w-[60px] flex items-center justify-center shadow-md"
                 aria-label="Вверх"
-                style={{ fontSize: '1.5rem' }}
               >
-                ⬆️
+                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                </svg>
               </button>
               <div /> {/* Spacer */}
               <button
                 onClick={() => handleMove("left")}
                 disabled={isLoading}
-                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation text-2xl sm:text-3xl min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[50px] sm:min-h-[60px] min-w-[50px] sm:min-w-[60px] flex items-center justify-center shadow-md"
                 aria-label="Влево"
-                style={{ fontSize: '1.5rem' }}
               >
-                ⬅️
+                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
               </button>
               <div /> {/* Spacer */}
               <button
                 onClick={() => handleMove("right")}
                 disabled={isLoading}
-                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation text-2xl sm:text-3xl min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[50px] sm:min-h-[60px] min-w-[50px] sm:min-w-[60px] flex items-center justify-center shadow-md"
                 aria-label="Вправо"
-                style={{ fontSize: '1.5rem' }}
               >
-                ➡️
+                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
               </button>
               <div /> {/* Spacer */}
               <button
                 onClick={() => handleMove("down")}
                 disabled={isLoading}
-                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation text-2xl sm:text-3xl min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[50px] sm:min-h-[60px] min-w-[50px] sm:min-w-[60px] flex items-center justify-center shadow-md"
                 aria-label="Вниз"
-                style={{ fontSize: '1.5rem' }}
               >
-                ⬇️
+                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
               </button>
               <div /> {/* Spacer */}
             </div>

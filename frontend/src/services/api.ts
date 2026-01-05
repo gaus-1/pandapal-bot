@@ -364,6 +364,7 @@ export async function checkersMove(
   toCol: number
 ): Promise<{
   board: (string | null)[][];
+  kings?: boolean[][];
   winner: 'user' | 'ai' | null;
   game_over: boolean;
   ai_move: [number, number, number, number] | null;

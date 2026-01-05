@@ -278,7 +278,7 @@ export class TelegramService {
 
   /**
    * Поделиться результатом игры через Telegram
-   * Создает ссылку на бота с результатом для отправки друзьям
+   * Использует shareText для отправки сообщения
    */
   shareGameResult(gameType: string, result: string, score?: number): void {
     const user = this.getUser();
@@ -300,17 +300,24 @@ export class TelegramService {
 
     message += `\n\n🎯 Играй в PandaPalGo!`;
 
-    // Создаем ссылку на бота с текстом для отправки
-    const botUsername = "pandapal_bot"; // Замените на реальный username бота
-    const shareUrl = `https://t.me/${botUsername}?start=share_game_${gameType}_${result}${
-      score ? `_${score}` : ""
-    }`;
-
-    // Пытаемся открыть через Telegram
+    // Используем shareText если доступен, иначе fallback
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const webAppAny = this.webApp as any;
+      if ('shareText' in webAppAny && typeof webAppAny.shareText === 'function') {
+        webAppAny.shareText(message);
+        return;
+      }
+
+      // Fallback: создаем ссылку на бота
+      const botUsername = "pandapal_bot";
+      const shareUrl = `https://t.me/${botUsername}?start=share_game_${gameType}_${result}${
+        score ? `_${score}` : ""
+      }`;
       this.openTelegramLink(shareUrl);
-    } catch {
-      // Fallback: копируем текст в буфер обмена
+    } catch (error) {
+      console.error("Ошибка при попытке поделиться:", error);
+      // Fallback: копируем в буфер обмена
       if (navigator.clipboard) {
         navigator.clipboard.writeText(message).then(() => {
           this.showAlert("Результат скопирован! Поделись с друзьями!");
