@@ -288,8 +288,8 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
                     key={index}
                     className={`
                       aspect-square rounded-md sm:rounded-lg flex items-center justify-center
-                      font-bold min-h-[45px] sm:min-h-[55px] md:min-h-[65px]
-                      w-full
+                      font-bold text-sm sm:text-base
+                      w-full h-full
                       ${
                         value === 0
                           ? "bg-[var(--tg-theme-bg-color)]"
