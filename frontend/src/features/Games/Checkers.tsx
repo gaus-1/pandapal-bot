@@ -177,7 +177,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
             ← Назад
           </button>
           <h2 className="text-xl sm:text-2xl font-bold text-[var(--tg-theme-text-color)]">
-            🔴 Шашки
+            ⚫⚪ Шашки
           </h2>
           <div className="w-10 sm:w-12" />
         </div>

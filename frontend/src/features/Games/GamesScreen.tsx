@@ -27,7 +27,7 @@ const GAMES = [
   {
     id: 'checkers',
     name: 'Шашки',
-    icon: '🔴',
+    icon: '⚫⚪',
     description: 'Играй против панды! Кто первым возьмет все фишки?',
     color: 'from-purple-500 to-pink-500',
   },
@@ -161,12 +161,12 @@ export function GamesScreen({ user }: GamesScreenProps) {
                   text-white shadow-lg hover:shadow-xl transform hover:scale-105
                   active:scale-100 transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
-                  text-left
+                  text-left min-h-[180px] flex flex-col
                 `}
               >
                 <div className="text-4xl mb-2">{game.icon}</div>
                 <h3 className="text-lg font-bold mb-1.5">{game.name}</h3>
-                <p className="text-sm opacity-90 mb-3">{game.description}</p>
+                <p className="text-sm opacity-90 mb-3 flex-grow">{game.description}</p>
 
                 {/* Статистика */}
                 {gameStats && gameStats.total_games > 0 && (
@@ -201,7 +201,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
                 >
                   <div className="text-sm text-[var(--tg-theme-hint-color)] mb-1">
                     {stat.game_type === 'tic_tac_toe' && '⭕ Крестики-нолики'}
-                    {stat.game_type === 'checkers' && '🔴 Шашки'}
+                    {stat.game_type === 'checkers' && '⚫⚪ Шашки'}
                     {stat.game_type === '2048' && '🔢 2048'}
                   </div>
                   <div className="text-lg font-bold text-[var(--tg-theme-text-color)]">
