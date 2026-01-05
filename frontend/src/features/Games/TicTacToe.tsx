@@ -125,8 +125,8 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
   };
 
   const getSquareContent = (index: number) => {
-    if (board[index] === "X") return "❌";
-    if (board[index] === "O") return "⭕";
+    if (board[index] === "X") return <span style={{ color: '#000', filter: 'brightness(0)' }}>❌</span>;
+    if (board[index] === "O") return <span style={{ color: '#fff' }}>⭕</span>;
     return null;
   };
 
@@ -153,7 +153,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
             ← Назад
           </button>
           <h2 className="text-xl sm:text-2xl font-bold text-[var(--tg-theme-text-color)]">
-            ⭕ Крестики-нолики
+            ❌⭕ Крестики-нолики
           </h2>
           <div className="w-10 sm:w-12" />
         </div>
