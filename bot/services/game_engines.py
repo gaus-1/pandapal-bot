@@ -3,7 +3,6 @@ Game Engines - чистая логика игр без зависимостей 
 Используется в GamesService для управления состоянием игр.
 """
 
-import copy
 import random
 from typing import Dict, List, Literal, Optional, Tuple
 
