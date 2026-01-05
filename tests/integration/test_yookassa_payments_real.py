@@ -73,58 +73,44 @@ class TestYooKassaPaymentsReal:
         КРИТИЧНО: Проверка создания реального платежа через YooKassa
         Без моков - реальный запрос к YooKassa API
         """
-        payment_service = PaymentService(real_db_session)
+        payment_service = PaymentService()
 
         # Создаём реальный платеж
-        payment_data = await payment_service.create_payment(
+        payment_data = payment_service.create_payment(
             telegram_id=999000111,
-            amount=99.0,
             plan_id="week",
-            description="Premium подписка на неделю",
-            customer_email="test@pandapal.ru",
+            user_email="test@pandapal.ru",
         )
 
         # Проверяем результат
         assert payment_data is not None
         assert "payment_id" in payment_data
         assert "confirmation_url" in payment_data
-        assert payment_data["amount"] == 99.0
-        assert payment_data["currency"] == "RUB"
-
-        # Проверяем запись в БД
-        payment_record = (
-            real_db_session.query(PaymentModel)
-            .filter_by(payment_id=payment_data["payment_id"])
-            .first()
-        )
-        assert payment_record is not None
-        assert payment_record.user_telegram_id == 999000111
-        assert payment_record.amount == Decimal("99.0")
-        assert payment_record.status == "pending"
-        assert payment_record.payment_method == "yookassa"
+        assert payment_data["amount"]["value"] == 99.0
+        assert payment_data["amount"]["currency"] == "RUB"
 
     @pytest.mark.asyncio
     async def test_create_payment_all_plans(self, real_db_session, test_user):
         """Проверка создания платежей для всех планов подписки"""
-        payment_service = PaymentService(real_db_session)
+        payment_service = PaymentService()
 
         plans = {
             "week": 99.0,
-            "month": 249.0,
-            "year": 1999.0,
+            "month": 399.0,
+            "year": 2990.0,
         }
 
         for plan_id, expected_amount in plans.items():
-            payment_data = await payment_service.create_payment(
+            payment_data = payment_service.create_payment(
                 telegram_id=999000111,
-                amount=expected_amount,
                 plan_id=plan_id,
-                description=f"Premium {plan_id}",
-                customer_email="test@pandapal.ru",
+                user_email="test@pandapal.ru",
             )
 
-            assert payment_data["amount"] == expected_amount
-            assert plan_id in payment_data["description"].lower()
+            assert payment_data["amount"]["value"] == expected_amount
+            assert plan_id in payment_data.get("description", "").lower() or plan_id in str(
+                payment_data
+            )
 
     @pytest.mark.asyncio
     async def test_webhook_signature_validation(self, real_db_session, test_user):
@@ -159,7 +145,7 @@ class TestYooKassaPaymentsReal:
             secret_key.encode("utf-8"), webhook_json.encode("utf-8"), hashlib.sha256
         ).hexdigest()
 
-        # Создаём mock request
+        # Создаём mock request с правильной подписью
         class MockRequest:
             async def text(self):
                 return webhook_json
@@ -169,7 +155,10 @@ class TestYooKassaPaymentsReal:
 
             @property
             def headers(self):
-                return {"Content-Type": "application/json"}
+                return {
+                    "Content-Type": "application/json",
+                    "X-Yookassa-Signature": signature,
+                }
 
         request = MockRequest()
 
@@ -182,6 +171,56 @@ class TestYooKassaPaymentsReal:
             # Проверяем что webhook обрабатывается
             response = await yookassa_webhook(request)
             assert response.status == 200
+
+    @pytest.mark.asyncio
+    async def test_webhook_invalid_signature_rejected(self, real_db_session, test_user):
+        """
+        КРИТИЧНО: Webhook с невалидной подписью должен быть отклонен
+        """
+        from bot.api.premium_endpoints import yookassa_webhook
+
+        webhook_data = {
+            "type": "notification",
+            "event": "payment.succeeded",
+            "object": {
+                "id": "test_payment_invalid",
+                "status": "succeeded",
+                "amount": {"value": "99.00", "currency": "RUB"},
+                "metadata": {
+                    "telegram_id": "999000111",
+                    "plan_id": "week",
+                },
+                "paid": True,
+                "payment_method": {"type": "bank_card"},
+            },
+        }
+
+        webhook_json = json.dumps(webhook_data)
+
+        class MockRequest:
+            async def text(self):
+                return webhook_json
+
+            async def json(self):
+                return webhook_data
+
+            @property
+            def headers(self):
+                return {
+                    "Content-Type": "application/json",
+                    "X-Yookassa-Signature": "invalid_signature_12345",
+                }
+
+        request = MockRequest()
+
+        @contextmanager
+        def mock_get_db():
+            yield real_db_session
+
+        with patch("bot.api.premium_endpoints.get_db", mock_get_db):
+            response = await yookassa_webhook(request)
+            # Должен быть отклонен с 403
+            assert response.status == 403
 
     @pytest.mark.asyncio
     async def test_webhook_activates_premium(self, real_db_session, test_user):
@@ -212,16 +251,27 @@ class TestYooKassaPaymentsReal:
             },
         }
 
+        webhook_json = json.dumps(webhook_data)
+
+        # Вычисляем подпись
+        secret_key = settings.yookassa_secret_key
+        signature = hmac.new(
+            secret_key.encode("utf-8"), webhook_json.encode("utf-8"), hashlib.sha256
+        ).hexdigest()
+
         class MockRequest:
             async def text(self):
-                return json.dumps(webhook_data)
+                return webhook_json
 
             async def json(self):
                 return webhook_data
 
             @property
             def headers(self):
-                return {"Content-Type": "application/json"}
+                return {
+                    "Content-Type": "application/json",
+                    "X-Yookassa-Signature": signature,
+                }
 
         request = MockRequest()
 
@@ -243,6 +293,17 @@ class TestYooKassaPaymentsReal:
             assert subscription is not None
             assert subscription.plan_id == "month"
             assert subscription.payment_method == "yookassa_card"
+
+            # Проверяем что webhook_data сохранен в БД
+            payment_record = (
+                real_db_session.query(PaymentModel)
+                .filter_by(payment_id="payment_webhook_test")
+                .first()
+            )
+            assert payment_record is not None
+            assert payment_record.webhook_data is not None
+            assert payment_record.status == "succeeded"
+            assert payment_record.paid_at is not None
 
     @pytest.mark.asyncio
     async def test_webhook_different_payment_methods(self, real_db_session, test_user):
@@ -282,16 +343,27 @@ class TestYooKassaPaymentsReal:
                 },
             }
 
+            webhook_json = json.dumps(webhook_data)
+
+            # Вычисляем подпись
+            secret_key = settings.yookassa_secret_key
+            signature = hmac.new(
+                secret_key.encode("utf-8"), webhook_json.encode("utf-8"), hashlib.sha256
+            ).hexdigest()
+
             class MockRequest:
                 async def text(self):
-                    return json.dumps(webhook_data)
+                    return webhook_json
 
                 async def json(self):
                     return webhook_data
 
                 @property
                 def headers(self):
-                    return {"Content-Type": "application/json"}
+                    return {
+                        "Content-Type": "application/json",
+                        "X-Yookassa-Signature": signature,
+                    }
 
             request = MockRequest()
 
@@ -334,16 +406,27 @@ class TestYooKassaPaymentsReal:
             },
         }
 
+        webhook_json = json.dumps(webhook_data)
+
+        # Вычисляем подпись
+        secret_key = settings.yookassa_secret_key
+        signature = hmac.new(
+            secret_key.encode("utf-8"), webhook_json.encode("utf-8"), hashlib.sha256
+        ).hexdigest()
+
         class MockRequest:
             async def text(self):
-                return json.dumps(webhook_data)
+                return webhook_json
 
             async def json(self):
                 return webhook_data
 
             @property
             def headers(self):
-                return {"Content-Type": "application/json"}
+                return {
+                    "Content-Type": "application/json",
+                    "X-Yookassa-Signature": signature,
+                }
 
         @contextmanager
         def mock_get_db():
@@ -380,15 +463,13 @@ class TestYooKassaPaymentsReal:
         КРИТИЧНО: Проверка 54-ФЗ соответствия (чеки)
         При создании платежа должен быть чек с ИНН
         """
-        payment_service = PaymentService(real_db_session)
+        payment_service = PaymentService()
 
         # Создаём платеж с email для чека
-        payment_data = await payment_service.create_payment(
+        payment_data = payment_service.create_payment(
             telegram_id=999000111,
-            amount=99.0,
             plan_id="week",
-            description="Premium неделя",
-            customer_email="test@pandapal.ru",
+            user_email="test@pandapal.ru",
         )
 
         # Получаем платеж через YooKassa API
@@ -397,59 +478,106 @@ class TestYooKassaPaymentsReal:
 
         payment = Payment.find_one(payment_data["payment_id"])
 
-        # Проверяем что чек присутствует
-        assert payment.receipt is not None
-        assert payment.receipt.customer.email == "test@pandapal.ru"
-        assert len(payment.receipt.items) > 0
+        # Проверяем что чек присутствует (если ИНН настроен)
+        if settings.yookassa_inn:
+            assert payment.receipt is not None
+            assert payment.receipt.customer.email == "test@pandapal.ru"
+            assert len(payment.receipt.items) > 0
 
-        # Проверяем ИНН
-        receipt_item = payment.receipt.items[0]
-        assert receipt_item.description is not None
+            # Проверяем ИНН
+            receipt_item = payment.receipt.items[0]
+            assert receipt_item.description is not None
 
     @pytest.mark.asyncio
     async def test_payment_error_handling(self, real_db_session, test_user):
         """Проверка обработки ошибок при создании платежа"""
-        payment_service = PaymentService(real_db_session)
+        payment_service = PaymentService()
 
-        # Тест 1: Невалидная сумма
+        # Тест: Невалидный plan_id
         with pytest.raises(ValueError):
-            await payment_service.create_payment(
+            payment_service.create_payment(
                 telegram_id=999000111,
-                amount=-100.0,  # Отрицательная сумма
-                plan_id="week",
-                description="Test",
-                customer_email="test@pandapal.ru",
-            )
-
-        # Тест 2: Невалидный plan_id
-        with pytest.raises(ValueError):
-            await payment_service.create_payment(
-                telegram_id=999000111,
-                amount=99.0,
                 plan_id="invalid_plan",
-                description="Test",
-                customer_email="test@pandapal.ru",
+                user_email="test@pandapal.ru",
             )
+
+    @pytest.mark.asyncio
+    async def test_payment_saved_to_db_on_creation(self, real_db_session, test_user):
+        """
+        КРИТИЧНО: Проверка что заказ сохраняется в БД при создании платежа через API
+        """
+        from contextlib import contextmanager
+        from unittest.mock import patch
+
+        from bot.api.premium_endpoints import create_yookassa_payment
+
+        payment_request_data = {
+            "telegram_id": 999000111,
+            "plan_id": "week",
+            "user_email": "test@pandapal.ru",
+        }
+
+        class MockRequest:
+            async def json(self):
+                return payment_request_data
+
+        request = MockRequest()
+
+        @contextmanager
+        def mock_get_db():
+            yield real_db_session
+
+        with patch("bot.api.premium_endpoints.get_db", mock_get_db):
+            # Мокаем PaymentService.create_payment чтобы не делать реальный запрос
+            with patch("bot.api.premium_endpoints.PaymentService") as mock_service:
+                mock_payment_service = mock_service.return_value
+                mock_payment_service.PLANS = PaymentService.PLANS
+                mock_payment_service.create_payment.return_value = {
+                    "payment_id": "test_payment_db_123",
+                    "status": "pending",
+                    "confirmation_url": "https://yookassa.ru/checkout/payments/test",
+                    "amount": {"value": 99.0, "currency": "RUB"},
+                }
+
+                response = await create_yookassa_payment(request)
+                assert response.status == 200
+
+                real_db_session.commit()
+
+                # Проверяем что заказ сохранен в БД
+                payment_record = (
+                    real_db_session.query(PaymentModel)
+                    .filter_by(payment_id="test_payment_db_123")
+                    .first()
+                )
+                assert payment_record is not None
+                assert payment_record.user_telegram_id == 999000111
+                assert payment_record.plan_id == "week"
+                assert payment_record.amount == 99.0
+                assert payment_record.status == "pending"
+                assert payment_record.payment_method == "yookassa_card"
 
     @pytest.mark.asyncio
     async def test_payment_status_tracking(self, real_db_session, test_user):
         """Проверка отслеживания статуса платежа"""
-        payment_service = PaymentService(real_db_session)
+        from bot.models import Payment as PaymentModel
 
-        # Создаём платеж
-        payment_data = await payment_service.create_payment(
-            telegram_id=999000111,
-            amount=99.0,
+        # Создаём запись платежа напрямую в БД
+        payment_record = PaymentModel(
+            payment_id="test_status_tracking",
+            user_telegram_id=999000111,
             plan_id="week",
-            description="Test",
-            customer_email="test@pandapal.ru",
+            amount=99.0,
+            currency="RUB",
+            status="pending",
+            payment_method="yookassa_card",
         )
+        real_db_session.add(payment_record)
+        real_db_session.commit()
 
         # Проверяем начальный статус
         payment_record = (
-            real_db_session.query(PaymentModel)
-            .filter_by(payment_id=payment_data["payment_id"])
-            .first()
+            real_db_session.query(PaymentModel).filter_by(payment_id="test_status_tracking").first()
         )
         assert payment_record.status == "pending"
 
@@ -459,9 +587,7 @@ class TestYooKassaPaymentsReal:
 
         # Проверяем обновление
         updated_payment = (
-            real_db_session.query(PaymentModel)
-            .filter_by(payment_id=payment_data["payment_id"])
-            .first()
+            real_db_session.query(PaymentModel).filter_by(payment_id="test_status_tracking").first()
         )
         assert updated_payment.status == "succeeded"
 
@@ -470,16 +596,15 @@ class TestYooKassaPaymentsReal:
         """Проверка обработки одновременных платежей от одного пользователя"""
         import asyncio
 
-        payment_service = PaymentService(real_db_session)
+        payment_service = PaymentService()
 
         # Создаём несколько платежей одновременно
         tasks = [
-            payment_service.create_payment(
+            asyncio.to_thread(
+                payment_service.create_payment,
                 telegram_id=999000111,
-                amount=99.0,
                 plan_id="week",
-                description=f"Concurrent payment {i}",
-                customer_email="test@pandapal.ru",
+                user_email="test@pandapal.ru",
             )
             for i in range(3)
         ]

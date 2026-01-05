@@ -2,6 +2,8 @@
 Premium endpoints - Обработка платежей через ЮKassa
 """
 
+import uuid
+
 from aiohttp import web
 from loguru import logger
 from pydantic import ValidationError
@@ -13,6 +15,7 @@ from bot.api.validators import (
 )
 from bot.config import settings
 from bot.database import get_db
+from bot.models import Payment as PaymentModel
 from bot.services import PaymentService, SubscriptionService, UserService
 
 
@@ -173,8 +176,27 @@ async def create_yookassa_payment(request: web.Request) -> web.Response:
                 user_phone=user_phone,
             )
 
+            # Сохраняем заказ в БД сразу после создания платежа
+            from datetime import datetime, timezone
+
+            from bot.models import Payment as PaymentModel
+
+            plan = payment_service.PLANS[plan_id]
+            payment_record = PaymentModel(
+                payment_id=payment_data["payment_id"],
+                user_telegram_id=telegram_id,
+                plan_id=plan_id,
+                amount=plan["price"],
+                currency=payment_data["amount"]["currency"],
+                status="pending",
+                payment_method="yookassa_card",  # Будет уточнено при webhook
+                payment_metadata={"idempotence_key": str(uuid.uuid4())},
+            )
+            db.add(payment_record)
+            db.commit()
+
             logger.info(
-                f"✅ ЮKassa платеж создан: payment_id={payment_data['payment_id']}, "
+                f"✅ ЮKassa платеж создан и сохранен: payment_id={payment_data['payment_id']}, "
                 f"user={telegram_id}, plan={plan_id}"
             )
 
@@ -202,10 +224,22 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
     POST /api/miniapp/premium/yookassa-webhook
     """
     try:
-        data = await request.json()
+        # Получаем тело запроса для верификации подписи
+        request_body = await request.text()
+        signature = request.headers.get("X-Yookassa-Signature")
+
+        # Верифицируем подпись webhook
+        payment_service = PaymentService()
+        if not payment_service.verify_webhook_signature(request_body, signature):
+            logger.warning("⚠️ Webhook с невалидной подписью отклонен")
+            return web.json_response({"error": "Invalid signature"}, status=403)
+
+        # Парсим JSON данные
+        import json
+
+        data = json.loads(request_body)
 
         # Обрабатываем webhook через PaymentService
-        payment_service = PaymentService()
         webhook_result = payment_service.process_webhook(data)
 
         if not webhook_result:
@@ -218,12 +252,68 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
 
         # Активируем подписку для авторизованных пользователей
         with get_db() as db:
-            subscription_service = SubscriptionService(db)
+            from datetime import datetime, timezone
 
-            # Проверяем, не активирована ли уже подписка для этого платежа
             from sqlalchemy import select
 
             from bot.models import Subscription
+
+            # Обновляем или создаем запись платежа в БД
+            payment_record = db.execute(
+                select(PaymentModel).where(PaymentModel.payment_id == payment_id)
+            ).scalar_one_or_none()
+
+            # Определяем способ оплаты из webhook данных
+            payment_object = data.get("object", {})
+            payment_method_data = payment_object.get("payment_method", {})
+            payment_method_type = payment_method_data.get("type", "")
+
+            # Маппинг типов оплаты ЮKassa на наши значения
+            if payment_method_type == "bank_card":
+                payment_method = "yookassa_card"
+            elif payment_method_type in ("sberbank", "sbp"):
+                payment_method = "yookassa_sbp"
+            else:
+                payment_method = "yookassa_other"
+
+            # Определяем статус из события
+            event = data.get("event", "")
+            if event == "payment.succeeded":
+                status = "succeeded"
+            elif event == "payment.canceled":
+                status = "cancelled"
+            elif event == "payment.failed":
+                status = "failed"
+            else:
+                status = "pending"
+
+            if payment_record:
+                # Обновляем существующую запись
+                payment_record.status = status
+                payment_record.payment_method = payment_method
+                payment_record.webhook_data = data
+                if status == "succeeded":
+                    payment_record.paid_at = datetime.now(timezone.utc)
+            else:
+                # Создаем новую запись если не была создана при создании платежа
+                amount_value = payment_object.get("amount", {}).get("value", "0")
+                payment_record = PaymentModel(
+                    payment_id=payment_id,
+                    user_telegram_id=telegram_id,
+                    plan_id=plan_id,
+                    amount=float(amount_value),
+                    currency=payment_object.get("amount", {}).get("currency", "RUB"),
+                    status=status,
+                    payment_method=payment_method,
+                    webhook_data=data,
+                    paid_at=datetime.now(timezone.utc) if status == "succeeded" else None,
+                )
+                db.add(payment_record)
+
+            db.commit()
+
+            # Проверяем, не активирована ли уже подписка для этого платежа
+            subscription_service = SubscriptionService(db)
 
             existing = db.execute(
                 select(Subscription).where(Subscription.payment_id == payment_id)
@@ -235,35 +325,45 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
                     {"success": True, "message": "Subscription already activated"}
                 )
 
-            # Определяем способ оплаты из webhook данных
-            payment_object = data.get("object", {})
-            payment_method_data = payment_object.get("payment_method", {})
-            payment_method_type = payment_method_data.get("type", "")
+            # Активируем подписку только для успешных платежей
+            if status == "succeeded":
+                # Дополнительная проверка статуса через API (fallback)
+                payment_status = payment_service.get_payment_status(payment_id)
+                if payment_status and payment_status["status"] != "succeeded":
+                    logger.warning(
+                        f"⚠️ Статус платежа {payment_id} не совпадает: "
+                        f"webhook={status}, api={payment_status['status']}"
+                    )
 
-            # Маппинг типов оплаты ЮKassa на наши значения
-            if payment_method_type == "bank_card":
-                payment_method = "yookassa_card"
-            elif payment_method_type == "sberbank":
-                payment_method = "yookassa_sbp"
+                subscription = subscription_service.activate_subscription(
+                    telegram_id=telegram_id,
+                    plan_id=plan_id,
+                    payment_method=payment_method,
+                    payment_id=payment_id,
+                )
+
+                # Связываем подписку с платежом
+                payment_record.subscription_id = subscription.id
+                db.commit()
+
+                logger.info(
+                    f"💰 Premium активирован через ЮKassa webhook: user={telegram_id}, "
+                    f"plan={plan_id}, payment_id={payment_id}, expires={subscription.expires_at}"
+                )
+
+                return web.json_response({"success": True, "message": "Subscription activated"})
             else:
-                payment_method = "yookassa_other"
+                logger.info(
+                    f"ℹ️ Webhook получен для платежа {payment_id} со статусом {status}, "
+                    "подписка не активирована"
+                )
+                return web.json_response(
+                    {"success": True, "message": f"Payment status updated to {status}"}
+                )
 
-            subscription = subscription_service.activate_subscription(
-                telegram_id=telegram_id,
-                plan_id=plan_id,
-                payment_method=payment_method,
-                payment_id=payment_id,
-            )
-
-            db.commit()
-
-            logger.info(
-                f"💰 Premium активирован через ЮKassa webhook: user={telegram_id}, "
-                f"plan={plan_id}, payment_id={payment_id}, expires={subscription.expires_at}"
-            )
-
-            return web.json_response({"success": True, "message": "Subscription activated"})
-
+    except json.JSONDecodeError as e:
+        logger.error(f"❌ Ошибка парсинга JSON в webhook: {e}")
+        return web.json_response({"error": "Invalid JSON"}, status=400)
     except Exception as e:
         logger.error("❌ Ошибка обработки webhook ЮKassa: %s", str(e), exc_info=True)
         # Всегда возвращаем 200, чтобы ЮKassa не повторял запрос

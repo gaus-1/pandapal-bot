@@ -5,6 +5,8 @@
 и управление платежными транзакциями для Premium подписок.
 """
 
+import hashlib
+import hmac
 import uuid
 from typing import Optional
 
@@ -41,6 +43,44 @@ class PaymentService:
 
         if not settings.yookassa_shop_id or not settings.yookassa_secret_key:
             logger.warning("⚠️ ЮKassa не настроен: отсутствуют shop_id или secret_key")
+
+    @staticmethod
+    def verify_webhook_signature(request_body: str, signature: Optional[str]) -> bool:
+        """
+        Верифицировать подпись webhook от ЮKassa.
+
+        Args:
+            request_body: Тело запроса (JSON строка)
+            signature: Подпись из заголовка X-Yookassa-Signature
+
+        Returns:
+            bool: True если подпись валидна
+        """
+        if not signature:
+            logger.warning("⚠️ Webhook без подписи")
+            return False
+
+        if not settings.yookassa_secret_key:
+            logger.error("❌ Secret key не настроен для верификации подписи")
+            return False
+
+        try:
+            # Вычисляем ожидаемую подпись
+            expected_signature = hmac.new(
+                settings.yookassa_secret_key.encode("utf-8"),
+                request_body.encode("utf-8"),
+                hashlib.sha256,
+            ).hexdigest()
+
+            # Сравниваем подписи безопасным способом
+            is_valid = hmac.compare_digest(expected_signature, signature)
+            if not is_valid:
+                logger.warning(f"⚠️ Невалидная подпись webhook: {signature[:20]}...")
+
+            return is_valid
+        except Exception as e:
+            logger.error(f"❌ Ошибка верификации подписи: {e}", exc_info=True)
+            return False
 
     def create_payment(
         self,
