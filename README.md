@@ -11,12 +11,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![License](https://img.shields.io/badge/License-Proprietary-red?logo=law&logoColor=white)](LICENSE)
 
-**Ссылки:**
-- [Сайт](https://pandapal.ru)
-- [Telegram Бот](https://t.me/PandaPalBot)
-- [Документация](docs/)
-- [Безопасность](SECURITY.md)
-- [Вклад в проект](CONTRIBUTING.md)
+[Сайт](https://pandapal.ru) • [Telegram Бот](https://t.me/PandaPalBot) • [Документация](docs/) • [Безопасность](SECURITY.md) • [Вклад в проект](CONTRIBUTING.md)
 
 </div>
 
