@@ -121,15 +121,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                 .showPopup({
                   title: "🎉 Победа!",
                   message: "Ты победил панду! Отличная игра!",
-                  buttons: [
-                    { type: "default", text: "Поделиться", id: "share" },
-                    { type: "close", text: "Закрыть" },
-                  ],
-                })
-                .then((buttonId) => {
-                  if (buttonId === "share") {
-                    telegram.shareGameResult("Шашки", "win");
-                  }
+                  buttons: [{ type: "close", text: "Закрыть" }],
                 });
             }, 500);
           } else if (result.winner === "ai") {
@@ -211,9 +203,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl sm:rounded-2xl p-1.5 sm:p-2 md:p-4 mb-4 sm:mb-6 overflow-x-auto -mx-3 sm:mx-0">
+        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 mb-4 sm:mb-6 overflow-x-auto -mx-3 sm:mx-0">
           {board.length > 0 ? (
-            <div className="grid grid-cols-8 gap-0.5 sm:gap-1 md:gap-1.5 w-full max-w-full mx-auto" style={{ maxWidth: 'min(100vw - 2rem, 400px)' }}>
+            <div className="grid grid-cols-8 gap-1 sm:gap-1.5 md:gap-2 w-full max-w-full mx-auto" style={{ maxWidth: 'min(100vw - 1rem, 450px)' }}>
               {board.map((row, rowIndex) =>
                 row.map((_, colIndex) => {
                   const isDark = isDarkCell(rowIndex, colIndex);
@@ -226,10 +218,10 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       onClick={() => handleCellClick(rowIndex, colIndex)}
                       disabled={!isUserTurn || isLoading || gameOver}
                       className={`
-                        aspect-square rounded-sm sm:rounded-md
-                        flex items-center justify-center text-lg sm:text-xl md:text-2xl
+                        aspect-square rounded-md sm:rounded-lg
+                        flex items-center justify-center
                         transition-all duration-200 touch-manipulation
-                        min-h-[35px] sm:min-h-[40px] md:min-h-[48px]
+                        min-h-[40px] sm:min-h-[48px] md:min-h-[56px]
                         w-full
                         ${
                           isDark
@@ -251,16 +243,16 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                     >
                       {cell === "user" && (
-                        <div className="w-3/4 h-3/4 sm:w-4/5 sm:h-4/5 rounded-full bg-white border-2 border-gray-300 shadow-md flex items-center justify-center">
+                        <div className="w-[85%] h-[85%] sm:w-[90%] sm:h-[90%] rounded-full bg-white border-[3px] sm:border-4 border-gray-300 shadow-lg flex items-center justify-center">
                           {isKing(rowIndex, colIndex) && (
-                            <span className="text-xs sm:text-sm font-bold text-gray-700">♔</span>
+                            <span className="text-sm sm:text-base md:text-lg font-bold text-gray-700">♔</span>
                           )}
                         </div>
                       )}
                       {cell === "ai" && (
-                        <div className="w-3/4 h-3/4 sm:w-4/5 sm:h-4/5 rounded-full bg-gray-800 border-2 border-gray-900 shadow-md flex items-center justify-center">
+                        <div className="w-[85%] h-[85%] sm:w-[90%] sm:h-[90%] rounded-full bg-gray-800 border-[3px] sm:border-4 border-gray-900 shadow-lg flex items-center justify-center">
                           {isKing(rowIndex, colIndex) && (
-                            <span className="text-xs sm:text-sm font-bold text-white">♚</span>
+                            <span className="text-sm sm:text-base md:text-lg font-bold text-white">♚</span>
                           )}
                         </div>
                       )}
@@ -279,7 +271,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         {/* Инструкция */}
         {!gameOver && (
           <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)]">
-            <p>Ты играешь 🔴, панда играет ⚪</p>
+            <p>Ты играешь белыми, панда играет черными</p>
             <p className="mt-1">Нажми на свою фишку, затем на клетку для хода</p>
             <p className="mt-1">Двигайся по диагонали вперед</p>
           </div>
