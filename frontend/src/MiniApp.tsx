@@ -225,9 +225,15 @@ function MiniAppContent() {
               isActive={false}
               onClick={() => navigateTo('games')}
             />
+            <NavButton
+              icon="👑"
+              label="Premium"
+              isActive={false}
+              onClick={() => navigateTo('premium')}
+            />
           </div>
         </nav>
-      ) : (
+      ) : currentScreen === 'games' ? null : (
         <nav className="flex-shrink-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
           <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
             <NavButton
