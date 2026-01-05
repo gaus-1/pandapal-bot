@@ -166,9 +166,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
   return (
     <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
-      <div className="w-full max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6 overflow-x-hidden">
+      <div className="w-full max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col items-center">
         {/* Заголовок */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="w-full flex items-center justify-between mb-4">
           <button
             onClick={onBack}
             className="p-2.5 sm:p-3 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -183,8 +183,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Статус */}
-        <div className="text-center mb-0">
-          <div className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0">
+        <div className="text-center mb-4 w-full">
+          <div className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-1">
             {gameOver
               ? winner === "user"
                 ? "🎉 Ты победил!"
@@ -203,10 +203,14 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1.5 sm:p-2 mb-4 overflow-hidden w-full max-w-full flex justify-center">
+        <div className="w-full flex justify-center mb-6">
           {board.length > 0 ? (
-            <div className="w-full aspect-square max-w-[320px] sm:max-w-[360px]" style={{ width: '100%' }}>
-              <div className="grid grid-cols-8 gap-0.5 w-full h-full">
+            // Адаптивный контейнер доски:
+            // aspect-square гарантирует квадратную форму.
+            // max-w-[450px] ограничивает размер на ПК, чтобы не было слишком огромно.
+            // w-full позволяет на телефоне занимать всю доступную ширину.
+            <div className="w-full aspect-square max-w-[450px] relative">
+              <div className="grid grid-cols-8 grid-rows-8 w-full h-full gap-[1px] p-[2px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-sm border border-[var(--tg-theme-hint-color)]/10">
                 {board.map((row, rowIndex) =>
                   row.map((_, colIndex) => {
                     const isDark = isDarkCell(rowIndex, colIndex);
@@ -219,10 +223,10 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                         onClick={() => handleCellClick(rowIndex, colIndex)}
                         disabled={!isUserTurn || isLoading || gameOver}
                         className={`
-                          aspect-square rounded-md
+                          w-full h-full rounded-sm
                           relative flex items-center justify-center
                           transition-all duration-200 touch-manipulation
-                          w-full h-full overflow-hidden
+                          overflow-hidden shrink-0
                           ${
                             isDark
                               ? "bg-[var(--tg-theme-button-color)]"
@@ -230,7 +234,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                           }
                           ${
                             selected
-                              ? "ring-2 sm:ring-4 ring-yellow-400 ring-opacity-75"
+                              ? "ring-2 sm:ring-4 ring-yellow-400 ring-opacity-75 ring-inset z-10"
                               : ""
                           }
                           ${
@@ -243,31 +247,23 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                         aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                       >
                         {cell === "user" && (
-                          <div className="absolute inset-0 flex items-center justify-center p-[12%]">
-                            <div className="rounded-full bg-white border-[2px] sm:border-[3px] border-gray-300 shadow-lg flex items-center justify-center" style={{
-                              width: '100%',
-                              height: '100%',
-                              aspectRatio: '1 / 1',
-                              maxWidth: '100%',
-                              maxHeight: '100%'
-                            }}>
+                          <div className="w-full h-full flex items-center justify-center p-[10%]">
+                            {/* Шашка пользователя */}
+                            <div className="rounded-full bg-white border-[2px] sm:border-[3px] border-gray-300 shadow-md w-full h-full shrink-0 flex items-center justify-center relative">
+                              <div className="absolute inset-[4px] sm:inset-[6px] rounded-full border border-gray-200/50"></div>
                               {isKing(rowIndex, colIndex) && (
-                                <span className="text-xs sm:text-sm md:text-base font-bold text-gray-700">♔</span>
+                                <span className="text-[0.6em] sm:text-[0.7em] font-bold text-gray-700 relative z-10 leading-none">♔</span>
                               )}
                             </div>
                           </div>
                         )}
                         {cell === "ai" && (
-                          <div className="absolute inset-0 flex items-center justify-center p-[12%]">
-                            <div className="rounded-full bg-gray-800 border-[2px] sm:border-[3px] border-gray-900 shadow-lg flex items-center justify-center" style={{
-                              width: '100%',
-                              height: '100%',
-                              aspectRatio: '1 / 1',
-                              maxWidth: '100%',
-                              maxHeight: '100%'
-                            }}>
+                          <div className="w-full h-full flex items-center justify-center p-[10%]">
+                            {/* Шашка AI */}
+                            <div className="rounded-full bg-gray-800 border-[2px] sm:border-[3px] border-gray-900 shadow-md w-full h-full shrink-0 flex items-center justify-center relative">
+                               <div className="absolute inset-[4px] sm:inset-[6px] rounded-full border border-gray-600/30"></div>
                               {isKing(rowIndex, colIndex) && (
-                                <span className="text-xs sm:text-sm md:text-base font-bold text-white">♚</span>
+                                <span className="text-[0.6em] sm:text-[0.7em] font-bold text-white relative z-10 leading-none">♚</span>
                               )}
                             </div>
                           </div>
@@ -279,7 +275,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
               </div>
             </div>
           ) : (
-            <div className="text-center text-[var(--tg-theme-hint-color)] py-8">
+            <div className="text-center text-[var(--tg-theme-hint-color)] py-12 w-full max-w-[450px] aspect-square flex items-center justify-center">
               Загрузка...
             </div>
           )}
@@ -287,19 +283,18 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
         {/* Инструкция */}
         {!gameOver && (
-          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] leading-tight">
+          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] leading-relaxed px-2">
             <p className="m-0">Ты играешь белыми, панда играет черными</p>
             <p className="m-0">Нажми на свою фишку, затем на клетку для хода</p>
-            <p className="m-0">Двигайся по диагонали вперед</p>
           </div>
         )}
 
         {/* Кнопка новой игры */}
         {gameOver && (
-          <div className="text-center">
+          <div className="text-center w-full mt-2">
             <button
               onClick={onBack}
-              className="px-6 py-3 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px]"
+              className="w-full max-w-[200px] px-6 py-3 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px]"
             >
               Вернуться к играм
             </button>
