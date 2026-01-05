@@ -219,7 +219,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       disabled={!isUserTurn || isLoading || gameOver}
                       className={`
                         aspect-square rounded-md sm:rounded-lg
-                        flex items-center justify-center
+                        relative flex items-center justify-center
                         transition-all duration-200 touch-manipulation
                         min-h-[40px] sm:min-h-[48px] md:min-h-[56px]
                         w-full
@@ -243,17 +243,21 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                     >
                       {cell === "user" && (
-                        <div className="w-[85%] h-[85%] sm:w-[90%] sm:h-[90%] rounded-full bg-white border-[3px] sm:border-4 border-gray-300 shadow-lg flex items-center justify-center">
-                          {isKing(rowIndex, colIndex) && (
-                            <span className="text-sm sm:text-base md:text-lg font-bold text-gray-700">♔</span>
-                          )}
+                        <div className="absolute inset-0 flex items-center justify-center p-[10%]">
+                          <div className="w-full h-full max-w-full max-h-full rounded-full bg-white border-[3px] sm:border-4 border-gray-300 shadow-lg flex items-center justify-center aspect-square">
+                            {isKing(rowIndex, colIndex) && (
+                              <span className="text-sm sm:text-base md:text-lg font-bold text-gray-700">♔</span>
+                            )}
+                          </div>
                         </div>
                       )}
                       {cell === "ai" && (
-                        <div className="w-[85%] h-[85%] sm:w-[90%] sm:h-[90%] rounded-full bg-gray-800 border-[3px] sm:border-4 border-gray-900 shadow-lg flex items-center justify-center">
-                          {isKing(rowIndex, colIndex) && (
-                            <span className="text-sm sm:text-base md:text-lg font-bold text-white">♚</span>
-                          )}
+                        <div className="absolute inset-0 flex items-center justify-center p-[10%]">
+                          <div className="w-full h-full max-w-full max-h-full rounded-full bg-gray-800 border-[3px] sm:border-4 border-gray-900 shadow-lg flex items-center justify-center aspect-square">
+                            {isKing(rowIndex, colIndex) && (
+                              <span className="text-sm sm:text-base md:text-lg font-bold text-white">♚</span>
+                            )}
+                          </div>
                         </div>
                       )}
                     </button>
