@@ -28,12 +28,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   const [isUserTurn, setIsUserTurn] = useState(true);
   const [kings, setKings] = useState<boolean[][]>([]);
 
-  // Реф для контейнера доски
   const boardContainerRef = useRef<HTMLDivElement>(null);
-  // Состояние для хранения размера доски (width = height)
   const [boardSize, setBoardSize] = useState<number>(0);
 
-  // Эффект для отслеживания ширины контейнера и установки точной высоты
   useEffect(() => {
     const container = boardContainerRef.current;
     if (!container) return;
@@ -43,10 +40,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       setBoardSize(width);
     };
 
-    // Инициализация
     updateSize();
 
-    // ResizeObserver для отслеживания изменений (поворот экрана, изменение размера окна)
     const resizeObserver = new ResizeObserver(() => {
       updateSize();
     });
@@ -226,17 +221,13 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           )}
         </div>
 
-        {/* Контейнер для измерения ширины */}
-        {/*
-           Увеличено: w-[95%] и max-w-[480px] для большей доски.
-        */}
+        {/* Игровая доска - ФИНАЛЬНАЯ ВЕРСИЯ */}
         <div
           ref={boardContainerRef}
-          className="w-[95%] max-w-[480px] relative mb-6"
+          className="w-[98%] max-w-[540px] relative mb-6"
           style={{ height: `${boardSize}px` }}
         >
-          {/* Сетка занимает весь контейнер */}
-          <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[4px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-xl overflow-hidden">
+          <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[3px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-2xl overflow-hidden">
             {board.length > 0 ? (
               board.map((row, rowIndex) =>
                 row.map((_, colIndex) => {
@@ -252,7 +243,6 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       className={`
                         w-full h-full relative
                         transition-all duration-200 touch-manipulation
-                        flex items-center justify-center
                         ${
                           isDark
                             ? "bg-[var(--tg-theme-button-color)]"
@@ -260,7 +250,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                         }
                         ${
                           selected
-                            ? "ring-inset ring-4 ring-yellow-400/60 z-10"
+                            ? "ring-inset ring-4 ring-yellow-400/80 z-10"
                             : ""
                         }
                         ${
@@ -273,21 +263,24 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                     >
                       {cell && (
-                        <div className="absolute inset-0 flex items-center justify-center p-[10%]">
+                        <div
+                          // Абсолютное позиционирование с transform для математически точного центра
+                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[84%] h-[84%] aspect-square flex items-center justify-center"
+                        >
                           <div
                             className={`
-                              w-full aspect-square rounded-full shadow-xl shrink-0 relative flex items-center justify-center
+                              w-full h-full rounded-full shadow-lg shrink-0 relative flex items-center justify-center
                               ${cell === "user"
                                 ? "bg-white border-[3px] border-gray-300"
                                 : "bg-gray-800 border-[3px] border-gray-900"}
                             `}
                           >
-                            {/* Улучшенный блик */}
-                            <div className="absolute inset-[6px] rounded-full border border-white/20 pointer-events-none"></div>
+                            {/* Едва заметный внутренний объем */}
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-transparent to-black/5 pointer-events-none"></div>
 
                             {isKing(rowIndex, colIndex) && (
                               <span className={`
-                                text-[0.75em] font-bold relative z-10 leading-none
+                                text-[0.75em] font-bold relative z-10 leading-none drop-shadow-md
                                 ${cell === "user" ? "text-gray-700" : "text-white"}
                               `}>
                                 {cell === "user" ? "♔" : "♚"}
