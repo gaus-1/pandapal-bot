@@ -25,6 +25,7 @@ from bot.services import (
 )
 from bot.services.ai_service_solid import get_ai_service
 from bot.services.speech_service import SpeechService
+from bot.services.translate_service import get_translate_service
 from bot.services.vision_service import VisionService
 
 
@@ -450,8 +451,33 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 transcribed_text = await speech_service.transcribe_voice(audio_bytes, language="ru")
 
                 if transcribed_text and transcribed_text.strip():
-                    user_message = transcribed_text
-                    logger.info(f"✅ Аудио распознано: {transcribed_text[:100]}")
+                    # Определяем язык текста и переводим если не русский
+                    translate_service = get_translate_service()
+                    detected_lang = await translate_service.detect_language(transcribed_text)
+                    
+                    # Если язык определен и это не русский, но поддерживаемый язык
+                    if detected_lang and detected_lang != "ru" and detected_lang in translate_service.SUPPORTED_LANGUAGES:
+                        lang_name = translate_service.get_language_name(detected_lang)
+                        logger.info(f"🌍 Mini App: Обнаружен иностранный язык: {detected_lang}")
+                        # Переводим текст
+                        translated_text = await translate_service.translate_text(
+                            transcribed_text, target_language="ru", source_language=detected_lang
+                        )
+                        if translated_text:
+                            # Формируем сообщение с переводом и объяснением
+                            user_message = (
+                                f"🌍 Вижу, что ты сказал на {lang_name}!\n\n"
+                                f"📝 Оригинал: {transcribed_text}\n"
+                                f"🇷🇺 Перевод: {translated_text}\n\n"
+                                f"Объясни этот перевод и помоги понять грамматику простыми словами для ребенка."
+                            )
+                            logger.info(f"✅ Mini App: Аудио переведено: {detected_lang} → ru")
+                        else:
+                            user_message = transcribed_text
+                    else:
+                        user_message = transcribed_text
+                    
+                    logger.info(f"✅ Mini App: Аудио распознано: {transcribed_text[:100]}")
                 else:
                     logger.warning("⚠️ Аудио не распознано или пустое")
                     # Возвращаем понятную ошибку пользователю

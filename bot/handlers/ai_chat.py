@@ -224,6 +224,30 @@ async def handle_ai_message(message: Message, state: FSMContext):
             # Показываем статус "Панда печатает..."
             await message.bot.send_chat_action(chat_id=message.chat.id, action="typing")
 
+            # Определяем язык текста и переводим если не русский
+            from bot.services.translate_service import get_translate_service
+
+            translate_service = get_translate_service()
+            detected_lang = await translate_service.detect_language(user_message)
+
+            # Если язык определен и это не русский, но поддерживаемый язык
+            if detected_lang and detected_lang != "ru" and detected_lang in translate_service.SUPPORTED_LANGUAGES:
+                logger.info(f"🌍 Обнаружен иностранный язык: {detected_lang}")
+                # Переводим текст
+                translated_text = await translate_service.translate_text(
+                    user_message, target_language="ru", source_language=detected_lang
+                )
+                if translated_text:
+                    lang_name = translate_service.get_language_name(detected_lang)
+                    # Формируем сообщение с переводом и объяснением
+                    user_message = (
+                        f"🌍 Вижу, что ты написал на {lang_name}!\n\n"
+                        f"📝 Оригинал: {user_message}\n"
+                        f"🇷🇺 Перевод: {translated_text}\n\n"
+                        f"Объясни этот перевод и помоги понять грамматику простыми словами для ребенка."
+                    )
+                    logger.info(f"✅ Текст переведен: {detected_lang} → ru")
+
             # Получаем AI сервис (SOLID фасад)
             ai_service = get_ai_service()
 
@@ -384,11 +408,47 @@ async def handle_voice(message: Message):
         # Удаляем сообщение "Слушаю..."
         await processing_msg.delete()
 
-        # Показываем что было распознано
-        await message.answer(
-            f'🎤 <i>Я услышал:</i> "{recognized_text}"\n\n' f"Сейчас подумаю над ответом... 🐼",
-            parse_mode="HTML",
-        )
+        # Определяем язык текста и переводим если не русский
+        from bot.services.translate_service import get_translate_service
+
+        translate_service = get_translate_service()
+        detected_lang = await translate_service.detect_language(recognized_text)
+        
+        # Если язык определен и это не русский, но поддерживаемый язык
+        if detected_lang and detected_lang != "ru" and detected_lang in translate_service.SUPPORTED_LANGUAGES:
+            lang_name = translate_service.get_language_name(detected_lang)
+            logger.info(f"🌍 Аудио: Обнаружен иностранный язык: {detected_lang}")
+            # Переводим текст
+            translated_text = await translate_service.translate_text(
+                recognized_text, target_language="ru", source_language=detected_lang
+            )
+            if translated_text:
+                # Показываем что было распознано и переведено
+                await message.answer(
+                    f'🎤 <i>Я услышал на {lang_name}:</i> "{recognized_text}"\n'
+                    f'🇷🇺 <i>Перевод:</i> "{translated_text}"\n\n'
+                    f"Сейчас объясню перевод и подумаю над ответом... 🐼",
+                    parse_mode="HTML",
+                )
+                # Формируем сообщение с переводом и объяснением
+                recognized_text = (
+                    f"🌍 Вижу, что ты сказал на {lang_name}!\n\n"
+                    f"📝 Оригинал: {recognized_text}\n"
+                    f"🇷🇺 Перевод: {translated_text}\n\n"
+                    f"Объясни этот перевод и помоги понять грамматику простыми словами для ребенка."
+                )
+                logger.info(f"✅ Аудио переведено: {detected_lang} → ru")
+            else:
+                await message.answer(
+                    f'🎤 <i>Я услышал:</i> "{recognized_text}"\n\n' f"Сейчас подумаю над ответом... 🐼",
+                    parse_mode="HTML",
+                )
+        else:
+            # Показываем что было распознано
+            await message.answer(
+                f'🎤 <i>Я услышал:</i> "{recognized_text}"\n\n' f"Сейчас подумаю над ответом... 🐼",
+                parse_mode="HTML",
+            )
 
         logger.info(f"✅ Речь распознана: {recognized_text[:100]}")
 
@@ -464,11 +524,47 @@ async def handle_audio(message: Message):
         # Удаляем сообщение "Слушаю..."
         await processing_msg.delete()
 
-        # Показываем что было распознано
-        await message.answer(
-            f'🎵 <i>Я услышал:</i> "{recognized_text}"\n\n' f"Сейчас подумаю над ответом... 🐼",
-            parse_mode="HTML",
-        )
+        # Определяем язык текста и переводим если не русский
+        from bot.services.translate_service import get_translate_service
+
+        translate_service = get_translate_service()
+        detected_lang = await translate_service.detect_language(recognized_text)
+        
+        # Если язык определен и это не русский, но поддерживаемый язык
+        if detected_lang and detected_lang != "ru" and detected_lang in translate_service.SUPPORTED_LANGUAGES:
+            lang_name = translate_service.get_language_name(detected_lang)
+            logger.info(f"🌍 Аудио: Обнаружен иностранный язык: {detected_lang}")
+            # Переводим текст
+            translated_text = await translate_service.translate_text(
+                recognized_text, target_language="ru", source_language=detected_lang
+            )
+            if translated_text:
+                # Показываем что было распознано и переведено
+                await message.answer(
+                    f'🎵 <i>Я услышал на {lang_name}:</i> "{recognized_text}"\n'
+                    f'🇷🇺 <i>Перевод:</i> "{translated_text}"\n\n'
+                    f"Сейчас объясню перевод и подумаю над ответом... 🐼",
+                    parse_mode="HTML",
+                )
+                # Формируем сообщение с переводом и объяснением
+                recognized_text = (
+                    f"🌍 Вижу, что ты сказал на {lang_name}!\n\n"
+                    f"📝 Оригинал: {recognized_text}\n"
+                    f"🇷🇺 Перевод: {translated_text}\n\n"
+                    f"Объясни этот перевод и помоги понять грамматику простыми словами для ребенка."
+                )
+                logger.info(f"✅ Аудио переведено: {detected_lang} → ru")
+            else:
+                await message.answer(
+                    f'🎵 <i>Я услышал:</i> "{recognized_text}"\n\n' f"Сейчас подумаю над ответом... 🐼",
+                    parse_mode="HTML",
+                )
+        else:
+            # Показываем что было распознано
+            await message.answer(
+                f'🎵 <i>Я услышал:</i> "{recognized_text}"\n\n' f"Сейчас подумаю над ответом... 🐼",
+                parse_mode="HTML",
+            )
 
         logger.info(f"✅ Речь из аудио распознана: {recognized_text[:100]}")
 

@@ -113,8 +113,8 @@ class ContentModerationService:
         # Инициализируем продвинутый сервис модерации
         self.advanced_moderation = AdvancedModerationService()
 
-        # Базовый список нецензурных слов -> единый regex с word-boundaries
-        profanity_words = [
+        # Базовый список нецензурных слов (русский) -> единый regex с word-boundaries
+        profanity_words_ru = [
             "блять",
             "бля",
             "хуй",
@@ -126,8 +126,74 @@ class ContentModerationService:
             "дебил",
             "идиот",
         ]
+        
+        # Нецензурная лексика на английском
+        profanity_words_en = [
+            "fuck",
+            "shit",
+            "damn",
+            "bitch",
+            "asshole",
+            "bastard",
+            "dick",
+            "piss",
+            "crap",
+            "hell",  # Используется с точным паттерном \bhell\b, чтобы не блокировать "Hello"
+        ]
+        
+        # Нецензурная лексика на немецком
+        profanity_words_de = [
+            "scheiße",
+            "scheisse",
+            "fick",
+            "arsch",
+            "hure",
+            "mist",
+            "verdammt",
+            "blöde",
+        ]
+        
+        # Нецензурная лексика на французском
+        profanity_words_fr = [
+            "merde",
+            "putain",
+            "salope",
+            "connard",
+            "con",
+            "bordel",
+            "enculé",
+        ]
+        
+        # Нецензурная лексика на испанском
+        profanity_words_es = [
+            "joder",
+            "puta",
+            "coño",
+            "cabrón",
+            "mierda",
+            "hostia",
+            "hijo de puta",
+        ]
+        
+        # Комбинируем все слова для единой проверки
+        all_profanity_words = (
+            profanity_words_ru + profanity_words_en + profanity_words_de + 
+            profanity_words_fr + profanity_words_es
+        )
+        
+        # Специальная обработка для "hell" - только точное слово, чтобы не блокировать "Hello"
+        # Для остальных слов используем паттерн с \w* (позволяет окончания)
+        patterns = []
+        for word in all_profanity_words:
+            if word == "hell":
+                # Точное совпадение слова "hell", чтобы не блокировать "Hello"
+                patterns.append(rf"\b{re.escape(word)}\b")
+            else:
+                # Обычный паттерн с окончаниями
+                patterns.append(rf"\b{re.escape(word)}\w*\b")
+        
         self._profanity_regex: Pattern[str] = re.compile(
-            r"|".join(rf"\b{re.escape(w)}\w*\b" for w in profanity_words),
+            r"|".join(patterns),
             re.IGNORECASE,
         )
 
