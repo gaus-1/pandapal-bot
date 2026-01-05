@@ -317,17 +317,12 @@ export function AIChat({ user }: AIChatProps) {
                 telegram.hapticFeedback('medium');
                 // Скроллим к началу экрана SOS после переключения
                 setTimeout(() => {
-                  const emergencyContainer = document.querySelector('[data-emergency-screen]');
+                  const emergencyContainer = document.querySelector('[data-emergency-screen]') as HTMLElement;
                   if (emergencyContainer) {
-                    // Скроллим контейнер в начало
-                    emergencyContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    // Также скроллим window
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  } else {
-                    // Fallback: скроллим window
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    // Скроллим сам контейнер (он имеет overflow-y-auto)
+                    emergencyContainer.scrollTo({ top: 0, behavior: 'smooth' });
                   }
-                }, 200);
+                }, 300);
               }}
               className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-red-500/90 hover:bg-red-600/90 active:scale-95 transition-all flex items-center justify-center shadow-sm"
               aria-label="Экстренные номера"

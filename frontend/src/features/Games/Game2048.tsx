@@ -258,8 +258,8 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
         </div>
 
         {/* Счет */}
-        <div className="text-center mb-2 sm:mb-3">
-          <div className="text-2xl sm:text-3xl font-bold text-[var(--tg-theme-text-color)] mb-1">
+        <div className="text-center mb-1 sm:mb-1.5">
+          <div className="text-2xl sm:text-3xl font-bold text-[var(--tg-theme-text-color)] mb-0.5">
             {score}
           </div>
           {won && (
@@ -274,13 +274,13 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
         {/* Игровая доска с поддержкой swipe */}
         <div
-          className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl sm:rounded-2xl p-1.5 sm:p-2 md:p-3 mb-4 sm:mb-6 touch-none select-none w-full max-w-xs mx-auto"
+          className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl sm:rounded-2xl p-1 sm:p-1.5 md:p-2 mb-4 sm:mb-6 touch-none select-none w-full max-w-[280px] sm:max-w-[320px] mx-auto"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
           {board.length > 0 ? (
-            <div className="grid grid-cols-4 gap-1 sm:gap-1.5 md:gap-2 w-full">
+            <div className="grid grid-cols-4 gap-0.5 sm:gap-1 md:gap-1.5 w-full">
               {board.flat().map((value, index) => {
                 const isNewTile = newTileIndices.has(index);
                 return (
@@ -288,7 +288,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
                     key={index}
                     className={`
                       aspect-square rounded-md sm:rounded-lg flex items-center justify-center
-                      font-bold min-h-[50px] sm:min-h-[60px] md:min-h-[70px]
+                      font-bold min-h-[45px] sm:min-h-[55px] md:min-h-[65px]
                       w-full
                       ${
                         value === 0

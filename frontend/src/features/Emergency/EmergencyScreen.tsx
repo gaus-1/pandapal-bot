@@ -85,12 +85,10 @@ export function EmergencyScreen() {
     // Задержка для рендеринга контента
     const scrollTimeout = setTimeout(() => {
       if (containerRef.current) {
-        // Скроллим контейнер в начало
-        containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        // Также скроллим window в начало
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Скроллим контейнер в начало (он сам скроллится)
+        containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
       }
-    }, 150);
+    }, 200);
 
     return () => clearTimeout(scrollTimeout);
   }, []);
@@ -109,7 +107,7 @@ export function EmergencyScreen() {
   };
 
   return (
-    <div ref={containerRef} data-emergency-screen className="min-h-screen bg-[var(--tg-theme-bg-color)] p-4 sm:p-6 md:p-8 max-w-4xl mx-auto pb-24">
+    <div ref={containerRef} data-emergency-screen className="h-full overflow-y-auto bg-[var(--tg-theme-bg-color)] p-4 sm:p-6 md:p-8 max-w-4xl mx-auto pb-24">
       {/* Заголовок */}
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
