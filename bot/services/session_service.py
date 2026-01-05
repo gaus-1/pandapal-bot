@@ -122,7 +122,33 @@ class SessionService:
         """Инициализация подключения к Redis."""
         try:
             redis_url = settings.redis_url
-            logger.info(f"🔄 Подключение к Redis: {redis_url[:30]}...")
+
+            # Проверка формата URL
+            if not redis_url.startswith(("rediss://", "redis://")):
+                raise ValueError(
+                    f"REDIS_URL должен начинаться с rediss:// или redis://. "
+                    f"Получено: {redis_url[:30]}..."
+                )
+
+            # Для Upstash проверяем наличие default: в URL
+            if "upstash.io" in redis_url and "default:" not in redis_url:
+                logger.warning(
+                    "⚠️ Upstash URL должен содержать 'default:' в формате: "
+                    "rediss://default:TOKEN@host:6379"
+                )
+
+            # Маскируем токен в логах
+            url_for_log = redis_url
+            if "@" in redis_url:
+                parts = redis_url.split("@")
+                if ":" in parts[0]:
+                    protocol_user = parts[0].split("://")[1] if "://" in parts[0] else parts[0]
+                    if ":" in protocol_user:
+                        user, token = protocol_user.split(":", 1)
+                        masked_token = token[:8] + "..." if len(token) > 8 else "***"
+                        url_for_log = redis_url.replace(token, masked_token)
+
+            logger.info(f"🔄 Подключение к Redis: {url_for_log[:60]}...")
 
             self._redis_client = aioredis.from_url(
                 redis_url,
