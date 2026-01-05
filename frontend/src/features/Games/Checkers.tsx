@@ -184,7 +184,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
         {/* Статус */}
         <div className="text-center mb-0">
-          <p className="text-base sm:text-lg font-semibold text-[var(--tg-theme-text-color)]">
+          <div className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0">
             {gameOver
               ? winner === "user"
                 ? "🎉 Ты победил!"
@@ -196,7 +196,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                 : isUserTurn
                   ? "Твой ход!"
                   : "Ход панды..."}
-          </p>
+          </div>
           {error && (
             <p className="text-xs sm:text-sm text-red-500 mt-2">{error}</p>
           )}
