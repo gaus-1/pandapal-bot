@@ -71,6 +71,8 @@ class PandaPalBotServer:
         self.bot: Bot | None = None
         self.dp: Dispatcher | None = None
         self.app: web.Application | None = None
+        self.runner: web.AppRunner | None = None
+        self.site: web.TCPSite | None = None
         self.settings = settings
 
     async def init_bot(self) -> None:
@@ -509,6 +511,15 @@ class PandaPalBotServer:
         try:
             logger.info("🛑 Остановка сервера...")
 
+            # Останавливаем веб-сервер
+            if self.site:
+                await self.site.stop()
+                logger.info("✅ TCP site остановлен")
+
+            if self.runner:
+                await self.runner.cleanup()
+                logger.info("✅ AppRunner очищен")
+
             # Удаляем webhook (опционально, для чистоты)
             if self.bot:
                 try:
@@ -543,17 +554,17 @@ class PandaPalBotServer:
             logger.info(f"🌐 Запуск веб-сервера на {host}:{port}")
 
             # Запускаем веб-сервер с настройками для высокой нагрузки
-            runner = web.AppRunner(
+            self.runner = web.AppRunner(
                 self.app,
                 # Настройки для обработки высокой нагрузки
                 access_log=None,  # Отключаем access log для производительности (опционально)
                 keepalive_timeout=75,  # Keep-alive таймаут (увеличено с 30)
                 enable_cleanup_closed=True,  # Автоматическая очистка закрытых соединений
             )
-            await runner.setup()
+            await self.runner.setup()
 
-            site = web.TCPSite(
-                runner,
+            self.site = web.TCPSite(
+                self.runner,
                 host,
                 port,
                 # Настройки TCP для высокой нагрузки
@@ -561,16 +572,45 @@ class PandaPalBotServer:
                 reuse_address=True,  # Переиспользование адреса
                 reuse_port=False,  # Не используем SO_REUSEPORT (может вызвать проблемы)
             )
-            await site.start()
+            await self.site.start()
 
             logger.info(f"✅ Сервер запущен на порту {port}")
             logger.info("📡 Ожидание обновлений от Telegram...")
 
             # Запускаем keep-alive пинг в фоне (для Railway Free)
-            asyncio.create_task(self._keep_alive_ping(port))
+            keep_alive_task = asyncio.create_task(self._keep_alive_ping(port))
 
-            # Ждем бесконечно (сервер работает)
-            await asyncio.Event().wait()
+            # Создаем Event для graceful shutdown
+            shutdown_event = asyncio.Event()
+
+            # Обработка сигналов для graceful shutdown
+            def signal_handler():
+                logger.info("🛑 Получен сигнал остановки, начинаем graceful shutdown...")
+                shutdown_event.set()
+
+            # Регистрируем обработчики сигналов (только на Unix системах)
+            if sys.platform != "win32":
+                try:
+                    import signal
+
+                    loop = asyncio.get_event_loop()
+                    for sig in (signal.SIGTERM, signal.SIGINT):
+                        loop.add_signal_handler(sig, signal_handler)
+                except (NotImplementedError, RuntimeError):
+                    # Если сигналы не поддерживаются, используем KeyboardInterrupt
+                    pass
+
+            # Ждем сигнала остановки или KeyboardInterrupt
+            try:
+                await shutdown_event.wait()
+            except KeyboardInterrupt:
+                logger.info("🛑 Получен KeyboardInterrupt, останавливаем сервер...")
+            finally:
+                keep_alive_task.cancel()
+                try:
+                    await keep_alive_task
+                except asyncio.CancelledError:
+                    pass
 
         except Exception as e:
             logger.error(f"❌ Ошибка запуска веб-сервера: {e}")
