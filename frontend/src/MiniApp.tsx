@@ -220,10 +220,10 @@ function MiniAppContent() {
               onClick={() => navigateTo('achievements')}
             />
             <NavButton
-              icon="🎮"
-              label="PandaPalGo"
+              icon="👑"
+              label="Премиум"
               isActive={false}
-              onClick={() => navigateTo('games')}
+              onClick={() => navigateTo('premium')}
             />
             <NavButton
               icon="👑"
@@ -268,10 +268,10 @@ function MiniAppContent() {
             )}
             {currentScreen === 'games' && (
               <NavButton
-                icon="🎮"
-                label="PandaPalGo"
-                isActive={currentScreen === 'games'}
-                onClick={() => navigateTo('games')}
+                icon="👑"
+                label="Премиум"
+                isActive={false}
+                onClick={() => navigateTo('premium')}
               />
             )}
           </div>
