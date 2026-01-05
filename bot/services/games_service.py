@@ -608,23 +608,23 @@ class GamesService:
         if letter in guessed_letters:
             raise ValueError("Letter already guessed")
 
-        guessed_letters.append(letter)
-
-        # Обновляем слово в состоянии (в верхнем регистре)
-        state["word"] = word
-
         # Проверяем наличие буквы в слове (регистронезависимо)
         if letter in word:
-            # Правильная буква - обновляем состояние
+            # Правильная буква - добавляем в угаданные
+            guessed_letters.append(letter)
             state["guessed_letters"] = guessed_letters
+            state["word"] = word
         else:
             # Неправильная буква - увеличиваем счетчик ошибок
             mistakes += 1
+            guessed_letters.append(letter)
             state["mistakes"] = mistakes
             state["guessed_letters"] = guessed_letters
+            state["word"] = word
 
         # Проверяем победу: все уникальные буквы слова угаданы
-        # Игнорируем пробелы и другие не-буквенные символы
+        # Согласно описанию: победа = отсутствие заполнителей в состоянии отгадывания
+        # Это означает, что все буквы слова (игнорируя не-буквенные символы) угаданы
         unique_letters_in_word = set(c for c in word if c.isalpha())
         if unique_letters_in_word.issubset(set(guessed_letters)):
             self.finish_game_session(session_id, "win")
@@ -636,7 +636,7 @@ class GamesService:
                 "won": True,
             }
 
-        # Проверяем поражение
+        # Проверяем поражение: счетчик ошибок достиг максимума (6)
         if mistakes >= 6:
             self.finish_game_session(session_id, "loss")
             return {
