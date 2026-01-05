@@ -48,7 +48,15 @@ const App: React.FC = () => {
        window.location.hostname.includes('telegram.org') ||
        window.location.hostname.includes('web.telegram.org'));
 
-    const inTelegram = isTelegramWeb || (isTelegramUserAgent && hasInitData);
+    // Проверяем наличие window.Telegram.WebApp (даже без initData)
+    const hasTelegramWebApp = typeof window !== 'undefined' &&
+      typeof (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram !== 'undefined' &&
+      typeof (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram?.WebApp !== 'undefined';
+
+    // Для web.telegram.org разрешаем показывать Mini App даже без initData
+    // initData появится позже через Telegram WebApp API
+    const inTelegram = isTelegramWeb ||
+      (isTelegramUserAgent && (hasInitData || hasTelegramWebApp));
 
     setIsInTelegram(inTelegram);
     setIsChecking(false);
@@ -56,6 +64,7 @@ const App: React.FC = () => {
     console.log('🤖 Приложение запущено в:', inTelegram ? 'Telegram Mini App' : 'Браузере');
     console.log('🔍 InitData доступен:', hasInitData);
     console.log('🔍 Telegram User Agent:', isTelegramUserAgent);
+    console.log('🔍 Telegram WebApp доступен:', hasTelegramWebApp);
   }, []);
 
   // Роутинг через URL hash или pathname
