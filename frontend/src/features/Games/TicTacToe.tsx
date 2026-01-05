@@ -177,8 +177,8 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl sm:rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6">
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 mb-4 sm:mb-6 w-full max-w-md mx-auto">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-3 w-full">
             {Array.from({ length: 9 }).map((_, index) => {
               const content = getSquareContent(index);
               const isAiMove = aiMoveIndex === index;
@@ -191,10 +191,11 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
                   onClick={() => handleSquareClick(index)}
                   disabled={!isEmpty || isLoading || gameOver}
                   className={`
-                    aspect-square rounded-lg sm:rounded-xl text-3xl sm:text-4xl font-bold
+                    aspect-square rounded-lg sm:rounded-xl text-2xl sm:text-3xl md:text-4xl font-bold
                     flex items-center justify-center
                     transition-all duration-300 touch-manipulation
-                    min-h-[60px] sm:min-h-[80px] min-w-[60px] sm:min-w-[80px]
+                    min-h-[70px] sm:min-h-[90px] md:min-h-[100px]
+                    w-full
                     ${
                       isEmpty && !gameOver && !isLoading
                         ? "bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] hover:opacity-80 active:scale-95"
