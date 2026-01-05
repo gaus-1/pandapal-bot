@@ -489,6 +489,8 @@ def upgrade() -> None:
     op.drop_table_comment(
         "users", existing_comment="Пользователи системы (дети и родители)", schema=None
     )
+    # Удаляем триггер перед удалением колонки updated_at
+    op.execute("DROP TRIGGER IF EXISTS update_users_updated_at ON users")
     op.drop_column("users", "settings")
     op.drop_column("users", "updated_at")
     # ### end Alembic commands ###
