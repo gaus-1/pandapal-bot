@@ -100,14 +100,14 @@ export const CallToAction: React.FC = React.memo(() => {
             </p>
           </div>
           <div className="flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-100 to-rose-200 dark:from-pink-900/30 dark:to-rose-800/30 flex items-center justify-center text-3xl mb-3 shadow-md">
-              🎁
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-100 to-amber-200 dark:from-yellow-900/30 dark:to-amber-800/30 flex items-center justify-center text-3xl mb-3 shadow-md">
+              ⭐
             </div>
             <h3 className="font-bold text-lg text-gray-900 dark:text-slate-100 mb-2">
-              Бесплатно
+              Premium
             </h3>
             <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
-              Полный доступ ко всем функциям без оплаты!
+              Расширенные возможности и приоритетная поддержка!
             </p>
           </div>
         </div>
