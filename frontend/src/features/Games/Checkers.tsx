@@ -236,7 +236,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                             : ""
                         }
                         ${
-                          content === "user" && !gameOver && !isLoading
+                          board[rowIndex][colIndex] === "user" && !gameOver && !isLoading
                             ? "hover:opacity-80 active:scale-95 cursor-pointer"
                             : ""
                         }
