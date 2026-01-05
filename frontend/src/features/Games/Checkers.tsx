@@ -47,11 +47,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           setKings(gameState.kings);
         }
       } else {
-        // Инициализируем доску (пользователь внизу визуально, AI вверху)
         const initBoard: (string | null)[][] = Array(8)
           .fill(null)
           .map(() => Array(8).fill(null));
-        // Пользователь (внизу визуально) - последние 3 ряда
         for (let row = 5; row < 8; row++) {
           for (let col = 0; col < 8; col++) {
             if ((row + col) % 2 === 1) {
@@ -59,7 +57,6 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
             }
           }
         }
-        // AI (вверху визуально) - первые 3 ряда
         for (let row = 0; row < 3; row++) {
           for (let col = 0; col < 8; col++) {
             if ((row + col) % 2 === 1) {
@@ -88,14 +85,12 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       return;
     }
 
-    // Если выбрана клетка с фишкой пользователя
     if (board[row][col] === "user") {
       setSelectedCell([row, col]);
       telegram.hapticFeedback("light");
       return;
     }
 
-    // Если выбрана клетка для хода
     if (selectedCell) {
       const [fromRow, fromCol] = selectedCell;
       setIsLoading(true);
@@ -137,7 +132,6 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           }
           onGameEnd();
         } else {
-          // Игра продолжается
           setIsUserTurn(true);
         }
       } catch (err) {
@@ -168,7 +162,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
     <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto flex flex-col items-center pt-4 pb-8">
       <div className="w-full max-w-md px-4 flex flex-col items-center">
         {/* Заголовок */}
-        <div className="w-full flex items-center justify-between mb-4 max-w-[480px]">
+        <div className="w-full flex items-center justify-between mb-4 max-w-[420px]">
           <button
             onClick={onBack}
             className="p-2.5 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -183,7 +177,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Статус */}
-        <div className="text-center mb-4 w-full max-w-[480px]">
+        <div className="text-center mb-4 w-full max-w-[420px]">
           <div className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-1">
             {gameOver
               ? winner === "user"
@@ -202,10 +196,16 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           )}
         </div>
 
-        {/* Игровая доска - ИСПРАВЛЕННАЯ АДАПТИВНОСТЬ */}
-        {/* h-auto гарантирует, что высота считается от ширины, а не наоборот */}
-        <div className="w-[95%] max-w-[450px] aspect-square h-auto relative mb-6">
-          <div className="grid grid-cols-8 grid-rows-8 w-full h-full gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[4px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-xl overflow-hidden">
+        {/* Игровая доска - СТРОГИЙ КВАДРАТ */}
+        <div className="w-[90%] max-w-[400px] aspect-square relative mb-6">
+          {/*
+            Техника Strict Square:
+            Родитель имеет aspect-square.
+            Сетка внутри绝对 позиционирована (absolute inset-0),
+            что заставляет её заполнять ТОЛЬКО площадь квадратного родителя.
+            Это предотвращает любое вертикальное растяжение.
+          */}
+          <div className="absolute inset-0 grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[4px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-xl overflow-hidden">
             {board.length > 0 ? (
               board.map((row, rowIndex) =>
                 row.map((_, colIndex) => {
@@ -241,11 +241,6 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       `}
                       aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                     >
-                      {/* Шашки */}
-                      {/*
-                        Важно: aspect-square у шашки гарантирует идеальный круг,
-                        даже если клетка сетки немного прямоугольная.
-                      */}
                       {cell && (
                         <div className="absolute inset-0 flex items-center justify-center p-[12%]">
                           <div
@@ -256,7 +251,6 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                                 : "bg-gray-800 border-[2px] border-gray-900"}
                             `}
                           >
-                            {/* Блик для объема */}
                             <div className="absolute inset-[4px] rounded-full border border-white/20 pointer-events-none"></div>
 
                             {isKing(rowIndex, colIndex) && (
