@@ -23,15 +23,17 @@ PandaPal — образовательная платформа с Telegram-бо�
 
 ### Возможности
 
+- **AI-ассистент**: YandexGPT для помощи по всем школьным предметам (1-9 класс)
 - **Мультимодальность**: текст, голос (SpeechKit), изображения (Vision API)
 - **Переводчик**: Yandex Translate (английский, немецкий, французский, испанский)
-- **Обратная связь**: Yandex Forms для сбора отзывов
+- **PandaPalGo**: игры (Крестики-нолики, Шашки, 2048) с AI противником
 - **Безопасность**: 150+ фильтров контента, 5-уровневая модерация
 - **Telegram Mini App**: React веб-приложение внутри Telegram
-- **Геймификация**: достижения, уровни, XP
+- **Геймификация**: достижения, уровни, XP, статистика игр
 - **Экстренные номера**: 112, 101, 102, 103
-- **Premium**: YooKassa (карты, СБП, переводы) и Telegram Stars
-- **Авторизация**: Telegram Login Widget для сайта, Redis сессии
+- **Premium**: YooKassa (карты, СБП) и Telegram Stars
+- **Авторизация**: Telegram Login Widget для сайта, Redis сессии (Upstash)
+- **Обратная связь**: Yandex Forms для сбора отзывов
 - **Донаты**: Telegram Stars для поддержки проекта
 
 ---
@@ -40,22 +42,24 @@ PandaPal — образовательная платформа с Telegram-бо�
 
 ### Backend
 - **Python 3.13**, **aiogram 3.23**, **aiohttp 3.13** — бот и webhook сервер
-- **SQLAlchemy 2.0**, **PostgreSQL 17**, **Alembic** — БД
-- **Redis 6.4** — персистентные сессии (Upstash)
-- **Yandex Cloud** — YandexGPT, SpeechKit, Vision, Translate
+- **SQLAlchemy 2.0**, **PostgreSQL 17**, **Alembic** — БД (connection pool: 100/200)
+- **Redis 6.4** — персистентные сессии (Upstash, fallback на in-memory)
+- **Yandex Cloud** — YandexGPT (yandexgpt-lite), SpeechKit, Vision, Translate
 - **Yandex Forms** — сбор обратной связи
-- **YooKassa** — платежи (карты, СБП)
+- **YooKassa 3.0** — платежи (карты, СБП, чеки 54-ФЗ)
 
 ### Frontend
 - **React 19**, **TypeScript 5**, **Vite 7**
-- **TanStack Query 5**, **Zustand 5**
-- **Tailwind CSS 3**
-- **Telegram Mini App SDK**
+- **TanStack Query 5** (API клиент), **Zustand 5** (state management)
+- **Tailwind CSS 3** (dark/light themes)
+- **Telegram Mini App SDK 8.0** (web.telegram.org поддержка)
+- **Playwright** — E2E тесты
 
 ### Infrastructure
-- **Railway.app** — хостинг (24/7, webhook, auto deploy)
-- **Cloudflare** — DNS, SSL, CDN
-- **GitHub Actions** — CI/CD
+- **Railway.app** — хостинг (24/7, webhook, auto deploy, keep-alive ping)
+- **Cloudflare** — DNS, SSL, CDN, Full Strict mode
+- **GitHub Actions** — CI/CD, тесты, Docker build attestations
+- **Upstash Redis** — персистентные сессии (fallback на in-memory)
 
 ---
 
@@ -96,22 +100,22 @@ npm run dev
 ```
 PandaPal/
 ├── bot/
-│   ├── handlers/         # Команды (start, ai_chat, translate, feedback, payment)
-│   ├── services/         # Логика (AI, модерация, перевод, Premium, сессии)
+│   ├── handlers/         # Команды (start, ai_chat, translate, feedback, payment, games)
+│   ├── services/         # Логика (AI, модерация, перевод, Premium, сессии, игры)
 │   ├── config/           # Настройки, промпты
-│   ├── security/         # Middleware, модерация
-│   ├── api/              # Endpoints (Mini App, Premium, Auth)
-│   ├── models.py         # SQLAlchemy модели
-│   └── database.py       # БД
+│   ├── security/         # Middleware, модерация, аудит
+│   ├── api/              # Endpoints (Mini App, Premium, Auth, Games)
+│   ├── models.py         # SQLAlchemy модели (User, ChatHistory, GameSession, GameStats)
+│   └── database.py       # БД (PostgreSQL, connection pool)
 ├── frontend/
 │   ├── src/
 │   │   ├── components/   # UI (Header, Hero)
-│   │   ├── features/     # AIChat, Premium, Donation
+│   │   ├── features/     # AIChat, Premium, Donation, Games
 │   │   └── services/     # API клиенты
 │   └── public/           # Статика
-├── tests/                # Unit, integration, E2E
-├── alembic/              # Миграции
-└── scripts/              # Утилиты
+├── tests/                # Unit, integration, E2E, security, performance
+├── alembic/              # Миграции БД
+└── scripts/              # Утилиты (миграции, аналитика, проверки)
 ```
 
 ---
@@ -161,18 +165,21 @@ flake8 bot/
 - `web_server.py` — aiohttp сервер, webhook для Telegram
 
 **Services (бизнес-логика):**
-- `ai_service.py` — Yandex Cloud (GPT, Speech, Vision)
+- `ai_service_solid.py` — Yandex Cloud (GPT, Speech, Vision)
 - `translate_service.py` — Yandex Translate (5 языков)
-- `moderation_service.py` — фильтрация контента
-- `payment_service.py` — YooKassa интеграция
+- `moderation_service.py` — фильтрация контента (150+ паттернов)
+- `payment_service.py` — YooKassa интеграция (карты, СБП)
 - `subscription_service.py` — Premium подписки
-- `session_service.py` — Redis сессии (fallback на in-memory)
+- `session_service.py` — Redis сессии (Upstash, fallback на in-memory)
 - `telegram_auth_service.py` — Telegram Login Widget
+- `games_service.py` — PandaPalGo игры (TicTacToe, Checkers, 2048)
+- `gamification_service.py` — достижения, уровни, XP
 
 **API Endpoints:**
-- `miniapp_endpoints.py` — Mini App API
+- `miniapp_endpoints.py` — Mini App API (AI chat, голос, изображения)
 - `premium_endpoints.py` — YooKassa webhook, создание платежей
 - `auth_endpoints.py` — Telegram Login Widget, сессии
+- `games_endpoints.py` — PandaPalGo API (создание игр, ходы, статистика)
 
 **Security:**
 - `middleware.py` — CSP, CORS, rate limiting
@@ -211,15 +218,16 @@ REDIS_URL=rediss://...  # Upstash Redis
 
 ## Безопасность
 
-- **Валидация** — Pydantic V2
-- **SQL Injection** — SQLAlchemy ORM
-- **XSS** — CSP headers
-- **Модерация** — 150+ паттернов, 5 уровней
-- **Rate Limiting** — 60 req/min API, 30 req/min AI
-- **CSRF** — Origin/Referer проверка
-- **HTTPS** — Cloudflare Full Strict
-- **Секреты** — только в .env
-- **OWASP Top 10** — покрыто тестами
+- **Валидация** — Pydantic V2 для всех входных данных
+- **SQL Injection** — SQLAlchemy ORM, параметризованные запросы
+- **XSS** — CSP headers, санитизация HTML
+- **Модерация** — 150+ паттернов, 5-уровневая система фильтрации
+- **Rate Limiting** — 60 req/min API, 30 req/min AI, sliding window
+- **CSRF** — Origin/Referer проверка, HMAC-SHA256 для Telegram
+- **DDoS Protection** — overload protection middleware, IP блокировка
+- **HTTPS** — Cloudflare Full Strict, обязательный SSL
+- **Секреты** — только в .env, валидация при старте
+- **OWASP Top 10** — покрыто тестами (security/), аудит логов
 
 ---
 
