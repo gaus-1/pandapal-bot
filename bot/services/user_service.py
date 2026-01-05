@@ -99,7 +99,7 @@ class UserService:
             telegram_id: Telegram ID
             age: Возраст (6-18)
             grade: Класс (1-11)
-            user_type: Тип пользователя (child/parent)
+            user_type: Тип пользователя (child)
 
         Returns:
             User: Обновлённый пользователь или None если не найден
@@ -127,8 +127,8 @@ class UserService:
 
         # Обновление типа пользователя
         if user_type is not None:
-            if user_type not in ["child", "parent"]:
-                raise ValueError("user_type должен быть child/parent")
+            if user_type != "child":
+                raise ValueError("user_type должен быть child")
             user.user_type = user_type
 
         self.db.flush()
@@ -148,60 +148,6 @@ class UserService:
         """
         stmt = select(User).where(User.telegram_id == telegram_id)
         return self.db.execute(stmt).scalar_one_or_none()
-
-    def link_parent_to_child(self, child_telegram_id: int, parent_telegram_id: int) -> bool:
-        """
-        Связать родителя с ребёнком
-        Используется для родительского контроля
-
-        Args:
-            child_telegram_id: Telegram ID ребёнка
-            parent_telegram_id: Telegram ID родителя
-
-        Returns:
-            bool: True если успешно
-        """
-        child = self.get_user_by_telegram_id(child_telegram_id)
-        parent = self.get_user_by_telegram_id(parent_telegram_id)
-
-        if not child or not parent:
-            logger.error(
-                f"❌ Пользователь не найден: child={child_telegram_id}, parent={parent_telegram_id}"
-            )
-            return False
-
-        # Проверяем типы пользователей
-        if child.user_type != "child":
-            logger.error(f"❌ {child_telegram_id} не является ребёнком")
-            return False
-
-        if parent.user_type != "parent":
-            logger.error(f"❌ {parent_telegram_id} не является родителем")
-            return False
-
-        # Связываем
-        child.parent_telegram_id = parent_telegram_id
-        self.db.flush()
-
-        logger.info(f"👨‍👧 Родитель {parent_telegram_id} связан с ребёнком {child_telegram_id}")
-
-        return True
-
-    def get_user_children(self, parent_telegram_id: int) -> list[User]:
-        """
-        Получить список детей родителя
-
-        Args:
-            parent_telegram_id: Telegram ID родителя
-
-        Returns:
-            list[User]: Список детей
-        """
-        stmt = select(User).where(
-            User.parent_telegram_id == parent_telegram_id, User.is_active.is_(True)
-        )
-        children = self.db.execute(stmt).scalars().all()
-        return list(children)
 
     def get_user_display_name(self, user: User) -> str:
         """

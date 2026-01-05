@@ -29,11 +29,9 @@
 24. `test_models.py` - Модели БД
 25. `test_moderation_service.py` - Сервис модерации
 26. `test_monitoring_complete.py` - Мониторинг
-27. `test_parent_dashboard_handler.py` - Dashboard родителей
 28. `test_real_coverage_boost.py` - Реальные тесты для покрытия
 29. `test_security.py` - Безопасность
 30. `test_services_cache.py` - Кэш сервисы
-31. `test_services_parental_control.py` - Родительский контроль
 32. `test_settings_handler.py` - Обработчик настроек ✅ НОВЫЙ
 33. `test_simple_coverage_boost.py` - Простые тесты покрытия
 34. `test_subscription_service.py` - Сервис подписок ✅ НОВЫЙ

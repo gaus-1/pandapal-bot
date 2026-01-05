@@ -156,31 +156,18 @@ class TestRealDatabaseIntegration:
         """Тест реальной связи родитель-ребёнок"""
         service = UserService(db=real_db_session)
 
-        # Создаём ребёнка
-        child = service.get_or_create_user(
-            telegram_id=222222222, username="child_user", first_name="Child"
+        # Создаём пользователя
+        user = service.get_or_create_user(
+            telegram_id=222222222, username="test_user", first_name="Test"
         )
-        service.update_user_profile(222222222, user_type="child")
-
-        # Создаём родителя
-        parent = service.get_or_create_user(
-            telegram_id=333333333, username="parent_user", first_name="Parent"
-        )
-        service.update_user_profile(333333333, user_type="parent")
+        service.update_user_profile(222222222, age=10, grade=5)
 
         real_db_session.commit()
 
-        # Связываем
-        result = service.link_parent_to_child(
-            child_telegram_id=222222222, parent_telegram_id=333333333
-        )
-        real_db_session.commit()
-
-        assert result is True
-
-        # Проверяем связь в БД
-        child_from_db = service.get_user_by_telegram_id(222222222)
-        assert child_from_db.parent_telegram_id == 333333333
+        # Проверяем что профиль обновлён
+        user_from_db = service.get_user_by_telegram_id(222222222)
+        assert user_from_db.age == 10
+        assert user_from_db.grade == 5
 
     def test_real_chat_history_operations(self, real_db_session):
         """Тест реальных операций с историей чата"""

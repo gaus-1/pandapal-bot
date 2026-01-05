@@ -86,34 +86,6 @@ def mock_user() -> User:
 
 
 @pytest.fixture
-def mock_parent_user() -> User:
-    """Мок родителя для тестов"""
-    return User(
-        telegram_id=987654321,
-        username="test_parent",
-        first_name="Тестовый",
-        last_name="Родитель",
-        user_type="parent",
-        age=35,
-        grade=None,
-    )
-
-
-@pytest.fixture
-def mock_admin_user() -> User:
-    """Мок администратора (родитель с правами) для тестов"""
-    return User(
-        telegram_id=456789123,
-        username="test_admin",
-        first_name="Тестовый",
-        last_name="Админ",
-        user_type="parent",
-        age=35,
-        grade=None,
-    )
-
-
-@pytest.fixture
 def mock_ai_service() -> Mock:
     """Мок AI сервиса"""
     service = Mock(spec=YandexAIService)
@@ -218,5 +190,4 @@ def user_service(test_db):
     service.get_user_display_name = Mock()
     service.is_registered = Mock()
     service.deactivate_user = Mock()
-    service.link_parent_to_child = Mock()
     return service

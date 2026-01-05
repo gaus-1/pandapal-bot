@@ -123,47 +123,6 @@ class TestCriticalChildSafety:
         # Ребёнок 1 НЕ должен видеть сообщения ребёнка 2
         assert history1[0].message_text != history2[0].message_text
 
-    def test_parent_child_link_security(self, real_safety_db):
-        """КРИТИЧНО: связь родитель-ребёнок проверяется"""
-        user_service = UserService(db=real_safety_db)
-
-        # Создаём ребёнка и родителя
-        child = user_service.get_or_create_user(400001, "child", "Test", "Child")
-        user_service.update_user_profile(400001, user_type="child")
-
-        parent = user_service.get_or_create_user(400002, "parent", "Test", "Parent")
-        user_service.update_user_profile(400002, user_type="parent")
-
-        real_safety_db.commit()
-
-        # Связываем
-        result = user_service.link_parent_to_child(400001, 400002)
-        real_safety_db.commit()
-
-        assert result is True
-
-        # Проверяем что связь установлена
-        child_from_db = user_service.get_user_by_telegram_id(400001)
-        assert child_from_db.parent_telegram_id == 400002
-
-    def test_cannot_link_child_to_child(self, real_safety_db):
-        """КРИТИЧНО: нельзя связать ребёнка с ребёнком"""
-        user_service = UserService(db=real_safety_db)
-
-        # Два ребёнка
-        child1 = user_service.get_or_create_user(500001, "child1")
-        user_service.update_user_profile(500001, user_type="child")
-
-        child2 = user_service.get_or_create_user(500002, "child2")
-        user_service.update_user_profile(500002, user_type="child")
-
-        real_safety_db.commit()
-
-        # Попытка связать ребёнка с ребёнком должна провалиться
-        result = user_service.link_parent_to_child(500001, 500002)
-
-        assert result is False
-
     def test_age_validation_for_children(self, real_safety_db):
         """КРИТИЧНО: возраст ребёнка валидируется"""
         user_service = UserService(db=real_safety_db)

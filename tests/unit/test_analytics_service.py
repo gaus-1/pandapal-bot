@@ -91,18 +91,6 @@ class TestAnalyticsService:
 
         real_db_session.commit()
 
-    def test_record_parent_metric(self, real_db_session, test_user):
-        """Тест записи метрики родителя"""
-        service = AnalyticsService(real_db_session)
-
-        service.record_parent_metric(
-            metric_name="dashboard_views",
-            value=3.0,
-            parent_telegram_id=123456,
-        )
-
-        real_db_session.commit()
-
     def test_record_technical_metric(self, real_db_session, test_user):
         """Тест записи технической метрики"""
         service = AnalyticsService(real_db_session)
