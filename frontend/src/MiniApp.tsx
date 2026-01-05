@@ -60,6 +60,12 @@ function MiniAppContent() {
         if (currentInitData) {
           console.log('✅ initData появился, продолжаем инициализацию');
           authenticate();
+
+          // Проверяем startParam из initData (теперь доступен)
+          const startParamFromInit = telegram.getStartParam();
+          if (startParamFromInit === 'games') {
+            useAppStore.getState().setCurrentScreen('games');
+          }
         } else {
           // Если через 2 секунды все еще нет - показываем ошибку только если точно в Telegram
           const isTelegramUA = typeof window !== 'undefined' &&
@@ -86,7 +92,41 @@ function MiniAppContent() {
     authenticate();
 
     // Проверяем deep linking (startapp=games)
-    const startParam = telegram.getStartParam();
+    // Сначала из initData (если доступен)
+    let startParam = telegram.getStartParam();
+
+    // Если нет в initData, проверяем URL напрямую (для web.telegram.org)
+    if (!startParam && typeof window !== 'undefined') {
+      try {
+        // Проверяем search параметры
+        const urlParams = new URLSearchParams(window.location.search);
+        let tgaddr = urlParams.get('tgaddr');
+
+        // Если нет в search, проверяем hash (для web.telegram.org/k/#?tgaddr=...)
+        if (!tgaddr && window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.slice(1));
+          tgaddr = hashParams.get('tgaddr');
+        }
+
+        if (tgaddr) {
+          // Парсим tgaddr: tg://resolve?domain=PandaPalBot&startapp=games
+          const tgaddrParams = new URLSearchParams(tgaddr.split('?')[1] || '');
+          startParam = tgaddrParams.get('startapp');
+        }
+
+        // Также проверяем прямой параметр startapp в URL (search и hash)
+        if (!startParam) {
+          startParam = urlParams.get('startapp');
+        }
+        if (!startParam && window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.slice(1));
+          startParam = hashParams.get('startapp');
+        }
+      } catch (e) {
+        console.warn('Ошибка парсинга URL параметров:', e);
+      }
+    }
+
     if (startParam === 'games') {
       setCurrentScreen('games');
     }
