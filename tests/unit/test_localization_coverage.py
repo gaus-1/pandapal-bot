@@ -45,12 +45,6 @@ class TestAdditionalServices:
 
         assert CacheService is not None
 
-    def test_parental_control_service_exists(self):
-        """ParentalControlService существует"""
-        from bot.services.parental_control import ParentalControlService
-
-        assert ParentalControlService is not None
-
     def test_speech_service_module_exists(self):
         """Модуль speech_service существует"""
         from bot.services import speech_service

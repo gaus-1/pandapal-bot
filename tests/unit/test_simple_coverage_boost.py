@@ -203,18 +203,6 @@ class TestHandlersBasic:
 
         assert achievements is not None
 
-    def test_parent_dashboard_handler_exists(self):
-        """Parent Dashboard handler существует"""
-        from bot.handlers import parent_dashboard
-
-        assert parent_dashboard is not None
-
-    def test_parental_control_handler_exists(self):
-        """Parental Control handler существует"""
-        from bot.handlers import parental_control
-
-        assert parental_control is not None
-
     def test_admin_commands_handler_exists(self):
         """Admin Commands handler существует"""
         from bot.handlers import admin_commands

@@ -115,21 +115,11 @@ class TestFullUserFlow:
         user_service.update_user_profile(child_id, age=10, user_type="child")
         e2e_db.commit()
 
-        # Шаг 2: Регистрация родителя
-        parent_id = 100004
-        parent = user_service.get_or_create_user(parent_id, "parent_user")
-        user_service.update_user_profile(parent_id, user_type="parent")
-        e2e_db.commit()
-
-        # Шаг 3: Связывание родителя и ребёнка
-        result = user_service.link_parent_to_child(child_id, parent_id)
-        e2e_db.commit()
-
-        assert result is True
-
-        # Шаг 4: Проверка связи
+        # Шаг 2: Проверка что ребёнок зарегистрирован
         child_from_db = user_service.get_user_by_telegram_id(child_id)
-        assert child_from_db.parent_telegram_id == parent_id
+        assert child_from_db is not None
+        assert child_from_db.age == 10
+        assert child_from_db.user_type == "child"
 
     def test_dangerous_content_blocked_flow(self, e2e_db):
         """КРИТИЧНО: Полный flow блокировки опасного контента"""

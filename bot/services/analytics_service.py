@@ -44,7 +44,7 @@ class AnalyticsService:
         Args:
             metric_name: Название метрики (например, "blocked_messages_count")
             metric_value: Значение метрики
-            metric_type: Тип метрики (safety, education, parent, technical)
+            metric_type: Тип метрики (safety, education, technical)
             period: Период агрегации (minute, hour, day, week, month)
             user_telegram_id: ID пользователя (опционально)
             tags: Дополнительные теги для фильтрации (опционально)
@@ -130,30 +130,6 @@ class AnalyticsService:
             )
         except Exception as e:
             logger.error(f"❌ Ошибка записи метрики образования: {e}")
-
-    def record_parent_metric(
-        self,
-        metric_name: str,
-        value: float,
-        parent_telegram_id: Optional[int] = None,
-    ) -> None:
-        """
-        Записать метрику родительского контроля
-
-        Args:
-            metric_name: Название метрики (dashboard_views, children_count, etc.)
-            value: Значение метрики
-            parent_telegram_id: ID родителя (опционально)
-        """
-        try:
-            self.record_metric(
-                metric_name=metric_name,
-                metric_value=value,
-                metric_type="parent",
-                user_telegram_id=parent_telegram_id,
-            )
-        except Exception as e:
-            logger.error(f"❌ Ошибка записи метрики родителя: {e}")
 
     def record_technical_metric(
         self,

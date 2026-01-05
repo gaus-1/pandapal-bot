@@ -108,6 +108,6 @@ class TestBotComponents:
 
     @pytest.mark.unit
     def test_settings_keyboard_all_types(self):
-        for user_type in ["child", "parent", "teacher", None]:
+        for user_type in ["child", None]:
             keyboard = get_settings_keyboard(user_type)
             assert keyboard is not None
