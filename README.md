@@ -11,7 +11,12 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![License](https://img.shields.io/badge/License-Proprietary-red?logo=law&logoColor=white)](LICENSE)
 
-[Сайт](https://pandapal.ru) • [Telegram Бот](https://t.me/PandaPalBot) • [Документация](docs/)
+**🔗 Ссылки:**
+- 🌐 [Сайт](https://pandapal.ru)
+- 🤖 [Telegram Бот](https://t.me/PandaPalBot)
+- 📚 [Документация](docs/)
+- 🛡️ [Безопасность](SECURITY.md)
+- 🤝 [Вклад в проект](CONTRIBUTING.md)
 
 </div>
 
@@ -278,9 +283,9 @@ REDIS_URL=rediss://...  # Upstash Redis
 
 ## Контакты
 
-- **Сайт:** [pandapal.ru](https://pandapal.ru)
-- **Бот:** [@PandaPalBot](https://t.me/PandaPalBot)
-- **GitHub:** [github.com/gaus-1/pandapal-bot](https://github.com/gaus-1/pandapal-bot)
+- 🌐 **Сайт:** [pandapal.ru](https://pandapal.ru)
+- 🤖 **Бот:** [@PandaPalBot](https://t.me/PandaPalBot)
+- 💻 **GitHub:** [github.com/gaus-1/pandapal-bot](https://github.com/gaus-1/pandapal-bot)
 
 ---
 
