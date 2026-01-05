@@ -13,6 +13,7 @@ from bot.handlers.menu import router as menu_router
 from bot.handlers.payment_handler import router as payment_router
 from bot.handlers.settings import router as settings_router
 from bot.handlers.start import router as start_router
+from bot.handlers.translate import router as translate_router
 
 # Список всех роутеров для регистрации в main.py
 routers = [
@@ -21,6 +22,7 @@ routers = [
     start_router,
     emergency_router,  # Экстренные номера (важно для детей)
     feedback_router,  # Форма обратной связи
+    translate_router,  # Переводчик (Yandex Translate)
     menu_router,  # Обработка кнопок меню
     achievements_router,  # Система достижений
     settings_router,
