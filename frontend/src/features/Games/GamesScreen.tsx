@@ -168,7 +168,12 @@ export function GamesScreen({ user }: GamesScreenProps) {
               >
                 <div className="text-3xl mb-1.5 flex-shrink-0">{game.icon}</div>
                 <h3 className="text-base font-bold mb-1 flex-shrink-0">{game.name}</h3>
-                <p className="text-xs opacity-90 mb-2 flex-grow overflow-hidden line-clamp-2">{game.description}</p>
+                <p className="text-xs opacity-90 mb-2 h-[32px] overflow-hidden" style={{
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  lineHeight: '16px'
+                }}>{game.description}</p>
 
                 {/* Статистика - всегда резервируем место */}
                 <div className="mt-auto min-h-[34px] flex-shrink-0">
