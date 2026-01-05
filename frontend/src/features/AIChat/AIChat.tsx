@@ -101,7 +101,7 @@ export function AIChat({ user }: AIChatProps) {
     telegram.hapticFeedback('light');
     telegram.showPopup({
       message: 'Скопировано!',
-      buttons: [{ type: 'ok' }],
+      buttons: [{ type: 'ok', text: 'OK' }],
     });
   };
 
@@ -378,7 +378,7 @@ export function AIChat({ user }: AIChatProps) {
                   >
                     📋
                   </button>
-                  {msg.role === 'assistant' && (
+                  {msg.role === 'ai' && (
                     <button
                       onClick={() => handleReplyToMessage(index)}
                       className="px-2 py-1 text-xs bg-gray-200 dark:bg-slate-700 rounded hover:bg-gray-300 dark:hover:bg-slate-600"
