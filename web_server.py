@@ -74,6 +74,7 @@ class PandaPalBotServer:
         self.runner: web.AppRunner | None = None
         self.site: web.TCPSite | None = None
         self.settings = settings
+        self._shutdown_in_progress = False
 
     async def init_bot(self) -> None:
         """
@@ -528,17 +529,34 @@ class PandaPalBotServer:
 
     async def shutdown(self) -> None:
         """Остановка сервера - очистка ресурсов."""
+        # Предотвращаем двойной вызов shutdown
+        if self._shutdown_in_progress:
+            logger.debug("⚠️ Shutdown уже выполняется, пропускаем повторный вызов")
+            return
+
+        self._shutdown_in_progress = True
+
         try:
             logger.info("🛑 Остановка сервера...")
 
             # Останавливаем веб-сервер
             if self.site:
-                await self.site.stop()
-                logger.info("✅ TCP site остановлен")
+                try:
+                    await self.site.stop()
+                    logger.info("✅ TCP site остановлен")
+                except Exception as e:
+                    logger.warning(f"⚠️ Ошибка остановки TCP site: {e}")
+                finally:
+                    self.site = None
 
             if self.runner:
-                await self.runner.cleanup()
-                logger.info("✅ AppRunner очищен")
+                try:
+                    await self.runner.cleanup()
+                    logger.info("✅ AppRunner очищен")
+                except Exception as e:
+                    logger.warning(f"⚠️ Ошибка очистки AppRunner: {e}")
+                finally:
+                    self.runner = None
 
             # Удаляем webhook (опционально, для чистоты)
             if self.bot:
@@ -550,8 +568,11 @@ class PandaPalBotServer:
 
             # Закрываем сессию бота
             if self.bot:
-                await self.bot.session.close()
-                logger.info("✅ Сессия бота закрыта")
+                try:
+                    await self.bot.session.close()
+                    logger.info("✅ Сессия бота закрыта")
+                except Exception as e:
+                    logger.warning(f"⚠️ Ошибка закрытия сессии бота: {e}")
 
             logger.info("✅ Сервер остановлен")
 
