@@ -58,7 +58,6 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
     };
   }, []);
 
-  // ... (остальной код инициализации игры без изменений)
   useEffect(() => {
     loadGameState();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -229,12 +228,11 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
         {/* Контейнер для измерения ширины */}
         {/*
-           w-[90%] и max-w-[400px] задают желаемую ширину.
-           boardSize устанавливает высоту равной этой ширине.
+           Увеличено: w-[95%] и max-w-[480px] для большей доски.
         */}
         <div
           ref={boardContainerRef}
-          className="w-[90%] max-w-[400px] relative mb-6"
+          className="w-[95%] max-w-[480px] relative mb-6"
           style={{ height: `${boardSize}px` }}
         >
           {/* Сетка занимает весь контейнер */}
@@ -275,20 +273,21 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                     >
                       {cell && (
-                        <div className="absolute inset-0 flex items-center justify-center p-[12%]">
+                        <div className="absolute inset-0 flex items-center justify-center p-[10%]">
                           <div
                             className={`
-                              w-full aspect-square rounded-full shadow-lg shrink-0 relative flex items-center justify-center
+                              w-full aspect-square rounded-full shadow-xl shrink-0 relative flex items-center justify-center
                               ${cell === "user"
-                                ? "bg-white border-[2px] border-gray-300"
-                                : "bg-gray-800 border-[2px] border-gray-900"}
+                                ? "bg-white border-[3px] border-gray-300"
+                                : "bg-gray-800 border-[3px] border-gray-900"}
                             `}
                           >
-                            <div className="absolute inset-[4px] rounded-full border border-white/20 pointer-events-none"></div>
+                            {/* Улучшенный блик */}
+                            <div className="absolute inset-[6px] rounded-full border border-white/20 pointer-events-none"></div>
 
                             {isKing(rowIndex, colIndex) && (
                               <span className={`
-                                text-[0.7em] font-bold relative z-10 leading-none
+                                text-[0.75em] font-bold relative z-10 leading-none
                                 ${cell === "user" ? "text-gray-700" : "text-white"}
                               `}>
                                 {cell === "user" ? "♔" : "♚"}
