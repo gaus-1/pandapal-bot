@@ -24,6 +24,8 @@ PandaPal — образовательная платформа с Telegram-бо�
 ### Возможности
 
 - **Мультимодальность**: текст, голос (SpeechKit), изображения (Vision API)
+- **Переводчик**: Yandex Translate (английский, немецкий, французский, испанский)
+- **Обратная связь**: Yandex Forms для сбора отзывов
 - **Безопасность**: 150+ фильтров контента, 5-уровневая модерация
 - **Telegram Mini App**: React веб-приложение внутри Telegram
 - **Геймификация**: достижения, уровни, XP
@@ -40,7 +42,8 @@ PandaPal — образовательная платформа с Telegram-бо�
 - **Python 3.13**, **aiogram 3.23**, **aiohttp 3.13** — бот и webhook сервер
 - **SQLAlchemy 2.0**, **PostgreSQL 17**, **Alembic** — БД
 - **Redis 6.4** — персистентные сессии (Upstash)
-- **Yandex Cloud** — YandexGPT, SpeechKit, Vision
+- **Yandex Cloud** — YandexGPT, SpeechKit, Vision, Translate
+- **Yandex Forms** — сбор обратной связи
 - **YooKassa** — платежи (карты, СБП)
 
 ### Frontend
@@ -93,8 +96,8 @@ npm run dev
 ```
 PandaPal/
 ├── bot/
-│   ├── handlers/         # Команды (start, ai_chat, payment)
-│   ├── services/         # Логика (AI, модерация, Premium, сессии)
+│   ├── handlers/         # Команды (start, ai_chat, translate, feedback, payment)
+│   ├── services/         # Логика (AI, модерация, перевод, Premium, сессии)
 │   ├── config/           # Настройки, промпты
 │   ├── security/         # Middleware, модерация
 │   ├── api/              # Endpoints (Mini App, Premium, Auth)
@@ -159,6 +162,7 @@ flake8 bot/
 
 **Services (бизнес-логика):**
 - `ai_service.py` — Yandex Cloud (GPT, Speech, Vision)
+- `translate_service.py` — Yandex Translate (5 языков)
 - `moderation_service.py` — фильтрация контента
 - `payment_service.py` — YooKassa интеграция
 - `subscription_service.py` — Premium подписки
