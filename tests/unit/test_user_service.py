@@ -51,15 +51,11 @@ class TestUserService:
         service = UserService(real_db_session)
 
         # Создаём пользователя
-        user1 = service.get_or_create_user(
-            telegram_id=123456, username="test", first_name="Test"
-        )
+        user1 = service.get_or_create_user(telegram_id=123456, username="test", first_name="Test")
         real_db_session.commit()
 
         # Получаем того же пользователя
-        user2 = service.get_or_create_user(
-            telegram_id=123456, username="test2", first_name="Test2"
-        )
+        user2 = service.get_or_create_user(telegram_id=123456, username="test2", first_name="Test2")
 
         assert user1.id == user2.id
         assert user2.telegram_id == 123456
@@ -101,5 +97,3 @@ class TestUserService:
         assert user.age == 12
         assert user.grade == 6
         assert user.user_type == "child"
-
-

@@ -155,5 +155,3 @@ class TestMenuHandler:
 
         # Проверяем что callback ответил
         mock_callback.answer.assert_called_once()
-
-

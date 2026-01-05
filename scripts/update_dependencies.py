@@ -124,7 +124,14 @@ def update_package(package_name: str, old_version: str, new_version: str) -> boo
 
     try:
         # Устанавливаем новую версию
-        cmd = [sys.executable, "-m", "pip", "install", "--upgrade", f"{package_name}=={new_version}"]
+        cmd = [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "--upgrade",
+            f"{package_name}=={new_version}",
+        ]
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
 
         print(f"[OK] {package_name} успешно обновлен до {new_version}")
@@ -164,9 +171,10 @@ def update_requirements_file(updates: list):
         else:
             # Пробуем найти с учетом регистра и возможных вариантов имени
             import re
+
             pattern = re.compile(
                 rf"^{re.escape(package_name)}=={re.escape(old_version)}",
-                re.IGNORECASE | re.MULTILINE
+                re.IGNORECASE | re.MULTILINE,
             )
             content = pattern.sub(f"{package_name}=={new_version}", content)
 
@@ -229,4 +237,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

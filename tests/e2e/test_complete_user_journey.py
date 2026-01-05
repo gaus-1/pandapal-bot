@@ -100,8 +100,10 @@ class TestCompleteUserJourney:
             headers={"Content-Type": "application/json"},
         )
         auth_request._json_data = {"initData": mock_init_data}
+
         async def json():
             return auth_request._json_data
+
         auth_request.json = json
         type(auth_request).remote = property(lambda self: "127.0.0.1")
 
@@ -161,8 +163,9 @@ class TestCompleteUserJourney:
 
             # Проверяем что данные корректны
             import json
-            body = user_response._body if hasattr(user_response, '_body') else b'{}'
-            user_data = json.loads(body.decode('utf-8')) if body else {}
+
+            body = user_response._body if hasattr(user_response, "_body") else b"{}"
+            user_data = json.loads(body.decode("utf-8")) if body else {}
             assert user_data["success"] is True
             assert user_data["user"]["telegram_id"] == telegram_id
             assert user_data["user"]["age"] == 10
@@ -181,8 +184,10 @@ class TestCompleteUserJourney:
             "telegram_id": telegram_id,
             "message": text_message,
         }
+
         async def json():
             return text_chat_request._json_data
+
         text_chat_request.json = json
         type(text_chat_request).remote = property(lambda self: "127.0.0.1")
 
@@ -243,8 +248,10 @@ class TestCompleteUserJourney:
             "message": "Что на этом фото?",
             "photo_base64": photo_base64,
         }
+
         async def json():
             return photo_chat_request._json_data
+
         photo_chat_request.json = json
         type(photo_chat_request).remote = property(lambda self: "127.0.0.1")
 
@@ -299,8 +306,10 @@ class TestCompleteUserJourney:
             "telegram_id": telegram_id,
             "audio_base64": audio_base64,
         }
+
         async def json():
             return audio_chat_request._json_data
+
         audio_chat_request.json = json
         type(audio_chat_request).remote = property(lambda self: "127.0.0.1")
 
@@ -360,8 +369,9 @@ class TestCompleteUserJourney:
             assert achievements_response.status == 200
 
             import json
-            body = achievements_response._body if hasattr(achievements_response, '_body') else b'{}'
-            achievements_data = json.loads(body.decode('utf-8')) if body else {}
+
+            body = achievements_response._body if hasattr(achievements_response, "_body") else b"{}"
+            achievements_data = json.loads(body.decode("utf-8")) if body else {}
             assert achievements_data["success"] is True
             assert "achievements" in achievements_data
 
@@ -395,8 +405,9 @@ class TestCompleteUserJourney:
 
             # Проверяем что данные актуальны
             import json
-            body = user_response2._body if hasattr(user_response2, '_body') else b'{}'
-            user_data2 = json.loads(body.decode('utf-8')) if body else {}
+
+            body = user_response2._body if hasattr(user_response2, "_body") else b"{}"
+            user_data2 = json.loads(body.decode("utf-8")) if body else {}
             assert user_data2["user"]["telegram_id"] == telegram_id
 
         # ========== ФИНАЛЬНАЯ ПРОВЕРКА: ВСЁ СОХРАНЕНО В РЕАЛЬНОЙ БД ==========

@@ -49,8 +49,9 @@ class TestKnowledgeService:
         assert formatted == ""
 
         # С моковыми данными
-        from bot.services.web_scraper import EducationalContent
         from datetime import datetime
+
+        from bot.services.web_scraper import EducationalContent
 
         materials = [
             EducationalContent(
@@ -75,4 +76,3 @@ class TestKnowledgeService:
 
         assert service1 is service2
         assert isinstance(service1, KnowledgeService)
-

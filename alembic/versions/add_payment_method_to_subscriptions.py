@@ -66,4 +66,3 @@ def downgrade() -> None:
     # Удаляем колонки
     op.drop_column("subscriptions", "payment_id")
     op.drop_column("subscriptions", "payment_method")
-

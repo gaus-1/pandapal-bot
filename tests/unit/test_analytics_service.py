@@ -114,4 +114,3 @@ class TestAnalyticsService:
         )
 
         real_db_session.commit()
-

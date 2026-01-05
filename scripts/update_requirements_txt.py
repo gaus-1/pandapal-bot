@@ -15,7 +15,6 @@ UPDATES = {
     "pydantic-settings": "2.12.0",
     "pydantic_core": "2.41.5",
     "sentry-sdk": "2.48.0",
-    
     # Приоритет 2 - Важные
     "SQLAlchemy": "2.0.45",
     "alembic": "1.17.2",
@@ -24,7 +23,6 @@ UPDATES = {
     "fastapi": "0.125.0",
     "uvicorn": "0.38.0",
     "starlette": "0.50.0",
-    
     # Google AI
     "google-generativeai": "0.8.6",
     "google-ai-generativelanguage": "0.9.0",
@@ -33,15 +31,12 @@ UPDATES = {
     "google-auth": "2.45.0",
     "google-auth-httplib2": "0.3.0",
     "googleapis-common-protos": "1.72.0",
-    
     # gRPC
     "grpcio": "1.76.0",
     "grpcio-status": "1.76.0",
     "proto-plus": "1.27.0",
-    
     # Telegram
     "aiogram": "3.23.0",
-    
     # HTTP клиенты
     "aiohttp": "3.13.2",
     "aiofiles": "25.1.0",
@@ -49,7 +44,6 @@ UPDATES = {
     "certifi": "2025.11.12",
     "idna": "3.11",
     "charset-normalizer": "3.4.4",
-    
     # Утилиты
     "click": "8.3.1",
     "attrs": "25.4.0",
@@ -66,19 +60,16 @@ UPDATES = {
     "tzdata": "2025.3",
     "virtualenv": "20.35.4",
     "python-dotenv": "1.2.1",
-    
     # Парсинг
     "beautifulsoup4": "4.14.3",
     "soupsieve": "2.8.1",
     "ruamel.yaml": "0.18.17",
     "ruamel.yaml.clib": "0.2.15",
-    
     # Безопасность
     "safety": "3.7.0",
     "safety-schemas": "0.0.17",
     "bandit": "1.9.2",
     "authlib": "1.6.6",
-    
     # Инструменты разработки
     "cfgv": "3.5.0",
     "iniconfig": "2.3.0",
@@ -98,7 +89,6 @@ UPDATES = {
     "mypy": "1.19.1",
     "pytest-asyncio": "1.3.0",
     "numpy": "2.3.5",
-    
     # Исправление
     "frozenlist": "1.8.0",
 }
@@ -107,25 +97,25 @@ UPDATES = {
 def update_requirements():
     """Обновить requirements.txt."""
     requirements_file = Path("requirements.txt")
-    
+
     if not requirements_file.exists():
         print("[ERROR] requirements.txt не найден")
         return False
-    
+
     content = requirements_file.read_text(encoding="utf-8")
     lines = content.split("\n")
     updated_lines = []
     updated_count = 0
-    
+
     for line in lines:
         original_line = line
         stripped = line.strip()
-        
+
         # Пропускаем комментарии и пустые строки
         if not stripped or stripped.startswith("#"):
             updated_lines.append(line)
             continue
-        
+
         # Убираем комментарии из строки для парсинга
         if "#" in stripped:
             package_part = stripped.split("#")[0].strip()
@@ -133,7 +123,7 @@ def update_requirements():
         else:
             package_part = stripped
             comment_part = ""
-        
+
         # Парсим пакет и версию
         if "==" in package_part:
             # Обработка package[extra]==version
@@ -142,8 +132,8 @@ def update_requirements():
                 if match:
                     package_name = match.group(1).strip()
                     old_version = match.group(2).strip()
-                    extra = package_part[package_part.find("["):package_part.find("]")+1]
-                    
+                    extra = package_part[package_part.find("[") : package_part.find("]") + 1]
+
                     if package_name.lower() in UPDATES:
                         new_version = UPDATES[package_name.lower()]
                         new_line = f"{package_name}{extra}=={new_version}{comment_part}"
@@ -157,7 +147,7 @@ def update_requirements():
                 if len(parts) == 2:
                     package_name = parts[0].strip()
                     old_version = parts[1].strip()
-                    
+
                     if package_name.lower() in UPDATES:
                         new_version = UPDATES[package_name.lower()]
                         new_line = f"{package_name}=={new_version}{comment_part}"
@@ -170,11 +160,11 @@ def update_requirements():
                     updated_lines.append(line)
         else:
             updated_lines.append(line)
-    
+
     # Сохраняем обновленный файл
     new_content = "\n".join(updated_lines)
     requirements_file.write_text(new_content, encoding="utf-8")
-    
+
     print(f"\n[SUCCESS] Обновлено {updated_count} пакетов в requirements.txt")
     return True
 
@@ -182,4 +172,3 @@ def update_requirements():
 if __name__ == "__main__":
     print("Обновление requirements.txt с актуальными версиями...")
     update_requirements()
-
