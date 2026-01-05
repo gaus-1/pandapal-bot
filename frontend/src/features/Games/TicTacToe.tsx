@@ -117,7 +117,10 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
         }
         onGameEnd();
       } else {
+        // Игра продолжается - пользователь может сделать следующий ход
         setIsUserTurn(true);
+        setAiMoveIndex(null);
+        setLastMoveIndex(null);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Ошибка хода";
