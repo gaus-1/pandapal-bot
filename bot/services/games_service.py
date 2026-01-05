@@ -56,11 +56,19 @@ class TicTacToeAI:
             if move != -1:
                 return move
 
-            # 3. Стратегические позиции (углы и центр)
+            # 3. Стратегические позиции (углы и центр) - рандомизируем порядок для разнообразия
             strategic_positions = [4, 0, 2, 6, 8, 1, 3, 5, 7]  # Центр, углы, края
-            for pos in strategic_positions:
-                if board[pos] is None:
-                    return pos
+            # Перемешиваем стратегические позиции (кроме центра, если он свободен)
+            available_strategic = [pos for pos in strategic_positions if board[pos] is None]
+            if available_strategic:
+                # Если центр свободен, иногда выбираем его, иногда углы
+                if 4 in available_strategic and len(available_strategic) > 1:
+                    # 70% вероятность выбрать центр, 30% - случайный из доступных
+                    if random.random() < 0.7:
+                        return 4
+                    else:
+                        return random.choice([pos for pos in available_strategic if pos != 4])
+                return random.choice(available_strategic)
 
             # 4. Случайный ход (fallback)
             available = [i for i in range(9) if board[i] is None]
