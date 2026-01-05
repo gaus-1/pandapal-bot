@@ -8,6 +8,7 @@ from bot.handlers.achievements import router as achievements_router
 from bot.handlers.admin_commands import router as admin_commands_router
 from bot.handlers.ai_chat import router as ai_chat_router
 from bot.handlers.emergency import router as emergency_router
+from bot.handlers.feedback import router as feedback_router
 from bot.handlers.menu import router as menu_router
 from bot.handlers.payment_handler import router as payment_router
 from bot.handlers.settings import router as settings_router
@@ -19,6 +20,7 @@ routers = [
     payment_router,  # Обработка платежей (высокий приоритет)
     start_router,
     emergency_router,  # Экстренные номера (важно для детей)
+    feedback_router,  # Форма обратной связи
     menu_router,  # Обработка кнопок меню
     achievements_router,  # Система достижений
     settings_router,
