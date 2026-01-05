@@ -244,7 +244,7 @@ class GamesService:
 
         Args:
             telegram_id: Telegram ID пользователя
-            game_type: Тип игры ('tic_tac_toe', 'hangman', '2048')
+            game_type: Тип игры ('tic_tac_toe', 'checkers', '2048')
             initial_state: Начальное состояние игры
 
         Returns:
