@@ -315,24 +315,19 @@ export function AIChat({ user }: AIChatProps) {
               onClick={() => {
                 useAppStore.getState().setCurrentScreen('emergency');
                 telegram.hapticFeedback('medium');
-                // Скроллим вниз после переключения экрана (чтобы показать контент)
+                // Скроллим к началу экрана SOS после переключения
                 setTimeout(() => {
                   const emergencyContainer = document.querySelector('[data-emergency-screen]');
                   if (emergencyContainer) {
-                    // Скроллим к началу контейнера, но если контент длинный - показываем его
+                    // Скроллим контейнер в начало
                     emergencyContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    // Дополнительно скроллим window для гарантии
+                    // Также скроллим window
                     window.scrollTo({ top: 0, behavior: 'smooth' });
-                    // Если контент длиннее экрана, скроллим немного вниз
-                    setTimeout(() => {
-                      if (emergencyContainer.scrollHeight > window.innerHeight) {
-                        window.scrollTo({ top: 100, behavior: 'smooth' });
-                      }
-                    }, 300);
                   } else {
+                    // Fallback: скроллим window
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }
-                }, 100);
+                }, 200);
               }}
               className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-red-500/90 hover:bg-red-600/90 active:scale-95 transition-all flex items-center justify-center shadow-sm"
               aria-label="Экстренные номера"
