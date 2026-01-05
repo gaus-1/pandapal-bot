@@ -183,7 +183,24 @@ class PandaPalBotServer:
 
             # Health check endpoints
             async def health_check(request: web.Request) -> web.Response:
-                """Health check endpoint с проверкой компонентов."""
+                """
+                Health check endpoint с проверкой компонентов.
+
+                Быстрый ответ для Railway - сначала простой статус,
+                затем асинхронно проверяем компоненты.
+                """
+                # Быстрый ответ для Railway (без блокирующих проверок)
+                return web.json_response(
+                    {
+                        "status": "ok",
+                        "service": "pandapal-bot",
+                        "mode": "webhook",
+                    },
+                    status=200,
+                )
+
+            async def health_check_detailed(request: web.Request) -> web.Response:
+                """Детальный health check с проверкой всех компонентов."""
                 components = {}
                 overall_status = "ok"
 
@@ -250,7 +267,10 @@ class PandaPalBotServer:
                 )
 
             # Регистрируем маршруты ДО setup_application
+            # Быстрый health check для Railway (отвечает мгновенно)
             self.app.router.add_get("/health", health_check)
+            # Детальный health check для мониторинга
+            self.app.router.add_get("/health/detailed", health_check_detailed)
 
             # ВАЖНО: Регистрируем API роуты ПЕРЕД frontend (чтобы они имели приоритет)
             # Интегрируем Mini App API

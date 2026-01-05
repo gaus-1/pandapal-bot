@@ -7,6 +7,6 @@
   "deploy": {
     "numReplicas": 1,
     "sleepApplication": false,
-    "restartPolicyType": "NEVER"
+    "restartPolicyType": "ON_FAILURE"
   }
 }
