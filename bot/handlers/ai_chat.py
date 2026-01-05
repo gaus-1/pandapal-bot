@@ -294,10 +294,34 @@ async def handle_ai_message(message: Message, state: FSMContext):
             except Exception as e:
                 logger.debug(f"⚠️ Не удалось записать метрику образования: {e}")
 
+            # Сохраняем количество сообщений для проверки
+            message_count = user.message_count
+
         # Отправляем ответ пользователю (без parse_mode для избежания ошибок форматирования)
         await message.answer(
             text=ai_response,
         )
+
+        # Предлагаем форму обратной связи после каждого 20-го сообщения
+        if message_count % 20 == 0 and message_count > 0:
+            from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+            feedback_keyboard = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="📝 Оставить отзыв",
+                            url="https://forms.yandex.ru/cloud/695ba5a6068ff07700f0029a",
+                        )
+                    ]
+                ]
+            )
+
+            await message.answer(
+                "🎉 Спасибо за общение! Поделись мнением?\n"
+                "Твой отзыв поможет улучшить PandaPal 🐼",
+                reply_markup=feedback_keyboard,
+            )
 
     except Exception as e:
         logger.error(f"Ошибка обработки сообщения: {e}")
