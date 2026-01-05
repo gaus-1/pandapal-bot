@@ -144,7 +144,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
     <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
       <div className="max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Заголовок */}
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="flex items-center justify-between mb-2">
           <button
             onClick={onBack}
             className="p-2.5 sm:p-3 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -159,7 +159,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
         </div>
 
         {/* Статус */}
-        <div className="text-center mb-4 sm:mb-6">
+        <div className="text-center mb-0">
           <p className="text-base sm:text-lg font-semibold text-[var(--tg-theme-text-color)]">
             {getStatusMessage()}
           </p>
@@ -169,7 +169,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 mb-4 sm:mb-6 w-full max-w-md mx-auto">
+        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-2 sm:p-3 md:p-4 mb-4 sm:mb-6 w-full max-w-[260px] mx-auto">
           <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-3 w-full">
             {Array.from({ length: 9 }).map((_, index) => {
               const content = getSquareContent(index);
