@@ -243,8 +243,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                         aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                       >
                         {cell === "user" && (
-                          <div className="absolute inset-[8%] flex items-center justify-center">
-                            <div className="w-full h-full rounded-full bg-white border-[2px] sm:border-[3px] border-gray-300 shadow-lg flex items-center justify-center" style={{ aspectRatio: '1 / 1' }}>
+                          <div className="absolute inset-[8%] flex items-center justify-center" style={{ aspectRatio: '1 / 1' }}>
+                            <div className="w-full h-full rounded-full bg-white border-[2px] sm:border-[3px] border-gray-300 shadow-lg flex items-center justify-center">
                               {isKing(rowIndex, colIndex) && (
                                 <span className="text-xs sm:text-sm md:text-base font-bold text-gray-700">♔</span>
                               )}
@@ -252,8 +252,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                           </div>
                         )}
                         {cell === "ai" && (
-                          <div className="absolute inset-[8%] flex items-center justify-center">
-                            <div className="w-full h-full rounded-full bg-gray-800 border-[2px] sm:border-[3px] border-gray-900 shadow-lg flex items-center justify-center" style={{ aspectRatio: '1 / 1' }}>
+                          <div className="absolute inset-[8%] flex items-center justify-center" style={{ aspectRatio: '1 / 1' }}>
+                            <div className="w-full h-full rounded-full bg-gray-800 border-[2px] sm:border-[3px] border-gray-900 shadow-lg flex items-center justify-center">
                               {isKing(rowIndex, colIndex) && (
                                 <span className="text-xs sm:text-sm md:text-base font-bold text-white">♚</span>
                               )}
