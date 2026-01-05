@@ -203,9 +203,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1 mb-4 overflow-hidden w-full">
+        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1 mb-4 overflow-hidden">
           {board.length > 0 ? (
-            <div className="w-full aspect-square">
+            <div className="w-full aspect-square max-w-full">
               <div className="grid grid-cols-8 gap-0.5 w-full h-full">
                 {board.map((row, rowIndex) =>
                   row.map((_, colIndex) => {
@@ -243,19 +243,19 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                         aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                       >
                         {cell === "user" && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-[85%] h-[85%] sm:w-[90%] sm:h-[90%] rounded-full bg-white border-[3px] border-gray-300 shadow-lg flex items-center justify-center">
+                          <div className="absolute inset-0 flex items-center justify-center p-1">
+                            <div className="w-full h-full rounded-full bg-white border-[2px] sm:border-[3px] border-gray-300 shadow-lg flex items-center justify-center aspect-square">
                               {isKing(rowIndex, colIndex) && (
-                                <span className="text-sm sm:text-base md:text-lg font-bold text-gray-700">♔</span>
+                                <span className="text-xs sm:text-sm md:text-base font-bold text-gray-700">♔</span>
                               )}
                             </div>
                           </div>
                         )}
                         {cell === "ai" && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-[85%] h-[85%] sm:w-[90%] sm:h-[90%] rounded-full bg-gray-800 border-[3px] border-gray-900 shadow-lg flex items-center justify-center">
+                          <div className="absolute inset-0 flex items-center justify-center p-1">
+                            <div className="w-full h-full rounded-full bg-gray-800 border-[2px] sm:border-[3px] border-gray-900 shadow-lg flex items-center justify-center aspect-square">
                               {isKing(rowIndex, colIndex) && (
-                                <span className="text-sm sm:text-base md:text-lg font-bold text-white">♚</span>
+                                <span className="text-xs sm:text-sm md:text-base font-bold text-white">♚</span>
                               )}
                             </div>
                           </div>

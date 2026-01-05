@@ -151,6 +151,8 @@ export function GamesScreen({ user }: GamesScreenProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
           {GAMES.map((game) => {
             const gameStats = stats[game.id];
+            const hasStats = gameStats && gameStats.total_games > 0;
+            const hasBestScore = game.id === '2048' && gameStats?.best_score;
             return (
               <button
                 key={game.id}
@@ -161,27 +163,33 @@ export function GamesScreen({ user }: GamesScreenProps) {
                   text-white shadow-lg hover:shadow-xl transform hover:scale-105
                   active:scale-100 transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
-                  text-left min-h-[120px] flex flex-col
+                  text-left h-[140px] flex flex-col
                 `}
               >
                 <div className="text-3xl mb-1.5">{game.icon}</div>
                 <h3 className="text-base font-bold mb-1">{game.name}</h3>
-                <p className="text-xs opacity-90 mb-2 flex-grow">{game.description}</p>
+                <p className="text-xs opacity-90 mb-2 flex-grow min-h-[32px]">{game.description}</p>
 
-                {/* Статистика */}
-                {gameStats && gameStats.total_games > 0 && (
-                  <div className="mt-2 pt-2 border-t border-white/20">
-                    <div className="flex justify-between text-xs">
-                      <span>Побед: {gameStats.wins}</span>
-                      <span>Игр: {gameStats.total_games}</span>
-                    </div>
-                    {game.id === '2048' && gameStats.best_score && (
-                      <div className="text-xs mt-0.5">
-                        Лучший счет: {gameStats.best_score}
+                {/* Статистика - всегда резервируем место */}
+                <div className="mt-auto min-h-[34px]">
+                  {hasStats ? (
+                    <div className="pt-2 border-t border-white/20">
+                      <div className="flex justify-between text-xs">
+                        <span>Побед: {gameStats.wins}</span>
+                        <span>Игр: {gameStats.total_games}</span>
                       </div>
-                    )}
-                  </div>
-                )}
+                      {hasBestScore ? (
+                        <div className="text-xs mt-0.5">
+                          Лучший счет: {gameStats.best_score}
+                        </div>
+                      ) : (
+                        <div className="h-[14px]"></div>
+                      )}
+                    </div>
+                  ) : (
+                    <div></div>
+                  )}
+                </div>
               </button>
             );
           })}
