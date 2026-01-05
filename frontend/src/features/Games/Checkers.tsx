@@ -3,7 +3,7 @@
  * Шашки - игра против панды (AI)
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { telegram } from "../../services/telegram";
 import {
   checkersMove,
@@ -27,31 +27,6 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   const [error, setError] = useState<string | null>(null);
   const [isUserTurn, setIsUserTurn] = useState(true);
   const [kings, setKings] = useState<boolean[][]>([]);
-
-  const boardContainerRef = useRef<HTMLDivElement>(null);
-  const [boardSize, setBoardSize] = useState<number>(0);
-
-  useEffect(() => {
-    const container = boardContainerRef.current;
-    if (!container) return;
-
-    const updateSize = () => {
-      const width = container.offsetWidth;
-      setBoardSize(width);
-    };
-
-    updateSize();
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateSize();
-    });
-
-    resizeObserver.observe(container);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
 
   useEffect(() => {
     loadGameState();
@@ -221,12 +196,12 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           )}
         </div>
 
-        {/* Игровая доска - ФИНАЛЬНАЯ ВЕРСИЯ */}
-        <div
-          ref={boardContainerRef}
-          className="w-[98%] max-w-[540px] relative mb-6"
-          style={{ height: `${boardSize}px` }}
-        >
+        {/* Игровая доска - ЧИСТЫЙ CSS СПОСОБ (СТАБИЛЬНЫЙ) */}
+        {/*
+           aspect-square: Гарантирует, что высота всегда равна ширине.
+           Это работает нативно в браузере (Chrome/Safari), что идеально для Telegram Web App.
+        */}
+        <div className="w-[92%] max-w-[480px] aspect-square relative mb-6">
           <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[3px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-2xl overflow-hidden">
             {board.length > 0 ? (
               board.map((row, rowIndex) =>
@@ -264,7 +239,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                     >
                       {cell && (
                         <div
-                          // Абсолютное позиционирование с transform для математически точного центра
+                          // Абсолютное центрирование + Размер
                           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[84%] h-[84%] aspect-square flex items-center justify-center"
                         >
                           <div
@@ -275,7 +250,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                                 : "bg-gray-800 border-[3px] border-gray-900"}
                             `}
                           >
-                            {/* Едва заметный внутренний объем */}
+                            {/* Объем */}
                             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-transparent to-black/5 pointer-events-none"></div>
 
                             {isKing(rowIndex, colIndex) && (
