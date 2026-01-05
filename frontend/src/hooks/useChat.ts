@@ -136,6 +136,14 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
     },
   });
 
+  // Очистка истории чата
+  const clearHistory = () => {
+    queryClient.setQueryData<ChatMessage[]>(
+      queryKeys.chatHistory(telegramId, limit),
+      []
+    );
+  };
+
   return {
     messages,
     isLoadingHistory,
@@ -143,5 +151,6 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
     sendMessage: sendMessageMutation.mutate,
     isSending: sendMessageMutation.isPending,
     sendError: sendMessageMutation.error,
+    clearHistory,
   };
 }

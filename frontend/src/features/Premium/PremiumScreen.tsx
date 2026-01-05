@@ -98,15 +98,8 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
       return;
     }
 
-    // Если в Telegram - показываем confirm
-    if (inTelegram) {
-      telegram.hapticFeedback('medium');
-      const confirmed = await telegram.showConfirm(
-        `Купить премиум на ${plan.duration} за ${plan.priceRub} ₽?`
-      );
-      if (!confirmed) return;
-    }
-    // На сайте - БЕЗ confirm, сразу переходим к оплате
+    // Сразу переходим к оплате без confirm (убрано по требованию)
+    telegram.hapticFeedback('medium');
 
     setIsProcessing(true);
     setSelectedPlan(plan.id);

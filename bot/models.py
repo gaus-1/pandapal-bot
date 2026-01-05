@@ -83,6 +83,15 @@ class User(Base):
         DateTime(timezone=True), nullable=True
     )
 
+    # Активность и напоминания
+    message_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    last_activity: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True, onupdate=func.now()
+    )
+    reminder_sent_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     parent: Mapped[Optional["User"]] = relationship(
         "User",
         remote_side=[telegram_id],
