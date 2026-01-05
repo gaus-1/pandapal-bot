@@ -10,7 +10,7 @@ repos:
   # БАЗОВЫЕ ПРОВЕРКИ (БЫСТРЫЕ И ВАЖНЫЕ)
   # ============================================================================
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
         name: 🧹 Удаление пробелов в конце строк
@@ -29,6 +29,19 @@ repos:
         exclude: ^(frontend/.*\.json$|.*tsconfig.*\.json$)
       - id: mixed-line-ending
         name: 📝 Проверка окончаний строк
+      - id: forbid-new-submodules
+        name: 🚫 Запрет новых submodules
+
+  # ============================================================================
+  # БЕЗОПАСНОСТЬ - ОБЯЗАТЕЛЬНО (БЛОКИРУЮЩИЙ)
+  # ============================================================================
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        name: 🛡️ detect-secrets - проверка секретов
+        args: ['--baseline', '.secrets.baseline']
+        exclude: ^(tests/|scripts/|\.env|\.git/)
 
   # ============================================================================
   # ФОРМАТИРОВАНИЕ PYTHON (АВТОИСПРАВЛЕНИЕ)
@@ -61,6 +74,18 @@ repos:
           - '--extend-ignore=E203,W503,D205,D400,D200,F841,C901,E501'
           - '--max-complexity=15'
         additional_dependencies: [flake8-docstrings]
+        exclude: ^(tests/|scripts/|alembic/)
+
+  # ============================================================================
+  # RUFF - БЫСТРЫЙ ЛИНТЕР (ОПЦИОНАЛЬНО, ПАРАЛЛЕЛЬНО С FLAKE8)
+  # ruff-format отключен, т.к. используем black для форматирования
+  # ============================================================================
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        name: ⚡ ruff - быстрый линтер
+        args: ['--fix', '--exit-non-zero-on-fix']
         exclude: ^(tests/|scripts/|alembic/)
 
   # ============================================================================
@@ -129,6 +154,18 @@ repos:
   #       args: ['--continue-on-failure']
   #       stages: [manual]  # Запускается вручную: pre-commit run python-safety-dependencies --all-files
 
+  # ============================================================================
+  # ФРОНТЕНД - ESLINT И PRETTIER
+  # ============================================================================
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        name: 💅 Prettier - форматирование фронтенда
+        types: [file]
+        files: ^frontend/.*\.(ts|tsx|js|jsx|css|json|md)$
+        exclude: ^(frontend/node_modules/|frontend/dist/|frontend/package-lock\.json)
+
   - repo: local
     hooks:
       - id: eslint
@@ -148,13 +185,26 @@ repos:
         always_run: false
         stages: [manual]  # Запускается вручную: pre-commit run npm-audit --all-files
 
+      - id: pip-audit
+        name: 🔒 pip-audit - проверка уязвимостей Python
+        entry: bash -c 'pip-audit --desc --format json || true'
+        language: system
+        pass_filenames: false
+        always_run: false
+        stages: [manual]  # Запускается вручную: pre-commit run pip-audit --all-files
+
 # ============================================================================
 # ИНСТРУКЦИИ ПО ИСПОЛЬЗОВАНИЮ
 # ============================================================================
 #
+# ПЕРВЫЙ ЗАПУСК (НАСТРОЙКА detect-secrets):
+#   detect-secrets scan > .secrets.baseline
+#   git add .secrets.baseline
+#
 # ОБЫЧНЫЙ КОММИТ:
 #   git commit -m "feat: новая функция"
-#   → Запустятся: trailing-whitespace, black, isort, flake8, eslint
+#   → Запустятся: detect-secrets, trailing-whitespace, black, isort,
+#      ruff, flake8, prettier, eslint
 #
 # БЫСТРЫЙ КОММИТ (БЕЗ ПРОВЕРОК):
 #   git commit --no-verify -m "fix: быстрое исправление"
@@ -167,5 +217,9 @@ repos:
 #
 # ПРОВЕРКА БЕЗОПАСНОСТИ ВРУЧНУЮ:
 #   pre-commit run bandit --all-files
+#
+# ПРОВЕРКА УЯЗВИМОСТЕЙ ЗАВИСИМОСТЕЙ:
+#   pre-commit run pip-audit --all-files
+#   pre-commit run npm-audit --all-files
 #
 # ============================================================================
