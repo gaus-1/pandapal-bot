@@ -518,6 +518,13 @@ def downgrade() -> None:
             nullable=True,
         ),
     )
+    # Восстанавливаем триггер после добавления колонки updated_at
+    op.execute(
+        """
+        CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+        """
+    )
     op.create_table_comment(
         "users", "Пользователи системы (дети и родители)", existing_comment=None, schema=None
     )
