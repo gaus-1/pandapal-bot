@@ -169,8 +169,8 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-2 sm:p-3 md:p-4 mb-4 sm:mb-6 w-full max-w-[260px] mx-auto">
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-3 w-full">
+        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1 mb-4 w-full max-w-[260px] mx-auto">
+          <div className="grid grid-cols-3 gap-0.5 w-full">
             {Array.from({ length: 9 }).map((_, index) => {
               const content = getSquareContent(index);
               const isAiMove = aiMoveIndex === index;

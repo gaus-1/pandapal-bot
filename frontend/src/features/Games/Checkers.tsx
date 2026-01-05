@@ -203,9 +203,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-2 sm:p-3 md:p-4 mb-4 sm:mb-6 overflow-x-auto -mx-3 sm:mx-0">
+        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1 mb-4 overflow-x-auto -mx-3 sm:mx-0">
           {board.length > 0 ? (
-            <div className="grid grid-cols-8 gap-1 sm:gap-1.5 md:gap-2 w-full max-w-full mx-auto" style={{ maxWidth: 'min(100vw - 1rem, 260px)' }}>
+            <div className="grid grid-cols-8 gap-0.5 w-full max-w-full mx-auto" style={{ maxWidth: 'min(100vw - 1rem, 260px)' }}>
               {board.map((row, rowIndex) =>
                 row.map((_, colIndex) => {
                   const isDark = isDarkCell(rowIndex, colIndex);
