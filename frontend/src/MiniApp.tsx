@@ -17,6 +17,7 @@ const EmergencyScreen = lazy(() => import('./features/Emergency/EmergencyScreen'
 const AchievementsScreen = lazy(() => import('./features/Achievements/AchievementsScreen').then(m => ({ default: m.AchievementsScreen })));
 const PremiumScreen = lazy(() => import('./features/Premium/PremiumScreen').then(m => ({ default: m.PremiumScreen })));
 const DonationScreen = lazy(() => import('./features/Donation/DonationScreen').then(m => ({ default: m.DonationScreen })));
+const GamesScreen = lazy(() => import('./features/Games/GamesScreen').then(m => ({ default: m.GamesScreen })));
 
 export function MiniApp() {
   return (
@@ -83,6 +84,12 @@ function MiniAppContent() {
 
     // Аутентификация через TanStack Query hook
     authenticate();
+
+    // Проверяем deep linking (startapp=games)
+    const startParam = telegram.getStartParam();
+    if (startParam === 'games') {
+      setCurrentScreen('games');
+    }
 
     // Показываем кнопку "Назад" для навигации
     telegram.showBackButton(() => {
@@ -158,6 +165,7 @@ function MiniAppContent() {
           {currentScreen === 'achievements' && user && <AchievementsScreen user={user} />}
           {currentScreen === 'premium' && user && <PremiumScreen user={user} />}
           {currentScreen === 'donation' && <DonationScreen user={user} />}
+          {currentScreen === 'games' && user && <GamesScreen user={user} />}
         </Suspense>
       </div>
 
@@ -170,6 +178,12 @@ function MiniAppContent() {
               label="Достижения"
               isActive={false}
               onClick={() => navigateTo('achievements')}
+            />
+            <NavButton
+              icon="🎮"
+              label="PandaPalGo"
+              isActive={false}
+              onClick={() => navigateTo('games')}
             />
             <NavButton
               icon="👑"
@@ -210,6 +224,14 @@ function MiniAppContent() {
                 label="Premium"
                 isActive={false}
                 onClick={() => navigateTo('premium')}
+              />
+            )}
+            {currentScreen === 'games' && (
+              <NavButton
+                icon="🎮"
+                label="PandaPalGo"
+                isActive={currentScreen === 'games'}
+                onClick={() => navigateTo('games')}
               />
             )}
           </div>

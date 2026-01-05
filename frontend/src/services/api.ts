@@ -258,3 +258,162 @@ export async function updateUserProfile(
   const data = await response.json();
   return data.user;
 }
+
+/**
+ * Игровые API
+ */
+
+export interface GameSession {
+  id: number;
+  game_type: 'tic_tac_toe' | 'hangman' | '2048';
+  game_state: Record<string, unknown>;
+  result: 'win' | 'loss' | 'draw' | 'in_progress' | null;
+  score: number | null;
+  started_at: string;
+  finished_at: string | null;
+  duration_seconds: number | null;
+}
+
+export interface GameStats {
+  game_type: string;
+  total_games: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  win_rate: number;
+  best_score: number | null;
+  total_score: number;
+  last_played_at: string | null;
+}
+
+/**
+ * Создать новую игровую сессию
+ */
+export async function createGame(telegramId: number, gameType: string): Promise<{ session_id: number; game_type: string; game_state: Record<string, unknown> }> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/${telegramId}/create`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ game_type: gameType }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка создания игры');
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+/**
+ * Сделать ход в крестики-нолики
+ */
+export async function ticTacToeMove(sessionId: number, position: number): Promise<{
+  board: (string | null)[];
+  winner: 'user' | 'ai' | null;
+  game_over: boolean;
+  ai_move: number | null;
+}> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/tic-tac-toe/${sessionId}/move`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ position }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка хода');
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+/**
+ * Угадать букву в виселице
+ */
+export async function hangmanGuess(sessionId: number, letter: string): Promise<{
+  word: string;
+  guessed_letters: string[];
+  mistakes: number;
+  game_over: boolean;
+  won: boolean | null;
+}> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/hangman/${sessionId}/guess`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ letter }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка угадывания');
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+/**
+ * Сделать ход в 2048
+ */
+export async function game2048Move(sessionId: number, direction: 'up' | 'down' | 'left' | 'right'): Promise<{
+  board: number[][];
+  score: number;
+  game_over: boolean;
+  won: boolean;
+}> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/2048/${sessionId}/move`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ direction }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка хода');
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+/**
+ * Получить статистику игр
+ */
+export async function getGameStats(telegramId: number, gameType?: string): Promise<GameStats | Record<string, GameStats>> {
+  const url = gameType
+    ? `${API_BASE_URL}/miniapp/games/${telegramId}/stats?game_type=${gameType}`
+    : `${API_BASE_URL}/miniapp/games/${telegramId}/stats`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error('Ошибка получения статистики');
+  }
+
+  const data = await response.json();
+  return data.stats;
+}
+
+/**
+ * Получить игровую сессию
+ */
+export async function getGameSession(sessionId: number): Promise<GameSession> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/session/${sessionId}`);
+
+  if (!response.ok) {
+    throw new Error('Ошибка получения сессии');
+  }
+
+  const data = await response.json();
+  return data.session;
+}

@@ -283,6 +283,15 @@ class PandaPalBotServer:
             except ImportError as e:
                 logger.warning(f"⚠️ Не удалось загрузить Mini App API: {e}")
 
+            # Интегрируем Games API
+            try:
+                from bot.api.games_endpoints import setup_games_routes
+
+                setup_games_routes(self.app)
+                logger.info("🎮 Games API routes зарегистрированы")
+            except ImportError as e:
+                logger.warning(f"⚠️ Не удалось загрузить Games API: {e}")
+
             # Интегрируем Premium API
             try:
                 from bot.api.premium_endpoints import setup_premium_routes

@@ -1,0 +1,223 @@
+"""
+Integration тесты для API игр
+Проверяет полный цикл работы API endpoints
+"""
+
+import pytest
+from aiohttp import web
+from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
+
+from bot.api.games_endpoints import setup_games_routes
+from bot.database import get_db
+from bot.models import User
+
+
+class TestGamesAPI(AioHTTPTestCase):
+    """Тесты для API игр"""
+
+    async def get_application(self):
+        """Создать aiohttp приложение для тестов"""
+        app = web.Application()
+        setup_games_routes(app)
+        return app
+
+    async def setUpAsync(self):
+        """Настройка перед каждым тестом"""
+        await super().setUpAsync()
+        self.test_user = User(
+            telegram_id=123456789,
+            first_name="Test",
+            username="testuser",
+            user_type="child",
+            age=10,
+            grade=5,
+        )
+        with get_db() as db:
+            db.add(self.test_user)
+            db.commit()
+
+    async def tearDownAsync(self):
+        """Очистка после каждого теста"""
+        with get_db() as db:
+            from sqlalchemy import delete
+
+            from bot.models import GameSession, GameStats
+
+            db.execute(
+                delete(GameSession).where(
+                    GameSession.user_telegram_id == self.test_user.telegram_id
+                )
+            )
+            db.execute(
+                delete(GameStats).where(GameStats.user_telegram_id == self.test_user.telegram_id)
+            )
+            db.execute(delete(User).where(User.telegram_id == self.test_user.telegram_id))
+            db.commit()
+        await super().tearDownAsync()
+
+    @unittest_run_loop
+    async def test_create_game_tic_tac_toe(self):
+        """Создание игры крестики-нолики"""
+        resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/{self.test_user.telegram_id}/create",
+            json={"game_type": "tic_tac_toe"},
+        )
+        assert resp.status == 200
+        data = await resp.json()
+        assert data["success"] is True
+        assert data["game_type"] == "tic_tac_toe"
+        assert "session_id" in data
+        assert "game_state" in data
+
+    @unittest_run_loop
+    async def test_create_game_hangman(self):
+        """Создание игры виселица"""
+        resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/{self.test_user.telegram_id}/create",
+            json={"game_type": "hangman"},
+        )
+        assert resp.status == 200
+        data = await resp.json()
+        assert data["success"] is True
+        assert data["game_type"] == "hangman"
+        assert "word" in data["game_state"]
+
+    @unittest_run_loop
+    async def test_create_game_2048(self):
+        """Создание игры 2048"""
+        resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/{self.test_user.telegram_id}/create",
+            json={"game_type": "2048"},
+        )
+        assert resp.status == 200
+        data = await resp.json()
+        assert data["success"] is True
+        assert data["game_type"] == "2048"
+        assert "board" in data["game_state"]
+
+    @unittest_run_loop
+    async def test_create_game_invalid_type(self):
+        """Создание игры с невалидным типом"""
+        resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/{self.test_user.telegram_id}/create",
+            json={"game_type": "invalid"},
+        )
+        assert resp.status == 400
+
+    @unittest_run_loop
+    async def test_tic_tac_toe_move(self):
+        """Ход в крестики-нолики"""
+        # Создаем игру
+        create_resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/{self.test_user.telegram_id}/create",
+            json={"game_type": "tic_tac_toe"},
+        )
+        create_data = await create_resp.json()
+        session_id = create_data["session_id"]
+
+        # Делаем ход
+        move_resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/tic-tac-toe/{session_id}/move",
+            json={"position": 0},
+        )
+        assert move_resp.status == 200
+        move_data = await move_resp.json()
+        assert move_data["success"] is True
+        assert "board" in move_data
+        assert move_data["board"][0] == "X"  # Ход пользователя
+
+    @unittest_run_loop
+    async def test_hangman_guess(self):
+        """Угадывание буквы в виселице"""
+        # Создаем игру
+        create_resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/{self.test_user.telegram_id}/create",
+            json={"game_type": "hangman"},
+        )
+        create_data = await create_resp.json()
+        session_id = create_data["session_id"]
+        word = create_data["game_state"]["word"]
+
+        # Угадываем первую букву слова
+        guess_resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/hangman/{session_id}/guess",
+            json={"letter": word[0]},
+        )
+        assert guess_resp.status == 200
+        guess_data = await guess_resp.json()
+        assert guess_data["success"] is True
+        assert word[0] in guess_data["guessed_letters"]
+
+    @unittest_run_loop
+    async def test_2048_move(self):
+        """Ход в 2048"""
+        # Создаем игру
+        create_resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/{self.test_user.telegram_id}/create",
+            json={"game_type": "2048"},
+        )
+        create_data = await create_resp.json()
+        session_id = create_data["session_id"]
+
+        # Делаем ход
+        move_resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/2048/{session_id}/move",
+            json={"direction": "left"},
+        )
+        assert move_resp.status == 200
+        move_data = await move_resp.json()
+        assert move_data["success"] is True
+        assert "board" in move_data
+        assert "score" in move_data
+
+    @unittest_run_loop
+    async def test_get_game_stats(self):
+        """Получение статистики игр"""
+        resp = await self.client.request(
+            "GET", f"/api/miniapp/games/{self.test_user.telegram_id}/stats"
+        )
+        assert resp.status == 200
+        data = await resp.json()
+        assert data["success"] is True
+        assert "stats" in data
+
+    @unittest_run_loop
+    async def test_get_game_stats_by_type(self):
+        """Получение статистики по типу игры"""
+        resp = await self.client.request(
+            "GET",
+            f"/api/miniapp/games/{self.test_user.telegram_id}/stats?game_type=tic_tac_toe",
+        )
+        assert resp.status == 200
+        data = await resp.json()
+        assert data["success"] is True
+        assert "stats" in data
+
+    @unittest_run_loop
+    async def test_get_game_session(self):
+        """Получение игровой сессии"""
+        # Создаем игру
+        create_resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/{self.test_user.telegram_id}/create",
+            json={"game_type": "tic_tac_toe"},
+        )
+        create_data = await create_resp.json()
+        session_id = create_data["session_id"]
+
+        # Получаем сессию
+        session_resp = await self.client.request("GET", f"/api/miniapp/games/session/{session_id}")
+        assert session_resp.status == 200
+        session_data = await session_resp.json()
+        assert session_data["success"] is True
+        assert session_data["session"]["id"] == session_id

@@ -324,6 +324,14 @@ export class TelegramService {
   }
 
   /**
+   * Получить start parameter из deep link
+   * Используется для deep linking: ?startapp=games
+   */
+  getStartParam(): string | null {
+    return this.webApp.initDataUnsafe?.start_param || null;
+  }
+
+  /**
    * Включить режим full screen
    */
   requestFullscreen(): void {
