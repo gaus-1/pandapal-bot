@@ -189,7 +189,6 @@ def upgrade() -> None:
         existing_type=sa.BIGINT(),
         type_=sa.Integer(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.alter_column(
         "analytics_metrics",
@@ -224,7 +223,6 @@ def upgrade() -> None:
         existing_type=sa.BIGINT(),
         type_=sa.Integer(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.alter_column(
         "analytics_reports",
@@ -253,7 +251,6 @@ def upgrade() -> None:
         existing_type=sa.BIGINT(),
         type_=sa.Integer(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.alter_column(
         "chat_history",
@@ -288,7 +285,6 @@ def upgrade() -> None:
         existing_type=sa.BIGINT(),
         type_=sa.Integer(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.drop_index(op.f("idx_learning_sessions_completed"), table_name="learning_sessions")
     op.drop_index(op.f("idx_learning_sessions_start"), table_name="learning_sessions")
@@ -336,7 +332,6 @@ def upgrade() -> None:
         existing_type=sa.BIGINT(),
         type_=sa.Integer(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.alter_column(
         "user_events",
@@ -367,7 +362,6 @@ def upgrade() -> None:
         existing_type=sa.BIGINT(),
         type_=sa.Integer(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.alter_column(
         "user_progress",
@@ -412,7 +406,6 @@ def upgrade() -> None:
         existing_type=sa.BIGINT(),
         type_=sa.Integer(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.alter_column(
         "user_sessions",
@@ -612,7 +605,6 @@ def downgrade() -> None:
         existing_type=sa.Integer(),
         type_=sa.BIGINT(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.add_column(
         "user_progress",
@@ -693,7 +685,6 @@ def downgrade() -> None:
         existing_type=sa.Integer(),
         type_=sa.BIGINT(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.create_table_comment(
         "user_events", "События пользователей для аналитики", existing_comment=None, schema=None
@@ -727,7 +718,6 @@ def downgrade() -> None:
         existing_type=sa.Integer(),
         type_=sa.BIGINT(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.drop_index(op.f("ix_subscriptions_user_telegram_id"), table_name="subscriptions")
     op.drop_index(op.f("ix_payments_user_telegram_id"), table_name="payments")
@@ -805,7 +795,6 @@ def downgrade() -> None:
         existing_type=sa.Integer(),
         type_=sa.BIGINT(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.add_column(
         "chat_history",
@@ -863,7 +852,6 @@ def downgrade() -> None:
         existing_type=sa.Integer(),
         type_=sa.BIGINT(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.create_table_comment(
         "analytics_reports",
@@ -895,7 +883,6 @@ def downgrade() -> None:
         existing_type=sa.Integer(),
         type_=sa.BIGINT(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.create_table_comment(
         "analytics_metrics",
@@ -937,7 +924,6 @@ def downgrade() -> None:
         existing_type=sa.Integer(),
         type_=sa.BIGINT(),
         existing_nullable=False,
-        autoincrement=True,
     )
     op.drop_index("uq_game_stats_user_type", table_name="game_stats")
     op.drop_index(op.f("ix_game_stats_user_telegram_id"), table_name="game_stats")
