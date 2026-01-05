@@ -5,6 +5,7 @@
 регистрация, обновление профиля, получение данных пользователя.
 """
 
+from datetime import datetime
 from typing import Optional
 
 from loguru import logger
@@ -63,6 +64,7 @@ class UserService:
             user.first_name = first_name
             user.last_name = last_name
             user.is_active = True
+            user.last_activity = datetime.utcnow()  # Обновляем активность
 
             logger.info(f"👤 Существующий пользователь: {telegram_id} ({first_name})")
         else:
@@ -256,3 +258,32 @@ class UserService:
         logger.info(f"🚫 Пользователь деактивирован: {telegram_id}")
 
         return True
+
+    def increment_message_count(self, telegram_id: int) -> bool:
+        """
+        Увеличить счетчик сообщений и обновить активность пользователя.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+
+        Returns:
+            True если успешно, False иначе
+        """
+        try:
+            stmt = select(User).where(User.telegram_id == telegram_id)
+            user = self.db.execute(stmt).scalar_one_or_none()
+
+            if user:
+                user.message_count += 1
+                user.last_activity = datetime.utcnow()
+                self.db.commit()
+                logger.debug(f"✅ Счетчик сообщений: {user.message_count} для {telegram_id}")
+                return True
+
+            logger.warning(f"⚠️ Пользователь {telegram_id} не найден")
+            return False
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка обновления счетчика для {telegram_id}: {e}")
+            self.db.rollback()
+            return False
