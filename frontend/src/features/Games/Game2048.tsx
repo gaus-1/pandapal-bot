@@ -258,7 +258,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
         </div>
 
         {/* Счет */}
-        <div className="text-center mb-0.5">
+        <div className="text-center mb-0">
           <div className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0">
             {score}
           </div>

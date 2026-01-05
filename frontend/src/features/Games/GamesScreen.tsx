@@ -131,7 +131,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
     <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Заголовок */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-[var(--tg-theme-text-color)] mb-2">
             🎮 PandaPalGo
           </h1>
@@ -142,13 +142,13 @@ export function GamesScreen({ user }: GamesScreenProps) {
 
         {/* Ошибка */}
         {error && (
-          <div className="mb-4 p-4 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg">
+          <div className="mb-3 p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg">
             <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
           </div>
         )}
 
         {/* Список игр */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
           {GAMES.map((game) => {
             const gameStats = stats[game.id];
             return (
@@ -157,20 +157,20 @@ export function GamesScreen({ user }: GamesScreenProps) {
                 onClick={() => handleStartGame(game.id)}
                 disabled={isLoading}
                 className={`
-                  relative p-6 rounded-2xl bg-gradient-to-br ${game.color}
+                  relative p-4 rounded-xl bg-gradient-to-br ${game.color}
                   text-white shadow-lg hover:shadow-xl transform hover:scale-105
                   active:scale-100 transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
                   text-left
                 `}
               >
-                <div className="text-5xl mb-3">{game.icon}</div>
-                <h3 className="text-xl font-bold mb-2">{game.name}</h3>
-                <p className="text-sm opacity-90 mb-4">{game.description}</p>
+                <div className="text-4xl mb-2">{game.icon}</div>
+                <h3 className="text-lg font-bold mb-1.5">{game.name}</h3>
+                <p className="text-sm opacity-90 mb-3">{game.description}</p>
 
                 {/* Статистика */}
                 {gameStats && gameStats.total_games > 0 && (
-                  <div className="mt-4 pt-4 border-t border-white/20">
+                  <div className="mt-3 pt-3 border-t border-white/20">
                     <div className="flex justify-between text-sm">
                       <span>Побед: {gameStats.wins}</span>
                       <span>Игр: {gameStats.total_games}</span>
@@ -189,15 +189,15 @@ export function GamesScreen({ user }: GamesScreenProps) {
 
         {/* Общая статистика */}
         {Object.keys(stats).length > 0 && (
-          <div className="mt-8 p-6 bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-2xl border border-[var(--tg-theme-hint-color)]/20">
-            <h2 className="text-xl font-bold text-[var(--tg-theme-text-color)] mb-4">
+          <div className="mt-6 p-4 bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl border border-[var(--tg-theme-hint-color)]/20">
+            <h2 className="text-xl font-bold text-[var(--tg-theme-text-color)] mb-3">
               📊 Твоя статистика
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {Object.values(stats).map((stat) => (
                 <div
                   key={stat.game_type}
-                  className="p-4 bg-[var(--tg-theme-bg-color)] rounded-lg"
+                  className="p-3 bg-[var(--tg-theme-bg-color)] rounded-lg"
                 >
                   <div className="text-sm text-[var(--tg-theme-hint-color)] mb-1">
                     {stat.game_type === 'tic_tac_toe' && '⭕ Крестики-нолики'}
