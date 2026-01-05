@@ -20,7 +20,7 @@ const GAMES = [
   {
     id: 'tic_tac_toe',
     name: 'Крестики-нолики',
-    icon: '⭕',
+    icon: '❌⭕',
     description: 'Играй против панды! Кто первым соберет линию?',
     color: 'from-blue-500 to-cyan-500',
   },
@@ -157,26 +157,26 @@ export function GamesScreen({ user }: GamesScreenProps) {
                 onClick={() => handleStartGame(game.id)}
                 disabled={isLoading}
                 className={`
-                  relative p-4 rounded-xl bg-gradient-to-br ${game.color}
+                  relative p-2.5 rounded-lg bg-gradient-to-br ${game.color}
                   text-white shadow-lg hover:shadow-xl transform hover:scale-105
                   active:scale-100 transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
-                  text-left min-h-[180px] flex flex-col
+                  text-left min-h-[120px] flex flex-col
                 `}
               >
-                <div className="text-4xl mb-2">{game.icon}</div>
-                <h3 className="text-lg font-bold mb-1.5">{game.name}</h3>
-                <p className="text-sm opacity-90 mb-3 flex-grow">{game.description}</p>
+                <div className="text-3xl mb-1.5">{game.icon}</div>
+                <h3 className="text-base font-bold mb-1">{game.name}</h3>
+                <p className="text-xs opacity-90 mb-2 flex-grow">{game.description}</p>
 
                 {/* Статистика */}
                 {gameStats && gameStats.total_games > 0 && (
-                  <div className="mt-3 pt-3 border-t border-white/20">
-                    <div className="flex justify-between text-sm">
+                  <div className="mt-2 pt-2 border-t border-white/20">
+                    <div className="flex justify-between text-xs">
                       <span>Побед: {gameStats.wins}</span>
                       <span>Игр: {gameStats.total_games}</span>
                     </div>
                     {game.id === '2048' && gameStats.best_score && (
-                      <div className="text-sm mt-1">
+                      <div className="text-xs mt-0.5">
                         Лучший счет: {gameStats.best_score}
                       </div>
                     )}
@@ -200,7 +200,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
                   className="p-3 bg-[var(--tg-theme-bg-color)] rounded-lg"
                 >
                   <div className="text-sm text-[var(--tg-theme-hint-color)] mb-1">
-                    {stat.game_type === 'tic_tac_toe' && '⭕ Крестики-нолики'}
+                    {stat.game_type === 'tic_tac_toe' && '❌⭕ Крестики-нолики'}
                     {stat.game_type === 'checkers' && '⚫⚪ Шашки'}
                     {stat.game_type === '2048' && '🔢 2048'}
                   </div>
