@@ -3,7 +3,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getChatHistory, sendAIMessage } from '../services/api';
+import { getChatHistory, sendAIMessage, clearChatHistory } from '../services/api';
 import { queryKeys } from '../lib/queryClient';
 import { telegram } from '../services/telegram';
 
@@ -137,11 +137,21 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
   });
 
   // Очистка истории чата
-  const clearHistory = () => {
-    queryClient.setQueryData<ChatMessage[]>(
-      queryKeys.chatHistory(telegramId, limit),
-      []
-    );
+  const clearHistory = async () => {
+    try {
+      // Вызываем API для удаления истории на сервере
+      await clearChatHistory(telegramId);
+      // Очищаем кеш после успешного удаления
+      queryClient.setQueryData<ChatMessage[]>(
+        queryKeys.chatHistory(telegramId, limit),
+        []
+      );
+      // Инвалидируем запрос для перезагрузки
+      queryClient.invalidateQueries({ queryKey: queryKeys.chatHistory(telegramId, limit) });
+    } catch (error) {
+      console.error('Ошибка очистки истории:', error);
+      throw error;
+    }
   };
 
   return {

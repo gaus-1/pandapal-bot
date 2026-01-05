@@ -168,23 +168,28 @@ async def checkers_move(request: web.Request) -> web.Response:
 
         with get_db() as db:
             games_service = GamesService(db)
-            result = games_service.checkers_move(
-                session_id,
-                validated.from_row,
-                validated.from_col,
-                validated.to_row,
-                validated.to_col,
-            )
-            db.commit()
+            try:
+                result = games_service.checkers_move(
+                    session_id,
+                    validated.from_row,
+                    validated.from_col,
+                    validated.to_row,
+                    validated.to_col,
+                )
+                db.commit()
+            except Exception as e:
+                db.rollback()
+                logger.error(f"❌ Ошибка в checkers_move: {e}", exc_info=True)
+                raise
 
         return web.json_response({"success": True, **result})
 
     except ValueError as e:
-        logger.warning(f"⚠️ Invalid move: {e}")
+        logger.warning(f"⚠️ Invalid move in checkers: {e}")
         return web.json_response({"error": str(e)}, status=400)
     except Exception as e:
-        logger.error(f"❌ Ошибка хода: {e}", exc_info=True)
-        return web.json_response({"error": "Internal server error"}, status=500)
+        logger.error(f"❌ Ошибка хода в шашках: {e}", exc_info=True)
+        return web.json_response({"error": f"Internal server error: {str(e)}"}, status=500)
 
 
 async def game_2048_move(request: web.Request) -> web.Response:

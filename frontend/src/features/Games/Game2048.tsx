@@ -343,37 +343,41 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               <button
                 onClick={() => handleMove("up")}
                 disabled={isLoading}
-                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation text-lg sm:text-xl min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation text-2xl sm:text-3xl min-h-[44px] min-w-[44px] flex items-center justify-center"
                 aria-label="Вверх"
+                style={{ fontSize: '1.5rem' }}
               >
-                ↑
+                ⬆️
               </button>
               <div /> {/* Spacer */}
               <button
                 onClick={() => handleMove("left")}
                 disabled={isLoading}
-                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation text-lg sm:text-xl min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation text-2xl sm:text-3xl min-h-[44px] min-w-[44px] flex items-center justify-center"
                 aria-label="Влево"
+                style={{ fontSize: '1.5rem' }}
               >
-                ←
+                ⬅️
               </button>
               <div /> {/* Spacer */}
               <button
                 onClick={() => handleMove("right")}
                 disabled={isLoading}
-                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation text-lg sm:text-xl min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation text-2xl sm:text-3xl min-h-[44px] min-w-[44px] flex items-center justify-center"
                 aria-label="Вправо"
+                style={{ fontSize: '1.5rem' }}
               >
-                →
+                ➡️
               </button>
               <div /> {/* Spacer */}
               <button
                 onClick={() => handleMove("down")}
                 disabled={isLoading}
-                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation text-lg sm:text-xl min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-3 sm:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation text-2xl sm:text-3xl min-h-[44px] min-w-[44px] flex items-center justify-center"
                 aria-label="Вниз"
+                style={{ fontSize: '1.5rem' }}
               >
-                ↓
+                ⬇️
               </button>
               <div /> {/* Spacer */}
             </div>

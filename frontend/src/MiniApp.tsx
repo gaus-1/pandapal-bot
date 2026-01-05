@@ -212,7 +212,7 @@ function MiniAppContent() {
       {/* Нижняя навигация - фиксированная */}
       {currentScreen === 'ai-chat' ? (
         <nav className="flex-shrink-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
-          <div className="flex gap-2 sm:gap-3 md:gap-4 px-2 sm:px-3 md:px-4 py-2.5 sm:py-3 md:py-3.5 max-w-full">
+          <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
             <NavButton
               icon="🏆"
               label="Достижения"
@@ -235,7 +235,7 @@ function MiniAppContent() {
         </nav>
       ) : (
         <nav className="flex-shrink-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
-          <div className="flex gap-2 sm:gap-3 md:gap-4 px-2 sm:px-3 md:px-4 py-2.5 sm:py-3 md:py-3.5 max-w-full">
+          <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
             <NavButton
               icon="💬"
               label="Чат"
@@ -292,16 +292,16 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex-1 flex flex-col items-center justify-center gap-1 sm:gap-1.5 py-2.5 sm:py-3 px-2 sm:px-3 rounded-lg sm:rounded-xl transition-all min-w-0 min-h-[70px] sm:min-h-[76px] ${
+      className={`flex-1 flex flex-col items-center justify-center gap-0.5 sm:gap-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-lg sm:rounded-xl transition-all min-w-0 min-h-[60px] sm:min-h-[70px] touch-manipulation ${
         isActive
           ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] font-semibold shadow-md'
-          : 'text-[var(--tg-theme-text-color)] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 active:bg-[var(--tg-theme-hint-color)]/20 font-medium'
+          : 'text-[var(--tg-theme-text-color)] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 active:bg-[var(--tg-theme-hint-color)]/20 active:scale-95 font-medium'
       }`}
       aria-label={label}
       aria-current={isActive ? 'page' : undefined}
     >
-      <span className="text-2xl sm:text-3xl md:text-3xl flex-shrink-0 leading-none" aria-hidden="true">{icon}</span>
-      <span className="text-sm sm:text-sm md:text-base font-medium leading-tight truncate w-full text-center">{label}</span>
+      <span className="text-xl sm:text-2xl md:text-3xl flex-shrink-0 leading-none" aria-hidden="true">{icon}</span>
+      <span className="text-xs sm:text-sm md:text-base font-medium leading-tight truncate w-full text-center">{label}</span>
     </button>
   );
 }

@@ -45,7 +45,7 @@ class TicTacToeAI:
             return random.choice(available) if available else -1
 
         elif self.difficulty == "medium":
-            # Средний: пытается выиграть, иначе блокирует, иначе случайный
+            # Средний: пытается выиграть, иначе блокирует, иначе стратегический ход
             # 1. Попытка выиграть
             move = self._find_winning_move(board, player)
             if move != -1:
@@ -56,11 +56,13 @@ class TicTacToeAI:
             if move != -1:
                 return move
 
-            # 3. Центр если свободен
-            if board[4] is None:
-                return 4
+            # 3. Стратегические позиции (углы и центр)
+            strategic_positions = [4, 0, 2, 6, 8, 1, 3, 5, 7]  # Центр, углы, края
+            for pos in strategic_positions:
+                if board[pos] is None:
+                    return pos
 
-            # 4. Случайный ход
+            # 4. Случайный ход (fallback)
             available = [i for i in range(9) if board[i] is None]
             return random.choice(available) if available else -1
 
@@ -618,7 +620,11 @@ class GamesService:
 
         # Получаем текущее состояние доски
         if session.game_state and isinstance(session.game_state, dict):
-            board = session.game_state.get("board", self._init_checkers_board())
+            board_data = session.game_state.get("board")
+            if board_data and isinstance(board_data, list) and len(board_data) == 8:
+                board = board_data
+            else:
+                board = self._init_checkers_board()
         else:
             board = self._init_checkers_board()
 

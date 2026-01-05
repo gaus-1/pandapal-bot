@@ -711,6 +711,34 @@ async def miniapp_get_chat_history(request: web.Request) -> web.Response:
         return web.json_response({"error": f"Internal server error: {str(e)}"}, status=500)
 
 
+async def miniapp_clear_chat_history(request: web.Request) -> web.Response:
+    """
+    Очистить историю чата.
+
+    DELETE /api/miniapp/chat/history/{telegram_id}
+    """
+    try:
+        # Безопасная валидация telegram_id
+        try:
+            telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+        except ValueError as e:
+            logger.warning(f"⚠️ Invalid telegram_id: {e}")
+            return web.json_response({"error": str(e)}, status=400)
+
+        with get_db() as db:
+            history_service = ChatHistoryService(db)
+            deleted_count = history_service.clear_history(telegram_id)
+            db.commit()
+
+            logger.info(f"🗑️ Очищена история для {telegram_id}: {deleted_count} сообщений")
+
+            return web.json_response({"success": True, "deleted_count": deleted_count})
+
+    except Exception as e:
+        logger.error(f"❌ Ошибка очистки истории: {e}", exc_info=True)
+        return web.json_response({"error": f"Internal server error: {str(e)}"}, status=500)
+
+
 async def miniapp_get_subjects(request: web.Request) -> web.Response:
     """
     Получить список предметов с учетом Premium статуса.
@@ -839,6 +867,7 @@ def setup_miniapp_routes(app: web.Application) -> None:
     # AI чат
     app.router.add_post("/api/miniapp/ai/chat", miniapp_ai_chat)
     app.router.add_get("/api/miniapp/chat/history/{telegram_id}", miniapp_get_chat_history)
+    app.router.add_delete("/api/miniapp/chat/history/{telegram_id}", miniapp_clear_chat_history)
 
     # Предметы
     app.router.add_get("/api/miniapp/subjects", miniapp_get_subjects)
