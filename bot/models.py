@@ -822,3 +822,146 @@ class Payment(Base):
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "paid_at": self.paid_at.isoformat() if self.paid_at else None,
         }
+
+
+# ============ МОДЕЛИ ИГР ============
+
+
+class GameSession(Base):
+    """
+    Модель игровой сессии.
+    Хранит информацию о каждой партии игры пользователя.
+    """
+
+    __tablename__ = "game_sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_telegram_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("users.telegram_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    game_type: Mapped[str] = mapped_column(
+        String(50), nullable=False
+    )  # 'tic_tac_toe', 'hangman', '2048'
+    game_state: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)  # Состояние игры (JSON)
+    result: Mapped[Optional[str]] = mapped_column(
+        String(20), nullable=True
+    )  # 'win', 'loss', 'draw', 'in_progress'
+    score: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True
+    )  # Финальный счет (для 2048)
+
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    duration_seconds: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+
+    # Relationship
+    user: Mapped["User"] = relationship("User", foreign_keys=[user_telegram_id])
+
+    __table_args__ = (
+        Index("idx_game_sessions_user_type", "user_telegram_id", "game_type"),
+        Index("idx_game_sessions_started", "started_at"),
+        CheckConstraint(
+            "game_type IN ('tic_tac_toe', 'hangman', '2048')", name="ck_game_sessions_game_type"
+        ),
+        CheckConstraint(
+            "result IS NULL OR result IN ('win', 'loss', 'draw', 'in_progress')",
+            name="ck_game_sessions_result",
+        ),
+    )
+
+    def __repr__(self) -> str:
+        """Строковое представление игровой сессии"""
+        return (
+            f"<GameSession(id={self.id}, user={self.user_telegram_id}, "
+            f"game={self.game_type}, result={self.result})>"
+        )
+
+    def to_dict(self) -> Dict:
+        """Преобразование модели в словарь для API"""
+        return {
+            "id": self.id,
+            "game_type": self.game_type,
+            "game_state": self.game_state,
+            "result": self.result,
+            "score": self.score,
+            "started_at": self.started_at.isoformat() if self.started_at else None,
+            "finished_at": self.finished_at.isoformat() if self.finished_at else None,
+            "duration_seconds": self.duration_seconds,
+        }
+
+
+class GameStats(Base):
+    """
+    Модель статистики игр пользователя.
+    Агрегированная статистика по каждой игре.
+    """
+
+    __tablename__ = "game_stats"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_telegram_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("users.telegram_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    game_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    total_games: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    wins: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    losses: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    draws: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    best_score: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # Для 2048
+    total_score: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
+    last_played_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    # Relationship
+    user: Mapped["User"] = relationship("User", foreign_keys=[user_telegram_id])
+
+    __table_args__ = (
+        Index("idx_game_stats_user_type", "user_telegram_id", "game_type"),
+        Index("idx_game_stats_updated", "updated_at"),
+        CheckConstraint(
+            "game_type IN ('tic_tac_toe', 'hangman', '2048')", name="ck_game_stats_game_type"
+        ),
+        # Уникальность: один статистика на пользователя + тип игры
+        Index("uq_game_stats_user_type", "user_telegram_id", "game_type", unique=True),
+    )
+
+    def __repr__(self) -> str:
+        """Строковое представление статистики игры"""
+        return (
+            f"<GameStats(user={self.user_telegram_id}, game={self.game_type}, "
+            f"wins={self.wins}, losses={self.losses})>"
+        )
+
+    def to_dict(self) -> Dict:
+        """Преобразование модели в словарь для API"""
+        win_rate = (self.wins / self.total_games * 100) if self.total_games > 0 else 0.0
+
+        return {
+            "game_type": self.game_type,
+            "total_games": self.total_games,
+            "wins": self.wins,
+            "losses": self.losses,
+            "draws": self.draws,
+            "win_rate": round(win_rate, 1),
+            "best_score": self.best_score,
+            "total_score": self.total_score,
+            "last_played_at": self.last_played_at.isoformat() if self.last_played_at else None,
+        }

@@ -102,6 +102,28 @@ ALL_ACHIEVEMENTS = [
     Achievement(
         "vip_legend", "VIP Легенда", "VIP: годовая подписка активна", "🌟", 5000, "vip_status", 1
     ),
+    # Игровые достижения
+    Achievement("first_game_win", "Первая победа", "Победи панду в игре", "🎮", 50, "game_wins", 1),
+    Achievement("game_master_10", "Мастер игр", "Победи панду 10 раз", "🏆", 200, "game_wins", 10),
+    Achievement(
+        "game_champion_50", "Чемпион игр", "Победи панду 50 раз", "👑", 500, "game_wins", 50
+    ),
+    Achievement("game_addict_100", "Игроман", "Сыграй 100 партий", "🎯", 300, "total_games", 100),
+    Achievement(
+        "tic_tac_toe_expert",
+        "Эксперт крестиков",
+        "10 побед в крестики-нолики",
+        "⭕",
+        150,
+        "tic_tac_toe_wins",
+        10,
+    ),
+    Achievement(
+        "hangman_master", "Мастер виселицы", "10 побед в виселицу", "🎯", 150, "hangman_wins", 10
+    ),
+    Achievement(
+        "2048_legend", "Легенда 2048", "Набери 2048 очков", "🔢", 200, "2048_best_score", 2048
+    ),
 ]
 
 
@@ -334,6 +356,16 @@ class GamificationService:
             return stats.get("premium_days", 0) >= condition_value
         elif condition_type == "vip_status":
             return stats.get("vip_status", 0) >= condition_value
+        elif condition_type == "game_wins":
+            return stats.get("total_game_wins", 0) >= condition_value
+        elif condition_type == "total_games":
+            return stats.get("total_game_sessions", 0) >= condition_value
+        elif condition_type == "tic_tac_toe_wins":
+            return stats.get("tic_tac_toe_wins", 0) >= condition_value
+        elif condition_type == "hangman_wins":
+            return stats.get("hangman_wins", 0) >= condition_value
+        elif condition_type == "2048_best_score":
+            return stats.get("2048_best_score", 0) >= condition_value
 
         return False
 
@@ -375,12 +407,40 @@ class GamificationService:
         # Решенные задачи (пока 0, будет реализовано позже)
         solved_tasks = 0
 
+        # Игровая статистика
+        from bot.models import GameSession, GameStats
+
+        game_stats_stmt = select(GameStats).where(GameStats.user_telegram_id == telegram_id)
+        game_stats_list = self.db.scalars(game_stats_stmt).all()
+
+        total_game_wins = 0
+        total_game_sessions = 0
+        tic_tac_toe_wins = 0
+        hangman_wins = 0
+        game_2048_best_score = 0
+
+        for gs in game_stats_list:
+            total_game_wins += gs.wins
+            total_game_sessions += gs.total_games
+            if gs.game_type == "tic_tac_toe":
+                tic_tac_toe_wins = gs.wins
+            elif gs.game_type == "hangman":
+                hangman_wins = gs.wins
+            elif gs.game_type == "2048":
+                if gs.best_score and gs.best_score > game_2048_best_score:
+                    game_2048_best_score = gs.best_score
+
         return {
             "total_messages": total_messages,
             "total_questions": total_questions,
             "consecutive_days": consecutive_days,
             "unique_subjects": unique_subjects,
             "solved_tasks": solved_tasks,
+            "total_game_wins": total_game_wins,
+            "total_game_sessions": total_game_sessions,
+            "tic_tac_toe_wins": tic_tac_toe_wins,
+            "hangman_wins": hangman_wins,
+            "2048_best_score": game_2048_best_score,
         }
 
     def _calculate_consecutive_days(self, telegram_id: int) -> int:
@@ -529,6 +589,16 @@ class GamificationService:
             return min(stats.get("unique_subjects", 0), achievement.condition_value)
         elif condition_type == "tasks":
             return min(stats.get("solved_tasks", 0), achievement.condition_value)
+        elif condition_type == "game_wins":
+            return min(stats.get("total_game_wins", 0), achievement.condition_value)
+        elif condition_type == "total_games":
+            return min(stats.get("total_game_sessions", 0), achievement.condition_value)
+        elif condition_type == "tic_tac_toe_wins":
+            return min(stats.get("tic_tac_toe_wins", 0), achievement.condition_value)
+        elif condition_type == "hangman_wins":
+            return min(stats.get("hangman_wins", 0), achievement.condition_value)
+        elif condition_type == "2048_best_score":
+            return min(stats.get("2048_best_score", 0), achievement.condition_value)
 
         return 0
 

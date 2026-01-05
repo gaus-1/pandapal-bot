@@ -13,7 +13,7 @@ import { devtools, persist } from 'zustand/middleware';
 import type { UserProfile } from '../services/api';
 
 // Типы экранов приложения
-export type Screen = 'ai-chat' | 'emergency' | 'achievements' | 'premium' | 'donation';
+export type Screen = 'ai-chat' | 'emergency' | 'achievements' | 'premium' | 'donation' | 'games';
 
 // Интерфейс пользователя для веб-сайта (Telegram Login Widget)
 export interface WebUser {
