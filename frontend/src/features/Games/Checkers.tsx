@@ -166,7 +166,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
   return (
     <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
-      <div className="max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <div className="w-full max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Заголовок */}
         <div className="flex items-center justify-between mb-2">
           <button
@@ -203,9 +203,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1 mb-4 overflow-x-auto -mx-3 sm:mx-0">
+        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1 mb-4 overflow-hidden w-full">
           {board.length > 0 ? (
-            <div className="w-full max-w-full mx-auto aspect-square" style={{ maxWidth: 'min(100vw - 1rem, 400px)' }}>
+            <div className="w-full aspect-square">
               <div className="grid grid-cols-8 gap-0.5 w-full h-full">
                 {board.map((row, rowIndex) =>
                   row.map((_, colIndex) => {
