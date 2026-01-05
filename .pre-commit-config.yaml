@@ -131,6 +131,15 @@ repos:
 
   - repo: local
     hooks:
+      - id: typescript-check
+        name: 🔷 TypeScript - проверка типов
+        entry: powershell -Command "cd frontend; npm run type-check"
+        language: system
+        types: [file]
+        files: ^frontend/src/.*\.(ts|tsx)$
+        pass_filenames: false
+        always_run: false
+
       - id: eslint
         name: 🔍 ESLint - проверка TypeScript/JavaScript
         entry: powershell -Command "cd frontend; npm run lint"
