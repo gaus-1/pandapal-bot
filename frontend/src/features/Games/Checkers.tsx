@@ -203,7 +203,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1 mb-4 overflow-hidden w-full max-w-full">
+        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1.5 sm:p-2 mb-4 overflow-hidden w-full max-w-full">
           {board.length > 0 ? (
             <div className="w-full aspect-square max-w-full" style={{ width: '100%' }}>
               <div className="grid grid-cols-8 gap-0.5 w-full h-full">
@@ -243,8 +243,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                         aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                       >
                         {cell === "user" && (
-                          <div className="absolute inset-[8%] flex items-center justify-center" style={{ aspectRatio: '1 / 1' }}>
-                            <div className="w-full h-full rounded-full bg-white border-[2px] sm:border-[3px] border-gray-300 shadow-lg flex items-center justify-center">
+                          <div className="absolute inset-0 flex items-center justify-center p-[10%]">
+                            <div className="w-full h-full rounded-full bg-white border-[2px] sm:border-[3px] border-gray-300 shadow-lg flex items-center justify-center" style={{ aspectRatio: '1 / 1', maxWidth: '100%', maxHeight: '100%' }}>
                               {isKing(rowIndex, colIndex) && (
                                 <span className="text-xs sm:text-sm md:text-base font-bold text-gray-700">♔</span>
                               )}
@@ -252,8 +252,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                           </div>
                         )}
                         {cell === "ai" && (
-                          <div className="absolute inset-[8%] flex items-center justify-center" style={{ aspectRatio: '1 / 1' }}>
-                            <div className="w-full h-full rounded-full bg-gray-800 border-[2px] sm:border-[3px] border-gray-900 shadow-lg flex items-center justify-center">
+                          <div className="absolute inset-0 flex items-center justify-center p-[10%]">
+                            <div className="w-full h-full rounded-full bg-gray-800 border-[2px] sm:border-[3px] border-gray-900 shadow-lg flex items-center justify-center" style={{ aspectRatio: '1 / 1', maxWidth: '100%', maxHeight: '100%' }}>
                               {isKing(rowIndex, colIndex) && (
                                 <span className="text-xs sm:text-sm md:text-base font-bold text-white">♚</span>
                               )}
@@ -275,10 +275,10 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
         {/* Инструкция */}
         {!gameOver && (
-          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)]">
+          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] leading-tight">
             <p>Ты играешь белыми, панда играет черными</p>
-            <p className="mt-1">Нажми на свою фишку, затем на клетку для хода</p>
-            <p className="mt-1">Двигайся по диагонали вперед</p>
+            <p>Нажми на свою фишку, затем на клетку для хода</p>
+            <p>Двигайся по диагонали вперед</p>
           </div>
         )}
 
