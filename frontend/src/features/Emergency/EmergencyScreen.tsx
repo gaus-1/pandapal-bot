@@ -103,7 +103,7 @@ export function EmergencyScreen() {
   };
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-[var(--tg-theme-bg-color)] p-4 sm:p-6 md:p-8 max-w-4xl mx-auto pb-24">
+    <div ref={containerRef} data-emergency-screen className="min-h-screen bg-[var(--tg-theme-bg-color)] p-4 sm:p-6 md:p-8 max-w-4xl mx-auto pb-24">
       {/* Заголовок */}
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">

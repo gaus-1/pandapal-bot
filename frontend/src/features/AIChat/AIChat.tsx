@@ -304,21 +304,26 @@ export function AIChat({ user }: AIChatProps) {
             {/* Кнопка очистки чата */}
             <button
               onClick={handleClearChat}
-              className="flex-shrink-0 w-9 h-9 rounded-lg bg-white/20 hover:bg-white/30 active:scale-95 transition-all flex items-center justify-center"
+              className="flex-shrink-0 w-9 h-9 rounded-lg bg-red-500/80 hover:bg-red-600/90 active:scale-95 transition-all flex items-center justify-center border-2 border-red-600/50 shadow-md"
               aria-label="Очистить чат"
               title="Очистить историю"
             >
-              <span className="text-base">🗑️</span>
+              <span className="text-base text-white">🗑️</span>
             </button>
             {/* Кнопка SOS */}
             <button
               onClick={() => {
                 useAppStore.getState().setCurrentScreen('emergency');
                 telegram.hapticFeedback('medium');
-                // Скроллим вверх после переключения экрана
+                // Скроллим вниз после переключения экрана (чтобы показать контент)
                 setTimeout(() => {
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }, 100);
+                  const emergencyContainer = document.querySelector('[data-emergency-screen]');
+                  if (emergencyContainer) {
+                    emergencyContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }, 200);
               }}
               className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-red-500/90 hover:bg-red-600/90 active:scale-95 transition-all flex items-center justify-center shadow-sm"
               aria-label="Экстренные номера"

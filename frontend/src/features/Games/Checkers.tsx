@@ -26,6 +26,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUserTurn, setIsUserTurn] = useState(true);
+  const [kings, setKings] = useState<boolean[][]>([]);
 
   useEffect(() => {
     loadGameState();
@@ -37,10 +38,14 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       const session = await getGameSession(sessionId);
       const gameState = session.game_state as {
         board?: (string | null)[][];
+        kings?: boolean[][];
       };
 
       if (gameState.board) {
         setBoard(gameState.board);
+        if (gameState.kings) {
+          setKings(gameState.kings);
+        }
       } else {
         // Инициализируем доску (пользователь внизу визуально, AI вверху)
         const initBoard: (string | null)[][] = Array(8)
@@ -101,6 +106,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         const result = await checkersMove(sessionId, fromRow, fromCol, row, col);
 
         setBoard(result.board);
+        if (result.kings) {
+          setKings(result.kings);
+        }
         setSelectedCell(null);
 
         if (result.game_over) {
@@ -152,11 +160,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
     }
   };
 
-  const getCellContent = (row: number, col: number) => {
-    const cell = board[row]?.[col];
-    if (cell === "user") return "🔴";
-    if (cell === "ai") return "⚪";
-    return null;
+  const isKing = (row: number, col: number) => {
+    return kings[row]?.[col] === true;
   };
 
   const isDarkCell = (row: number, col: number) => {
@@ -212,7 +217,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
               {board.map((row, rowIndex) =>
                 row.map((_, colIndex) => {
                   const isDark = isDarkCell(rowIndex, colIndex);
-                  const content = getCellContent(rowIndex, colIndex);
+                  const cell = board[rowIndex]?.[colIndex];
                   const selected = isSelected(rowIndex, colIndex);
 
                   return (
@@ -245,7 +250,20 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       `}
                       aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                     >
-                      {content}
+                      {cell === "user" && (
+                        <div className="w-3/4 h-3/4 sm:w-4/5 sm:h-4/5 rounded-full bg-white border-2 border-gray-300 shadow-md flex items-center justify-center">
+                          {isKing(rowIndex, colIndex) && (
+                            <span className="text-xs sm:text-sm font-bold text-gray-700">♔</span>
+                          )}
+                        </div>
+                      )}
+                      {cell === "ai" && (
+                        <div className="w-3/4 h-3/4 sm:w-4/5 sm:h-4/5 rounded-full bg-gray-800 border-2 border-gray-900 shadow-md flex items-center justify-center">
+                          {isKing(rowIndex, colIndex) && (
+                            <span className="text-xs sm:text-sm font-bold text-white">♚</span>
+                          )}
+                        </div>
+                      )}
                     </button>
                   );
                 })

@@ -81,7 +81,11 @@ async def create_game(request: web.Request) -> web.Response:
 
                 game = CheckersGame()
                 state = game.get_board_state()
-                initial_state = {"board": state["board"], "current_player": state["current_player"]}
+                initial_state = {
+                    "board": state["board"],
+                    "kings": state.get("kings"),
+                    "current_player": state["current_player"],
+                }
             elif validated.game_type == "2048":
                 from bot.services.game_engines import Game2048
 
