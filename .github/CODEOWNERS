@@ -1,0 +1,30 @@
+# CODEOWNERS - Автоматическое назначение ревьюеров
+# См. https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Критичные модули - требуют обязательного ревью
+/bot/config/settings.py @gaus-1
+/bot/database.py @gaus-1
+/web_server.py @gaus-1
+/bot/services/moderation_service.py @gaus-1
+/bot/config/forbidden_patterns.py @gaus-1
+/bot/security/ @gaus-1
+
+# Backend - общий ревью
+/bot/ @gaus-1
+/requirements.txt @gaus-1
+/pyproject.toml @gaus-1
+
+# Frontend - общий ревью
+/frontend/ @gaus-1
+/frontend/package.json @gaus-1
+
+# CI/CD и конфигурация
+/.github/ @gaus-1
+/Dockerfile @gaus-1
+/docker-compose.yml @gaus-1
+
+# Документация
+/README.md @gaus-1
+/SECURITY.md @gaus-1
+/CONTRIBUTING.md @gaus-1
+/docs/ @gaus-1
