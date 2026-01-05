@@ -203,9 +203,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1.5 sm:p-2 mb-4 overflow-hidden w-full max-w-full">
+        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1.5 sm:p-2 mb-4 overflow-hidden w-full max-w-full flex justify-center">
           {board.length > 0 ? (
-            <div className="w-full aspect-square max-w-full" style={{ width: '100%' }}>
+            <div className="w-full aspect-square max-w-[320px] sm:max-w-[360px]" style={{ width: '100%' }}>
               <div className="grid grid-cols-8 gap-0.5 w-full h-full">
                 {board.map((row, rowIndex) =>
                   row.map((_, colIndex) => {
@@ -243,8 +243,14 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                         aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                       >
                         {cell === "user" && (
-                          <div className="absolute inset-0 flex items-center justify-center p-[10%]">
-                            <div className="w-full h-full rounded-full bg-white border-[2px] sm:border-[3px] border-gray-300 shadow-lg flex items-center justify-center" style={{ aspectRatio: '1 / 1', maxWidth: '100%', maxHeight: '100%' }}>
+                          <div className="absolute inset-0 flex items-center justify-center p-[12%]">
+                            <div className="rounded-full bg-white border-[2px] sm:border-[3px] border-gray-300 shadow-lg flex items-center justify-center" style={{
+                              width: '100%',
+                              height: '100%',
+                              aspectRatio: '1 / 1',
+                              maxWidth: '100%',
+                              maxHeight: '100%'
+                            }}>
                               {isKing(rowIndex, colIndex) && (
                                 <span className="text-xs sm:text-sm md:text-base font-bold text-gray-700">♔</span>
                               )}
@@ -252,8 +258,14 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                           </div>
                         )}
                         {cell === "ai" && (
-                          <div className="absolute inset-0 flex items-center justify-center p-[10%]">
-                            <div className="w-full h-full rounded-full bg-gray-800 border-[2px] sm:border-[3px] border-gray-900 shadow-lg flex items-center justify-center" style={{ aspectRatio: '1 / 1', maxWidth: '100%', maxHeight: '100%' }}>
+                          <div className="absolute inset-0 flex items-center justify-center p-[12%]">
+                            <div className="rounded-full bg-gray-800 border-[2px] sm:border-[3px] border-gray-900 shadow-lg flex items-center justify-center" style={{
+                              width: '100%',
+                              height: '100%',
+                              aspectRatio: '1 / 1',
+                              maxWidth: '100%',
+                              maxHeight: '100%'
+                            }}>
                               {isKing(rowIndex, colIndex) && (
                                 <span className="text-xs sm:text-sm md:text-base font-bold text-white">♚</span>
                               )}
@@ -276,9 +288,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         {/* Инструкция */}
         {!gameOver && (
           <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] leading-tight">
-            <p>Ты играешь белыми, панда играет черными</p>
-            <p>Нажми на свою фишку, затем на клетку для хода</p>
-            <p>Двигайся по диагонали вперед</p>
+            <p className="m-0">Ты играешь белыми, панда играет черными</p>
+            <p className="m-0">Нажми на свою фишку, затем на клетку для хода</p>
+            <p className="m-0">Двигайся по диагонали вперед</p>
           </div>
         )}
 

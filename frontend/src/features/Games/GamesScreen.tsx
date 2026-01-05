@@ -169,27 +169,28 @@ export function GamesScreen({ user }: GamesScreenProps) {
                   text-left h-[150px] flex flex-col overflow-hidden
                 `}
               >
-                <div className="text-3xl mb-1.5 flex-shrink-0">{game.icon}</div>
-                <h3 className="text-base font-bold mb-1 flex-shrink-0">{game.name}</h3>
-                <p className="text-xs opacity-90 mb-2 overflow-hidden" style={{
+                <div className="text-3xl mb-1.5 flex-shrink-0 leading-none" style={{ fontSize: '1.875rem', lineHeight: '1' }}>{game.icon}</div>
+                <h3 className="text-base font-bold mb-1 flex-shrink-0 leading-tight" style={{ fontSize: '1rem', lineHeight: '1.25' }}>{game.name}</h3>
+                <p className="text-xs opacity-90 mb-2 overflow-hidden leading-tight" style={{
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
                   lineHeight: '1.5',
                   minHeight: '40px',
-                  maxHeight: '40px'
+                  maxHeight: '40px',
+                  fontSize: '0.75rem'
                 }}>{game.description}</p>
 
                 {/* Статистика - всегда резервируем место */}
                 <div className="mt-auto min-h-[34px] flex-shrink-0">
                   {hasStats ? (
                     <div className="pt-2 border-t border-white/20">
-                      <div className="flex justify-between text-xs">
+                      <div className="flex justify-between text-xs leading-tight" style={{ fontSize: '0.75rem' }}>
                         <span>Побед: {gameStats.wins}</span>
                         <span>Игр: {gameStats.total_games}</span>
                       </div>
                       {hasBestScore ? (
-                        <div className="text-xs mt-0.5">
+                        <div className="text-xs mt-0.5 leading-tight" style={{ fontSize: '0.75rem' }}>
                           Лучший счет: {gameStats.best_score}
                         </div>
                       ) : (
