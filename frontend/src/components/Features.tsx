@@ -17,19 +17,21 @@ export const Features: React.FC = React.memo(() => {
   return (
     <section
       id="features"
-      className="grid md:grid-cols-3 gap-6 py-12"
+      className="w-full flex justify-center py-12"
       aria-label="Преимущества"
     >
-      {/* Рендерим карточки из массива FEATURES */}
-      {FEATURES.map((feature, index) => (
-        <div
-          key={feature.id}
-          className="animate-fade-in"
-          style={{ animationDelay: `${index * 0.1}s` }}
-        >
-          <FeatureCard feature={feature} />
-        </div>
-      ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto px-4 w-full">
+        {/* Рендерим карточки из массива FEATURES */}
+        {FEATURES.map((feature, index) => (
+          <div
+            key={feature.id}
+            className="animate-fade-in"
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
+            <FeatureCard feature={feature} />
+          </div>
+        ))}
+      </div>
     </section>
   );
 });
