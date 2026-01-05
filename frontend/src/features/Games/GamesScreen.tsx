@@ -189,22 +189,22 @@ export function GamesScreen({ user }: GamesScreenProps) {
 
         {/* Общая статистика */}
         {Object.keys(stats).length > 0 && (
-          <div className="mt-6 p-4 bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl border border-[var(--tg-theme-hint-color)]/20">
-            <h2 className="text-xl font-bold text-[var(--tg-theme-text-color)] mb-3">
+          <div className="mt-4 p-3 bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-lg border border-[var(--tg-theme-hint-color)]/20">
+            <h2 className="text-lg font-bold text-[var(--tg-theme-text-color)] mb-2">
               📊 Твоя статистика
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {Object.values(stats).map((stat) => (
                 <div
                   key={stat.game_type}
-                  className="p-3 bg-[var(--tg-theme-bg-color)] rounded-lg"
+                  className="p-2 bg-[var(--tg-theme-bg-color)] rounded-lg"
                 >
-                  <div className="text-sm text-[var(--tg-theme-hint-color)] mb-1">
+                  <div className="text-xs text-[var(--tg-theme-hint-color)] mb-1">
                     {stat.game_type === 'tic_tac_toe' && '❌⭕ Крестики-нолики'}
                     {stat.game_type === 'checkers' && '⚫⚪ Шашки'}
                     {stat.game_type === '2048' && '🔢 2048'}
                   </div>
-                  <div className="text-lg font-bold text-[var(--tg-theme-text-color)]">
+                  <div className="text-base font-bold text-[var(--tg-theme-text-color)]">
                     {stat.wins} побед
                   </div>
                   <div className="text-xs text-[var(--tg-theme-hint-color)]">
