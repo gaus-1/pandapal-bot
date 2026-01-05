@@ -3,7 +3,7 @@
  * Шашки - игра против панды (AI)
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { telegram } from "../../services/telegram";
 import {
   checkersMove,
@@ -28,6 +28,37 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   const [isUserTurn, setIsUserTurn] = useState(true);
   const [kings, setKings] = useState<boolean[][]>([]);
 
+  // Реф для контейнера доски
+  const boardContainerRef = useRef<HTMLDivElement>(null);
+  // Состояние для хранения размера доски (width = height)
+  const [boardSize, setBoardSize] = useState<number>(0);
+
+  // Эффект для отслеживания ширины контейнера и установки точной высоты
+  useEffect(() => {
+    const container = boardContainerRef.current;
+    if (!container) return;
+
+    const updateSize = () => {
+      const width = container.offsetWidth;
+      setBoardSize(width);
+    };
+
+    // Инициализация
+    updateSize();
+
+    // ResizeObserver для отслеживания изменений (поворот экрана, изменение размера окна)
+    const resizeObserver = new ResizeObserver(() => {
+      updateSize();
+    });
+
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  // ... (остальной код инициализации игры без изменений)
   useEffect(() => {
     loadGameState();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -162,7 +193,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
     <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto flex flex-col items-center pt-4 pb-8">
       <div className="w-full max-w-md px-4 flex flex-col items-center">
         {/* Заголовок */}
-        <div className="w-full flex items-center justify-between mb-4 max-w-[420px]">
+        <div className="w-full flex items-center justify-between mb-4">
           <button
             onClick={onBack}
             className="p-2.5 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -177,7 +208,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Статус */}
-        <div className="text-center mb-4 w-full max-w-[420px]">
+        <div className="text-center mb-4 w-full">
           <div className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-1">
             {gameOver
               ? winner === "user"
@@ -196,16 +227,18 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           )}
         </div>
 
-        {/* Игровая доска - СТРОГИЙ КВАДРАТ */}
-        <div className="w-[90%] max-w-[400px] aspect-square relative mb-6">
-          {/*
-            Техника Strict Square:
-            Родитель имеет aspect-square.
-            Сетка внутри绝对 позиционирована (absolute inset-0),
-            что заставляет её заполнять ТОЛЬКО площадь квадратного родителя.
-            Это предотвращает любое вертикальное растяжение.
-          */}
-          <div className="absolute inset-0 grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[4px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-xl overflow-hidden">
+        {/* Контейнер для измерения ширины */}
+        {/*
+           w-[90%] и max-w-[400px] задают желаемую ширину.
+           boardSize устанавливает высоту равной этой ширине.
+        */}
+        <div
+          ref={boardContainerRef}
+          className="w-[90%] max-w-[400px] relative mb-6"
+          style={{ height: `${boardSize}px` }}
+        >
+          {/* Сетка занимает весь контейнер */}
+          <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[4px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-xl overflow-hidden">
             {board.length > 0 ? (
               board.map((row, rowIndex) =>
                 row.map((_, colIndex) => {
