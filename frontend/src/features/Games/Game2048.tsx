@@ -258,8 +258,8 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
         </div>
 
         {/* Счет */}
-        <div className="text-center mb-4 sm:mb-6">
-          <div className="text-2xl sm:text-3xl font-bold text-[var(--tg-theme-text-color)] mb-2">
+        <div className="text-center mb-2 sm:mb-3">
+          <div className="text-2xl sm:text-3xl font-bold text-[var(--tg-theme-text-color)] mb-1">
             {score}
           </div>
           {won && (
@@ -274,13 +274,13 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
         {/* Игровая доска с поддержкой swipe */}
         <div
-          className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 mb-4 sm:mb-6 touch-none select-none w-full max-w-md mx-auto"
+          className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl sm:rounded-2xl p-1.5 sm:p-2 md:p-3 mb-4 sm:mb-6 touch-none select-none w-full max-w-xs mx-auto"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
           {board.length > 0 ? (
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-2 md:gap-2.5 w-full">
+            <div className="grid grid-cols-4 gap-1 sm:gap-1.5 md:gap-2 w-full">
               {board.flat().map((value, index) => {
                 const isNewTile = newTileIndices.has(index);
                 return (
@@ -288,7 +288,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
                     key={index}
                     className={`
                       aspect-square rounded-md sm:rounded-lg flex items-center justify-center
-                      font-bold min-h-[60px] sm:min-h-[75px] md:min-h-[85px]
+                      font-bold min-h-[50px] sm:min-h-[60px] md:min-h-[70px]
                       w-full
                       ${
                         value === 0
@@ -320,22 +320,23 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
         {/* Кнопки управления */}
         {!gameOver && (
           <div className="mb-4 sm:mb-6">
-            <div className="text-xs sm:text-sm text-[var(--tg-theme-hint-color)] mb-3 sm:mb-4 text-center font-medium">
+            <div className="text-xs sm:text-sm text-[var(--tg-theme-hint-color)] mb-2 sm:mb-3 text-center font-medium">
               Используй кнопки или свайп по доске
             </div>
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-3 max-w-xs mx-auto bg-[var(--tg-theme-secondary-bg-color)] p-2 sm:p-3 rounded-xl">
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5 max-w-xs mx-auto bg-[var(--tg-theme-secondary-bg-color)] p-2 sm:p-2.5 rounded-xl">
               <div /> {/* Spacer */}
               <button
                 onClick={() => handleMove("up")}
                 disabled={isLoading}
-                className="p-3.5 sm:p-4 md:p-5 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[52px] sm:min-h-[64px] md:min-h-[72px] min-w-[52px] sm:min-w-[64px] md:min-w-[72px] flex items-center justify-center shadow-lg border-2 border-[var(--tg-theme-button-color)]"
+                className="p-3 sm:p-3.5 md:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[48px] sm:min-h-[56px] md:min-h-[64px] min-w-[48px] sm:min-w-[56px] md:min-w-[64px] flex items-center justify-center shadow-lg border-2 border-[var(--tg-theme-button-color)]"
                 aria-label="Вверх"
                 style={{
                   backgroundColor: 'var(--tg-theme-button-color)',
-                  color: 'var(--tg-theme-button-text-color)'
+                  color: 'var(--tg-theme-button-text-color)',
+                  filter: 'contrast(1.2) brightness(1.1)'
                 }}
               >
-                <svg className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" fill="currentColor" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="0.5">
                   <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
                 </svg>
               </button>
@@ -343,14 +344,15 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               <button
                 onClick={() => handleMove("left")}
                 disabled={isLoading}
-                className="p-3.5 sm:p-4 md:p-5 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[52px] sm:min-h-[64px] md:min-h-[72px] min-w-[52px] sm:min-w-[64px] md:min-w-[72px] flex items-center justify-center shadow-lg border-2 border-[var(--tg-theme-button-color)]"
+                className="p-3 sm:p-3.5 md:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[48px] sm:min-h-[56px] md:min-h-[64px] min-w-[48px] sm:min-w-[56px] md:min-w-[64px] flex items-center justify-center shadow-lg border-2 border-[var(--tg-theme-button-color)]"
                 aria-label="Влево"
                 style={{
                   backgroundColor: 'var(--tg-theme-button-color)',
-                  color: 'var(--tg-theme-button-text-color)'
+                  color: 'var(--tg-theme-button-text-color)',
+                  filter: 'contrast(1.2) brightness(1.1)'
                 }}
               >
-                <svg className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" fill="currentColor" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="0.5">
                   <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </button>
@@ -358,14 +360,15 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               <button
                 onClick={() => handleMove("right")}
                 disabled={isLoading}
-                className="p-3.5 sm:p-4 md:p-5 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[52px] sm:min-h-[64px] md:min-h-[72px] min-w-[52px] sm:min-w-[64px] md:min-w-[72px] flex items-center justify-center shadow-lg border-2 border-[var(--tg-theme-button-color)]"
+                className="p-3 sm:p-3.5 md:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[48px] sm:min-h-[56px] md:min-h-[64px] min-w-[48px] sm:min-w-[56px] md:min-w-[64px] flex items-center justify-center shadow-lg border-2 border-[var(--tg-theme-button-color)]"
                 aria-label="Вправо"
                 style={{
                   backgroundColor: 'var(--tg-theme-button-color)',
-                  color: 'var(--tg-theme-button-text-color)'
+                  color: 'var(--tg-theme-button-text-color)',
+                  filter: 'contrast(1.2) brightness(1.1)'
                 }}
               >
-                <svg className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" fill="currentColor" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="0.5">
                   <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                 </svg>
               </button>
@@ -373,14 +376,15 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               <button
                 onClick={() => handleMove("down")}
                 disabled={isLoading}
-                className="p-3.5 sm:p-4 md:p-5 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[52px] sm:min-h-[64px] md:min-h-[72px] min-w-[52px] sm:min-w-[64px] md:min-w-[72px] flex items-center justify-center shadow-lg border-2 border-[var(--tg-theme-button-color)]"
+                className="p-3 sm:p-3.5 md:p-4 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[48px] sm:min-h-[56px] md:min-h-[64px] min-w-[48px] sm:min-w-[56px] md:min-w-[64px] flex items-center justify-center shadow-lg border-2 border-[var(--tg-theme-button-color)]"
                 aria-label="Вниз"
                 style={{
                   backgroundColor: 'var(--tg-theme-button-color)',
-                  color: 'var(--tg-theme-button-text-color)'
+                  color: 'var(--tg-theme-button-text-color)',
+                  filter: 'contrast(1.2) brightness(1.1)'
                 }}
               >
-                <svg className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" fill="currentColor" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="0.5">
                   <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
               </button>
