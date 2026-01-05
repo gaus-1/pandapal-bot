@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { telegram } from '../../services/telegram';
 import { createGame, getGameStats, type GameStats, type UserProfile } from '../../services/api';
+import { useAppStore } from '../../store/appStore';
 import { TicTacToe } from './TicTacToe';
 import { Checkers } from './Checkers';
 import { Game2048 } from './Game2048';
@@ -41,6 +42,7 @@ const GAMES = [
 ] as const;
 
 export function GamesScreen({ user }: GamesScreenProps) {
+  const { setCurrentScreen } = useAppStore();
   const [selectedGame, setSelectedGame] = useState<GameType>(null);
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -128,8 +130,9 @@ export function GamesScreen({ user }: GamesScreenProps) {
   }
 
   return (
-    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
-      <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] flex flex-col">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Заголовок */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-[var(--tg-theme-text-color)] mb-2">
@@ -230,7 +233,34 @@ export function GamesScreen({ user }: GamesScreenProps) {
             </div>
           </div>
         )}
+        </div>
       </div>
+
+      {/* Нижняя навигация */}
+      <nav className="flex-shrink-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg safe-area-inset-bottom">
+        <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
+          <button
+            onClick={() => {
+              telegram.hapticFeedback('light');
+              setCurrentScreen('ai-chat');
+            }}
+            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors touch-manipulation min-h-[60px]"
+          >
+            <span className="text-2xl">💬</span>
+            <span className="text-xs font-medium text-[var(--tg-theme-text-color)]">Чат</span>
+          </button>
+          <button
+            onClick={() => {
+              telegram.hapticFeedback('light');
+              setCurrentScreen('premium');
+            }}
+            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors touch-manipulation min-h-[60px]"
+          >
+            <span className="text-2xl">👑</span>
+            <span className="text-xs font-medium text-[var(--tg-theme-text-color)]">Premium</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }
