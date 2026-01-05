@@ -132,7 +132,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
         setIsLoading(false);
       }
     },
-    [sessionId, gameOver, isLoading, won, onGameEnd],
+    [sessionId, gameOver, isLoading, won, onGameEnd, prevBoard],
   );
 
   // Обработка клавиатуры
