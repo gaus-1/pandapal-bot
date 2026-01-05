@@ -540,23 +540,27 @@ class PandaPalBotServer:
             logger.info("🛑 Остановка сервера...")
 
             # Останавливаем веб-сервер
-            if self.site:
+            # Сначала останавливаем site, затем очищаем runner
+            site_to_stop = self.site
+            runner_to_cleanup = self.runner
+
+            # Сбрасываем ссылки сразу, чтобы избежать повторных вызовов
+            self.site = None
+            self.runner = None
+
+            if site_to_stop:
                 try:
-                    await self.site.stop()
+                    await site_to_stop.stop()
                     logger.info("✅ TCP site остановлен")
                 except Exception as e:
                     logger.warning(f"⚠️ Ошибка остановки TCP site: {e}")
-                finally:
-                    self.site = None
 
-            if self.runner:
+            if runner_to_cleanup:
                 try:
-                    await self.runner.cleanup()
+                    await runner_to_cleanup.cleanup()
                     logger.info("✅ AppRunner очищен")
                 except Exception as e:
                     logger.warning(f"⚠️ Ошибка очистки AppRunner: {e}")
-                finally:
-                    self.runner = None
 
             # Удаляем webhook (опционально, для чистоты)
             if self.bot:
