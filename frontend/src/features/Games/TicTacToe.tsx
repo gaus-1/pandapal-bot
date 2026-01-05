@@ -160,9 +160,9 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
 
         {/* Статус */}
         <div className="text-center mb-0">
-          <p className="text-base sm:text-lg font-semibold text-[var(--tg-theme-text-color)]">
+          <div className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0">
             {getStatusMessage()}
-          </p>
+          </div>
           {error && (
             <p className="text-xs sm:text-sm text-red-500 mt-2">{error}</p>
           )}
