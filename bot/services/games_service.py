@@ -9,10 +9,10 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 
 from loguru import logger
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
-from bot.models import GameSession, GameStats, UserProgress
+from bot.models import GameSession, GameStats
 from bot.services.gamification_service import GamificationService
 
 
@@ -581,24 +581,38 @@ class GamesService:
         guessed_letters = state.get("guessed_letters", [])
         mistakes = state.get("mistakes", 0)
 
+        # Приводим букву к верхнему регистру для регистронезависимого сравнения
         letter = letter.upper()
+        # Убеждаемся, что слово тоже в верхнем регистре
+        word = word.upper()
 
+        # Проверяем, что это одна буква алфавита
+        if not letter.isalpha() or len(letter) != 1:
+            raise ValueError("Letter must be a single alphabetic character")
+
+        # Обработка повторных букв: не засчитываем как ошибку, но и не приносим пользы
         if letter in guessed_letters:
             raise ValueError("Letter already guessed")
 
         guessed_letters.append(letter)
 
+        # Обновляем слово в состоянии (в верхнем регистре)
+        state["word"] = word
+
+        # Проверяем наличие буквы в слове (регистронезависимо)
         if letter in word:
-            # Правильная буква
+            # Правильная буква - обновляем состояние
             state["guessed_letters"] = guessed_letters
         else:
-            # Неправильная буква
+            # Неправильная буква - увеличиваем счетчик ошибок
             mistakes += 1
             state["mistakes"] = mistakes
             state["guessed_letters"] = guessed_letters
 
-        # Проверяем победу
-        if all(c in guessed_letters for c in word):
+        # Проверяем победу: все уникальные буквы слова угаданы
+        # Игнорируем пробелы и другие не-буквенные символы
+        unique_letters_in_word = set(c for c in word if c.isalpha())
+        if unique_letters_in_word.issubset(set(guessed_letters)):
             self.finish_game_session(session_id, "win")
             return {
                 "word": word,
@@ -647,13 +661,13 @@ class GamesService:
             raise ValueError(f"Game session {session_id} not found")
 
         board = session.game_state.get("board", self._init_2048_board())
-        score = session.game_state.get("score", 0)
 
         # Делаем ход
         new_board, new_score = self._move_2048(board, direction)
 
-        # Добавляем новую клетку
-        if new_board != board:
+        # Добавляем новую клетку только если доска изменилась
+        board_changed = new_board != board
+        if board_changed:
             new_board = self._add_random_tile(new_board)
 
         # Проверяем поражение
@@ -692,10 +706,14 @@ class GamesService:
         return board
 
     def _add_random_tile(self, board: List[List[int]]) -> List[List[int]]:
-        """Добавить случайную клетку (2 или 4)"""
+        """
+        Добавить случайную клетку (2 или 4).
+        Вероятность: 90% для 2, 10% для 4 (как в оригинальной игре 2048).
+        """
         empty = [(i, j) for i in range(4) for j in range(4) if board[i][j] == 0]
         if empty:
             i, j = random.choice(empty)
+            # Большая вероятность выпадения двойки (90%)
             board[i][j] = 2 if random.random() < 0.9 else 4
         return board
 

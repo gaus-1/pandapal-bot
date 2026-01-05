@@ -3,7 +3,7 @@
  * Обертка для работы с Telegram Web App API
  */
 
-import WebApp from '@twa-dev/sdk';
+import WebApp from "@twa-dev/sdk";
 
 export interface TelegramUser {
   id: number;
@@ -38,20 +38,24 @@ export class TelegramService {
       // Включаем плавные анимации (60 FPS)
       this.enableSmoothAnimations();
 
-      console.log('✅ Telegram Mini App инициализирован');
-      console.log('📱 Платформа:', this.webApp.platform);
-      console.log('📦 Версия:', this.webApp.version);
-      console.log('🌓 Тема:', this.webApp.colorScheme);
-      console.log('🔐 InitData длина:', this.webApp.initData?.length || 0);
-      console.log('👤 Пользователь:', this.webApp.initDataUnsafe.user);
+      console.log("✅ Telegram Mini App инициализирован");
+      console.log("📱 Платформа:", this.webApp.platform);
+      console.log("📦 Версия:", this.webApp.version);
+      console.log("🌓 Тема:", this.webApp.colorScheme);
+      console.log("🔐 InitData длина:", this.webApp.initData?.length || 0);
+      console.log("👤 Пользователь:", this.webApp.initDataUnsafe.user);
 
       // Проверка доступности initData
       if (!this.webApp.initData) {
-        console.warn('⚠️ КРИТИЧНО: initData недоступен! Приложение запущено НЕ через Telegram.');
-        console.warn('⚠️ Убедитесь что приложение открывается через кнопку Mini App в Telegram!');
+        console.warn(
+          "⚠️ КРИТИЧНО: initData недоступен! Приложение запущено НЕ через Telegram.",
+        );
+        console.warn(
+          "⚠️ Убедитесь что приложение открывается через кнопку Mini App в Telegram!",
+        );
       }
     } catch (error) {
-      console.error('❌ Ошибка инициализации Telegram Mini App:', error);
+      console.error("❌ Ошибка инициализации Telegram Mini App:", error);
     }
   }
 
@@ -62,12 +66,12 @@ export class TelegramService {
   private setViewportHeight(): void {
     const setVH = () => {
       const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
     };
 
     setVH();
-    window.addEventListener('resize', setVH);
-    window.addEventListener('orientationchange', setVH);
+    window.addEventListener("resize", setVH);
+    window.addEventListener("orientationchange", setVH);
   }
 
   /**
@@ -75,12 +79,21 @@ export class TelegramService {
    */
   private enableSmoothAnimations(): void {
     // Используем CSS переменные для плавных переходов
-    document.documentElement.style.setProperty('--transition-fast', '150ms cubic-bezier(0.4, 0, 0.2, 1)');
-    document.documentElement.style.setProperty('--transition-base', '200ms cubic-bezier(0.4, 0, 0.2, 1)');
-    document.documentElement.style.setProperty('--transition-slow', '300ms cubic-bezier(0.4, 0, 0.2, 1)');
+    document.documentElement.style.setProperty(
+      "--transition-fast",
+      "150ms cubic-bezier(0.4, 0, 0.2, 1)",
+    );
+    document.documentElement.style.setProperty(
+      "--transition-base",
+      "200ms cubic-bezier(0.4, 0, 0.2, 1)",
+    );
+    document.documentElement.style.setProperty(
+      "--transition-slow",
+      "300ms cubic-bezier(0.4, 0, 0.2, 1)",
+    );
 
     // Включаем hardware acceleration для анимаций
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       * {
         -webkit-transform: translateZ(0);
@@ -101,31 +114,49 @@ export class TelegramService {
       const { themeParams } = this.webApp;
 
       if (themeParams.bg_color) {
-        document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color);
+        document.documentElement.style.setProperty(
+          "--tg-theme-bg-color",
+          themeParams.bg_color,
+        );
       }
       if (themeParams.text_color) {
-        document.documentElement.style.setProperty('--tg-theme-text-color', themeParams.text_color);
+        document.documentElement.style.setProperty(
+          "--tg-theme-text-color",
+          themeParams.text_color,
+        );
       }
       if (themeParams.hint_color) {
-        document.documentElement.style.setProperty('--tg-theme-hint-color', themeParams.hint_color);
+        document.documentElement.style.setProperty(
+          "--tg-theme-hint-color",
+          themeParams.hint_color,
+        );
       }
       if (themeParams.link_color) {
-        document.documentElement.style.setProperty('--tg-theme-link-color', themeParams.link_color);
+        document.documentElement.style.setProperty(
+          "--tg-theme-link-color",
+          themeParams.link_color,
+        );
       }
       if (themeParams.button_color) {
-        document.documentElement.style.setProperty('--tg-theme-button-color', themeParams.button_color);
+        document.documentElement.style.setProperty(
+          "--tg-theme-button-color",
+          themeParams.button_color,
+        );
       }
       if (themeParams.button_text_color) {
-        document.documentElement.style.setProperty('--tg-theme-button-text-color', themeParams.button_text_color);
+        document.documentElement.style.setProperty(
+          "--tg-theme-button-text-color",
+          themeParams.button_text_color,
+        );
       }
 
       // Устанавливаем цветовую схему для CSS
-      const colorScheme = this.webApp.colorScheme || 'light';
-      document.documentElement.setAttribute('data-theme', colorScheme);
-      if (colorScheme === 'dark') {
-        document.documentElement.classList.add('dark');
+      const colorScheme = this.webApp.colorScheme || "light";
+      document.documentElement.setAttribute("data-theme", colorScheme);
+      if (colorScheme === "dark") {
+        document.documentElement.classList.add("dark");
       } else {
-        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.remove("dark");
       }
     };
 
@@ -133,7 +164,7 @@ export class TelegramService {
     applyTheme();
 
     // Подписываемся на изменения темы (динамическое обновление)
-    this.webApp.onEvent('themeChanged', applyTheme);
+    this.webApp.onEvent("themeChanged", applyTheme);
   }
 
   /**
@@ -198,7 +229,7 @@ export class TelegramService {
    * Вибрация (haptic feedback)
    */
   hapticFeedback(
-    style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft' = 'medium'
+    style: "light" | "medium" | "heavy" | "rigid" | "soft" = "medium",
   ): void {
     this.webApp.HapticFeedback.impactOccurred(style);
   }
@@ -207,21 +238,21 @@ export class TelegramService {
    * Уведомление об успехе (вибрация + звук)
    */
   notifySuccess(): void {
-    this.webApp.HapticFeedback.notificationOccurred('success');
+    this.webApp.HapticFeedback.notificationOccurred("success");
   }
 
   /**
    * Уведомление об ошибке (вибрация + звук)
    */
   notifyError(): void {
-    this.webApp.HapticFeedback.notificationOccurred('error');
+    this.webApp.HapticFeedback.notificationOccurred("error");
   }
 
   /**
    * Предупреждение (вибрация + звук)
    */
   notifyWarning(): void {
-    this.webApp.HapticFeedback.notificationOccurred('warning');
+    this.webApp.HapticFeedback.notificationOccurred("warning");
   }
 
   /**
@@ -243,6 +274,49 @@ export class TelegramService {
    */
   openTelegramLink(url: string): void {
     this.webApp.openTelegramLink(url);
+  }
+
+  /**
+   * Поделиться результатом игры через Telegram
+   * Создает ссылку на бота с результатом для отправки друзьям
+   */
+  shareGameResult(gameType: string, result: string, score?: number): void {
+    const user = this.getUser();
+    const userName = user?.firstName || "Игрок";
+
+    let message = `🎮 ${userName} сыграл в ${gameType}!\n\n`;
+
+    if (result === "win") {
+      message += `✅ Результат: Победа!`;
+    } else if (result === "loss") {
+      message += `😔 Результат: Поражение`;
+    } else if (result === "draw") {
+      message += `🤝 Результат: Ничья`;
+    }
+
+    if (score !== undefined) {
+      message += `\n📊 Счет: ${score}`;
+    }
+
+    message += `\n\n🎯 Играй в PandaPalGo!`;
+
+    // Создаем ссылку на бота с текстом для отправки
+    const botUsername = "pandapal_bot"; // Замените на реальный username бота
+    const shareUrl = `https://t.me/${botUsername}?start=share_game_${gameType}_${result}${
+      score ? `_${score}` : ""
+    }`;
+
+    // Пытаемся открыть через Telegram
+    try {
+      this.openTelegramLink(shareUrl);
+    } catch {
+      // Fallback: копируем текст в буфер обмена
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(message).then(() => {
+          this.showAlert("Результат скопирован! Поделись с друзьями!");
+        });
+      }
+    }
   }
 
   /**
@@ -271,13 +345,15 @@ export class TelegramService {
     message: string;
     buttons?: Array<{
       id?: string;
-      type: 'default' | 'ok' | 'close' | 'cancel' | 'destructive';
+      type: "default" | "ok" | "close" | "cancel" | "destructive";
       text: string;
     }>;
   }): Promise<string> {
     return new Promise((resolve) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      this.webApp.showPopup(params as any, (buttonId: string | undefined) => resolve(buttonId || ''));
+      this.webApp.showPopup(params as any, (buttonId: string | undefined) =>
+        resolve(buttonId || ""),
+      );
     });
   }
 
@@ -287,15 +363,17 @@ export class TelegramService {
    */
   isInTelegram(): boolean {
     // СТРОГАЯ проверка: только initData (объект WebApp может существовать и вне Telegram)
-    const hasInitData = this.webApp.initData !== '' &&
-                       this.webApp.initData !== undefined &&
-                       this.webApp.initData !== null;
+    const hasInitData =
+      this.webApp.initData !== "" &&
+      this.webApp.initData !== undefined &&
+      this.webApp.initData !== null;
 
     // Дополнительная проверка: user agent (для надежности)
-    const isTelegramUserAgent = typeof window !== 'undefined' &&
-      (window.navigator.userAgent.includes('Telegram') ||
-       window.location.hostname.includes('telegram.org') ||
-       window.location.hostname.includes('web.telegram.org'));
+    const isTelegramUserAgent =
+      typeof window !== "undefined" &&
+      (window.navigator.userAgent.includes("Telegram") ||
+        window.location.hostname.includes("telegram.org") ||
+        window.location.hostname.includes("web.telegram.org"));
 
     // Только если есть initData ИЛИ точно в Telegram по user agent
     return hasInitData || isTelegramUserAgent;
@@ -305,7 +383,7 @@ export class TelegramService {
    * Получить платформу
    */
   getPlatform(): string {
-    return this.webApp.platform || 'unknown';
+    return this.webApp.platform || "unknown";
   }
 
   /**
@@ -313,13 +391,13 @@ export class TelegramService {
    * Более строгая проверка - только по initData
    */
   isTelegramWebApp(): boolean {
-    return this.webApp.initData !== '' && this.webApp.initData !== undefined;
+    return this.webApp.initData !== "" && this.webApp.initData !== undefined;
   }
 
   /**
    * Получить цветовую схему
    */
-  getColorScheme(): 'light' | 'dark' {
+  getColorScheme(): "light" | "dark" {
     return this.webApp.colorScheme;
   }
 
