@@ -44,7 +44,13 @@ async def create_game(request: web.Request) -> web.Response:
     """
     try:
         data = await request.json()
-        telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+        # Получаем telegram_id из match_info или из заголовка
+        telegram_id_str = request.match_info.get("telegram_id") or request.headers.get(
+            "X-Telegram-ID"
+        )
+        if not telegram_id_str:
+            return web.json_response({"error": "telegram_id not found"}, status=400)
+        telegram_id = validate_telegram_id(telegram_id_str)
 
         try:
             validated = CreateGameRequest(**data)
@@ -86,12 +92,17 @@ async def create_game(request: web.Request) -> web.Response:
             )
             db.commit()
 
+            # Сохраняем данные до закрытия сессии
+            session_id = session.id
+            game_type = session.game_type
+            game_state = session.game_state
+
         return web.json_response(
             {
                 "success": True,
-                "session_id": session.id,
-                "game_type": session.game_type,
-                "game_state": session.game_state,
+                "session_id": session_id,
+                "game_type": game_type,
+                "game_state": game_state,
             }
         )
 
@@ -254,7 +265,10 @@ async def get_game_session(request: web.Request) -> web.Response:
             if not session:
                 return web.json_response({"error": "Session not found"}, status=404)
 
-        return web.json_response({"success": True, "session": session.to_dict()})
+            # Сохраняем данные до закрытия сессии
+            session_dict = session.to_dict()
+
+        return web.json_response({"success": True, "session": session_dict})
 
     except ValueError as e:
         logger.warning(f"⚠️ Invalid session_id: {e}")

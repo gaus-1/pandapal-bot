@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { telegram } from '../../services/telegram';
-import { ticTacToeMove, type UserProfile } from '../../services/api';
+import { ticTacToeMove, getGameSession, type UserProfile } from '../../services/api';
 
 interface TicTacToeProps {
   sessionId: number;

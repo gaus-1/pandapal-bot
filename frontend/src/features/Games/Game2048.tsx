@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { telegram } from '../../services/telegram';
-import { game2048Move, type UserProfile } from '../../services/api';
+import { game2048Move, getGameSession, type UserProfile } from '../../services/api';
 
 interface Game2048Props {
   sessionId: number;

@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { telegram } from '../../services/telegram';
-import { hangmanGuess, type UserProfile } from '../../services/api';
+import { hangmanGuess, getGameSession, type UserProfile } from '../../services/api';
 
 interface HangmanProps {
   sessionId: number;
