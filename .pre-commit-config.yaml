@@ -133,7 +133,7 @@ repos:
     hooks:
       - id: eslint
         name: 🔍 ESLint - проверка TypeScript/JavaScript
-        entry: bash -c 'cd frontend && npm run lint'
+        entry: powershell -Command "cd frontend; npm run lint"
         language: system
         types: [file]
         files: ^frontend/src/.*\.(ts|tsx|js|jsx)$
@@ -142,7 +142,7 @@ repos:
 
       - id: npm-audit
         name: 🔒 npm audit - проверка уязвимостей Node.js
-        entry: bash -c 'cd frontend && npm audit --audit-level=moderate'
+        entry: powershell -Command "cd frontend; npm audit --audit-level=moderate"
         language: system
         pass_filenames: false
         always_run: false

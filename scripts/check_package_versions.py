@@ -170,7 +170,9 @@ def main():
 
         if not version_exists:
             results["not_found"].append((package_name, current_version, latest_version))
-            print(f"[NOT FOUND] Версия {current_version} не существует! Последняя: {latest_version}")
+            print(
+                f"[NOT FOUND] Версия {current_version} не существует! Последняя: {latest_version}"
+            )
             continue
 
         status = compare_versions(current_version, latest_version)
@@ -183,7 +185,9 @@ def main():
             print(f"[OUTDATED] Доступна {latest_version}")
         elif status == "newer":
             results["newer"].append((package_name, current_version, latest_version))
-            print(f"[NEWER] Текущая {current_version} новее PyPI {latest_version} (возможно, dev версия)")
+            print(
+                f"[NEWER] Текущая {current_version} новее PyPI {latest_version} (возможно, dev версия)"
+            )
         else:
             results["errors"].append((package_name, current_version, latest_version))
             print(f"[ERROR] Ошибка сравнения версий")
@@ -215,9 +219,13 @@ def main():
 
     print(f"\n📊 Статистика:")
     print(f"   Всего пакетов: {total}")
-    print(f"   Актуальных: {len(results['up_to_date'])} ({len(results['up_to_date'])/total*100:.1f}%)")
+    print(
+        f"   Актуальных: {len(results['up_to_date'])} ({len(results['up_to_date'])/total*100:.1f}%)"
+    )
     print(f"   Устаревших: {len(results['outdated'])} ({len(results['outdated'])/total*100:.1f}%)")
-    print(f"   Не найдено: {len(results['not_found'])} ({len(results['not_found'])/total*100:.1f}%)")
+    print(
+        f"   Не найдено: {len(results['not_found'])} ({len(results['not_found'])/total*100:.1f}%)"
+    )
 
     # Сохраняем отчет в файл
     report_file = root_dir / "dependency_version_report.json"
@@ -230,10 +238,18 @@ def main():
             "errors": len(results["errors"]),
         },
         "details": {
-            "up_to_date": [{"package": p, "version": v, "latest": l} for p, v, l in results["up_to_date"]],
-            "outdated": [{"package": p, "current": v, "latest": l} for p, v, l in results["outdated"]],
-            "not_found": [{"package": p, "current": v, "latest": l} for p, v, l in results["not_found"]],
-            "errors": [{"package": p, "current": v, "error": str(e)} for p, v, e in results["errors"]],
+            "up_to_date": [
+                {"package": p, "version": v, "latest": l} for p, v, l in results["up_to_date"]
+            ],
+            "outdated": [
+                {"package": p, "current": v, "latest": l} for p, v, l in results["outdated"]
+            ],
+            "not_found": [
+                {"package": p, "current": v, "latest": l} for p, v, l in results["not_found"]
+            ],
+            "errors": [
+                {"package": p, "current": v, "error": str(e)} for p, v, e in results["errors"]
+            ],
         },
     }
 
@@ -250,4 +266,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

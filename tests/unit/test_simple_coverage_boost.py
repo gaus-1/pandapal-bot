@@ -197,7 +197,6 @@ class TestHandlersBasic:
 
         assert emergency is not None
 
-
     def test_achievements_handler_exists(self):
         """Achievements handler существует"""
         from bot.handlers import achievements

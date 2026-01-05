@@ -145,4 +145,3 @@ class TestHistoryService:
 
         history = service.get_recent_history(123456, limit=10)
         assert len(history) == 0
-

@@ -138,8 +138,9 @@ class MetricsEndpoint:
         # Проверка базы данных
         db_status = "healthy"
         try:
-            from bot.database import engine
             from sqlalchemy import text
+
+            from bot.database import engine
 
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
@@ -164,9 +165,11 @@ class MetricsEndpoint:
         components["ai_service"] = ai_status
 
         # Общий статус
-        overall_status = "healthy" if all(
-            v in ("healthy", "disabled") for v in components.values()
-        ) else "degraded"
+        overall_status = (
+            "healthy"
+            if all(v in ("healthy", "disabled") for v in components.values())
+            else "degraded"
+        )
 
         health_data = {
             "status": overall_status,

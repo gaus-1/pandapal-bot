@@ -134,4 +134,3 @@ class TestEmergencyHandler:
         # Проверяем что для каждого номера есть информация
         for callback_data in callback_data_list:
             assert callback_data in EMERGENCY_INFO, f"Нет информации для {callback_data}"
-

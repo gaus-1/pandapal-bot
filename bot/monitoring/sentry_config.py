@@ -30,6 +30,7 @@ class SentryConfig:
     """
 
     def __init__(self):
+        """Инициализация конфигурации Sentry."""
         self.dsn: Optional[str] = os.getenv("SENTRY_DSN")
         self.environment: str = os.getenv("SENTRY_ENVIRONMENT", "development")
         self.enabled: bool = bool(self.dsn and SENTRY_AVAILABLE)

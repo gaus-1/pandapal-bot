@@ -56,24 +56,30 @@ class TestErrorHandlingE2E:
 
     def create_request(self, json_data):
         """Создаёт реальный aiohttp Request для API"""
-        from aiohttp.test_utils import make_mocked_request
         from unittest.mock import MagicMock
-        
+
+        from aiohttp.test_utils import make_mocked_request
+
         # Создаём request с правильными атрибутами
         request = make_mocked_request(
             "POST",
             "/api/miniapp/ai/chat",
-            headers={"Content-Type": "application/json", "Content-Length": str(len(str(json_data)))},
+            headers={
+                "Content-Type": "application/json",
+                "Content-Length": str(len(str(json_data))),
+            },
         )
         # Добавляем метод json() и данные
         request._json_data = json_data
+
         async def json():
             return request._json_data
+
         request.json = json
-        
+
         # Устанавливаем remote через mock (read-only property)
         type(request).remote = property(lambda self: "127.0.0.1")
-        
+
         return request
 
     @pytest.mark.e2e
@@ -93,11 +99,13 @@ class TestErrorHandlingE2E:
         assert is_safe is True, "Сообщение должно быть безопасным"
 
         # Создаём запрос
-        request = self.create_request({
-            "telegram_id": telegram_id,
-            "message": text_message,
-            "message_type": "text",
-        })
+        request = self.create_request(
+            {
+                "telegram_id": telegram_id,
+                "message": text_message,
+                "message_type": "text",
+            }
+        )
 
         # Используем РЕАЛЬНУЮ БД через get_db
         with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
@@ -149,11 +157,13 @@ class TestErrorHandlingE2E:
         moderation_service = ContentModerationService()
 
         # Создаём запрос с аудио
-        request = self.create_request({
-            "telegram_id": telegram_id,
-            "audio_base64": audio_base64,
-            "message_type": "audio",
-        })
+        request = self.create_request(
+            {
+                "telegram_id": telegram_id,
+                "audio_base64": audio_base64,
+                "message_type": "audio",
+            }
+        )
 
         with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
@@ -178,7 +188,11 @@ class TestErrorHandlingE2E:
                 if response.status == 200:
                     response_data = await response.json()
                     # Должен быть либо fallback на текст, либо понятное сообщение об ошибке
-                    assert "error" in response_data or "message" in response_data or "response" in response_data
+                    assert (
+                        "error" in response_data
+                        or "message" in response_data
+                        or "response" in response_data
+                    )
 
     @pytest.mark.e2e
     @pytest.mark.asyncio
@@ -197,12 +211,14 @@ class TestErrorHandlingE2E:
         assert is_safe is True
 
         # Создаём запрос с фото
-        request = self.create_request({
-            "telegram_id": telegram_id,
-            "message": "Что на этом фото?",
-            "photo_base64": photo_base64,
-            "message_type": "photo",
-        })
+        request = self.create_request(
+            {
+                "telegram_id": telegram_id,
+                "message": "Что на этом фото?",
+                "photo_base64": photo_base64,
+                "message_type": "photo",
+            }
+        )
 
         with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
@@ -227,7 +243,11 @@ class TestErrorHandlingE2E:
                 if response.status == 200:
                     response_data = await response.json()
                     # Должен быть либо fallback на текст, либо понятное сообщение об ошибке
-                    assert "error" in response_data or "message" in response_data or "response" in response_data
+                    assert (
+                        "error" in response_data
+                        or "message" in response_data
+                        or "response" in response_data
+                    )
 
     @pytest.mark.e2e
     @pytest.mark.asyncio
@@ -246,11 +266,13 @@ class TestErrorHandlingE2E:
         assert is_safe is True
 
         # Создаём запрос
-        request = self.create_request({
-            "telegram_id": telegram_id,
-            "message": text_message,
-            "message_type": "text",
-        })
+        request = self.create_request(
+            {
+                "telegram_id": telegram_id,
+                "message": text_message,
+                "message_type": "text",
+            }
+        )
 
         with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
@@ -303,11 +325,13 @@ class TestErrorHandlingE2E:
         assert is_safe is True, "Модерация должна работать"
 
         # Создаём запрос
-        request = self.create_request({
-            "telegram_id": telegram_id,
-            "message": text_message,
-            "message_type": "text",
-        })
+        request = self.create_request(
+            {
+                "telegram_id": telegram_id,
+                "message": text_message,
+                "message_type": "text",
+            }
+        )
 
         with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session

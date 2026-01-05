@@ -105,7 +105,7 @@ class TestAIChatHandler:
 
             # Проверяем результат работы - может быть несколько вызовов (достижение + ответ AI)
             assert mock_message.answer.call_count >= 1, "Должен быть хотя бы один ответ"
-            
+
             # Проверяем что последний вызов содержит ответ
             last_call = mock_message.answer.call_args_list[-1]
             if last_call:

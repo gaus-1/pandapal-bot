@@ -21,7 +21,9 @@ class TestHealthCheck:
         server = PandaPalBotServer()
         server.bot = MagicMock()
         server.bot.get_me = AsyncMock(return_value=MagicMock(username="test_bot"))
-        server.bot.get_webhook_info = AsyncMock(return_value=MagicMock(url="https://test.com/webhook"))
+        server.bot.get_webhook_info = AsyncMock(
+            return_value=MagicMock(url="https://test.com/webhook")
+        )
         server.settings = MagicMock()
         server.settings.webhook_domain = "test.com"
 
@@ -66,8 +68,9 @@ class TestHealthCheck:
                 assert response.status == 200
 
                 import json
-                body = response._body if hasattr(response, '_body') else b'{}'
-                data = json.loads(body.decode('utf-8'))
+
+                body = response._body if hasattr(response, "_body") else b"{}"
+                data = json.loads(body.decode("utf-8"))
                 assert data["status"] == "healthy"
                 assert data["components"]["database"] == "healthy"
                 assert data["components"]["ai_service"] == "healthy"
@@ -88,8 +91,9 @@ class TestHealthCheck:
                 assert response.status == 503
 
                 import json
-                body = response._body if hasattr(response, '_body') else b'{}'
-                data = json.loads(body.decode('utf-8'))
+
+                body = response._body if hasattr(response, "_body") else b"{}"
+                data = json.loads(body.decode("utf-8"))
                 assert data["status"] == "degraded"
                 assert data["components"]["database"] == "unhealthy"
 
@@ -111,7 +115,7 @@ class TestHealthCheck:
                 assert response.status == 200
 
                 import json
-                body = response._body if hasattr(response, '_body') else b'{}'
-                data = json.loads(body.decode('utf-8'))
-                assert data["components"]["ai_service"] == "unavailable"
 
+                body = response._body if hasattr(response, "_body") else b"{}"
+                data = json.loads(body.decode("utf-8"))
+                assert data["components"]["ai_service"] == "unavailable"

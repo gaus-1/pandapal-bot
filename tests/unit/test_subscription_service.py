@@ -109,5 +109,3 @@ class TestSubscriptionService:
         # Проверяем что подписка деактивирована
         subscription = service.get_active_subscription(123456)
         assert subscription is None or subscription.is_active is False
-
-

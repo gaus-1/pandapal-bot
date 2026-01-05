@@ -11,6 +11,7 @@ from aiohttp.test_utils import make_mocked_request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from bot.api.metrics_endpoint import MetricsEndpoint
 from bot.api.miniapp_endpoints import (
     miniapp_ai_chat,
     miniapp_auth,
@@ -23,7 +24,6 @@ from bot.api.miniapp_endpoints import (
     miniapp_update_user,
 )
 from bot.api.premium_endpoints import create_premium_invoice, handle_successful_payment
-from bot.api.metrics_endpoint import MetricsEndpoint
 from bot.models import Base
 
 
@@ -49,6 +49,7 @@ class TestMiniAppEndpoints:
     @pytest.mark.asyncio
     async def test_miniapp_auth_invalid_initdata(self, real_db_session):
         """Тест аутентификации с невалидными данными"""
+
         class MockRequest:
             async def json(self):
                 return {"initData": "invalid_data"}
@@ -110,8 +111,9 @@ class TestMiniAppEndpoints:
 
             # web.json_response возвращает Response, читаем body напрямую
             import json
-            body = response._body if hasattr(response, '_body') else b'{}'
-            data = json.loads(body.decode('utf-8'))
+
+            body = response._body if hasattr(response, "_body") else b"{}"
+            data = json.loads(body.decode("utf-8"))
             assert data["success"] is True
             assert "progress" in data or "stats" in data
 
@@ -142,8 +144,9 @@ class TestMiniAppEndpoints:
 
             # web.json_response возвращает Response, читаем body напрямую
             import json
-            body = response._body if hasattr(response, '_body') else b'{}'
-            data = json.loads(body.decode('utf-8'))
+
+            body = response._body if hasattr(response, "_body") else b"{}"
+            data = json.loads(body.decode("utf-8"))
             assert data["success"] is True
             assert "achievements" in data or "stats" in data
 
@@ -173,8 +176,9 @@ class TestMiniAppEndpoints:
             assert response.status == 200
 
             import json
-            body = response._body if hasattr(response, '_body') else b'{}'
-            data = json.loads(body.decode('utf-8'))
+
+            body = response._body if hasattr(response, "_body") else b"{}"
+            data = json.loads(body.decode("utf-8"))
             assert data["success"] is True
             assert "stats" in data or "progress" in data
 
@@ -204,8 +208,9 @@ class TestMiniAppEndpoints:
             assert response.status == 200
 
             import json
-            body = response._body if hasattr(response, '_body') else b'{}'
-            data = json.loads(body.decode('utf-8'))
+
+            body = response._body if hasattr(response, "_body") else b"{}"
+            data = json.loads(body.decode("utf-8"))
             assert data["success"] is True
             assert "history" in data or "messages" in data
 
@@ -237,7 +242,7 @@ class TestMiniAppEndpoints:
         class MockRequest:
             async def json(self):
                 return {"age": 12, "grade": 6}
-            
+
             @property
             def match_info(self):
                 return {"telegram_id": "123456"}
@@ -252,8 +257,9 @@ class TestMiniAppEndpoints:
             assert response.status == 200
 
             import json
-            body = response._body if hasattr(response, '_body') else b'{}'
-            data = json.loads(body.decode('utf-8'))
+
+            body = response._body if hasattr(response, "_body") else b"{}"
+            data = json.loads(body.decode("utf-8"))
             assert data["success"] is True
 
 
@@ -279,6 +285,7 @@ class TestPremiumEndpoints:
     @pytest.mark.asyncio
     async def test_create_premium_invoice_invalid_plan(self, real_db_session):
         """Тест создания invoice с невалидным планом"""
+
         class MockRequest:
             async def json(self):
                 return {"telegram_id": 123456, "plan_id": "invalid"}
@@ -295,6 +302,7 @@ class TestPremiumEndpoints:
     @pytest.mark.asyncio
     async def test_create_premium_invoice_user_not_found(self, real_db_session):
         """Тест создания invoice для несуществующего пользователя"""
+
         class MockRequest:
             async def json(self):
                 return {"telegram_id": 999999, "plan_id": "month"}
@@ -327,8 +335,9 @@ class TestMetricsEndpoint:
             assert response.status == 200
 
             import json
-            body = response._body if hasattr(response, '_body') else b'{}'
-            data = json.loads(body.decode('utf-8'))
+
+            body = response._body if hasattr(response, "_body") else b"{}"
+            data = json.loads(body.decode("utf-8"))
             assert "status" in data
             assert "components" in data
             assert "database" in data["components"]
@@ -346,7 +355,7 @@ class TestMetricsEndpoint:
             assert response.status == 503
 
             import json
-            body = response._body if hasattr(response, '_body') else b'{}'
-            data = json.loads(body.decode('utf-8'))
-            assert data["components"]["database"] == "unhealthy"
 
+            body = response._body if hasattr(response, "_body") else b"{}"
+            data = json.loads(body.decode("utf-8"))
+            assert data["components"]["database"] == "unhealthy"
