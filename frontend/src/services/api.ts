@@ -215,6 +215,26 @@ export async function getChatHistory(
 }
 
 /**
+ * Очистить историю чата
+ */
+export async function clearChatHistory(telegramId: number): Promise<{ deleted_count: number }> {
+  const response = await fetch(
+    `${API_BASE_URL}/miniapp/chat/history/${telegramId}`,
+    {
+      method: 'DELETE',
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка очистки истории');
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+/**
  * Получить список предметов для обучения
  */
 export async function getSubjects(): Promise<

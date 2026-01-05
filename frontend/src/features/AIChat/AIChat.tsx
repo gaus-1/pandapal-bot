@@ -90,9 +90,14 @@ export function AIChat({ user }: AIChatProps) {
   const handleClearChat = async () => {
     const confirmed = await telegram.showConfirm('Очистить историю чата?');
     if (confirmed) {
-      clearHistory();
-      telegram.hapticFeedback('medium');
-      await telegram.showAlert('История чата очищена');
+      try {
+        await clearHistory();
+        telegram.hapticFeedback('medium');
+        await telegram.showAlert('История чата очищена');
+      } catch (error) {
+        console.error('Ошибка очистки истории:', error);
+        telegram.showAlert('Ошибка при очистке истории');
+      }
     }
   };
 
@@ -310,6 +315,10 @@ export function AIChat({ user }: AIChatProps) {
               onClick={() => {
                 useAppStore.getState().setCurrentScreen('emergency');
                 telegram.hapticFeedback('medium');
+                // Скроллим вверх после переключения экрана
+                setTimeout(() => {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 100);
               }}
               className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-red-500/90 hover:bg-red-600/90 active:scale-95 transition-all flex items-center justify-center shadow-sm"
               aria-label="Экстренные номера"
