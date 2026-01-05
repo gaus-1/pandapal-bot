@@ -20,6 +20,7 @@ interface Game2048Props {
 
 export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
   const [board, setBoard] = useState<number[][]>([]);
+  const [prevBoard, setPrevBoard] = useState<number[][]>([]);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [won, setWon] = useState(false);
@@ -49,6 +50,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
       if (gameState.board) {
         setBoard(gameState.board);
+        setPrevBoard(gameState.board);
       }
       if (gameState.score !== undefined) {
         setScore(gameState.score);
