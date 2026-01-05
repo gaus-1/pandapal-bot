@@ -11,6 +11,7 @@ import sys
 
 import pytest
 
+
 # Проверка наличия реального API ключа
 def _check_real_api_key():
     """Проверяет наличие реального API ключа в env или settings."""
@@ -19,6 +20,7 @@ def _check_real_api_key():
         return True
     try:
         from bot.config.settings import settings
+
         settings_key = settings.yandex_cloud_api_key
         if (
             settings_key
@@ -44,8 +46,8 @@ class TestForeignLanguageImageOCR:
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
     async def test_image_with_english_text_ocr_and_translation(self):
         """Тест OCR английского текста на фото + перевод + объяснение."""
-        from bot.services.yandex_cloud_service import get_yandex_cloud_service
         from bot.services.translate_service import get_translate_service
+        from bot.services.yandex_cloud_service import get_yandex_cloud_service
 
         yandex_service = get_yandex_cloud_service()
         translate_service = get_translate_service()
@@ -54,8 +56,9 @@ class TestForeignLanguageImageOCR:
         # Простое изображение 1x1 пиксель с текстом (в реальности будет фото с текстом)
         # Для реального теста нужна картинка - создадим минимальное изображение через PIL если доступен
         try:
-            from PIL import Image, ImageDraw, ImageFont
             import io
+
+            from PIL import Image, ImageDraw, ImageFont
 
             # Создаем изображение с английским текстом
             img = Image.new("RGB", (400, 100), color="white")
@@ -117,10 +120,11 @@ class TestForeignLanguageAudioSpeech:
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
     async def test_audio_english_speech_recognition_and_translation(self):
         """Тест распознавания английской речи + перевод + объяснение."""
+        from pathlib import Path
+
+        from bot.services.ai_service_solid import get_ai_service
         from bot.services.speech_service import get_speech_service
         from bot.services.translate_service import get_translate_service
-        from bot.services.ai_service_solid import get_ai_service
-        from pathlib import Path
 
         speech_service = get_speech_service()
         translate_service = get_translate_service()
@@ -128,7 +132,7 @@ class TestForeignLanguageAudioSpeech:
 
         # Проверяем наличие тестового аудиофайла
         test_audio_path = Path("tests/fixtures/test_audio_english.ogg")
-        
+
         if not test_audio_path.exists():
             # Пропускаем тест если файла нет, но объясняем что нужно для полного тестирования
             pytest.skip(
@@ -152,10 +156,10 @@ class TestForeignLanguageAudioSpeech:
         recognized_text = await speech_service.transcribe_voice(
             voice_file_bytes=audio_data, language="en"
         )
-        
+
         assert recognized_text is not None, "SpeechKit не распознал аудио"
         assert len(recognized_text) > 0, "SpeechKit вернул пустой текст"
-        
+
         print(f"\n[OK] Шаг 1 - SpeechKit распознал: {recognized_text}")
 
         # Шаг 2: Определение языка
@@ -199,17 +203,18 @@ class TestForeignLanguageFullFlow:
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
     async def test_image_ocr_translation_ai_explanation_flow(self):
         """Полный поток: фото с английским текстом → OCR → перевод → объяснение AI."""
-        from bot.services.yandex_cloud_service import get_yandex_cloud_service
-        from bot.services.translate_service import get_translate_service
         from bot.services.ai_service_solid import get_ai_service
+        from bot.services.translate_service import get_translate_service
+        from bot.services.yandex_cloud_service import get_yandex_cloud_service
 
         yandex_service = get_yandex_cloud_service()
         translate_service = get_translate_service()
         ai_service = get_ai_service()
 
         try:
-            from PIL import Image, ImageDraw, ImageFont
             import io
+
+            from PIL import Image, ImageDraw, ImageFont
 
             # Создаем изображение с английским текстом
             img = Image.new("RGB", (500, 150), color="white")
@@ -269,4 +274,3 @@ class TestForeignLanguageFullFlow:
         ), f"AI анализ должен содержать информацию о переводе: {analysis[:300]}"
 
         print(f"\n[OK] Полный поток выполнен успешно!")
-

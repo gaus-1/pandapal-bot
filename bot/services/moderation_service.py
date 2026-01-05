@@ -126,7 +126,7 @@ class ContentModerationService:
             "дебил",
             "идиот",
         ]
-        
+
         # Нецензурная лексика на английском
         profanity_words_en = [
             "fuck",
@@ -140,7 +140,7 @@ class ContentModerationService:
             "crap",
             "hell",  # Используется с точным паттерном \bhell\b, чтобы не блокировать "Hello"
         ]
-        
+
         # Нецензурная лексика на немецком
         profanity_words_de = [
             "scheiße",
@@ -152,7 +152,7 @@ class ContentModerationService:
             "verdammt",
             "blöde",
         ]
-        
+
         # Нецензурная лексика на французском
         profanity_words_fr = [
             "merde",
@@ -163,7 +163,7 @@ class ContentModerationService:
             "bordel",
             "enculé",
         ]
-        
+
         # Нецензурная лексика на испанском
         profanity_words_es = [
             "joder",
@@ -174,13 +174,16 @@ class ContentModerationService:
             "hostia",
             "hijo de puta",
         ]
-        
+
         # Комбинируем все слова для единой проверки
         all_profanity_words = (
-            profanity_words_ru + profanity_words_en + profanity_words_de + 
-            profanity_words_fr + profanity_words_es
+            profanity_words_ru
+            + profanity_words_en
+            + profanity_words_de
+            + profanity_words_fr
+            + profanity_words_es
         )
-        
+
         # Специальная обработка для "hell" - только точное слово, чтобы не блокировать "Hello"
         # Для остальных слов используем паттерн с \w* (позволяет окончания)
         patterns = []
@@ -191,7 +194,7 @@ class ContentModerationService:
             else:
                 # Обычный паттерн с окончаниями
                 patterns.append(rf"\b{re.escape(word)}\w*\b")
-        
+
         self._profanity_regex: Pattern[str] = re.compile(
             r"|".join(patterns),
             re.IGNORECASE,

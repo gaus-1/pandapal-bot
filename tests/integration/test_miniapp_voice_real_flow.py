@@ -123,42 +123,53 @@ class TestMiniAppVoiceRealFlow:
                     # ПРОВЕРКА 2: SpeechService был вызван с правильными параметрами
                     mock_speech_service.transcribe_voice.assert_called_once()
                     call_args = mock_speech_service.transcribe_voice.call_args
-                    assert call_args is not None, "SpeechService.transcribe_voice должен быть вызван"
+                    assert (
+                        call_args is not None
+                    ), "SpeechService.transcribe_voice должен быть вызван"
                     # Проверяем что передали байты аудио
                     audio_bytes_arg = call_args[0][0] if call_args[0] else None
-                    assert audio_bytes_arg is not None, "Должны передать байты аудио в SpeechService"
+                    assert (
+                        audio_bytes_arg is not None
+                    ), "Должны передать байты аудио в SpeechService"
                     assert isinstance(audio_bytes_arg, bytes), "Аудио должно быть в формате bytes"
 
                     # ПРОВЕРКА 3: AI сервис был вызван с распознанным текстом
                     mock_ai_service.generate_response.assert_called_once()
                     ai_call_args = mock_ai_service.generate_response.call_args
                     assert ai_call_args is not None, "AI сервис должен быть вызван"
-                    
+
                     # Проверяем что AI получил распознанный текст
                     user_message = ai_call_args.kwargs.get("user_message") or (
                         ai_call_args.args[0] if ai_call_args.args else None
                     )
                     assert user_message is not None, "AI должен получить сообщение пользователя"
-                    assert "математике" in user_message.lower() or "задачу" in user_message.lower(), \
-                        f"AI должен получить распознанный текст: {user_message}"
+                    assert (
+                        "математике" in user_message.lower() or "задачу" in user_message.lower()
+                    ), f"AI должен получить распознанный текст: {user_message}"
 
                     # ПРОВЕРКА 4: Ответ содержит результат
                     if hasattr(response, "_body") and response._body:
                         import json
+
                         response_data = json.loads(response._body.decode("utf-8"))
-                        assert "response" in response_data or "error" in response_data, \
-                            "Ответ должен содержать response или error"
+                        assert (
+                            "response" in response_data or "error" in response_data
+                        ), "Ответ должен содержать response или error"
                     else:
                         # Если нет _body, проверяем только статус
                         assert response.status == 200, "Ответ должен быть успешным"
 
                     print("\n[OK] Mini-app accepted audio from user button click")
-                    print(f"    SpeechService called: {mock_speech_service.transcribe_voice.called}")
+                    print(
+                        f"    SpeechService called: {mock_speech_service.transcribe_voice.called}"
+                    )
                     print(f"    AI Service called: {mock_ai_service.generate_response.called}")
                     print(f"    Response status: {response.status}")
 
     @pytest.mark.asyncio
-    async def test_miniapp_audio_foreign_language_translation_flow(self, real_db_session, test_user):
+    async def test_miniapp_audio_foreign_language_translation_flow(
+        self, real_db_session, test_user
+    ):
         """
         КРИТИЧНО: Тест обработки иностранного языка в аудио.
         Проверяет: аудио -> распознавание -> определение языка -> перевод -> AI.
@@ -187,7 +198,9 @@ class TestMiniAppVoiceRealFlow:
             with patch("bot.api.miniapp_endpoints.get_translate_service") as mock_translate:
                 mock_translate_service = MagicMock()
                 mock_translate_service.detect_language = AsyncMock(return_value="en")
-                mock_translate_service.translate_text = AsyncMock(return_value="Привет, можешь помочь с математикой?")
+                mock_translate_service.translate_text = AsyncMock(
+                    return_value="Привет, можешь помочь с математикой?"
+                )
                 mock_translate_service.get_language_name = MagicMock(return_value="Английский")
                 mock_translate_service.SUPPORTED_LANGUAGES = ["en", "de", "fr", "es", "ru"]
                 mock_translate.return_value = mock_translate_service
@@ -220,11 +233,17 @@ class TestMiniAppVoiceRealFlow:
                         )
                         assert user_message is not None
                         # AI должен получить либо переведенный текст, либо запрос на объяснение перевода
-                        assert "английск" in user_message.lower() or "перевод" in user_message.lower() or "математик" in user_message.lower()
+                        assert (
+                            "английск" in user_message.lower()
+                            or "перевод" in user_message.lower()
+                            or "математик" in user_message.lower()
+                        )
 
                         print("\n[OK] Mini-app processed foreign language audio with translation")
                         print(f"    Language detected: en")
-                        print(f"    Translation called: {mock_translate_service.translate_text.called}")
+                        print(
+                            f"    Translation called: {mock_translate_service.translate_text.called}"
+                        )
                         print(f"    AI received message with translation info")
 
     @pytest.mark.asyncio
@@ -248,7 +267,9 @@ class TestMiniAppVoiceRealFlow:
         # Мокаем SpeechService чтобы эмулировать ошибку распознавания
         with patch("bot.api.miniapp_endpoints.SpeechService") as mock_speech_class:
             mock_speech_service = MagicMock()
-            mock_speech_service.transcribe_voice = AsyncMock(return_value=None)  # Ошибка распознавания
+            mock_speech_service.transcribe_voice = AsyncMock(
+                return_value=None
+            )  # Ошибка распознавания
             mock_speech_class.return_value = mock_speech_service
 
             # Мокаем get_db
@@ -263,11 +284,15 @@ class TestMiniAppVoiceRealFlow:
 
                 if hasattr(response, "_body") and response._body:
                     import json
+
                     response_data = json.loads(response._body.decode("utf-8"))
                     assert "error" in response_data, "Ответ должен содержать error"
                     error_msg = response_data.get("error", "")
-                    assert "распознать" in error_msg.lower() or "речь" in error_msg.lower() or len(error_msg) > 0, \
-                        f"Сообщение об ошибке должно быть понятным: {error_msg}"
+                    assert (
+                        "распознать" in error_msg.lower()
+                        or "речь" in error_msg.lower()
+                        or len(error_msg) > 0
+                    ), f"Сообщение об ошибке должно быть понятным: {error_msg}"
 
                 print("\n[OK] Mini-app handled audio recognition error correctly")
                 print(f"    Error status: {response.status}")
@@ -294,9 +319,7 @@ class TestMiniAppVoiceRealFlow:
         # Мокаем SpeechService
         with patch("bot.api.miniapp_endpoints.SpeechService") as mock_speech_class:
             mock_speech_service = MagicMock()
-            mock_speech_service.transcribe_voice = AsyncMock(
-                return_value="Сколько будет 2 плюс 2?"
-            )
+            mock_speech_service.transcribe_voice = AsyncMock(return_value="Сколько будет 2 плюс 2?")
             mock_speech_class.return_value = mock_speech_service
 
             # Мокаем AI сервис
@@ -318,16 +341,21 @@ class TestMiniAppVoiceRealFlow:
 
                     # Проверяем что сообщения сохранились в БД
                     from bot.models import ChatHistory
-                    history = real_db_session.query(ChatHistory).filter_by(
-                        user_telegram_id=telegram_id
-                    ).all()
-                    
+
+                    history = (
+                        real_db_session.query(ChatHistory)
+                        .filter_by(user_telegram_id=telegram_id)
+                        .all()
+                    )
+
                     # Должны быть сохранены: вопрос пользователя и ответ AI
-                    assert len(history) >= 2, f"Должно быть минимум 2 сообщения в истории, получено: {len(history)}"
-                    
+                    assert (
+                        len(history) >= 2
+                    ), f"Должно быть минимум 2 сообщения в истории, получено: {len(history)}"
+
                     user_messages = [h for h in history if h.message_type == "user"]
                     ai_messages = [h for h in history if h.message_type == "ai"]
-                    
+
                     assert len(user_messages) >= 1, "Должно быть сохранено сообщение пользователя"
                     assert len(ai_messages) >= 1, "Должно быть сохранено сообщение AI"
 
@@ -335,4 +363,3 @@ class TestMiniAppVoiceRealFlow:
                     print(f"    Total messages in history: {len(history)}")
                     print(f"    User messages: {len(user_messages)}")
                     print(f"    AI messages: {len(ai_messages)}")
-

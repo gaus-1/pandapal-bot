@@ -454,9 +454,13 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                     # Определяем язык текста и переводим если не русский
                     translate_service = get_translate_service()
                     detected_lang = await translate_service.detect_language(transcribed_text)
-                    
+
                     # Если язык определен и это не русский, но поддерживаемый язык
-                    if detected_lang and detected_lang != "ru" and detected_lang in translate_service.SUPPORTED_LANGUAGES:
+                    if (
+                        detected_lang
+                        and detected_lang != "ru"
+                        and detected_lang in translate_service.SUPPORTED_LANGUAGES
+                    ):
                         lang_name = translate_service.get_language_name(detected_lang)
                         logger.info(f"🌍 Mini App: Обнаружен иностранный язык: {detected_lang}")
                         # Переводим текст
@@ -476,7 +480,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                             user_message = transcribed_text
                     else:
                         user_message = transcribed_text
-                    
+
                     logger.info(f"✅ Mini App: Аудио распознано: {transcribed_text[:100]}")
                 else:
                     logger.warning("⚠️ Аудио не распознано или пустое")
