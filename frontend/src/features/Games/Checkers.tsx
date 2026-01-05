@@ -165,26 +165,26 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   };
 
   return (
-    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto flex flex-col items-center pt-4 pb-8">
+    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto flex flex-col items-center pt-2 pb-4">
       <div className="w-full max-w-md px-4 flex flex-col items-center">
         {/* Заголовок */}
-        <div className="w-full flex items-center justify-between mb-4 max-w-[480px]">
+        <div className="w-full flex items-center justify-between mb-2 max-w-[480px]">
           <button
             onClick={onBack}
-            className="p-2.5 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-2 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Назад"
           >
             ← Назад
           </button>
-          <h2 className="text-xl sm:text-2xl font-bold text-[var(--tg-theme-text-color)]">
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--tg-theme-text-color)]">
             ⚫⚪ Шашки
           </h2>
           <div className="w-10" />
         </div>
 
         {/* Статус */}
-        <div className="text-center mb-4 w-full max-w-[480px]">
-          <div className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-1">
+        <div className="text-center mb-2 w-full max-w-[480px]">
+          <div className="text-xl font-bold text-[var(--tg-theme-text-color)] mb-0.5">
             {gameOver
               ? winner === "user"
                 ? "🎉 Ты победил!"
@@ -198,19 +198,19 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                   : "Ход панды..."}
           </div>
           {error && (
-            <p className="text-xs sm:text-sm text-red-500 mt-2">{error}</p>
+            <p className="text-xs sm:text-sm text-red-500 mt-1">{error}</p>
           )}
         </div>
 
         {/* Игровая доска - АДАПТИВНАЯ */}
-        <div className="w-[95%] max-w-[480px] aspect-square relative mb-6">
+        <div className="w-[95%] max-w-[480px] aspect-square relative mb-3">
           {/*
              Техника Grid Gap:
              Внешний контейнер имеет цвет "рамки" (secondary-bg).
              Сама сетка имеет gap-[1px].
              Фон сетки просвечивает через gap, создавая идеальные линии сетки.
           */}
-          <div className="grid grid-cols-8 grid-rows-8 w-full h-full gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[4px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-xl overflow-hidden">
+          <div className="grid grid-cols-8 grid-rows-8 w-full h-full gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[3px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-lg shadow-lg overflow-hidden">
             {board.length > 0 ? (
               board.map((row, rowIndex) =>
                 row.map((_, colIndex) => {
