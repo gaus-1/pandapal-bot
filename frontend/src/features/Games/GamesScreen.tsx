@@ -163,15 +163,15 @@ export function GamesScreen({ user }: GamesScreenProps) {
                   text-white shadow-lg hover:shadow-xl transform hover:scale-105
                   active:scale-100 transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
-                  text-left h-[140px] flex flex-col
+                  text-left h-[140px] flex flex-col overflow-hidden
                 `}
               >
-                <div className="text-3xl mb-1.5">{game.icon}</div>
-                <h3 className="text-base font-bold mb-1">{game.name}</h3>
-                <p className="text-xs opacity-90 mb-2 flex-grow min-h-[32px]">{game.description}</p>
+                <div className="text-3xl mb-1.5 flex-shrink-0">{game.icon}</div>
+                <h3 className="text-base font-bold mb-1 flex-shrink-0">{game.name}</h3>
+                <p className="text-xs opacity-90 mb-2 flex-grow overflow-hidden line-clamp-2">{game.description}</p>
 
                 {/* Статистика - всегда резервируем место */}
-                <div className="mt-auto min-h-[34px]">
+                <div className="mt-auto min-h-[34px] flex-shrink-0">
                   {hasStats ? (
                     <div className="pt-2 border-t border-white/20">
                       <div className="flex justify-between text-xs">
