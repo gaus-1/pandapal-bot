@@ -218,10 +218,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       onClick={() => handleCellClick(rowIndex, colIndex)}
                       disabled={!isUserTurn || isLoading || gameOver}
                       className={`
-                        aspect-square rounded-md sm:rounded-lg
+                        aspect-square rounded-md
                         relative flex items-center justify-center
                         transition-all duration-200 touch-manipulation
-                        min-h-[40px] sm:min-h-[48px] md:min-h-[56px]
                         w-full
                         ${
                           isDark

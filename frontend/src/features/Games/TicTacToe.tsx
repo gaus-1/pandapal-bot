@@ -183,10 +183,9 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
                   onClick={() => handleSquareClick(index)}
                   disabled={!isEmpty || isLoading || gameOver}
                   className={`
-                    aspect-square rounded-lg sm:rounded-xl text-2xl sm:text-3xl md:text-4xl font-bold
+                    aspect-square rounded-md text-base font-bold
                     flex items-center justify-center
                     transition-all duration-300 touch-manipulation
-                    min-h-[70px] sm:min-h-[90px] md:min-h-[100px]
                     w-full
                     ${
                       isEmpty && !gameOver && !isLoading

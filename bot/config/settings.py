@@ -255,6 +255,29 @@ class Settings(BaseSettings):
             raise ValueError("YANDEX_CLOUD_FOLDER_ID не установлен в .env")
         return v
 
+    @field_validator("redis_url")
+    @classmethod
+    def validate_redis_url(cls, v: str) -> str:
+        """Проверка и нормализация Redis URL."""
+        if not v:
+            return v  # Пустой URL допустим (fallback на in-memory)
+
+        # Проверяем формат для redis-py (rediss:// или redis://)
+        if not v.startswith(("rediss://", "redis://")):
+            raise ValueError(
+                "REDIS_URL должен начинаться с rediss:// или redis://. "
+                "Для Upstash используйте формат: rediss://default:TOKEN@host:6379"
+            )
+
+        # Для Upstash проверяем наличие upstash.io в хосте
+        if "upstash.io" in v and "default:" not in v:
+            raise ValueError(
+                "Для Upstash Redis URL должен содержать 'default:' в формате: "
+                "rediss://default:TOKEN@host:6379"
+            )
+
+        return v
+
 
 # Singleton instance настроек
 # Создаётся один раз при импорте модуля
