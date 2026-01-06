@@ -27,6 +27,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   const [error, setError] = useState<string | null>(null);
   const [isUserTurn, setIsUserTurn] = useState(true);
   const [kings, setKings] = useState<boolean[][]>([]);
+
   const boardContainerRef = useRef<HTMLDivElement>(null);
   const [boardSize, setBoardSize] = useState(0);
 
@@ -36,50 +37,38 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   }, [sessionId]);
 
   useEffect(() => {
+    const container = boardContainerRef.current;
+    if (!container) return;
+
     const updateBoardSize = () => {
-      if (boardContainerRef.current) {
-        const container = boardContainerRef.current;
-        const containerWidth = container.clientWidth;
-        const containerHeight = container.clientHeight;
-        // Берем минимум из ширины и высоты, чтобы доска была квадратной
-        // Вычитаем отступы (px-4 = 16px с каждой стороны = 32px)
-        const padding = 32;
-        const availableWidth = containerWidth - padding;
-        const availableHeight = containerHeight;
-        const size = Math.min(availableWidth, availableHeight);
-        // Минимальный размер доски для маленьких экранов
-        const minSize = 200;
-        // Максимальный размер для больших экранов
-        const maxSize = 600;
-        const finalSize = Math.max(minSize, Math.min(maxSize, size));
-        setBoardSize(finalSize);
+      if (container) {
+        // Используем getBoundingClientRect для точных размеров
+        const rect = container.getBoundingClientRect();
+        const containerWidth = rect.width;
+        const containerHeight = rect.height;
+
+        // Берем минимум, чтобы доска была квадратной, и оставляем небольшой отступ
+        const size = Math.floor(Math.min(containerWidth, containerHeight));
+        if (size > 0 && size !== boardSize) {
+          setBoardSize(size);
+        }
       }
     };
 
-    // Используем ResizeObserver для более точного отслеживания изменений
+    // Инициализация с небольшой задержкой, чтобы DOM успел отрисоваться
+    const timer = setTimeout(updateBoardSize, 50);
+
+    // Используем ResizeObserver для более точного отслеживания изменений размера контейнера
     const resizeObserver = new ResizeObserver(() => {
-      // Небольшая задержка для стабилизации размеров
-      setTimeout(updateBoardSize, 10);
+      updateBoardSize();
     });
-
-    if (boardContainerRef.current) {
-      resizeObserver.observe(boardContainerRef.current);
-      // Первоначальный расчет
-      setTimeout(updateBoardSize, 100);
-    }
-
-    // Fallback на window resize для старых браузеров
-    window.addEventListener("resize", updateBoardSize);
-    window.addEventListener("orientationchange", () => {
-      setTimeout(updateBoardSize, 200);
-    });
+    resizeObserver.observe(container);
 
     return () => {
+      clearTimeout(timer);
       resizeObserver.disconnect();
-      window.removeEventListener("resize", updateBoardSize);
-      window.removeEventListener("orientationchange", updateBoardSize);
     };
-  }, []);
+  }, [boardSize]); // Добавил boardSize в зависимости, чтобы избежать лишних перерисовок
 
   const loadGameState = async () => {
     try {
@@ -95,6 +84,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           setKings(gameState.kings);
         }
       } else {
+        // Стандартная инициализация доски
         const initBoard: (string | null)[][] = Array(8)
           .fill(null)
           .map(() => Array(8).fill(null));
@@ -207,9 +197,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   };
 
   return (
-    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] flex flex-col overflow-hidden safe-area-inset">
+    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] flex flex-col overflow-hidden">
       {/* Заголовок */}
-      <div className="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-[var(--tg-theme-hint-color)]/20 safe-area-inset-top">
+      <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-[var(--tg-theme-hint-color)]/20">
         <button
           onClick={onBack}
           className="p-2 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors text-sm touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -224,8 +214,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       </div>
 
       {/* Статус */}
-      <div className="flex-shrink-0 text-center py-2 sm:py-3 px-3 sm:px-4">
-        <div className="text-base sm:text-lg md:text-xl font-bold text-[var(--tg-theme-text-color)] mb-1">
+      <div className="flex-shrink-0 text-center py-2 px-4">
+        <div className="text-lg sm:text-xl font-bold text-[var(--tg-theme-text-color)] mb-1">
           {gameOver
             ? winner === "user"
               ? "🎉 Ты победил!"
@@ -244,21 +234,18 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       </div>
 
       {/* Игровая доска - идеальный квадрат */}
-      <div className="flex-1 flex items-center justify-center px-4 py-2 min-h-0 safe-area-inset">
+      <div className="flex-1 flex items-center justify-center px-2 sm:px-4 pb-2 min-h-0 w-full">
         <div
           ref={boardContainerRef}
-          className="w-full h-full flex items-center justify-center max-w-full max-h-full"
+          className="w-full h-full flex items-center justify-center relative"
         >
-          {boardSize > 0 ? (
+          {/* Отрисовка доски только если размер вычислен */}
+          {boardSize > 0 && (
             <div
-              className="grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[3px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-2xl overflow-hidden flex-shrink-0"
+              className="grid grid-cols-8 grid-rows-8 gap-[2px] bg-[var(--tg-theme-hint-color)] border-[4px] border-[var(--tg-theme-hint-color)] rounded-xl shadow-2xl overflow-hidden"
               style={{
                 width: `${boardSize}px`,
                 height: `${boardSize}px`,
-                minWidth: `${boardSize}px`,
-                minHeight: `${boardSize}px`,
-                maxWidth: `${boardSize}px`,
-                maxHeight: `${boardSize}px`,
               }}
             >
               {board.length > 0 ? (
@@ -274,9 +261,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                         onClick={() => handleCellClick(rowIndex, colIndex)}
                         disabled={!isUserTurn || isLoading || gameOver}
                         className={`
-                          w-full h-full relative
-                          transition-all duration-200 touch-manipulation
-                          flex items-center justify-center
+                          w-full h-full relative flex items-center justify-center
+                          transition-all duration-200 touch-manipulation outline-none
                           ${
                             isDark
                               ? "bg-[var(--tg-theme-button-color)]"
@@ -284,38 +270,41 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                           }
                           ${
                             selected
-                              ? "ring-inset ring-4 ring-yellow-400/80 z-10"
+                              ? "brightness-125 ring-inset ring-4 ring-yellow-400/60 z-10"
                               : ""
                           }
-                          ${
-                            board[rowIndex][colIndex] === "user" && !gameOver && !isLoading
-                              ? "hover:opacity-80 cursor-pointer"
-                              : ""
-                          }
-                          disabled:opacity-50 disabled:cursor-not-allowed
                         `}
                         aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                       >
                         {cell && (
-                          <div className="w-[80%] h-[80%] aspect-square flex items-center justify-center">
+                          <div className="w-[85%] h-[85%] aspect-square flex items-center justify-center relative">
+                            {/* Основное тело шашки */}
                             <div
                               className={`
                                 w-full h-full rounded-full shadow-lg shrink-0 relative flex items-center justify-center
+                                transition-transform active:scale-95
                                 ${cell === "user"
-                                  ? "bg-white border-[3px] border-gray-300"
-                                  : "bg-gray-800 border-[3px] border-gray-900"}
+                                  ? "bg-white border-[4px] border-gray-300 shadow-gray-400/50"
+                                  : "bg-gray-800 border-[4px] border-gray-900 shadow-black/50"}
                               `}
+                              style={{
+                                boxShadow: cell === "user"
+                                  ? "inset 0 -3px 5px rgba(0,0,0,0.2), 0 3px 6px rgba(0,0,0,0.3)"
+                                  : "inset 0 -3px 5px rgba(0,0,0,0.5), 0 3px 6px rgba(0,0,0,0.5)",
+                              }}
                             >
-                              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-transparent to-black/5 pointer-events-none"></div>
+                              {/* Блик для объема */}
+                              <div className="absolute inset-[10%] rounded-full bg-gradient-to-tr from-black/10 to-white/30 pointer-events-none"></div>
 
+                              {/* Иконка Короля */}
                               {isKing(rowIndex, colIndex) && (
                                 <span
                                   className={`
-                                    text-[0.75em] font-bold relative z-10 leading-none drop-shadow-md
-                                    ${cell === "user" ? "text-gray-700" : "text-white"}
+                                    text-[1.2em] font-bold relative z-10 leading-none drop-shadow-sm
+                                    ${cell === "user" ? "text-yellow-600" : "text-yellow-400"}
                                   `}
                                 >
-                                  {cell === "user" ? "♔" : "♚"}
+                                  👑
                                 </span>
                               )}
                             </div>
@@ -326,14 +315,10 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                   })
                 )
               ) : (
-                <div className="col-span-8 row-span-8 flex items-center justify-center text-[var(--tg-theme-hint-color)] text-sm sm:text-base">
+                <div className="col-span-8 row-span-8 flex items-center justify-center text-[var(--tg-theme-hint-color)]">
                   Загрузка...
                 </div>
               )}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center text-[var(--tg-theme-hint-color)] text-sm sm:text-base">
-              Загрузка доски...
             </div>
           )}
         </div>
@@ -341,18 +326,18 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
       {/* Инструкция */}
       {!gameOver && (
-        <div className="flex-shrink-0 text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] px-3 sm:px-4 py-2 space-y-0.5 sm:space-y-1 safe-area-inset-bottom">
-          <p className="m-0 leading-tight">Ты играешь белыми, панда играет черными</p>
-          <p className="m-0 leading-tight">Нажми на свою фишку, затем на клетку для хода</p>
+        <div className="flex-shrink-0 text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] px-4 py-2 space-y-1 bg-[var(--tg-theme-bg-color)]">
+          <p className="m-0">Ты играешь белыми, панда играет черными</p>
+          <p className="m-0">Нажми на свою фишку, затем на клетку для хода</p>
         </div>
       )}
 
       {/* Кнопка новой игры */}
       {gameOver && (
-        <div className="flex-shrink-0 text-center px-3 sm:px-4 py-2 sm:py-3 safe-area-inset-bottom">
+        <div className="flex-shrink-0 text-center px-4 py-3 bg-[var(--tg-theme-bg-color)]">
           <button
             onClick={onBack}
-            className="px-6 sm:px-8 py-2.5 sm:py-3 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-semibold hover:opacity-90 active:opacity-80 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px] w-full max-w-xs"
+            className="px-8 py-3 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px] shadow-md"
           >
             Вернуться к играм
           </button>
