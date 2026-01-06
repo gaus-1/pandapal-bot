@@ -465,6 +465,54 @@ class UserEvent(Base):
         )
 
 
+class DailyRequestCount(Base):
+    """
+    Модель для подсчета дневных AI запросов пользователя.
+
+    Используется для контроля лимитов бесплатных пользователей.
+    Не зависит от ChatHistory, поэтому не сбрасывается при очистке истории.
+
+    Attributes:
+        id: Уникальный идентификатор записи
+        user_telegram_id: Telegram ID пользователя
+        date: Дата запроса (только дата, без времени)
+        request_count: Количество запросов за день
+        last_request_at: Время последнего запроса
+    """
+
+    __tablename__ = "daily_request_counts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_telegram_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("users.telegram_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        index=True,
+    )
+    request_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    last_request_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        Index("idx_daily_request_user_date", "user_telegram_id", "date", unique=True),
+    )
+
+    def __repr__(self) -> str:
+        """Строковое представление счетчика запросов"""
+        return (
+            f"<DailyRequestCount(user={self.user_telegram_id}, "
+            f"date={self.date.date()}, count={self.request_count})>"
+        )
+
+
 class AnalyticsReport(Base):
     """
     Модель для хранения аналитических отчетов

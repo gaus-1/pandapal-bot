@@ -265,6 +265,9 @@ async def handle_ai_message(message: Message, state: FSMContext):
             # Промодерируем ответ AI на безопасность
             ai_response = moderation_service.sanitize_ai_response(ai_response)
 
+            # Увеличиваем счетчик запросов (независимо от истории)
+            premium_service.increment_request_count(telegram_id)
+
             # Сохраняем сообщение пользователя в историю
             history_service.add_message(
                 telegram_id=telegram_id, message_text=user_message, message_type="user"

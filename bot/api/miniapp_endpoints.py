@@ -432,8 +432,15 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                         status=413,
                     )
 
-                audio_bytes = base64.b64decode(audio_base64)
-                logger.info(f"🎤 Mini App: Декодировано {len(audio_bytes)} байт аудио")
+                try:
+                    audio_bytes = base64.b64decode(audio_base64)
+                    logger.info(f"🎤 Mini App: Декодировано {len(audio_bytes)} байт аудио")
+                except Exception as decode_error:
+                    logger.error(f"❌ Ошибка декодирования base64 аудио: {decode_error}")
+                    return web.json_response(
+                        {"error": "Неверный формат аудио. Попробуй записать заново!"},
+                        status=400,
+                    )
 
                 # Проверяем размер декодированного аудио
                 MAX_AUDIO_SIZE = 10 * 1024 * 1024  # 10MB
@@ -483,6 +490,10 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                         user_message = transcribed_text
 
                     logger.info(f"✅ Mini App: Аудио распознано: {transcribed_text[:100]}")
+                    # Убеждаемся что user_message установлен
+                    if not user_message or not user_message.strip():
+                        logger.warning("⚠️ user_message не установлен после распознавания аудио")
+                        user_message = transcribed_text if transcribed_text else message
                 else:
                     logger.warning("⚠️ Аудио не распознано или пустое")
                     # Возвращаем понятную ошибку пользователю
@@ -571,7 +582,10 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 return web.json_response({"error": f"Ошибка обработки фото: {str(e)}"}, status=500)
 
         # Если нет ни фото ни аудио - должно быть текстовое сообщение
-        if not user_message.strip():
+        if not user_message or not user_message.strip():
+            logger.warning(
+                f"⚠️ user_message пустой после обработки: message={message}, audio={bool(audio_base64)}, photo={bool(photo_base64)}"
+            )
             return web.json_response({"error": "message, photo or audio required"}, status=400)
 
         with get_db() as db:
@@ -635,6 +649,9 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             ai_msg = None
             unlocked_achievements = []  # Инициализируем в начале блока
             try:
+                # Увеличиваем счетчик запросов (независимо от истории)
+                premium_service.increment_request_count(telegram_id)
+
                 logger.info(f"💾 Сохраняю сообщение пользователя: {user_message[:50]}...")
                 user_msg = history_service.add_message(telegram_id, user_message, "user")
                 logger.info(f"✅ Сообщение пользователя добавлено в сессию: id={user_msg.id}")
