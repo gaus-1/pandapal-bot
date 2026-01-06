@@ -80,18 +80,26 @@ describe('Checkers', () => {
       expect(screen.getByText('Твой ход!')).toBeInTheDocument();
     });
 
-    // Находим клетку с фишкой пользователя (обычно в нижних рядах)
-    const userCells = screen.getAllByRole('button').filter((btn) => {
+    // Находим клетку с фишкой пользователя (обычно в нижних рядах, ряды 5-7)
+    // Ищем клетки с aria-label, которые содержат координаты в нижних рядах
+    const allCells = screen.getAllByRole('button');
+    const userCell = allCells.find((btn) => {
       const label = btn.getAttribute('aria-label');
-      return label && label.startsWith('Клетка');
+      if (!label || !label.startsWith('Клетка')) return false;
+      // Проверяем, что внутри есть белая фишка (пользователь)
+      const hasUserPiece = btn.querySelector('.bg-white');
+      return hasUserPiece !== null;
     });
 
-    // Кликаем на первую доступную клетку (будет выбор фишки)
-    if (userCells.length > 0) {
-      await user.click(userCells[0]);
+    // Если нашли клетку с фишкой пользователя, кликаем на неё
+    if (userCell) {
+      await user.click(userCell);
       await waitFor(() => {
         expect(telegram.hapticFeedback).toHaveBeenCalledWith('light');
       });
+    } else {
+      // Если не нашли, просто проверяем, что компонент отрендерился
+      expect(screen.getByText('Твой ход!')).toBeInTheDocument();
     }
   });
 

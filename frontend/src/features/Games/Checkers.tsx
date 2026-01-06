@@ -28,6 +28,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   const [error, setError] = useState<string | null>(null);
   const [isUserTurn, setIsUserTurn] = useState(true);
   const [kings, setKings] = useState<boolean[][]>([]);
+  const [aiMoveCell, setAiMoveCell] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     loadGameState();
@@ -133,6 +134,29 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           }
           onGameEnd();
         } else {
+          // Если игра не окончена, показываем задержку перед ходом AI
+          setIsUserTurn(false);
+          setAiMoveCell(null);
+          // Задержка перед показом хода AI (900ms для плавности)
+          await new Promise((resolve) => setTimeout(resolve, 900));
+
+          // Находим клетки, где изменились шашки AI (новая или перемещенная)
+          const oldBoard = board;
+          const newBoard = result.board;
+          for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+              if (oldBoard[r]?.[c] !== "ai" && newBoard[r]?.[c] === "ai") {
+                setAiMoveCell([r, c]);
+                break;
+              }
+            }
+          }
+
+          // Сбрасываем анимацию через 400ms
+          setTimeout(() => {
+            setAiMoveCell(null);
+          }, 400);
+
           setIsUserTurn(true);
         }
       } catch (err) {
@@ -233,7 +257,10 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                           className={`
                             absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
                             w-[85%] aspect-square rounded-full shadow-lg shrink-0 relative flex items-center justify-center
-                            transition-transform active:scale-95
+                            transition-all duration-300 ease-out active:scale-95
+                            ${aiMoveCell && aiMoveCell[0] === rowIndex && aiMoveCell[1] === colIndex
+                              ? "animate-[fadeInScale_0.3s_ease-out]"
+                              : ""}
                             ${cell === "user"
                               ? "bg-white border-[3px] border-gray-300"
                               : "bg-gray-800 border-[3px] border-gray-900"}
@@ -292,6 +319,19 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           </button>
         </div>
       )}
+
+      <style>{`
+        @keyframes fadeInScale {
+          from {
+            opacity: 0;
+            transform: scale(0.8);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 }
