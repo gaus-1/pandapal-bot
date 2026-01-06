@@ -198,12 +198,11 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/*
-          ИГРОВАЯ ДОСКА - САМЫЙ НАДЕЖНЫЙ МЕТОД (PADDING-BOTTOM HACK)
-          Это гарантированно создаст квадрат (1:1), так как padding-bottom
-          всегда рассчитывается от ширины родительского элемента.
+          ИГРОВАЯ ДОСКА - ИДЕАЛЬНЫЙ КВАДРАТ (ASPECT-RATIO)
+          Используем aspect-[1/1] для нативной поддержки браузером.
+          Это работает стабильнее, чем padding-bottom.
         */}
-        <div className="w-full max-w-[460px] relative mb-4" style={{ paddingBottom: '100%' }}>
-          {/* Сетка позиционируется абсолютно и заполняет весь квадратный контейнер */}
+        <div className="w-full max-w-[480px] aspect-[1/1] relative mb-4 shrink-0">
           <div className="absolute inset-0 grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[3px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-2xl overflow-hidden">
             {board.length > 0 ? (
               board.map((row, rowIndex) =>
@@ -220,6 +219,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       className={`
                         w-full h-full relative
                         transition-all duration-200 touch-manipulation
+                        flex items-center justify-center
                         ${
                           isDark
                             ? "bg-[var(--tg-theme-button-color)]"
@@ -241,8 +241,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                     >
                       {cell && (
                         <div
-                          // Идеальный круг в центре
-                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[82%] aspect-square flex items-center justify-center"
+                          // Гибкий центрирование и квадратная форма
+                          className="w-[80%] aspect-square flex items-center justify-center"
                         >
                           <div
                             className={`
@@ -277,9 +277,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           </div>
         </div>
 
-        {/* Инструкция - БЕЗ ПУСТЫХ СТРОК */}
+        {/* Инструкция */}
         {!gameOver && (
-          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] leading-tight px-2 space-y-1">
+          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] leading-none px-2 space-y-1">
             <p className="m-0">Ты играешь белыми, панда играет черными</p>
             <p className="m-0">Нажми на свою фишку, затем на клетку для хода</p>
           </div>
