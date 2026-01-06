@@ -403,7 +403,7 @@ async def security_middleware(app: web.Application, handler):
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
                 "font-src 'self' https://fonts.gstatic.com; "
                 "img-src 'self' data: https:; "
-                f"connect-src 'self' https://api.pandapal.ru https://mc.yandex.ru; "
+                f"connect-src 'self' https://api.pandapal.ru https://mc.yandex.ru wss://mc.yandex.ru; "
                 f"{csp_frame_ancestors} "
                 "base-uri 'self'; "
                 "form-action 'self'; "
