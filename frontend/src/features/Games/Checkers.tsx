@@ -1,7 +1,7 @@
 /**
  * Checkers Game Component
  * Шашки - игра против панды (AI)
- * Исправлено: Клетка enforced как квадрат -> Шашки идеально по центру
+ * Исправлено: Шашки круглые, визуально сдвинуты чуть вверх для баланса
  */
 
 import { useState, useEffect } from "react";
@@ -212,7 +212,6 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       key={`${rowIndex}-${colIndex}`}
                       onClick={() => handleCellClick(rowIndex, colIndex)}
                       disabled={!isUserTurn || isLoading || gameOver}
-                      // aspect-square гарантирует, что клетка квадратная. flex items-center justify-center центрирует шашку.
                       className={`
                         w-full h-full aspect-square
                         flex items-center justify-center
@@ -235,6 +234,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                           className={`
                             w-[85%] aspect-square rounded-full shadow-lg shrink-0 relative flex items-center justify-center
                             transition-transform active:scale-95
+                            -mt-[4px]
                             ${cell === "user"
                               ? "bg-white border-[3px] border-gray-300"
                               : "bg-gray-800 border-[3px] border-gray-900"}
