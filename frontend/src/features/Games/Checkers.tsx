@@ -11,6 +11,7 @@ import {
   getGameSession,
   type UserProfile,
 } from "../../services/api";
+import { PandaReaction } from "../../components/PandaReaction";
 
 interface CheckersProps {
   sessionId: number;
@@ -112,27 +113,15 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           if (result.winner === "user") {
             setWinner("user");
             telegram.notifySuccess();
-            setTimeout(() => {
-              telegram
-                .showPopup({
-                  title: "🎉 Победа!",
-                  message: "Ты победил панду! Отличная игра!",
-                  buttons: [{ type: "close", text: "Закрыть" }],
-                });
-            }, 500);
           } else if (result.winner === "ai") {
             setWinner("ai");
             telegram.notifyWarning();
-            setTimeout(() => {
-              telegram.showPopup({
-                title: "😔 Поражение",
-                message: "Панда выиграла! Попробуй еще раз!",
-                buttons: [{ type: "close", text: "Закрыть" }],
-              });
-            }, 500);
           }
+          setIsUserTurn(false);
           onGameEnd();
         } else {
+          // После хода пользователя AI делает ход автоматически на бэкенде
+          // Теперь снова очередь пользователя
           setIsUserTurn(true);
         }
       } catch (err) {
@@ -178,6 +167,11 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
       {/* Статус */}
       <div className="flex-shrink-0 text-center py-2 px-4">
+        {gameOver && winner && (
+          <div className="mb-3">
+            <PandaReaction mood={winner === "user" ? "sad" : "happy"} />
+          </div>
+        )}
         <div className="text-lg sm:text-xl font-bold text-[var(--tg-theme-text-color)] mb-1">
           {gameOver
             ? winner === "user"

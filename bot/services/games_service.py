@@ -715,20 +715,68 @@ class GamesService:
         # Конвертируем формат для старого AI
         frontend_board = game.get_board_state()["board"]
         ai_move = self.checkers_ai.get_best_move(frontend_board, "ai")
-        if ai_move:
-            ai_from_row, ai_from_col, ai_to_row, ai_to_col = ai_move
-            if game.make_move(ai_from_row, ai_from_col, ai_to_row, ai_to_col):
-                # Проверяем победу AI
-                if game.winner == 2:
-                    state = game.get_board_state()
-                    self.finish_game_session(session_id, "loss")
-                    return {
-                        "board": state["board"],
-                        "kings": state.get("kings"),
-                        "winner": "ai",
-                        "game_over": True,
-                        "ai_move": ai_move,
-                    }
+
+        if not ai_move:
+            # AI не может сделать ход - пользователь победил
+            state = game.get_board_state()
+            self.finish_game_session(session_id, "win")
+            return {
+                "board": state["board"],
+                "kings": state.get("kings"),
+                "winner": "user",
+                "game_over": True,
+                "ai_move": None,
+            }
+
+        ai_from_row, ai_from_col, ai_to_row, ai_to_col = ai_move
+
+        # Проверяем валидность хода AI перед выполнением
+        valid_moves_ai = game.get_valid_moves(2)
+        ai_move_valid = any(
+            move == (ai_from_row, ai_from_col, ai_to_row, ai_to_col) for move in valid_moves_ai
+        )
+
+        if not ai_move_valid:
+            # Ход AI невалидный - пробуем найти другой валидный ход
+            if valid_moves_ai:
+                # Берем первый валидный ход
+                ai_from_row, ai_from_col, ai_to_row, ai_to_col = valid_moves_ai[0]
+            else:
+                # Нет валидных ходов - пользователь победил
+                state = game.get_board_state()
+                self.finish_game_session(session_id, "win")
+                return {
+                    "board": state["board"],
+                    "kings": state.get("kings"),
+                    "winner": "user",
+                    "game_over": True,
+                    "ai_move": None,
+                }
+
+        # Выполняем ход AI
+        if game.make_move(ai_from_row, ai_from_col, ai_to_row, ai_to_col):
+            # Проверяем победу AI
+            if game.winner == 2:
+                state = game.get_board_state()
+                self.finish_game_session(session_id, "loss")
+                return {
+                    "board": state["board"],
+                    "kings": state.get("kings"),
+                    "winner": "ai",
+                    "game_over": True,
+                    "ai_move": (ai_from_row, ai_from_col, ai_to_row, ai_to_col),
+                }
+        else:
+            # Ход AI не выполнен - пользователь победил
+            state = game.get_board_state()
+            self.finish_game_session(session_id, "win")
+            return {
+                "board": state["board"],
+                "kings": state.get("kings"),
+                "winner": "user",
+                "game_over": True,
+                "ai_move": None,
+            }
 
         # Сохраняем состояние
         state = game.get_board_state()
@@ -748,7 +796,7 @@ class GamesService:
             "kings": state.get("kings"),
             "winner": None,
             "game_over": False,
-            "ai_move": ai_move if ai_move else None,
+            "ai_move": (ai_from_row, ai_from_col, ai_to_row, ai_to_col),
         }
 
     def game_2048_move(self, session_id: int, direction: str) -> Dict:

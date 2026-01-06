@@ -10,6 +10,7 @@ import {
   getGameSession,
   type UserProfile,
 } from "../../services/api";
+import { PandaReaction } from "../../components/PandaReaction";
 
 interface Game2048Props {
   sessionId: number;
@@ -103,25 +104,9 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
         if (result.game_over) {
           setGameOver(true);
           telegram.notifyError();
-          setTimeout(() => {
-            telegram
-              .showPopup({
-                title: "😔 Игра окончена",
-                message: `Твой счет: ${result.score}. Попробуй еще раз!`,
-                buttons: [{ type: "close", text: "Закрыть" }],
-              });
-          }, 500);
           onGameEnd();
         } else if (result.won && !won) {
           telegram.notifySuccess();
-          setTimeout(() => {
-            telegram
-              .showPopup({
-                title: "🎉 Победа!",
-                message: "Ты достиг 2048! Продолжай играть!",
-                buttons: [{ type: "close", text: "Закрыть" }],
-              });
-          }, 500);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Ошибка хода";
@@ -259,12 +244,27 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
         {/* Счет */}
         <div className="text-center mb-0">
+          {won && (
+            <div className="mb-3">
+              <PandaReaction mood="happy" />
+            </div>
+          )}
+          {gameOver && (
+            <div className="mb-3">
+              <PandaReaction mood="sad" />
+            </div>
+          )}
           <div className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0">
             {score}
           </div>
           {won && (
             <div className="text-xs sm:text-sm text-green-500 font-semibold">
               🎉 Ты достиг 2048!
+            </div>
+          )}
+          {gameOver && (
+            <div className="text-xs sm:text-sm text-red-500 font-semibold mt-1">
+              Игра окончена
             </div>
           )}
           {error && (
