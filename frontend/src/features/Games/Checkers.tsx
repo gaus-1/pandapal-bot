@@ -42,14 +42,43 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         const containerWidth = container.clientWidth;
         const containerHeight = container.clientHeight;
         // Берем минимум из ширины и высоты, чтобы доска была квадратной
-        const size = Math.min(containerWidth, containerHeight);
-        setBoardSize(size);
+        // Вычитаем отступы (px-4 = 16px с каждой стороны = 32px)
+        const padding = 32;
+        const availableWidth = containerWidth - padding;
+        const availableHeight = containerHeight;
+        const size = Math.min(availableWidth, availableHeight);
+        // Минимальный размер доски для маленьких экранов
+        const minSize = 200;
+        // Максимальный размер для больших экранов
+        const maxSize = 600;
+        const finalSize = Math.max(minSize, Math.min(maxSize, size));
+        setBoardSize(finalSize);
       }
     };
 
-    updateBoardSize();
+    // Используем ResizeObserver для более точного отслеживания изменений
+    const resizeObserver = new ResizeObserver(() => {
+      // Небольшая задержка для стабилизации размеров
+      setTimeout(updateBoardSize, 10);
+    });
+
+    if (boardContainerRef.current) {
+      resizeObserver.observe(boardContainerRef.current);
+      // Первоначальный расчет
+      setTimeout(updateBoardSize, 100);
+    }
+
+    // Fallback на window resize для старых браузеров
     window.addEventListener("resize", updateBoardSize);
-    return () => window.removeEventListener("resize", updateBoardSize);
+    window.addEventListener("orientationchange", () => {
+      setTimeout(updateBoardSize, 200);
+    });
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateBoardSize);
+      window.removeEventListener("orientationchange", updateBoardSize);
+    };
   }, []);
 
   const loadGameState = async () => {
@@ -178,9 +207,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   };
 
   return (
-    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] flex flex-col overflow-hidden">
+    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] flex flex-col overflow-hidden safe-area-inset">
       {/* Заголовок */}
-      <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-[var(--tg-theme-hint-color)]/20">
+      <div className="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-[var(--tg-theme-hint-color)]/20 safe-area-inset-top">
         <button
           onClick={onBack}
           className="p-2 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors text-sm touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -195,8 +224,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       </div>
 
       {/* Статус */}
-      <div className="flex-shrink-0 text-center py-3 px-4">
-        <div className="text-lg sm:text-xl font-bold text-[var(--tg-theme-text-color)] mb-1">
+      <div className="flex-shrink-0 text-center py-2 sm:py-3 px-3 sm:px-4">
+        <div className="text-base sm:text-lg md:text-xl font-bold text-[var(--tg-theme-text-color)] mb-1">
           {gameOver
             ? winner === "user"
               ? "🎉 Ты победил!"
@@ -215,17 +244,21 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       </div>
 
       {/* Игровая доска - идеальный квадрат */}
-      <div className="flex-1 flex items-center justify-center px-4 py-2 min-h-0">
+      <div className="flex-1 flex items-center justify-center px-4 py-2 min-h-0 safe-area-inset">
         <div
           ref={boardContainerRef}
-          className="w-full h-full flex items-center justify-center"
+          className="w-full h-full flex items-center justify-center max-w-full max-h-full"
         >
-          {boardSize > 0 && (
+          {boardSize > 0 ? (
             <div
-              className="grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[3px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-2xl overflow-hidden"
+              className="grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[3px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-2xl overflow-hidden flex-shrink-0"
               style={{
                 width: `${boardSize}px`,
                 height: `${boardSize}px`,
+                minWidth: `${boardSize}px`,
+                minHeight: `${boardSize}px`,
+                maxWidth: `${boardSize}px`,
+                maxHeight: `${boardSize}px`,
               }}
             >
               {board.length > 0 ? (
@@ -293,10 +326,14 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                   })
                 )
               ) : (
-                <div className="col-span-8 row-span-8 flex items-center justify-center text-[var(--tg-theme-hint-color)]">
+                <div className="col-span-8 row-span-8 flex items-center justify-center text-[var(--tg-theme-hint-color)] text-sm sm:text-base">
                   Загрузка...
                 </div>
               )}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center text-[var(--tg-theme-hint-color)] text-sm sm:text-base">
+              Загрузка доски...
             </div>
           )}
         </div>
@@ -304,18 +341,18 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
       {/* Инструкция */}
       {!gameOver && (
-        <div className="flex-shrink-0 text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] px-4 py-2 space-y-1">
-          <p className="m-0">Ты играешь белыми, панда играет черными</p>
-          <p className="m-0">Нажми на свою фишку, затем на клетку для хода</p>
+        <div className="flex-shrink-0 text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] px-3 sm:px-4 py-2 space-y-0.5 sm:space-y-1 safe-area-inset-bottom">
+          <p className="m-0 leading-tight">Ты играешь белыми, панда играет черными</p>
+          <p className="m-0 leading-tight">Нажми на свою фишку, затем на клетку для хода</p>
         </div>
       )}
 
       {/* Кнопка новой игры */}
       {gameOver && (
-        <div className="flex-shrink-0 text-center px-4 py-3">
+        <div className="flex-shrink-0 text-center px-3 sm:px-4 py-2 sm:py-3 safe-area-inset-bottom">
           <button
             onClick={onBack}
-            className="px-8 py-3 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px]"
+            className="px-6 sm:px-8 py-2.5 sm:py-3 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-semibold hover:opacity-90 active:opacity-80 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px] w-full max-w-xs"
           >
             Вернуться к играм
           </button>
