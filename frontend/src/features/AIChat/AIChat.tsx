@@ -33,6 +33,7 @@ export function AIChat({ user }: AIChatProps) {
   const streamRef = useRef<MediaStream | null>(null);
   const recordingStartTimeRef = useRef<number>(0);
   const audioChunksRef = useRef<Blob[]>([]);
+  const mimeTypeRef = useRef<string>('audio/webm');
 
   // Автоскролл к последнему сообщению
   useEffect(() => {
@@ -201,38 +202,54 @@ export function AIChat({ user }: AIChatProps) {
 
       console.log('✅ Аудио трек активен:', audioTrack.label);
 
-      // Определяем поддерживаемый формат
-      let mimeType = 'audio/webm';
-      if (!MediaRecorder.isTypeSupported('audio/webm')) {
-        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-          mimeType = 'audio/webm;codecs=opus';
-        } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
-          mimeType = 'audio/ogg;codecs=opus';
-        } else {
-          mimeType = ''; // Будет использован формат по умолчанию
+      // Определяем поддерживаемый формат (приоритет для мобильных устройств)
+      let mimeType = '';
+      const supportedTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus',
+        'audio/mp4',
+        'audio/aac',
+      ];
+
+      for (const type of supportedTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          mimeType = type;
+          break;
         }
       }
+
+      // Если ничего не поддерживается, используем формат по умолчанию
+      if (!mimeType) {
+        console.warn('⚠️ Ни один формат не поддерживается, используем по умолчанию');
+      }
+
+      mimeTypeRef.current = mimeType; // Сохраняем в ref для доступа в обработчиках
       console.log('📝 Используемый формат:', mimeType || 'по умолчанию');
 
       // Создаем MediaRecorder с обработкой ошибок
       let mediaRecorder: MediaRecorder;
       try {
         if (mimeType) {
-          mediaRecorder = new MediaRecorder(stream, { mimeType });
+          try {
+            mediaRecorder = new MediaRecorder(stream, { mimeType });
+            console.log('✅ MediaRecorder создан с mimeType:', mimeType);
+          } catch (mimeError) {
+            console.warn('⚠️ Ошибка создания с mimeType, пробуем без него:', mimeError);
+            mediaRecorder = new MediaRecorder(stream);
+            mimeTypeRef.current = ''; // Обновляем ref
+            console.log('✅ MediaRecorder создан без mimeType (fallback)');
+          }
         } else {
           mediaRecorder = new MediaRecorder(stream);
+          console.log('✅ MediaRecorder создан без mimeType');
         }
         console.log('✅ MediaRecorder создан, состояние:', mediaRecorder.state);
       } catch (recorderError) {
-        console.error('❌ Ошибка создания MediaRecorder:', recorderError);
-        // Пробуем без указания mimeType
-        try {
-          mediaRecorder = new MediaRecorder(stream);
-          console.log('✅ MediaRecorder создан без mimeType');
-        } catch (fallbackError) {
-          console.error('❌ Ошибка создания MediaRecorder (fallback):', fallbackError);
-          throw new Error('Не удалось создать запись аудио. Попробуй обновить страницу.');
-        }
+        console.error('❌ Критическая ошибка создания MediaRecorder:', recorderError);
+        // Очищаем stream перед выбросом ошибки
+        stream.getTracks().forEach((track) => track.stop());
+        throw new Error('Не удалось создать запись аудио. Попробуй обновить страницу.');
       }
 
       // Очищаем массив чанков для новой записи
@@ -245,7 +262,12 @@ export function AIChat({ user }: AIChatProps) {
         }
       };
 
+      // Флаг для отслеживания успешного старта
+      let recordingStarted = false;
+      let startError: Error | null = null;
+
       mediaRecorder.onstart = () => {
+        recordingStarted = true;
         console.log('✅ MediaRecorder начал запись, состояние:', mediaRecorder.state);
       };
 
@@ -273,7 +295,7 @@ export function AIChat({ user }: AIChatProps) {
           return;
         }
 
-        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType || 'audio/webm' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeTypeRef.current || 'audio/webm' });
         const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
 
         console.log('📊 Размер аудио:', audioBlob.size, 'байт');
@@ -361,6 +383,14 @@ export function AIChat({ user }: AIChatProps) {
         console.error('❌ Ошибка MediaRecorder:', event);
         const errorEvent = event as ErrorEvent;
         console.error('❌ Детали ошибки:', errorEvent.error || errorEvent.message);
+
+        // Сохраняем ошибку для проверки после start()
+        if (errorEvent.error instanceof Error) {
+          startError = errorEvent.error;
+        } else {
+          startError = new Error(errorEvent.message || 'Неизвестная ошибка MediaRecorder');
+        }
+
         telegram.notifyError();
 
         let errorMsg = 'Ошибка записи аудио!';
@@ -411,20 +441,87 @@ export function AIChat({ user }: AIChatProps) {
           throw new Error('Аудио трек потерян перед start()');
         }
 
-        mediaRecorder.start(100); // Получаем данные каждые 100мс
-        console.log('🎙️ Запись начата, состояние:', mediaRecorder.state);
+        // Сохраняем ссылку на recorder ДО start(), чтобы обработчики могли его использовать
+        mediaRecorderRef.current = mediaRecorder;
 
-        // Ждем немного и проверяем что запись действительно началась
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        const recorderState: RecordingState = mediaRecorder.state;
-        if (recorderState === 'inactive') {
-          throw new Error(`Запись не началась, состояние: ${recorderState}`);
+        // Запускаем запись с явной обработкой ошибок
+        try {
+          // Используем меньший интервал для мобильных устройств
+          const timeslice = 250; // 250мс для более стабильной работы на мобильных
+          mediaRecorder.start(timeslice);
+          console.log('🎙️ Запись начата, состояние:', mediaRecorder.state);
+        } catch (startSyncError) {
+          console.error('❌ Синхронная ошибка при start():', startSyncError);
+          throw new Error(`Не удалось начать запись: ${startSyncError instanceof Error ? startSyncError.message : String(startSyncError)}`);
         }
 
-        mediaRecorderRef.current = mediaRecorder;
+        // Ждем и проверяем что запись действительно началась (уменьшено время ожидания)
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        const recorderState: RecordingState = mediaRecorder.state;
+        console.log('🔍 Проверка состояния после start():', recorderState, 'recordingStarted:', recordingStarted);
+
+        // Проверяем, не произошла ли ошибка через onerror
+        if (startError) {
+          console.error('❌ Ошибка через onerror:', startError);
+          throw startError;
+        }
+
+        // Проверяем состояние - если inactive, значит что-то пошло не так
+        if (recorderState === 'inactive') {
+          const trackAfterStart = stream.getAudioTracks()[0];
+          const trackState = trackAfterStart?.readyState;
+          console.error('❌ Запись не началась:', {
+            recorderState,
+            trackState,
+            trackExists: !!trackAfterStart,
+            mimeType: mimeTypeRef.current,
+          });
+
+          if (!trackAfterStart || trackState !== 'live') {
+            throw new Error('Аудио трек потерян после start()');
+          }
+
+          // Пробуем еще раз без mimeType
+          console.log('🔄 Пробуем перезапустить без mimeType...');
+          try {
+            if (mediaRecorder.state !== 'inactive') {
+              mediaRecorder.stop();
+            }
+          } catch (e) {
+            console.warn('⚠️ Ошибка при остановке перед перезапуском:', e);
+          }
+
+          // Создаем новый recorder без mimeType
+          try {
+            const newRecorder = new MediaRecorder(stream);
+            mimeTypeRef.current = '';
+            // Переустанавливаем обработчики
+            audioChunksRef.current = [];
+            newRecorder.ondataavailable = mediaRecorder.ondataavailable;
+            newRecorder.onstart = mediaRecorder.onstart;
+            newRecorder.onstop = mediaRecorder.onstop;
+            newRecorder.onerror = mediaRecorder.onerror;
+
+            newRecorder.start(250);
+            mediaRecorderRef.current = newRecorder;
+            recordingStarted = false;
+            startError = null;
+
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            if (newRecorder.state === 'inactive' || startError) {
+              throw new Error('Не удалось начать запись даже без mimeType');
+            }
+            console.log('✅ Запись начата без mimeType');
+          } catch (retryError) {
+            console.error('❌ Ошибка при повторной попытке:', retryError);
+            throw new Error(`Запись не началась. Попробуй обновить страницу или использовать текстовый ввод.`);
+          }
+        }
+
         recordingStartTimeRef.current = Date.now();
         setIsRecording(true);
         telegram.hapticFeedback('heavy');
+        console.log('✅ Запись успешно начата и подтверждена');
       } catch (startError) {
         console.error('❌ Ошибка запуска записи:', startError);
         telegram.notifyError();
@@ -454,7 +551,23 @@ export function AIChat({ user }: AIChatProps) {
 
       if (error instanceof DOMException) {
         if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-          errorMessage = 'Доступ к микрофону запрещен.\n\nРазреши доступ к микрофону в настройках браузера или Telegram, затем попробуй снова.';
+          // Более детальное сообщение для системных ошибок
+          if (error.message.includes('system') || error.message.includes('Permission denied by system')) {
+            errorMessage = (
+              'Доступ к микрофону заблокирован системой.\n\n' +
+              '1. Проверь настройки разрешений Telegram\n' +
+              '2. Разреши доступ к микрофону в настройках устройства\n' +
+              '3. Перезапусти Telegram и попробуй снова\n' +
+              '4. Если проблема сохраняется, используй текстовый ввод'
+            );
+          } else {
+            errorMessage = (
+              'Доступ к микрофону запрещен.\n\n' +
+              '1. Нажми на иконку замка в адресной строке\n' +
+              '2. Разреши доступ к микрофону\n' +
+              '3. Обнови страницу и попробуй снова'
+            );
+          }
         } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
           errorMessage = 'Микрофон не найден.\n\nУбедись, что микрофон подключен и доступен.';
         } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
