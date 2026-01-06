@@ -20,8 +20,8 @@ export const Features: React.FC = React.memo(() => {
       className="w-full py-12 sm:py-16"
       aria-label="Преимущества"
     >
-      <div className="max-w-5xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="max-w-5xl mx-auto px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 md:gap-7">
           {/* Рендерим карточки из массива FEATURES */}
           {FEATURES.map((feature, index) => (
             <div

@@ -38,7 +38,7 @@ export const FEATURES: readonly Feature[] = [
   },
   {
     id: 'gamification',
-    title: 'Игра',
+    title: 'Достижения',
     description: 'Геймификация и система достижений для мотивации.',
   },
   {
