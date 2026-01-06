@@ -290,13 +290,13 @@ class TestYourService:
 ### **Частые вопросы:**
 
 **Q: Как настроить локальное окружение?**
-A: См. [README.md](README.md#установка)
+A: См. [README.md](README.md) и [документацию](docs/)
 
 **Q: Где найти задачи для новичков?**
 A: Issues с меткой `good first issue`
 
 **Q: Как работать с Yandex Cloud API?**
-A: См. [docs/YANDEX_CLOUD_SETUP.md](docs/RAILWAY_SETUP.md)
+A: См. [документацию](docs/README.md)
 
 ---
 
