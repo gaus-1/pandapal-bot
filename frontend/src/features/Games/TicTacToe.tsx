@@ -77,6 +77,13 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
       telegram.hapticFeedback("light");
       const result = await ticTacToeMove(sessionId, index);
 
+      // Если игра не окончена, показываем задержку перед ходом AI
+      if (!result.game_over) {
+        setIsUserTurn(false); // Показываем "Ход панды..."
+        // Задержка перед показом хода AI (1-1.5 секунды)
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+      }
+
       setBoard(result.board);
       setAiMoveIndex(result.ai_move);
 

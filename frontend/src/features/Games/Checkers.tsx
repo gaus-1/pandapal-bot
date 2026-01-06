@@ -1,7 +1,7 @@
 /**
  * Checkers Game Component
  * Шашки - игра против панды (AI)
- * Исправлено: идеальная круглая форма шашек с помощью aspect-square
+ * Исправлено: шашки идеально круглые и точно по центру клеток (absolute positioning)
  */
 
 import { useState, useEffect } from "react";
@@ -213,7 +213,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       onClick={() => handleCellClick(rowIndex, colIndex)}
                       disabled={!isUserTurn || isLoading || gameOver}
                       className={`
-                        w-full h-full relative flex items-center justify-center p-[2px]
+                        w-full h-full relative p-0
                         transition-all duration-200 touch-manipulation outline-none
                         ${
                           isDark
@@ -229,11 +229,11 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                     >
                       {cell && (
-                        // Шашка: w-[85%] + aspect-square гарантирует круг
                         <div
                           className={`
-                            w-[85%] aspect-square rounded-full shadow-lg relative flex items-center justify-center
-                            transition-transform active:scale-95 shrink-0
+                            absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                            w-[85%] aspect-square rounded-full shadow-lg shrink-0 relative flex items-center justify-center
+                            transition-transform active:scale-95
                             ${cell === "user"
                               ? "bg-white border-[3px] border-gray-300"
                               : "bg-gray-800 border-[3px] border-gray-900"}
@@ -244,7 +244,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                               : "inset 0 -2px 4px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.6)",
                           }}
                         >
-                          {/* Блик для объема */}
+                          {/* Блик */}
                           <div className="absolute inset-[15%] rounded-full bg-gradient-to-tr from-black/5 to-white/40 pointer-events-none"></div>
 
                           {/* Корона */}

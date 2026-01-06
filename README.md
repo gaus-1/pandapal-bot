@@ -84,7 +84,10 @@ PandaPal/
 │   ├── services/         # Логика (AI, модерация, перевод, Premium, сессии, игры)
 │   ├── config/           # Настройки, промпты (поддержка иностранных языков)
 │   ├── security/         # Middleware, модерация, аудит
-│   ├── api/              # Endpoints (Mini App, Premium, Auth, Games)
+│   ├── api/              # Endpoints (Mini App, Premium, Auth, Games, Metrics)
+│   ├── keyboards/        # Клавиатуры Telegram (inline, reply)
+│   ├── localization/     # Локализация (ru, en)
+│   ├── monitoring/       # Мониторинг (Prometheus, Sentry)
 │   ├── models.py         # SQLAlchemy модели (User, ChatHistory, GameSession, GameStats)
 │   └── database.py       # БД (PostgreSQL, connection pool)
 ├── frontend/
@@ -137,8 +140,10 @@ PandaPal/
 **API Endpoints:**
 - `miniapp_endpoints.py` — Mini App API (AI chat, голос, изображения)
 - `premium_endpoints.py` — YooKassa webhook, создание платежей
+- `premium_features_endpoints.py` — Premium функции API
 - `auth_endpoints.py` — Telegram Login Widget, сессии
 - `games_endpoints.py` — PandaPalGo API (создание игр, ходы, статистика)
+- `metrics_endpoint.py` — метрики и мониторинг
 
 **Security:**
 - `middleware.py` — CSP, CORS, rate limiting
