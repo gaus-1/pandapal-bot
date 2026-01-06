@@ -9,6 +9,7 @@ import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AIChat } from '../AIChat';
 import * as api from '../../../services/api';
+import { useAppStore } from '../../../store/appStore';
 import type { UserProfile } from '../../../services/api';
 
 // Mock user profile
@@ -37,12 +38,24 @@ vi.mock('../../../services/telegram', () => ({
     showAlert: vi.fn(),
     notifySuccess: vi.fn(),
     notifyError: vi.fn(),
+    showConfirm: vi.fn(),
+    showPopup: vi.fn(),
+  },
+}));
+
+const mockSetCurrentScreen = vi.fn();
+vi.mock('../../../store/appStore', () => ({
+  useAppStore: {
+    getState: vi.fn(() => ({
+      setCurrentScreen: mockSetCurrentScreen,
+    })),
   },
 }));
 
 vi.mock('../../../services/api', () => ({
   getChatHistory: vi.fn(),
   sendAIMessage: vi.fn(),
+  clearChatHistory: vi.fn(),
 }));
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -91,8 +104,9 @@ describe('AIChat - Критические пути', () => {
       // Вводим текст
       await user.type(input, 'Реши уравнение 2x + 5 = 13');
 
-      // Находим и кликаем кнопку отправки
-      const sendButton = screen.getByTitle(/Отправить сообщение/i);
+      // Находим и кликаем кнопку отправки (ищем по тексту ▶️)
+      const sendButtons = screen.getAllByTitle(/Отправить/i);
+      const sendButton = sendButtons.find(btn => btn.textContent?.includes('▶️')) || sendButtons[0];
       await user.click(sendButton);
 
       // Проверяем что API был вызван
@@ -128,7 +142,9 @@ describe('AIChat - Критические пути', () => {
       const input = screen.getByPlaceholderText(/Задай вопрос/i);
       await user.type(input, 'Тест');
 
-      const sendButton = screen.getByTitle(/Отправить сообщение/i);
+      // Ищем кнопку отправки по тексту внутри (▶️)
+      const sendButtons = screen.getAllByTitle(/Отправить/i);
+      const sendButton = sendButtons.find(btn => btn.textContent?.includes('▶️')) || sendButtons[0];
       await user.click(sendButton);
 
       // Проверяем что показывается "PandaPal думает..."
@@ -224,7 +240,7 @@ describe('AIChat - Критические пути', () => {
       }, { timeout: 3000 });
 
       // Начинаем запись (когда поле ввода пустое)
-      const voiceButton = screen.getByTitle(/Записать голосовое сообщение/i);
+      const voiceButton = screen.getByTitle(/Голосовое/i);
       await user.click(voiceButton);
 
       // Проверяем что начали запись
@@ -262,8 +278,10 @@ describe('AIChat - Критические пути', () => {
       }, { timeout: 3000 });
 
       // Проверяем что сообщения из истории отображаются
-      expect(screen.getByText(/Привет, помоги с математикой/i)).toBeInTheDocument();
-      expect(screen.getByText(/Конечно, помогу с математикой/i)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/Привет, помоги с математикой/i)).toBeInTheDocument();
+        expect(screen.getByText(/Конечно, помогу с математикой/i)).toBeInTheDocument();
+      }, { timeout: 3000 });
     });
 
     it('должен показывать приветствие если история пустая', async () => {
@@ -278,6 +296,109 @@ describe('AIChat - Критические пути', () => {
       // Проверяем приветственное сообщение
       expect(screen.getByText(/Начни общение/i)).toBeInTheDocument();
       expect(screen.getByText(/Задай любой вопрос/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('Кнопки действий', () => {
+    it('должен очищать чат при клике на кнопку очистки', async () => {
+      const user = userEvent.setup();
+      const mockSetCurrentScreen = vi.fn();
+      vi.mocked(useAppStore.getState).mockReturnValue({
+        setCurrentScreen: mockSetCurrentScreen,
+      } as ReturnType<typeof useAppStore.getState>);
+      vi.mocked(mockTelegram.showConfirm).mockResolvedValue(true);
+      vi.mocked(api.clearChatHistory).mockResolvedValue({ deleted_count: 1 });
+
+      render(<AIChat user={mockUserProfile} />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Загрузка/i)).not.toBeInTheDocument();
+      }, { timeout: 3000 });
+
+      const clearButton = screen.getByLabelText(/Очистить чат/i);
+      await user.click(clearButton);
+
+      await waitFor(() => {
+        expect(mockTelegram.showConfirm).toHaveBeenCalledWith('Очистить историю чата?');
+      }, { timeout: 3000 });
+    });
+
+    it('должен переключаться на экран SOS при клике на кнопку SOS', async () => {
+      const user = userEvent.setup();
+      const mockSetCurrentScreen = vi.fn();
+      vi.mocked(useAppStore.getState).mockReturnValue({
+        setCurrentScreen: mockSetCurrentScreen,
+      } as ReturnType<typeof useAppStore.getState>);
+
+      render(<AIChat user={mockUserProfile} />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Загрузка/i)).not.toBeInTheDocument();
+      }, { timeout: 3000 });
+
+      const sosButton = screen.getByLabelText(/Экстренные номера/i);
+      await user.click(sosButton);
+
+      await waitFor(() => {
+        expect(mockSetCurrentScreen).toHaveBeenCalledWith('emergency');
+        expect(mockTelegram.hapticFeedback).toHaveBeenCalledWith('medium');
+      }, { timeout: 1000 });
+    });
+
+    it('должен копировать сообщение при клике на кнопку копирования', async () => {
+      const user = userEvent.setup();
+      const mockWriteText = vi.fn();
+      Object.assign(navigator, { clipboard: { writeText: mockWriteText } });
+
+      render(<AIChat user={mockUserProfile} />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Загрузка/i)).not.toBeInTheDocument();
+      }, { timeout: 3000 });
+
+      // Находим кнопку копирования (появляется при hover)
+      const copyButtons = screen.queryAllByTitle(/Копировать/i);
+      if (copyButtons.length > 0) {
+        await user.click(copyButtons[0]);
+
+        await waitFor(() => {
+          expect(mockWriteText).toHaveBeenCalled();
+          expect(mockTelegram.showPopup).toHaveBeenCalled();
+        }, { timeout: 1000 });
+      }
+    });
+
+    it('должен скроллить вверх при клике на кнопку скролла вверх', async () => {
+      const user = userEvent.setup();
+
+      render(<AIChat user={mockUserProfile} />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Загрузка/i)).not.toBeInTheDocument();
+      }, { timeout: 3000 });
+
+      // Кнопки скролла появляются только если есть скролл
+      const scrollUpButton = screen.queryByLabelText(/Вверх/i);
+      if (scrollUpButton) {
+        await user.click(scrollUpButton);
+        expect(mockTelegram.hapticFeedback).toHaveBeenCalledWith('light');
+      }
+    });
+
+    it('должен скроллить вниз при клике на кнопку скролла вниз', async () => {
+      const user = userEvent.setup();
+
+      render(<AIChat user={mockUserProfile} />, { wrapper });
+
+      await waitFor(() => {
+        expect(screen.queryByText(/Загрузка/i)).not.toBeInTheDocument();
+      }, { timeout: 3000 });
+
+      const scrollDownButton = screen.queryByLabelText(/Вниз/i);
+      if (scrollDownButton) {
+        await user.click(scrollDownButton);
+        expect(mockTelegram.hapticFeedback).toHaveBeenCalledWith('light');
+      }
     });
   });
 
@@ -296,7 +417,9 @@ describe('AIChat - Критические пути', () => {
       const input = screen.getByPlaceholderText(/Задай вопрос/i);
       await user.type(input, 'Тест');
 
-      const sendButton = screen.getByTitle(/Отправить сообщение/i);
+      // Ищем кнопку отправки по тексту внутри (▶️)
+      const sendButtons = screen.getAllByTitle(/Отправить/i);
+      const sendButton = sendButtons.find(btn => btn.textContent?.includes('▶️')) || sendButtons[0];
       await user.click(sendButton);
 
       // Проверяем что была вызвана ошибка

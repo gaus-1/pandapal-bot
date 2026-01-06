@@ -84,7 +84,7 @@ export function EmergencyScreen() {
   useEffect(() => {
     // Задержка для рендеринга контента
     const scrollTimeout = setTimeout(() => {
-      if (containerRef.current) {
+      if (containerRef.current && typeof containerRef.current.scrollTo === 'function') {
         // Скроллим контейнер в начало (он сам скроллится)
         containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
       }

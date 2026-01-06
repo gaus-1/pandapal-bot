@@ -205,7 +205,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           3. aspect-square - гарантирует 1:1.
           4. h-auto - предотвращает растягивание высоты браузером.
         */}
-        <div className="w-full max-w-[460px] aspect-square h-auto relative mb-6">
+        <div className="w-full max-w-[460px] aspect-square h-auto relative mb-4">
           <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[3px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-2xl overflow-hidden">
             {board.length > 0 ? (
               board.map((row, rowIndex) =>
@@ -281,9 +281,9 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
         {/* Инструкция */}
         {!gameOver && (
-          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] leading-relaxed px-2">
+          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] leading-tight px-2">
             <p className="m-0">Ты играешь белыми, панда играет черными</p>
-            <p className="m-0">Нажми на свою фишку, затем на клетку для хода</p>
+            <p className="m-0 mt-1">Нажми на свою фишку, затем на клетку для хода</p>
           </div>
         )}
 

@@ -27,7 +27,7 @@ describe('TicTacToe', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (api.getGameSession as jest.Mock).mockResolvedValue({
+    vi.mocked(api.getGameSession).mockResolvedValue({
       id: 1,
       game_type: 'tic_tac_toe',
       game_state: { board: Array(9).fill(null) },
@@ -50,7 +50,7 @@ describe('TicTacToe', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('⭕ Крестики-нолики')).toBeInTheDocument();
+      expect(screen.getByText(/❌⭕ Крестики-нолики/)).toBeInTheDocument();
     });
 
     // Проверяем наличие 9 клеток
@@ -63,7 +63,7 @@ describe('TicTacToe', () => {
 
   it('делает ход при клике на клетку', async () => {
     const user = userEvent.setup();
-    (api.ticTacToeMove as jest.Mock).mockResolvedValue({
+    vi.mocked(api.ticTacToeMove).mockResolvedValue({
       board: ['X', null, null, 'O', null, null, null, null, null],
       winner: null,
       game_over: false,
@@ -94,7 +94,7 @@ describe('TicTacToe', () => {
 
   it('показывает победу пользователя', async () => {
     const user = userEvent.setup();
-    (api.ticTacToeMove as jest.Mock).mockResolvedValue({
+    vi.mocked(api.ticTacToeMove).mockResolvedValue({
       board: ['X', 'X', 'X', 'O', 'O', null, null, null, null],
       winner: 'user',
       game_over: true,
@@ -126,7 +126,7 @@ describe('TicTacToe', () => {
 
   it('показывает поражение', async () => {
     const user = userEvent.setup();
-    (api.ticTacToeMove as jest.Mock).mockResolvedValue({
+    vi.mocked(api.ticTacToeMove).mockResolvedValue({
       board: ['O', 'O', 'O', 'X', 'X', null, null, null, null],
       winner: 'ai',
       game_over: true,
@@ -156,7 +156,7 @@ describe('TicTacToe', () => {
   });
 
   it('не позволяет ходить в занятую клетку', async () => {
-    (api.getGameSession as jest.Mock).mockResolvedValue({
+    vi.mocked(api.getGameSession).mockResolvedValue({
       id: 1,
       game_type: 'tic_tac_toe',
       game_state: { board: ['X', null, null, null, null, null, null, null, null] },

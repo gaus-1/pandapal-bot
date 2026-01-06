@@ -24,7 +24,7 @@ const mockUser = {
 describe('GamesScreen', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (api.getGameStats as jest.Mock).mockResolvedValue({});
+    vi.mocked(api.getGameStats).mockResolvedValue({});
   });
 
   it('отображает список игр', async () => {
@@ -40,7 +40,7 @@ describe('GamesScreen', () => {
 
   it('создает игру при клике на карточку', async () => {
     const user = userEvent.setup();
-    (api.createGame as jest.Mock).mockResolvedValue({
+    vi.mocked(api.createGame).mockResolvedValue({
       session_id: 1,
       game_type: 'tic_tac_toe',
       game_state: { board: Array(9).fill(null) },
@@ -63,7 +63,7 @@ describe('GamesScreen', () => {
   });
 
   it('отображает статистику игр', async () => {
-    (api.getGameStats as jest.Mock).mockResolvedValue({
+    vi.mocked(api.getGameStats).mockResolvedValue({
       tic_tac_toe: {
         game_type: 'tic_tac_toe',
         total_games: 10,
@@ -87,7 +87,7 @@ describe('GamesScreen', () => {
 
   it('обрабатывает ошибки при создании игры', async () => {
     const user = userEvent.setup();
-    (api.createGame as jest.Mock).mockRejectedValue(new Error('Ошибка создания игры'));
+    vi.mocked(api.createGame).mockRejectedValue(new Error('Ошибка создания игры'));
 
     render(<GamesScreen user={mockUser} />);
 
