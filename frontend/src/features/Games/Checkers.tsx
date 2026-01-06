@@ -159,8 +159,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   };
 
   return (
-    // Убран h-full, чтобы убрать принудительное растягивание по высоте окна
-    <div className="w-full min-h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto flex flex-col items-center pt-4 pb-8">
+    // min-h-screen вместо h-full, чтобы не растягивать контент насильно
+    <div className="w-full min-h-screen bg-[var(--tg-theme-bg-color)] overflow-y-auto flex flex-col items-center py-4">
       <div className="w-full max-w-md px-4 flex flex-col items-center">
 
         {/* Заголовок */}
@@ -199,14 +199,16 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/*
-          ИГРОВАЯ ДОСКА - АТОМНАЯ КВАДРАТНОСТЬ
-          1. Убран aspect-ratio у контейнера, чтобы избежать конфликтов расчетов.
-          2. aspect-square добавлен ВНУТРЬ каждой кнопки (клетки).
-             Это заставляет браузер делать каждую клетку квадратной.
-             Сетка из квадратных клеток автоматически становится квадратной доской.
+          ИГРОВАЯ ДОСКА - МЕТОД PADDING-BOTTOM HACK (100% НАДЕЖНЫЙ)
+          height: 0 - запрещает браузеру растягивать высоту.
+          paddingBottom: 100% - задает высоту равной ширине.
+          Ширина контролируется w-full и max-w-[480px].
         */}
-        <div className="w-full max-w-[480px] relative mb-4 shrink-0">
-          <div className="grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[3px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-2xl overflow-hidden">
+        <div
+          className="w-full max-w-[480px] relative mb-4 shrink-0"
+          style={{ height: 0, paddingBottom: '100%' }}
+        >
+          <div className="absolute inset-0 grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[3px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-2xl overflow-hidden">
             {board.length > 0 ? (
               board.map((row, rowIndex) =>
                 row.map((_, colIndex) => {
@@ -220,7 +222,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       onClick={() => handleCellClick(rowIndex, colIndex)}
                       disabled={!isUserTurn || isLoading || gameOver}
                       className={`
-                        w-full aspect-square relative
+                        w-full h-full relative
                         transition-all duration-200 touch-manipulation
                         flex items-center justify-center
                         ${
@@ -244,7 +246,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                     >
                       {cell && (
                         <div
-                          // Шашка занимает 80% квадратной клетки
+                          // Шашка: 80% ширины/высоты, центрирована
                           className="w-[80%] h-[80%] aspect-square flex items-center justify-center"
                         >
                           <div
@@ -273,7 +275,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                 })
               )
             ) : (
-              <div className="col-span-8 row-span-8 flex items-center justify-center text-[var(--tg-theme-hint-color)] aspect-square">
+              <div className="col-span-8 row-span-8 flex items-center justify-center text-[var(--tg-theme-hint-color)]">
                 Загрузка...
               </div>
             )}
