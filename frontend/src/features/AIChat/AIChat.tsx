@@ -34,6 +34,8 @@ export function AIChat({ user }: AIChatProps) {
   const recordingStartTimeRef = useRef<number>(0);
   const audioChunksRef = useRef<Blob[]>([]);
   const mimeTypeRef = useRef<string>('audio/webm');
+  const recordingStartedRef = useRef(false);
+  const startErrorRef = useRef<Error | null>(null);
 
   // Автоскролл к последнему сообщению
   useEffect(() => {
@@ -262,12 +264,12 @@ export function AIChat({ user }: AIChatProps) {
         }
       };
 
-      // Флаг для отслеживания успешного старта
-      let recordingStarted = false;
-      let startError: Error | null = null;
+      // Сбрасываем флаги для новой записи
+      recordingStartedRef.current = false;
+      startErrorRef.current = null;
 
       mediaRecorder.onstart = () => {
-        recordingStarted = true;
+        recordingStartedRef.current = true;
         console.log('✅ MediaRecorder начал запись, состояние:', mediaRecorder.state);
       };
 
@@ -386,9 +388,9 @@ export function AIChat({ user }: AIChatProps) {
 
         // Сохраняем ошибку для проверки после start()
         if (errorEvent.error instanceof Error) {
-          startError = errorEvent.error;
+          startErrorRef.current = errorEvent.error;
         } else {
-          startError = new Error(errorEvent.message || 'Неизвестная ошибка MediaRecorder');
+          startErrorRef.current = new Error(errorEvent.message || 'Неизвестная ошибка MediaRecorder');
         }
 
         telegram.notifyError();
@@ -444,78 +446,52 @@ export function AIChat({ user }: AIChatProps) {
         // Сохраняем ссылку на recorder ДО start(), чтобы обработчики могли его использовать
         mediaRecorderRef.current = mediaRecorder;
 
-        // Запускаем запись с явной обработкой ошибок
+        // Упрощенная логика: сразу запускаем запись без сложных проверок
         try {
-          // Используем меньший интервал для мобильных устройств
-          const timeslice = 250; // 250мс для более стабильной работы на мобильных
+          const timeslice = 250; // 250мс для стабильной работы на мобильных
+          console.log('🎙️ Запуск записи с timeslice:', timeslice);
           mediaRecorder.start(timeslice);
-          console.log('🎙️ Запись начата, состояние:', mediaRecorder.state);
+          console.log('✅ start() вызван, состояние:', mediaRecorder.state);
+
+          // Устанавливаем состояние сразу, не ждем события onstart
+          // Это важно для мобильных устройств, где события могут задерживаться
+          recordingStartTimeRef.current = Date.now();
+          setIsRecording(true);
+          telegram.hapticFeedback('heavy');
+          console.log('✅ Состояние записи установлено');
+
+          // Небольшая задержка для проверки, но не блокируем основной поток
+          setTimeout(() => {
+            const state = mediaRecorderRef.current?.state;
+            const started = recordingStartedRef.current;
+            const error = startErrorRef.current;
+
+            console.log('🔍 Проверка через 200мс:', { state, started, error: error?.message });
+
+            if (error) {
+              console.error('❌ Ошибка обнаружена:', error);
+              setIsRecording(false);
+              if (streamRef.current) {
+                streamRef.current.getTracks().forEach((track) => track.stop());
+                streamRef.current = null;
+              }
+              mediaRecorderRef.current = null;
+              telegram.notifyError();
+              telegram.showAlert(`Ошибка записи: ${error.message}`).catch(console.error);
+            } else if (state === 'inactive' && !started) {
+              console.warn('⚠️ Запись не началась, но ошибки нет. Возможно, это нормально для некоторых устройств.');
+            }
+          }, 200);
+
         } catch (startSyncError) {
           console.error('❌ Синхронная ошибка при start():', startSyncError);
+          setIsRecording(false);
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
+          mediaRecorderRef.current = null;
           throw new Error(`Не удалось начать запись: ${startSyncError instanceof Error ? startSyncError.message : String(startSyncError)}`);
-        }
-
-        // Ждем и проверяем что запись действительно началась (уменьшено время ожидания)
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        const recorderState: RecordingState = mediaRecorder.state;
-        console.log('🔍 Проверка состояния после start():', recorderState, 'recordingStarted:', recordingStarted);
-
-        // Проверяем, не произошла ли ошибка через onerror
-        if (startError) {
-          console.error('❌ Ошибка через onerror:', startError);
-          throw startError;
-        }
-
-        // Проверяем состояние - если inactive, значит что-то пошло не так
-        if (recorderState === 'inactive') {
-          const trackAfterStart = stream.getAudioTracks()[0];
-          const trackState = trackAfterStart?.readyState;
-          console.error('❌ Запись не началась:', {
-            recorderState,
-            trackState,
-            trackExists: !!trackAfterStart,
-            mimeType: mimeTypeRef.current,
-          });
-
-          if (!trackAfterStart || trackState !== 'live') {
-            throw new Error('Аудио трек потерян после start()');
-          }
-
-          // Пробуем еще раз без mimeType
-          console.log('🔄 Пробуем перезапустить без mimeType...');
-          try {
-            if (mediaRecorder.state !== 'inactive') {
-              mediaRecorder.stop();
-            }
-          } catch (e) {
-            console.warn('⚠️ Ошибка при остановке перед перезапуском:', e);
-          }
-
-          // Создаем новый recorder без mimeType
-          try {
-            const newRecorder = new MediaRecorder(stream);
-            mimeTypeRef.current = '';
-            // Переустанавливаем обработчики
-            audioChunksRef.current = [];
-            newRecorder.ondataavailable = mediaRecorder.ondataavailable;
-            newRecorder.onstart = mediaRecorder.onstart;
-            newRecorder.onstop = mediaRecorder.onstop;
-            newRecorder.onerror = mediaRecorder.onerror;
-
-            newRecorder.start(250);
-            mediaRecorderRef.current = newRecorder;
-            recordingStarted = false;
-            startError = null;
-
-            await new Promise((resolve) => setTimeout(resolve, 100));
-            if (newRecorder.state === 'inactive' || startError) {
-              throw new Error('Не удалось начать запись даже без mimeType');
-            }
-            console.log('✅ Запись начата без mimeType');
-          } catch (retryError) {
-            console.error('❌ Ошибка при повторной попытке:', retryError);
-            throw new Error(`Запись не началась. Попробуй обновить страницу или использовать текстовый ввод.`);
-          }
         }
 
         recordingStartTimeRef.current = Date.now();
