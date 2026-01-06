@@ -32,6 +32,7 @@ export function AIChat({ user }: AIChatProps) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const recordingStartTimeRef = useRef<number>(0);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   // Автоскролл к последнему сообщению
   useEffect(() => {
@@ -234,19 +235,32 @@ export function AIChat({ user }: AIChatProps) {
         }
       }
 
-      const audioChunks: Blob[] = [];
+      // Очищаем массив чанков для новой записи
+      audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
           console.log('📦 Получен аудио чанк:', event.data.size, 'байт');
-          audioChunks.push(event.data);
+          audioChunksRef.current.push(event.data);
         }
       };
 
-      mediaRecorder.onstop = () => {
-        console.log('🛑 Запись остановлена, чанков:', audioChunks.length);
+      mediaRecorder.onstart = () => {
+        console.log('✅ MediaRecorder начал запись, состояние:', mediaRecorder.state);
+      };
 
-        if (audioChunks.length === 0) {
+      mediaRecorder.onpause = () => {
+        console.warn('⚠️ MediaRecorder приостановлен');
+      };
+
+      mediaRecorder.onresume = () => {
+        console.log('▶️ MediaRecorder возобновлен');
+      };
+
+      mediaRecorder.onstop = () => {
+        console.log('🛑 Запись остановлена, чанков:', audioChunksRef.current.length);
+
+        if (audioChunksRef.current.length === 0) {
           console.error('❌ Аудио не записалось');
           telegram.notifyError();
           telegram.showAlert('Не удалось записать аудио. Попробуй еще раз!');
@@ -259,7 +273,7 @@ export function AIChat({ user }: AIChatProps) {
           return;
         }
 
-        const audioBlob = new Blob(audioChunks, { type: mimeType || 'audio/webm' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType || 'audio/webm' });
         const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
 
         console.log('📊 Размер аудио:', audioBlob.size, 'байт');
@@ -378,28 +392,59 @@ export function AIChat({ user }: AIChatProps) {
         mediaRecorderRef.current = null;
       };
 
+      // Проверяем что stream все еще активен перед началом записи
+      const currentAudioTrack = stream.getAudioTracks()[0];
+      if (!currentAudioTrack || currentAudioTrack.readyState !== 'live') {
+        throw new Error('Аудио трек потерян перед началом записи');
+      }
+
       // Запускаем запись с интервалом для получения данных
       try {
-        if (mediaRecorder.state === 'inactive') {
-          mediaRecorder.start(100); // Получаем данные каждые 100мс
-          console.log('🎙️ Запись начата, состояние:', mediaRecorder.state);
-        } else {
+        if (mediaRecorder.state !== 'inactive') {
           console.warn('⚠️ MediaRecorder уже активен, состояние:', mediaRecorder.state);
+          throw new Error('MediaRecorder уже активен');
         }
+
+        // Проверяем stream еще раз перед start
+        const trackBeforeStart = stream.getAudioTracks()[0];
+        if (!trackBeforeStart || trackBeforeStart.readyState !== 'live') {
+          throw new Error('Аудио трек потерян перед start()');
+        }
+
+        mediaRecorder.start(100); // Получаем данные каждые 100мс
+        console.log('🎙️ Запись начата, состояние:', mediaRecorder.state);
+
+        // Ждем немного и проверяем что запись действительно началась
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        const recorderState: RecordingState = mediaRecorder.state;
+        if (recorderState === 'inactive') {
+          throw new Error(`Запись не началась, состояние: ${recorderState}`);
+        }
+
         mediaRecorderRef.current = mediaRecorder;
         recordingStartTimeRef.current = Date.now();
         setIsRecording(true);
         telegram.hapticFeedback('heavy');
       } catch (startError) {
         console.error('❌ Ошибка запуска записи:', startError);
+        telegram.notifyError();
         // Очищаем ресурсы
+        try {
+          if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+          }
+        } catch (e) {
+          console.warn('⚠️ Ошибка при остановке recorder после ошибки:', e);
+        }
         if (streamRef.current) {
           streamRef.current.getTracks().forEach((track) => track.stop());
           streamRef.current = null;
         }
         mediaRecorderRef.current = null;
         setIsRecording(false);
-        throw new Error('Не удалось начать запись. Попробуй еще раз.');
+        const errorMsg = startError instanceof Error ? startError.message : 'Не удалось начать запись. Попробуй еще раз.';
+        await telegram.showAlert(errorMsg);
+        return;
       }
     } catch (error) {
       console.error('❌ Ошибка доступа к микрофону:', error);
