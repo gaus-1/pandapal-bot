@@ -21,7 +21,7 @@ class PremiumFeaturesService:
     """
 
     # Лимиты для бесплатных пользователей
-    FREE_AI_REQUESTS_PER_DAY = 20  # 20 запросов в день для бесплатных
+    FREE_AI_REQUESTS_PER_DAY = 50  # 50 запросов в день для бесплатных (согласно TERMS.md)
     FREE_SUBJECTS_LIMIT = 3  # Только 3 предмета для бесплатных
     FREE_ANALYTICS_BASIC = True  # Базовая аналитика доступна всем
     FREE_ANALYTICS_DETAILED = False  # Детальная аналитика только для premium
@@ -65,6 +65,9 @@ class PremiumFeaturesService:
         """
         Проверка возможности сделать AI запрос.
 
+        Использует DailyRequestCount для подсчета, который не зависит от ChatHistory.
+        Это предотвращает обход лимита через удаление истории.
+
         Args:
             telegram_id: Telegram ID пользователя
 
@@ -75,24 +78,28 @@ class PremiumFeaturesService:
             # Premium пользователи - неограниченные запросы
             return True, None
 
-        # Для бесплатных проверяем дневной лимит
+        # Для бесплатных проверяем дневной лимит через DailyRequestCount
         from datetime import datetime, timezone
 
-        from sqlalchemy import func, select
+        from sqlalchemy import select
 
-        from bot.models import ChatHistory
+        from bot.models import DailyRequestCount
 
         today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = today_start.replace(hour=23, minute=59, second=59, microsecond=999999)
 
-        # Подсчитываем запросы за сегодня
+        # Получаем счетчик запросов за сегодня (точное совпадение по дате)
         stmt = (
-            select(func.count(ChatHistory.id))
-            .where(ChatHistory.user_telegram_id == telegram_id)
-            .where(ChatHistory.message_type == "user")
-            .where(ChatHistory.timestamp >= today_start)
+            select(DailyRequestCount)
+            .where(DailyRequestCount.user_telegram_id == telegram_id)
+            .where(DailyRequestCount.date >= today_start)
+            .where(DailyRequestCount.date < today_end)
+            .order_by(DailyRequestCount.date.desc())
+            .limit(1)
         )
 
-        today_requests = self.db.scalar(stmt) or 0
+        today_counter = self.db.execute(stmt).scalar_one_or_none()
+        today_requests = today_counter.request_count if today_counter else 0
 
         if today_requests >= self.FREE_AI_REQUESTS_PER_DAY:
             return (
@@ -102,6 +109,54 @@ class PremiumFeaturesService:
             )
 
         return True, None
+
+    def increment_request_count(self, telegram_id: int) -> None:
+        """
+        Увеличить счетчик запросов пользователя за сегодня.
+
+        Создает или обновляет запись в DailyRequestCount.
+        Этот счетчик не зависит от ChatHistory и не сбрасывается при очистке истории.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+        """
+        from datetime import datetime, timezone
+
+        from sqlalchemy import select
+
+        from bot.models import DailyRequestCount
+
+        now = datetime.now(timezone.utc)
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = today_start.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+        # Ищем существующую запись за сегодня (точное совпадение по дате)
+        stmt = (
+            select(DailyRequestCount)
+            .where(DailyRequestCount.user_telegram_id == telegram_id)
+            .where(DailyRequestCount.date >= today_start)
+            .where(DailyRequestCount.date < today_end)
+            .order_by(DailyRequestCount.date.desc())
+            .limit(1)
+        )
+
+        counter = self.db.execute(stmt).scalar_one_or_none()
+
+        if counter:
+            # Обновляем существующую запись
+            counter.request_count += 1
+            counter.last_request_at = now
+        else:
+            # Создаем новую запись
+            counter = DailyRequestCount(
+                user_telegram_id=telegram_id,
+                date=today_start,
+                request_count=1,
+                last_request_at=now,
+            )
+            self.db.add(counter)
+
+        self.db.flush()
 
     def can_access_subject(self, telegram_id: int, subject_id: str) -> tuple[bool, Optional[str]]:
         """
