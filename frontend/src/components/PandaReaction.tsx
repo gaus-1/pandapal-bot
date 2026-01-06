@@ -8,11 +8,11 @@ interface PandaReactionProps {
 }
 
 export function PandaReaction({ mood, className = '' }: PandaReactionProps) {
-  // Vite копирует файлы из public/ в корень dist/, поэтому путь без /assets/
-  // Файлы должны быть в frontend/public/panda-happy.png и frontend/public/panda-sad.png
+  // Vite копирует файлы из public/ в корень dist/
+  // Используем SVG как fallback, можно заменить на PNG позже
   const imageSrc = mood === 'happy'
-    ? '/panda-happy.png'
-    : '/panda-sad.png';
+    ? '/panda-happy.svg'
+    : '/panda-sad.svg';
 
   const altText = mood === 'happy'
     ? 'Веселая панда'
