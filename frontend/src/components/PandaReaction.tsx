@@ -9,10 +9,9 @@ interface PandaReactionProps {
 
 export function PandaReaction({ mood, className = '' }: PandaReactionProps) {
   // Vite копирует файлы из public/ в корень dist/
-  // Используем SVG как fallback, можно заменить на PNG позже
   const imageSrc = mood === 'happy'
-    ? '/panda-happy.svg'
-    : '/panda-sad.svg';
+    ? '/panda-happy.png'
+    : '/panda-sad.png';
 
   const altText = mood === 'happy'
     ? 'Веселая панда'
