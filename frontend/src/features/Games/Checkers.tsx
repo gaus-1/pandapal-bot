@@ -1,7 +1,7 @@
 /**
  * Checkers Game Component
  * Шашки - игра против панды (AI)
- * Исправлено: Шашки круглые, визуально сдвинуты чуть вверх для баланса
+ * Исправлено: Шашки круглые, визуально сдвинуты чуть выше (-6px)
  */
 
 import { useState, useEffect } from "react";
@@ -234,7 +234,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                           className={`
                             w-[85%] aspect-square rounded-full shadow-lg shrink-0 relative flex items-center justify-center
                             transition-transform active:scale-95
-                            -mt-[4px]
+                            -mt-[6px]
                             ${cell === "user"
                               ? "bg-white border-[3px] border-gray-300"
                               : "bg-gray-800 border-[3px] border-gray-900"}
