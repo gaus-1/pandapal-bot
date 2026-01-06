@@ -445,11 +445,18 @@ export function AIChat({ user }: AIChatProps) {
 
         // Сохраняем ссылку на recorder ДО start(), чтобы обработчики могли его использовать
         mediaRecorderRef.current = mediaRecorder;
+        console.log('💾 mediaRecorderRef установлен');
 
         // Упрощенная логика: сразу запускаем запись без сложных проверок
         try {
           const timeslice = 250; // 250мс для стабильной работы на мобильных
           console.log('🎙️ Запуск записи с timeslice:', timeslice);
+          console.log('📊 Состояние stream перед start:', {
+            active: stream.active,
+            tracks: stream.getTracks().length,
+            trackState: stream.getAudioTracks()[0]?.readyState,
+          });
+
           mediaRecorder.start(timeslice);
           console.log('✅ start() вызван, состояние:', mediaRecorder.state);
 
@@ -458,18 +465,30 @@ export function AIChat({ user }: AIChatProps) {
           recordingStartTimeRef.current = Date.now();
           setIsRecording(true);
           telegram.hapticFeedback('heavy');
-          console.log('✅ Состояние записи установлено');
+          console.log('✅ Состояние записи установлено, isRecording=true');
 
-          // Небольшая задержка для проверки, но не блокируем основной поток
-          setTimeout(() => {
+          // Проверяем состояние через небольшие интервалы
+          let checkCount = 0;
+          const checkInterval = setInterval(() => {
+            checkCount++;
             const state = mediaRecorderRef.current?.state;
             const started = recordingStartedRef.current;
             const error = startErrorRef.current;
+            const streamActive = streamRef.current?.active;
+            const trackState = streamRef.current?.getAudioTracks()[0]?.readyState;
 
-            console.log('🔍 Проверка через 200мс:', { state, started, error: error?.message });
+            console.log(`🔍 Проверка #${checkCount} (${checkCount * 100}мс):`, {
+              state,
+              started,
+              error: error?.message,
+              streamActive,
+              trackState,
+              isRecording,
+            });
 
             if (error) {
               console.error('❌ Ошибка обнаружена:', error);
+              clearInterval(checkInterval);
               setIsRecording(false);
               if (streamRef.current) {
                 streamRef.current.getTracks().forEach((track) => track.stop());
@@ -478,13 +497,23 @@ export function AIChat({ user }: AIChatProps) {
               mediaRecorderRef.current = null;
               telegram.notifyError();
               telegram.showAlert(`Ошибка записи: ${error.message}`).catch(console.error);
-            } else if (state === 'inactive' && !started) {
-              console.warn('⚠️ Запись не началась, но ошибки нет. Возможно, это нормально для некоторых устройств.');
+            } else if (state === 'recording' || started) {
+              console.log('✅ Запись успешно начата!');
+              clearInterval(checkInterval);
+            } else if (checkCount >= 10) {
+              // После 1 секунды останавливаем проверку
+              console.warn('⚠️ Проверка завершена, запись может быть активна');
+              clearInterval(checkInterval);
             }
-          }, 200);
+          }, 100);
 
         } catch (startSyncError) {
           console.error('❌ Синхронная ошибка при start():', startSyncError);
+          console.error('❌ Детали ошибки:', {
+            name: startSyncError instanceof Error ? startSyncError.name : 'Unknown',
+            message: startSyncError instanceof Error ? startSyncError.message : String(startSyncError),
+            stack: startSyncError instanceof Error ? startSyncError.stack : undefined,
+          });
           setIsRecording(false);
           if (streamRef.current) {
             streamRef.current.getTracks().forEach((track) => track.stop());
@@ -493,11 +522,6 @@ export function AIChat({ user }: AIChatProps) {
           mediaRecorderRef.current = null;
           throw new Error(`Не удалось начать запись: ${startSyncError instanceof Error ? startSyncError.message : String(startSyncError)}`);
         }
-
-        recordingStartTimeRef.current = Date.now();
-        setIsRecording(true);
-        telegram.hapticFeedback('heavy');
-        console.log('✅ Запись успешно начата и подтверждена');
       } catch (startError) {
         console.error('❌ Ошибка запуска записи:', startError);
         telegram.notifyError();
