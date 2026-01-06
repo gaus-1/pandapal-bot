@@ -2,7 +2,7 @@
 /**
  * Checkers Game Component
  * Шашки - игра против панды (AI)
- * Stable version using CSS Aspect Ratio
+ * Fixed: Checkers are now guaranteed to be perfect circles using aspect-square
  */
 
 import { useState, useEffect } from "react";
@@ -197,7 +197,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         )}
       </div>
 
-      {/* Игровая доска - Используем aspect-square для стабильности */}
+      {/* Игровая доска */}
       <div className="flex-1 flex items-center justify-center px-2 sm:px-4 pb-2 min-h-0 w-full">
         <div className="w-full max-w-[600px] aspect-square relative">
           <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-[2px] bg-[var(--tg-theme-hint-color)] border-[4px] border-[var(--tg-theme-hint-color)] rounded-xl shadow-2xl overflow-hidden">
@@ -214,7 +214,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       onClick={() => handleCellClick(rowIndex, colIndex)}
                       disabled={!isUserTurn || isLoading || gameOver}
                       className={`
-                        w-full h-full relative flex items-center justify-center
+                        w-full h-full relative flex items-center justify-center p-1
                         transition-all duration-200 touch-manipulation outline-none
                         ${
                           isDark
@@ -230,37 +230,36 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                     >
                       {cell && (
-                        <div className="w-[85%] h-[85%] aspect-square flex items-center justify-center relative">
-                          {/* Основное тело шашки */}
-                          <div
-                            className={`
-                              w-full h-full rounded-full shadow-lg shrink-0 relative flex items-center justify-center
-                              transition-transform active:scale-95
-                              ${cell === "user"
-                                ? "bg-white border-[4px] border-gray-300 shadow-gray-400/50"
-                                : "bg-gray-800 border-[4px] border-gray-900 shadow-black/50"}
-                            `}
-                            style={{
-                              boxShadow: cell === "user"
-                                ? "inset 0 -3px 5px rgba(0,0,0,0.2), 0 3px 6px rgba(0,0,0,0.3)"
-                                : "inset 0 -3px 5px rgba(0,0,0,0.5), 0 3px 6px rgba(0,0,0,0.5)",
-                            }}
-                          >
-                            {/* Блик для объема */}
-                            <div className="absolute inset-[10%] rounded-full bg-gradient-to-tr from-black/10 to-white/30 pointer-events-none"></div>
+                        // Используем aspect-square здесь, чтобы шашка всегда была кругом
+                        <div
+                          className={`
+                            w-full h-full aspect-square rounded-full shadow-lg shrink-0 relative flex items-center justify-center
+                            transition-transform active:scale-95
+                            ${cell === "user"
+                              ? "bg-white border-[3px] border-gray-300"
+                              : "bg-gray-800 border-[3px] border-gray-900"}
+                          `}
+                          style={{
+                            // Добавляем объем через тени
+                            boxShadow: cell === "user"
+                              ? "inset 0 -2px 4px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.4)"
+                              : "inset 0 -2px 4px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.6)",
+                          }}
+                        >
+                          {/* Блик */}
+                          <div className="absolute inset-[15%] rounded-full bg-gradient-to-tr from-black/5 to-white/40 pointer-events-none"></div>
 
-                            {/* Иконка Короля */}
-                            {isKing(rowIndex, colIndex) && (
-                              <span
-                                className={`
-                                  text-[1.2em] font-bold relative z-10 leading-none drop-shadow-sm
-                                  ${cell === "user" ? "text-yellow-600" : "text-yellow-400"}
-                                `}
-                              >
-                                👑
-                              </span>
-                            )}
-                          </div>
+                          {/* Корона */}
+                          {isKing(rowIndex, colIndex) && (
+                            <span
+                              className={`
+                                text-[1.4em] leading-none drop-shadow-sm relative z-10
+                                ${cell === "user" ? "text-yellow-600" : "text-yellow-400"}
+                              `}
+                            >
+                              👑
+                            </span>
+                          )}
                         </div>
                       )}
                     </button>
