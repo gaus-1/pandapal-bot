@@ -11,10 +11,10 @@ export const CallToAction: React.FC = React.memo(() => {
     <section id="cta" className="py-16 px-4 bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-slate-800/60 dark:via-slate-900 dark:to-slate-800/60 rounded-3xl my-16 border border-gray-100 dark:border-slate-700 dark:border-slate-600/50 scroll-mt-20">
       <div className="max-w-5xl mx-auto text-center">
         {/* Заголовок */}
-        <h2 className="text-3xl md:text-4xl font-display font-bold mb-4 text-gray-900 dark:text-slate-50">
+        <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold mb-4 text-gray-900 dark:text-slate-50">
           Начни общение прямо сейчас! 🚀
         </h2>
-        <p className="text-lg text-gray-600 dark:text-slate-400 mb-12">
+        <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 mb-12">
           Отсканируй QR-код камерой телефона или нажми кнопку ниже
         </p>
 
@@ -30,7 +30,7 @@ export const CallToAction: React.FC = React.memo(() => {
                 loading="lazy"
               />
             </div>
-            <p className="text-sm text-gray-600 dark:text-slate-400 mt-4 font-medium">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mt-4 font-medium">
               Наведи камеру на QR-код
             </p>
           </div>
@@ -81,10 +81,10 @@ export const CallToAction: React.FC = React.memo(() => {
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 flex items-center justify-center text-3xl mb-3 shadow-md">
               ⚡
             </div>
-            <h3 className="font-bold text-lg text-gray-900 dark:text-slate-100 mb-2">
+            <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-slate-100 mb-2">
               Быстрый старт
             </h3>
-            <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
               Открой бота и отправь /start — мы сразу начнем!
             </p>
           </div>
@@ -92,10 +92,10 @@ export const CallToAction: React.FC = React.memo(() => {
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-100 to-emerald-200 dark:from-green-900/30 dark:to-emerald-800/30 flex items-center justify-center text-3xl mb-3 shadow-md">
               🔒
             </div>
-            <h3 className="font-bold text-lg text-gray-900 dark:text-slate-100 mb-2">
+            <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-slate-100 mb-2">
               Безопасно
             </h3>
-            <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
               Все данные защищены, контент модерируется AI
             </p>
           </div>
@@ -103,10 +103,10 @@ export const CallToAction: React.FC = React.memo(() => {
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-100 to-amber-200 dark:from-yellow-900/30 dark:to-amber-800/30 flex items-center justify-center text-3xl mb-3 shadow-md">
               ⭐
             </div>
-            <h3 className="font-bold text-lg text-gray-900 dark:text-slate-100 mb-2">
+            <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-slate-100 mb-2">
               Premium
             </h3>
-            <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
               Расширенные возможности и приоритетная поддержка!
             </p>
           </div>

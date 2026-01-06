@@ -160,7 +160,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
 
         {/* Статус */}
         <div className="text-center mb-0">
-          <div className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0">
+          <div className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0">
             {getStatusMessage()}
           </div>
           {error && (
@@ -220,7 +220,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
 
         {/* Инструкция */}
         {!gameOver && (
-          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)]">
+          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] max-w-[260px] mx-auto px-2">
             <p>Ты играешь ❌, панда играет ⭕</p>
             <p className="mt-1">Нажми на клетку, чтобы сделать ход</p>
           </div>

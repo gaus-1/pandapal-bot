@@ -31,7 +31,6 @@ const PREMIUM_PLANS: PremiumPlan[] = [
     features: [
       '✨ Неограниченные AI запросы',
       '📚 Доступ ко всем предметам',
-      '🎯 Персональный репетитор',
       '📊 Детальная аналитика',
     ],
   },
@@ -43,7 +42,6 @@ const PREMIUM_PLANS: PremiumPlan[] = [
     features: [
       '✨ Неограниченные AI запросы',
       '📚 Доступ ко всем предметам',
-      '🎯 Персональный репетитор',
       '📊 Детальная аналитика',
       '🏆 Эксклюзивные достижения',
       '💬 Приоритетная поддержка',
@@ -58,7 +56,6 @@ const PREMIUM_PLANS: PremiumPlan[] = [
     features: [
       '✨ Неограниченные AI запросы',
       '📚 Доступ ко всем предметам',
-      '🎯 Персональный репетитор',
       '📊 Детальная аналитика',
       '🏆 Эксклюзивные достижения',
       '💬 Приоритетная поддержка',
@@ -216,7 +213,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         {/* Заголовок */}
         <div className="mb-4 sm:mb-5 text-center">
           <div className="text-5xl sm:text-6xl md:text-7xl mb-2 sm:mb-3">👑</div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--tg-theme-text-color)] mb-1.5 sm:mb-2">
+          <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-[var(--tg-theme-text-color)] mb-1.5 sm:mb-2">
             PandaPal Premium
           </h1>
           <p className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">
@@ -233,7 +230,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
         {/* Преимущества */}
         <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl sm:rounded-2xl border-2 border-purple-500/30">
-          <h2 className="text-base sm:text-lg font-semibold text-[var(--tg-theme-text-color)] mb-2">
+          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-[var(--tg-theme-text-color)] mb-2">
             🌟 Что дает Premium?
           </h2>
           <ul className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 text-xs sm:text-sm text-[var(--tg-theme-text-color)]">
@@ -265,7 +262,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
               <div className="flex items-center justify-between mb-2 sm:mb-3">
                 <div>
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--tg-theme-text-color)]">
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-[var(--tg-theme-text-color)]">
                     {plan.name}
                   </h3>
                   <p className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">
@@ -273,7 +270,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   </p>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--tg-theme-text-color)]">
+                  <div className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--tg-theme-text-color)]">
                     {plan.priceRub} ₽
                   </div>
                   <div className="text-xs sm:text-sm text-[var(--tg-theme-hint-color)]">
@@ -315,7 +312,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         <div className="p-3 sm:p-4 bg-[var(--tg-theme-hint-color)]/10 rounded-xl sm:rounded-2xl border border-[var(--tg-theme-hint-color)]/20">
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-base sm:text-lg">💳</span>
-            <h3 className="text-sm sm:text-base font-semibold text-[var(--tg-theme-text-color)]">
+            <h3 className="text-xs sm:text-sm md:text-base font-semibold text-[var(--tg-theme-text-color)]">
               Безопасная оплата через ЮKassa
             </h3>
           </div>

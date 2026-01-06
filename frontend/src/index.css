@@ -31,22 +31,22 @@
     letter-spacing: -0.02em;
   }
 
-  /* Адаптивные размеры заголовков */
+  /* Адаптивные размеры заголовков - единая система */
   h1 {
-    @apply text-3xl sm:text-4xl lg:text-5xl;
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl;
   }
 
   h2 {
-    @apply text-2xl sm:text-3xl lg:text-4xl;
+    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
   }
 
   h3 {
-    @apply text-xl sm:text-2xl lg:text-3xl;
+    @apply text-lg sm:text-xl md:text-2xl lg:text-3xl;
   }
 
-  /* Параграфы - оптимальная читаемость */
+  /* Параграфы - оптимальная читаемость с адаптивностью */
   p {
-    @apply text-base sm:text-lg leading-relaxed;
+    @apply text-sm sm:text-base md:text-lg leading-relaxed;
   }
 
   /* Оптимизация для touch-устройств */
@@ -87,9 +87,17 @@
     opacity: 0;
   }
 
-  /* Bounce анимация для логотипа */
+  /* Bounce анимация для логотипа - работает на всех устройствах */
   .animate-logo-bounce {
     animation: logoBounce 2s ease-in-out infinite;
+  }
+
+  /* Гарантируем работу анимации на мобильных устройствах */
+  @media (max-width: 640px) {
+    .animate-logo-bounce {
+      animation: logoBounce 2s ease-in-out infinite;
+      will-change: transform;
+    }
   }
 
   /* Плавное появление текста (буква за буквой) */

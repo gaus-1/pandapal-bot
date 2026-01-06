@@ -110,10 +110,10 @@ export function EmergencyScreen() {
     <div ref={containerRef} data-emergency-screen className="h-full overflow-y-auto bg-[var(--tg-theme-bg-color)] p-4 sm:p-6 md:p-8 max-w-4xl mx-auto pb-24">
       {/* Заголовок */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
+        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
           🚨 Экстренные номера
         </h1>
-        <p className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-hint-color)]">
+        <p className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">
           В опасности? Звони сразу! Все звонки бесплатные 24/7
         </p>
       </div>
@@ -130,10 +130,10 @@ export function EmergencyScreen() {
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="text-3xl sm:text-4xl md:text-5xl">{emergency.icon}</div>
                 <div>
-                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-[var(--tg-theme-text-color)]">
+                  <h3 className="text-sm sm:text-base md:text-lg font-bold text-[var(--tg-theme-text-color)]">
                     {emergency.title}
                   </h3>
-                  <p className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-hint-color)]">
+                  <p className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">
                     {emergency.description}
                   </p>
                 </div>

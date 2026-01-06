@@ -39,13 +39,13 @@ export const Footer: React.FC = React.memo(() => {
             target.parentElement?.appendChild(emoji);
           }}
         />
-        <span className="font-display text-xl font-bold text-gray-900 dark:text-slate-100">
+        <span className="font-display text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-100">
           {SITE_CONFIG.name}
         </span>
       </div>
 
       {/* Копирайт */}
-      <p className="text-sm text-gray-600 dark:text-slate-400">
+      <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
         © {currentYear} {SITE_CONFIG.name}. Все права защищены.
       </p>
     </footer>
