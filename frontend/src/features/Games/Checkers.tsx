@@ -159,8 +159,10 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   };
 
   return (
-    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto flex flex-col items-center pt-4 pb-8">
-      <div className="w-full max-w-md px-4 flex flex-col items-center">
+    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
+      {/* Центрируем контент по горизонтали, убираем сложный флекс, чтобы не ломать высоту */}
+      <div className="w-full max-w-md mx-auto px-4 py-4 flex flex-col items-center">
+
         {/* Заголовок */}
         <div className="w-full flex items-center justify-between mb-4">
           <button
@@ -177,8 +179,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Статус */}
-        <div className="text-center mb-4 w-full">
-          <div className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-1">
+        <div className="text-center mb-2 w-full">
+          <div className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--tg-theme-text-color)] mb-1">
             {gameOver
               ? winner === "user"
                 ? "🎉 Ты победил!"
@@ -196,12 +198,14 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           )}
         </div>
 
-        {/* Игровая доска - ЧИСТЫЙ CSS СПОСОБ (СТАБИЛЬНЫЙ) */}
         {/*
-           aspect-square: Гарантирует, что высота всегда равна ширине.
-           Это работает нативно в браузере (Chrome/Safari), что идеально для Telegram Web App.
+          ИГРОВАЯ ДОСКА - СТАБИЛЬНАЯ ВЕРСИЯ
+          1. w-full - занимает всю ширину доступного контейнера (max-w-md).
+          2. max-w-[460px] - ограничивает на ПК.
+          3. aspect-square - гарантирует 1:1.
+          4. h-auto - предотвращает растягивание высоты браузером.
         */}
-        <div className="w-[92%] max-w-[480px] aspect-square relative mb-6">
+        <div className="w-full max-w-[460px] aspect-square h-auto relative mb-6">
           <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[3px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-2xl overflow-hidden">
             {board.length > 0 ? (
               board.map((row, rowIndex) =>
@@ -239,8 +243,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                     >
                       {cell && (
                         <div
-                          // Абсолютное центрирование + Размер
-                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[84%] h-[84%] aspect-square flex items-center justify-center"
+                          // Абсолютное позиционирование + aspect-square гарантируют идеальный круг
+                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[82%] aspect-square flex items-center justify-center"
                         >
                           <div
                             className={`
@@ -250,7 +254,6 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                                 : "bg-gray-800 border-[3px] border-gray-900"}
                             `}
                           >
-                            {/* Объем */}
                             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-transparent to-black/5 pointer-events-none"></div>
 
                             {isKing(rowIndex, colIndex) && (

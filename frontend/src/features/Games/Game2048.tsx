@@ -259,7 +259,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
         {/* Счет */}
         <div className="text-center mb-0">
-          <div className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0">
+          <div className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0">
             {score}
           </div>
           {won && (
@@ -395,10 +395,10 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
         {/* Инструкция */}
         {!gameOver && (
-          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] mb-4">
-            <p>Объединяй одинаковые числа!</p>
-            <p className="mt-1">Свайп по доске или используй кнопки</p>
-            <p className="mt-1">Цель: достичь 2048</p>
+          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] mb-4 leading-tight">
+            <p className="m-0">Объединяй одинаковые числа!</p>
+            <p className="m-0">Свайп по доске или используй кнопки</p>
+            <p className="m-0">Цель: достичь 2048</p>
           </div>
         )}
 

@@ -39,14 +39,14 @@ export const Hero: React.FC = React.memo(() => {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
         {/* Основной заголовок (H1 для SEO) */}
-        <h1 className="font-display text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight animate-fade-in text-gray-900 dark:text-slate-50">
+        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight animate-fade-in text-gray-900 dark:text-slate-50">
           Безопасный ИИ-друг
           <br />
           для твоего ребенка
         </h1>
 
         {/* Описание продукта */}
-        <p className="mt-4 sm:mt-6 text-sm sm:text-lg md:text-xl text-gray-700 dark:text-slate-200 max-w-2xl mx-auto animate-fade-in-delay">
+        <p className="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-gray-700 dark:text-slate-200 max-w-2xl mx-auto animate-fade-in-delay">
           Адаптивное, игровое и безопасное обучение для 1–9 классов
         </p>
 

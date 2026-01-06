@@ -134,11 +134,11 @@ export function GamesScreen({ user }: GamesScreenProps) {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Заголовок */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-[var(--tg-theme-text-color)] mb-2">
+        <div className="text-center mb-3">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--tg-theme-text-color)] mb-1">
             🎮 PandaPalGo
           </h1>
-          <p className="text-[var(--tg-theme-hint-color)]">
+          <p className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)] leading-tight">
             Играй с пандой и зарабатывай достижения!
           </p>
         </div>
@@ -169,28 +169,26 @@ export function GamesScreen({ user }: GamesScreenProps) {
                   text-left h-[150px] flex flex-col overflow-hidden
                 `}
               >
-                <div className="text-3xl mb-1.5 flex-shrink-0 leading-none" style={{ fontSize: '1.875rem', lineHeight: '1' }}>{game.icon}</div>
-                <h3 className="text-base font-bold mb-1 flex-shrink-0 leading-tight" style={{ fontSize: '1rem', lineHeight: '1.25' }}>{game.name}</h3>
-                <p className="text-xs opacity-90 mb-2 overflow-hidden leading-tight" style={{
+                <div className="text-2xl sm:text-3xl mb-1.5 flex-shrink-0 leading-none">{game.icon}</div>
+                <h3 className="text-sm sm:text-base font-bold mb-1 flex-shrink-0 leading-tight">{game.name}</h3>
+                <p className="text-xs sm:text-sm opacity-90 mb-2 overflow-hidden leading-tight" style={{
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
-                  lineHeight: '1.5',
                   minHeight: '40px',
-                  maxHeight: '40px',
-                  fontSize: '0.75rem'
+                  maxHeight: '40px'
                 }}>{game.description}</p>
 
                 {/* Статистика - всегда резервируем место */}
                 <div className="mt-auto min-h-[34px] flex-shrink-0">
                   {hasStats ? (
                     <div className="pt-2 border-t border-white/20">
-                      <div className="flex justify-between text-xs leading-tight" style={{ fontSize: '0.75rem' }}>
+                      <div className="flex justify-between text-xs leading-tight">
                         <span>Побед: {gameStats.wins}</span>
                         <span>Игр: {gameStats.total_games}</span>
                       </div>
                       {hasBestScore ? (
-                        <div className="text-xs mt-0.5 leading-tight" style={{ fontSize: '0.75rem' }}>
+                        <div className="text-xs mt-0.5 leading-tight">
                           Лучший счет: {gameStats.best_score}
                         </div>
                       ) : (
@@ -209,7 +207,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
         {/* Общая статистика */}
         {Object.keys(stats).length > 0 && (
           <div className="mt-4 p-3 bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-lg border border-[var(--tg-theme-hint-color)]/20">
-            <h2 className="text-lg font-bold text-[var(--tg-theme-text-color)] mb-2">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-[var(--tg-theme-text-color)] mb-2">
               📊 Твоя статистика
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -218,15 +216,15 @@ export function GamesScreen({ user }: GamesScreenProps) {
                   key={stat.game_type}
                   className="p-2 bg-[var(--tg-theme-bg-color)] rounded-lg"
                 >
-                  <div className="text-xs text-[var(--tg-theme-hint-color)] mb-1">
+                  <div className="text-xs sm:text-sm text-[var(--tg-theme-hint-color)] mb-1">
                     {stat.game_type === 'tic_tac_toe' && '❌⭕ Крестики-нолики'}
                     {stat.game_type === 'checkers' && '⚫⚪ Шашки'}
                     {stat.game_type === '2048' && '🔢 2048'}
                   </div>
-                  <div className="text-base font-bold text-[var(--tg-theme-text-color)]">
+                  <div className="text-sm sm:text-base font-bold text-[var(--tg-theme-text-color)]">
                     {stat.wins} побед
                   </div>
-                  <div className="text-xs text-[var(--tg-theme-hint-color)]">
+                  <div className="text-xs sm:text-sm text-[var(--tg-theme-hint-color)]">
                     {stat.total_games} игр • {stat.win_rate}% побед
                   </div>
                 </div>
