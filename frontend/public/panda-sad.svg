@@ -1,49 +1,74 @@
 <svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
   <!-- Фон -->
   <rect width="300" height="300" fill="#80CBC4"/>
+  <rect width="300" height="100" y="200" fill="#6BB5AA"/>
 
-  <!-- Звездочки -->
-  <path d="M 50 50 L 52 58 L 60 58 L 53 63 L 55 71 L 50 66 L 45 71 L 47 63 L 40 58 L 48 58 Z" fill="white" opacity="0.5"/>
-  <path d="M 250 80 L 252 88 L 260 88 L 253 93 L 255 101 L 250 96 L 245 101 L 247 93 L 240 88 L 248 88 Z" fill="white" opacity="0.5"/>
-  <path d="M 80 250 L 82 258 L 90 258 L 83 263 L 85 271 L 80 266 L 75 271 L 77 263 L 70 258 L 78 258 Z" fill="white" opacity="0.5"/>
+  <!-- Звездочки/блестки -->
+  <path d="M 50 50 L 52 58 L 60 58 L 53 63 L 55 71 L 50 66 L 45 71 L 47 63 L 40 58 L 48 58 Z" fill="white" opacity="0.4"/>
+  <path d="M 250 80 L 252 88 L 260 88 L 253 93 L 255 101 L 250 96 L 245 101 L 247 93 L 240 88 L 248 88 Z" fill="white" opacity="0.4"/>
+  <path d="M 80 250 L 82 258 L 90 258 L 83 263 L 85 271 L 80 266 L 75 271 L 77 263 L 70 258 L 78 258 Z" fill="white" opacity="0.3"/>
+  <circle cx="35" cy="120" r="3" fill="white" opacity="0.3"/>
+  <circle cx="265" cy="180" r="2.5" fill="white" opacity="0.3"/>
+  <circle cx="220" cy="50" r="2" fill="white" opacity="0.3"/>
+
+  <!-- Мягкие белые формы на земле -->
+  <ellipse cx="100" cy="260" rx="15" ry="8" fill="white" opacity="0.2"/>
+  <ellipse cx="200" cy="270" rx="12" ry="6" fill="white" opacity="0.2"/>
 
   <!-- Панда -->
   <!-- Тело -->
-  <ellipse cx="150" cy="180" rx="60" ry="70" fill="white"/>
+  <ellipse cx="150" cy="180" rx="65" ry="75" fill="white"/>
 
   <!-- Голова -->
-  <circle cx="150" cy="100" r="50" fill="white"/>
+  <circle cx="150" cy="100" r="55" fill="white"/>
+
+  <!-- Пучок меха на голове -->
+  <ellipse cx="150" cy="50" rx="20" ry="15" fill="white" opacity="0.9"/>
 
   <!-- Уши -->
-  <circle cx="120" cy="70" r="20" fill="black"/>
-  <circle cx="180" cy="70" r="20" fill="black"/>
+  <circle cx="115" cy="65" r="22" fill="black"/>
+  <circle cx="185" cy="65" r="22" fill="black"/>
+  <circle cx="115" cy="65" r="15" fill="white" opacity="0.3"/>
 
   <!-- Глаза (черные пятна) -->
-  <ellipse cx="135" cy="95" rx="15" ry="18" fill="black"/>
-  <ellipse cx="165" cy="95" rx="15" ry="18" fill="black"/>
+  <ellipse cx="130" cy="92" rx="18" ry="20" fill="black"/>
+  <ellipse cx="170" cy="92" rx="18" ry="20" fill="black"/>
+
+  <!-- Глаза (темно-коричневые) -->
+  <ellipse cx="130" cy="92" rx="14" ry="16" fill="#8B4513"/>
+  <ellipse cx="170" cy="92" rx="14" ry="16" fill="#8B4513"/>
 
   <!-- Глаза (белые блики) -->
-  <ellipse cx="140" cy="90" rx="5" ry="6" fill="white"/>
-  <ellipse cx="170" cy="90" rx="5" ry="6" fill="white"/>
+  <ellipse cx="135" cy="87" rx="5" ry="6" fill="white"/>
+  <ellipse cx="175" cy="87" rx="5" ry="6" fill="white"/>
+  <ellipse cx="137" cy="89" rx="2.5" ry="3" fill="white" opacity="0.9"/>
+
+  <!-- Брови (грустные) -->
+  <path d="M 118 78 Q 130 82 142 78" stroke="black" stroke-width="2" fill="none" stroke-linecap="round"/>
 
   <!-- Нос -->
-  <ellipse cx="150" cy="110" rx="8" ry="6" fill="black"/>
+  <ellipse cx="150" cy="108" rx="9" ry="7" fill="black"/>
 
-  <!-- Рот (грустный) -->
-  <path d="M 140 125 Q 150 115 160 125" stroke="black" stroke-width="3" fill="none"/>
+  <!-- Рот (грустная улыбка) -->
+  <path d="M 130 125 Q 150 115 170 125" stroke="black" stroke-width="3" fill="none" stroke-linecap="round"/>
 
-  <!-- Румянец -->
-  <ellipse cx="120" cy="110" rx="12" ry="8" fill="#FFB6C1" opacity="0.6"/>
-  <ellipse cx="180" cy="110" rx="12" ry="8" fill="#FFB6C1" opacity="0.6"/>
+  <!-- Румянец (розовые щеки) -->
+  <ellipse cx="115" cy="108" rx="16" ry="11" fill="#FFB6C1" opacity="0.7"/>
+  <ellipse cx="185" cy="108" rx="16" ry="11" fill="#FFB6C1" opacity="0.7"/>
 
-  <!-- Руки (опущены) -->
-  <ellipse cx="110" cy="160" rx="25" ry="35" fill="black"/>
-  <ellipse cx="190" cy="160" rx="25" ry="35" fill="black"/>
+  <!-- Руки (прижаты к животу) -->
+  <ellipse cx="110" cy="160" rx="28" ry="38" fill="black"/>
+  <ellipse cx="190" cy="160" rx="28" ry="38" fill="black"/>
+
+  <!-- Ладони (на животе) -->
+  <ellipse cx="108" cy="175" rx="12" ry="16" fill="#FFB6C1" opacity="0.5"/>
+  <ellipse cx="192" cy="175" rx="12" ry="16" fill="#FFB6C1" opacity="0.5"/>
 
   <!-- Ноги -->
-  <ellipse cx="130" cy="240" rx="20" ry="25" fill="black"/>
-  <ellipse cx="170" cy="240" rx="20" ry="25" fill="black"/>
+  <ellipse cx="125" cy="245" rx="22" ry="28" fill="black"/>
+  <ellipse cx="175" cy="245" rx="22" ry="28" fill="black"/>
 
-  <!-- Хвост -->
-  <circle cx="120" cy="220" r="12" fill="white"/>
+  <!-- Хвост (белый, пушистый) -->
+  <circle cx="118" cy="218" r="14" fill="white"/>
+  <circle cx="115" cy="220" r="10" fill="white" opacity="0.8"/>
 </svg>
