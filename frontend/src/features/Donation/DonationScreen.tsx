@@ -95,38 +95,49 @@ export function DonationScreen({ user }: DonationScreenProps) {
   };
 
   return (
-    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 pb-20 sm:pb-24">
+    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto safe-area-inset">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-20 sm:pb-24 safe-area-inset-bottom">
       {/* Заголовок */}
-      <div className="mb-4 sm:mb-5 text-center">
-        <div className="text-5xl sm:text-6xl md:text-7xl mb-2 sm:mb-3">💝</div>
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--tg-theme-text-color)] mb-1.5 sm:mb-2">
-          Поддержать проект PandaPal
+      <div className="mb-4 sm:mb-6 text-center">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
+          PandaPal
         </h1>
-        <p className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">
+        <p className="text-sm sm:text-base text-[var(--tg-theme-hint-color)]">
           Ваша поддержка помогает развитию проекта
         </p>
       </div>
 
       {/* Информация о поддержке */}
-      <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-xl sm:rounded-2xl border-2 border-pink-500/30">
-        <h2 className="text-base sm:text-lg font-semibold text-[var(--tg-theme-text-color)] mb-2">
-          🌟 Зачем поддерживать проект?
+      <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl border border-[var(--tg-theme-hint-color)]/20">
+        <h2 className="text-sm sm:text-base font-semibold text-[var(--tg-theme-text-color)] mb-2.5 sm:mb-3">
+          Зачем поддерживать проект?
         </h2>
-        <ul className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 text-xs sm:text-sm text-[var(--tg-theme-text-color)]">
-          <li>✨ <strong>Развитие функций</strong></li>
-          <li>📚 <strong>Улучшение качества</strong></li>
-          <li>🎯 <strong>Доступность</strong></li>
-          <li>💬 <strong>Поддержка</strong></li>
-        </ul>
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm text-[var(--tg-theme-text-color)]">
+          <div className="flex items-center gap-1.5">
+            <span className="text-base sm:text-lg">✨</span>
+            <span><strong>Развитие функций</strong></span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-base sm:text-lg">📚</span>
+            <span><strong>Улучшение качества</strong></span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-base sm:text-lg">🎯</span>
+            <span><strong>Доступность</strong></span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-base sm:text-lg">💬</span>
+            <span><strong>Поддержка</strong></span>
+          </div>
+        </div>
       </div>
 
       {/* Выбор суммы */}
-      <div className="mb-4 sm:mb-5">
-        <h3 className="text-base sm:text-lg font-semibold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
+      <div className="mb-4 sm:mb-6">
+        <h3 className="text-sm sm:text-base font-semibold text-[var(--tg-theme-text-color)] mb-3 sm:mb-4">
           Выберите сумму поддержки:
         </h3>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 mb-3 sm:mb-4">
+        <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-5">
           {DONATION_AMOUNTS.map((amount) => (
             <button
               key={amount}
@@ -134,20 +145,20 @@ export function DonationScreen({ user }: DonationScreenProps) {
                 setSelectedAmount(amount);
                 setCustomAmount(amount.toString());
               }}
-              className={`py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm md:text-base font-medium transition-all ${
+              className={`flex-1 min-w-[60px] sm:min-w-[80px] py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-medium transition-all touch-manipulation ${
                 selectedAmount === amount
-                  ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg'
-                  : 'bg-[var(--tg-theme-hint-color)]/20 text-[var(--tg-theme-text-color)]'
+                  ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] shadow-md'
+                  : 'bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] text-[var(--tg-theme-text-color)] border border-[var(--tg-theme-hint-color)]/20'
               }`}
             >
-              {amount} ⭐
+              <span className="text-yellow-400">⭐</span> {amount}
             </button>
           ))}
         </div>
 
         {/* Произвольная сумма */}
-        <div className="mb-3 sm:mb-4">
-          <label className="block text-xs sm:text-sm md:text-base font-medium text-[var(--tg-theme-text-color)] mb-1.5 sm:mb-2">
+        <div className="mb-4 sm:mb-5">
+          <label className="block text-xs sm:text-sm font-medium text-[var(--tg-theme-text-color)] mb-2 sm:mb-2.5">
             Или введите свою сумму (от 50 ⭐):
           </label>
           <div className="flex gap-2 sm:gap-3">
@@ -157,12 +168,12 @@ export function DonationScreen({ user }: DonationScreenProps) {
               value={customAmount}
               onChange={(e) => setCustomAmount(e.target.value)}
               placeholder="50"
-              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base bg-[var(--tg-theme-hint-color)]/20 text-[var(--tg-theme-text-color)] border border-[var(--tg-theme-hint-color)]/30"
+              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] text-[var(--tg-theme-text-color)] border border-[var(--tg-theme-hint-color)]/30 focus:outline-none focus:ring-2 focus:ring-[var(--tg-theme-button-color)]/50"
             />
             <button
               onClick={handleCustomDonate}
               disabled={isProcessing || !customAmount}
-              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base bg-blue-500 text-white font-medium disabled:opacity-50 active:scale-95"
+              className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] font-semibold disabled:opacity-50 active:opacity-80 transition-opacity touch-manipulation min-h-[44px] whitespace-nowrap"
             >
               Поддержать
             </button>
@@ -171,16 +182,16 @@ export function DonationScreen({ user }: DonationScreenProps) {
       </div>
 
       {/* Информация о способе оплаты */}
-      <div className="p-3 sm:p-4 bg-[var(--tg-theme-hint-color)]/10 rounded-xl sm:rounded-2xl border border-[var(--tg-theme-hint-color)]/20">
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="text-base sm:text-lg">⭐</span>
+      <div className="p-3 sm:p-4 bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl border border-[var(--tg-theme-hint-color)]/20">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-lg sm:text-xl">⭐</span>
           <h3 className="text-sm sm:text-base font-semibold text-[var(--tg-theme-text-color)]">
             Telegram Stars
           </h3>
         </div>
-        <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs sm:text-sm text-[var(--tg-theme-hint-color)]">
-          <span>• Оплата из баланса Telegram</span>
-          <span>• Безопасная оплата</span>
+        <div className="space-y-1 text-xs sm:text-sm text-[var(--tg-theme-hint-color)]">
+          <div>• Оплата из баланса Telegram</div>
+          <div>• Безопасная оплата</div>
         </div>
       </div>
       </div>
