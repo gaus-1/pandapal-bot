@@ -28,45 +28,65 @@
     <!-- Theme color для браузера (без PWA) -->
     <meta name="theme-color" content="#3b82f6" />
 
-    <title>PandaPal — Безопасный ИИ-друг для твоего ребенка</title>
+    <title>PandaPal — Безопасный ИИ-друг для твоего ребенка | Safe AI Friend for Your Child</title>
 
     <!-- Google Fonts 2025: Poppins (заголовки) + Inter (текст) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <!-- SEO Meta Tags -->
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://pandapal.ru/">
+
+    <!-- Language alternates -->
+    <link rel="alternate" hreflang="ru" href="https://pandapal.ru/">
+    <link rel="alternate" hreflang="en" href="https://pandapal.ru/">
+    <link rel="alternate" hreflang="x-default" href="https://pandapal.ru/">
+
+    <!-- SEO Meta Tags (Russian) -->
     <meta name="description" content="PandaPal — Telegram Mini App с ИИ для безопасного обучения школьников 1-9 классов. YandexGPT, обработка фото и аудио, модерация контента, экстренные номера. Работает 24/7 на Railway.app.">
-    <meta name="keywords" content="PandaPal, Telegram Mini App, ИИ для детей, YandexGPT, образование, дети, обучение, школа, 1-9 класс, безопасность, Telegram бот, Yandex Cloud, SpeechKit, Vision OCR">
+    <meta name="keywords" content="PandaPal, Telegram Mini App, ИИ для детей, YandexGPT, образование, дети, обучение, школа, 1-9 класс, безопасность, Telegram бот, Yandex Cloud, SpeechKit, Vision OCR, AI для детей, образовательный бот, помощь с уроками, онлайн репетитор, безопасный AI, AI учитель, адаптивное обучение, голосовой помощник, чат-бот репетитор">
     <meta name="author" content="PandaPal Team">
-    <meta name="robots" content="index, follow">
-    <meta name="language" content="Russian">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="yandex" content="index, follow">
+    <meta name="language" content="Russian, English">
     <meta name="revisit-after" content="7 days">
 
+    <!-- SEO Meta Tags (English) -->
+    <meta name="description" lang="en" content="PandaPal — Safe AI friend for your child. Telegram Mini App with YandexGPT for secure learning for students grades 1-9. Photo and audio processing, content moderation, emergency numbers. Works 24/7 on Railway.app.">
+    <meta name="keywords" lang="en" content="PandaPal, Telegram Mini App, AI for kids, YandexGPT, education, children, learning, school, grades 1-9, safety, Telegram bot, Yandex Cloud, SpeechKit, Vision OCR, AI tutor, educational bot, homework help, online tutor, safe AI, AI teacher, adaptive learning, voice assistant, chatbot tutor">
+
     <!-- Open Graph / Facebook -->
-    <meta property="og:title" content="PandaPal — Telegram Mini App с ИИ для безопасного обучения детей">
-    <meta property="og:description" content="Telegram Mini App с YandexGPT, обработкой фото и аудио. Безопасное обучение для школьников 1-9 классов. Модерация контента, экстренные номера, работает 24/7.">
+    <meta property="og:title" content="PandaPal — Безопасный ИИ-друг для детей | Safe AI Friend for Your Child">
+    <meta property="og:description" content="Telegram Mini App с YandexGPT для безопасного обучения школьников 1-9 классов. Photo and audio processing, content moderation, emergency numbers. Works 24/7. | Safe learning for students grades 1-9.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://pandapal.ru">
     <meta property="og:image" content="https://pandapal.ru/logo.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="PandaPal">
     <meta property="og:locale" content="ru_RU">
+    <meta property="og:locale:alternate" content="en_US">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="PandaPal — Telegram Mini App с ИИ для безопасного обучения детей">
-    <meta name="twitter:description" content="Telegram Mini App с YandexGPT, обработкой фото и аудио. Безопасное обучение для школьников 1-9 классов.">
+    <meta name="twitter:title" content="PandaPal — Безопасный ИИ-друг для детей | Safe AI Friend">
+    <meta name="twitter:description" content="Telegram Mini App с YandexGPT для безопасного обучения. Safe learning for students grades 1-9. Photo and audio processing, content moderation.">
     <meta name="twitter:image" content="https://pandapal.ru/logo.png">
+    <meta name="twitter:site" content="@PandaPal">
+    <meta name="twitter:creator" content="@PandaPal">
 
     <!-- Yandex Webmaster -->
     <meta name="yandex-verification" content="">
 
-    <!-- Structured Data (JSON-LD) -->
+    <!-- Structured Data (JSON-LD) - Russian -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "PandaPal",
+      "alternateName": "PandaPal — Безопасный ИИ-друг для детей",
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Telegram",
       "offers": {
@@ -86,7 +106,41 @@
       "author": {
         "@type": "Organization",
         "name": "PandaPal Team"
-      }
+      },
+      "inLanguage": ["ru", "en"],
+      "keywords": "PandaPal, Telegram Mini App, ИИ для детей, YandexGPT, образование, дети, обучение, школа, безопасность, AI для детей, образовательный бот, помощь с уроками, онлайн репетитор"
+    }
+    </script>
+
+    <!-- Structured Data (JSON-LD) - English -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "PandaPal",
+      "alternateName": "PandaPal — Safe AI Friend for Your Child",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Telegram",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "Telegram Mini App with artificial intelligence for safe learning for students grades 1-9. Uses YandexGPT, SpeechKit STT and Vision OCR for text, voice and image processing.",
+      "featureList": [
+        "AI chat with YandexGPT",
+        "Photo processing via Yandex Vision",
+        "Speech recognition via Yandex SpeechKit",
+        "Content moderation (150+ filters)",
+        "Emergency numbers for Russia",
+        "Age adaptation (grades 1-9)"
+      ],
+      "author": {
+        "@type": "Organization",
+        "name": "PandaPal Team"
+      },
+      "inLanguage": ["en", "ru"],
+      "keywords": "PandaPal, Telegram Mini App, AI for kids, YandexGPT, education, children, learning, school, safety, AI tutor, educational bot, homework help, online tutor"
     }
     </script>
 
