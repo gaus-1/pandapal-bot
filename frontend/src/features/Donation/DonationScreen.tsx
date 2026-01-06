@@ -95,8 +95,8 @@ export function DonationScreen({ user }: DonationScreenProps) {
   };
 
   return (
-    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto safe-area-inset">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-20 sm:pb-24 safe-area-inset-bottom">
+    <div className="h-full w-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-20 sm:pb-24">
       {/* Заголовок */}
       <div className="mb-4 sm:mb-6 text-center">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
@@ -112,22 +112,22 @@ export function DonationScreen({ user }: DonationScreenProps) {
         <h2 className="text-sm sm:text-base font-semibold text-[var(--tg-theme-text-color)] mb-2.5 sm:mb-3">
           Зачем поддерживать проект?
         </h2>
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm text-[var(--tg-theme-text-color)]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm text-[var(--tg-theme-text-color)]">
           <div className="flex items-center gap-1.5">
-            <span className="text-base sm:text-lg">✨</span>
-            <span><strong>Развитие функций</strong></span>
+            <span className="text-base sm:text-lg flex-shrink-0">✨</span>
+            <span className="break-words"><strong>Развитие функций</strong></span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-base sm:text-lg">📚</span>
-            <span><strong>Улучшение качества</strong></span>
+            <span className="text-base sm:text-lg flex-shrink-0">📚</span>
+            <span className="break-words"><strong>Улучшение качества</strong></span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-base sm:text-lg">🎯</span>
-            <span><strong>Доступность</strong></span>
+            <span className="text-base sm:text-lg flex-shrink-0">🎯</span>
+            <span className="break-words"><strong>Доступность</strong></span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-base sm:text-lg">💬</span>
-            <span><strong>Поддержка</strong></span>
+            <span className="text-base sm:text-lg flex-shrink-0">💬</span>
+            <span className="break-words"><strong>Поддержка</strong></span>
           </div>
         </div>
       </div>
@@ -137,7 +137,7 @@ export function DonationScreen({ user }: DonationScreenProps) {
         <h3 className="text-sm sm:text-base font-semibold text-[var(--tg-theme-text-color)] mb-3 sm:mb-4">
           Выберите сумму поддержки:
         </h3>
-        <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-5">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 mb-4 sm:mb-5">
           {DONATION_AMOUNTS.map((amount) => (
             <button
               key={amount}
@@ -145,7 +145,7 @@ export function DonationScreen({ user }: DonationScreenProps) {
                 setSelectedAmount(amount);
                 setCustomAmount(amount.toString());
               }}
-              className={`flex-1 min-w-[60px] sm:min-w-[80px] py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-medium transition-all touch-manipulation ${
+              className={`w-full py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-medium transition-all touch-manipulation ${
                 selectedAmount === amount
                   ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] shadow-md'
                   : 'bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] text-[var(--tg-theme-text-color)] border border-[var(--tg-theme-hint-color)]/20'
