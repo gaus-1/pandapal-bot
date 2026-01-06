@@ -179,8 +179,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Статус */}
-        <div className="text-center mb-2 w-full">
-          <div className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--tg-theme-text-color)] mb-1">
+        <div className="text-center mb-1 w-full">
+          <div className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0.5">
             {gameOver
               ? winner === "user"
                 ? "🎉 Ты победил!"
@@ -283,7 +283,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         {!gameOver && (
           <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] leading-tight px-2">
             <p className="m-0">Ты играешь белыми, панда играет черными</p>
-            <p className="m-0 mt-1">Нажми на свою фишку, затем на клетку для хода</p>
+            <p className="m-0 mt-0.5">Нажми на свою фишку, затем на клетку для хода</p>
           </div>
         )}
 
