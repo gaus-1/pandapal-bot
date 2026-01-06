@@ -30,6 +30,7 @@ export function AIChat({ user }: AIChatProps) {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const recordingStartTimeRef = useRef<number>(0);
 
   // Автоскролл к последнему сообщению
@@ -51,15 +52,18 @@ export function AIChat({ user }: AIChatProps) {
     return () => {
       if (mediaRecorderRef.current && isRecording) {
         try {
-          mediaRecorderRef.current.stop();
+          if (mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+          }
         } catch (e) {
           console.warn('⚠️ Ошибка при остановке записи в cleanup:', e);
         }
       }
-      if (mediaRecorderRef.current?.stream) {
-        mediaRecorderRef.current.stream.getTracks().forEach((track) => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => {
           track.stop();
         });
+        streamRef.current = null;
       }
       mediaRecorderRef.current = null;
       setIsRecording(false);
@@ -166,34 +170,78 @@ export function AIChat({ user }: AIChatProps) {
 
   // Обработка записи аудио
   const handleVoiceStart = async () => {
+    if (isRecording || mediaRecorderRef.current) {
+      console.warn('⚠️ Запись уже идет');
+      return;
+    }
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      console.log('🎤 Запрос доступа к микрофону...');
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        }
+      });
+
+      streamRef.current = stream;
+      console.log('✅ Доступ к микрофону получен');
+
+      // Определяем поддерживаемый формат
+      let mimeType = 'audio/webm';
+      if (!MediaRecorder.isTypeSupported('audio/webm')) {
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          mimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+          mimeType = 'audio/ogg;codecs=opus';
+        } else {
+          mimeType = ''; // Будет использован формат по умолчанию
+        }
+      }
+      console.log('📝 Используемый формат:', mimeType || 'по умолчанию');
+
+      const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       const audioChunks: Blob[] = [];
 
       mediaRecorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
+        if (event.data && event.data.size > 0) {
+          console.log('📦 Получен аудио чанк:', event.data.size, 'байт');
+          audioChunks.push(event.data);
+        }
       };
 
       mediaRecorder.onstop = () => {
+        console.log('🛑 Запись остановлена, чанков:', audioChunks.length);
+
         if (audioChunks.length === 0) {
           console.error('❌ Аудио не записалось');
           telegram.notifyError();
           telegram.showAlert('Не удалось записать аудио. Попробуй еще раз!');
-          stream.getTracks().forEach((track) => track.stop());
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
           setIsRecording(false);
+          mediaRecorderRef.current = null;
           return;
         }
 
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunks, { type: mimeType || 'audio/webm' });
         const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
+
+        console.log('📊 Размер аудио:', audioBlob.size, 'байт');
 
         if (audioBlob.size > MAX_AUDIO_SIZE) {
           console.error(`❌ Аудио слишком большое: ${audioBlob.size} байт`);
           telegram.notifyError();
           telegram.showAlert('Аудио слишком длинное. Максимум 10MB.');
-          stream.getTracks().forEach((track) => track.stop());
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
           setIsRecording(false);
+          mediaRecorderRef.current = null;
           return;
         }
 
@@ -201,8 +249,12 @@ export function AIChat({ user }: AIChatProps) {
           console.error('❌ Аудио пустое');
           telegram.notifyError();
           telegram.showAlert('Аудио пустое. Попробуй заново!');
-          stream.getTracks().forEach((track) => track.stop());
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
           setIsRecording(false);
+          mediaRecorderRef.current = null;
           return;
         }
 
@@ -216,20 +268,33 @@ export function AIChat({ user }: AIChatProps) {
               console.error('❌ Base64 аудио пустое');
               telegram.notifyError();
               telegram.showAlert('Ошибка конвертации. Попробуй еще раз!');
-              stream.getTracks().forEach((track) => track.stop());
+              if (streamRef.current) {
+                streamRef.current.getTracks().forEach((track) => track.stop());
+                streamRef.current = null;
+              }
               setIsRecording(false);
+              mediaRecorderRef.current = null;
               return;
             }
+            console.log('✅ Аудио готово к отправке, размер base64:', base64Audio.length);
             sendMessage({ audioBase64: base64Audio });
-            stream.getTracks().forEach((track) => track.stop());
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach((track) => track.stop());
+              streamRef.current = null;
+            }
             setIsRecording(false);
+            mediaRecorderRef.current = null;
           };
           reader.onerror = (error) => {
             console.error('❌ Ошибка FileReader:', error);
             telegram.notifyError();
             telegram.showAlert('Ошибка чтения аудио!');
-            stream.getTracks().forEach((track) => track.stop());
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach((track) => track.stop());
+              streamRef.current = null;
+            }
             setIsRecording(false);
+            mediaRecorderRef.current = null;
           };
           reader.readAsDataURL(audioBlob);
         } catch (error: unknown) {
@@ -237,8 +302,12 @@ export function AIChat({ user }: AIChatProps) {
           telegram.notifyError();
           const errorMessage = error instanceof Error ? error.message : 'Не удалось отправить!';
           telegram.showAlert(errorMessage);
-          stream.getTracks().forEach((track) => track.stop());
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
           setIsRecording(false);
+          mediaRecorderRef.current = null;
         }
       };
 
@@ -246,21 +315,32 @@ export function AIChat({ user }: AIChatProps) {
         console.error('❌ Ошибка MediaRecorder:', event);
         telegram.notifyError();
         telegram.showAlert('Ошибка записи аудио!');
-        stream.getTracks().forEach((track) => track.stop());
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+        }
         setIsRecording(false);
         mediaRecorderRef.current = null;
       };
 
-      mediaRecorder.start();
+      // Запускаем запись с интервалом для получения данных
+      mediaRecorder.start(100); // Получаем данные каждые 100мс
       mediaRecorderRef.current = mediaRecorder;
       recordingStartTimeRef.current = Date.now();
       setIsRecording(true);
+      console.log('🎙️ Запись начата');
       telegram.hapticFeedback('heavy');
     } catch (error) {
       console.error('❌ Ошибка доступа к микрофону:', error);
       telegram.notifyError();
-      await telegram.showAlert('Не удалось получить доступ к микрофону.');
+      const errorMessage = error instanceof Error ? error.message : 'Не удалось получить доступ к микрофону.';
+      await telegram.showAlert(errorMessage);
       setIsRecording(false);
+      mediaRecorderRef.current = null;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
     }
   };
 
@@ -269,11 +349,20 @@ export function AIChat({ user }: AIChatProps) {
       const recordingDuration = Date.now() - recordingStartTimeRef.current;
       const MIN_RECORDING_DURATION = 500;
 
+      console.log('🛑 Остановка записи, длительность:', recordingDuration, 'мс');
+
       if (recordingDuration < MIN_RECORDING_DURATION) {
         console.warn('⚠️ Запись слишком короткая');
-        mediaRecorderRef.current.stop();
-        if (mediaRecorderRef.current.stream) {
-          mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+        try {
+          if (mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+          }
+        } catch (e) {
+          console.warn('⚠️ Ошибка при остановке короткой записи:', e);
+        }
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
         }
         mediaRecorderRef.current = null;
         setIsRecording(false);
@@ -281,8 +370,21 @@ export function AIChat({ user }: AIChatProps) {
         return;
       }
 
-      mediaRecorderRef.current.stop();
-      telegram.hapticFeedback('medium');
+      try {
+        if (mediaRecorderRef.current.state !== 'inactive') {
+          mediaRecorderRef.current.stop();
+        }
+        telegram.hapticFeedback('medium');
+      } catch (e) {
+        console.error('❌ Ошибка при остановке записи:', e);
+        telegram.notifyError();
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+        }
+        mediaRecorderRef.current = null;
+        setIsRecording(false);
+      }
     }
   };
 
@@ -304,11 +406,11 @@ export function AIChat({ user }: AIChatProps) {
             {/* Кнопка очистки чата */}
             <button
               onClick={handleClearChat}
-              className="flex-shrink-0 w-9 h-9 rounded-lg bg-red-500/80 hover:bg-red-600/90 active:scale-95 transition-all flex items-center justify-center border-2 border-red-600/50 shadow-md"
+              className="flex-shrink-0 w-9 h-9 rounded-lg bg-gray-400/60 hover:bg-gray-500/70 active:scale-95 transition-all flex items-center justify-center border border-gray-400/40 shadow-sm"
               aria-label="Очистить чат"
               title="Очистить историю"
             >
-              <span className="text-base text-white">🗑️</span>
+              <span className="text-base text-gray-700 dark:text-gray-200">🗑️</span>
             </button>
             {/* Кнопка SOS */}
             <button
