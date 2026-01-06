@@ -6,6 +6,12 @@
 
 **Образовательная платформа для школьников 1-9 классов**
 
+> ⚠️ **ВАЖНО: ПРОПРИЕТАРНАЯ ЛИЦЕНЗИЯ**
+> Этот репозиторий содержит исходный код, защищенный проприетарной лицензией.
+> **ЗАПРЕЩЕНО:** копирование, форки, использование, развертывание без письменного разрешения правообладателя.
+> Просмотр кода разрешен только в ознакомительных целях.
+> Подробности: [LICENSE](LICENSE) | Контакты: 79516625803@ya.ru
+
 [![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://reactjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
@@ -68,40 +74,14 @@ PandaPal — образовательная платформа с Telegram-бо�
 ### Infrastructure
 - **Railway.app** — хостинг (24/7, webhook, auto deploy, keep-alive ping)
 - **Cloudflare** — DNS, SSL, CDN, Full Strict mode
-- **GitHub Actions** — CI/CD, тесты, Docker build attestations
+- **GitHub Actions** — CI/CD, тесты
 - **Upstash Redis** — персистентные сессии (fallback на in-memory)
 
 ---
 
-## Быстрый старт
-
-```bash
-# Клонировать
-git clone https://github.com/gaus-1/pandapal-bot.git
-cd pandapal-bot
-
-# Backend
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-
-# .env
-cp config/env.template .env
-# Заполнить .env
-
-# БД
-alembic upgrade head
-
-# Запуск
-python web_server.py
-```
-
-Frontend (отдельный терминал):
-```bash
-cd frontend
-npm install
-npm run dev
-```
+> ⚠️ **УСТАНОВКА И РАЗВЕРТЫВАНИЕ ЗАПРЕЩЕНЫ**
+> Инструкции по установке, клонированию и развертыванию удалены в соответствии с проприетарной лицензией.
+> Использование кода без письменного разрешения правообладателя запрещено.
 
 ---
 
@@ -134,45 +114,11 @@ PandaPal/
 
 ---
 
-## Разработка
+---
 
-### Локально
-
-```bash
-# Backend
-python web_server.py
-
-# Frontend
-cd frontend && npm run dev
-
-# БД
-docker-compose up -d postgres
-```
-
-### Code Quality
-
-```bash
-pre-commit install
-pre-commit run --all-files
-
-black bot/
-isort bot/
-flake8 bot/
-```
-
-### Тестирование
-
-```bash
-# Все тесты
-pytest tests/ -v
-
-# Интеграционные тесты (требуют реальные API ключи)
-pytest tests/integration/test_subjects_real_api.py -v
-pytest tests/integration/test_foreign_languages_real.py -v
-
-# Покрытие
-pytest tests/ --cov=bot --cov-report=html
-```
+> ⚠️ **ИНСТРУКЦИИ ПО РАЗРАБОТКЕ УДАЛЕНЫ**
+> Детальные инструкции по разработке, тестированию и развертыванию скрыты.
+> Для получения доступа к полной документации обращайтесь: **79516625803@ya.ru**
 
 ---
 
@@ -221,29 +167,9 @@ pytest tests/ --cov=bot --cov-report=html
 
 ## Деплой
 
-### Railway.app
-
-1. Push в `main` → auto deploy
-2. Environment Variables в Railway Dashboard
-3. Custom Domain: [pandapal.ru](https://pandapal.ru)
-
-### Переменные
-
-```env
-DATABASE_URL=postgresql://...
-TELEGRAM_BOT_TOKEN=...
-YANDEX_CLOUD_API_KEY=...
-YANDEX_CLOUD_FOLDER_ID=...
-SECRET_KEY=...
-WEBHOOK_DOMAIN=...
-FRONTEND_URL=...
-YOOKASSA_SHOP_ID=...
-YOOKASSA_SECRET_KEY=...
-YOOKASSA_INN=...
-REDIS_URL=rediss://...  # Upstash Redis
-```
-
-Полный список: [config/env.template](config/env.template)
+> ⚠️ **ИНСТРУКЦИИ ПО РАЗВЕРТЫВАНИЮ УДАЛЕНЫ**
+> Детальные инструкции по деплою, настройке переменных окружения и конфигурации скрыты.
+> Для получения доступа к документации по развертыванию обращайтесь: **79516625803@ya.ru**
 
 ---
 
@@ -288,6 +214,8 @@ REDIS_URL=rediss://...  # Upstash Redis
 
 **Сделано с ❤️ для детей и их родителей**
 
-⭐ **Если проект полезен, поставьте звезду!** ⭐
+> ⚠️ **ПРОПРИЕТАРНОЕ ПРОГРАММНОЕ ОБЕСПЕЧЕНИЕ**
+> Использование кода запрещено без письменного разрешения.
+> См. [LICENSE](LICENSE) и [.github/DISCLAIMER.md](.github/DISCLAIMER.md)
 
 </div>
