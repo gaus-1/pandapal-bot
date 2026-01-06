@@ -181,13 +181,52 @@ export function AIChat({ user }: AIChatProps) {
 
     try {
       console.log('🎤 Запрос доступа к микрофону...');
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
+
+      // Проверяем доступность mediaDevices
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('MediaDevices API недоступен. Убедись, что используешь HTTPS или локальный хост.');
+      }
+
+      // Для Telegram Mini App на Android используем минимальные настройки
+      // Сложные настройки могут вызывать проблемы с разрешениями
+      const audioConstraints: MediaTrackConstraints = {
+        // Убираем сложные настройки для лучшей совместимости
+        // echoCancellation: true,
+        // noiseSuppression: true,
+        // autoGainControl: true,
+      };
+
+      console.log('📋 Параметры аудио:', audioConstraints);
+
+      // Пробуем получить доступ к микрофону
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: audioConstraints,
+        });
+      } catch (getUserMediaError) {
+        console.error('❌ Ошибка getUserMedia:', getUserMediaError);
+
+        // Если ошибка разрешений, пробуем еще раз с задержкой
+        if (getUserMediaError instanceof DOMException &&
+            (getUserMediaError.name === 'NotAllowedError' || getUserMediaError.name === 'PermissionDeniedError')) {
+          console.log('⏳ Ожидание 500мс перед повторной попыткой...');
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
+          // Пробуем еще раз
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({
+              audio: audioConstraints,
+            });
+            console.log('✅ Доступ получен после повторной попытки');
+          } catch (retryError) {
+            console.error('❌ Повторная попытка также не удалась:', retryError);
+            throw getUserMediaError; // Выбрасываем оригинальную ошибку
+          }
+        } else {
+          throw getUserMediaError;
         }
-      });
+      }
 
       streamRef.current = stream;
       console.log('✅ Доступ к микрофону получен');
