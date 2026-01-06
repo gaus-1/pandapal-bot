@@ -187,44 +187,55 @@ export function AIChat({ user }: AIChatProps) {
         throw new Error('MediaDevices API недоступен. Убедись, что используешь HTTPS или локальный хост.');
       }
 
-      // Для Telegram Mini App на Android используем минимальные настройки
-      // Сложные настройки могут вызывать проблемы с разрешениями
-      const audioConstraints: MediaTrackConstraints = {
-        // Убираем сложные настройки для лучшей совместимости
-        // echoCancellation: true,
-        // noiseSuppression: true,
-        // autoGainControl: true,
-      };
-
-      console.log('📋 Параметры аудио:', audioConstraints);
-
-      // Пробуем получить доступ к микрофону
-      let stream: MediaStream;
+      // Проверяем текущее состояние разрешений (если API доступен)
+      let permissionStatus: PermissionStatus | null = null;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: audioConstraints,
-        });
-      } catch (getUserMediaError) {
-        console.error('❌ Ошибка getUserMedia:', getUserMediaError);
+        if (navigator.permissions && navigator.permissions.query) {
+          permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+          console.log('📊 Текущее состояние разрешения микрофона:', permissionStatus.state);
+        }
+      } catch (permError) {
+        console.warn('⚠️ Не удалось проверить разрешения:', permError);
+      }
 
-        // Если ошибка разрешений, пробуем еще раз с задержкой
-        if (getUserMediaError instanceof DOMException &&
-            (getUserMediaError.name === 'NotAllowedError' || getUserMediaError.name === 'PermissionDeniedError')) {
-          console.log('⏳ Ожидание 500мс перед повторной попыткой...');
-          await new Promise((resolve) => setTimeout(resolve, 500));
+      // Для Telegram Mini App на Android используем абсолютно минимальные настройки
+      // Пробуем сначала вообще без параметров
+      let stream: MediaStream;
+      let lastError: Error | null = null;
 
-          // Пробуем еще раз
+      // Стратегия 1: Без параметров (самый простой вариант)
+      try {
+        console.log('🔄 Попытка 1: getUserMedia без параметров');
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('✅ Доступ получен (без параметров)');
+      } catch (error1) {
+        console.warn('⚠️ Попытка 1 не удалась:', error1);
+        lastError = error1 instanceof Error ? error1 : new Error(String(error1));
+
+        // Стратегия 2: С пустым объектом
+        try {
+          console.log('🔄 Попытка 2: getUserMedia с пустым объектом');
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          stream = await navigator.mediaDevices.getUserMedia({ audio: {} });
+          console.log('✅ Доступ получен (с пустым объектом)');
+        } catch (error2) {
+          console.warn('⚠️ Попытка 2 не удалась:', error2);
+          lastError = error2 instanceof Error ? error2 : new Error(String(error2));
+
+          // Стратегия 3: С задержкой и простыми параметрами
           try {
+            console.log('🔄 Попытка 3: getUserMedia с задержкой 500мс');
+            await new Promise((resolve) => setTimeout(resolve, 500));
             stream = await navigator.mediaDevices.getUserMedia({
-              audio: audioConstraints,
+              audio: {
+                // Минимальные настройки
+              }
             });
-            console.log('✅ Доступ получен после повторной попытки');
-          } catch (retryError) {
-            console.error('❌ Повторная попытка также не удалась:', retryError);
-            throw getUserMediaError; // Выбрасываем оригинальную ошибку
+            console.log('✅ Доступ получен (с задержкой)');
+          } catch (error3) {
+            console.error('❌ Все попытки не удались');
+            throw lastError || error3;
           }
-        } else {
-          throw getUserMediaError;
         }
       }
 
