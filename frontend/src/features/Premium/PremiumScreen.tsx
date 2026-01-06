@@ -128,9 +128,6 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         if (inTelegram) {
           // В Telegram используем openLink
           telegram.openLink(data.confirmation_url);
-          telegram.showAlert(
-            '💳 Откройте страницу оплаты. После успешной оплаты Premium активируется автоматически!'
-          );
         } else {
           // На сайте - прямой переход (не блокируется браузером)
           window.location.href = data.confirmation_url;
@@ -138,7 +135,6 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
       } else {
         if (inTelegram) {
           telegram.notifyError();
-          await telegram.showAlert('Ошибка создания платежа. Попробуй еще раз!');
         } else {
           alert('Ошибка создания платежа. Попробуй еще раз!');
         }
@@ -147,7 +143,6 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
       console.error('Ошибка покупки:', error);
       if (inTelegram) {
         telegram.notifyError();
-        await telegram.showAlert('Произошла ошибка. Попробуй позже!');
       } else {
         alert('Произошла ошибка. Попробуй позже!');
       }

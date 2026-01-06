@@ -351,6 +351,35 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
                     f"plan={plan_id}, payment_id={payment_id}, expires={subscription.expires_at}"
                 )
 
+                # Отправляем уведомление пользователю
+                try:
+                    from aiogram import Bot
+
+                    bot = Bot(token=settings.telegram_bot_token)
+
+                    # Определяем длительность для сообщения
+                    plan_names = {
+                        "week": "неделю",
+                        "month": "месяц",
+                        "year": "год",
+                    }
+                    duration = plan_names.get(plan_id, plan_id)
+
+                    await bot.send_message(
+                        chat_id=telegram_id,
+                        text=(
+                            f"🎉 <b>Premium активирован!</b>\n\n"
+                            f"✅ Подписка на {duration} успешно активирована.\n"
+                            f"📅 Действует до: {subscription.expires_at.strftime('%d.%m.%Y %H:%M')}\n\n"
+                            f"Теперь у тебя есть доступ ко всем Premium функциям!"
+                        ),
+                        parse_mode="HTML",
+                    )
+                    await bot.session.close()
+                    logger.info(f"✅ Уведомление отправлено пользователю {telegram_id}")
+                except Exception as e:
+                    logger.error(f"❌ Ошибка отправки уведомления пользователю {telegram_id}: {e}")
+
                 return web.json_response({"success": True, "message": "Subscription activated"})
             else:
                 logger.info(

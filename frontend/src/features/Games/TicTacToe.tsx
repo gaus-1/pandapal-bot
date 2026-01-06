@@ -10,6 +10,7 @@ import {
   getGameSession,
   type UserProfile,
 } from "../../services/api";
+import { PandaReaction } from "../../components/PandaReaction";
 
 interface TicTacToeProps {
   sessionId: number;
@@ -99,24 +100,9 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
         if (result.winner === "user") {
           setWinner("user");
           telegram.notifySuccess();
-          setTimeout(() => {
-            telegram
-              .showPopup({
-                title: "🎉 Победа!",
-                message: "Ты победил панду! Отличная игра!",
-                buttons: [{ type: "close", text: "Закрыть" }],
-              });
-          }, 500);
         } else if (result.winner === "ai") {
           setWinner("ai");
           telegram.notifyWarning();
-          setTimeout(() => {
-            telegram.showPopup({
-              title: "😔 Поражение",
-              message: "Панда выиграла! Попробуй еще раз!",
-              buttons: [{ type: "close", text: "Закрыть" }],
-            });
-          }, 500);
         } else {
           setWinner("draw");
           telegram.notifyWarning();
@@ -174,6 +160,11 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
 
         {/* Статус */}
         <div className="text-center mb-0">
+          {gameOver && winner && winner !== "draw" && (
+            <div className="mb-3">
+              <PandaReaction mood={winner === "user" ? "sad" : "happy"} />
+            </div>
+          )}
           <div className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0">
             {getStatusMessage()}
           </div>

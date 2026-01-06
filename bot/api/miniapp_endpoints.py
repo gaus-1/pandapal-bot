@@ -5,6 +5,7 @@ API endpoints для Telegram Mini App
 
 import base64
 
+import httpx
 from aiohttp import web
 from loguru import logger
 from pydantic import ValidationError
@@ -24,7 +25,7 @@ from bot.services import (
     UserService,
 )
 from bot.services.ai_service_solid import get_ai_service
-from bot.services.speech_service import SpeechService
+from bot.services.speech_service import get_speech_service
 from bot.services.translate_service import get_translate_service
 from bot.services.vision_service import VisionService
 
@@ -447,7 +448,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                         status=413,
                     )
 
-                speech_service = SpeechService()
+                speech_service = get_speech_service()
                 transcribed_text = await speech_service.transcribe_voice(audio_bytes, language="ru")
 
                 if transcribed_text and transcribed_text.strip():
@@ -491,6 +492,30 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                         },
                         status=400,
                     )
+            except httpx.HTTPStatusError as e:
+                logger.error(
+                    f"❌ Ошибка SpeechKit API (HTTP {e.response.status_code}): {e}", exc_info=True
+                )
+                error_message = (
+                    "Ошибка распознавания речи. Попробуй записать заново или напиши текстом!"
+                )
+                if e.response.status_code == 401:
+                    error_message = (
+                        "Ошибка авторизации в сервисе распознавания речи. Обратитесь в поддержку."
+                    )
+                elif e.response.status_code == 413:
+                    error_message = "Аудио слишком большое. Попробуй записать короче!"
+                elif e.response.status_code == 400:
+                    error_message = "Неверный формат аудио. Попробуй записать заново!"
+                return web.json_response({"error": error_message}, status=500)
+            except httpx.TimeoutException as e:
+                logger.error(f"❌ Таймаут распознавания речи: {e}", exc_info=True)
+                return web.json_response(
+                    {
+                        "error": "Аудио слишком длинное или сервис недоступен. Попробуй записать короче!"
+                    },
+                    status=504,
+                )
             except Exception as e:
                 logger.error(f"❌ Ошибка обработки аудио: {e}", exc_info=True)
                 # Возвращаем понятную ошибку пользователю
@@ -501,6 +526,10 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                     error_message = "Аудио слишком длинное. Попробуй записать короче!"
                 elif "format" in str(e).lower() or "decode" in str(e).lower():
                     error_message = "Неверный формат аудио. Попробуй записать заново!"
+                elif "401" in str(e) or "unauthorized" in str(e).lower():
+                    error_message = (
+                        "Ошибка авторизации в сервисе распознавания речи. Обратитесь в поддержку."
+                    )
                 return web.json_response({"error": error_message}, status=500)
 
         # Обработка фото

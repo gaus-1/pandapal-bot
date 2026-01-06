@@ -73,8 +73,9 @@ class SpeechRecognitionService:
             return recognized_text
 
         except Exception as e:
-            logger.error(f"❌ Ошибка распознавания речи (Yandex SpeechKit): {e}")
-            return None
+            logger.error(f"❌ Ошибка распознавания речи (Yandex SpeechKit): {e}", exc_info=True)
+            # Пробрасываем исключение дальше для правильной обработки в endpoint
+            raise
 
     async def _convert_audio_if_needed(self, audio_bytes: bytes) -> bytes:
         """
@@ -145,7 +146,16 @@ class SpeechRecognitionService:
                     except Exception:
                         pass
 
-            # Если не webm, возвращаем как есть
+            # Проверяем, является ли это ogg (первые байты: OggS)
+            if audio_bytes[:4] == b"OggS":
+                logger.info("✅ Аудио уже в формате OGG Opus, конвертация не требуется")
+                return audio_bytes
+
+            # Если не webm и не ogg, логируем предупреждение
+            logger.warning(
+                f"⚠️ Неизвестный формат аудио (первые байты: {audio_bytes[:4].hex()}), "
+                "попробуем отправить как есть"
+            )
             return audio_bytes
 
         except Exception as e:
