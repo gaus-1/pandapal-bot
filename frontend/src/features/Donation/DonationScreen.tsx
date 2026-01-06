@@ -95,105 +95,105 @@ export function DonationScreen({ user }: DonationScreenProps) {
   };
 
   return (
-    <div className="h-full w-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-20 sm:pb-24">
-      {/* Заголовок */}
-      <div className="mb-4 sm:mb-6 text-center">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
-          PandaPal
-        </h1>
-        <p className="text-sm sm:text-base text-[var(--tg-theme-hint-color)]">
-          Ваша поддержка помогает развитию проекта
-        </p>
-      </div>
-
-      {/* Информация о поддержке */}
-      <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl border border-[var(--tg-theme-hint-color)]/20">
-        <h2 className="text-sm sm:text-base font-semibold text-[var(--tg-theme-text-color)] mb-2.5 sm:mb-3">
-          Зачем поддерживать проект?
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm text-[var(--tg-theme-text-color)]">
-          <div className="flex items-center gap-1.5">
-            <span className="text-base sm:text-lg flex-shrink-0">✨</span>
-            <span className="break-words"><strong>Развитие функций</strong></span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-base sm:text-lg flex-shrink-0">📚</span>
-            <span className="break-words"><strong>Улучшение качества</strong></span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-base sm:text-lg flex-shrink-0">🎯</span>
-            <span className="break-words"><strong>Доступность</strong></span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-base sm:text-lg flex-shrink-0">💬</span>
-            <span className="break-words"><strong>Поддержка</strong></span>
-          </div>
-        </div>
-      </div>
-
-      {/* Выбор суммы */}
-      <div className="mb-4 sm:mb-6">
-        <h3 className="text-sm sm:text-base font-semibold text-[var(--tg-theme-text-color)] mb-3 sm:mb-4">
-          Выберите сумму поддержки:
-        </h3>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 mb-4 sm:mb-5">
-          {DONATION_AMOUNTS.map((amount) => (
-            <button
-              key={amount}
-              onClick={() => {
-                setSelectedAmount(amount);
-                setCustomAmount(amount.toString());
-              }}
-              className={`w-full py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-medium transition-all touch-manipulation ${
-                selectedAmount === amount
-                  ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] shadow-md'
-                  : 'bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] text-[var(--tg-theme-text-color)] border border-[var(--tg-theme-hint-color)]/20'
-              }`}
-            >
-              <span className="text-yellow-400">⭐</span> {amount}
-            </button>
-          ))}
+    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-16 sm:pb-20 md:pb-24">
+        {/* Заголовок */}
+        <div className="mb-3 sm:mb-4 md:mb-6 text-center">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--tg-theme-text-color)] mb-1.5 sm:mb-2">
+            PandaPal
+          </h1>
+          <p className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">
+            Ваша поддержка помогает развитию проекта
+          </p>
         </div>
 
-        {/* Произвольная сумма */}
-        <div className="mb-4 sm:mb-5">
-          <label className="block text-xs sm:text-sm font-medium text-[var(--tg-theme-text-color)] mb-2 sm:mb-2.5">
-            Или введите свою сумму (от 50 ⭐):
-          </label>
-          <div className="flex gap-2 sm:gap-3">
-            <input
-              type="number"
-              min="50"
-              value={customAmount}
-              onChange={(e) => setCustomAmount(e.target.value)}
-              placeholder="50"
-              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] text-[var(--tg-theme-text-color)] border border-[var(--tg-theme-hint-color)]/30 focus:outline-none focus:ring-2 focus:ring-[var(--tg-theme-button-color)]/50"
-            />
-            <button
-              onClick={handleCustomDonate}
-              disabled={isProcessing || !customAmount}
-              className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] font-semibold disabled:opacity-50 active:opacity-80 transition-opacity touch-manipulation min-h-[44px] whitespace-nowrap"
-            >
-              Поддержать
-            </button>
+        {/* Информация о поддержке */}
+        <div className="mb-3 sm:mb-4 md:mb-6 p-2.5 sm:p-3 md:p-4 bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl border border-[var(--tg-theme-hint-color)]/20">
+          <h2 className="text-xs sm:text-sm md:text-base font-semibold text-[var(--tg-theme-text-color)] mb-2 sm:mb-2.5">
+            Зачем поддерживать проект?
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 md:gap-3 text-xs sm:text-sm text-[var(--tg-theme-text-color)]">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm sm:text-base md:text-lg flex-shrink-0">✨</span>
+              <span className="break-words"><strong>Развитие функций</strong></span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm sm:text-base md:text-lg flex-shrink-0">📚</span>
+              <span className="break-words"><strong>Улучшение качества</strong></span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm sm:text-base md:text-lg flex-shrink-0">🎯</span>
+              <span className="break-words"><strong>Доступность</strong></span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm sm:text-base md:text-lg flex-shrink-0">💬</span>
+              <span className="break-words"><strong>Поддержка</strong></span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Информация о способе оплаты */}
-      <div className="p-3 sm:p-4 bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl border border-[var(--tg-theme-hint-color)]/20">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-lg sm:text-xl">⭐</span>
-          <h3 className="text-sm sm:text-base font-semibold text-[var(--tg-theme-text-color)]">
-            Telegram Stars
+        {/* Выбор суммы */}
+        <div className="mb-3 sm:mb-4 md:mb-6">
+          <h3 className="text-xs sm:text-sm md:text-base font-semibold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3 md:mb-4">
+            Выберите сумму поддержки:
           </h3>
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2 md:gap-3 mb-3 sm:mb-4 md:mb-5">
+            {DONATION_AMOUNTS.map((amount) => (
+              <button
+                key={amount}
+                onClick={() => {
+                  setSelectedAmount(amount);
+                  setCustomAmount(amount.toString());
+                }}
+                className={`w-full py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all touch-manipulation ${
+                  selectedAmount === amount
+                    ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] shadow-md'
+                    : 'bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] text-[var(--tg-theme-text-color)] border border-[var(--tg-theme-hint-color)]/20'
+                }`}
+              >
+                <span className="text-yellow-400">⭐</span> {amount}
+              </button>
+            ))}
+          </div>
+
+          {/* Произвольная сумма */}
+          <div className="mb-3 sm:mb-4 md:mb-5">
+            <label className="block text-xs sm:text-sm font-medium text-[var(--tg-theme-text-color)] mb-1.5 sm:mb-2 md:mb-2.5">
+              Или введите свою сумму (от 50 ⭐):
+            </label>
+            <div className="flex gap-1.5 sm:gap-2 md:gap-3">
+              <input
+                type="number"
+                min="50"
+                value={customAmount}
+                onChange={(e) => setCustomAmount(e.target.value)}
+                placeholder="50"
+                className="flex-1 px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] text-[var(--tg-theme-text-color)] border border-[var(--tg-theme-hint-color)]/30 focus:outline-none focus:ring-2 focus:ring-[var(--tg-theme-button-color)]/50"
+              />
+              <button
+                onClick={handleCustomDonate}
+                disabled={isProcessing || !customAmount}
+                className="px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] font-semibold disabled:opacity-50 active:opacity-80 transition-opacity touch-manipulation min-h-[44px] whitespace-nowrap"
+              >
+                Поддержать
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="space-y-1 text-xs sm:text-sm text-[var(--tg-theme-hint-color)]">
-          <div>• Оплата из баланса Telegram</div>
-          <div>• Безопасная оплата</div>
+
+        {/* Информация о способе оплаты */}
+        <div className="p-2.5 sm:p-3 md:p-4 bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl border border-[var(--tg-theme-hint-color)]/20">
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+            <span className="text-base sm:text-lg md:text-xl">⭐</span>
+            <h3 className="text-xs sm:text-sm md:text-base font-semibold text-[var(--tg-theme-text-color)]">
+              Telegram Stars
+            </h3>
+          </div>
+          <div className="space-y-0.5 sm:space-y-1 text-xs sm:text-sm text-[var(--tg-theme-hint-color)]">
+            <div>• Оплата из баланса Telegram</div>
+            <div>• Безопасная оплата</div>
+          </div>
         </div>
-      </div>
       </div>
     </div>
   );
