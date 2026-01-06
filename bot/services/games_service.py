@@ -728,6 +728,26 @@ class GamesService:
                 "ai_move": None,
             }
 
+        # Проверяем формат хода перед распаковкой
+        if not isinstance(ai_move, (tuple, list)) or len(ai_move) != 4:
+            logger.warning(
+                f"⚠️ AI вернул невалидный формат хода: {ai_move}, используем первый валидный ход"
+            )
+            # Используем valid_moves, который уже получен выше
+            if valid_moves:
+                ai_move = valid_moves[0]
+            else:
+                # Нет валидных ходов - пользователь победил
+                state = game.get_board_state()
+                self.finish_game_session(session_id, "win")
+                return {
+                    "board": state["board"],
+                    "kings": state.get("kings"),
+                    "winner": "user",
+                    "game_over": True,
+                    "ai_move": None,
+                }
+
         ai_from_row, ai_from_col, ai_to_row, ai_to_col = ai_move
 
         # Проверяем валидность хода AI перед выполнением
