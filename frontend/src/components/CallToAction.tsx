@@ -8,8 +8,8 @@ import { SITE_CONFIG } from '../config/constants';
 
 export const CallToAction: React.FC = React.memo(() => {
   return (
-    <section id="cta" className="py-16 px-4 bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-slate-800/60 dark:via-slate-900 dark:to-slate-800/60 rounded-3xl my-16 border border-gray-100 dark:border-slate-700 dark:border-slate-600/50 scroll-mt-20">
-      <div className="max-w-5xl mx-auto text-center">
+    <section id="cta" className="py-16 bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-slate-800/60 dark:via-slate-900 dark:to-slate-800/60 rounded-3xl my-16 border border-gray-100 dark:border-slate-700 dark:border-slate-600/50 scroll-mt-20">
+      <div className="max-w-5xl mx-auto px-4 text-center">
         {/* Заголовок */}
         <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold mb-4 text-gray-900 dark:text-slate-50">
           Начни общение прямо сейчас! 🚀
