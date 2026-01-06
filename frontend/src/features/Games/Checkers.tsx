@@ -160,7 +160,6 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
   return (
     <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
-      {/* Центрируем контент по горизонтали, убираем сложный флекс, чтобы не ломать высоту */}
       <div className="w-full max-w-md mx-auto px-4 py-4 flex flex-col items-center">
 
         {/* Заголовок */}
@@ -179,8 +178,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/* Статус */}
-        <div className="text-center mb-1 w-full">
-          <div className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0.5">
+        <div className="text-center mb-4 w-full">
+          <div className="text-2xl font-bold text-[var(--tg-theme-text-color)] mb-1">
             {gameOver
               ? winner === "user"
                 ? "🎉 Ты победил!"
@@ -199,14 +198,13 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         </div>
 
         {/*
-          ИГРОВАЯ ДОСКА - СТАБИЛЬНАЯ ВЕРСИЯ
-          1. w-full - занимает всю ширину доступного контейнера (max-w-md).
-          2. max-w-[460px] - ограничивает на ПК.
-          3. aspect-square - гарантирует 1:1.
-          4. h-auto - предотвращает растягивание высоты браузером.
+          ИГРОВАЯ ДОСКА - САМЫЙ НАДЕЖНЫЙ МЕТОД (PADDING-BOTTOM HACK)
+          Это гарантированно создаст квадрат (1:1), так как padding-bottom
+          всегда рассчитывается от ширины родительского элемента.
         */}
-        <div className="w-full max-w-[460px] aspect-square h-auto relative mb-4">
-          <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[3px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-2xl overflow-hidden">
+        <div className="w-full max-w-[460px] relative mb-4" style={{ paddingBottom: '100%' }}>
+          {/* Сетка позиционируется абсолютно и заполняет весь квадратный контейнер */}
+          <div className="absolute inset-0 grid grid-cols-8 grid-rows-8 gap-[1px] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] border-[3px] border-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl shadow-2xl overflow-hidden">
             {board.length > 0 ? (
               board.map((row, rowIndex) =>
                 row.map((_, colIndex) => {
@@ -243,7 +241,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                     >
                       {cell && (
                         <div
-                          // Абсолютное позиционирование + aspect-square гарантируют идеальный круг
+                          // Идеальный круг в центре
                           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[82%] aspect-square flex items-center justify-center"
                         >
                           <div
@@ -279,11 +277,11 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           </div>
         </div>
 
-        {/* Инструкция */}
+        {/* Инструкция - БЕЗ ПУСТЫХ СТРОК */}
         {!gameOver && (
-          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] leading-tight px-2">
+          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] leading-tight px-2 space-y-1">
             <p className="m-0">Ты играешь белыми, панда играет черными</p>
-            <p className="m-0 mt-0.5">Нажми на свою фишку, затем на клетку для хода</p>
+            <p className="m-0">Нажми на свою фишку, затем на клетку для хода</p>
           </div>
         )}
 
