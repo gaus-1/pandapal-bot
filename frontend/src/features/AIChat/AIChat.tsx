@@ -333,7 +333,23 @@ export function AIChat({ user }: AIChatProps) {
     } catch (error) {
       console.error('❌ Ошибка доступа к микрофону:', error);
       telegram.notifyError();
-      const errorMessage = error instanceof Error ? error.message : 'Не удалось получить доступ к микрофону.';
+
+      let errorMessage = 'Не удалось получить доступ к микрофону.';
+
+      if (error instanceof DOMException) {
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          errorMessage = 'Доступ к микрофону запрещен.\n\nРазреши доступ к микрофону в настройках браузера или Telegram, затем попробуй снова.';
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          errorMessage = 'Микрофон не найден.\n\nУбедись, что микрофон подключен и доступен.';
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+          errorMessage = 'Микрофон занят другим приложением.\n\nЗакрой другие приложения, использующие микрофон, и попробуй снова.';
+        } else {
+          errorMessage = `Ошибка доступа к микрофону: ${error.message}`;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       await telegram.showAlert(errorMessage);
       setIsRecording(false);
       mediaRecorderRef.current = null;
