@@ -1,14 +1,14 @@
 # Frontend Source - Исходный код
 
-Исходный код React приложения для PandaPal.
+Исходный код React приложения для PandaPal. Здесь все что видит пользователь в Telegram Mini App.
 
 ## Структура
 
 ```
 src/
-├── components/     # Переиспользуемые UI компоненты
+├── components/     # Переиспользуемые UI компоненты (Header, Footer и т.д.)
 ├── features/       # Функциональные модули (AIChat, Games, Premium)
-├── services/        # API клиенты и внешние сервисы
+├── services/        # API клиенты и интеграция с Telegram
 ├── hooks/          # Кастомные React хуки
 ├── store/          # State management (Zustand)
 ├── types/          # TypeScript типы и интерфейсы
@@ -19,7 +19,7 @@ src/
 
 ## Features
 
-Каждая фича - отдельный модуль с экраном:
+Каждая фича - отдельный модуль со своим экраном:
 - `AIChat/` - чат с AI ассистентом
 - `Games/` - игры (TicTacToe, Checkers, 2048)
 - `Premium/` - Premium подписка
@@ -27,6 +27,8 @@ src/
 - `Emergency/` - экстренные номера
 - `Achievements/` - достижения и статистика
 - `Settings/` - настройки пользователя
+- `Lessons/` - уроки и материалы
+- `Progress/` - прогресс обучения
 
 ## Services
 
@@ -40,19 +42,21 @@ Zustand store в `store/appStore.ts`:
 - Состояние авторизации
 - Настройки приложения
 
+Просто и удобно, без лишней сложности.
+
 ## TypeScript
 
-Строгая типизация:
+Строгая типизация везде:
 - Все компоненты типизированы
 - Интерфейсы в `types/index.ts`
-- Избегать `any`, использовать `unknown` при необходимости
+- Избегай `any`, используй `unknown` если тип неизвестен
 
 ## Стили
 
 Tailwind CSS для стилизации:
-- Utility-first подход
-- Dark/light темы
-- Адаптивный дизайн (mobile-first)
+- Utility-first подход - стили прямо в JSX
+- Dark/light темы - автоматическое переключение
+- Адаптивный дизайн - mobile-first, работает на всех устройствах
 
 ## Тестирование
 

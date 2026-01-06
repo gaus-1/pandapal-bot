@@ -1,20 +1,20 @@
 # Security - Безопасность
 
-Модули безопасности: middleware, валидация, защита от атак.
+Модули безопасности - защита от атак, валидация данных, ограничение запросов. Критически важно для безопасности детей.
 
-## Модули
+## Что есть
 
 - `middleware.py` - security middleware (CSP, CORS, rate limiting)
 - `telegram_auth.py` - валидация Telegram Login Widget (HMAC-SHA256)
 - `overload_protection.py` - защита от перегрузки сервера
-- `audit_logger.py` - логирование безопасности
+- `audit_logger.py` - логирование важных событий безопасности
 - `crypto.py` - криптографические функции
 - `headers.py` - security headers
 - `integrity.py` - проверка целостности данных
 
 ## Middleware
 
-Security middleware регистрируется первым в `web_server.py`:
+Security middleware регистрируется первым в `web_server.py` - это важно, чтобы он обрабатывал все запросы:
 
 ```python
 from bot.security.middleware import setup_security_middleware
@@ -22,15 +22,15 @@ from bot.security.middleware import setup_security_middleware
 setup_security_middleware(app)
 ```
 
-Обеспечивает:
-- CSP headers
-- CORS настройки
-- Rate limiting
-- Security headers (X-Frame-Options, X-Content-Type-Options и т.д.)
+Что он делает:
+- CSP headers - защита от XSS
+- CORS настройки - контроль доступа
+- Rate limiting - защита от перегрузки
+- Security headers - дополнительные заголовки безопасности
 
 ## Telegram Auth
 
-Валидация данных от Telegram Login Widget:
+Валидация данных от Telegram Login Widget. Telegram подписывает данные, мы проверяем подпись:
 
 ```python
 from bot.security.telegram_auth import verify_telegram_auth
@@ -38,23 +38,26 @@ from bot.security.telegram_auth import verify_telegram_auth
 is_valid = verify_telegram_auth(auth_data, secret_key)
 ```
 
+Если подпись неверна - значит данные подделаны, отклоняем запрос.
+
 ## Overload Protection
 
 Защита от DDoS и перегрузки:
 - Ограничение количества одновременных запросов
 - Блокировка подозрительных IP
-- Graceful degradation при перегрузке
+- Graceful degradation - при перегрузке возвращаем ошибку, а не падаем
 
 ## Audit Logging
 
-Логирование важных событий безопасности:
+Логируем важные события безопасности:
 - Попытки обхода модерации
 - Подозрительные запросы
 - Ошибки авторизации
 
+Это помогает отследить атаки и проблемы.
+
 ## Важно
 
-- Все модули безопасности критичны
-- Не отключать без крайней необходимости
-- Регулярно проверять логи безопасности
-- Обновлять зависимости для исправления уязвимостей
+- **Все модули критичны** - не отключай без крайней необходимости
+- **Регулярно проверяй логи** - там могут быть признаки атак
+- **Обновляй зависимости** - в них находят уязвимости, исправления выходят регулярно

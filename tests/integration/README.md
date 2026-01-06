@@ -1,21 +1,21 @@
 # Integration Tests - Интеграционные тесты
 
-Тесты, проверяющие работу компонентов вместе с реальными сервисами.
+Тесты, которые проверяют работу компонентов вместе с реальными сервисами. Здесь тестируем не отдельные функции, а целые сценарии.
 
 ## Что тестируем
 
-- Работа с реальной БД (PostgreSQL)
-- Интеграция с Yandex Cloud API (GPT, SpeechKit, Vision)
-- Интеграция с YooKassa
-- Работа handlers с aiogram
-- Полные пользовательские сценарии
+- Работа с реальной БД (PostgreSQL) - создание пользователей, сохранение данных
+- Интеграция с Yandex Cloud API - реальные запросы к GPT, SpeechKit, Vision
+- Интеграция с YooKassa - тестируем платежи (в тестовом режиме)
+- Работа handlers с aiogram - как бот реагирует на команды
+- Полные пользовательские сценарии - от начала до конца
 
 ## Структура
 
 - `test_*_real.py` - тесты с реальными сервисами
 - `conftest_payment.py` - фикстуры для платежей
 
-## Паттерны
+## Примеры
 
 ### Тест с реальной БД
 ```python
@@ -30,7 +30,10 @@ async def test_user_creation(real_db_session):
         db.add(user)
         db.commit()
 
-        assert db.query(User).filter_by(telegram_id=123).first() is not None
+        # Проверяем что пользователь создан
+        found = db.query(User).filter_by(telegram_id=123).first()
+        assert found is not None
+        assert found.age == 10
 ```
 
 ### Тест с AI API
@@ -44,20 +47,7 @@ async def test_ai_response():
 
     assert response is not None
     assert len(response) > 0
-```
-
-### Тест handler
-```python
-from aiogram import Bot, Dispatcher
-from aiogram.types import Message, User
-
-@pytest.mark.asyncio
-async def test_start_handler():
-    bot = Bot(token="test")
-    dp = Dispatcher()
-
-    # Регистрация handler
-    # Тест команды /start
+    # Проверяем что ответ подходит для детей
 ```
 
 ## Запуск
@@ -75,7 +65,7 @@ pytest tests/integration/ --cov=bot --cov-report=html
 
 ## Важно
 
-- Используют реальные сервисы (требуют настройки)
-- Медленнее unit тестов
-- Требуют переменные окружения для API
-- Не должны влиять на production данные
+- Используют реальные сервисы - нужны переменные окружения для API
+- Медленнее unit тестов - делают реальные запросы
+- Не должны влиять на production данные - используй тестовую БД
+- Могут быть нестабильными - внешние API могут быть недоступны
