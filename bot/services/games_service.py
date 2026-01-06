@@ -734,8 +734,18 @@ class GamesService:
                 f"⚠️ AI вернул невалидный формат хода: {ai_move}, используем первый валидный ход"
             )
             # Используем valid_moves, который уже получен выше
+            # get_valid_moves возвращает List[Dict], нужно преобразовать в кортеж
             if valid_moves:
-                ai_move = valid_moves[0]
+                first_move = valid_moves[0]
+                if isinstance(first_move, dict):
+                    from_pos = first_move.get("from", (0, 0))
+                    to_pos = first_move.get("to", (0, 0))
+                    ai_move = (from_pos[0], from_pos[1], to_pos[0], to_pos[1])
+                elif isinstance(first_move, (tuple, list)) and len(first_move) == 4:
+                    ai_move = first_move
+                else:
+                    logger.error(f"⚠️ Неожиданный формат хода в valid_moves: {first_move}")
+                    ai_move = None
             else:
                 # Нет валидных ходов - пользователь победил
                 state = game.get_board_state()
@@ -752,15 +762,43 @@ class GamesService:
 
         # Проверяем валидность хода AI перед выполнением
         valid_moves_ai = game.get_valid_moves(2)
+        # get_valid_moves возвращает List[Dict] с форматом {'from': (r, c), 'to': (r, c), ...}
         ai_move_valid = any(
-            move == (ai_from_row, ai_from_col, ai_to_row, ai_to_col) for move in valid_moves_ai
+            move.get("from") == (ai_from_row, ai_from_col)
+            and move.get("to") == (ai_to_row, ai_to_col)
+            for move in valid_moves_ai
+            if isinstance(move, dict)
         )
 
         if not ai_move_valid:
             # Ход AI невалидный - пробуем найти другой валидный ход
             if valid_moves_ai:
                 # Берем первый валидный ход
-                ai_from_row, ai_from_col, ai_to_row, ai_to_col = valid_moves_ai[0]
+                # get_valid_moves возвращает List[Dict] с форматом {'from': (r, c), 'to': (r, c), ...}
+                first_move = valid_moves_ai[0]
+                if isinstance(first_move, dict):
+                    from_pos = first_move.get("from", (0, 0))
+                    to_pos = first_move.get("to", (0, 0))
+                    ai_from_row, ai_from_col = from_pos
+                    ai_to_row, ai_to_col = to_pos
+                elif isinstance(first_move, (tuple, list)) and len(first_move) == 4:
+                    ai_from_row, ai_from_col, ai_to_row, ai_to_col = first_move
+                else:
+                    logger.error(f"⚠️ Неожиданный формат хода: {first_move}")
+                    # Fallback - используем первый валидный ход из valid_moves
+                    if valid_moves:
+                        first_fallback = valid_moves[0]
+                        if isinstance(first_fallback, dict):
+                            from_pos = first_fallback.get("from", (0, 0))
+                            to_pos = first_fallback.get("to", (0, 0))
+                            ai_from_row, ai_from_col = from_pos
+                            ai_to_row, ai_to_col = to_pos
+                        else:
+                            raise ValueError(
+                                f"Неожиданный формат хода в valid_moves: {first_fallback}"
+                            )
+                    else:
+                        raise ValueError("Нет валидных ходов для AI")
             else:
                 # Нет валидных ходов - пользователь победил
                 state = game.get_board_state()
