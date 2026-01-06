@@ -623,6 +623,61 @@ class GamesService:
             "ai_move": ai_position,
         }
 
+    def get_checkers_valid_moves(self, session_id: int) -> List[Dict]:
+        """
+        Получить валидные ходы для пользователя в шашках.
+
+        Args:
+            session_id: ID сессии
+
+        Returns:
+            List[Dict]: Список валидных ходов в формате [{"from": (row, col), "to": (row, col), "capture": (row, col) | None}, ...]
+        """
+        session = self.db.get(GameSession, session_id)
+        if not session:
+            raise ValueError(f"Game session {session_id} not found")
+
+        # Восстанавливаем или создаем игру
+        if session.game_state and isinstance(session.game_state, dict):
+            game_state = session.game_state
+            board_data = game_state.get("board")
+            if board_data and isinstance(board_data, list) and len(board_data) == 8:
+                # Восстанавливаем игру из сохраненного состояния
+                game = CheckersGame()
+                kings_data = game_state.get("kings", [])
+                # Конвертируем frontend формат ('user', 'ai', None) в engine формат (1, 2, 0, 3, 4)
+                for r in range(8):
+                    for c in range(8):
+                        cell = (
+                            board_data[r][c]
+                            if r < len(board_data) and c < len(board_data[r])
+                            else None
+                        )
+                        is_king = (
+                            kings_data[r][c]
+                            if r < len(kings_data) and c < len(kings_data[r])
+                            else False
+                        )
+                        if cell == "user":
+                            game.board[r][c] = 3 if is_king else 1
+                        elif cell == "ai":
+                            game.board[r][c] = 4 if is_king else 2
+                        else:
+                            game.board[r][c] = 0
+                # Восстанавливаем текущего игрока и другие состояния
+                game.current_player = game_state.get("current_player", 1)
+                must_capture = game_state.get("must_capture")
+                if must_capture and isinstance(must_capture, list) and len(must_capture) == 2:
+                    game.must_capture_from = tuple(must_capture)
+            else:
+                game = CheckersGame()
+        else:
+            game = CheckersGame()
+
+        # Получаем валидные ходы для пользователя (player = 1)
+        valid_moves = game.get_valid_moves(1)
+        return valid_moves
+
     def checkers_move(
         self, session_id: int, from_row: int, from_col: int, to_row: int, to_col: int
     ) -> Dict:

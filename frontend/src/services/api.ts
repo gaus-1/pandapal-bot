@@ -354,6 +354,30 @@ export async function ticTacToeMove(sessionId: number, position: number): Promis
 }
 
 /**
+ * Получить валидные ходы в шашках
+ */
+export async function getCheckersValidMoves(sessionId: number): Promise<Array<{
+  from: [number, number];
+  to: [number, number];
+  capture: [number, number] | null;
+}>> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/checkers/${sessionId}/valid-moves`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка получения валидных ходов');
+  }
+
+  const data = await response.json();
+  return data.valid_moves;
+}
+
+/**
  * Сделать ход в шашках
  */
 export async function checkersMove(
