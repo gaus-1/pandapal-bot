@@ -319,6 +319,8 @@ class PandaPalBotServer:
                     "favicon.ico",  # Favicon для Яндекс (создается из logo.png)
                     "robots.txt",
                     "sitemap.xml",
+                    "panda-happy.png",  # Веселая панда для игр
+                    "panda-sad.png",  # Грустная панда для игр
                 ]
 
                 # Если favicon.ico нет, используем logo.png как favicon
