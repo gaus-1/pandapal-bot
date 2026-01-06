@@ -681,7 +681,19 @@ class GamesService:
             game = CheckersGame()
 
         # Ход пользователя (player = 1)
+        # Получаем валидные ходы для диагностики
+        user_valid_moves = game.get_valid_moves(1)
         if not game.make_move(from_row, from_col, to_row, to_col):
+            # Логируем детали для отладки
+            logger.warning(
+                f"⚠️ Невалидный ход пользователя: ({from_row}, {from_col}) -> ({to_row}, {to_col})"
+            )
+            logger.warning(
+                f"📊 Текущий игрок: {game.current_player}, обязательное взятие: {game.must_capture_from}"
+            )
+            logger.warning(f"📋 Валидных ходов для пользователя: {len(user_valid_moves)}")
+            if user_valid_moves:
+                logger.warning(f"📋 Примеры валидных ходов: {user_valid_moves[:3]}")
             raise ValueError("Invalid move")
 
         # Проверяем победу пользователя
