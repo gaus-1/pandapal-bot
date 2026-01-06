@@ -214,7 +214,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       onClick={() => handleCellClick(rowIndex, colIndex)}
                       disabled={!isUserTurn || isLoading || gameOver}
                       className={`
-                        w-full h-full relative flex items-center justify-center p-1
+                        w-full h-full relative flex items-center justify-center
                         transition-all duration-200 touch-manipulation outline-none
                         ${
                           isDark
@@ -230,36 +230,41 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                       aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                     >
                       {cell && (
-                        // Используем aspect-square здесь, чтобы шашка всегда была кругом
                         <div
-                          className={`
-                            w-full h-full aspect-square rounded-full shadow-lg shrink-0 relative flex items-center justify-center
-                            transition-transform active:scale-95
-                            ${cell === "user"
-                              ? "bg-white border-[3px] border-gray-300"
-                              : "bg-gray-800 border-[3px] border-gray-900"}
-                          `}
-                          style={{
-                            // Добавляем объем через тени
-                            boxShadow: cell === "user"
-                              ? "inset 0 -2px 4px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.4)"
-                              : "inset 0 -2px 4px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.6)",
-                          }}
+                          className="absolute top-[7.5%] left-[7.5%] right-[7.5%] bottom-[7.5%] flex items-center justify-center"
                         >
-                          {/* Блик */}
-                          <div className="absolute inset-[15%] rounded-full bg-gradient-to-tr from-black/5 to-white/40 pointer-events-none"></div>
+                          <div
+                            className={`
+                              rounded-full shadow-lg relative flex items-center justify-center
+                              transition-transform active:scale-95
+                              ${cell === "user"
+                                ? "bg-white border-[3px] border-gray-300"
+                                : "bg-gray-800 border-[3px] border-gray-900"}
+                            `}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              aspectRatio: '1',
+                              boxShadow: cell === "user"
+                                ? "inset 0 -2px 4px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.4)"
+                                : "inset 0 -2px 4px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.6)",
+                            }}
+                          >
+                            {/* Блик */}
+                            <div className="absolute inset-[15%] rounded-full bg-gradient-to-tr from-black/5 to-white/40 pointer-events-none"></div>
 
-                          {/* Корона */}
-                          {isKing(rowIndex, colIndex) && (
-                            <span
-                              className={`
-                                text-[1.4em] leading-none drop-shadow-sm relative z-10
-                                ${cell === "user" ? "text-yellow-600" : "text-yellow-400"}
-                              `}
-                            >
-                              👑
-                            </span>
-                          )}
+                            {/* Корона */}
+                            {isKing(rowIndex, colIndex) && (
+                              <span
+                                className={`
+                                  text-[1.4em] leading-none drop-shadow-sm relative z-10
+                                  ${cell === "user" ? "text-yellow-600" : "text-yellow-400"}
+                                `}
+                              >
+                                👑
+                              </span>
+                            )}
+                          </div>
                         </div>
                       )}
                     </button>
