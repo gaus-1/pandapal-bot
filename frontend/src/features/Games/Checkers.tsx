@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { telegram } from "../../services/telegram";
 import {
   checkersMove,
+  getCheckersValidMoves,
   getGameSession,
   type UserProfile,
 } from "../../services/api";
@@ -29,11 +30,23 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   const [error, setError] = useState<string | null>(null);
   const [isUserTurn, setIsUserTurn] = useState(true);
   const [kings, setKings] = useState<boolean[][]>([]);
+  const [validMoves, setValidMoves] = useState<Array<{
+    from: [number, number];
+    to: [number, number];
+    capture: [number, number] | null;
+  }>>([]);
 
   useEffect(() => {
     loadGameState();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
+
+  useEffect(() => {
+    if (isUserTurn && !gameOver && board.length > 0) {
+      loadValidMoves();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isUserTurn, gameOver, board, sessionId]);
 
   const loadGameState = async () => {
     try {
@@ -82,19 +95,55 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
     }
   };
 
+  const loadValidMoves = async () => {
+    try {
+      const moves = await getCheckersValidMoves(sessionId);
+      setValidMoves(moves);
+    } catch (err) {
+      console.error("Ошибка загрузки валидных ходов:", err);
+      setValidMoves([]);
+    }
+  };
+
   const handleCellClick = async (row: number, col: number) => {
     if (gameOver || isLoading || !isUserTurn) {
       return;
     }
 
+    // Проверяем, можно ли выбрать эту фишку (есть ли у неё валидные ходы)
     if (board[row][col] === "user") {
-      setSelectedCell([row, col]);
-      telegram.hapticFeedback("light");
+      const canMove = validMoves.some(
+        (move) => move.from[0] === row && move.from[1] === col
+      );
+      if (canMove) {
+        setSelectedCell([row, col]);
+        telegram.hapticFeedback("light");
+      } else {
+        telegram.hapticFeedback("heavy");
+        setError("Эта фишка не может ходить");
+        setTimeout(() => setError(null), 2000);
+      }
       return;
     }
 
     if (selectedCell) {
       const [fromRow, fromCol] = selectedCell;
+      // Проверяем, валиден ли этот ход
+      const isValidMove = validMoves.some(
+        (move) =>
+          move.from[0] === fromRow &&
+          move.from[1] === fromCol &&
+          move.to[0] === row &&
+          move.to[1] === col
+      );
+
+      if (!isValidMove) {
+        telegram.hapticFeedback("heavy");
+        setError("Невалидный ход");
+        setTimeout(() => setError(null), 2000);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
 
@@ -123,6 +172,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           // После хода пользователя AI делает ход автоматически на бэкенде
           // Теперь снова очередь пользователя
           setIsUserTurn(true);
+          // Загружаем новые валидные ходы
+          await loadValidMoves();
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Ошибка хода";
@@ -146,6 +197,27 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
   const isSelected = (row: number, col: number) => {
     return selectedCell && selectedCell[0] === row && selectedCell[1] === col;
+  };
+
+  const isValidMoveTarget = (row: number, col: number) => {
+    if (!selectedCell) return false;
+    return validMoves.some(
+      (move) =>
+        move.from[0] === selectedCell[0] &&
+        move.from[1] === selectedCell[1] &&
+        move.to[0] === row &&
+        move.to[1] === col
+    );
+  };
+
+  const canPieceMove = (row: number, col: number) => {
+    return validMoves.some(
+      (move) => move.from[0] === row && move.from[1] === col
+    );
+  };
+
+  const hasMandatoryCapture = () => {
+    return validMoves.some((move) => move.capture !== null);
   };
 
   return (
@@ -185,6 +257,11 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                 ? "Твой ход!"
                 : "Ход панды..."}
         </div>
+        {isUserTurn && !gameOver && hasMandatoryCapture() && (
+          <p className="text-xs sm:text-sm text-orange-500 font-semibold mt-1">
+            ⚠️ Обязательное взятие!
+          </p>
+        )}
         {error && (
           <p className="text-xs sm:text-sm text-red-500 mt-1">{error}</p>
         )}
@@ -200,6 +277,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                   const isDark = isDarkCell(rowIndex, colIndex);
                   const cell = board[rowIndex]?.[colIndex];
                   const selected = isSelected(rowIndex, colIndex);
+                  const isValidTarget = isValidMoveTarget(rowIndex, colIndex);
+                  const canMove = canPieceMove(rowIndex, colIndex);
 
                   return (
                     <button
@@ -218,6 +297,16 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                         ${
                           selected
                             ? "brightness-125 ring-inset ring-4 ring-yellow-400/60 z-10"
+                            : ""
+                        }
+                        ${
+                          isValidTarget
+                            ? "ring-2 ring-green-400/80 ring-inset brightness-110"
+                            : ""
+                        }
+                        ${
+                          cell === "user" && !canMove && isUserTurn && !gameOver
+                            ? "opacity-50"
                             : ""
                         }
                       `}

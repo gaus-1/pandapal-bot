@@ -303,11 +303,37 @@ async def get_game_session(request: web.Request) -> web.Response:
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
+async def get_checkers_valid_moves(request: web.Request) -> web.Response:
+    """
+    Получить валидные ходы для шашек.
+
+    GET /api/miniapp/games/checkers/{session_id}/valid-moves
+    """
+    try:
+        session_id = int(request.match_info["session_id"])
+
+        with get_db() as db:
+            games_service = GamesService(db)
+            valid_moves = games_service.get_checkers_valid_moves(session_id)
+
+        return web.json_response({"success": True, "valid_moves": valid_moves})
+
+    except ValueError as e:
+        logger.warning(f"⚠️ Invalid session_id: {e}")
+        return web.json_response({"error": str(e)}, status=400)
+    except Exception as e:
+        logger.error(f"❌ Ошибка получения валидных ходов: {e}", exc_info=True)
+        return web.json_response({"error": "Internal server error"}, status=500)
+
+
 def setup_games_routes(app: web.Application) -> None:
     """Регистрация роутов игр"""
     app.router.add_post("/api/miniapp/games/{telegram_id}/create", create_game)
     app.router.add_post("/api/miniapp/games/tic-tac-toe/{session_id}/move", tic_tac_toe_move)
     app.router.add_post("/api/miniapp/games/checkers/{session_id}/move", checkers_move)
+    app.router.add_get(
+        "/api/miniapp/games/checkers/{session_id}/valid-moves", get_checkers_valid_moves
+    )
     app.router.add_post("/api/miniapp/games/2048/{session_id}/move", game_2048_move)
     app.router.add_get("/api/miniapp/games/{telegram_id}/stats", get_game_stats)
     app.router.add_get("/api/miniapp/games/session/{session_id}", get_game_session)
