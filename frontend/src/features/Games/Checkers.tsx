@@ -231,7 +231,11 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                     >
                       {cell && (
                         <div
-                          className="absolute top-[7.5%] left-[7.5%] right-[7.5%] bottom-[7.5%] flex items-center justify-center"
+                          className="absolute inset-[7.5%]"
+                          style={{
+                            width: '85%',
+                            height: '85%',
+                          }}
                         >
                           <div
                             className={`
@@ -243,27 +247,30 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                             `}
                             style={{
                               width: '100%',
-                              height: '100%',
-                              aspectRatio: '1',
+                              height: '0',
+                              paddingBottom: '100%',
+                              position: 'relative',
                               boxShadow: cell === "user"
                                 ? "inset 0 -2px 4px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.4)"
                                 : "inset 0 -2px 4px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.6)",
                             }}
                           >
-                            {/* Блик */}
-                            <div className="absolute inset-[15%] rounded-full bg-gradient-to-tr from-black/5 to-white/40 pointer-events-none"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              {/* Блик */}
+                              <div className="absolute inset-[15%] rounded-full bg-gradient-to-tr from-black/5 to-white/40 pointer-events-none"></div>
 
-                            {/* Корона */}
-                            {isKing(rowIndex, colIndex) && (
-                              <span
-                                className={`
-                                  text-[1.4em] leading-none drop-shadow-sm relative z-10
-                                  ${cell === "user" ? "text-yellow-600" : "text-yellow-400"}
-                                `}
-                              >
-                                👑
-                              </span>
-                            )}
+                              {/* Корона */}
+                              {isKing(rowIndex, colIndex) && (
+                                <span
+                                  className={`
+                                    text-[1.4em] leading-none drop-shadow-sm relative z-10
+                                    ${cell === "user" ? "text-yellow-600" : "text-yellow-400"}
+                                  `}
+                                >
+                                  👑
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       )}
