@@ -1,91 +1,57 @@
 # Bot - Backend логика
 
-Основной модуль Telegram-бота PandaPal. Содержит обработчики команд, бизнес-логику, API endpoints и конфигурацию.
+Здесь живет вся логика Telegram-бота. Обработчики команд, бизнес-логика, API для Mini App и все настройки.
 
-## Структура
+## Что внутри
 
 ```
 bot/
-├── handlers/      # Обработчики команд Telegram (start, ai_chat, translate, games)
-├── services/       # Бизнес-логика (AI, модерация, платежи, игры)
+├── handlers/      # Обработчики команд - что бот делает когда пользователь пишет
+├── services/       # Вся бизнес-логика - AI, платежи, игры, модерация
 ├── api/           # HTTP endpoints для Mini App и внешних сервисов
-├── config/         # Настройки, промпты, паттерны модерации
-├── security/       # Middleware, валидация, защита от атак
-├── keyboards/      # Клавиатуры для Telegram (inline, reply)
-├── localization/   # Локализация (ru, en)
-├── monitoring/     # Мониторинг и метрики (Prometheus, Sentry)
-├── models.py       # SQLAlchemy модели БД
-└── database.py     # Подключение к PostgreSQL, connection pool
+├── config/         # Настройки, промпты для AI, паттерны модерации
+├── security/       # Защита - middleware, валидация, rate limiting
+├── keyboards/      # Клавиатуры для Telegram (кнопки в боте)
+├── localization/   # Переводы интерфейса (ru, en)
+├── monitoring/     # Мониторинг - метрики, логи, ошибки
+├── models.py       # Модели БД - как данные хранятся
+└── database.py     # Подключение к PostgreSQL
 ```
 
-## Основные компоненты
+## Как это работает
 
-### Handlers
-Обработчики команд и сообщений от пользователей Telegram. Используют aiogram Routers для регистрации.
+**Handlers** - реагируют на команды и сообщения пользователей. Когда кто-то пишет `/start` или отправляет фото, срабатывает соответствующий handler.
 
-### Services
-Бизнес-логика приложения. Каждый сервис отвечает за свою область:
-- AI сервисы (YandexGPT, SpeechKit, Vision)
-- Модерация контента
-- Платежи (YooKassa)
-- Игры (TicTacToe, Checkers, 2048)
-- Геймификация (достижения, XP)
+**Services** - вся логика приложения. Здесь AI генерирует ответы, модерация проверяет контент, платежи обрабатываются, игры работают.
 
-### API
-HTTP endpoints для Telegram Mini App и интеграций:
-- `/api/miniapp/*` - Mini App API
-- `/api/premium/*` - Premium подписки
-- `/api/games/*` - Игры API
-- `/api/auth/*` - Авторизация
+**API** - HTTP endpoints для Mini App. Когда пользователь открывает приложение в Telegram, оно обращается к этим endpoints.
 
-### Security
-Модули безопасности:
-- CSP, CORS headers
-- Rate limiting
-- Overload protection
-- Telegram auth validation
-
-### Keyboards
-Клавиатуры для Telegram:
-- Inline клавиатуры для меню
-- Reply клавиатуры для команд
-- Клавиатуры достижений
-
-### Localization
-Локализация интерфейса:
-- Русский (ru)
-- Английский (en)
-- JSON файлы с переводами
-
-### Monitoring
-Мониторинг и метрики:
-- Prometheus метрики
-- Sentry для отслеживания ошибок
-- Интеграция с системой мониторинга
-
-## Архитектура
-
-Следует принципам SOLID:
-- **SRP** - каждый модуль отвечает за одну задачу
-- **DIP** - зависимости через интерфейсы
-- **OCP** - расширяемость без изменения кода
+**Security** - защита от атак, валидация данных, ограничение запросов. Критически важно для безопасности детей.
 
 ## Работа с БД
 
-Все операции с БД через context manager:
+Всегда используй context manager для работы с базой:
+
 ```python
 from bot.database import get_db
+from bot.models import User
 
 with get_db() as db:
     user = db.query(User).filter_by(telegram_id=123).first()
+    # Делаем что-то с пользователем
 ```
+
+Не забывай закрывать соединения - context manager делает это автоматически.
 
 ## Логирование
 
-Используется loguru:
+Используем loguru - удобно и красиво:
+
 ```python
 from loguru import logger
 
-logger.info("User action")
-logger.error("Error occurred", exc_info=True)
+logger.info("Пользователь отправил сообщение")
+logger.error("Ошибка при обработке", exc_info=True)
 ```
+
+Логи помогают понять что происходит в продакшене, когда что-то идет не так.
