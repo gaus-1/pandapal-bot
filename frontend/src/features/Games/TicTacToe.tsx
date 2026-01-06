@@ -80,12 +80,19 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
       // Если игра не окончена, показываем задержку перед ходом AI
       if (!result.game_over) {
         setIsUserTurn(false); // Показываем "Ход панды..."
-        // Задержка перед показом хода AI (1-1.5 секунды)
-        await new Promise((resolve) => setTimeout(resolve, 1200));
+        // Задержка перед показом хода AI (900ms для плавности)
+        await new Promise((resolve) => setTimeout(resolve, 900));
       }
 
       setBoard(result.board);
       setAiMoveIndex(result.ai_move);
+
+      // Сбрасываем анимацию через 400ms
+      if (result.ai_move !== null && result.ai_move !== undefined) {
+        setTimeout(() => {
+          setAiMoveIndex(null);
+        }, 400);
+      }
 
       if (result.game_over) {
         setGameOver(true);
@@ -201,7 +208,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
                     }
                     ${
                       isAiMove
-                        ? "ring-2 sm:ring-4 ring-yellow-400 ring-opacity-50 animate-pulse"
+                        ? "ring-2 sm:ring-4 ring-yellow-400 ring-opacity-50 animate-[fadeInScale_0.3s_ease-out]"
                         : ""
                     }
                     ${
