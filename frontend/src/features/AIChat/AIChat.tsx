@@ -433,12 +433,36 @@ export function AIChat({ user }: AIChatProps) {
       mediaRecorder.onstart = () => {
         recordingStartedRef.current = true;
         console.log('✅ MediaRecorder начал запись, состояние:', mediaRecorder.state);
-        sendLogToServer('info', 'MediaRecorder.onstart вызван', {
-          state: mediaRecorder.state,
+
+        // Проверяем состояние stream в onstart
+        const streamState = {
+          streamExists: !!streamRef.current,
           streamActive: streamRef.current?.active ?? false,
           tracksCount: streamRef.current?.getAudioTracks().length ?? 0,
-          platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-        }, user.telegram_id).catch(() => {});
+          tracks: streamRef.current?.getAudioTracks().map(t => ({
+            id: t.id,
+            enabled: t.enabled,
+            muted: t.muted,
+            readyState: t.readyState,
+          })) ?? [],
+        };
+
+        console.log('📊 Состояние stream в onstart:', streamState);
+
+        if (!streamRef.current || !streamRef.current.active) {
+          console.error('❌ Stream неактивен в onstart! Это может быть причиной проблемы.');
+          sendLogToServer('error', 'Stream неактивен в onstart', {
+            state: mediaRecorder.state,
+            ...streamState,
+            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          }, user.telegram_id).catch(() => {});
+        } else {
+          sendLogToServer('info', 'MediaRecorder.onstart вызван', {
+            state: mediaRecorder.state,
+            ...streamState,
+            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          }, user.telegram_id).catch(() => {});
+        }
       };
 
       mediaRecorder.onpause = () => {
@@ -643,10 +667,36 @@ export function AIChat({ user }: AIChatProps) {
       try {
         const timeslice = 250; // 250мс для стабильной работы на мобильных
         console.log('🎙️ Запуск записи с timeslice:', timeslice);
+
+        // Проверяем состояние stream перед start()
+        const streamStateBeforeStart = {
+          streamExists: !!streamRef.current,
+          streamActive: streamRef.current?.active ?? false,
+          tracksCount: streamRef.current?.getAudioTracks().length ?? 0,
+          tracks: streamRef.current?.getAudioTracks().map(t => ({
+            id: t.id,
+            enabled: t.enabled,
+            muted: t.muted,
+            readyState: t.readyState,
+          })) ?? [],
+        };
+
+        console.log('📊 Состояние stream перед start():', streamStateBeforeStart);
+
+        if (!streamRef.current || !streamRef.current.active) {
+          console.error('❌ Stream неактивен перед start()! Останавливаем запись.');
+          sendLogToServer('error', 'Stream неактивен перед start()', {
+            stateBeforeStart: mediaRecorder.state,
+            ...streamStateBeforeStart,
+            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          }, user.telegram_id).catch(() => {});
+          throw new Error('Stream неактивен перед началом записи');
+        }
+
         sendLogToServer('info', 'Запуск записи', {
           timeslice,
           stateBeforeStart: mediaRecorder.state,
-          streamActive: streamRef.current?.active ?? false,
+          ...streamStateBeforeStart,
           platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
         }, user.telegram_id).catch(() => {});
 
