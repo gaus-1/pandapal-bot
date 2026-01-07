@@ -225,6 +225,15 @@ export function AIChat({ user }: AIChatProps) {
             state: permissionStatus.state,
             platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
           }, user.telegram_id).catch(() => {});
+
+          // Отслеживаем изменение статуса разрешения
+          permissionStatus.onchange = () => {
+            console.log('📋 Статус разрешения изменился:', permissionStatus?.state);
+            sendLogToServer('info', 'Изменение статуса разрешения микрофона', {
+              state: permissionStatus?.state,
+              platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+            }, user.telegram_id).catch(() => {});
+          };
         } catch (permError) {
           console.warn('⚠️ Permissions API недоступна:', permError);
         }
@@ -253,10 +262,39 @@ export function AIChat({ user }: AIChatProps) {
         permissionState: permissionStatus?.state,
       }, user.telegram_id).catch(() => {});
 
-      const stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+      // Добавляем таймаут для диагностики зависаний
+      const getUserMediaPromise = navigator.mediaDevices.getUserMedia(audioConstraints);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new DOMException('getUserMedia timeout after 10 seconds', 'TimeoutError'));
+        }, 10000);
+      });
+
+      console.log('⏳ Ожидание ответа getUserMedia...');
+      const stream = await Promise.race([getUserMediaPromise, timeoutPromise]);
 
       streamRef.current = stream;
       console.log('✅ Доступ к микрофону получен');
+      console.log('📊 Stream tracks:', stream.getAudioTracks().map(t => ({
+        id: t.id,
+        label: t.label,
+        enabled: t.enabled,
+        muted: t.muted,
+        readyState: t.readyState,
+        settings: t.getSettings(),
+      })));
+
+      sendLogToServer('info', 'Доступ к микрофону получен', {
+        tracksCount: stream.getAudioTracks().length,
+        tracks: stream.getAudioTracks().map(t => ({
+          id: t.id,
+          label: t.label,
+          enabled: t.enabled,
+          muted: t.muted,
+          readyState: t.readyState,
+        })),
+        platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+      }, user.telegram_id).catch(() => {});
 
       // Определяем поддерживаемый формат (как в рабочей версии от 1-2 января)
       const supportedTypes = [
