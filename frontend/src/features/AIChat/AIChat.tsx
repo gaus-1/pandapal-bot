@@ -75,7 +75,17 @@ export function AIChat({ user }: AIChatProps) {
   }, [isRecording]);
 
   const handleSend = () => {
-    if (!inputText.trim() || isSending) return;
+    console.log('📤 handleSend вызван', {
+      hasText: !!inputText.trim(),
+      textLength: inputText.length,
+      isSending,
+      hasReply: replyToMessage !== null,
+    });
+
+    if (!inputText.trim() || isSending) {
+      console.warn('⚠️ handleSend: пропущен (нет текста или уже отправляется)');
+      return;
+    }
 
     let fullMessage = inputText;
     if (replyToMessage !== null && messages[replyToMessage]) {
@@ -83,6 +93,7 @@ export function AIChat({ user }: AIChatProps) {
       fullMessage = `[Ответ на: "${replied.content.slice(0, 50)}..."]\n\n${inputText}`;
     }
 
+    console.log('📤 Отправляю текстовое сообщение, длина:', fullMessage.length);
     sendMessage({ message: fullMessage });
     setInputText('');
     setReplyToMessage(null);
@@ -135,12 +146,22 @@ export function AIChat({ user }: AIChatProps) {
 
   // Обработка загрузки фото
   const handlePhotoClick = () => {
+    console.log('📷 handlePhotoClick вызван');
     fileInputRef.current?.click();
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('📷 handlePhotoUpload вызван');
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.warn('⚠️ handlePhotoUpload: файл не выбран');
+      return;
+    }
+    console.log('📷 Файл выбран:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    });
 
     if (!file.type.startsWith('image/')) {
       await telegram.showAlert('Пожалуйста, выбери изображение');
@@ -174,6 +195,15 @@ export function AIChat({ user }: AIChatProps) {
 
   // Обработка записи аудио
   const handleVoiceStart = async () => {
+    console.log('🎤 handleVoiceStart вызван', {
+      isRecording,
+      hasRecorder: !!mediaRecorderRef.current,
+      userAgent: navigator.userAgent,
+      platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+      hasMediaDevices: !!navigator.mediaDevices,
+      hasGetUserMedia: !!navigator.mediaDevices?.getUserMedia,
+    });
+
     if (isRecording || mediaRecorderRef.current) {
       console.warn('⚠️ Запись уже идет');
       return;
@@ -521,6 +551,14 @@ export function AIChat({ user }: AIChatProps) {
       telegram.hapticFeedback('heavy');
     } catch (error) {
       console.error('❌ Ошибка доступа к микрофону:', error);
+      console.error('❌ Детали ошибки:', {
+        name: error instanceof DOMException ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        code: error instanceof DOMException ? error.code : undefined,
+        stack: error instanceof Error ? error.stack : undefined,
+        userAgent: navigator.userAgent,
+        platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+      });
       telegram.notifyError();
 
       let errorMessage = 'Не удалось получить доступ к микрофону.';
@@ -529,9 +567,9 @@ export function AIChat({ user }: AIChatProps) {
         if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
           // Укороченное сообщение для Telegram popup (максимум 200 символов)
           if (error.message.includes('system') || error.message.includes('Permission denied by system')) {
-            errorMessage = 'Доступ к микрофону заблокирован. Проверь настройки Telegram и устройства.';
+            errorMessage = 'Доступ к микрофону заблокирован системой.\n\nПроверь:\n1. Настройки Telegram → Конфиденциальность → Микрофон\n2. Настройки устройства → Разрешения → Микрофон\n3. Попробуй перезапустить Telegram';
           } else {
-            errorMessage = 'Доступ к микрофону запрещен. Разреши в настройках браузера.';
+            errorMessage = 'Доступ к микрофону запрещен.\n\nРазреши доступ в настройках браузера или Telegram.';
           }
         } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
           errorMessage = 'Микрофон не найден.\n\nУбедись, что микрофон подключен и доступен.';
@@ -544,6 +582,7 @@ export function AIChat({ user }: AIChatProps) {
         errorMessage = error.message;
       }
 
+      console.error('❌ Показываю пользователю ошибку:', errorMessage);
       await telegram.showAlert(errorMessage);
       setIsRecording(false);
       mediaRecorderRef.current = null;
