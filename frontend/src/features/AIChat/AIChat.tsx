@@ -313,6 +313,33 @@ export function AIChat({ user }: AIChatProps) {
       try {
         streamRef.current = stream;
         console.log('✅ Доступ к микрофону получен');
+
+        // Добавляем обработчики событий на треки, чтобы отследить, когда stream закрывается
+        stream.getAudioTracks().forEach((track) => {
+          track.onended = () => {
+            console.error('❌ Трек завершился (ended):', track.id);
+            sendLogToServer('error', 'Аудио трек завершился (ended)', {
+              trackId: track.id,
+              readyState: track.readyState,
+              enabled: track.enabled,
+              muted: track.muted,
+              platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+            }, user.telegram_id).catch(() => {});
+          };
+
+          track.onmute = () => {
+            console.warn('⚠️ Трек заглушен:', track.id);
+            sendLogToServer('warn', 'Аудио трек заглушен', {
+              trackId: track.id,
+              platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+            }, user.telegram_id).catch(() => {});
+          };
+
+          track.onunmute = () => {
+            console.log('✅ Трек разглушен:', track.id);
+          };
+        });
+
         await sendLogToServer('info', 'Доступ к микрофону получен', {
           tracksCount: stream.getAudioTracks().length,
           tracks: stream.getAudioTracks().map(t => ({
@@ -369,20 +396,34 @@ export function AIChat({ user }: AIChatProps) {
       }, user.telegram_id).catch(() => {});
 
       // Создаем MediaRecorder с обработкой ошибок
+      // ВАЖНО: Используем streamRef.current вместо локальной переменной stream
+      // чтобы гарантировать, что мы используем актуальный stream
+      if (!streamRef.current || !streamRef.current.active) {
+        console.error('❌ Stream неактивен перед созданием MediaRecorder!');
+        sendLogToServer('error', 'Stream неактивен перед созданием MediaRecorder', {
+          streamExists: !!streamRef.current,
+          streamActive: streamRef.current?.active ?? false,
+          platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }, user.telegram_id).catch(() => {});
+        throw new Error('Stream неактивен перед созданием MediaRecorder');
+      }
+
       let mediaRecorder: MediaRecorder;
       try {
+        // Используем streamRef.current вместо локальной переменной stream
+        const currentStream = streamRef.current;
         if (mimeType) {
           try {
-            mediaRecorder = new MediaRecorder(stream, { mimeType });
+            mediaRecorder = new MediaRecorder(currentStream, { mimeType });
             console.log('✅ MediaRecorder создан с mimeType:', mimeType);
           } catch (mimeError) {
             console.warn('⚠️ Ошибка создания с mimeType, пробуем без него:', mimeError);
-            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder = new MediaRecorder(currentStream);
             mimeTypeRef.current = '';
             console.log('✅ MediaRecorder создан без mimeType (fallback)');
           }
         } else {
-          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder = new MediaRecorder(currentStream);
           console.log('✅ MediaRecorder создан без mimeType');
         }
         console.log('✅ MediaRecorder создан, состояние:', mediaRecorder.state);
