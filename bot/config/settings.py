@@ -196,7 +196,7 @@ class Settings(BaseSettings):
     )
 
     yookassa_inn: str = Field(
-        default="",
+        default="371104743407",
         description="ИНН самозанятого для чеков",
         validation_alias=AliasChoices("YOOKASSA_INN", "yookassa_inn"),
     )
