@@ -492,12 +492,12 @@ export function AIChat({ user }: AIChatProps) {
         setIsGettingAccess(false);
         console.log('✅ MediaRecorder начал запись, состояние:', mediaRecorder.state);
 
-        // Проверяем состояние stream в onstart
+        // Используем capturedStream из замыкания вместо streamRef.current
         const streamState = {
-          streamExists: !!streamRef.current,
-          streamActive: streamRef.current?.active ?? false,
-          tracksCount: streamRef.current?.getAudioTracks().length ?? 0,
-          tracks: streamRef.current?.getAudioTracks().map(t => ({
+          streamExists: !!capturedStream,
+          streamActive: capturedStream?.active ?? false,
+          tracksCount: capturedStream?.getAudioTracks().length ?? 0,
+          tracks: capturedStream?.getAudioTracks().map(t => ({
             id: t.id,
             enabled: t.enabled,
             muted: t.muted,
@@ -507,7 +507,7 @@ export function AIChat({ user }: AIChatProps) {
 
         console.log('📊 Состояние stream в onstart:', streamState);
 
-        if (!streamRef.current || !streamRef.current.active) {
+        if (!capturedStream || !capturedStream.active) {
           console.error('❌ Stream неактивен в onstart! Это может быть причиной проблемы.');
           sendLogToServer('error', 'Stream неактивен в onstart', {
             state: mediaRecorder.state,
@@ -816,13 +816,18 @@ export function AIChat({ user }: AIChatProps) {
         platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
       }, user.telegram_id).catch(() => {});
 
+      // Сохраняем stream в замыкании для использования в обработчиках
+      const capturedStream = stream;
+
       // Упрощенная логика: сразу запускаем запись без сложных проверок
       // Убрали проверки трека - они могут срабатывать преждевременно на мобильных
       try {
-        // Для Android/Telegram не используем timeslice - может вызывать проблемы
+        // Для Android/Telegram используем большой timeslice (1000мс) вместо undefined
+        // Это предотвращает автоматическое закрытие stream MediaRecorder
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isTelegram = navigator.userAgent.includes('Telegram');
-        const timeslice = (isAndroid && isTelegram) ? undefined : 250;
+        // Используем timeslice для всех платформ, но больше для Android/Telegram
+        const timeslice = (isAndroid && isTelegram) ? 1000 : 250;
 
         // Небольшая задержка для Android/Telegram, чтобы stream стабилизировался
         if (isAndroid && isTelegram) {
@@ -830,11 +835,11 @@ export function AIChat({ user }: AIChatProps) {
           await new Promise(resolve => setTimeout(resolve, 100));
 
           // Проверяем stream после задержки
-          if (!streamRef.current || !streamRef.current.active) {
+          if (!capturedStream || !capturedStream.active) {
             console.error('❌ Stream неактивен после задержки!');
             sendLogToServer('error', 'Stream неактивен после задержки', {
-              streamExists: !!streamRef.current,
-              streamActive: streamRef.current?.active ?? false,
+              streamExists: !!capturedStream,
+              streamActive: capturedStream?.active ?? false,
               platform: 'mobile',
             }, user.telegram_id).catch(() => {});
             throw new Error('Stream неактивен после задержки');
@@ -843,12 +848,12 @@ export function AIChat({ user }: AIChatProps) {
 
         console.log('🎙️ Запуск записи', timeslice ? `с timeslice: ${timeslice}` : 'без timeslice');
 
-        // Проверяем состояние stream перед start()
+        // Проверяем состояние stream перед start() используя capturedStream
         const streamStateBeforeStart = {
-          streamExists: !!streamRef.current,
-          streamActive: streamRef.current?.active ?? false,
-          tracksCount: streamRef.current?.getAudioTracks().length ?? 0,
-          tracks: streamRef.current?.getAudioTracks().map(t => ({
+          streamExists: !!capturedStream,
+          streamActive: capturedStream?.active ?? false,
+          tracksCount: capturedStream?.getAudioTracks().length ?? 0,
+          tracks: capturedStream?.getAudioTracks().map(t => ({
             id: t.id,
             enabled: t.enabled,
             muted: t.muted,
@@ -858,7 +863,7 @@ export function AIChat({ user }: AIChatProps) {
 
         console.log('📊 Состояние stream перед start():', streamStateBeforeStart);
 
-        if (!streamRef.current || !streamRef.current.active) {
+        if (!capturedStream || !capturedStream.active) {
           console.error('❌ Stream неактивен перед start()! Останавливаем запись.');
           sendLogToServer('error', 'Stream неактивен перед start()', {
             stateBeforeStart: mediaRecorder.state,
@@ -869,17 +874,14 @@ export function AIChat({ user }: AIChatProps) {
         }
 
         sendLogToServer('info', 'Запуск записи', {
-          timeslice: timeslice ?? 'none',
+          timeslice: timeslice,
           stateBeforeStart: mediaRecorder.state,
           ...streamStateBeforeStart,
           platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
         }, user.telegram_id).catch(() => {});
 
-        if (timeslice !== undefined) {
-          mediaRecorder.start(timeslice);
-        } else {
-          mediaRecorder.start();
-        }
+        // Всегда используем timeslice (теперь он есть для всех платформ)
+        mediaRecorder.start(timeslice);
         console.log('✅ start() вызван, состояние:', mediaRecorder.state);
         sendLogToServer('info', 'mediaRecorder.start() вызван', {
           stateAfterStart: mediaRecorder.state,
