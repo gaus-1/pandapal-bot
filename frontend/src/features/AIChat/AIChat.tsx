@@ -197,6 +197,17 @@ export function AIChat({ user }: AIChatProps) {
   };
 
   // Обработка записи аудио
+  // Вспомогательная функция для очистки interval requestData()
+  const clearDataInterval = (recorder: MediaRecorder | null) => {
+    if (recorder) {
+      const recorderWithInterval = recorder as MediaRecorder & { __dataInterval?: number };
+      if (recorderWithInterval.__dataInterval) {
+        clearInterval(recorderWithInterval.__dataInterval);
+        delete recorderWithInterval.__dataInterval;
+      }
+    }
+  };
+
   const handleVoiceStart = async () => {
     const logData = {
       isRecording,
@@ -532,6 +543,9 @@ export function AIChat({ user }: AIChatProps) {
       };
 
       mediaRecorder.onstop = () => {
+        // Очищаем interval для requestData() если он был установлен
+        clearDataInterval(mediaRecorderRef.current);
+
         const recordingDuration = recordingStartTimeRef.current > 0
           ? Date.now() - recordingStartTimeRef.current
           : 0;
@@ -822,11 +836,14 @@ export function AIChat({ user }: AIChatProps) {
       // Упрощенная логика: сразу запускаем запись без сложных проверок
       // Убрали проверки трека - они могут срабатывать преждевременно на мобильных
       try {
-        // Используем одинаковый timeslice для всех платформ (250мс)
-        // Большой timeslice (1000мс) может вызывать проблемы на Android/Telegram
-        const timeslice = 250;
+        // Для Android/Telegram не используем timeslice - может вызывать закрытие stream
+        // Вместо этого используем requestData() вручную через интервалы
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        const isTelegram = navigator.userAgent.includes('Telegram');
+        const useTimeslice = !(isAndroid && isTelegram);
+        const timeslice = useTimeslice ? 250 : undefined;
 
-        console.log('🎙️ Запуск записи', timeslice ? `с timeslice: ${timeslice}` : 'без timeslice');
+        console.log('🎙️ Запуск записи', timeslice ? `с timeslice: ${timeslice}` : 'без timeslice (Android/Telegram)');
 
         // Проверяем состояние stream перед start() используя capturedStream
         const streamStateBeforeStart = {
@@ -854,14 +871,34 @@ export function AIChat({ user }: AIChatProps) {
         }
 
         sendLogToServer('info', 'Запуск записи', {
-          timeslice: timeslice,
+          timeslice: timeslice ?? 'none',
+          useTimeslice,
           stateBeforeStart: mediaRecorder.state,
           ...streamStateBeforeStart,
           platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
         }, user.telegram_id).catch(() => {});
 
-        // Всегда используем timeslice (теперь он есть для всех платформ)
-        mediaRecorder.start(timeslice);
+        // Для Android/Telegram запускаем без timeslice
+        if (timeslice !== undefined) {
+          mediaRecorder.start(timeslice);
+        } else {
+          mediaRecorder.start();
+          // Для Android/Telegram вызываем requestData() вручную каждые 250мс
+          const dataInterval = setInterval(() => {
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+              try {
+                mediaRecorderRef.current.requestData();
+              } catch (e) {
+                console.warn('⚠️ Ошибка requestData():', e);
+                clearInterval(dataInterval);
+              }
+            } else {
+              clearInterval(dataInterval);
+            }
+          }, 250);
+          // Сохраняем interval для очистки при остановке
+          (mediaRecorderRef.current as MediaRecorder & { __dataInterval?: number }).__dataInterval = dataInterval;
+        }
         console.log('✅ start() вызван, состояние:', mediaRecorder.state);
         sendLogToServer('info', 'mediaRecorder.start() вызван', {
           stateAfterStart: mediaRecorder.state,
@@ -1018,6 +1055,9 @@ export function AIChat({ user }: AIChatProps) {
       }
 
       try {
+        // Очищаем interval для requestData() если он был установлен
+        clearDataInterval(mediaRecorderRef.current);
+
         console.log('🛑 Вызываю mediaRecorder.stop(), состояние:', mediaRecorderRef.current.state);
         if (mediaRecorderRef.current.state !== 'inactive') {
           mediaRecorderRef.current.stop();
