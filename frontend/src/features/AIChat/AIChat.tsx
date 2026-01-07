@@ -215,15 +215,45 @@ export function AIChat({ user }: AIChatProps) {
     try {
       console.log('🎤 Запрос доступа к микрофону...');
 
-      // Восстанавливаем рабочую версию от 1-2 января 2026
-      // Используем простой вызов с параметрами, как было раньше
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
+      // Проверяем разрешения через Permissions API (если доступно)
+      let permissionStatus: PermissionStatus | null = null;
+      if (navigator.permissions && navigator.permissions.query) {
+        try {
+          permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+          console.log('📋 Статус разрешения микрофона:', permissionStatus.state);
+          sendLogToServer('info', 'Проверка разрешения микрофона', {
+            state: permissionStatus.state,
+            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          }, user.telegram_id).catch(() => {});
+        } catch (permError) {
+          console.warn('⚠️ Permissions API недоступна:', permError);
         }
-      });
+      }
+
+      // Для Android в Telegram используем упрощенный запрос без дополнительных параметров
+      // Это может помочь избежать проблем с разрешениями
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      const isTelegram = navigator.userAgent.includes('Telegram');
+
+      const audioConstraints = isAndroid && isTelegram
+        ? { audio: true } // Упрощенный запрос для Android/Telegram
+        : {
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            }
+          };
+
+      console.log('🎤 Параметры запроса:', JSON.stringify(audioConstraints));
+      sendLogToServer('info', 'Запрос getUserMedia', {
+        constraints: audioConstraints,
+        isAndroid,
+        isTelegram,
+        permissionState: permissionStatus?.state,
+      }, user.telegram_id).catch(() => {});
+
+      const stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
 
       streamRef.current = stream;
       console.log('✅ Доступ к микрофону получен');
