@@ -4,6 +4,7 @@
 Включает AI противника (панда) для игры с ребенком.
 """
 
+import asyncio
 import random
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
@@ -479,7 +480,9 @@ class GamesService:
 
     # ============ ЛОГИКА ИГР ============
 
-    def tic_tac_toe_make_move(self, session_id: int, position: int, user_symbol: str = "X") -> Dict:
+    async def tic_tac_toe_make_move(
+        self, session_id: int, position: int, user_symbol: str = "X"
+    ) -> Dict:
         """
         Сделать ход в крестики-нолики.
 
@@ -559,6 +562,8 @@ class GamesService:
             }
 
         # Ход AI (2 = O)
+        # Панда думает перед ходом
+        await asyncio.sleep(1.5)
         # Находим лучший ход через AI
         frontend_board = game.get_state()["board"]
         ai_position = self.tic_tac_toe_ai.get_best_move(frontend_board, "O")
@@ -678,7 +683,7 @@ class GamesService:
         valid_moves = game.get_valid_moves(1)
         return valid_moves
 
-    def checkers_move(
+    async def checkers_move(
         self, session_id: int, from_row: int, from_col: int, to_row: int, to_col: int
     ) -> Dict:
         """
@@ -779,6 +784,8 @@ class GamesService:
             }
 
         # Выбираем лучший ход через AI
+        # Панда думает перед ходом
+        await asyncio.sleep(1.5)
         # Конвертируем формат для старого AI
         frontend_board = game.get_board_state()["board"]
         ai_move = self.checkers_ai.get_best_move(frontend_board, "ai")
