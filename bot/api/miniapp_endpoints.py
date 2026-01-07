@@ -878,10 +878,43 @@ async def miniapp_log(request: web.Request) -> web.Response:
     }
     """
     try:
-        data = await request.json()
+        # Проверяем Content-Type
+        content_type = request.headers.get("Content-Type", "")
+        if "application/json" not in content_type:
+            logger.warning(f"⚠️ Неверный Content-Type для /api/miniapp/log: {content_type}")
+            return web.json_response(
+                {"success": False, "error": "Invalid Content-Type"}, status=400
+            )
+
+        # Пытаемся прочитать JSON
+        try:
+            data = await request.json()
+        except ValueError as json_err:
+            logger.warning(f"⚠️ Невалидный JSON в /api/miniapp/log: {json_err}")
+            return web.json_response({"success": False, "error": "Invalid JSON"}, status=400)
+        except Exception as read_err:
+            logger.warning(f"⚠️ Ошибка чтения тела запроса /api/miniapp/log: {read_err}")
+            return web.json_response(
+                {"success": False, "error": "Failed to read request body"}, status=400
+            )
+
+        # Извлекаем данные с безопасными значениями по умолчанию
         level = data.get("level", "log")
+        if level not in ("log", "error", "warn", "info", "debug"):
+            level = "log"
+
         message = data.get("message", "")
-        log_data = data.get("data", {})
+        # Безопасно извлекаем log_data - может быть словарем или другим типом
+        log_data = data.get("data")
+        if log_data is None:
+            log_data = {}
+        elif not isinstance(log_data, dict):
+            # Если это не словарь, преобразуем в словарь с одним ключом
+            try:
+                log_data = {"value": str(log_data)[:500]}  # Ограничиваем размер
+            except Exception:
+                log_data = {"value": "<unserializable>"}
+
         telegram_id = data.get("telegram_id")
         user_agent = data.get("user_agent", request.headers.get("User-Agent", "Unknown"))
 
@@ -893,7 +926,38 @@ async def miniapp_log(request: web.Request) -> web.Response:
 
         # Добавляем данные если есть
         if log_data:
-            log_message += f" | data={log_data}"
+            try:
+                # Безопасная сериализация данных
+                # Если это словарь, обрабатываем его безопасно
+                if isinstance(log_data, dict):
+                    # Создаем копию словаря с безопасными значениями
+                    safe_data = {}
+                    for key, value in log_data.items():
+                        try:
+                            # Пытаемся преобразовать значение в строку
+                            if isinstance(value, (str, int, float, bool, type(None))):
+                                safe_data[str(key)] = value
+                            elif isinstance(value, dict):
+                                safe_data[str(key)] = str(value)[
+                                    :200
+                                ]  # Ограничиваем вложенные словари
+                            else:
+                                safe_data[str(key)] = str(value)[:200]  # Ограничиваем другие типы
+                        except Exception:
+                            safe_data[str(key)] = "<unserializable>"
+
+                    data_str = str(safe_data)
+                else:
+                    # Если не словарь, просто преобразуем в строку
+                    data_str = str(log_data)
+
+                # Ограничиваем размер данных для лога (максимум 1000 символов)
+                if len(data_str) > 1000:
+                    data_str = data_str[:1000] + "... (truncated)"
+                log_message += f" | data={data_str}"
+            except Exception as e:
+                # Если не удалось сериализовать, просто добавляем информацию об ошибке
+                log_message += f" | data=<serialization_error: {type(e).__name__}>"
 
         # Логируем в зависимости от уровня
         if level == "error":
@@ -909,7 +973,8 @@ async def miniapp_log(request: web.Request) -> web.Response:
 
     except Exception as e:
         logger.error(f"❌ Ошибка приема лога с фронтенда: {e}", exc_info=True)
-        return web.json_response({"error": "Internal server error"}, status=500)
+        # Возвращаем 200, чтобы не засорять консоль фронтенда ошибками
+        return web.json_response({"success": False, "error": "Internal server error"}, status=200)
 
 
 async def miniapp_get_subjects(request: web.Request) -> web.Response:

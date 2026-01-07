@@ -573,7 +573,8 @@ export function AIChat({ user }: AIChatProps) {
       };
       console.error('❌ Ошибка доступа к микрофону:', error);
       console.error('❌ Детали ошибки:', errorDetails);
-      await sendLogToServer('error', 'Ошибка доступа к микрофону', errorDetails, user.telegram_id);
+      // Отправляем лог асинхронно, чтобы не блокировать UI
+      sendLogToServer('error', 'Ошибка доступа к микрофону', errorDetails, user.telegram_id).catch(() => {});
       telegram.notifyError();
 
       let errorMessage = 'Не удалось получить доступ к микрофону.';

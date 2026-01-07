@@ -18,7 +18,7 @@ export async function sendLogToServer(
   telegramId?: number
 ): Promise<void> {
   try {
-    await fetch(`${API_BASE_URL}/miniapp/log`, {
+    const response = await fetch(`${API_BASE_URL}/miniapp/log`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -31,6 +31,12 @@ export async function sendLogToServer(
         user_agent: navigator.userAgent,
       }),
     });
+
+    // Проверяем статус ответа, но не выбрасываем ошибку
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      console.debug('Лог не отправлен на сервер:', errorData);
+    }
   } catch (error) {
     // Игнорируем ошибки отправки логов, чтобы не засорять консоль
     console.debug('Не удалось отправить лог на сервер:', error);
