@@ -968,9 +968,28 @@ async def miniapp_log(request: web.Request) -> web.Response:
                             elif isinstance(value, dict):
                                 # Рекурсивно обрабатываем вложенные словари
                                 try:
+                                    # Безопасно обрабатываем вложенный словарь
+                                    nested_safe = {}
+                                    try:
+                                        nested_items = list(value.items())
+                                    except Exception:
+                                        nested_items = []
+
+                                    for nested_key, nested_val in nested_items:
+                                        try:
+                                            nested_safe_key = str(nested_key)
+                                            if isinstance(
+                                                nested_val, (str, int, float, bool, type(None))
+                                            ):
+                                                nested_safe[nested_safe_key] = nested_val
+                                            else:
+                                                nested_safe[nested_safe_key] = str(nested_val)[:100]
+                                        except Exception:
+                                            continue
+
                                     # Пытаемся сериализовать через JSON
-                                    json.dumps(value, default=str)
-                                    safe_data[safe_key] = value
+                                    json.dumps(nested_safe, default=str)
+                                    safe_data[safe_key] = nested_safe
                                 except (TypeError, ValueError, KeyError) as nested_err:
                                     logger.debug(
                                         f"⚠️ Не удалось сериализовать вложенный dict для ключа {safe_key}: {nested_err}"
