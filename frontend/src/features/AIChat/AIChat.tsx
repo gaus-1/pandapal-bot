@@ -532,12 +532,19 @@ export function AIChat({ user }: AIChatProps) {
       };
 
       mediaRecorder.onstop = () => {
-        console.log('🛑 Запись остановлена, чанков:', audioChunksRef.current.length);
+        const recordingDuration = recordingStartTimeRef.current > 0
+          ? Date.now() - recordingStartTimeRef.current
+          : 0;
+        const totalSize = audioChunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0);
+
+        console.log('🛑 Запись остановлена, чанков:', audioChunksRef.current.length, 'размер:', totalSize, 'байт', 'длительность:', recordingDuration, 'мс');
         sendLogToServer('info', 'MediaRecorder.onstop вызван', {
           chunksCount: audioChunksRef.current.length,
-          totalSize: audioChunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0),
+          totalSize,
+          duration: recordingDuration,
           state: mediaRecorderRef.current?.state ?? 'unknown',
           streamActive: streamRef.current?.active ?? false,
+          wasManuallyStopped: recordingDuration > 100, // Если больше 100мс, скорее всего остановлено вручную
           platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
         }, user.telegram_id).catch(() => {});
 
@@ -556,8 +563,53 @@ export function AIChat({ user }: AIChatProps) {
 
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeTypeRef.current || 'audio/webm' });
         const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
+        const MIN_AUDIO_SIZE = 1000; // Минимальный размер для валидного WebM файла (1KB)
+        const MIN_RECORDING_DURATION = 500; // Минимальная длительность записи (500мс)
+        // recordingDuration уже вычислена выше в onstop
 
         console.log('📊 Размер аудио:', audioBlob.size, 'байт');
+        console.log('📊 Длительность записи:', recordingDuration, 'мс');
+
+        // Проверяем минимальную длительность записи
+        if (recordingDuration < MIN_RECORDING_DURATION) {
+          console.error(`❌ Запись слишком короткая: ${recordingDuration}мс (минимум ${MIN_RECORDING_DURATION}мс)`);
+          sendLogToServer('error', 'Запись слишком короткая', {
+            duration: recordingDuration,
+            minDuration: MIN_RECORDING_DURATION,
+            audioSize: audioBlob.size,
+            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          }, user.telegram_id).catch(() => {});
+          telegram.notifyError();
+          telegram.showAlert('Запись слишком короткая. Держи кнопку дольше!');
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
+          setIsRecording(false);
+          mediaRecorderRef.current = null;
+          return;
+        }
+
+        // Проверяем минимальный размер аудио
+        if (audioBlob.size < MIN_AUDIO_SIZE) {
+          console.error(`❌ Аудио слишком маленькое: ${audioBlob.size} байт (минимум ${MIN_AUDIO_SIZE} байт)`);
+          sendLogToServer('error', 'Аудио слишком маленькое', {
+            audioSize: audioBlob.size,
+            minSize: MIN_AUDIO_SIZE,
+            duration: recordingDuration,
+            chunksCount: audioChunksRef.current.length,
+            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          }, user.telegram_id).catch(() => {});
+          telegram.notifyError();
+          telegram.showAlert('Аудио слишком короткое. Держи кнопку дольше и говори четче!');
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
+          setIsRecording(false);
+          mediaRecorderRef.current = null;
+          return;
+        }
 
         if (audioBlob.size > MAX_AUDIO_SIZE) {
           console.error(`❌ Аудио слишком большое: ${audioBlob.size} байт`);
