@@ -943,13 +943,6 @@ async def miniapp_log(request: web.Request) -> web.Response:
             except Exception:
                 log_data = {"value": "<unserializable>"}
 
-        # Логируем тип и структуру log_data для отладки
-        logger.debug(
-            f"📊 log_data тип: {type(log_data)}, является dict: {isinstance(log_data, dict)}"
-        )
-        if isinstance(log_data, dict):
-            logger.debug(f"📊 log_data ключи: {list(log_data.keys())[:10]}")
-
         telegram_id = data.get("telegram_id")
         user_agent = data.get("user_agent", request.headers.get("User-Agent", "Unknown"))
 
@@ -967,14 +960,29 @@ async def miniapp_log(request: web.Request) -> web.Response:
 
                 # Если это словарь, обрабатываем его безопасно
                 if isinstance(log_data, dict):
-                    # Проверяем, что все ключи - это строки без кавычек
-                    # Если есть ключи с кавычками, исправляем их
-                    cleaned_log_data = {}
-                    for k, v in log_data.items():
-                        # Убираем кавычки из ключей, если они есть
-                        clean_key = str(k).strip("\"'")
-                        cleaned_log_data[clean_key] = v
-                    log_data = cleaned_log_data
+                    # СНАЧАЛА очищаем ключи от кавычек, ДО любых других операций
+                    try:
+                        # Логируем исходные ключи для отладки
+                        original_keys = list(log_data.keys())[:10]
+                        logger.debug(f"📊 Исходные ключи log_data: {original_keys}")
+
+                        # Проверяем, что все ключи - это строки без кавычек
+                        # Если есть ключи с кавычками, исправляем их
+                        cleaned_log_data = {}
+                        for k, v in log_data.items():
+                            try:
+                                # Убираем кавычки из ключей, если они есть
+                                clean_key = str(k).strip("\"'")
+                                cleaned_log_data[clean_key] = v
+                            except Exception as key_err:
+                                logger.debug(f"⚠️ Ошибка обработки ключа {k}: {key_err}")
+                                # Если не удалось обработать ключ, пропускаем его
+                                continue
+                        log_data = cleaned_log_data
+                        logger.debug(f"📊 Очищенные ключи: {list(log_data.keys())[:10]}")
+                    except Exception as clean_err:
+                        logger.debug(f"⚠️ Ошибка очистки ключей: {clean_err}")
+                        # Если не удалось очистить, продолжаем с исходными данными
                     # Создаем копию словаря с безопасными значениями
                     safe_data = {}
                     # Используем list() для безопасной итерации по ключам
@@ -986,9 +994,9 @@ async def miniapp_log(request: web.Request) -> web.Response:
 
                     for key, value in items:
                         try:
-                            # Преобразуем ключ в строку безопасно
+                            # Преобразуем ключ в строку безопасно, убирая кавычки
                             try:
-                                safe_key = str(key)
+                                safe_key = str(key).strip("\"'")
                             except Exception:
                                 safe_key = f"<key_{type(key).__name__}>"
 
@@ -1007,9 +1015,9 @@ async def miniapp_log(request: web.Request) -> web.Response:
 
                                     for nested_key, nested_val in nested_items:
                                         try:
-                                            # Безопасно преобразуем ключ
+                                            # Безопасно преобразуем ключ, убирая кавычки
                                             try:
-                                                nested_safe_key = str(nested_key)
+                                                nested_safe_key = str(nested_key).strip("\"'")
                                             except Exception:
                                                 nested_safe_key = (
                                                     f"<key_{type(nested_key).__name__}>"
