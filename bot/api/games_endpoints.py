@@ -148,7 +148,7 @@ async def tic_tac_toe_move(request: web.Request) -> web.Response:
 
         with get_db() as db:
             games_service = GamesService(db)
-            result = games_service.tic_tac_toe_make_move(session_id, validated.position)
+            result = await games_service.tic_tac_toe_make_move(session_id, validated.position)
             db.commit()
 
         return web.json_response({"success": True, **result})
@@ -190,7 +190,7 @@ async def checkers_move(request: web.Request) -> web.Response:
         with get_db() as db:
             games_service = GamesService(db)
             try:
-                result = games_service.checkers_move(
+                result = await games_service.checkers_move(
                     session_id,
                     validated.from_row,
                     validated.from_col,

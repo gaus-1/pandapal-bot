@@ -3,6 +3,7 @@ Unit тесты для games_service.py
 Проверяет логику игр: крестики-нолики, виселица, 2048
 """
 
+import asyncio
 import os
 import tempfile
 
@@ -169,7 +170,7 @@ class TestTicTacToeGame:
         games_service.db.commit()
 
         # Пользователь ставит X в позицию 2 и выигрывает
-        result = games_service.tic_tac_toe_make_move(session.id, 2)
+        result = asyncio.run(games_service.tic_tac_toe_make_move(session.id, 2))
         games_service.db.commit()
         assert result["game_over"], f"Game should be over, but got: {result}"
         assert (
@@ -188,7 +189,7 @@ class TestTicTacToeGame:
 
         # Пытаемся поставить в занятую клетку (позиция 0 уже занята X)
         with pytest.raises(ValueError, match="Position already taken"):
-            games_service.tic_tac_toe_make_move(session.id, 0)
+            asyncio.run(games_service.tic_tac_toe_make_move(session.id, 0))
 
 
 class TestGame2048:
