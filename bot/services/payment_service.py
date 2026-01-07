@@ -61,7 +61,10 @@ class PaymentService:
             bool: True если подпись валидна
         """
         if not signature:
-            logger.warning("⚠️ Webhook без подписи")
+            logger.warning(
+                "⚠️ Webhook без подписи. "
+                "Проверь настройки webhook в личном кабинете YooKassa - должна быть включена подпись."
+            )
             return False
 
         if not settings.yookassa_secret_key:
@@ -70,6 +73,7 @@ class PaymentService:
 
         try:
             # Вычисляем ожидаемую подпись
+            # YooKassa использует HMAC-SHA256 с secret_key в качестве ключа
             expected_signature = hmac.new(
                 settings.yookassa_secret_key.encode("utf-8"),
                 request_body.encode("utf-8"),
@@ -79,7 +83,11 @@ class PaymentService:
             # Сравниваем подписи безопасным способом
             is_valid = hmac.compare_digest(expected_signature, signature)
             if not is_valid:
-                logger.warning(f"⚠️ Невалидная подпись webhook: {signature[:20]}...")
+                logger.warning(
+                    f"⚠️ Невалидная подпись webhook: {signature[:20]}... "
+                    f"(ожидалось: {expected_signature[:20]}...). "
+                    "Проверь, что YOOKASSA_SECRET_KEY совпадает с ключом в личном кабинете YooKassa."
+                )
 
             return is_valid
         except Exception as e:
