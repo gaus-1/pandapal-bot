@@ -822,29 +822,9 @@ export function AIChat({ user }: AIChatProps) {
       // Упрощенная логика: сразу запускаем запись без сложных проверок
       // Убрали проверки трека - они могут срабатывать преждевременно на мобильных
       try {
-        // Для Android/Telegram используем большой timeslice (1000мс) вместо undefined
-        // Это предотвращает автоматическое закрытие stream MediaRecorder
-        const isAndroid = /Android/i.test(navigator.userAgent);
-        const isTelegram = navigator.userAgent.includes('Telegram');
-        // Используем timeslice для всех платформ, но больше для Android/Telegram
-        const timeslice = (isAndroid && isTelegram) ? 1000 : 250;
-
-        // Небольшая задержка для Android/Telegram, чтобы stream стабилизировался
-        if (isAndroid && isTelegram) {
-          console.log('⏳ Задержка 100мс для стабилизации stream на Android/Telegram...');
-          await new Promise(resolve => setTimeout(resolve, 100));
-
-          // Проверяем stream после задержки
-          if (!capturedStream || !capturedStream.active) {
-            console.error('❌ Stream неактивен после задержки!');
-            sendLogToServer('error', 'Stream неактивен после задержки', {
-              streamExists: !!capturedStream,
-              streamActive: capturedStream?.active ?? false,
-              platform: 'mobile',
-            }, user.telegram_id).catch(() => {});
-            throw new Error('Stream неактивен после задержки');
-          }
-        }
+        // Используем одинаковый timeslice для всех платформ (250мс)
+        // Большой timeslice (1000мс) может вызывать проблемы на Android/Telegram
+        const timeslice = 250;
 
         console.log('🎙️ Запуск записи', timeslice ? `с timeslice: ${timeslice}` : 'без timeslice');
 
