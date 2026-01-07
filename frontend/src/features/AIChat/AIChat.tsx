@@ -384,6 +384,19 @@ export function AIChat({ user }: AIChatProps) {
         if (event.data && event.data.size > 0) {
           console.log('📦 Получен аудио чанк:', event.data.size, 'байт');
           audioChunksRef.current.push(event.data);
+          sendLogToServer('info', 'Получен аудио чанк', {
+            chunkSize: event.data.size,
+            totalChunks: audioChunksRef.current.length,
+            totalSize: audioChunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0),
+            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          }, user.telegram_id).catch(() => {});
+        } else {
+          console.warn('⚠️ Получен пустой чанк или без данных');
+          sendLogToServer('warn', 'Получен пустой аудио чанк', {
+            hasData: !!event.data,
+            dataSize: event.data?.size ?? 0,
+            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          }, user.telegram_id).catch(() => {});
         }
       };
 
@@ -394,6 +407,12 @@ export function AIChat({ user }: AIChatProps) {
       mediaRecorder.onstart = () => {
         recordingStartedRef.current = true;
         console.log('✅ MediaRecorder начал запись, состояние:', mediaRecorder.state);
+        sendLogToServer('info', 'MediaRecorder.onstart вызван', {
+          state: mediaRecorder.state,
+          streamActive: streamRef.current?.active ?? false,
+          tracksCount: streamRef.current?.getAudioTracks().length ?? 0,
+          platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }, user.telegram_id).catch(() => {});
       };
 
       mediaRecorder.onpause = () => {
@@ -406,6 +425,13 @@ export function AIChat({ user }: AIChatProps) {
 
       mediaRecorder.onstop = () => {
         console.log('🛑 Запись остановлена, чанков:', audioChunksRef.current.length);
+        sendLogToServer('info', 'MediaRecorder.onstop вызван', {
+          chunksCount: audioChunksRef.current.length,
+          totalSize: audioChunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0),
+          state: mediaRecorderRef.current?.state ?? 'unknown',
+          streamActive: streamRef.current?.active ?? false,
+          platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }, user.telegram_id).catch(() => {});
 
         if (audioChunksRef.current.length === 0) {
           console.error('❌ Аудио не записалось');
@@ -527,6 +553,16 @@ export function AIChat({ user }: AIChatProps) {
         const errorEvent = event as ErrorEvent;
         console.error('❌ Детали ошибки:', errorEvent.error || errorEvent.message);
 
+        const errorDetails = {
+          error: errorEvent.error instanceof Error ? errorEvent.error.message : String(errorEvent.error),
+          errorName: errorEvent.error instanceof Error ? errorEvent.error.name : 'Unknown',
+          message: errorEvent.message || 'Unknown error',
+          state: mediaRecorderRef.current?.state ?? 'unknown',
+          streamActive: streamRef.current?.active ?? false,
+          platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        };
+        sendLogToServer('error', 'MediaRecorder.onerror вызван', errorDetails, user.telegram_id).catch(() => {});
+
         // Сохраняем ошибку для проверки после start()
         if (errorEvent.error instanceof Error) {
           startErrorRef.current = errorEvent.error;
@@ -568,15 +604,32 @@ export function AIChat({ user }: AIChatProps) {
       // Сохраняем ссылку на recorder ДО start(), чтобы обработчики могли его использовать
       mediaRecorderRef.current = mediaRecorder;
       console.log('💾 mediaRecorderRef установлен');
+      sendLogToServer('info', 'MediaRecorder создан и сохранен в ref', {
+        state: mediaRecorder.state,
+        mimeType: mimeTypeRef.current || 'default',
+        streamActive: streamRef.current?.active ?? false,
+        tracksCount: streamRef.current?.getAudioTracks().length ?? 0,
+        platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+      }, user.telegram_id).catch(() => {});
 
       // Упрощенная логика: сразу запускаем запись без сложных проверок
       // Убрали проверки трека - они могут срабатывать преждевременно на мобильных
       try {
         const timeslice = 250; // 250мс для стабильной работы на мобильных
         console.log('🎙️ Запуск записи с timeslice:', timeslice);
+        sendLogToServer('info', 'Запуск записи', {
+          timeslice,
+          stateBeforeStart: mediaRecorder.state,
+          streamActive: streamRef.current?.active ?? false,
+          platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }, user.telegram_id).catch(() => {});
 
         mediaRecorder.start(timeslice);
         console.log('✅ start() вызван, состояние:', mediaRecorder.state);
+        sendLogToServer('info', 'mediaRecorder.start() вызван', {
+          stateAfterStart: mediaRecorder.state,
+          platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }, user.telegram_id).catch(() => {});
 
         // Устанавливаем состояние сразу, не ждем события onstart
         // Это важно для мобильных устройств, где события могут задерживаться
@@ -604,10 +657,24 @@ export function AIChat({ user }: AIChatProps) {
             telegram.showAlert(`Ошибка записи: ${error.message}`).catch(console.error);
           } else if (state === 'recording' || started) {
             console.log('✅ Запись успешно начата!');
+            sendLogToServer('info', 'Запись успешно начата (проверка)', {
+              state,
+              started,
+              checkCount,
+              streamActive: streamRef.current?.active ?? false,
+              platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+            }, user.telegram_id).catch(() => {});
             clearInterval(checkInterval);
           } else if (checkCount >= 10) {
             // После 1 секунды останавливаем проверку
             console.warn('⚠️ Проверка завершена, запись может быть активна');
+            sendLogToServer('warn', 'Проверка записи завершена без подтверждения', {
+              state,
+              started,
+              checkCount,
+              streamActive: streamRef.current?.active ?? false,
+              platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+            }, user.telegram_id).catch(() => {});
             clearInterval(checkInterval);
           }
         }, 100);
