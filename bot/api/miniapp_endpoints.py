@@ -887,6 +887,7 @@ async def miniapp_log(request: web.Request) -> web.Response:
             )
 
         # Пытаемся прочитать JSON
+        raw_body = None
         try:
             raw_body = await request.read()
             if not raw_body:
@@ -931,8 +932,9 @@ async def miniapp_log(request: web.Request) -> web.Response:
                     log_data = parsed
                 else:
                     log_data = {"value": str(parsed)[:500]}
-            except Exception:
+            except Exception as parse_err:
                 # Если не JSON, просто строка
+                logger.debug(f"⚠️ Не удалось распарсить log_data как JSON: {parse_err}")
                 log_data = {"value": log_data[:500]}
         elif not isinstance(log_data, dict):
             # Если это не словарь, преобразуем в словарь с одним ключом
@@ -940,6 +942,13 @@ async def miniapp_log(request: web.Request) -> web.Response:
                 log_data = {"value": str(log_data)[:500]}  # Ограничиваем размер
             except Exception:
                 log_data = {"value": "<unserializable>"}
+
+        # Логируем тип и структуру log_data для отладки
+        logger.debug(
+            f"📊 log_data тип: {type(log_data)}, является dict: {isinstance(log_data, dict)}"
+        )
+        if isinstance(log_data, dict):
+            logger.debug(f"📊 log_data ключи: {list(log_data.keys())[:10]}")
 
         telegram_id = data.get("telegram_id")
         user_agent = data.get("user_agent", request.headers.get("User-Agent", "Unknown"))
@@ -958,6 +967,14 @@ async def miniapp_log(request: web.Request) -> web.Response:
 
                 # Если это словарь, обрабатываем его безопасно
                 if isinstance(log_data, dict):
+                    # Проверяем, что все ключи - это строки без кавычек
+                    # Если есть ключи с кавычками, исправляем их
+                    cleaned_log_data = {}
+                    for k, v in log_data.items():
+                        # Убираем кавычки из ключей, если они есть
+                        clean_key = str(k).strip("\"'")
+                        cleaned_log_data[clean_key] = v
+                    log_data = cleaned_log_data
                     # Создаем копию словаря с безопасными значениями
                     safe_data = {}
                     # Используем list() для безопасной итерации по ключам
@@ -1099,7 +1116,16 @@ async def miniapp_log(request: web.Request) -> web.Response:
         return web.json_response({"success": True})
 
     except Exception as e:
-        logger.error(f"❌ Ошибка приема лога с фронтенда: {e}", exc_info=True)
+        # Детальное логирование ошибки для отладки
+        error_type = type(e).__name__
+        error_msg = str(e)
+        logger.error(f"❌ Ошибка приема лога с фронтенда: {error_type}: {error_msg}", exc_info=True)
+        # Логируем сырые данные, если они были прочитаны
+        try:
+            if "raw_body" in locals() and raw_body:
+                logger.debug(f"📊 Сырые данные запроса (первые 500 символов): {raw_body[:500]}")
+        except Exception:
+            pass
         # Возвращаем 200, чтобы не засорять консоль фронтенда ошибками
         return web.json_response({"success": False, "error": "Internal server error"}, status=200)
 
