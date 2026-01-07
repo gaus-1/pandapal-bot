@@ -178,7 +178,7 @@ class Settings(BaseSettings):
 
     # ============ YOOKASSA PAYMENTS ============
     yookassa_shop_id: str = Field(
-        default="",
+        default="1240345",
         description="Идентификатор магазина ЮKassa (shop_id)",
         validation_alias=AliasChoices("YOOKASSA_SHOP_ID", "yookassa_shop_id"),
     )
@@ -193,12 +193,6 @@ class Settings(BaseSettings):
         default="https://pandapal.ru/premium/success",
         description="URL возврата после оплаты",
         validation_alias=AliasChoices("YOOKASSA_RETURN_URL", "yookassa_return_url"),
-    )
-
-    yookassa_is_test: bool = Field(
-        default=False,
-        description="Тестовый режим ЮKassa",
-        validation_alias=AliasChoices("YOOKASSA_IS_TEST", "yookassa_is_test"),
     )
 
     yookassa_inn: str = Field(
