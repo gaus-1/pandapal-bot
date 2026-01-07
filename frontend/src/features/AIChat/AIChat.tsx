@@ -717,16 +717,29 @@ export function AIChat({ user }: AIChatProps) {
             }
             console.log('✅ Аудио готово к отправке, размер base64:', base64Audio.length);
             console.log('📤 Вызываю sendMessage с audioBase64, длина:', base64Audio.length);
+            const hasText = inputText.trim().length > 0;
             sendLogToServer('info', 'Аудио готово к отправке', {
               base64Length: base64Audio.length,
               audioBlobSize: audioBlob.size,
+              hasText,
+              textLength: inputText.trim().length,
             }, user.telegram_id).catch(() => {});
             try {
-              sendMessage({ audioBase64: base64Audio });
-              console.log('✅ sendMessage вызван успешно');
+              // Отправляем аудио вместе с текстом, если он есть
+              sendMessage({
+                audioBase64: base64Audio,
+                ...(hasText ? { message: inputText.trim() } : {}),
+              });
+              console.log('✅ sendMessage вызван успешно', { hasText, textLength: inputText.trim().length });
               sendLogToServer('info', 'sendMessage вызван с audioBase64', {
                 base64Length: base64Audio.length,
+                hasText,
+                textLength: inputText.trim().length,
               }, user.telegram_id).catch(() => {});
+              // Очищаем поле ввода после отправки
+              if (hasText) {
+                setInputText('');
+              }
             } catch (sendError) {
               console.error('❌ Ошибка вызова sendMessage:', sendError);
               sendLogToServer('error', 'Ошибка вызова sendMessage', {
