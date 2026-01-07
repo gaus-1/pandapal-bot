@@ -47,7 +47,7 @@ def get_main_menu_keyboard(user_type: str = "child") -> ReplyKeyboardMarkup:
         keyboard=[
             [
                 KeyboardButton(
-                    text="🎮 НАЖМИ",
+                    text="🎮  НАЖМИ  🎮",
                     web_app=WebAppInfo(url=settings.frontend_url),
                 )
             ]
