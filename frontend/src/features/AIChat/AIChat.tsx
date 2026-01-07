@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import { telegram } from '../../services/telegram';
 import { useChat } from '../../hooks/useChat';
 import { useAppStore } from '../../store/appStore';
+import { sendLogToServer } from '../../services/api';
 import type { UserProfile } from '../../services/api';
 
 interface AIChatProps {
@@ -195,14 +196,16 @@ export function AIChat({ user }: AIChatProps) {
 
   // Обработка записи аудио
   const handleVoiceStart = async () => {
-    console.log('🎤 handleVoiceStart вызван', {
+    const logData = {
       isRecording,
       hasRecorder: !!mediaRecorderRef.current,
       userAgent: navigator.userAgent,
       platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
       hasMediaDevices: !!navigator.mediaDevices,
       hasGetUserMedia: !!navigator.mediaDevices?.getUserMedia,
-    });
+    };
+    console.log('🎤 handleVoiceStart вызван', logData);
+    await sendLogToServer('info', 'handleVoiceStart вызван', logData, user.telegram_id);
 
     if (isRecording || mediaRecorderRef.current) {
       console.warn('⚠️ Запись уже идет');
@@ -363,11 +366,21 @@ export function AIChat({ user }: AIChatProps) {
             }
             console.log('✅ Аудио готово к отправке, размер base64:', base64Audio.length);
             console.log('📤 Вызываю sendMessage с audioBase64, длина:', base64Audio.length);
+            sendLogToServer('info', 'Аудио готово к отправке', {
+              base64Length: base64Audio.length,
+              audioBlobSize: audioBlob.size,
+            }, user.telegram_id).catch(() => {});
             try {
               sendMessage({ audioBase64: base64Audio });
               console.log('✅ sendMessage вызван успешно');
+              sendLogToServer('info', 'sendMessage вызван с audioBase64', {
+                base64Length: base64Audio.length,
+              }, user.telegram_id).catch(() => {});
             } catch (sendError) {
               console.error('❌ Ошибка вызова sendMessage:', sendError);
+              sendLogToServer('error', 'Ошибка вызова sendMessage', {
+                error: sendError instanceof Error ? sendError.message : String(sendError),
+              }, user.telegram_id).catch(() => {});
               telegram.notifyError();
               telegram.showAlert('Ошибка отправки аудио. Попробуй еще раз!');
             }
@@ -550,15 +563,17 @@ export function AIChat({ user }: AIChatProps) {
 
       telegram.hapticFeedback('heavy');
     } catch (error) {
-      console.error('❌ Ошибка доступа к микрофону:', error);
-      console.error('❌ Детали ошибки:', {
+      const errorDetails = {
         name: error instanceof DOMException ? error.name : 'Unknown',
         message: error instanceof Error ? error.message : String(error),
         code: error instanceof DOMException ? error.code : undefined,
         stack: error instanceof Error ? error.stack : undefined,
         userAgent: navigator.userAgent,
         platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-      });
+      };
+      console.error('❌ Ошибка доступа к микрофону:', error);
+      console.error('❌ Детали ошибки:', errorDetails);
+      await sendLogToServer('error', 'Ошибка доступа к микрофону', errorDetails, user.telegram_id);
       telegram.notifyError();
 
       let errorMessage = 'Не удалось получить доступ к микрофону.';
@@ -594,11 +609,13 @@ export function AIChat({ user }: AIChatProps) {
   };
 
   const handleVoiceStop = () => {
-    console.log('🛑 handleVoiceStop вызван', {
+    const logData = {
       hasRecorder: !!mediaRecorderRef.current,
       isRecording,
       recorderState: mediaRecorderRef.current?.state,
-    });
+    };
+    console.log('🛑 handleVoiceStop вызван', logData);
+    sendLogToServer('info', 'handleVoiceStop вызван', logData, user.telegram_id).catch(() => {});
 
     if (mediaRecorderRef.current && isRecording) {
       const recordingDuration = Date.now() - recordingStartTimeRef.current;
