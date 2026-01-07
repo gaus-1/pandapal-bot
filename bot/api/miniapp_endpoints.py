@@ -977,18 +977,44 @@ async def miniapp_log(request: web.Request) -> web.Response:
 
                                     for nested_key, nested_val in nested_items:
                                         try:
-                                            nested_safe_key = str(nested_key)
+                                            # Безопасно преобразуем ключ
+                                            try:
+                                                nested_safe_key = str(nested_key)
+                                            except Exception:
+                                                nested_safe_key = (
+                                                    f"<key_{type(nested_key).__name__}>"
+                                                )
+
+                                            # Обрабатываем значение
                                             if isinstance(
                                                 nested_val, (str, int, float, bool, type(None))
                                             ):
                                                 nested_safe[nested_safe_key] = nested_val
+                                            elif isinstance(nested_val, dict):
+                                                # Еще более глубокий уровень - просто строковое представление
+                                                try:
+                                                    nested_safe[nested_safe_key] = str(nested_val)[
+                                                        :100
+                                                    ]
+                                                except Exception:
+                                                    nested_safe[nested_safe_key] = "<deep_dict>"
                                             else:
-                                                nested_safe[nested_safe_key] = str(nested_val)[:100]
-                                        except Exception:
+                                                # Для других типов просто строка
+                                                try:
+                                                    nested_safe[nested_safe_key] = str(nested_val)[
+                                                        :100
+                                                    ]
+                                                except Exception:
+                                                    nested_safe[nested_safe_key] = (
+                                                        "<unserializable>"
+                                                    )
+                                        except Exception as nested_key_err:
+                                            logger.debug(
+                                                f"⚠️ Пропущен вложенный ключ {nested_key} из-за ошибки: {nested_key_err}"
+                                            )
                                             continue
 
-                                    # Пытаемся сериализовать через JSON
-                                    json.dumps(nested_safe, default=str)
+                                    # Добавляем обработанный вложенный словарь без проверки json.dumps
                                     safe_data[safe_key] = nested_safe
                                 except (TypeError, ValueError, KeyError) as nested_err:
                                     logger.debug(
