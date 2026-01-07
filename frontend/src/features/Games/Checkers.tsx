@@ -1,7 +1,7 @@
 /**
  * Checkers Game Component
  * Шашки - игра против панды (AI)
- * Исправлено: Шашки круглые, визуально сдвинуты чуть выше (-6px)
+ * Исправлено: Убрана серая зона (opacity-50), шашки оставлены на месте (-6px)
  */
 
 import { useState, useEffect } from "react";
@@ -210,12 +210,6 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
     );
   };
 
-  const canPieceMove = (row: number, col: number) => {
-    return validMoves.some(
-      (move) => move.from[0] === row && move.from[1] === col
-    );
-  };
-
   const hasMandatoryCapture = () => {
     return validMoves.some((move) => move.capture !== null);
   };
@@ -278,7 +272,6 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                   const cell = board[rowIndex]?.[colIndex];
                   const selected = isSelected(rowIndex, colIndex);
                   const isValidTarget = isValidMoveTarget(rowIndex, colIndex);
-                  const canMove = canPieceMove(rowIndex, colIndex);
 
                   return (
                     <button
@@ -304,11 +297,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                             ? "ring-2 ring-green-400/80 ring-inset brightness-110"
                             : ""
                         }
-                        ${
-                          cell === "user" && !canMove && isUserTurn && !gameOver
-                            ? "opacity-50"
-                            : ""
-                        }
+                        // Убрано условие opacity-50, чтобы убрать "серую зону"
                       `}
                       aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                     >
