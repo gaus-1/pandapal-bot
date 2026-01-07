@@ -5,6 +5,7 @@
 и управление платежными транзакциями для Premium подписок.
 """
 
+import asyncio
 import hashlib
 import hmac
 import uuid
@@ -44,6 +45,9 @@ class PaymentService:
         if not settings.yookassa_shop_id or not settings.yookassa_secret_key:
             logger.warning("⚠️ ЮKassa не настроен: отсутствуют shop_id или secret_key")
 
+        # Timeout для YooKassa API вызовов (30 секунд)
+        self._api_timeout = 30.0
+
     @staticmethod
     def verify_webhook_signature(request_body: str, signature: Optional[str]) -> bool:
         """
@@ -82,7 +86,7 @@ class PaymentService:
             logger.error(f"❌ Ошибка верификации подписи: {e}", exc_info=True)
             return False
 
-    def create_payment(
+    async def create_payment(
         self,
         telegram_id: int,
         plan_id: str,
@@ -164,8 +168,11 @@ class PaymentService:
             payment_data["receipt"] = receipt_data
 
         try:
-            # Создаем платеж через ЮKassa API
-            payment = Payment.create(payment_data, idempotence_key)
+            # Создаем платеж через ЮKassa API с timeout
+            payment = await asyncio.wait_for(
+                asyncio.to_thread(Payment.create, payment_data, idempotence_key),
+                timeout=self._api_timeout,
+            )
 
             logger.info(
                 f"✅ Платеж создан: payment_id={payment.id}, "
@@ -184,6 +191,9 @@ class PaymentService:
                 },
             }
 
+        except asyncio.TimeoutError:
+            logger.error(f"❌ Timeout при создании платежа ЮKassa (>{self._api_timeout}s)")
+            raise TimeoutError(f"YooKassa API timeout after {self._api_timeout}s")
         except ApiError as e:
             logger.error(f"❌ Ошибка создания платежа ЮKassa: {e}")
             raise
@@ -191,7 +201,7 @@ class PaymentService:
             logger.error(f"❌ Неожиданная ошибка при создании платежа: {e}", exc_info=True)
             raise
 
-    def get_payment_status(self, payment_id: str) -> Optional[dict]:
+    async def get_payment_status(self, payment_id: str) -> Optional[dict]:
         """
         Получить статус платежа.
 
@@ -202,7 +212,11 @@ class PaymentService:
             dict: Данные платежа или None если не найден
         """
         try:
-            payment = Payment.find_one(payment_id)
+            # Получаем статус платежа через ЮKassa API с timeout
+            payment = await asyncio.wait_for(
+                asyncio.to_thread(Payment.find_one, payment_id),
+                timeout=self._api_timeout,
+            )
 
             return {
                 "payment_id": payment.id,
@@ -215,6 +229,11 @@ class PaymentService:
                 "payment_metadata": payment.payment_metadata or {},
             }
 
+        except asyncio.TimeoutError:
+            logger.error(
+                f"❌ Timeout при получении статуса платежа {payment_id} (>{self._api_timeout}s)"
+            )
+            return None
         except ApiError as e:
             logger.error(f"❌ Ошибка получения статуса платежа {payment_id}: {e}")
             return None

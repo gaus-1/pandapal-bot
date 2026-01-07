@@ -198,7 +198,7 @@ async def create_yookassa_payment(request: web.Request) -> web.Response:
 
             # Создаем платеж через ЮKassa
             payment_service = PaymentService()
-            payment_data = payment_service.create_payment(
+            payment_data = await payment_service.create_payment(
                 telegram_id=telegram_id,
                 plan_id=plan_id,
                 user_email=user_email,
@@ -357,7 +357,7 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
             # Активируем подписку только для успешных платежей
             if status == "succeeded":
                 # Дополнительная проверка статуса через API (fallback)
-                payment_status = payment_service.get_payment_status(payment_id)
+                payment_status = await payment_service.get_payment_status(payment_id)
                 if payment_status and payment_status["status"] != "succeeded":
                     logger.warning(
                         f"⚠️ Статус платежа {payment_id} не совпадает: "

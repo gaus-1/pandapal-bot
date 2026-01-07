@@ -308,11 +308,52 @@ async def miniapp_get_dashboard(request: web.Request) -> web.Response:
             is_premium = premium_service.is_premium_active(telegram_id)
 
             # Базовая статистика (доступна всем)
+            # Оптимизация: используем SQL COUNT/SUM вместо загрузки всех объектов
+            from sqlalchemy import func, select
+
+            messages_count = (
+                db.execute(
+                    select(func.count(ChatHistory.id)).where(
+                        ChatHistory.user_telegram_id == telegram_id
+                    )
+                ).scalar()
+                or 0
+            )
+
+            from bot.models import LearningSession, UserProgress
+
+            sessions_count = (
+                db.execute(
+                    select(func.count(LearningSession.id)).where(
+                        LearningSession.user_telegram_id == telegram_id
+                    )
+                ).scalar()
+                or 0
+            )
+
+            total_points = (
+                db.execute(
+                    select(func.coalesce(func.sum(UserProgress.points), 0)).where(
+                        UserProgress.user_telegram_id == telegram_id
+                    )
+                ).scalar()
+                or 0
+            )
+
+            subjects_count = (
+                db.execute(
+                    select(func.count(UserProgress.id)).where(
+                        UserProgress.user_telegram_id == telegram_id
+                    )
+                ).scalar()
+                or 0
+            )
+
             stats = {
-                "total_messages": len(user.messages),
-                "learning_sessions": len(user.sessions),
-                "total_points": sum(p.points for p in user.progress),
-                "subjects_studied": len(user.progress),
+                "total_messages": messages_count,
+                "learning_sessions": sessions_count,
+                "total_points": total_points,
+                "subjects_studied": subjects_count,
                 "current_streak": 1,  # Временно hardcode
             }
 
