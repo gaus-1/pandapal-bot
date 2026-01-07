@@ -264,14 +264,51 @@ export function AIChat({ user }: AIChatProps) {
 
       // Добавляем таймаут для диагностики зависаний
       const getUserMediaPromise = navigator.mediaDevices.getUserMedia(audioConstraints);
+
+      // Логируем начало выполнения промиса
+      getUserMediaPromise
+        .then(() => {
+          console.log('✅ getUserMediaPromise resolved');
+        })
+        .catch((err) => {
+          console.error('❌ getUserMediaPromise rejected:', err);
+          sendLogToServer('error', 'getUserMediaPromise rejected', {
+            error: err instanceof Error ? err.message : String(err),
+            errorName: err instanceof DOMException ? err.name : 'Unknown',
+            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          }, user.telegram_id).catch(() => {});
+        });
+
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
+          console.error('⏰ getUserMedia timeout after 10 seconds');
+          sendLogToServer('error', 'getUserMedia timeout', {
+            timeout: 10000,
+            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          }, user.telegram_id).catch(() => {});
           reject(new DOMException('getUserMedia timeout after 10 seconds', 'TimeoutError'));
         }, 10000);
       });
 
       console.log('⏳ Ожидание ответа getUserMedia...');
-      const stream = await Promise.race([getUserMediaPromise, timeoutPromise]);
+      sendLogToServer('info', 'Ожидание ответа getUserMedia', {
+        timeout: 10000,
+        platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+      }, user.telegram_id).catch(() => {});
+
+      let stream: MediaStream;
+      try {
+        stream = await Promise.race([getUserMediaPromise, timeoutPromise]);
+      } catch (raceError) {
+        console.error('❌ Ошибка в Promise.race:', raceError);
+        sendLogToServer('error', 'Ошибка Promise.race getUserMedia', {
+          error: raceError instanceof Error ? raceError.message : String(raceError),
+          errorName: raceError instanceof DOMException ? raceError.name : 'Unknown',
+          isTimeout: raceError instanceof DOMException && raceError.name === 'TimeoutError',
+          platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }, user.telegram_id).catch(() => {});
+        throw raceError;
+      }
 
       streamRef.current = stream;
       console.log('✅ Доступ к микрофону получен');
