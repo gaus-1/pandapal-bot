@@ -888,8 +888,17 @@ async def miniapp_log(request: web.Request) -> web.Response:
 
         # Пытаемся прочитать JSON
         try:
-            data = await request.json()
-        except ValueError as json_err:
+            raw_body = await request.read()
+            if not raw_body:
+                logger.warning("⚠️ Пустое тело запроса в /api/miniapp/log")
+                return web.json_response(
+                    {"success": False, "error": "Empty request body"}, status=400
+                )
+
+            import json
+
+            data = json.loads(raw_body.decode("utf-8"))
+        except json.JSONDecodeError as json_err:
             logger.warning(f"⚠️ Невалидный JSON в /api/miniapp/log: {json_err}")
             return web.json_response({"success": False, "error": "Invalid JSON"}, status=400)
         except Exception as read_err:
@@ -899,6 +908,10 @@ async def miniapp_log(request: web.Request) -> web.Response:
             )
 
         # Извлекаем данные с безопасными значениями по умолчанию
+        if not isinstance(data, dict):
+            logger.warning(f"⚠️ Данные не являются словарем: {type(data)}")
+            return web.json_response({"success": False, "error": "Invalid data format"}, status=400)
+
         level = data.get("level", "log")
         if level not in ("log", "error", "warn", "info", "debug"):
             level = "log"
@@ -927,26 +940,53 @@ async def miniapp_log(request: web.Request) -> web.Response:
         # Добавляем данные если есть
         if log_data:
             try:
-                # Безопасная сериализация данных
+                # Безопасная сериализация данных через json.dumps
+                import json
+
                 # Если это словарь, обрабатываем его безопасно
                 if isinstance(log_data, dict):
                     # Создаем копию словаря с безопасными значениями
                     safe_data = {}
                     for key, value in log_data.items():
                         try:
-                            # Пытаемся преобразовать значение в строку
-                            if isinstance(value, (str, int, float, bool, type(None))):
-                                safe_data[str(key)] = value
-                            elif isinstance(value, dict):
-                                safe_data[str(key)] = str(value)[
-                                    :200
-                                ]  # Ограничиваем вложенные словари
-                            else:
-                                safe_data[str(key)] = str(value)[:200]  # Ограничиваем другие типы
-                        except Exception:
-                            safe_data[str(key)] = "<unserializable>"
+                            # Преобразуем ключ в строку
+                            safe_key = str(key)
 
-                    data_str = str(safe_data)
+                            # Пытаемся преобразовать значение в JSON-совместимый тип
+                            if isinstance(value, (str, int, float, bool, type(None))):
+                                safe_data[safe_key] = value
+                            elif isinstance(value, dict):
+                                # Рекурсивно обрабатываем вложенные словари
+                                try:
+                                    # Пытаемся сериализовать через JSON
+                                    json.dumps(value)
+                                    safe_data[safe_key] = value
+                                except (TypeError, ValueError):
+                                    safe_data[safe_key] = "<nested_dict>"
+                            elif isinstance(value, (list, tuple)):
+                                # Обрабатываем списки
+                                try:
+                                    json.dumps(value)
+                                    safe_data[safe_key] = value
+                                except (TypeError, ValueError):
+                                    safe_data[safe_key] = "<list>"
+                            else:
+                                # Для других типов пытаемся преобразовать в строку
+                                try:
+                                    safe_data[safe_key] = str(value)[:200]
+                                except Exception:
+                                    safe_data[safe_key] = "<unserializable>"
+                        except Exception as key_err:
+                            # Если не удалось обработать ключ, пропускаем его
+                            logger.debug(f"⚠️ Пропущен ключ {key} из-за ошибки: {key_err}")
+                            continue
+
+                    # Сериализуем через JSON для безопасного форматирования
+                    try:
+                        data_str = json.dumps(safe_data, ensure_ascii=False, default=str)
+                    except Exception:
+                        # Если JSON не работает, используем str()
+                        data_str = str(safe_data)
                 else:
                     # Если не словарь, просто преобразуем в строку
                     data_str = str(log_data)
@@ -957,7 +997,7 @@ async def miniapp_log(request: web.Request) -> web.Response:
                 log_message += f" | data={data_str}"
             except Exception as e:
                 # Если не удалось сериализовать, просто добавляем информацию об ошибке
-                log_message += f" | data=<serialization_error: {type(e).__name__}>"
+                log_message += f" | data=<serialization_error: {type(e).__name__}: {str(e)[:100]}>"
 
         # Логируем в зависимости от уровня
         if level == "error":
