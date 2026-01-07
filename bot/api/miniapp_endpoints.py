@@ -976,169 +976,30 @@ async def miniapp_log(request: web.Request) -> web.Response:
 
                 # Если это словарь, обрабатываем его безопасно
                 if isinstance(log_data, dict):
-                    # СНАЧАЛА очищаем ключи от кавычек, ДО любых других операций
+                    # ПРОСТОЕ РЕШЕНИЕ: используем json.dumps напрямую, без сложной обработки
+                    # Это избежит проблем с ключами
                     try:
-                        # Логируем исходные ключи для отладки
-                        try:
-                            original_keys = list(log_data.keys())[:10]
-                            logger.debug(f"📊 Исходные ключи log_data: {original_keys}")
-                        except Exception as keys_err:
-                            logger.debug(f"⚠️ Ошибка получения ключей: {keys_err}")
-                            original_keys = []
-
-                        # Проверяем, что все ключи - это строки без кавычек
-                        # Если есть ключи с кавычками, исправляем их
-                        cleaned_log_data = {}
-                        try:
-                            items_list = list(log_data.items())
-                        except Exception as items_err:
-                            logger.debug(f"⚠️ Ошибка получения items: {items_err}")
-                            items_list = []
-
-                        for k, v in items_list:
-                            try:
-                                # Убираем кавычки из ключей, если они есть
-                                clean_key = str(k).strip("\"'")
-                                cleaned_log_data[clean_key] = v
-                            except Exception as key_err:
-                                logger.debug(f"⚠️ Ошибка обработки ключа {k}: {key_err}")
-                                # Если не удалось обработать ключ, пропускаем его
-                                continue
-                        log_data = cleaned_log_data
-                        try:
-                            logger.debug(f"📊 Очищенные ключи: {list(log_data.keys())[:10]}")
-                        except Exception:
-                            pass
-                    except Exception as clean_err:
-                        logger.debug(f"⚠️ Ошибка очистки ключей: {clean_err}", exc_info=True)
-                        # Если не удалось очистить, продолжаем с исходными данными
-                    # Создаем копию словаря с безопасными значениями
-                    safe_data = {}
-                    # Используем list() для безопасной итерации по ключам
-                    try:
-                        items = list(log_data.items())
-                    except Exception as items_err:
-                        logger.debug(f"⚠️ Не удалось получить items из log_data: {items_err}")
-                        items = []
-
-                    for key, value in items:
-                        try:
-                            # Преобразуем ключ в строку безопасно, убирая кавычки
-                            try:
-                                safe_key = str(key).strip("\"'")
-                            except Exception:
-                                safe_key = f"<key_{type(key).__name__}>"
-
-                            # Пытаемся преобразовать значение в JSON-совместимый тип
-                            if isinstance(value, (str, int, float, bool, type(None))):
-                                safe_data[safe_key] = value
-                            elif isinstance(value, dict):
-                                # Рекурсивно обрабатываем вложенные словари
-                                try:
-                                    # Безопасно обрабатываем вложенный словарь
-                                    nested_safe = {}
-                                    try:
-                                        nested_items = list(value.items())
-                                    except Exception:
-                                        nested_items = []
-
-                                    for nested_key, nested_val in nested_items:
-                                        try:
-                                            # Безопасно преобразуем ключ, убирая кавычки
-                                            try:
-                                                nested_safe_key = str(nested_key).strip("\"'")
-                                            except Exception:
-                                                nested_safe_key = (
-                                                    f"<key_{type(nested_key).__name__}>"
-                                                )
-
-                                            # Обрабатываем значение
-                                            if isinstance(
-                                                nested_val, (str, int, float, bool, type(None))
-                                            ):
-                                                nested_safe[nested_safe_key] = nested_val
-                                            elif isinstance(nested_val, dict):
-                                                # Еще более глубокий уровень - просто строковое представление
-                                                try:
-                                                    nested_safe[nested_safe_key] = str(nested_val)[
-                                                        :100
-                                                    ]
-                                                except Exception:
-                                                    nested_safe[nested_safe_key] = "<deep_dict>"
-                                            else:
-                                                # Для других типов просто строка
-                                                try:
-                                                    nested_safe[nested_safe_key] = str(nested_val)[
-                                                        :100
-                                                    ]
-                                                except Exception:
-                                                    nested_safe[nested_safe_key] = (
-                                                        "<unserializable>"
-                                                    )
-                                        except Exception as nested_key_err:
-                                            logger.debug(
-                                                f"⚠️ Пропущен вложенный ключ {nested_key} из-за ошибки: {nested_key_err}"
-                                            )
-                                            continue
-
-                                    # Добавляем обработанный вложенный словарь без проверки json.dumps
-                                    safe_data[safe_key] = nested_safe
-                                except (TypeError, ValueError, KeyError) as nested_err:
-                                    logger.debug(
-                                        f"⚠️ Не удалось сериализовать вложенный dict для ключа {safe_key}: {nested_err}"
-                                    )
-                                    safe_data[safe_key] = "<nested_dict>"
-                            elif isinstance(value, (list, tuple)):
-                                # Обрабатываем списки
-                                try:
-                                    json.dumps(value, default=str)
-                                    safe_data[safe_key] = value
-                                except (TypeError, ValueError, KeyError) as list_err:
-                                    logger.debug(
-                                        f"⚠️ Не удалось сериализовать list для ключа {safe_key}: {list_err}"
-                                    )
-                                    safe_data[safe_key] = "<list>"
-                            else:
-                                # Для других типов пытаемся преобразовать в строку
-                                try:
-                                    safe_data[safe_key] = str(value)[:200]
-                                except Exception as str_err:
-                                    logger.debug(
-                                        f"⚠️ Не удалось преобразовать в строку для ключа {safe_key}: {str_err}"
-                                    )
-                                    safe_data[safe_key] = "<unserializable>"
-                        except Exception as key_err:
-                            # Если не удалось обработать ключ, пропускаем его
-                            logger.debug(
-                                f"⚠️ Пропущен ключ {key} (тип: {type(key)}) из-за ошибки: {key_err}"
-                            )
-                            continue
-
-                    # Сериализуем через JSON для безопасного форматирования
-                    try:
-                        data_str = json.dumps(safe_data, ensure_ascii=False, default=str)
+                        data_str = json.dumps(log_data, ensure_ascii=False, default=str)
+                        if len(data_str) > 1000:
+                            data_str = data_str[:1000] + "... (truncated)"
+                        log_message += f" | data={data_str}"
                     except Exception as json_err:
-                        logger.debug(f"⚠️ Не удалось сериализовать через JSON: {json_err}")
-                        # Если JSON не работает, используем str()
-                        try:
-                            data_str = str(safe_data)
-                        except Exception:
-                            data_str = "<unserializable_dict>"
+                        logger.debug(f"⚠️ Не удалось сериализовать log_data через JSON: {json_err}")
+                        # Если не удалось, просто пропускаем данные
+                        pass
                 else:
                     # Если не словарь, просто преобразуем в строку
                     try:
                         data_str = str(log_data)
+                        if len(data_str) > 1000:
+                            data_str = data_str[:1000] + "... (truncated)"
+                        log_message += f" | data={data_str}"
                     except Exception:
-                        data_str = "<unserializable>"
-
-                # Ограничиваем размер данных для лога (максимум 1000 символов)
-                if len(data_str) > 1000:
-                    data_str = data_str[:1000] + "... (truncated)"
-                log_message += f" | data={data_str}"
+                        pass
             except Exception as e:
-                # Если не удалось сериализовать, просто добавляем информацию об ошибке
-                logger.debug(f"⚠️ Общая ошибка сериализации log_data: {e}", exc_info=True)
-                log_message += f" | data=<serialization_error: {type(e).__name__}: {str(e)[:100]}>"
+                # Если не удалось сериализовать, просто пропускаем данные
+                logger.debug(f"⚠️ Общая ошибка сериализации log_data: {e}")
+                pass
 
         # Логируем в зависимости от уровня
         if level == "error":
