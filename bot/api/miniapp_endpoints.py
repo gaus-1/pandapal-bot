@@ -898,7 +898,14 @@ async def miniapp_log(request: web.Request) -> web.Response:
 
             import json
 
-            data = json.loads(raw_body.decode("utf-8"))
+            # Логируем сырые данные для отладки
+            raw_body_str = raw_body.decode("utf-8")
+            logger.debug(f"📊 Сырое тело запроса (первые 500 символов): {raw_body_str[:500]}")
+
+            data = json.loads(raw_body_str)
+
+            # Логируем распарсенные данные
+            logger.debug(f"📊 Распарсенные данные: {str(data)[:500]}")
         except json.JSONDecodeError as json_err:
             logger.warning(f"⚠️ Невалидный JSON в /api/miniapp/log: {json_err}")
             return web.json_response({"success": False, "error": "Invalid JSON"}, status=400)
@@ -920,6 +927,15 @@ async def miniapp_log(request: web.Request) -> web.Response:
         message = data.get("message", "")
         # Безопасно извлекаем log_data - может быть словарем или другим типом
         log_data = data.get("data")
+
+        # Логируем тип и содержимое log_data ДО обработки
+        logger.debug(f"📊 log_data тип ДО обработки: {type(log_data)}")
+        if log_data is not None:
+            try:
+                logger.debug(f"📊 log_data содержимое ДО обработки: {str(log_data)[:200]}")
+            except Exception:
+                pass
+
         if log_data is None:
             log_data = {}
         elif isinstance(log_data, str):
@@ -963,13 +979,23 @@ async def miniapp_log(request: web.Request) -> web.Response:
                     # СНАЧАЛА очищаем ключи от кавычек, ДО любых других операций
                     try:
                         # Логируем исходные ключи для отладки
-                        original_keys = list(log_data.keys())[:10]
-                        logger.debug(f"📊 Исходные ключи log_data: {original_keys}")
+                        try:
+                            original_keys = list(log_data.keys())[:10]
+                            logger.debug(f"📊 Исходные ключи log_data: {original_keys}")
+                        except Exception as keys_err:
+                            logger.debug(f"⚠️ Ошибка получения ключей: {keys_err}")
+                            original_keys = []
 
                         # Проверяем, что все ключи - это строки без кавычек
                         # Если есть ключи с кавычками, исправляем их
                         cleaned_log_data = {}
-                        for k, v in log_data.items():
+                        try:
+                            items_list = list(log_data.items())
+                        except Exception as items_err:
+                            logger.debug(f"⚠️ Ошибка получения items: {items_err}")
+                            items_list = []
+
+                        for k, v in items_list:
                             try:
                                 # Убираем кавычки из ключей, если они есть
                                 clean_key = str(k).strip("\"'")
@@ -979,9 +1005,12 @@ async def miniapp_log(request: web.Request) -> web.Response:
                                 # Если не удалось обработать ключ, пропускаем его
                                 continue
                         log_data = cleaned_log_data
-                        logger.debug(f"📊 Очищенные ключи: {list(log_data.keys())[:10]}")
+                        try:
+                            logger.debug(f"📊 Очищенные ключи: {list(log_data.keys())[:10]}")
+                        except Exception:
+                            pass
                     except Exception as clean_err:
-                        logger.debug(f"⚠️ Ошибка очистки ключей: {clean_err}")
+                        logger.debug(f"⚠️ Ошибка очистки ключей: {clean_err}", exc_info=True)
                         # Если не удалось очистить, продолжаем с исходными данными
                     # Создаем копию словаря с безопасными значениями
                     safe_data = {}
