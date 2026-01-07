@@ -25,6 +25,7 @@ export function AIChat({ user }: AIChatProps) {
 
   const [inputText, setInputText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [isGettingAccess, setIsGettingAccess] = useState(false);
   const [replyToMessage, setReplyToMessage] = useState<number | null>(null);
   const [showScrollButtons, setShowScrollButtons] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -37,6 +38,7 @@ export function AIChat({ user }: AIChatProps) {
   const mimeTypeRef = useRef<string>('audio/webm');
   const recordingStartedRef = useRef(false);
   const startErrorRef = useRef<Error | null>(null);
+  const isGettingAccessRef = useRef(false); // Защита от повторных вызовов
 
   // Автоскролл к последнему сообщению
   useEffect(() => {
@@ -199,6 +201,7 @@ export function AIChat({ user }: AIChatProps) {
     const logData = {
       isRecording,
       hasRecorder: !!mediaRecorderRef.current,
+      isGettingAccess: isGettingAccessRef.current,
       userAgent: navigator.userAgent,
       platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
       hasMediaDevices: !!navigator.mediaDevices,
@@ -207,10 +210,22 @@ export function AIChat({ user }: AIChatProps) {
     console.log('🎤 handleVoiceStart вызван', logData);
     sendLogToServer('info', 'handleVoiceStart вызван', logData, user.telegram_id).catch(() => {});
 
-    if (isRecording || mediaRecorderRef.current) {
-      console.warn('⚠️ Запись уже идет');
+    // Защита от повторных вызовов
+    if (isRecording || mediaRecorderRef.current || isGettingAccess) {
+      console.warn('⚠️ Запись уже идет или доступ уже запрашивается');
+      sendLogToServer('warn', 'Попытка повторного вызова handleVoiceStart', {
+        isRecording,
+        hasRecorder: !!mediaRecorderRef.current,
+        isGettingAccess,
+        platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+      }, user.telegram_id).catch(() => {});
       return;
     }
+
+    // Устанавливаем флаг сразу, чтобы блокировать повторные вызовы
+    isGettingAccessRef.current = true;
+    setIsGettingAccess(true);
+    setIsRecording(true); // Блокируем кнопку сразу
 
     try {
       console.log('🎤 Запрос доступа к микрофону...');
@@ -473,6 +488,8 @@ export function AIChat({ user }: AIChatProps) {
 
       mediaRecorder.onstart = () => {
         recordingStartedRef.current = true;
+        isGettingAccessRef.current = false; // Сбрасываем флаг после успешного начала
+        setIsGettingAccess(false);
         console.log('✅ MediaRecorder начал запись, состояние:', mediaRecorder.state);
 
         // Проверяем состояние stream в onstart
@@ -706,8 +723,29 @@ export function AIChat({ user }: AIChatProps) {
       // Упрощенная логика: сразу запускаем запись без сложных проверок
       // Убрали проверки трека - они могут срабатывать преждевременно на мобильных
       try {
-        const timeslice = 250; // 250мс для стабильной работы на мобильных
-        console.log('🎙️ Запуск записи с timeslice:', timeslice);
+        // Для Android/Telegram не используем timeslice - может вызывать проблемы
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        const isTelegram = navigator.userAgent.includes('Telegram');
+        const timeslice = (isAndroid && isTelegram) ? undefined : 250;
+
+        // Небольшая задержка для Android/Telegram, чтобы stream стабилизировался
+        if (isAndroid && isTelegram) {
+          console.log('⏳ Задержка 100мс для стабилизации stream на Android/Telegram...');
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+          // Проверяем stream после задержки
+          if (!streamRef.current || !streamRef.current.active) {
+            console.error('❌ Stream неактивен после задержки!');
+            sendLogToServer('error', 'Stream неактивен после задержки', {
+              streamExists: !!streamRef.current,
+              streamActive: streamRef.current?.active ?? false,
+              platform: 'mobile',
+            }, user.telegram_id).catch(() => {});
+            throw new Error('Stream неактивен после задержки');
+          }
+        }
+
+        console.log('🎙️ Запуск записи', timeslice ? `с timeslice: ${timeslice}` : 'без timeslice');
 
         // Проверяем состояние stream перед start()
         const streamStateBeforeStart = {
@@ -735,13 +773,17 @@ export function AIChat({ user }: AIChatProps) {
         }
 
         sendLogToServer('info', 'Запуск записи', {
-          timeslice,
+          timeslice: timeslice ?? 'none',
           stateBeforeStart: mediaRecorder.state,
           ...streamStateBeforeStart,
           platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
         }, user.telegram_id).catch(() => {});
 
-        mediaRecorder.start(timeslice);
+        if (timeslice !== undefined) {
+          mediaRecorder.start(timeslice);
+        } else {
+          mediaRecorder.start();
+        }
         console.log('✅ start() вызван, состояние:', mediaRecorder.state);
         sendLogToServer('info', 'mediaRecorder.start() вызван', {
           stateAfterStart: mediaRecorder.state,
@@ -752,6 +794,8 @@ export function AIChat({ user }: AIChatProps) {
         // Это важно для мобильных устройств, где события могут задерживаться
         recordingStartTimeRef.current = Date.now();
         setIsRecording(true);
+        isGettingAccessRef.current = false; // Сбрасываем флаг после успешного начала
+        setIsGettingAccess(false);
 
         // Простая проверка состояния через небольшие интервалы
         let checkCount = 0;
@@ -798,6 +842,8 @@ export function AIChat({ user }: AIChatProps) {
       } catch (startSyncError) {
         console.error('❌ Ошибка синхронного запуска:', startSyncError);
         setIsRecording(false);
+        isGettingAccessRef.current = false; // Сбрасываем флаг при ошибке
+        setIsGettingAccess(false);
         if (streamRef.current) {
           streamRef.current.getTracks().forEach((track) => track.stop());
           streamRef.current = null;
@@ -808,6 +854,11 @@ export function AIChat({ user }: AIChatProps) {
 
       telegram.hapticFeedback('heavy');
     } catch (error) {
+      // Сбрасываем флаги при любой ошибке
+      isGettingAccessRef.current = false;
+      setIsGettingAccess(false);
+      setIsRecording(false);
+
       const errorDetails = {
         name: error instanceof DOMException ? error.name : 'Unknown',
         message: error instanceof Error ? error.message : String(error),
@@ -1139,7 +1190,7 @@ export function AIChat({ user }: AIChatProps) {
           ) : (
             <button
               onClick={handleVoiceStart}
-              disabled={isSending}
+              disabled={isSending || isRecording || isGettingAccess}
               className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-blue-400/90 to-indigo-400/90 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-md shadow-sm self-center"
               title="Голосовое"
             >
