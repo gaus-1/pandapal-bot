@@ -401,6 +401,14 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
 
         try:
             data = await request.json()
+            # Логируем структуру запроса для отладки
+            logger.info(
+                f"📦 Получен JSON запрос: telegram_id={data.get('telegram_id')}, "
+                f"has_message={bool(data.get('message'))}, "
+                f"has_photo={bool(data.get('photo_base64'))}, "
+                f"has_audio={bool(data.get('audio_base64'))}, "
+                f"audio_length={len(data.get('audio_base64', '')) if data.get('audio_base64') else 0}"
+            )
         except Exception as json_error:
             logger.error(f"❌ Ошибка парсинга JSON: {json_error}", exc_info=True)
             # Если ошибка "Content Too Large", это значит запрос слишком большой
