@@ -173,18 +173,28 @@ export async function sendAIMessage(
   photoBase64?: string,
   audioBase64?: string
 ): Promise<{ response: string; achievements_unlocked?: AchievementUnlocked[] }> {
+  const requestBody = {
+    telegram_id: telegramId,
+    // Отправляем message только если он есть (не пустая строка)
+    ...(message && message.trim() ? { message } : {}),
+    ...(photoBase64 ? { photo_base64: photoBase64 } : {}),
+    ...(audioBase64 ? { audio_base64: audioBase64 } : {}),
+  };
+
+  console.log('📤 sendAIMessage вызван:', {
+    telegramId,
+    hasMessage: !!message,
+    hasPhoto: !!photoBase64,
+    hasAudio: !!audioBase64,
+    audioLength: audioBase64?.length || 0,
+  });
+
   const response = await fetch(`${API_BASE_URL}/miniapp/ai/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      telegram_id: telegramId,
-      // Отправляем message только если он есть (не пустая строка)
-      ...(message && message.trim() ? { message } : {}),
-      ...(photoBase64 ? { photo_base64: photoBase64 } : {}),
-      ...(audioBase64 ? { audio_base64: audioBase64 } : {}),
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
