@@ -864,6 +864,54 @@ async def miniapp_clear_chat_history(request: web.Request) -> web.Response:
         return web.json_response({"error": f"Internal server error: {str(e)}"}, status=500)
 
 
+async def miniapp_log(request: web.Request) -> web.Response:
+    """
+    Принять логи с фронтенда для отладки.
+
+    POST /api/miniapp/log
+    Body: {
+        "level": "log" | "error" | "warn" | "info",
+        "message": "текст сообщения",
+        "data": {...},  # опционально
+        "telegram_id": 123,  # опционально
+        "user_agent": "...",  # опционально
+    }
+    """
+    try:
+        data = await request.json()
+        level = data.get("level", "log")
+        message = data.get("message", "")
+        log_data = data.get("data", {})
+        telegram_id = data.get("telegram_id")
+        user_agent = data.get("user_agent", request.headers.get("User-Agent", "Unknown"))
+
+        # Формируем лог сообщение
+        log_prefix = f"📱 Frontend [{level.upper()}]"
+        if telegram_id:
+            log_prefix += f" user={telegram_id}"
+        log_message = f"{log_prefix}: {message}"
+
+        # Добавляем данные если есть
+        if log_data:
+            log_message += f" | data={log_data}"
+
+        # Логируем в зависимости от уровня
+        if level == "error":
+            logger.error(log_message, extra={"user_agent": user_agent})
+        elif level == "warn":
+            logger.warning(log_message, extra={"user_agent": user_agent})
+        elif level == "info":
+            logger.info(log_message, extra={"user_agent": user_agent})
+        else:
+            logger.debug(log_message, extra={"user_agent": user_agent})
+
+        return web.json_response({"success": True})
+
+    except Exception as e:
+        logger.error(f"❌ Ошибка приема лога с фронтенда: {e}", exc_info=True)
+        return web.json_response({"error": "Internal server error"}, status=500)
+
+
 async def miniapp_get_subjects(request: web.Request) -> web.Response:
     """
     Получить список предметов с учетом Premium статуса.
@@ -1018,5 +1066,8 @@ def setup_miniapp_routes(app: web.Application) -> None:
     app.router.add_get(
         "/api/miniapp/premium/features/{telegram_id}", miniapp_get_premium_features_status
     )
+
+    # Логирование с фронтенда
+    app.router.add_post("/api/miniapp/log", miniapp_log)
 
     logger.info("✅ Mini App API routes зарегистрированы")

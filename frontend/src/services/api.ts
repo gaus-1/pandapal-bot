@@ -8,6 +8,35 @@ const API_BASE_URL = import.meta.env.PROD
   ? 'https://pandapal.ru/api'
   : 'http://localhost:10000/api';
 
+/**
+ * Отправить лог на сервер для отладки
+ */
+export async function sendLogToServer(
+  level: 'log' | 'error' | 'warn' | 'info',
+  message: string,
+  data?: Record<string, unknown>,
+  telegramId?: number
+): Promise<void> {
+  try {
+    await fetch(`${API_BASE_URL}/miniapp/log`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        level,
+        message,
+        data,
+        telegram_id: telegramId,
+        user_agent: navigator.userAgent,
+      }),
+    });
+  } catch (error) {
+    // Игнорируем ошибки отправки логов, чтобы не засорять консоль
+    console.debug('Не удалось отправить лог на сервер:', error);
+  }
+}
+
 export interface UserProfile {
   telegram_id: number;
   first_name?: string;
