@@ -926,38 +926,46 @@ async def miniapp_log(request: web.Request) -> web.Response:
 
         message = data.get("message", "")
         # Безопасно извлекаем log_data - может быть словарем или другим типом
-        log_data = data.get("data")
+        # ОБЕРТЫВАЕМ ВСЮ ОБРАБОТКУ В TRY-EXCEPT, чтобы избежать KeyError
+        log_data = None
+        try:
+            log_data = data.get("data")
+        except Exception as get_data_err:
+            logger.debug(
+                f"⚠️ Ошибка получения data из запроса: {type(get_data_err).__name__}: {get_data_err}"
+            )
+            log_data = None
 
-        # Логируем тип и содержимое log_data ДО обработки
-        logger.debug(f"📊 log_data тип ДО обработки: {type(log_data)}")
-        if log_data is not None:
-            try:
-                logger.debug(f"📊 log_data содержимое ДО обработки: {str(log_data)[:200]}")
-            except Exception:
-                pass
+        # Безопасная обработка log_data
+        try:
+            if log_data is None:
+                log_data = {}
+            elif isinstance(log_data, str):
+                # Если это строка (например, JSON строка), пытаемся распарсить
+                try:
+                    import json
 
-        if log_data is None:
+                    parsed = json.loads(log_data)
+                    if isinstance(parsed, dict):
+                        log_data = parsed
+                    else:
+                        log_data = {"value": str(parsed)[:500]}
+                except Exception as parse_err:
+                    # Если не JSON, просто строка
+                    logger.debug(f"⚠️ Не удалось распарсить log_data как JSON: {parse_err}")
+                    log_data = {"value": log_data[:500]}
+            elif not isinstance(log_data, dict):
+                # Если это не словарь, преобразуем в словарь с одним ключом
+                try:
+                    log_data = {"value": str(log_data)[:500]}  # Ограничиваем размер
+                except Exception:
+                    log_data = {"value": "<unserializable>"}
+        except Exception as process_err:
+            # Если произошла ошибка при обработке, просто создаем пустой словарь
+            logger.debug(
+                f"⚠️ Ошибка обработки log_data: {type(process_err).__name__}: {process_err}"
+            )
             log_data = {}
-        elif isinstance(log_data, str):
-            # Если это строка (например, JSON строка), пытаемся распарсить
-            try:
-                import json
-
-                parsed = json.loads(log_data)
-                if isinstance(parsed, dict):
-                    log_data = parsed
-                else:
-                    log_data = {"value": str(parsed)[:500]}
-            except Exception as parse_err:
-                # Если не JSON, просто строка
-                logger.debug(f"⚠️ Не удалось распарсить log_data как JSON: {parse_err}")
-                log_data = {"value": log_data[:500]}
-        elif not isinstance(log_data, dict):
-            # Если это не словарь, преобразуем в словарь с одним ключом
-            try:
-                log_data = {"value": str(log_data)[:500]}  # Ограничиваем размер
-            except Exception:
-                log_data = {"value": "<unserializable>"}
 
         telegram_id = data.get("telegram_id")
         user_agent = data.get("user_agent", request.headers.get("User-Agent", "Unknown"))
@@ -1012,17 +1020,21 @@ async def miniapp_log(request: web.Request) -> web.Response:
         # Логируем в зависимости от уровня
         # Обертываем логирование в try-except, чтобы избежать ошибок
         try:
+            # Упрощаем логирование - убираем extra, чтобы избежать проблем
             if level == "error":
-                logger.error(log_message, extra={"user_agent": user_agent})
+                logger.error(log_message)
             elif level == "warn":
-                logger.warning(log_message, extra={"user_agent": user_agent})
+                logger.warning(log_message)
             elif level == "info":
-                logger.info(log_message, extra={"user_agent": user_agent})
+                logger.info(log_message)
             else:
-                logger.debug(log_message, extra={"user_agent": user_agent})
+                logger.debug(log_message)
         except Exception as log_err:
-            # Если не удалось залогировать, просто логируем ошибку
-            logger.debug(f"⚠️ Ошибка логирования: {type(log_err).__name__}: {log_err}")
+            # Если не удалось залогировать, просто логируем ошибку без форматирования
+            try:
+                logger.debug(f"⚠️ Ошибка логирования: {type(log_err).__name__}: {str(log_err)}")
+            except Exception:
+                pass  # Если даже это не работает, просто пропускаем
 
         return web.json_response({"success": True})
 
