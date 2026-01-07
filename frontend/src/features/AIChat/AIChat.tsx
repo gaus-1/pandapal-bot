@@ -555,6 +555,12 @@ export function AIChat({ user }: AIChatProps) {
   };
 
   const handleVoiceStop = () => {
+    console.log('🛑 handleVoiceStop вызван', {
+      hasRecorder: !!mediaRecorderRef.current,
+      isRecording,
+      recorderState: mediaRecorderRef.current?.state,
+    });
+
     if (mediaRecorderRef.current && isRecording) {
       const recordingDuration = Date.now() - recordingStartTimeRef.current;
       const MIN_RECORDING_DURATION = 500;
@@ -581,8 +587,12 @@ export function AIChat({ user }: AIChatProps) {
       }
 
       try {
+        console.log('🛑 Вызываю mediaRecorder.stop(), состояние:', mediaRecorderRef.current.state);
         if (mediaRecorderRef.current.state !== 'inactive') {
           mediaRecorderRef.current.stop();
+          console.log('✅ mediaRecorder.stop() вызван, состояние после:', mediaRecorderRef.current.state);
+        } else {
+          console.warn('⚠️ MediaRecorder уже inactive, stop() не нужен');
         }
         telegram.hapticFeedback('medium');
       } catch (e) {
