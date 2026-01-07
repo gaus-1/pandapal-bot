@@ -257,10 +257,23 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
         request_body = await request.text()
         signature = request.headers.get("X-Yookassa-Signature")
 
+        # Логируем информацию о webhook для отладки
+        logger.debug(
+            f"📥 YooKassa webhook: signature={'present' if signature else 'missing'}, "
+            f"body_length={len(request_body)}, "
+            f"headers={dict(request.headers)}"
+        )
+
         # Верифицируем подпись webhook
         payment_service = PaymentService()
         if not payment_service.verify_webhook_signature(request_body, signature):
-            logger.warning("⚠️ Webhook с невалидной подписью отклонен")
+            logger.warning(
+                "⚠️ Webhook с невалидной подписью отклонен. "
+                "Проверь настройки webhook в личном кабинете YooKassa: "
+                "1. URL webhook должен быть правильным "
+                "2. Подпись должна быть включена "
+                "3. YOOKASSA_SECRET_KEY должен совпадать с ключом в кабинете"
+            )
             return web.json_response({"error": "Invalid signature"}, status=403)
 
         # Парсим JSON данные
