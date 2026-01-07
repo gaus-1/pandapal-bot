@@ -332,7 +332,15 @@ export function AIChat({ user }: AIChatProps) {
               return;
             }
             console.log('✅ Аудио готово к отправке, размер base64:', base64Audio.length);
-            sendMessage({ audioBase64: base64Audio });
+            console.log('📤 Вызываю sendMessage с audioBase64, длина:', base64Audio.length);
+            try {
+              sendMessage({ audioBase64: base64Audio });
+              console.log('✅ sendMessage вызван успешно');
+            } catch (sendError) {
+              console.error('❌ Ошибка вызова sendMessage:', sendError);
+              telegram.notifyError();
+              telegram.showAlert('Ошибка отправки аудио. Попробуй еще раз!');
+            }
             if (streamRef.current) {
               streamRef.current.getTracks().forEach((track) => track.stop());
               streamRef.current = null;
