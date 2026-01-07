@@ -536,17 +536,60 @@ export function AIChat({ user }: AIChatProps) {
           ? Date.now() - recordingStartTimeRef.current
           : 0;
         const totalSize = audioChunksRef.current.reduce((sum, chunk) => sum + chunk.size, 0);
+        const MIN_RECORDING_DURATION = 500; // Минимальная длительность записи (500мс)
+        const wasManuallyStopped = recordingDuration > 100; // Если больше 100мс, скорее всего остановлено вручную
 
-        console.log('🛑 Запись остановлена, чанков:', audioChunksRef.current.length, 'размер:', totalSize, 'байт', 'длительность:', recordingDuration, 'мс');
+        console.log('🛑 Запись остановлена, чанков:', audioChunksRef.current.length, 'размер:', totalSize, 'байт', 'длительность:', recordingDuration, 'мс', 'вручную:', wasManuallyStopped);
         sendLogToServer('info', 'MediaRecorder.onstop вызван', {
           chunksCount: audioChunksRef.current.length,
           totalSize,
           duration: recordingDuration,
           state: mediaRecorderRef.current?.state ?? 'unknown',
           streamActive: streamRef.current?.active ?? false,
-          wasManuallyStopped: recordingDuration > 100, // Если больше 100мс, скорее всего остановлено вручную
+          wasManuallyStopped,
           platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
         }, user.telegram_id).catch(() => {});
+
+        // Если запись остановилась автоматически (не вручную) и слишком короткая,
+        // и пользователь все еще хочет записывать (isRecording === true),
+        // то перезапускаем запись автоматически
+        if (!wasManuallyStopped && recordingDuration < MIN_RECORDING_DURATION && isRecording && streamRef.current?.active) {
+          console.warn('⚠️ Запись остановилась автоматически, перезапускаю...');
+          sendLogToServer('warn', 'Автоматический перезапуск записи', {
+            duration: recordingDuration,
+            minDuration: MIN_RECORDING_DURATION,
+            streamActive: streamRef.current?.active,
+            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          }, user.telegram_id).catch(() => {});
+
+          // Очищаем чанки и перезапускаем запись
+          audioChunksRef.current = [];
+          recordingStartTimeRef.current = Date.now();
+          recordingStartedRef.current = false;
+
+          try {
+            if (mediaRecorderRef.current && streamRef.current?.active) {
+              const isAndroid = /Android/i.test(navigator.userAgent);
+              const isTelegram = navigator.userAgent.includes('Telegram');
+              const timeslice = (isAndroid && isTelegram) ? undefined : 250;
+
+              if (timeslice !== undefined) {
+                mediaRecorderRef.current.start(timeslice);
+              } else {
+                mediaRecorderRef.current.start();
+              }
+              console.log('✅ Запись перезапущена автоматически');
+              return; // Не обрабатываем остановку, продолжаем запись
+            }
+          } catch (restartError) {
+            console.error('❌ Ошибка перезапуска записи:', restartError);
+            sendLogToServer('error', 'Ошибка перезапуска записи', {
+              error: restartError instanceof Error ? restartError.message : String(restartError),
+              platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+            }, user.telegram_id).catch(() => {});
+            // Продолжаем обработку остановки
+          }
+        }
 
         if (audioChunksRef.current.length === 0) {
           console.error('❌ Аудио не записалось');
@@ -564,19 +607,20 @@ export function AIChat({ user }: AIChatProps) {
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeTypeRef.current || 'audio/webm' });
         const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
         const MIN_AUDIO_SIZE = 1000; // Минимальный размер для валидного WebM файла (1KB)
-        const MIN_RECORDING_DURATION = 500; // Минимальная длительность записи (500мс)
         // recordingDuration уже вычислена выше в onstop
 
         console.log('📊 Размер аудио:', audioBlob.size, 'байт');
         console.log('📊 Длительность записи:', recordingDuration, 'мс');
 
-        // Проверяем минимальную длительность записи
-        if (recordingDuration < MIN_RECORDING_DURATION) {
+        // Проверяем минимальную длительность записи ТОЛЬКО если остановлено вручную
+        // Если остановлено автоматически, это может быть временная проблема, и запись перезапустится
+        if (wasManuallyStopped && recordingDuration < MIN_RECORDING_DURATION) {
           console.error(`❌ Запись слишком короткая: ${recordingDuration}мс (минимум ${MIN_RECORDING_DURATION}мс)`);
-          sendLogToServer('error', 'Запись слишком короткая', {
+          sendLogToServer('error', 'Запись слишком короткая (остановлено вручную)', {
             duration: recordingDuration,
             minDuration: MIN_RECORDING_DURATION,
             audioSize: audioBlob.size,
+            wasManuallyStopped,
             platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
           }, user.telegram_id).catch(() => {});
           telegram.notifyError();
