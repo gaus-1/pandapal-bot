@@ -921,6 +921,19 @@ async def miniapp_log(request: web.Request) -> web.Response:
         log_data = data.get("data")
         if log_data is None:
             log_data = {}
+        elif isinstance(log_data, str):
+            # Если это строка (например, JSON строка), пытаемся распарсить
+            try:
+                import json
+
+                parsed = json.loads(log_data)
+                if isinstance(parsed, dict):
+                    log_data = parsed
+                else:
+                    log_data = {"value": str(parsed)[:500]}
+            except Exception:
+                # Если не JSON, просто строка
+                log_data = {"value": log_data[:500]}
         elif not isinstance(log_data, dict):
             # Если это не словарь, преобразуем в словарь с одним ключом
             try:

@@ -205,7 +205,7 @@ export function AIChat({ user }: AIChatProps) {
       hasGetUserMedia: !!navigator.mediaDevices?.getUserMedia,
     };
     console.log('🎤 handleVoiceStart вызван', logData);
-    await sendLogToServer('info', 'handleVoiceStart вызван', logData, user.telegram_id);
+    sendLogToServer('info', 'handleVoiceStart вызван', logData, user.telegram_id).catch(() => {});
 
     if (isRecording || mediaRecorderRef.current) {
       console.warn('⚠️ Запись уже идет');
@@ -460,105 +460,61 @@ export function AIChat({ user }: AIChatProps) {
         mediaRecorderRef.current = null;
       };
 
-      // Проверяем что stream все еще активен перед началом записи
-      const currentAudioTrack = stream.getAudioTracks()[0];
-      if (!currentAudioTrack || currentAudioTrack.readyState !== 'live') {
-        throw new Error('Аудио трек потерян перед началом записи');
-      }
+      // Сохраняем ссылку на recorder ДО start(), чтобы обработчики могли его использовать
+      mediaRecorderRef.current = mediaRecorder;
+      console.log('💾 mediaRecorderRef установлен');
 
-      // Запускаем запись с интервалом для получения данных
+      // Упрощенная логика: сразу запускаем запись без сложных проверок
+      // Убрали проверки трека - они могут срабатывать преждевременно на мобильных
       try {
-        if (mediaRecorder.state !== 'inactive') {
-          console.warn('⚠️ MediaRecorder уже активен, состояние:', mediaRecorder.state);
-          throw new Error('MediaRecorder уже активен');
-        }
+        const timeslice = 250; // 250мс для стабильной работы на мобильных
+        console.log('🎙️ Запуск записи с timeslice:', timeslice);
 
-        // Проверяем stream еще раз перед start
-        const trackBeforeStart = stream.getAudioTracks()[0];
-        if (!trackBeforeStart || trackBeforeStart.readyState !== 'live') {
-          throw new Error('Аудио трек потерян перед start()');
-        }
+        mediaRecorder.start(timeslice);
+        console.log('✅ start() вызван, состояние:', mediaRecorder.state);
 
-        // Сохраняем ссылку на recorder ДО start(), чтобы обработчики могли его использовать
-        mediaRecorderRef.current = mediaRecorder;
-        console.log('💾 mediaRecorderRef установлен');
+        // Устанавливаем состояние сразу, не ждем события onstart
+        // Это важно для мобильных устройств, где события могут задерживаться
+        recordingStartTimeRef.current = Date.now();
+        setIsRecording(true);
 
-        // Упрощенная логика: сразу запускаем запись без сложных проверок
-        try {
-          const timeslice = 250; // 250мс для стабильной работы на мобильных
-          console.log('🎙️ Запуск записи с timeslice:', timeslice);
-          console.log('📊 Состояние stream перед start:', {
-            active: stream.active,
-            tracks: stream.getTracks().length,
-            trackState: stream.getAudioTracks()[0]?.readyState,
-          });
+        // Простая проверка состояния через небольшие интервалы
+        let checkCount = 0;
+        const checkInterval = setInterval(() => {
+          checkCount++;
+          const state = mediaRecorderRef.current?.state;
+          const started = recordingStartedRef.current;
+          const error = startErrorRef.current;
 
-          mediaRecorder.start(timeslice);
-          console.log('✅ start() вызван, состояние:', mediaRecorder.state);
-
-          // Устанавливаем состояние сразу, не ждем события onstart
-          // Это важно для мобильных устройств, где события могут задерживаться
-          recordingStartTimeRef.current = Date.now();
-          setIsRecording(true);
-
-          // Проверяем состояние через небольшие интервалы
-          let checkCount = 0;
-          const checkInterval = setInterval(() => {
-            checkCount++;
-            const state = mediaRecorderRef.current?.state;
-            const started = recordingStartedRef.current;
-            const error = startErrorRef.current;
-
-            if (error) {
-              console.error('❌ Ошибка обнаружена:', error);
-              clearInterval(checkInterval);
-              setIsRecording(false);
-              if (streamRef.current) {
-                streamRef.current.getTracks().forEach((track) => track.stop());
-                streamRef.current = null;
-              }
-              mediaRecorderRef.current = null;
-              telegram.notifyError();
-              telegram.showAlert(`Ошибка записи: ${error.message}`).catch(console.error);
-            } else if (state === 'recording' || started) {
-              console.log('✅ Запись успешно начата!');
-              clearInterval(checkInterval);
-            } else if (checkCount >= 10) {
-              // После 1 секунды останавливаем проверку
-              console.warn('⚠️ Проверка завершена, запись может быть активна');
-              clearInterval(checkInterval);
+          if (error) {
+            console.error('❌ Ошибка обнаружена:', error);
+            clearInterval(checkInterval);
+            setIsRecording(false);
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach((track) => track.stop());
+              streamRef.current = null;
             }
-          }, 100);
-        } catch (startSyncError) {
-          console.error('❌ Ошибка синхронного запуска:', startSyncError);
-          setIsRecording(false);
-          if (streamRef.current) {
-            streamRef.current.getTracks().forEach((track) => track.stop());
-            streamRef.current = null;
+            mediaRecorderRef.current = null;
+            telegram.notifyError();
+            telegram.showAlert(`Ошибка записи: ${error.message}`).catch(console.error);
+          } else if (state === 'recording' || started) {
+            console.log('✅ Запись успешно начата!');
+            clearInterval(checkInterval);
+          } else if (checkCount >= 10) {
+            // После 1 секунды останавливаем проверку
+            console.warn('⚠️ Проверка завершена, запись может быть активна');
+            clearInterval(checkInterval);
           }
-          mediaRecorderRef.current = null;
-          throw new Error(`Не удалось начать запись: ${startSyncError instanceof Error ? startSyncError.message : String(startSyncError)}`);
-        }
-      } catch (startError) {
-        console.error('❌ Ошибка запуска записи:', startError);
-        telegram.notifyError();
-        // Очищаем ресурсы
-        try {
-          if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-          }
-        } catch (e) {
-          console.warn('⚠️ Ошибка при остановке recorder после ошибки:', e);
-        }
+        }, 100);
+      } catch (startSyncError) {
+        console.error('❌ Ошибка синхронного запуска:', startSyncError);
+        setIsRecording(false);
         if (streamRef.current) {
           streamRef.current.getTracks().forEach((track) => track.stop());
           streamRef.current = null;
         }
         mediaRecorderRef.current = null;
-        setIsRecording(false);
-        const errorMsg = startError instanceof Error ? startError.message : 'Не удалось начать запись. Попробуй еще раз.';
-        await telegram.showAlert(errorMsg);
-        return;
+        throw new Error(`Не удалось начать запись: ${startSyncError instanceof Error ? startSyncError.message : String(startSyncError)}`);
       }
 
       telegram.hapticFeedback('heavy');
