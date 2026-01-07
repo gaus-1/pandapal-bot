@@ -971,48 +971,75 @@ async def miniapp_log(request: web.Request) -> web.Response:
         # Добавляем данные если есть
         if log_data:
             try:
-                # Безопасная сериализация данных через json.dumps
                 import json
 
-                # Если это словарь, обрабатываем его безопасно
-                if isinstance(log_data, dict):
-                    # ПРОСТОЕ РЕШЕНИЕ: используем json.dumps напрямую, без сложной обработки
-                    # Это избежит проблем с ключами
+                # ПРОСТОЕ РЕШЕНИЕ: используем json.dumps с безопасной функцией default
+                # Обертываем в try-except, чтобы избежать любых KeyError
+                def safe_str(obj):
+                    """Безопасная функция для преобразования объектов в строку"""
                     try:
-                        data_str = json.dumps(log_data, ensure_ascii=False, default=str)
-                        if len(data_str) > 1000:
-                            data_str = data_str[:1000] + "... (truncated)"
-                        log_message += f" | data={data_str}"
-                    except Exception as json_err:
-                        logger.debug(f"⚠️ Не удалось сериализовать log_data через JSON: {json_err}")
-                        # Если не удалось, просто пропускаем данные
-                        pass
-                else:
-                    # Если не словарь, просто преобразуем в строку
-                    try:
-                        data_str = str(log_data)
-                        if len(data_str) > 1000:
-                            data_str = data_str[:1000] + "... (truncated)"
-                        log_message += f" | data={data_str}"
+                        return str(obj)
                     except Exception:
-                        pass
+                        return "<unserializable>"
+
+                try:
+                    # Пытаемся сериализовать через JSON
+                    if isinstance(log_data, dict):
+                        data_str = json.dumps(log_data, ensure_ascii=False, default=safe_str)
+                    else:
+                        data_str = safe_str(log_data)
+
+                    if len(data_str) > 1000:
+                        data_str = data_str[:1000] + "... (truncated)"
+                    log_message += f" | data={data_str}"
+                except (KeyError, TypeError, ValueError) as json_err:
+                    # Если произошла ошибка при сериализации, просто пропускаем данные
+                    logger.debug(
+                        f"⚠️ Не удалось сериализовать log_data: {type(json_err).__name__}: {json_err}"
+                    )
+                    pass
+                except Exception as json_err:
+                    # Для любых других ошибок тоже пропускаем
+                    logger.debug(
+                        f"⚠️ Неожиданная ошибка при сериализации log_data: {type(json_err).__name__}: {json_err}"
+                    )
+                    pass
             except Exception as e:
                 # Если не удалось сериализовать, просто пропускаем данные
-                logger.debug(f"⚠️ Общая ошибка сериализации log_data: {e}")
+                logger.debug(f"⚠️ Общая ошибка обработки log_data: {type(e).__name__}: {e}")
                 pass
 
         # Логируем в зависимости от уровня
-        if level == "error":
-            logger.error(log_message, extra={"user_agent": user_agent})
-        elif level == "warn":
-            logger.warning(log_message, extra={"user_agent": user_agent})
-        elif level == "info":
-            logger.info(log_message, extra={"user_agent": user_agent})
-        else:
-            logger.debug(log_message, extra={"user_agent": user_agent})
+        # Обертываем логирование в try-except, чтобы избежать ошибок
+        try:
+            if level == "error":
+                logger.error(log_message, extra={"user_agent": user_agent})
+            elif level == "warn":
+                logger.warning(log_message, extra={"user_agent": user_agent})
+            elif level == "info":
+                logger.info(log_message, extra={"user_agent": user_agent})
+            else:
+                logger.debug(log_message, extra={"user_agent": user_agent})
+        except Exception as log_err:
+            # Если не удалось залогировать, просто логируем ошибку
+            logger.debug(f"⚠️ Ошибка логирования: {type(log_err).__name__}: {log_err}")
 
         return web.json_response({"success": True})
 
+    except KeyError as key_err:
+        # Специальная обработка KeyError - логируем детали
+        error_msg = str(key_err)
+        logger.error(f"❌ KeyError при приеме лога с фронтенда: {error_msg}", exc_info=True)
+        # Логируем сырые данные, если они были прочитаны
+        try:
+            if "raw_body" in locals() and raw_body:
+                logger.debug(f"📊 Сырые данные запроса (первые 500 символов): {raw_body[:500]}")
+            if "data" in locals():
+                logger.debug(f"📊 Распарсенные данные (первые 500 символов): {str(data)[:500]}")
+        except Exception:
+            pass
+        # Возвращаем 200, чтобы не засорять консоль фронтенда ошибками
+        return web.json_response({"success": False, "error": "Internal server error"}, status=200)
     except Exception as e:
         # Детальное логирование ошибки для отладки
         error_type = type(e).__name__
