@@ -565,12 +565,79 @@ export function AIChat({ user }: AIChatProps) {
           platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
         }, user.telegram_id).catch(() => {});
 
+        if (audioChunksRef.current.length === 0) {
+          console.error('❌ Аудио не записалось');
+          telegram.notifyError();
+          telegram.showAlert('Не удалось записать аудио. Попробуй еще раз!');
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
+          setIsRecording(false);
+          mediaRecorderRef.current = null;
+          return;
+        }
+
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeTypeRef.current || 'audio/webm' });
+        const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
+        const MIN_AUDIO_SIZE = 1000; // Минимальный размер для валидного WebM файла (1KB)
+
+        console.log('📊 Размер аудио:', audioBlob.size, 'байт');
+        console.log('📊 Длительность записи:', recordingDuration, 'мс');
+
         // Если запись остановилась автоматически (не вручную) и пользователь все еще хочет записывать,
-        // попробуем перезапустить запись с новым stream
+        // проверяем размер файла ПЕРЕД перезапуском - если файл поврежден, не отправляем его
         if (!wasManuallyStopped && isRecording) {
-          console.warn('⚠️ Запись остановилась автоматически, пытаюсь перезапустить с новым stream...');
-          sendLogToServer('warn', 'Автоматический перезапуск записи с новым stream', {
+          // Проверяем размер и длительность ДО перезапуска - если файл поврежден, не отправляем
+          if (audioBlob.size < MIN_AUDIO_SIZE || recordingDuration < MIN_RECORDING_DURATION) {
+            console.warn('⚠️ Запись остановилась автоматически с поврежденным файлом, перезапускаю...', {
+              size: audioBlob.size,
+              duration: recordingDuration,
+              minSize: MIN_AUDIO_SIZE,
+              minDuration: MIN_RECORDING_DURATION,
+            });
+            sendLogToServer('warn', 'Автоматический перезапуск записи (поврежденный файл)', {
+              duration: recordingDuration,
+              audioSize: audioBlob.size,
+              minSize: MIN_AUDIO_SIZE,
+              minDuration: MIN_RECORDING_DURATION,
+              streamActive: streamRef.current?.active,
+              platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+            }, user.telegram_id).catch(() => {});
+
+            // Очищаем старые ресурсы
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach((track) => track.stop());
+              streamRef.current = null;
+            }
+            mediaRecorderRef.current = null;
+            audioChunksRef.current = [];
+            recordingStartTimeRef.current = 0;
+            recordingStartedRef.current = false;
+
+            // Пытаемся получить новый stream и перезапустить запись
+            setTimeout(() => {
+              if (isRecording) {
+                console.log('🔄 Перезапускаю запись с новым stream...');
+                handleVoiceStart().catch((restartError) => {
+                  console.error('❌ Ошибка перезапуска записи:', restartError);
+                  sendLogToServer('error', 'Ошибка перезапуска записи с новым stream', {
+                    error: restartError instanceof Error ? restartError.message : String(restartError),
+                    platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+                  }, user.telegram_id).catch(() => {});
+                  setIsRecording(false);
+                  telegram.notifyError();
+                  telegram.showAlert('Не удалось перезапустить запись. Попробуй еще раз!').catch(() => {});
+                });
+              }
+            }, 100);
+            return; // Не обрабатываем остановку, пытаемся перезапустить
+          }
+          // Если файл валидный, но остановка была автоматической, тоже перезапускаем для непрерывности
+          console.warn('⚠️ Запись остановилась автоматически, но файл валиден, перезапускаю для непрерывности...');
+          sendLogToServer('warn', 'Автоматический перезапуск записи (валидный файл)', {
             duration: recordingDuration,
+            audioSize: audioBlob.size,
             streamActive: streamRef.current?.active,
             platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
           }, user.telegram_id).catch(() => {});
@@ -586,7 +653,6 @@ export function AIChat({ user }: AIChatProps) {
           recordingStartedRef.current = false;
 
           // Пытаемся получить новый stream и перезапустить запись
-          // Вызываем handleVoiceStart асинхронно, чтобы не блокировать текущий обработчик
           setTimeout(() => {
             if (isRecording) {
               console.log('🔄 Перезапускаю запись с новым stream...');
@@ -604,27 +670,6 @@ export function AIChat({ user }: AIChatProps) {
           }, 100);
           return; // Не обрабатываем остановку, пытаемся перезапустить
         }
-
-        if (audioChunksRef.current.length === 0) {
-          console.error('❌ Аудио не записалось');
-          telegram.notifyError();
-          telegram.showAlert('Не удалось записать аудио. Попробуй еще раз!');
-          if (streamRef.current) {
-            streamRef.current.getTracks().forEach((track) => track.stop());
-            streamRef.current = null;
-          }
-          setIsRecording(false);
-          mediaRecorderRef.current = null;
-          return;
-        }
-
-        const audioBlob = new Blob(audioChunksRef.current, { type: mimeTypeRef.current || 'audio/webm' });
-        const MAX_AUDIO_SIZE = 10 * 1024 * 1024;
-        const MIN_AUDIO_SIZE = 1000; // Минимальный размер для валидного WebM файла (1KB)
-        // recordingDuration уже вычислена выше в onstop
-
-        console.log('📊 Размер аудио:', audioBlob.size, 'байт');
-        console.log('📊 Длительность записи:', recordingDuration, 'мс');
 
         // Проверяем минимальную длительность записи ТОЛЬКО если остановлено вручную
         // Если остановлено автоматически, запись уже перезапущена выше
