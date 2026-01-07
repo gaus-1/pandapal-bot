@@ -947,10 +947,20 @@ async def miniapp_log(request: web.Request) -> web.Response:
                 if isinstance(log_data, dict):
                     # Создаем копию словаря с безопасными значениями
                     safe_data = {}
-                    for key, value in log_data.items():
+                    # Используем list() для безопасной итерации по ключам
+                    try:
+                        items = list(log_data.items())
+                    except Exception as items_err:
+                        logger.debug(f"⚠️ Не удалось получить items из log_data: {items_err}")
+                        items = []
+
+                    for key, value in items:
                         try:
-                            # Преобразуем ключ в строку
-                            safe_key = str(key)
+                            # Преобразуем ключ в строку безопасно
+                            try:
+                                safe_key = str(key)
+                            except Exception:
+                                safe_key = f"<key_{type(key).__name__}>"
 
                             # Пытаемся преобразовать значение в JSON-совместимый тип
                             if isinstance(value, (str, int, float, bool, type(None))):
@@ -959,37 +969,55 @@ async def miniapp_log(request: web.Request) -> web.Response:
                                 # Рекурсивно обрабатываем вложенные словари
                                 try:
                                     # Пытаемся сериализовать через JSON
-                                    json.dumps(value)
+                                    json.dumps(value, default=str)
                                     safe_data[safe_key] = value
-                                except (TypeError, ValueError):
+                                except (TypeError, ValueError, KeyError) as nested_err:
+                                    logger.debug(
+                                        f"⚠️ Не удалось сериализовать вложенный dict для ключа {safe_key}: {nested_err}"
+                                    )
                                     safe_data[safe_key] = "<nested_dict>"
                             elif isinstance(value, (list, tuple)):
                                 # Обрабатываем списки
                                 try:
-                                    json.dumps(value)
+                                    json.dumps(value, default=str)
                                     safe_data[safe_key] = value
-                                except (TypeError, ValueError):
+                                except (TypeError, ValueError, KeyError) as list_err:
+                                    logger.debug(
+                                        f"⚠️ Не удалось сериализовать list для ключа {safe_key}: {list_err}"
+                                    )
                                     safe_data[safe_key] = "<list>"
                             else:
                                 # Для других типов пытаемся преобразовать в строку
                                 try:
                                     safe_data[safe_key] = str(value)[:200]
-                                except Exception:
+                                except Exception as str_err:
+                                    logger.debug(
+                                        f"⚠️ Не удалось преобразовать в строку для ключа {safe_key}: {str_err}"
+                                    )
                                     safe_data[safe_key] = "<unserializable>"
                         except Exception as key_err:
                             # Если не удалось обработать ключ, пропускаем его
-                            logger.debug(f"⚠️ Пропущен ключ {key} из-за ошибки: {key_err}")
+                            logger.debug(
+                                f"⚠️ Пропущен ключ {key} (тип: {type(key)}) из-за ошибки: {key_err}"
+                            )
                             continue
 
                     # Сериализуем через JSON для безопасного форматирования
                     try:
                         data_str = json.dumps(safe_data, ensure_ascii=False, default=str)
-                    except Exception:
+                    except Exception as json_err:
+                        logger.debug(f"⚠️ Не удалось сериализовать через JSON: {json_err}")
                         # Если JSON не работает, используем str()
-                        data_str = str(safe_data)
+                        try:
+                            data_str = str(safe_data)
+                        except Exception:
+                            data_str = "<unserializable_dict>"
                 else:
                     # Если не словарь, просто преобразуем в строку
-                    data_str = str(log_data)
+                    try:
+                        data_str = str(log_data)
+                    except Exception:
+                        data_str = "<unserializable>"
 
                 # Ограничиваем размер данных для лога (максимум 1000 символов)
                 if len(data_str) > 1000:
@@ -997,6 +1025,7 @@ async def miniapp_log(request: web.Request) -> web.Response:
                 log_message += f" | data={data_str}"
             except Exception as e:
                 # Если не удалось сериализовать, просто добавляем информацию об ошибке
+                logger.debug(f"⚠️ Общая ошибка сериализации log_data: {e}", exc_info=True)
                 log_message += f" | data=<serialization_error: {type(e).__name__}: {str(e)[:100]}>"
 
         # Логируем в зависимости от уровня
