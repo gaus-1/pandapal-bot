@@ -310,28 +310,33 @@ export function AIChat({ user }: AIChatProps) {
         throw raceError;
       }
 
-      streamRef.current = stream;
-      console.log('✅ Доступ к микрофону получен');
-      console.log('📊 Stream tracks:', stream.getAudioTracks().map(t => ({
-        id: t.id,
-        label: t.label,
-        enabled: t.enabled,
-        muted: t.muted,
-        readyState: t.readyState,
-        settings: t.getSettings(),
-      })));
+      try {
+        streamRef.current = stream;
+        console.log('✅ Доступ к микрофону получен');
+        await sendLogToServer('info', 'Доступ к микрофону получен', {
+          tracksCount: stream.getAudioTracks().length,
+          tracks: stream.getAudioTracks().map(t => ({
+            id: t.id,
+            label: t.label,
+            enabled: t.enabled,
+            muted: t.muted,
+            readyState: t.readyState,
+          })),
+          platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }, user.telegram_id).catch(() => {});
 
-      sendLogToServer('info', 'Доступ к микрофону получен', {
-        tracksCount: stream.getAudioTracks().length,
-        tracks: stream.getAudioTracks().map(t => ({
-          id: t.id,
-          label: t.label,
-          enabled: t.enabled,
-          muted: t.muted,
-          readyState: t.readyState,
-        })),
-        platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-      }, user.telegram_id).catch(() => {});
+        console.log('📝 Начинаю определение формата...');
+        await sendLogToServer('info', 'Начинаю определение формата', {
+          platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }, user.telegram_id).catch(() => {});
+      } catch (streamError) {
+        console.error('❌ Ошибка после получения stream:', streamError);
+        sendLogToServer('error', 'Ошибка после получения stream', {
+          error: streamError instanceof Error ? streamError.message : String(streamError),
+          platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }, user.telegram_id).catch(() => {});
+        throw streamError;
+      }
 
       // Определяем поддерживаемый формат (как в рабочей версии от 1-2 января)
       const supportedTypes = [
@@ -352,6 +357,16 @@ export function AIChat({ user }: AIChatProps) {
 
       mimeTypeRef.current = mimeType;
       console.log('📝 Используемый формат:', mimeType || 'по умолчанию');
+      sendLogToServer('info', 'Формат определен', {
+        mimeType: mimeType || 'default',
+        platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+      }, user.telegram_id).catch(() => {});
+
+      console.log('🎬 Начинаю создание MediaRecorder...');
+      sendLogToServer('info', 'Начинаю создание MediaRecorder', {
+        mimeType: mimeType || 'default',
+        platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+      }, user.telegram_id).catch(() => {});
 
       // Создаем MediaRecorder с обработкой ошибок
       let mediaRecorder: MediaRecorder;
@@ -371,12 +386,23 @@ export function AIChat({ user }: AIChatProps) {
           console.log('✅ MediaRecorder создан без mimeType');
         }
         console.log('✅ MediaRecorder создан, состояние:', mediaRecorder.state);
+        sendLogToServer('info', 'MediaRecorder создан успешно', {
+          state: mediaRecorder.state,
+          mimeType: mimeType || 'default',
+          platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }, user.telegram_id).catch(() => {});
       } catch (recorderError) {
         console.error('❌ Критическая ошибка создания MediaRecorder:', recorderError);
+        sendLogToServer('error', 'Ошибка создания MediaRecorder', {
+          error: recorderError instanceof Error ? recorderError.message : String(recorderError),
+          errorName: recorderError instanceof Error ? recorderError.name : 'Unknown',
+          platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }, user.telegram_id).catch(() => {});
         stream.getTracks().forEach((track) => track.stop());
         throw new Error('Не удалось создать запись аудио. Попробуй обновить страницу.');
       }
 
+      console.log('🧹 Очищаю массив чанков...');
       // Очищаем массив чанков для новой записи
       audioChunksRef.current = [];
 
