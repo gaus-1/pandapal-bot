@@ -260,6 +260,43 @@ async def security_middleware(app: web.Application, handler):
 
         request["client_ip"] = ip
 
+        # Защита от попыток доступа к чувствительным файлам
+        sensitive_patterns = [
+            ".env",
+            ".env.local",
+            ".env.production",
+            ".git/config",
+            ".git/HEAD",
+            "config.json",
+            "secrets.yaml",
+            "credentials.json",
+            "wp-config.php",
+            "composer.json",
+            "package.json",
+            "/etc/passwd",
+            "/proc/self/environ",
+        ]
+        path_lower = request.path.lower()
+        if any(pattern in path_lower for pattern in sensitive_patterns):
+            logger.warning(
+                f"🚨 Попытка доступа к чувствительному файлу: IP={ip}, Path={request.path}, "
+                f"UA={request.headers.get('User-Agent', 'N/A')[:100]}"
+            )
+            log_security_event(
+                SecurityEventType.UNAUTHORIZED_ACCESS,
+                f"Sensitive file access attempt: {request.path}",
+                SecurityEventSeverity.WARNING,
+                metadata={
+                    "ip": ip,
+                    "path": request.path,
+                    "user_agent": request.headers.get("User-Agent", "N/A"),
+                },
+            )
+            return web.json_response(
+                {"error": "Not found", "request_id": request_id},
+                status=404,
+            )
+
         # Rate limiting (исключаем статические файлы, webhook, мини-апп)
         # Для AI endpoints rate limiting проверяется в самом endpoint с учетом premium
         # Здесь применяем только базовый IP-based rate limiting для защиты от DDoS
