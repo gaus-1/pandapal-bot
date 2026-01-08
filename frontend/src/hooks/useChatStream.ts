@@ -141,7 +141,19 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                   setStreamStatus((prev) => ({ ...prev, status: 'generating' }));
                 } else if (eventType === 'chunk' && data.chunk) {
                   // Получен chunk текста
-                  currentResponseRef.current += data.chunk;
+                  // YandexGPT может возвращать либо инкрементальные chunks (только новый текст),
+                  // либо накопленный текст в каждом chunk
+                  // Проверяем, является ли chunk инкрементальным или накопленным
+                  const chunkText = data.chunk;
+
+                  // Если текущий накопленный текст уже содержит начало chunk, значит это накопленный формат
+                  if (currentResponseRef.current && chunkText.startsWith(currentResponseRef.current)) {
+                    // Это накопленный текст - используем его напрямую
+                    currentResponseRef.current = chunkText;
+                  } else {
+                    // Это инкрементальный chunk - добавляем к накопленному
+                    currentResponseRef.current += chunkText;
+                  }
 
                   // Обновляем сообщение AI в кэше
                   queryClient.setQueryData<ChatMessage[]>(
@@ -185,24 +197,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
           }
         }
 
-        // После завершения streaming обновляем финальное сообщение
-        const finalMessages = queryClient.getQueryData<ChatMessage[]>(
-          queryKeys.chatHistory(telegramId, limit)
-        );
-
-        if (finalMessages && currentResponseRef.current) {
-          const updatedMessages = [...finalMessages];
-          const lastMessage = updatedMessages[updatedMessages.length - 1];
-
-          if (lastMessage && lastMessage.role === 'ai') {
-            lastMessage.content = currentResponseRef.current;
-            queryClient.setQueryData<ChatMessage[]>(
-              queryKeys.chatHistory(telegramId, limit),
-              updatedMessages
-            );
-          }
-        }
-
+        // Сообщение уже обновлено через chunks, ничего дополнительного делать не нужно
         telegram.notifySuccess();
         setStreamStatus((prev) => ({ ...prev, status: 'completed' }));
 
