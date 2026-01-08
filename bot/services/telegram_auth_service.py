@@ -109,7 +109,6 @@ class TelegramAuthService:
         first_name = auth_data.get("first_name", "")
         last_name = auth_data.get("last_name", "")
         username = auth_data.get("username")
-        photo_url = auth_data.get("photo_url")
 
         # Полное имя
         full_name = f"{first_name} {last_name}".strip() if last_name else first_name
