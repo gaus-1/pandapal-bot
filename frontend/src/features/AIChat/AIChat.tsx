@@ -16,6 +16,7 @@ import { usePhotoUpload } from '../../hooks/usePhotoUpload';
 import { useScrollManagement } from '../../hooks/useScrollManagement';
 import { haptic } from '../../utils/hapticFeedback';
 import { DEFAULT_PHOTO_MESSAGE } from './constants';
+import { MiniAppThemeToggle } from '../../components/MiniAppThemeToggle';
 import type { UserProfile } from '../../services/api';
 
 interface AIChatProps {
@@ -202,6 +203,7 @@ export function AIChat({ user }: AIChatProps) {
             <p className="text-[10px] sm:text-xs md:text-sm text-blue-50 font-medium truncate">Привет, {user.first_name}! 🎓</p>
           </div>
           <div className="flex items-center gap-1.5">
+            <MiniAppThemeToggle />
             <button onClick={handleClearChat} className="flex-shrink-0 w-9 h-9 rounded-lg bg-gray-400/60 hover:bg-gray-500/70 active:scale-95 transition-all flex items-center justify-center border border-gray-400/40 shadow-sm">
               <span className="text-base text-gray-700 dark:text-gray-200">🗑️</span>
             </button>
