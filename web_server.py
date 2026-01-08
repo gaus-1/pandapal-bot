@@ -184,6 +184,46 @@ class PandaPalBotServer:
         except ImportError:
             logger.warning("⚠️ Защита от перегрузки недоступна")
 
+    async def _check_bot_health(self) -> tuple[str, dict]:
+        """Проверка здоровья бота."""
+        if not self.bot:
+            return "error", {"bot": "not_initialized"}
+
+        try:
+            bot_info = await self.bot.get_me()
+            return "ok", {"bot": "ok", "bot_info": bot_info}
+        except Exception as bot_error:
+            logger.warning("⚠️ Не удалось получить информацию о боте: %s", bot_error)
+            return "degraded", {"bot": "error"}
+
+    def _check_database_health(self) -> tuple[str, dict]:
+        """Проверка здоровья базы данных."""
+        try:
+            from sqlalchemy import text
+
+            from bot.database import engine
+
+            with engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            return "ok", {"database": "ok"}
+        except Exception as e:
+            logger.error(f"❌ Database health check failed: {e}")
+            return "error", {"database": "error"}
+
+    async def _check_webhook_health(self) -> tuple[str, dict]:
+        """Проверка здоровья webhook."""
+        if not self.bot:
+            return "degraded", {"webhook": "not_available"}
+
+        try:
+            webhook_info = await self.bot.get_webhook_info()
+            if not webhook_info.url:
+                return "degraded", {"webhook": "not_set"}
+            return "ok", {"webhook": "ok"}
+        except Exception as e:
+            logger.warning(f"⚠️ Webhook check failed: {e}")
+            return "degraded", {"webhook": "error"}
+
     def _setup_health_endpoints(self) -> None:
         """
         Настройка health check endpoints.
@@ -214,51 +254,26 @@ class PandaPalBotServer:
             overall_status = "ok"
 
             # Проверка бота
-            bot_info = None
-            bot_status = "ok"
-            if self.bot:
-                try:
-                    bot_info = await self.bot.get_me()
-                except Exception as bot_error:
-                    bot_status = "error"
-                    overall_status = "degraded"
-                    logger.warning("⚠️ Не удалось получить информацию о боте: %s", bot_error)
-            else:
-                bot_status = "not_initialized"
+            bot_status, bot_data = await self._check_bot_health()
+            components.update(bot_data)
+            if bot_status == "error":
                 overall_status = "error"
+            elif bot_status == "degraded" and overall_status == "ok":
+                overall_status = "degraded"
 
-            components["bot"] = bot_status
+            bot_info = bot_data.get("bot_info")
 
             # Проверка базы данных
-            db_status = "ok"
-            try:
-                from sqlalchemy import text
-
-                from bot.database import engine
-
-                with engine.connect() as conn:
-                    conn.execute(text("SELECT 1"))
-            except Exception as e:
-                db_status = "error"
+            db_status, db_data = self._check_database_health()
+            components.update(db_data)
+            if db_status == "error":
                 overall_status = "error"
-                logger.error(f"❌ Database health check failed: {e}")
-
-            components["database"] = db_status
 
             # Проверка webhook
-            webhook_status = "ok"
-            if self.bot:
-                try:
-                    webhook_info = await self.bot.get_webhook_info()
-                    if not webhook_info.url:
-                        webhook_status = "not_set"
-                        overall_status = "degraded"
-                except Exception as e:
-                    webhook_status = "error"
-                    overall_status = "degraded"
-                    logger.warning(f"⚠️ Webhook check failed: {e}")
-
-            components["webhook"] = webhook_status
+            webhook_status, webhook_data = await self._check_webhook_health()
+            components.update(webhook_data)
+            if webhook_status == "degraded" and overall_status == "ok":
+                overall_status = "degraded"
 
             status_code = (
                 200 if overall_status == "ok" else (503 if overall_status == "error" else 200)
@@ -281,6 +296,23 @@ class PandaPalBotServer:
         # Детальный health check для мониторинга
         self.app.router.add_get("/health/detailed", health_check_detailed)
 
+    def _register_api_route(self, module_path: str, setup_func_name: str, route_name: str) -> None:
+        """
+        Регистрация одного API роута.
+
+        Args:
+            module_path: Путь к модулю (например, 'bot.api.miniapp_endpoints')
+            setup_func_name: Имя функции для установки (например, 'setup_miniapp_routes')
+            route_name: Название роута для логирования (например, 'Mini App API')
+        """
+        try:
+            module = __import__(module_path, fromlist=[setup_func_name])
+            setup_func = getattr(module, setup_func_name)
+            setup_func(self.app)
+            logger.info(f"✅ {route_name} routes зарегистрированы")
+        except ImportError as e:
+            logger.warning(f"⚠️ Не удалось загрузить {route_name}: {e}")
+
     def _setup_api_routes(self) -> None:
         """
         Настройка API маршрутов.
@@ -288,41 +320,15 @@ class PandaPalBotServer:
         Регистрирует все API endpoints для Mini App, Games, Premium и Auth.
         """
         # ВАЖНО: Регистрируем API роуты ПЕРЕД frontend (чтобы они имели приоритет)
-        # Интегрируем Mini App API
-        try:
-            from bot.api.miniapp_endpoints import setup_miniapp_routes
+        route_configs = [
+            ("bot.api.miniapp_endpoints", "setup_miniapp_routes", "🎮 Mini App API"),
+            ("bot.api.games_endpoints", "setup_games_routes", "🎮 Games API"),
+            ("bot.api.premium_endpoints", "setup_premium_routes", "💰 Premium API"),
+            ("bot.api.auth_endpoints", "setup_auth_routes", "🔐 Auth API"),
+        ]
 
-            setup_miniapp_routes(self.app)
-            logger.info("🎮 Mini App API routes зарегистрированы")
-        except ImportError as e:
-            logger.warning(f"⚠️ Не удалось загрузить Mini App API: {e}")
-
-        # Интегрируем Games API
-        try:
-            from bot.api.games_endpoints import setup_games_routes
-
-            setup_games_routes(self.app)
-            logger.info("🎮 Games API routes зарегистрированы")
-        except ImportError as e:
-            logger.warning(f"⚠️ Не удалось загрузить Games API: {e}")
-
-        # Интегрируем Premium API
-        try:
-            from bot.api.premium_endpoints import setup_premium_routes
-
-            setup_premium_routes(self.app)
-            logger.info("💰 Premium API routes зарегистрированы")
-        except ImportError as e:
-            logger.warning(f"⚠️ Не удалось загрузить Premium API: {e}")
-
-        # Регистрируем Auth API routes
-        try:
-            from bot.api.auth_endpoints import setup_auth_routes
-
-            setup_auth_routes(self.app)
-            logger.info("🔐 Auth API routes зарегистрированы")
-        except ImportError as e:
-            logger.warning(f"⚠️ Не удалось загрузить Auth API: {e}")
+        for module_path, setup_func, route_name in route_configs:
+            self._register_api_route(module_path, setup_func, route_name)
 
         # Интегрируем метрики (если доступны)
         try:
@@ -580,7 +586,7 @@ class PandaPalBotServer:
             # Инициализация SessionService (для персистентных сессий)
             from bot.services.session_service import get_session_service
 
-            session_service = get_session_service()
+            get_session_service()
             logger.info("🔐 SessionService инициализирован")
 
             # Инициализация бота

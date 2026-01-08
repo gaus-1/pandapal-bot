@@ -103,7 +103,7 @@ class SpeechRecognitionService:
                 try:
                     # Конвертируем через ffmpeg
                     # -i input.webm -acodec libopus -ar 48000 -ac 1 output.ogg
-                    result = subprocess.run(
+                    subprocess.run(
                         [
                             "ffmpeg",
                             "-i",

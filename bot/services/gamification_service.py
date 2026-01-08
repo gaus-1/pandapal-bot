@@ -617,7 +617,6 @@ class GamificationService:
         unlocked_count = len(progress.achievements or {})
 
         # Вычисляем XP до следующего уровня
-        current_level_xp = self._get_level_xp_requirement(progress.level)
         next_level_xp = self._get_level_xp_requirement(progress.level + 1)
         xp_for_next_level = next_level_xp - progress.points
 

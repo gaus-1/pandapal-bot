@@ -38,6 +38,49 @@ class Game2048MoveRequest(BaseModel):  # noqa: D101
     direction: str  # 'up', 'down', 'left', 'right'
 
 
+def _initialize_game_state(game_type: str) -> dict:
+    """
+    Инициализация начального состояния игры.
+
+    Args:
+        game_type: Тип игры ('tic_tac_toe', 'checkers', '2048')
+
+    Returns:
+        dict: Начальное состояние игры
+    """
+    if game_type == "tic_tac_toe":
+        from bot.services.game_engines import TicTacToe
+
+        game = TicTacToe()
+        state = game.get_state()
+        return {"board": state["board"]}
+
+    elif game_type == "checkers":
+        from bot.services.game_engines import CheckersGame
+
+        game = CheckersGame()
+        state = game.get_board_state()
+        return {
+            "board": state["board"],
+            "kings": state.get("kings"),
+            "current_player": state["current_player"],
+        }
+
+    elif game_type == "2048":
+        from bot.services.game_engines import Game2048
+
+        game = Game2048()
+        state = game.get_state()
+        return {
+            "board": state["board"],
+            "score": state["score"],
+            "won": state["won"],
+            "game_over": state["game_over"],
+        }
+
+    return {}
+
+
 async def create_game(request: web.Request) -> web.Response:
     """
     Создать новую игровую сессию.
@@ -65,39 +108,10 @@ async def create_game(request: web.Request) -> web.Response:
         if validated.game_type not in ["tic_tac_toe", "checkers", "2048"]:
             return web.json_response({"error": "Invalid game_type"}, status=400)
 
+        initial_state = _initialize_game_state(validated.game_type)
+
         with get_db() as db:
             games_service = GamesService(db)
-
-            # Инициализация состояния игры
-            initial_state = {}
-            if validated.game_type == "tic_tac_toe":
-                from bot.services.game_engines import TicTacToe
-
-                game = TicTacToe()
-                state = game.get_state()
-                initial_state = {"board": state["board"]}
-            elif validated.game_type == "checkers":
-                from bot.services.game_engines import CheckersGame
-
-                game = CheckersGame()
-                state = game.get_board_state()
-                initial_state = {
-                    "board": state["board"],
-                    "kings": state.get("kings"),
-                    "current_player": state["current_player"],
-                }
-            elif validated.game_type == "2048":
-                from bot.services.game_engines import Game2048
-
-                game = Game2048()
-                state = game.get_state()
-                initial_state = {
-                    "board": state["board"],
-                    "score": state["score"],
-                    "won": state["won"],
-                    "game_over": state["game_over"],
-                }
-
             session = games_service.create_game_session(
                 telegram_id, validated.game_type, initial_state
             )
