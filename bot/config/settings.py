@@ -208,9 +208,24 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("REDIS_URL", "redis_url"),
     )
 
+    # ============ ADMIN ============
+    admin_usernames: str = Field(
+        default="SavinVE",
+        description="Список username админов через запятую",
+        validation_alias=AliasChoices("ADMIN_USERNAMES", "admin_usernames"),
+    )
+
     def get_forbidden_topics_list(self) -> List[str]:
         """Получить список запрещённых тем."""
         return [topic.strip() for topic in self.forbidden_topics.split(",") if topic.strip()]
+
+    def get_admin_usernames_list(self) -> List[str]:
+        """Получить список username админов."""
+        return [
+            username.strip().lower()
+            for username in self.admin_usernames.split(",")
+            if username.strip()
+        ]
 
     @field_validator("database_url")
     @classmethod
