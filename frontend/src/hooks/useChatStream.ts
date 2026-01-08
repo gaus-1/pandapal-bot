@@ -24,6 +24,7 @@ interface UseChatStreamOptions {
 interface StreamStatus {
   status: 'idle' | 'connecting' | 'transcribing' | 'analyzing_photo' | 'generating' | 'completed' | 'error';
   message?: string;
+  messageType?: 'text' | 'photo' | 'audio'; // Тип отправленного сообщения
 }
 
 export function useChatStream({ telegramId, limit = 20, onError }: UseChatStreamOptions) {
@@ -45,8 +46,11 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
     }) => {
       if (isStreaming) return;
 
+      // Определяем тип сообщения
+      const messageType = audioBase64 ? 'audio' : photoBase64 ? 'photo' : 'text';
+
       setIsStreaming(true);
-      setStreamStatus({ status: 'connecting' });
+      setStreamStatus({ status: 'connecting', messageType });
       currentResponseRef.current = '';
 
       // Отменяем текущие запросы истории
@@ -62,11 +66,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
       // Оптимистично добавляем сообщение пользователя
       const userMessage: ChatMessage = {
         role: 'user',
-        content: photoBase64
-          ? '📷 Анализирую фото...'
-          : audioBase64
-          ? '🎤 Распознаю голос...'
-          : message || '',
+        content: message || '',
         timestamp: new Date().toISOString(),
       };
 
@@ -145,11 +145,11 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
 
                 // Обработка разных типов событий
                 if (data.status === 'transcribing') {
-                  setStreamStatus({ status: 'transcribing', message: 'Распознаю голос...' });
+                  setStreamStatus((prev) => ({ ...prev, status: 'transcribing' }));
                 } else if (data.status === 'analyzing_photo') {
-                  setStreamStatus({ status: 'analyzing_photo', message: 'Анализирую фото...' });
+                  setStreamStatus((prev) => ({ ...prev, status: 'analyzing_photo' }));
                 } else if (data.status === 'generating') {
-                  setStreamStatus({ status: 'generating', message: 'Генерирую ответ...' });
+                  setStreamStatus((prev) => ({ ...prev, status: 'generating' }));
                 } else if (eventType === 'chunk' && data.chunk) {
                   // Получен chunk текста
                   currentResponseRef.current += data.chunk;
@@ -222,7 +222,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
         }
 
         telegram.notifySuccess();
-        setStreamStatus({ status: 'completed' });
+        setStreamStatus((prev) => ({ ...prev, status: 'completed' }));
 
         // Инвалидируем запрос для перезагрузки истории с сервера
         queryClient.invalidateQueries({ queryKey: queryKeys.chatHistory(telegramId, limit) });
@@ -239,7 +239,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
         }
 
         const errorMessage = error instanceof Error ? error.message : 'Ошибка отправки сообщения';
-        setStreamStatus({ status: 'error', message: errorMessage });
+        setStreamStatus((prev) => ({ ...prev, status: 'error', message: errorMessage }));
         telegram.notifyError();
 
         if (onError) {
