@@ -105,11 +105,7 @@ export function useChat({ telegramId, limit = 20, useStreaming = false }: UseCha
       // Оптимистично добавляем сообщение пользователя
       const userMessage: ChatMessage = {
         role: 'user' as const,
-        content: variables.photoBase64
-          ? '📷 Анализирую фото...'
-          : variables.audioBase64
-          ? '🎤 Распознаю голос...'
-          : variables.message || '',
+        content: variables.message || '',
         timestamp: new Date().toISOString(),
       };
 

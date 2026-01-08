@@ -7,7 +7,7 @@
  * - useScrollManagement - управление скроллом
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { telegram } from '../../services/telegram';
 import { useChat } from '../../hooks/useChat';
 import { useAppStore } from '../../store/appStore';
@@ -36,6 +36,59 @@ export function AIChat({ user }: AIChatProps) {
 
   const [inputText, setInputText] = useState('');
   const [replyToMessage, setReplyToMessage] = useState<number | null>(null);
+
+  // Сохраняем выбранное случайное сообщение для генерации
+  const randomMessageRef = useRef<string | null>(null);
+  const shouldShowRandomRef = useRef<boolean>(false);
+  const lastStatusKeyRef = useRef<string>('');
+
+  // Определяем, показывать ли случайное сообщение (20% случаев)
+  useEffect(() => {
+    const status = streamStatus?.status;
+    const messageType = streamStatus?.messageType;
+    const statusKey = `${status}-${messageType}`;
+
+    // Если статус изменился, решаем показывать ли случайное сообщение
+    if (statusKey !== lastStatusKeyRef.current && status === 'generating') {
+      lastStatusKeyRef.current = statusKey;
+      shouldShowRandomRef.current = Math.random() < 0.2; // 20% случаев
+      if (shouldShowRandomRef.current) {
+        randomMessageRef.current = Math.random() > 0.5 ? 'Panda думает...' : 'Я думаю...';
+      } else {
+        randomMessageRef.current = null;
+      }
+    }
+  }, [streamStatus?.status, streamStatus?.messageType]);
+
+  // Выбираем сообщение статуса на основе типа сообщения и случайности
+  const getStatusMessage = (): string => {
+    const status = streamStatus?.status;
+    const messageType = streamStatus?.messageType;
+
+    // Если показываем случайное сообщение
+    if (shouldShowRandomRef.current && randomMessageRef.current && status === 'generating') {
+      return randomMessageRef.current;
+    }
+
+    // Основные статусы по типу сообщения
+    if (status === 'transcribing' || (status === 'generating' && messageType === 'audio')) {
+      return 'Слушаю твое сообщение...';
+    }
+
+    if (status === 'analyzing_photo' || (status === 'generating' && messageType === 'photo')) {
+      return 'Смотрю, что на фото...';
+    }
+
+    if (status === 'generating' && messageType === 'text') {
+      return 'Читаю твое сообщение...';
+    }
+
+    if (status === 'generating') {
+      return randomMessageRef.current || 'Panda думает...';
+    }
+
+    return 'Panda думает...';
+  };
 
   // Управление скроллом
   const {
@@ -202,10 +255,7 @@ export function AIChat({ user }: AIChatProps) {
               <div className="flex items-center gap-2">
                 <div className="flex gap-1"><span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></span><span className="w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-100"></span><span className="w-2 h-2 bg-pink-500 rounded-full animate-bounce delay-200"></span></div>
                 <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                  {streamStatus?.status === 'transcribing' ? '🎤 Распознаю голос...' :
-                   streamStatus?.status === 'analyzing_photo' ? '📷 Анализирую фото...' :
-                   streamStatus?.status === 'generating' ? '✨ Генерирую ответ...' :
-                   'PandaPal думает...'}
+                  {getStatusMessage()}
                 </span>
               </div>
             </div>
