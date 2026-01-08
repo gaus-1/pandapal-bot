@@ -1,6 +1,6 @@
 # Unit Tests - Модульные тесты
 
-Быстрые изолированные тесты отдельных функций и классов. Здесь тестируем логику без внешних зависимостей.
+Быстрые изолированные тесты отдельных функций и классов. Тестируем логику без внешних зависимостей.
 
 ## Что тестируем
 
@@ -8,7 +8,7 @@
 - Логика сервисов (с моками внешних API)
 - Валидация данных
 - Обработка ошибок
-- Граничные случаи - что если передать пустую строку, отрицательное число и т.д.
+- Граничные случаи
 
 ## Структура
 
@@ -20,6 +20,7 @@
 ## Примеры
 
 ### Тест функции
+
 ```python
 def test_calculate_xp():
     from bot.services.gamification_service import calculate_xp
@@ -29,36 +30,18 @@ def test_calculate_xp():
 ```
 
 ### Тест с моками
-Когда нужно протестировать логику без реальных API:
 
 ```python
-from unittest.mock import AsyncMock, patch
+from unittest.mock import Mock, patch
 
-@pytest.mark.asyncio
-async def test_ai_service():
-    with patch('bot.services.yandex_cloud_service.YandexCloudService') as mock:
-        mock.return_value.generate_response = AsyncMock(return_value="Test")
+@patch('bot.services.yandex_cloud_service.YandexCloudService')
+def test_ai_service(mock_yandex):
+    mock_yandex.generate_text_response.return_value = "Test response"
 
-        service = AIService()
-        result = await service.generate_response("Hello")
+    service = AIService(mock_yandex)
+    result = service.generate_response("Hello")
 
-        assert result == "Test"
-```
-
-### Тест класса
-```python
-class TestModerationService:
-    def test_basic_moderation(self):
-        service = ModerationService()
-        result = service.moderate("test message")
-
-        assert result.is_allowed is True
-
-    def test_blocked_content(self):
-        service = ModerationService()
-        result = service.moderate("bad word")
-
-        assert result.is_blocked is True
+    assert result == "Test response"
 ```
 
 ## Запуск
@@ -67,17 +50,6 @@ class TestModerationService:
 # Все unit тесты
 pytest tests/unit/ -v
 
-# Конкретный тест
-pytest tests/unit/test_moderation_service.py -v
-
-# Быстрые тесты (без async)
-pytest tests/unit/ -v -k "not async"
+# Конкретный файл
+pytest tests/unit/test_gamification_service.py -v
 ```
-
-## Принципы
-
-- Быстрые - без реальных API/БД, выполняются за миллисекунды
-- Изолированные - не зависят друг от друга, можно запускать в любом порядке
-- Детерминированные - одинаковый результат при каждом запуске
-- Покрытие граничных случаев - что если передать None, пустую строку, отрицательное число
-- Покрытие ошибок - что если что-то пойдет не так

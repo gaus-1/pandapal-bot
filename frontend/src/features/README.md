@@ -8,14 +8,14 @@
 ```
 FeatureName/
 ├── FeatureNameScreen.tsx    # Главный компонент экрана
-├── FeatureNameScreen.test.tsx  # Тесты
-└── components/              # Локальные компоненты (если нужны)
+├── components/              # Локальные компоненты (если нужны)
+└── __tests__/              # Тесты модуля
 ```
 
 ## Модули
 
 ### AIChat
-Чат с AI ассистентом. Поддержка текста, голоса, изображений. Пользователь может задавать вопросы, отправлять фото с задачами, говорить голосом.
+Чат с AI ассистентом. Поддержка текста, голоса, изображений. Streaming ответы через SSE для быстрых ответов.
 
 ### Games
 Игры PandaPalGo:
@@ -39,15 +39,10 @@ FeatureName/
 ### Settings
 Настройки пользователя, тема (dark/light), язык.
 
-### Lessons
-Уроки и образовательные материалы.
-
-### Progress
-Прогресс обучения, статистика, достижения.
-
 ## Примеры
 
 ### Простой экран
+
 ```typescript
 import { useState } from 'react';
 
@@ -63,6 +58,7 @@ export function FeatureScreen() {
 ```
 
 ### С API
+
 ```typescript
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
@@ -74,20 +70,20 @@ export function FeatureScreen() {
   });
 
   if (isLoading) return <div>Загрузка...</div>;
-
   return <div>{data?.result}</div>;
 }
 ```
 
 ### С навигацией
+
 ```typescript
 import { useAppStore } from '../store/appStore';
 
 export function FeatureScreen() {
-  const navigate = useAppStore((state) => state.navigate);
+  const setCurrentScreen = useAppStore((state) => state.setCurrentScreen);
 
   return (
-    <button onClick={() => navigate('home')}>
+    <button onClick={() => setCurrentScreen('home')}>
       Назад
     </button>
   );
@@ -100,5 +96,3 @@ export function FeatureScreen() {
 - Unit тесты компонентов
 - Тесты взаимодействия
 - Тесты API интеграции
-
-Это помогает не сломать функциональность при изменениях.

@@ -1,6 +1,6 @@
 # Services - Бизнес-логика
 
-Здесь вся логика приложения. Каждый сервис отвечает за свою область - AI, платежи, игры, модерация и так далее.
+Вся логика приложения. Каждый сервис отвечает за свою область - AI, платежи, игры, модерация и так далее.
 
 ## Основные сервисы
 
@@ -9,7 +9,7 @@
 - `yandex_cloud_service.py` - низкоуровневая работа с Yandex Cloud API
 - `speech_service.py` - распознавание голоса (SpeechKit)
 - `vision_service.py` - анализ изображений (Vision API)
-- `yandex_ai_response_generator.py` - генерация ответов AI с учетом контекста
+- `yandex_ai_response_generator.py` - генерация ответов AI с учетом контекста, истории чата, возраста
 
 ### Модерация
 - `moderation_service.py` - базовая модерация, проверка на запрещенные слова
@@ -29,27 +29,27 @@
 ### Образование
 - `personal_tutor_service.py` - персональный репетитор, анализ слабых мест ученика
 - `bonus_lessons_service.py` - бонусные уроки для Premium
-- `knowledge_service.py` - база знаний, поиск информации
+- `knowledge_service.py` - база знаний, поиск информации из веб-источников
 - `history_service.py` - история чата, контекст для AI
 
 ### Вспомогательные
-- `translate_service.py` - перевод через Yandex Translate
+- `translate_service.py` - перевод через Yandex Translate с автоопределением языка
 - `session_service.py` - Redis сессии для веб-сайта
 - `user_service.py` - работа с пользователями
 - `analytics_service.py` - аналитика, метрики, статистика
 - `reminder_service.py` - напоминания пользователям
 - `cache_service.py` - кэширование для ускорения
-- `web_scraper.py` - парсинг веб-страниц (если нужно)
+- `web_scraper.py` - парсинг веб-страниц для knowledge service
 - `priority_support_service.py` - приоритетная поддержка для Premium
 
 ### AI инфраструктура
 - `ai_context_builder.py` - собирает контекст для AI из истории чата
-- `ai_moderator.py` - модерация через AI
 - `ai_request_queue.py` - очередь запросов, чтобы не перегружать API
 
 ## Как писать сервисы
 
 ### Простой сервис
+
 ```python
 from loguru import logger
 
@@ -64,6 +64,7 @@ class MyService:
 ```
 
 ### С зависимостями
+
 Если сервису нужен другой сервис, передавай через конструктор:
 
 ```python
@@ -73,6 +74,7 @@ class ServiceA:
 ```
 
 ### Асинхронные методы
+
 Для работы с внешними API используй async:
 
 ```python

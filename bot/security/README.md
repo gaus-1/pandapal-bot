@@ -2,7 +2,7 @@
 
 Модули безопасности - защита от атак, валидация данных, ограничение запросов. Критически важно для безопасности детей.
 
-## Что есть
+## Файлы
 
 - `middleware.py` - security middleware (CSP, CORS, rate limiting)
 - `telegram_auth.py` - валидация Telegram Login Widget (HMAC-SHA256)
@@ -14,7 +14,7 @@
 
 ## Middleware
 
-Security middleware регистрируется первым в `web_server.py` - это важно, чтобы он обрабатывал все запросы:
+Security middleware регистрируется первым в `web_server.py`:
 
 ```python
 from bot.security.middleware import setup_security_middleware
@@ -45,7 +45,7 @@ is_valid = verify_telegram_auth(auth_data, secret_key)
 Защита от DDoS и перегрузки:
 - Ограничение количества одновременных запросов
 - Блокировка подозрительных IP
-- Graceful degradation - при перегрузке возвращаем ошибку, а не падаем
+- Graceful degradation - при перегрузке возвращаем ошибку
 
 ## Audit Logging
 
@@ -58,6 +58,6 @@ is_valid = verify_telegram_auth(auth_data, secret_key)
 
 ## Важно
 
-- **Все модули критичны** - не отключай без крайней необходимости
-- **Регулярно проверяй логи** - там могут быть признаки атак
-- **Обновляй зависимости** - в них находят уязвимости, исправления выходят регулярно
+- Все модули критичны - не отключай без крайней необходимости
+- Регулярно проверяй логи - там могут быть признаки атак
+- Обновляй зависимости - в них находят уязвимости
