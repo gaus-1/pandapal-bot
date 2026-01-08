@@ -166,7 +166,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
         {/* Telegram Login Widget (только для веб-сайта) */}
         {!inTelegram && !isAuthenticated && (
-          <div className="mb-6 p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl border-2 border-blue-500/30">
+          <div className="mb-6 p-6 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl border-2 border-blue-500/30">
             <h2 className="text-xl font-bold text-[var(--tg-theme-text-color)] mb-3 text-center">
               🔐 Войдите через Telegram
             </h2>
@@ -224,7 +224,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         </div>
 
         {/* Преимущества */}
-        <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl sm:rounded-2xl border-2 border-purple-500/30">
+        <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl sm:rounded-2xl border-2 border-blue-500/30">
           <h2 className="text-sm sm:text-base md:text-lg font-semibold text-[var(--tg-theme-text-color)] mb-2">
             🌟 Что дает Premium?
           </h2>
@@ -245,12 +245,12 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
               key={plan.id}
               className={`p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl transition-all ${
                 plan.popular
-                  ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50'
+                  ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-2 border-blue-500/50'
                   : 'bg-[var(--tg-theme-hint-color)]/10 border border-[var(--tg-theme-hint-color)]/20'
               }`}
             >
               {plan.popular && (
-                <div className="inline-block px-2 sm:px-3 py-0.5 sm:py-1 bg-purple-500 text-white text-xs font-bold rounded-full mb-1.5 sm:mb-2">
+                <div className="inline-block px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-500 text-white text-xs font-bold rounded-full mb-1.5 sm:mb-2">
                   🔥 ПОПУЛЯРНЫЙ
                 </div>
               )}
@@ -291,7 +291,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
               <button
                 onClick={() => handlePurchase(plan)}
                 disabled={isProcessing && selectedPlan === plan.id || (!inTelegram && !isAuthenticated)}
-                className="w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isProcessing && selectedPlan === plan.id
                   ? 'Обработка...'

@@ -73,7 +73,7 @@ const EMERGENCY_NUMBERS: EmergencyNumber[] = [
       'Проблемы с учебой или друзьями',
       'Нужен совет взрослого',
     ],
-    color: 'bg-purple-500',
+    color: 'bg-blue-500',
   },
 ];
 
