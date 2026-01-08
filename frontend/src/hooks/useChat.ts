@@ -6,13 +6,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getChatHistory, sendAIMessage, clearChatHistory } from '../services/api';
 import { queryKeys } from '../lib/queryClient';
 import { telegram } from '../services/telegram';
+import { useChatStream } from './useChatStream';
+
+// Для логирования
+const logger = {
+  warn: (...args: unknown[]) => console.warn(...args),
+};
 
 interface UseChatOptions {
   telegramId: number;
   limit?: number;
+  useStreaming?: boolean; // Использовать streaming ответы (по умолчанию false - старый код)
 }
 
-type ChatMessage = {
+export type ChatMessage = {
   role: 'user' | 'ai';
   content: string;
   timestamp: string;
@@ -21,9 +28,27 @@ type ChatMessage = {
 /**
  * Hook для работы с AI чатом
  * Кэширует историю и оптимистично обновляет UI
+ * Поддерживает streaming ответы (опционально)
  */
-export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
+export function useChat({ telegramId, limit = 20, useStreaming = false }: UseChatOptions) {
   const queryClient = useQueryClient();
+
+  // Streaming hook (используется если включен)
+  const {
+    sendMessageStream,
+    isStreaming: isStreamingActive,
+    streamStatus,
+  } = useChatStream({
+    telegramId,
+    limit,
+    onError: (error) => {
+      console.error('Streaming error:', error);
+      // Fallback на обычный режим при ошибке
+      if (useStreaming) {
+        console.warn('Streaming failed, falling back to regular mode');
+      }
+    },
+  });
 
   // Получение истории чата
   const {
@@ -36,9 +61,9 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
     enabled: !!telegramId,
   });
 
-  // Отправка сообщения AI
+  // Отправка сообщения AI (streaming или обычный режим)
   const sendMessageMutation = useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       message,
       photoBase64,
       audioBase64,
@@ -46,7 +71,24 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
       message?: string;
       photoBase64?: string;
       audioBase64?: string;
-    }) => sendAIMessage(telegramId, message, photoBase64, audioBase64),
+    }) => {
+      // Если включен streaming, используем его
+      if (useStreaming) {
+        try {
+          await sendMessageStream({ message, photoBase64, audioBase64 });
+          // Streaming обрабатывает всё сам, возвращаем заглушку
+          // НЕ вызываем onSuccess, так как streaming уже обновил UI
+          return { response: '', _streaming: true };
+        } catch (streamError) {
+          // Fallback на обычный режим при ошибке streaming
+          logger.warn('Streaming failed, falling back to regular mode:', streamError);
+          // Используем обычный endpoint
+          return sendAIMessage(telegramId, message, photoBase64, audioBase64);
+        }
+      }
+      // Обычный режим
+      return sendAIMessage(telegramId, message, photoBase64, audioBase64);
+    },
 
     // Оптимистичное обновление UI
     onMutate: async (variables) => {
@@ -83,6 +125,11 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
 
     // Добавляем ответ AI к истории
     onSuccess: (data) => {
+      // Пропускаем обработку если это streaming (он уже обработал)
+      if (data && typeof data === 'object' && '_streaming' in data) {
+        return;
+      }
+
       const aiMessage = {
         role: 'ai' as const,
         content: data.response,
@@ -176,8 +223,9 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
     isLoadingHistory,
     historyError,
     sendMessage: sendMessageMutation.mutate,
-    isSending: sendMessageMutation.isPending,
+    isSending: sendMessageMutation.isPending || isStreamingActive,
     sendError: sendMessageMutation.error,
     clearHistory,
+    streamStatus: useStreaming ? streamStatus : undefined,
   };
 }

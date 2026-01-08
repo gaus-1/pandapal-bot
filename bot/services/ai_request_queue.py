@@ -8,7 +8,7 @@
 """
 
 from asyncio import Semaphore
-from typing import Any, Callable, TypeVar
+from typing import Any, AsyncIterator, Callable, TypeVar
 
 from loguru import logger
 
@@ -93,6 +93,42 @@ class AIRequestQueue:
             int: Количество доступных слотов для новых запросов
         """
         return self.semaphore._value
+
+    async def process_stream(
+        self, func: Callable[..., AsyncIterator[str]], *args, **kwargs
+    ) -> AsyncIterator[str]:
+        """
+        Выполнить streaming AI запрос через очередь.
+
+        Args:
+            func: Async generator функция для выполнения
+            *args: Позиционные аргументы для функции
+            **kwargs: Именованные аргументы для функции
+
+        Yields:
+            Chunks от функции
+
+        Example:
+            >>> queue = AIRequestQueue(max_concurrent=10)
+            >>> async for chunk in queue.process_stream(
+            ...     ai_service.generate_text_response_stream,
+            ...     user_message="Привет",
+            ...     chat_history=[]
+            ... ):
+            ...     print(chunk)
+        """
+        async with self.semaphore:
+            try:
+                logger.debug(
+                    f"🔄 AI streaming запрос в очереди: {func.__name__} "
+                    f"(активных: {self.max_concurrent - self.semaphore._value})"
+                )
+                async for chunk in func(*args, **kwargs):
+                    yield chunk
+                logger.debug(f"✅ AI streaming запрос завершен: {func.__name__}")
+            except Exception as e:
+                logger.error(f"❌ Ошибка в AI streaming запросе {func.__name__}: {e}")
+                raise
 
 
 # Глобальный экземпляр очереди (Singleton)

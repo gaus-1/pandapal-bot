@@ -11,7 +11,7 @@
 
 import base64
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, AsyncIterator, Dict, List, Optional
 
 import httpx
 from loguru import logger
@@ -175,6 +175,133 @@ class YandexCloudService:
             raise
         except Exception as e:
             logger.error(f"❌ Неожиданная ошибка YandexGPT: {e}")
+            raise
+
+    async def generate_text_response_stream(
+        self,
+        user_message: str,
+        chat_history: Optional[List[Dict[str, str]]] = None,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+    ) -> AsyncIterator[str]:
+        """
+        Генерация текстового ответа через YandexGPT с streaming.
+
+        Args:
+            user_message: Сообщение пользователя
+            chat_history: История чата [{"role": "user/assistant", "text": "..."}]
+            system_prompt: Системный промпт (инструкция для AI)
+            temperature: Креативность (0.0-1.0)
+            max_tokens: Максимальная длина ответа
+
+        Yields:
+            str: Chunks текста от YandexGPT по мере генерации
+        """
+        try:
+            # Формируем историю сообщений
+            messages = []
+
+            # Добавляем системный промпт
+            if system_prompt:
+                messages.append({"role": "system", "text": system_prompt})
+
+            # Добавляем историю чата
+            if chat_history:
+                for msg in chat_history[-10:]:  # Последние 10 сообщений
+                    messages.append({"role": msg.get("role", "user"), "text": msg.get("text", "")})
+
+            # Добавляем текущее сообщение
+            messages.append({"role": "user", "text": user_message})
+
+            # Формируем запрос к YandexGPT с streaming
+            payload = {
+                "modelUri": f"gpt://{self.folder_id}/{self.gpt_model}/latest",
+                "completionOptions": {
+                    "stream": True,  # Включаем streaming
+                    "temperature": temperature,
+                    "maxTokens": str(max_tokens),
+                },
+                "messages": messages,
+            }
+
+            logger.info(f"📤 YandexGPT streaming запрос: {len(user_message)} символов")
+
+            # Внутренняя функция для выполнения streaming запроса
+            async def _execute_streaming_request():
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    async with client.stream(
+                        "POST", self.gpt_url, headers=self.headers, json=payload
+                    ) as response:
+                        response.raise_for_status()
+                        buffer = ""
+                        async for chunk_bytes in response.aiter_bytes():
+                            # Декодируем байты в строку
+                            try:
+                                buffer += chunk_bytes.decode("utf-8", errors="ignore")
+                            except UnicodeDecodeError:
+                                continue
+
+                            # Обрабатываем все полные строки из буфера
+                            while "\n" in buffer:
+                                line, buffer = buffer.split("\n", 1)
+                                line = line.strip()
+
+                                if not line:
+                                    continue
+
+                                # YandexGPT streaming может возвращать в разных форматах
+                                # Вариант 1: JSON chunk напрямую
+                                # Вариант 2: SSE формат "data: {...}"
+                                try:
+                                    # Убираем префикс "data: " если есть (SSE формат)
+                                    json_line = line[6:] if line.startswith("data: ") else line
+
+                                    chunk_data = json.loads(json_line)
+
+                                    # Извлекаем текст из chunk
+                                    # Формат может быть:
+                                    # {"result": {"alternatives": [{"message": {"text": "chunk"}}]}}
+                                    # или {"alternatives": [{"message": {"text": "chunk"}}]}
+                                    result = chunk_data.get("result", chunk_data)
+                                    if isinstance(result, dict):
+                                        alternatives = result.get("alternatives", [])
+                                        if alternatives and isinstance(alternatives, list):
+                                            for alt in alternatives:
+                                                if isinstance(alt, dict):
+                                                    message = alt.get("message", {})
+                                                    if isinstance(message, dict):
+                                                        text = message.get("text", "")
+                                                        if text and isinstance(text, str):
+                                                            yield text
+                                except json.JSONDecodeError:
+                                    logger.debug(f"⚠️ Пропущен не-JSON chunk: {line[:100]}")
+                                    continue
+                                except Exception as e:
+                                    logger.debug(
+                                        f"⚠️ Ошибка парсинга chunk: {e}, line: {line[:100]}"
+                                    )
+                                    continue
+
+            # Выполняем streaming запрос через очередь
+            async for chunk in self.request_queue.process_stream(_execute_streaming_request):
+                yield chunk
+
+            logger.info("✅ YandexGPT streaming завершен")
+
+        except httpx.HTTPStatusError as e:
+            logger.error(f"❌ Ошибка YandexGPT streaming API (HTTP {e.response.status_code}): {e}")
+            if e.response is not None:
+                logger.error(f"Response: {e.response.text}")
+            raise
+        except httpx.TimeoutException as e:
+            logger.error(f"❌ Таймаут YandexGPT streaming API: {e}")
+            raise
+        except httpx.RequestError as e:
+            logger.error(f"❌ Ошибка запроса YandexGPT streaming API: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"❌ Неожиданная ошибка YandexGPT streaming: {e}")
             raise
 
     # ============================================================================
