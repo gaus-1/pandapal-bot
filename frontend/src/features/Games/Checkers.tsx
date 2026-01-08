@@ -215,17 +215,17 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   };
 
   return (
-    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] flex flex-col overflow-hidden">
+    <div className="w-full h-full bg-white dark:bg-slate-900 flex flex-col overflow-hidden">
       {/* Заголовок */}
-      <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-[var(--tg-theme-hint-color)]/20">
+      <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-700">
         <button
           onClick={onBack}
-          className="p-2 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors text-sm touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+          className="p-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-sm touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
           aria-label="Назад"
         >
           ← Назад
         </button>
-        <h2 className="text-lg sm:text-xl font-bold text-[var(--tg-theme-text-color)]">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100">
           ⚫⚪ Шашки
         </h2>
         <div className="w-10" />
@@ -238,7 +238,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
             <PandaReaction mood={winner === "user" ? "sad" : "happy"} />
           </div>
         )}
-        <div className="text-lg sm:text-xl font-bold text-[var(--tg-theme-text-color)] mb-1">
+        <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100 mb-1">
           {gameOver
             ? winner === "user"
               ? "🎉 Ты победил!"
@@ -264,7 +264,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       {/* Игровая доска */}
       <div className="flex-1 flex items-center justify-center px-2 sm:px-4 pb-2 min-h-0 w-full">
         <div className="w-full max-w-[600px] aspect-square relative">
-          <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-[2px] bg-[var(--tg-theme-hint-color)] border-[4px] border-[var(--tg-theme-hint-color)] rounded-xl shadow-2xl overflow-hidden">
+          <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-[2px] bg-gray-400 dark:bg-slate-600 border-[4px] border-gray-400 dark:border-slate-600 rounded-xl shadow-2xl overflow-hidden">
             {board.length > 0 ? (
               board.map((row, rowIndex) =>
                 row.map((_, colIndex) => {
@@ -284,8 +284,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                         transition-all duration-200 touch-manipulation outline-none
                         ${
                           isDark
-                            ? "bg-[var(--tg-theme-button-color)]"
-                            : "bg-[var(--tg-theme-bg-color)]"
+                            ? "bg-blue-500 dark:bg-blue-600"
+                            : "bg-white dark:bg-slate-900"
                         }
                         ${
                           selected
@@ -338,7 +338,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                 })
               )
             ) : (
-              <div className="col-span-8 row-span-8 flex items-center justify-center text-[var(--tg-theme-hint-color)]">
+              <div className="col-span-8 row-span-8 flex items-center justify-center text-gray-600 dark:text-slate-400">
                 Загрузка...
               </div>
             )}
@@ -348,7 +348,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
       {/* Инструкция */}
       {!gameOver && (
-        <div className="flex-shrink-0 text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] px-4 py-2 space-y-1 bg-[var(--tg-theme-bg-color)]">
+        <div className="flex-shrink-0 text-center text-xs sm:text-sm text-gray-600 dark:text-slate-400 px-4 py-2 space-y-1 bg-white dark:bg-slate-900">
           <p className="m-0">Ты играешь белыми, панда играет черными</p>
           <p className="m-0">Нажми на свою фишку, затем на клетку для хода</p>
         </div>
@@ -356,10 +356,10 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
       {/* Кнопка новой игры */}
       {gameOver && (
-        <div className="flex-shrink-0 text-center px-4 py-3 bg-[var(--tg-theme-bg-color)]">
+        <div className="flex-shrink-0 text-center px-4 py-3 bg-white dark:bg-slate-900">
           <button
             onClick={onBack}
-            className="px-8 py-3 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px] shadow-md"
+            className="px-8 py-3 bg-blue-500 dark:bg-blue-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px] shadow-md"
           >
             Вернуться к играм
           </button>

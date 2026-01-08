@@ -221,8 +221,8 @@ export function AIChat({ user }: AIChatProps) {
         ) : messages.length === 0 ? (
           <div className="text-center py-8">
             <img src="/logo.png" alt="PandaPal" width={96} height={96} loading="lazy" className="w-24 h-24 mx-auto mb-4 rounded-full shadow-xl" />
-            <h2 className="text-base sm:text-lg md:text-xl font-bold text-[var(--tg-theme-text-color)] mb-2">Начни общение!</h2>
-            <p className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">Задай любой вопрос, и я помогу тебе с учебой! 📚</p>
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Начни общение!</h2>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">Задай любой вопрос, и я помогу тебе с учебой! 📚</p>
           </div>
         ) : (
           messages.map((msg, index) => (

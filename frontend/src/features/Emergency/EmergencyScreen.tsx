@@ -107,13 +107,13 @@ export function EmergencyScreen() {
   };
 
   return (
-    <div ref={containerRef} data-emergency-screen className="h-full overflow-y-auto bg-[var(--tg-theme-bg-color)] p-4 sm:p-6 md:p-8 max-w-4xl mx-auto pb-24">
+    <div ref={containerRef} data-emergency-screen className="h-full overflow-y-auto bg-white dark:bg-slate-900 p-4 sm:p-6 md:p-8 max-w-4xl mx-auto pb-24">
       {/* Заголовок */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
+        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-2 sm:mb-3">
           🚨 Экстренные номера
         </h1>
-        <p className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">
+        <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
           В опасности? Звони сразу! Все звонки бесплатные 24/7
         </p>
       </div>
@@ -123,17 +123,17 @@ export function EmergencyScreen() {
         {EMERGENCY_NUMBERS.map((emergency) => (
           <div
             key={emergency.number}
-            className="bg-[var(--tg-theme-secondary-bg-color)] rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg"
+            className="bg-gray-50 dark:bg-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg border border-gray-200 dark:border-slate-700"
           >
             {/* Заголовок карточки */}
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="text-3xl sm:text-4xl md:text-5xl">{emergency.icon}</div>
                 <div>
-                  <h3 className="text-sm sm:text-base md:text-lg font-bold text-[var(--tg-theme-text-color)]">
+                  <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-slate-100">
                     {emergency.title}
                   </h3>
-                  <p className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)]">
+                  <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
                     {emergency.description}
                   </p>
                 </div>
@@ -142,16 +142,16 @@ export function EmergencyScreen() {
 
             {/* Когда звонить */}
             <div className="mb-3 sm:mb-4">
-              <p className="text-sm sm:text-base md:text-lg font-semibold text-[var(--tg-theme-text-color)] mb-2 sm:mb-3">
+              <p className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2 sm:mb-3">
                 Звони, если:
               </p>
               <ul className="space-y-1 sm:space-y-2">
                 {emergency.when.map((reason, idx) => (
                   <li
                     key={idx}
-                    className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-hint-color)] flex items-start gap-2"
+                    className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 flex items-start gap-2"
                   >
-                    <span className="text-[var(--tg-theme-link-color)] font-bold">•</span>
+                    <span className="text-blue-500 dark:text-blue-400 font-bold">•</span>
                     {reason}
                   </li>
                 ))}
@@ -171,8 +171,8 @@ export function EmergencyScreen() {
       </div>
 
       {/* Предупреждение */}
-      <div className="mt-6 sm:mt-8 bg-yellow-500/10 border-2 border-yellow-500/30 rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
-        <p className="text-sm sm:text-base md:text-lg text-[var(--tg-theme-text-color)] text-center">
+      <div className="mt-6 sm:mt-8 bg-yellow-500/10 dark:bg-yellow-500/20 border-2 border-yellow-500/30 dark:border-yellow-500/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
+        <p className="text-sm sm:text-base md:text-lg text-gray-900 dark:text-slate-100 text-center">
           <span className="font-bold">⚠️ Важно:</span> Не паникуй! Говори четко и спокойно. Назови
           свой адрес и опиши ситуацию.
         </p>

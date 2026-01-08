@@ -225,18 +225,18 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
   };
 
   return (
-    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
+    <div className="w-full h-full bg-white dark:bg-slate-900 overflow-y-auto">
       <div className="max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Заголовок */}
         <div className="flex items-center justify-between mb-2">
           <button
             onClick={onBack}
-            className="p-2.5 sm:p-3 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-2.5 sm:p-3 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
             aria-label="Назад"
           >
             ← Назад
           </button>
-          <h2 className="text-xl sm:text-2xl font-bold text-[var(--tg-theme-text-color)]">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-100">
             🔢 2048
           </h2>
           <div className="w-10 sm:w-12" />
@@ -254,7 +254,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               <PandaReaction mood="sad" />
             </div>
           )}
-          <div className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0">
+          <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-100 mb-0">
             {score}
           </div>
           {won && (
@@ -274,7 +274,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
         {/* Игровая доска с поддержкой swipe */}
         <div
-          className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1 mb-4 touch-none select-none w-full max-w-[260px] mx-auto"
+          className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 mb-4 touch-none select-none w-full max-w-[260px] mx-auto border border-gray-200 dark:border-slate-700"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
@@ -292,7 +292,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
                       w-full h-full
                       ${
                         value === 0
-                          ? "bg-[var(--tg-theme-bg-color)]"
+                          ? "bg-white dark:bg-slate-900"
                           : `${getTileColor(value)} ${getTileTextColor(
                               value,
                             )} ${getTileFontSize(value)}`
@@ -311,7 +311,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               })}
             </div>
           ) : (
-            <div className="text-center text-[var(--tg-theme-hint-color)] py-8">
+            <div className="text-center text-gray-600 dark:text-slate-400 py-8">
               Загрузка...
             </div>
           )}
@@ -320,19 +320,17 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
         {/* Кнопки управления */}
         {!gameOver && (
           <div className="mb-4">
-            <div className="text-xs text-[var(--tg-theme-hint-color)] mb-1.5 text-center font-medium">
+            <div className="text-xs text-gray-600 dark:text-slate-400 mb-1.5 text-center font-medium">
               Используй кнопки или свайп по доске
             </div>
-            <div className="grid grid-cols-3 gap-1 max-w-[260px] mx-auto bg-[var(--tg-theme-secondary-bg-color)] p-1 rounded-xl">
+            <div className="grid grid-cols-3 gap-1 max-w-[260px] mx-auto bg-gray-50 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700">
               <div /> {/* Spacer */}
               <button
                 onClick={() => handleMove("up")}
                 disabled={isLoading}
-                className="p-1 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[22px] min-w-[22px] flex items-center justify-center shadow-md border border-[var(--tg-theme-button-color)]"
+                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[22px] min-w-[22px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
                 aria-label="Вверх"
                 style={{
-                  backgroundColor: 'var(--tg-theme-button-color)',
-                  color: 'var(--tg-theme-button-text-color)',
                   filter: 'contrast(1.3) brightness(1.15)'
                 }}
               >
@@ -344,11 +342,9 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               <button
                 onClick={() => handleMove("left")}
                 disabled={isLoading}
-                className="p-1 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[22px] min-w-[22px] flex items-center justify-center shadow-md border border-[var(--tg-theme-button-color)]"
+                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[22px] min-w-[22px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
                 aria-label="Влево"
                 style={{
-                  backgroundColor: 'var(--tg-theme-button-color)',
-                  color: 'var(--tg-theme-button-text-color)',
                   filter: 'contrast(1.3) brightness(1.15)'
                 }}
               >
@@ -360,11 +356,9 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               <button
                 onClick={() => handleMove("right")}
                 disabled={isLoading}
-                className="p-1 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[22px] min-w-[22px] flex items-center justify-center shadow-md border border-[var(--tg-theme-button-color)]"
+                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[22px] min-w-[22px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
                 aria-label="Вправо"
                 style={{
-                  backgroundColor: 'var(--tg-theme-button-color)',
-                  color: 'var(--tg-theme-button-text-color)',
                   filter: 'contrast(1.3) brightness(1.15)'
                 }}
               >
@@ -376,11 +370,9 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               <button
                 onClick={() => handleMove("down")}
                 disabled={isLoading}
-                className="p-1 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[22px] min-w-[22px] flex items-center justify-center shadow-md border border-[var(--tg-theme-button-color)]"
+                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[22px] min-w-[22px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
                 aria-label="Вниз"
                 style={{
-                  backgroundColor: 'var(--tg-theme-button-color)',
-                  color: 'var(--tg-theme-button-text-color)',
                   filter: 'contrast(1.3) brightness(1.15)'
                 }}
               >
@@ -395,7 +387,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
         {/* Инструкция */}
         {!gameOver && (
-          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] mb-4 leading-tight">
+          <div className="text-center text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-4 leading-tight">
             <p className="m-0">Объединяй одинаковые числа!</p>
             <p className="m-0">Свайп по доске или используй кнопки</p>
             <p className="m-0">Цель: достичь 2048</p>
