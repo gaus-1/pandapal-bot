@@ -62,18 +62,8 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
         queryKeys.chatHistory(telegramId, limit)
       );
 
-      // Оптимистично добавляем сообщение пользователя
-      const userMessage: ChatMessage = {
-        role: 'user',
-        content: message || '',
-        timestamp: new Date().toISOString(),
-      };
-
-      queryClient.setQueryData<ChatMessage[]>(
-        queryKeys.chatHistory(telegramId, limit),
-        (old) => [...(old || []), userMessage]
-      );
-
+      // НЕ добавляем сообщение пользователя здесь - оно уже добавлено в onMutate в useChat
+      // Просто вызываем haptic feedback
       telegram.hapticFeedback('medium');
 
       try {
@@ -216,8 +206,8 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
         telegram.notifySuccess();
         setStreamStatus((prev) => ({ ...prev, status: 'completed' }));
 
-        // Инвалидируем запрос для перезагрузки истории с сервера
-        queryClient.invalidateQueries({ queryKey: queryKeys.chatHistory(telegramId, limit) });
+        // НЕ инвалидируем запрос - история уже обновлена через chunks
+        // Инвалидация приведет к дублированию сообщения пользователя
 
       } catch (error) {
         console.error('❌ Ошибка streaming:', error);
