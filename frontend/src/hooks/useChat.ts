@@ -112,7 +112,7 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
     },
 
     // Rollback при ошибке
-    onError: (_error: Error, _variables, context) => {
+    onError: async (_error: Error & { data?: unknown; response?: { data?: unknown; status?: number } }, _variables, context) => {
       if (context && context.previousMessages) {
         queryClient.setQueryData<ChatMessage[]>(
           queryKeys.chatHistory(telegramId, limit),
@@ -122,16 +122,47 @@ export function useChat({ telegramId, limit = 20 }: UseChatOptions) {
       telegram.notifyError();
       console.error('❌ Ошибка отправки сообщения:', _error);
 
-      // Показываем понятное сообщение об ошибке
-      const errorMessage = _error?.message || 'Ошибка отправки сообщения';
-      if (errorMessage.includes('аудио') || errorMessage.includes('audio')) {
-        telegram.showAlert(errorMessage);
-      } else if (errorMessage.includes('фото') || errorMessage.includes('photo')) {
-        telegram.showAlert(errorMessage);
-      } else if (errorMessage.includes('больш') || errorMessage.includes('large') || errorMessage.includes('413')) {
-        telegram.showAlert('Файл слишком большой. Попробуй уменьшить размер!');
+      // Проверяем, это лимит Premium?
+      const errorData = (_error?.response?.data || _error?.data) as {
+        premium_required?: boolean;
+        error_code?: string;
+        premium_message?: string;
+        error?: string;
+      } | undefined;
+      const isPremiumRequired = errorData?.premium_required || errorData?.error_code === 'RATE_LIMIT_EXCEEDED';
+
+      if (isPremiumRequired) {
+        // Показываем дружелюбное сообщение о Premium с кнопкой
+        const premiumMessage = errorData?.premium_message || errorData?.error ||
+          '🐼 Ой! Ты уже использовал все бесплатные вопросы сегодня!\n\n💎 Перейди на Premium для неограниченных вопросов!';
+
+        const buttonId = await telegram.showPopup({
+          title: '💎 Premium',
+          message: premiumMessage,
+          buttons: [
+            { id: 'premium', type: 'default', text: '✨ Узнать о Premium' },
+            { id: 'later', type: 'close', text: 'Позже' },
+          ],
+        });
+
+        if (buttonId === 'premium') {
+          // Переходим на экран Premium
+          const { useAppStore } = await import('../store/appStore');
+          useAppStore.getState().setCurrentScreen('premium');
+          telegram.hapticFeedback('medium');
+        }
       } else {
-        telegram.showAlert('Не удалось отправить сообщение. Попробуй еще раз!');
+        // Обычные ошибки
+        const errorMessage = _error?.message || 'Ошибка отправки сообщения';
+        if (errorMessage.includes('аудио') || errorMessage.includes('audio')) {
+          telegram.showAlert(errorMessage);
+        } else if (errorMessage.includes('фото') || errorMessage.includes('photo')) {
+          telegram.showAlert(errorMessage);
+        } else if (errorMessage.includes('больш') || errorMessage.includes('large') || errorMessage.includes('413')) {
+          telegram.showAlert('Файл слишком большой. Попробуй уменьшить размер!');
+        } else {
+          telegram.showAlert('Не удалось отправить сообщение. Попробуй еще раз!');
+        }
       }
     },
   });
