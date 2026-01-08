@@ -64,6 +64,7 @@ class YandexAIService:
         is_history_cleared: bool = False,
         message_count_since_name: int = 0,
         skip_name_asking: bool = False,
+        non_educational_questions_count: int = 0,
     ) -> str:
         """
         Генерация ответа через YandexGPT.
@@ -87,6 +88,7 @@ class YandexAIService:
             is_history_cleared,
             message_count_since_name,
             skip_name_asking,
+            non_educational_questions_count,
         )
 
     def get_model_info(self) -> Dict[str, str]:

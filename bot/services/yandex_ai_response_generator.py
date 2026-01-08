@@ -97,6 +97,7 @@ class YandexAIResponseGenerator:
         is_history_cleared: bool = False,
         message_count_since_name: int = 0,
         skip_name_asking: bool = False,
+        non_educational_questions_count: int = 0,
     ) -> str:
         """
         Генерировать ответ AI на сообщение пользователя.
