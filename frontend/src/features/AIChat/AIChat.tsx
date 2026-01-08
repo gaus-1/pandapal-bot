@@ -209,12 +209,17 @@ export function AIChat({ user }: AIChatProps) {
   };
 
   const handleVoiceStart = async () => {
+    // Определяем платформу один раз в начале функции
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const isTelegram = navigator.userAgent.includes('Telegram');
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
     const logData = {
       isRecording,
       hasRecorder: !!mediaRecorderRef.current,
       isGettingAccess: isGettingAccessRef.current,
       userAgent: navigator.userAgent,
-      platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+      platform: isMobile ? 'mobile' : 'desktop',
       hasMediaDevices: !!navigator.mediaDevices,
       hasGetUserMedia: !!navigator.mediaDevices?.getUserMedia,
     };
@@ -268,8 +273,7 @@ export function AIChat({ user }: AIChatProps) {
 
       // Для Android в Telegram используем упрощенный запрос без дополнительных параметров
       // Это может помочь избежать проблем с разрешениями
-      const isAndroid = /Android/i.test(navigator.userAgent);
-      const isTelegram = navigator.userAgent.includes('Telegram');
+      // isAndroid и isTelegram уже определены в начале функции
 
       const audioConstraints = isAndroid && isTelegram
         ? { audio: true } // Упрощенный запрос для Android/Telegram
@@ -403,27 +407,42 @@ export function AIChat({ user }: AIChatProps) {
         throw streamError;
       }
 
-      // Определяем поддерживаемый формат (как в рабочей версии от 1-2 января)
-      const supportedTypes = [
-        'audio/webm',
-        'audio/webm;codecs=opus',
-        'audio/ogg;codecs=opus',
-        'audio/mp4',
-        'audio/aac',
-      ];
-
+      // Определяем поддерживаемый формат
+      // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Android в Telegram часто падает на audio/webm,
+      // даже если isTypeSupported возвращает true. Принудительно ставим MP4.
+      // isAndroid уже определен в начале функции
       let mimeType = '';
-      for (const type of supportedTypes) {
-        if (MediaRecorder.isTypeSupported(type)) {
-          mimeType = type;
-          break;
+
+      if (isAndroid) {
+        // Приоритет mp4 для Android - нативный формат, работает надежнее
+        if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          mimeType = 'audio/mp4';
+        } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+          mimeType = 'audio/webm';
+        } else {
+          mimeType = ''; // Fallback - браузер выберет сам
+        }
+      } else {
+        // Стандартный список для десктопа/iOS
+        const supportedTypes = [
+          'audio/webm',
+          'audio/webm;codecs=opus',
+          'audio/ogg;codecs=opus',
+          'audio/mp4',
+        ];
+        for (const type of supportedTypes) {
+          if (MediaRecorder.isTypeSupported(type)) {
+            mimeType = type;
+            break;
+          }
         }
       }
 
       mimeTypeRef.current = mimeType;
-      console.log('📝 Используемый формат:', mimeType || 'по умолчанию');
+      console.log('📝 Используемый формат:', mimeType || 'по умолчанию', '(Android:', isAndroid, ')');
       sendLogToServer('info', 'Формат определен', {
         mimeType: mimeType || 'default',
+        isAndroid,
         platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
       }, user.telegram_id).catch(() => {});
 
@@ -935,40 +954,21 @@ export function AIChat({ user }: AIChatProps) {
         throw new Error('Stream не найден в streamRef при создании обработчиков');
       }
 
-      // Упрощенная логика: сразу запускаем запись без сложных проверок
-      // Убрали проверки трека - они могут срабатывать преждевременно на мобильных
+      // Упрощенная логика запуска записи
+      // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Убираем интервал requestData для Android,
+      // так как он может вызывать конфликты при нестабильном потоке
       try {
-        // Для Android/Telegram не используем timeslice - может вызывать закрытие stream
-        // Вместо этого используем requestData() вручную через интервалы
-        const isAndroid = /Android/i.test(navigator.userAgent);
-        const isTelegram = navigator.userAgent.includes('Telegram');
-        const useTimeslice = !(isAndroid && isTelegram);
-        const timeslice = useTimeslice ? 250 : undefined;
+        // isAndroid уже определен в начале функции
+        const timeslice = isAndroid ? undefined : 250; // Для Android без timeslice
 
-        console.log('🎙️ Запуск записи', timeslice ? `с timeslice: ${timeslice}` : 'без timeslice (Android/Telegram)');
+        console.log('🎙️ Запуск записи', timeslice ? `с timeslice: ${timeslice}` : 'без timeslice (Android)');
 
-        // КРИТИЧЕСКИ ВАЖНО: Используем streamRef.current напрямую перед start(),
-        // чтобы гарантировать, что мы проверяем актуальное состояние потока
-        const currentStreamBeforeStart = streamRef.current;
-        const streamStateBeforeStart = {
-          streamExists: !!currentStreamBeforeStart,
-          streamActive: currentStreamBeforeStart?.active ?? false,
-          tracksCount: currentStreamBeforeStart?.getAudioTracks().length ?? 0,
-          tracks: currentStreamBeforeStart?.getAudioTracks().map(t => ({
-            id: t.id,
-            enabled: t.enabled,
-            muted: t.muted,
-            readyState: t.readyState,
-          })) ?? [],
-        };
-
-        console.log('📊 Состояние stream перед start():', streamStateBeforeStart);
-
-        if (!currentStreamBeforeStart || !currentStreamBeforeStart.active) {
+        // Проверка потока прямо перед стартом
+        if (!streamRef.current || !streamRef.current.active) {
           console.error('❌ Stream неактивен перед start()! Останавливаем запись.');
           sendLogToServer('error', 'Stream неактивен перед start()', {
-            stateBeforeStart: mediaRecorder.state,
-            ...streamStateBeforeStart,
+            streamExists: !!streamRef.current,
+            streamActive: streamRef.current?.active ?? false,
             platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
           }, user.telegram_id).catch(() => {});
           throw new Error('Stream неактивен перед началом записи');
@@ -976,47 +976,43 @@ export function AIChat({ user }: AIChatProps) {
 
         sendLogToServer('info', 'Запуск записи', {
           timeslice: timeslice ?? 'none',
-          useTimeslice,
-          stateBeforeStart: mediaRecorder.state,
-          ...streamStateBeforeStart,
+          mimeType: mimeTypeRef.current,
+          isAndroid,
           platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
         }, user.telegram_id).catch(() => {});
 
-        // Для Android/Telegram запускаем без timeslice
+        // Запуск записи
         if (timeslice !== undefined) {
           mediaRecorder.start(timeslice);
         } else {
           mediaRecorder.start();
-          // Для Android/Telegram вызываем requestData() вручную каждые 250мс
-          const dataInterval = setInterval(() => {
-            if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-              try {
-                mediaRecorderRef.current.requestData();
-              } catch (e) {
-                console.warn('⚠️ Ошибка requestData():', e);
-                clearInterval(dataInterval);
-              }
-            } else {
-              clearInterval(dataInterval);
-            }
-          }, 250);
-          // Сохраняем interval для очистки при остановке
-          (mediaRecorderRef.current as MediaRecorder & { __dataInterval?: number }).__dataInterval = dataInterval;
         }
+
         console.log('✅ start() вызван, состояние:', mediaRecorder.state);
         sendLogToServer('info', 'mediaRecorder.start() вызван', {
           stateAfterStart: mediaRecorder.state,
           platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
         }, user.telegram_id).catch(() => {});
 
-        // Устанавливаем состояние сразу, не ждем события onstart
-        // Это важно для мобильных устройств, где события могут задерживаться
         recordingStartTimeRef.current = Date.now();
         setIsRecording(true);
-        isGettingAccessRef.current = false; // Сбрасываем флаг после успешного начала
+        isGettingAccessRef.current = false;
         setIsGettingAccess(false);
 
-        // Простая проверка состояния через небольшие интервалы
+        // Убираем сложный интервал проверки для Android, он может быть избыточен
+        // и вызывать повторные вызовы, пока поток "умирает".
+        // Оставляем только базовую проверку для логов (для не-Android)
+        if (!isAndroid) {
+          setTimeout(() => {
+            if (mediaRecorderRef.current?.state === 'recording') {
+              console.log('✅ Запись идет стабильно');
+            } else {
+              console.warn('⚠️ Запись неактивна через 1с');
+            }
+          }, 1000);
+        }
+
+        // Простая проверка состояния через небольшие интервалы (только для диагностики)
         let checkCount = 0;
         const checkInterval = setInterval(() => {
           checkCount++;
