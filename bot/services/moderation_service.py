@@ -18,10 +18,11 @@ from typing import Any, Dict, List, Optional, Pattern, Tuple
 from loguru import logger
 
 from bot.config import FORBIDDEN_PATTERNS, settings
+from bot.interfaces import IModerationService
 from bot.services.advanced_moderation import AdvancedModerationService, ModerationResult
 
 
-class ContentModerationService:
+class ContentModerationService(IModerationService):
     """
     Сервис модерации контента для защиты детей.
 

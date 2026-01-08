@@ -139,6 +139,397 @@ class PandaPalBotServer:
             logger.error(f"❌ Ошибка установки webhook: {e}")
             raise
 
+    def _setup_app_base(self) -> None:
+        """
+        Создание базового aiohttp приложения.
+
+        Создает приложение с настройками размера запросов
+        и добавляет bot в контекст приложения.
+        """
+        logger.info("🌐 Создание базового веб-приложения...")
+
+        # Создаем приложение с увеличенным лимитом для больших запросов (фото, аудио)
+        # По умолчанию aiohttp имеет лимит ~1MB, увеличиваем до 10MB для base64 медиа
+        # Настройки для очень высокой нагрузки (1000+ одновременных запросов)
+        # Примечание: limit и limit_per_host настраиваются через TCPSite backlog, не через Application
+        self.app = web.Application(
+            client_max_size=10 * 1024 * 1024,  # 10MB для медиа
+        )
+
+        # Добавляем bot в app context для использования в endpoints
+        self.app["bot"] = self.bot
+
+    def _setup_middleware(self) -> None:
+        """
+        Настройка middleware для приложения.
+
+        Устанавливает security middleware и защиту от перегрузки.
+        """
+        # Настраиваем security middleware ПЕРВЫМ (выполняется первым)
+        try:
+            from bot.security.middleware import setup_security_middleware
+
+            setup_security_middleware(self.app)
+            logger.info("🛡️ Security middleware зарегистрирован")
+        except ImportError as e:
+            logger.error(f"❌ Не удалось загрузить security middleware: {e}")
+            raise
+
+        # Добавляем защиту от перегрузки
+        try:
+            from bot.security.overload_protection import overload_protection_middleware
+
+            self.app.middlewares.append(overload_protection_middleware)
+            logger.info("✅ Защита от перегрузки активирована")
+        except ImportError:
+            logger.warning("⚠️ Защита от перегрузки недоступна")
+
+    def _setup_health_endpoints(self) -> None:
+        """
+        Настройка health check endpoints.
+
+        Регистрирует быстрый и детальный health check endpoints.
+        """
+
+        async def health_check(request: web.Request) -> web.Response:
+            """
+            Health check endpoint с проверкой компонентов.
+
+            Быстрый ответ для Railway - сначала простой статус,
+            затем асинхронно проверяем компоненты.
+            """
+            # Быстрый ответ для Railway (без блокирующих проверок)
+            return web.json_response(
+                {
+                    "status": "ok",
+                    "service": "pandapal-bot",
+                    "mode": "webhook",
+                },
+                status=200,
+            )
+
+        async def health_check_detailed(request: web.Request) -> web.Response:
+            """Детальный health check с проверкой всех компонентов."""
+            components = {}
+            overall_status = "ok"
+
+            # Проверка бота
+            bot_info = None
+            bot_status = "ok"
+            if self.bot:
+                try:
+                    bot_info = await self.bot.get_me()
+                except Exception as bot_error:
+                    bot_status = "error"
+                    overall_status = "degraded"
+                    logger.warning("⚠️ Не удалось получить информацию о боте: %s", bot_error)
+            else:
+                bot_status = "not_initialized"
+                overall_status = "error"
+
+            components["bot"] = bot_status
+
+            # Проверка базы данных
+            db_status = "ok"
+            try:
+                from sqlalchemy import text
+
+                from bot.database import engine
+
+                with engine.connect() as conn:
+                    conn.execute(text("SELECT 1"))
+            except Exception as e:
+                db_status = "error"
+                overall_status = "error"
+                logger.error(f"❌ Database health check failed: {e}")
+
+            components["database"] = db_status
+
+            # Проверка webhook
+            webhook_status = "ok"
+            if self.bot:
+                try:
+                    webhook_info = await self.bot.get_webhook_info()
+                    if not webhook_info.url:
+                        webhook_status = "not_set"
+                        overall_status = "degraded"
+                except Exception as e:
+                    webhook_status = "error"
+                    overall_status = "degraded"
+                    logger.warning(f"⚠️ Webhook check failed: {e}")
+
+            components["webhook"] = webhook_status
+
+            status_code = (
+                200 if overall_status == "ok" else (503 if overall_status == "error" else 200)
+            )
+
+            return web.json_response(
+                {
+                    "status": overall_status,
+                    "mode": "webhook",
+                    "webhook_url": f"https://{self.settings.webhook_domain}/webhook",
+                    "bot_username": bot_info.username if bot_info else None,
+                    "components": components,
+                },
+                status=status_code,
+            )
+
+        # Регистрируем маршруты ДО setup_application
+        # Быстрый health check для Railway (отвечает мгновенно)
+        self.app.router.add_get("/health", health_check)
+        # Детальный health check для мониторинга
+        self.app.router.add_get("/health/detailed", health_check_detailed)
+
+    def _setup_api_routes(self) -> None:
+        """
+        Настройка API маршрутов.
+
+        Регистрирует все API endpoints для Mini App, Games, Premium и Auth.
+        """
+        # ВАЖНО: Регистрируем API роуты ПЕРЕД frontend (чтобы они имели приоритет)
+        # Интегрируем Mini App API
+        try:
+            from bot.api.miniapp_endpoints import setup_miniapp_routes
+
+            setup_miniapp_routes(self.app)
+            logger.info("🎮 Mini App API routes зарегистрированы")
+        except ImportError as e:
+            logger.warning(f"⚠️ Не удалось загрузить Mini App API: {e}")
+
+        # Интегрируем Games API
+        try:
+            from bot.api.games_endpoints import setup_games_routes
+
+            setup_games_routes(self.app)
+            logger.info("🎮 Games API routes зарегистрированы")
+        except ImportError as e:
+            logger.warning(f"⚠️ Не удалось загрузить Games API: {e}")
+
+        # Интегрируем Premium API
+        try:
+            from bot.api.premium_endpoints import setup_premium_routes
+
+            setup_premium_routes(self.app)
+            logger.info("💰 Premium API routes зарегистрированы")
+        except ImportError as e:
+            logger.warning(f"⚠️ Не удалось загрузить Premium API: {e}")
+
+        # Регистрируем Auth API routes
+        try:
+            from bot.api.auth_endpoints import setup_auth_routes
+
+            setup_auth_routes(self.app)
+            logger.info("🔐 Auth API routes зарегистрированы")
+        except ImportError as e:
+            logger.warning(f"⚠️ Не удалось загрузить Auth API: {e}")
+
+        # Интегрируем метрики (если доступны)
+        try:
+            from bot.api.metrics_endpoint import add_metrics_to_web_server
+
+            add_metrics_to_web_server(self.app)
+            logger.info("📊 Метрики интегрированы в веб-сервер")
+        except ImportError:
+            logger.debug("📊 Метрики недоступны (опционально)")
+
+    def _setup_frontend_static(self) -> None:
+        """
+        Настройка раздачи статических файлов frontend.
+
+        Регистрирует маршруты для статических файлов, assets и SPA fallback.
+        """
+        frontend_dist = Path(__file__).parent / "frontend" / "dist"
+        if frontend_dist.exists():
+            # Раздаем статические файлы из корня dist
+            static_files = [
+                "logo.png",  # Основной логотип
+                "favicon.ico",  # Favicon для Яндекс (создается из logo.png)
+                "robots.txt",
+                "sitemap.xml",
+                "panda-happy.png",  # Веселая панда для игр
+                "panda-sad.png",  # Грустная панда для игр
+            ]
+
+            # Если favicon.ico нет, используем logo.png как favicon
+            favicon_ico_path = frontend_dist / "favicon.ico"
+            if not favicon_ico_path.exists():
+                logo_png_path = frontend_dist / "logo.png"
+                if logo_png_path.exists():
+                    # Создаем симлинк или копируем logo.png как favicon.ico
+                    import shutil
+
+                    shutil.copy2(logo_png_path, favicon_ico_path)
+                    logger.info("✅ Создан favicon.ico из logo.png")
+            for static_file in static_files:
+                file_path = frontend_dist / static_file
+                if file_path.exists():
+                    # Определяем MIME тип для статических файлов
+                    content_type = "application/octet-stream"
+                    if static_file.endswith(".svg"):
+                        content_type = "image/svg+xml"
+                    elif static_file.endswith(".png"):
+                        content_type = "image/png"
+                    elif static_file.endswith(".ico"):
+                        content_type = "image/x-icon"
+                    elif static_file.endswith(".json"):
+                        content_type = "application/json"
+                    elif static_file.endswith(".txt"):
+                        content_type = "text/plain"
+                    elif static_file.endswith(".xml"):
+                        content_type = "application/xml"
+                    elif static_file.endswith(".js"):
+                        content_type = "application/javascript"
+                    elif static_file.endswith(".html"):
+                        content_type = "text/html"
+
+                    # Кэширование для статических файлов (кроме HTML)
+                    # Используем замыкание с дефолтными аргументами для захвата переменных
+                    async def serve_static_file(
+                        request: web.Request,
+                        fp=file_path,
+                        ct=content_type,
+                        sf=static_file,
+                    ) -> web.Response:
+                        """Раздача статического файла с кэшированием."""
+                        headers = {"Content-Type": ct}
+                        # HTML не кэшируем (динамический контент)
+                        if not sf.endswith(".html"):
+                            headers["Cache-Control"] = "public, max-age=31536000, immutable"
+                        return web.FileResponse(fp, headers=headers)
+
+                    self.app.router.add_get(f"/{static_file}", serve_static_file)
+
+            # Раздаем папку assets ПЕРЕД SPA fallback (важен порядок!)
+            assets_dir = frontend_dist / "assets"
+            if assets_dir.exists():
+                # Универсальный обработчик для всех assets файлов
+                async def serve_asset(request: web.Request) -> web.Response:
+                    """Раздача любого файла из assets директории."""
+                    filename = request.match_info.get("filename", "")
+                    if not filename:
+                        return web.Response(status=404, text="Asset filename required")
+
+                    file_path = assets_dir / filename
+                    if not file_path.exists() or not file_path.is_file():
+                        # Логируем с информацией о доступных файлах для отладки
+                        available_js = [f for f in os.listdir(assets_dir) if f.endswith(".js")]
+                        logger.warning(
+                            f"⚠️ Assets файл не найден: /assets/{filename} | "
+                            f"Доступные JS: {', '.join(available_js[:3])}{'...' if len(available_js) > 3 else ''}"
+                        )
+                        return web.Response(status=404, text=f"Asset not found: {filename}")
+
+                    # Определяем MIME тип
+                    content_type = "application/octet-stream"
+                    if filename.endswith(".js"):
+                        content_type = "application/javascript"
+                    elif filename.endswith(".css"):
+                        content_type = "text/css"
+                    elif filename.endswith(".map"):
+                        content_type = "application/json"
+                    elif filename.endswith(".png"):
+                        content_type = "image/png"
+                    elif filename.endswith(".jpg") or filename.endswith(".jpeg"):
+                        content_type = "image/jpeg"
+                    elif filename.endswith(".svg"):
+                        content_type = "image/svg+xml"
+                    elif filename.endswith(".woff") or filename.endswith(".woff2"):
+                        content_type = "font/woff2"
+                    elif filename.endswith(".webp"):
+                        content_type = "image/webp"
+
+                    # Кэширование для статических ресурсов (хэшированные имена файлов)
+                    headers = {"Content-Type": content_type}
+                    if any(
+                        filename.endswith(ext)
+                        for ext in [
+                            ".js",
+                            ".css",
+                            ".woff",
+                            ".woff2",
+                            ".png",
+                            ".jpg",
+                            ".jpeg",
+                            ".webp",
+                            ".svg",
+                        ]
+                    ):
+                        headers["Cache-Control"] = "public, max-age=31536000, immutable"
+
+                    return web.FileResponse(file_path, headers=headers)
+
+                # Регистрируем универсальный роут для всех assets
+                self.app.router.add_get("/assets/{filename:.*}", serve_asset)
+
+                # Логируем все найденные файлы для отладки
+                all_files = os.listdir(assets_dir)
+                js_files = [f for f in all_files if f.endswith(".js")]
+                logger.info(f"✅ Assets директория зарегистрирована: {assets_dir}")
+                logger.info(f"📦 Найдено файлов в assets: {len(all_files)}")
+                logger.info(f"📦 Найдено JS файлов: {len(js_files)}")
+                if js_files:
+                    logger.info(
+                        f"📦 JS файлы: {', '.join(js_files[:5])}{'...' if len(js_files) > 5 else ''}"
+                    )
+
+            # Главная страница
+            self.app.router.add_get("/", lambda _: web.FileResponse(frontend_dist / "index.html"))
+
+            # SPA Fallback - все неизвестные роуты возвращают index.html
+            # НО исключаем /api, /assets, /webhook, /health
+            async def spa_fallback(request: web.Request) -> web.Response:
+                path = request.path
+                # Исключаем API, assets, webhook, health из SPA fallback
+                # Проверяем ТОЧНО, чтобы не перехватывать assets
+                if (
+                    path.startswith("/api/")
+                    or path.startswith("/assets/")
+                    or path == "/webhook"
+                    or path.startswith("/webhook/")
+                    or path == "/health"
+                    or path.startswith("/health/")
+                ):
+                    # Логируем 404 для assets для отладки
+                    if path.startswith("/assets/"):
+                        logger.warning(f"⚠️ Assets файл не найден: {path}")
+                    return web.Response(status=404, text="Not Found")
+                return web.FileResponse(frontend_dist / "index.html")
+
+            # Регистрируем fallback ПОСЛЕДНИМ (после всех API и static routes)
+            # Используем простой паттерн - проверка пути внутри функции
+            self.app.router.add_get("/{tail:.*}", spa_fallback)
+
+            logger.info(f"✅ Frontend настроен: {frontend_dist}")
+        else:
+            # Fallback - если frontend не собран
+            async def root_handler(request: web.Request) -> web.Response:
+                # Используем простой health check для fallback
+                return web.json_response(
+                    {
+                        "status": "ok",
+                        "service": "pandapal-bot",
+                        "mode": "webhook",
+                    },
+                    status=200,
+                )
+
+            self.app.router.add_get("/", root_handler)
+            logger.warning("⚠️ Frontend не найден, используется fallback")
+
+    def _setup_webhook_handler(self) -> None:
+        """
+        Настройка webhook handler.
+
+        Регистрирует обработчик webhook для Telegram после всех маршрутов.
+        """
+        # Настраиваем webhook handler ПОСЛЕ регистрации всех маршрутов
+        # Явно указываем путь /webhook для Railway
+        webhook_path = "/webhook"
+        webhook_handler = SimpleRequestHandler(dispatcher=self.dp, bot=self.bot)
+        webhook_handler.register(self.app, path=webhook_path)
+        logger.info(f"📡 Webhook handler зарегистрирован на пути: {webhook_path}")
+
     def create_app(self) -> web.Application:
         """
         Создание aiohttp приложения.
@@ -152,352 +543,23 @@ class PandaPalBotServer:
         try:
             logger.info("🌐 Создание веб-приложения...")
 
-            # Создаем приложение с увеличенным лимитом для больших запросов (фото, аудио)
-            # По умолчанию aiohttp имеет лимит ~1MB, увеличиваем до 10MB для base64 медиа
-            # Настройки для очень высокой нагрузки (1000+ одновременных запросов)
-            # Примечание: limit и limit_per_host настраиваются через TCPSite backlog, не через Application
-            self.app = web.Application(
-                client_max_size=10 * 1024 * 1024,  # 10MB для медиа
-            )
+            # Создание базового приложения
+            self._setup_app_base()
 
-            # Добавляем bot в app context для использования в endpoints
-            self.app["bot"] = self.bot
+            # Настройка middleware
+            self._setup_middleware()
 
-            # Настраиваем security middleware ПЕРВЫМ (выполняется первым)
-            try:
-                from bot.security.middleware import setup_security_middleware
+            # Настройка health check endpoints
+            self._setup_health_endpoints()
 
-                setup_security_middleware(self.app)
-                logger.info("🛡️ Security middleware зарегистрирован")
-            except ImportError as e:
-                logger.error(f"❌ Не удалось загрузить security middleware: {e}")
-                raise
+            # Настройка API маршрутов
+            self._setup_api_routes()
 
-            # Добавляем защиту от перегрузки
-            try:
-                from bot.security.overload_protection import overload_protection_middleware
+            # Настройка frontend статики
+            self._setup_frontend_static()
 
-                self.app.middlewares.append(overload_protection_middleware)
-                logger.info("✅ Защита от перегрузки активирована")
-            except ImportError:
-                logger.warning("⚠️ Защита от перегрузки недоступна")
-
-            # Health check endpoints
-            async def health_check(request: web.Request) -> web.Response:
-                """
-                Health check endpoint с проверкой компонентов.
-
-                Быстрый ответ для Railway - сначала простой статус,
-                затем асинхронно проверяем компоненты.
-                """
-                # Быстрый ответ для Railway (без блокирующих проверок)
-                return web.json_response(
-                    {
-                        "status": "ok",
-                        "service": "pandapal-bot",
-                        "mode": "webhook",
-                    },
-                    status=200,
-                )
-
-            async def health_check_detailed(request: web.Request) -> web.Response:
-                """Детальный health check с проверкой всех компонентов."""
-                components = {}
-                overall_status = "ok"
-
-                # Проверка бота
-                bot_info = None
-                bot_status = "ok"
-                if self.bot:
-                    try:
-                        bot_info = await self.bot.get_me()
-                    except Exception as bot_error:
-                        bot_status = "error"
-                        overall_status = "degraded"
-                        logger.warning("⚠️ Не удалось получить информацию о боте: %s", bot_error)
-                else:
-                    bot_status = "not_initialized"
-                    overall_status = "error"
-
-                components["bot"] = bot_status
-
-                # Проверка базы данных
-                db_status = "ok"
-                try:
-                    from sqlalchemy import text
-
-                    from bot.database import engine
-
-                    with engine.connect() as conn:
-                        conn.execute(text("SELECT 1"))
-                except Exception as e:
-                    db_status = "error"
-                    overall_status = "error"
-                    logger.error(f"❌ Database health check failed: {e}")
-
-                components["database"] = db_status
-
-                # Проверка webhook
-                webhook_status = "ok"
-                if self.bot:
-                    try:
-                        webhook_info = await self.bot.get_webhook_info()
-                        if not webhook_info.url:
-                            webhook_status = "not_set"
-                            overall_status = "degraded"
-                    except Exception as e:
-                        webhook_status = "error"
-                        overall_status = "degraded"
-                        logger.warning(f"⚠️ Webhook check failed: {e}")
-
-                components["webhook"] = webhook_status
-
-                status_code = (
-                    200 if overall_status == "ok" else (503 if overall_status == "error" else 200)
-                )
-
-                return web.json_response(
-                    {
-                        "status": overall_status,
-                        "mode": "webhook",
-                        "webhook_url": f"https://{self.settings.webhook_domain}/webhook",
-                        "bot_username": bot_info.username if bot_info else None,
-                        "components": components,
-                    },
-                    status=status_code,
-                )
-
-            # Регистрируем маршруты ДО setup_application
-            # Быстрый health check для Railway (отвечает мгновенно)
-            self.app.router.add_get("/health", health_check)
-            # Детальный health check для мониторинга
-            self.app.router.add_get("/health/detailed", health_check_detailed)
-
-            # ВАЖНО: Регистрируем API роуты ПЕРЕД frontend (чтобы они имели приоритет)
-            # Интегрируем Mini App API
-            try:
-                from bot.api.miniapp_endpoints import setup_miniapp_routes
-
-                setup_miniapp_routes(self.app)
-                logger.info("🎮 Mini App API routes зарегистрированы")
-            except ImportError as e:
-                logger.warning(f"⚠️ Не удалось загрузить Mini App API: {e}")
-
-            # Интегрируем Games API
-            try:
-                from bot.api.games_endpoints import setup_games_routes
-
-                setup_games_routes(self.app)
-                logger.info("🎮 Games API routes зарегистрированы")
-            except ImportError as e:
-                logger.warning(f"⚠️ Не удалось загрузить Games API: {e}")
-
-            # Интегрируем Premium API
-            try:
-                from bot.api.premium_endpoints import setup_premium_routes
-
-                setup_premium_routes(self.app)
-                logger.info("💰 Premium API routes зарегистрированы")
-            except ImportError as e:
-                logger.warning(f"⚠️ Не удалось загрузить Premium API: {e}")
-
-            # Регистрируем Auth API routes
-            try:
-                from bot.api.auth_endpoints import setup_auth_routes
-
-                setup_auth_routes(self.app)
-                logger.info("🔐 Auth API routes зарегистрированы")
-            except ImportError as e:
-                logger.warning(f"⚠️ Не удалось загрузить Auth API: {e}")
-
-            # Настраиваем раздачу статики frontend
-            frontend_dist = Path(__file__).parent / "frontend" / "dist"
-            if frontend_dist.exists():
-                # Раздаем статические файлы из корня dist
-                static_files = [
-                    "logo.png",  # Основной логотип
-                    "favicon.ico",  # Favicon для Яндекс (создается из logo.png)
-                    "robots.txt",
-                    "sitemap.xml",
-                    "panda-happy.png",  # Веселая панда для игр
-                    "panda-sad.png",  # Грустная панда для игр
-                ]
-
-                # Если favicon.ico нет, используем logo.png как favicon
-                favicon_ico_path = frontend_dist / "favicon.ico"
-                if not favicon_ico_path.exists():
-                    logo_png_path = frontend_dist / "logo.png"
-                    if logo_png_path.exists():
-                        # Создаем симлинк или копируем logo.png как favicon.ico
-                        import shutil
-
-                        shutil.copy2(logo_png_path, favicon_ico_path)
-                        logger.info("✅ Создан favicon.ico из logo.png")
-                for static_file in static_files:
-                    file_path = frontend_dist / static_file
-                    if file_path.exists():
-                        # Определяем MIME тип для статических файлов
-                        content_type = "application/octet-stream"
-                        if static_file.endswith(".svg"):
-                            content_type = "image/svg+xml"
-                        elif static_file.endswith(".png"):
-                            content_type = "image/png"
-                        elif static_file.endswith(".ico"):
-                            content_type = "image/x-icon"
-                        elif static_file.endswith(".json"):
-                            content_type = "application/json"
-                        elif static_file.endswith(".txt"):
-                            content_type = "text/plain"
-                        elif static_file.endswith(".xml"):
-                            content_type = "application/xml"
-                        elif static_file.endswith(".js"):
-                            content_type = "application/javascript"
-                        elif static_file.endswith(".html"):
-                            content_type = "text/html"
-
-                        # Кэширование для статических файлов (кроме HTML)
-                        # Используем замыкание с дефолтными аргументами для захвата переменных
-                        async def serve_static_file(
-                            request: web.Request,
-                            fp=file_path,
-                            ct=content_type,
-                            sf=static_file,
-                        ) -> web.Response:
-                            """Раздача статического файла с кэшированием."""
-                            headers = {"Content-Type": ct}
-                            # HTML не кэшируем (динамический контент)
-                            if not sf.endswith(".html"):
-                                headers["Cache-Control"] = "public, max-age=31536000, immutable"
-                            return web.FileResponse(fp, headers=headers)
-
-                        self.app.router.add_get(f"/{static_file}", serve_static_file)
-
-                # Раздаем папку assets ПЕРЕД SPA fallback (важен порядок!)
-                assets_dir = frontend_dist / "assets"
-                if assets_dir.exists():
-                    # Универсальный обработчик для всех assets файлов
-                    async def serve_asset(request: web.Request) -> web.Response:
-                        """Раздача любого файла из assets директории."""
-                        filename = request.match_info.get("filename", "")
-                        if not filename:
-                            return web.Response(status=404, text="Asset filename required")
-
-                        file_path = assets_dir / filename
-                        if not file_path.exists() or not file_path.is_file():
-                            # Логируем с информацией о доступных файлах для отладки
-                            available_js = [f for f in os.listdir(assets_dir) if f.endswith(".js")]
-                            logger.warning(
-                                f"⚠️ Assets файл не найден: /assets/{filename} | "
-                                f"Доступные JS: {', '.join(available_js[:3])}{'...' if len(available_js) > 3 else ''}"
-                            )
-                            return web.Response(status=404, text=f"Asset not found: {filename}")
-
-                        # Определяем MIME тип
-                        content_type = "application/octet-stream"
-                        if filename.endswith(".js"):
-                            content_type = "application/javascript"
-                        elif filename.endswith(".css"):
-                            content_type = "text/css"
-                        elif filename.endswith(".map"):
-                            content_type = "application/json"
-                        elif filename.endswith(".png"):
-                            content_type = "image/png"
-                        elif filename.endswith(".jpg") or filename.endswith(".jpeg"):
-                            content_type = "image/jpeg"
-                        elif filename.endswith(".svg"):
-                            content_type = "image/svg+xml"
-                        elif filename.endswith(".woff") or filename.endswith(".woff2"):
-                            content_type = "font/woff2"
-                        elif filename.endswith(".webp"):
-                            content_type = "image/webp"
-
-                        # Кэширование для статических ресурсов (хэшированные имена файлов)
-                        headers = {"Content-Type": content_type}
-                        if any(
-                            filename.endswith(ext)
-                            for ext in [
-                                ".js",
-                                ".css",
-                                ".woff",
-                                ".woff2",
-                                ".png",
-                                ".jpg",
-                                ".jpeg",
-                                ".webp",
-                                ".svg",
-                            ]
-                        ):
-                            headers["Cache-Control"] = "public, max-age=31536000, immutable"
-
-                        return web.FileResponse(file_path, headers=headers)
-
-                    # Регистрируем универсальный роут для всех assets
-                    self.app.router.add_get("/assets/{filename:.*}", serve_asset)
-
-                    # Логируем все найденные файлы для отладки
-                    all_files = os.listdir(assets_dir)
-                    js_files = [f for f in all_files if f.endswith(".js")]
-                    logger.info(f"✅ Assets директория зарегистрирована: {assets_dir}")
-                    logger.info(f"📦 Найдено файлов в assets: {len(all_files)}")
-                    logger.info(f"📦 Найдено JS файлов: {len(js_files)}")
-                    if js_files:
-                        logger.info(
-                            f"📦 JS файлы: {', '.join(js_files[:5])}{'...' if len(js_files) > 5 else ''}"
-                        )
-
-                # Главная страница
-                self.app.router.add_get(
-                    "/", lambda _: web.FileResponse(frontend_dist / "index.html")
-                )
-
-                # SPA Fallback - все неизвестные роуты возвращают index.html
-                # НО исключаем /api, /assets, /webhook, /health
-                async def spa_fallback(request: web.Request) -> web.Response:
-                    path = request.path
-                    # Исключаем API, assets, webhook, health из SPA fallback
-                    # Проверяем ТОЧНО, чтобы не перехватывать assets
-                    if (
-                        path.startswith("/api/")
-                        or path.startswith("/assets/")
-                        or path == "/webhook"
-                        or path.startswith("/webhook/")
-                        or path == "/health"
-                        or path.startswith("/health/")
-                    ):
-                        # Логируем 404 для assets для отладки
-                        if path.startswith("/assets/"):
-                            logger.warning(f"⚠️ Assets файл не найден: {path}")
-                        return web.Response(status=404, text="Not Found")
-                    return web.FileResponse(frontend_dist / "index.html")
-
-                # Регистрируем fallback ПОСЛЕДНИМ (после всех API и static routes)
-                # Используем простой паттерн - проверка пути внутри функции
-                self.app.router.add_get("/{tail:.*}", spa_fallback)
-
-                logger.info(f"✅ Frontend настроен: {frontend_dist}")
-            else:
-                # Fallback - если frontend не собран
-                async def root_handler(request: web.Request) -> web.Response:
-                    return await health_check(request)
-
-                self.app.router.add_get("/", root_handler)
-                logger.warning("⚠️ Frontend не найден, используется fallback")
-
-            # Интегрируем метрики (если доступны)
-            try:
-                from bot.api.metrics_endpoint import add_metrics_to_web_server
-
-                add_metrics_to_web_server(self.app)
-                logger.info("📊 Метрики интегрированы в веб-сервер")
-            except ImportError:
-                logger.debug("📊 Метрики недоступны (опционально)")
-
-            # Настраиваем webhook handler ПОСЛЕ регистрации всех маршрутов
-            # Явно указываем путь /webhook для Railway
-            webhook_path = "/webhook"
-            webhook_handler = SimpleRequestHandler(dispatcher=self.dp, bot=self.bot)
-            webhook_handler.register(self.app, path=webhook_path)
-            logger.info(f"📡 Webhook handler зарегистрирован на пути: {webhook_path}")
+            # Настройка webhook handler
+            self._setup_webhook_handler()
 
             logger.info("✅ Веб-приложение создано")
             return self.app

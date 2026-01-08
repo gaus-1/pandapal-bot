@@ -13,10 +13,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from bot.config import MAX_AGE, MAX_GRADE, MIN_AGE, MIN_GRADE
+from bot.interfaces import IUserService
 from bot.models import User
 
 
-class UserService:
+class UserService(IUserService):
     """
     Сервис управления пользователями.
 
@@ -84,6 +85,40 @@ class UserService:
             logger.info(f"✨ Новый пользователь зарегистрирован: {telegram_id} ({first_name})")
 
         return user
+
+    def update_user_age(self, telegram_id: int, age: int) -> bool:
+        """
+        Обновить возраст пользователя.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+            age: Возраст (6-18)
+
+        Returns:
+            bool: True если успешно обновлено
+        """
+        try:
+            user = self.update_user_profile(telegram_id, age=age)
+            return user is not None
+        except ValueError:
+            return False
+
+    def update_user_grade(self, telegram_id: int, grade: int) -> bool:
+        """
+        Обновить класс пользователя.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+            grade: Класс (1-11)
+
+        Returns:
+            bool: True если успешно обновлено
+        """
+        try:
+            user = self.update_user_profile(telegram_id, grade=grade)
+            return user is not None
+        except ValueError:
+            return False
 
     def update_user_profile(
         self,
