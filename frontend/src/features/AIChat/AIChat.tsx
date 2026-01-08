@@ -1,17 +1,21 @@
 /**
  * AI Chat Screen - Общение с AI (фикс UI блокировки)
  *
- * ⚠️ КРИТИЧЕСКИ ВАЖНО: ЭТОТ ФАЙЛ ЗАБЛОКИРОВАН ДЛЯ ИЗМЕНЕНИЙ
- *
- * Этот файл работает корректно и протестирован.
- * НЕ ВНОСИТЬ ИЗМЕНЕНИЯ без явного разрешения пользователя.
- * Если пользователь просит изменить - спросить подтверждение.
+ * Рефакторинг: логика разделена на модули (SOLID принципы)
+ * - useVoiceRecorder - запись голоса
+ * - usePhotoUpload - загрузка фото
+ * - useScrollManagement - управление скроллом
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { telegram } from '../../services/telegram';
 import { useChat } from '../../hooks/useChat';
 import { useAppStore } from '../../store/appStore';
+import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
+import { usePhotoUpload } from '../../hooks/usePhotoUpload';
+import { useScrollManagement } from '../../hooks/useScrollManagement';
+import { haptic } from '../../utils/hapticFeedback';
+import { DEFAULT_PHOTO_MESSAGE } from './constants';
 import type { UserProfile } from '../../services/api';
 
 interface AIChatProps {
@@ -28,46 +32,61 @@ export function AIChat({ user }: AIChatProps) {
   } = useChat({ telegramId: user.telegram_id, limit: 20 });
 
   const [inputText, setInputText] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
-  const [isGettingAccess, setIsGettingAccess] = useState(false);
   const [replyToMessage, setReplyToMessage] = useState<number | null>(null);
-  const [showScrollButtons, setShowScrollButtons] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const recordingStartTimeRef = useRef<number>(0);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const mimeTypeRef = useRef<string>('');
-  const isGettingAccessRef = useRef(false);
 
-  // Автоскролл к последнему сообщению
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  // Управление скроллом
+  const {
+    messagesEndRef,
+    messagesContainerRef,
+    showScrollButtons,
+    scrollToTop,
+    scrollToBottom,
+  } = useScrollManagement(messages.length);
 
-  // Показываем кнопки скролла если контент больше экрана
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (container) {
-      const hasScroll = container.scrollHeight > container.clientHeight;
-      setShowScrollButtons(hasScroll);
-    }
-  }, [messages]);
+  // Загрузка фото
+  const {
+    handlePhotoClick,
+    handlePhotoUpload,
+    fileInputRef,
+  } = usePhotoUpload({
+    onPhotoUploaded: (base64Photo) => {
+      sendMessage({
+        photoBase64: base64Photo,
+        message: inputText.trim() || DEFAULT_PHOTO_MESSAGE,
+      });
+      setInputText('');
+    },
+    onError: (error) => {
+      console.error('Ошибка загрузки фото:', error);
+    },
+  });
 
-  // Cleanup
+  // Запись голоса
+  const {
+    startRecording,
+    stopRecording,
+    isRecording,
+    isGettingAccess,
+    cleanup: cleanupVoice,
+  } = useVoiceRecorder({
+    onRecordingComplete: (base64Audio) => {
+      sendMessage({
+        audioBase64: base64Audio,
+        ...(inputText.trim() ? { message: inputText.trim() } : {}),
+      });
+      setInputText('');
+    },
+    onError: (error) => {
+      console.error('Ошибка записи голоса:', error);
+    },
+  });
+
+  // Cleanup при размонтировании
   useEffect(() => {
     return () => {
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        mediaRecorderRef.current.stop();
-      }
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-        streamRef.current = null;
-      }
+      cleanupVoice();
     };
-  }, []);
+  }, [cleanupVoice]);
 
   const handleSend = () => {
     if (!inputText.trim() || isSending) return;
@@ -93,7 +112,7 @@ export function AIChat({ user }: AIChatProps) {
     if (confirmed) {
       try {
         await clearHistory();
-        telegram.hapticFeedback('medium');
+        haptic.medium();
         await telegram.showAlert('История чата очищена');
       } catch (error) {
         console.error('Ошибка очистки истории:', error);
@@ -104,7 +123,7 @@ export function AIChat({ user }: AIChatProps) {
 
   const handleCopyMessage = (content: string) => {
     navigator.clipboard.writeText(content);
-    telegram.hapticFeedback('light');
+    haptic.light();
     telegram.showPopup({
       message: 'Скопировано!',
       buttons: [{ type: 'ok', text: 'OK' }],
@@ -113,168 +132,7 @@ export function AIChat({ user }: AIChatProps) {
 
   const handleReplyToMessage = (index: number) => {
     setReplyToMessage(index);
-    telegram.hapticFeedback('light');
-  };
-
-  const scrollToTop = () => {
-    messagesContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-    telegram.hapticFeedback('light');
-  };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    telegram.hapticFeedback('light');
-  };
-
-  const handlePhotoClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      await telegram.showAlert('Пожалуйста, выбери изображение');
-      return;
-    }
-
-    telegram.hapticFeedback('medium');
-    try {
-      const reader = new FileReader();
-      reader.onload = () => {
-        sendMessage({
-          message: inputText.trim() || 'Помоги мне с этой задачей',
-          photoBase64: reader.result as string,
-        });
-        setInputText('');
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error('Ошибка загрузки фото:', error);
-      telegram.notifyError();
-      telegram.showAlert('Не удалось загрузить фото');
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const stopRecordingCleanup = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    mediaRecorderRef.current = null;
-    setIsRecording(false);
-    setIsGettingAccess(false);
-    isGettingAccessRef.current = false;
-  };
-
-  const handleVoiceStart = async () => {
-    if (isRecording || isGettingAccessRef.current) return;
-
-    isGettingAccessRef.current = true;
-    setIsGettingAccess(true);
-    setIsRecording(true); // Блокируем UI
-
-    try {
-      console.log('🎤 Запрос микрофона...');
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-
-      // Пробуем стандартный webm
-      let mimeType = '';
-      if (MediaRecorder.isTypeSupported('audio/webm')) {
-        mimeType = 'audio/webm';
-      }
-
-      const options = mimeType ? { mimeType } : undefined;
-      const mediaRecorder = new MediaRecorder(stream, options);
-      mediaRecorderRef.current = mediaRecorder;
-      mimeTypeRef.current = mimeType;
-      audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const recordingDuration = Date.now() - recordingStartTimeRef.current;
-        const totalSize = audioChunksRef.current.reduce((acc, chunk) => acc + chunk.size, 0);
-
-        const MIN_DURATION = 500; // 0.5 сек
-        const MIN_SIZE = 1000;
-
-        // 1. Ошибка формата (упал мгновенно)
-        if (recordingDuration < 200 && totalSize === 0) {
-          console.error('❌ Мгновенный сбой рекордера');
-          telegram.notifyError();
-          telegram.showAlert('Ошибка записи на этом устройстве. Попробуйте обновить Telegram.');
-          stopRecordingCleanup(); // РАЗБЛОКИРОВКА UI
-          return;
-        }
-
-        // 2. Слишком короткая запись
-        if (recordingDuration < MIN_DURATION || totalSize < MIN_SIZE) {
-          console.warn('⚠️ Запись слишком короткая');
-          telegram.hapticFeedback('light');
-          telegram.showAlert('Запись слишком короткая. Удерживай кнопку дольше.');
-          stopRecordingCleanup(); // РАЗБЛОКИРОВКА UI
-          return;
-        }
-
-        // 3. Успешная запись
-        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType || 'audio/webm' });
-        telegram.hapticFeedback('medium');
-
-        const reader = new FileReader();
-        reader.onload = () => {
-          const base64Audio = reader.result as string;
-          sendMessage({
-            audioBase64: base64Audio,
-            ...(inputText.trim() ? { message: inputText.trim() } : {}),
-          });
-          setInputText('');
-          stopRecordingCleanup(); // КРИТИЧЕСКИ: Разблокируем UI ПОСЛЕ отправки
-        };
-
-        reader.onerror = () => {
-          telegram.showAlert('Ошибка обработки аудио');
-          stopRecordingCleanup(); // Разблокировка при ошибке чтения
-        };
-
-        reader.readAsDataURL(audioBlob);
-      };
-
-      mediaRecorder.onerror = (event: Event) => {
-        console.error('❌ MediaRecorder Error:', event);
-        telegram.notifyError();
-        stopRecordingCleanup();
-        telegram.showAlert('Произошла ошибка записи аудио.');
-      };
-
-      recordingStartTimeRef.current = Date.now();
-      mediaRecorder.start();
-      console.log('✅ Запись начата');
-
-    } catch (error) {
-      console.error('❌ Ошибка handleVoiceStart:', error);
-      telegram.notifyError();
-      stopRecordingCleanup();
-      if (error instanceof DOMException && error.name === 'NotAllowedError') {
-        telegram.showAlert('Доступ к микрофону запрещен. Разрешите доступ в настройках.');
-      } else {
-        telegram.showAlert('Не удалось начать запись. Проверьте микрофон.');
-      }
-    }
-  };
-
-  const handleVoiceStop = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-    }
+    haptic.light();
   };
 
   return (
@@ -291,7 +149,7 @@ export function AIChat({ user }: AIChatProps) {
             <button onClick={handleClearChat} className="flex-shrink-0 w-9 h-9 rounded-lg bg-gray-400/60 hover:bg-gray-500/70 active:scale-95 transition-all flex items-center justify-center border border-gray-400/40 shadow-sm">
               <span className="text-base text-gray-700 dark:text-gray-200">🗑️</span>
             </button>
-            <button onClick={() => { useAppStore.getState().setCurrentScreen('emergency'); telegram.hapticFeedback('medium'); }} className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-red-500/90 hover:bg-red-600/90 active:scale-95 transition-all flex items-center justify-center shadow-sm">
+            <button onClick={() => { useAppStore.getState().setCurrentScreen('emergency'); haptic.medium(); }} className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-red-500/90 hover:bg-red-600/90 active:scale-95 transition-all flex items-center justify-center shadow-sm">
               <span className="text-lg sm:text-xl">🚨</span>
             </button>
           </div>
@@ -378,7 +236,7 @@ export function AIChat({ user }: AIChatProps) {
           <textarea value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyPress={handleKeyPress} placeholder="Задай вопрос..." disabled={isSending || isRecording} className="flex-1 resize-none rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-2 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 text-sm sm:text-base border border-gray-200 dark:border-slate-700 outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 disabled:opacity-50 transition-all h-[44px] sm:h-[48px] leading-tight" rows={1} style={{ maxHeight: '120px', minHeight: '44px' }} />
 
           {isRecording ? (
-            <button onClick={handleVoiceStop} className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-red-400/90 to-pink-400/90 text-white flex items-center justify-center animate-pulse shadow-md self-center">
+            <button onClick={stopRecording} className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-red-400/90 to-pink-400/90 text-white flex items-center justify-center animate-pulse shadow-md self-center">
               <span className="text-base sm:text-lg">⏹️</span>
             </button>
           ) : inputText.trim() ? (
@@ -386,7 +244,7 @@ export function AIChat({ user }: AIChatProps) {
               {isSending ? <div className="animate-spin text-base sm:text-lg">⏳</div> : <span className="text-base sm:text-lg">▶️</span>}
             </button>
           ) : (
-            <button onClick={handleVoiceStart} disabled={isSending || isRecording || isGettingAccess} className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-blue-400/90 to-indigo-400/90 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-md shadow-sm self-center">
+            <button onClick={startRecording} disabled={isSending || isRecording || isGettingAccess} className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-blue-400/90 to-indigo-400/90 text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 hover:shadow-md shadow-sm self-center">
               <span className="text-base sm:text-lg">🎤</span>
             </button>
           )}
