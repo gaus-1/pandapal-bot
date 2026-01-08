@@ -326,6 +326,11 @@ export function AIChat({ user }: AIChatProps) {
       let stream: MediaStream;
       try {
         stream = await Promise.race([getUserMediaPromise, timeoutPromise]);
+        // КРИТИЧЕСКИ ВАЖНО: Сохраняем поток в useRef СРАЗУ после получения,
+        // до любых других операций, чтобы предотвратить его удаление сборщиком мусора
+        // при перерисовке React компонента
+        streamRef.current = stream;
+        console.log('✅ Доступ к микрофону получен и сохранен в streamRef');
       } catch (raceError) {
         console.error('❌ Ошибка в Promise.race:', raceError);
         sendLogToServer('error', 'Ошибка Promise.race getUserMedia', {
@@ -338,11 +343,17 @@ export function AIChat({ user }: AIChatProps) {
       }
 
       try {
-        streamRef.current = stream;
+        // Используем streamRef.current вместо локальной переменной stream
+        // чтобы гарантировать, что мы работаем с потоком, сохраненным в ref
+        const currentStream = streamRef.current;
+        if (!currentStream) {
+          throw new Error('Stream не был сохранен в streamRef');
+        }
+
         console.log('✅ Доступ к микрофону получен');
 
         // Добавляем обработчики событий на треки, чтобы отследить, когда stream закрывается
-        stream.getAudioTracks().forEach((track) => {
+        currentStream.getAudioTracks().forEach((track) => {
           track.onended = () => {
             console.error('❌ Трек завершился (ended):', track.id);
             sendLogToServer('error', 'Аудио трек завершился (ended)', {
@@ -368,8 +379,8 @@ export function AIChat({ user }: AIChatProps) {
         });
 
         await sendLogToServer('info', 'Доступ к микрофону получен', {
-          tracksCount: stream.getAudioTracks().length,
-          tracks: stream.getAudioTracks().map(t => ({
+          tracksCount: currentStream.getAudioTracks().length,
+          tracks: currentStream.getAudioTracks().map(t => ({
             id: t.id,
             label: t.label,
             enabled: t.enabled,
@@ -466,7 +477,11 @@ export function AIChat({ user }: AIChatProps) {
           errorName: recorderError instanceof Error ? recorderError.name : 'Unknown',
           platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
         }, user.telegram_id).catch(() => {});
-        stream.getTracks().forEach((track) => track.stop());
+        // Используем streamRef.current вместо локальной переменной stream
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+        }
         throw new Error('Не удалось создать запись аудио. Попробуй обновить страницу.');
       }
 
@@ -504,12 +519,15 @@ export function AIChat({ user }: AIChatProps) {
         setIsGettingAccess(false);
         console.log('✅ MediaRecorder начал запись, состояние:', mediaRecorder.state);
 
-        // Используем capturedStream из замыкания вместо streamRef.current
+        // КРИТИЧЕСКИ ВАЖНО: Используем streamRef.current напрямую в обработчике,
+        // так как capturedStream может быть устаревшим из-за замыкания
+        // streamRef.current всегда содержит актуальную ссылку на поток
+        const currentStream = streamRef.current;
         const streamState = {
-          streamExists: !!capturedStream,
-          streamActive: capturedStream?.active ?? false,
-          tracksCount: capturedStream?.getAudioTracks().length ?? 0,
-          tracks: capturedStream?.getAudioTracks().map(t => ({
+          streamExists: !!currentStream,
+          streamActive: currentStream?.active ?? false,
+          tracksCount: currentStream?.getAudioTracks().length ?? 0,
+          tracks: currentStream?.getAudioTracks().map(t => ({
             id: t.id,
             enabled: t.enabled,
             muted: t.muted,
@@ -519,7 +537,7 @@ export function AIChat({ user }: AIChatProps) {
 
         console.log('📊 Состояние stream в onstart:', streamState);
 
-        if (!capturedStream || !capturedStream.active) {
+        if (!currentStream || !currentStream.active) {
           console.error('❌ Stream неактивен в onstart! Это может быть причиной проблемы.');
           sendLogToServer('error', 'Stream неактивен в onstart', {
             state: mediaRecorder.state,
@@ -910,8 +928,12 @@ export function AIChat({ user }: AIChatProps) {
         platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
       }, user.telegram_id).catch(() => {});
 
-      // Сохраняем stream в замыкании для использования в обработчиках
-      const capturedStream = stream;
+      // КРИТИЧЕСКИ ВАЖНО: Проверяем, что поток сохранен в streamRef.current
+      // Поток уже был сохранен сразу после получения (строка 341),
+      // поэтому здесь мы только проверяем его наличие
+      if (!streamRef.current) {
+        throw new Error('Stream не найден в streamRef при создании обработчиков');
+      }
 
       // Упрощенная логика: сразу запускаем запись без сложных проверок
       // Убрали проверки трека - они могут срабатывать преждевременно на мобильных
@@ -925,12 +947,14 @@ export function AIChat({ user }: AIChatProps) {
 
         console.log('🎙️ Запуск записи', timeslice ? `с timeslice: ${timeslice}` : 'без timeslice (Android/Telegram)');
 
-        // Проверяем состояние stream перед start() используя capturedStream
+        // КРИТИЧЕСКИ ВАЖНО: Используем streamRef.current напрямую перед start(),
+        // чтобы гарантировать, что мы проверяем актуальное состояние потока
+        const currentStreamBeforeStart = streamRef.current;
         const streamStateBeforeStart = {
-          streamExists: !!capturedStream,
-          streamActive: capturedStream?.active ?? false,
-          tracksCount: capturedStream?.getAudioTracks().length ?? 0,
-          tracks: capturedStream?.getAudioTracks().map(t => ({
+          streamExists: !!currentStreamBeforeStart,
+          streamActive: currentStreamBeforeStart?.active ?? false,
+          tracksCount: currentStreamBeforeStart?.getAudioTracks().length ?? 0,
+          tracks: currentStreamBeforeStart?.getAudioTracks().map(t => ({
             id: t.id,
             enabled: t.enabled,
             muted: t.muted,
@@ -940,7 +964,7 @@ export function AIChat({ user }: AIChatProps) {
 
         console.log('📊 Состояние stream перед start():', streamStateBeforeStart);
 
-        if (!capturedStream || !capturedStream.active) {
+        if (!currentStreamBeforeStart || !currentStreamBeforeStart.active) {
           console.error('❌ Stream неактивен перед start()! Останавливаем запись.');
           sendLogToServer('error', 'Stream неактивен перед start()', {
             stateBeforeStart: mediaRecorder.state,
