@@ -231,7 +231,7 @@ export function AIChat({ user }: AIChatProps) {
                 <div className={`rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-md ${
                   msg.role === 'user'
                     ? 'bg-gradient-to-br from-blue-300/90 to-cyan-300/90 dark:from-blue-600/80 dark:to-cyan-600/80 text-gray-800 dark:text-white border border-blue-200/50 dark:border-blue-500/40'
-                    : 'bg-white/95 dark:bg-slate-700/95 text-gray-800 dark:text-slate-100 border border-gray-200/80 dark:border-slate-600/80'
+                    : 'bg-white/95 dark:bg-slate-800/95 text-gray-800 dark:text-slate-100 border border-gray-200/80 dark:border-slate-600/80'
                 }`}>
                   <p className="whitespace-pre-wrap break-words font-medium text-xs sm:text-sm leading-relaxed">{msg.content}</p>
                   <time className={`text-[10px] sm:text-xs mt-1.5 sm:mt-2 font-medium block ${
