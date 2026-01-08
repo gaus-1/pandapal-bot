@@ -1,5 +1,5 @@
 /**
- * AI Chat Screen - Общение с AI (фикс для Android/Telegram)
+ * AI Chat Screen - Общение с AI (финальная правка)
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -96,6 +96,19 @@ export function AIChat({ user }: AIChatProps) {
     }
   };
 
+  const handleCopyMessage = (content: string) => {
+    navigator.clipboard.writeText(content);
+    telegram.hapticFeedback('light');
+    telegram.showPopup({
+      message: 'Скопировано!',
+      buttons: [{ type: 'ok', text: 'OK' }],
+    });
+  };
+
+  const handleReplyToMessage = (index: number) => {
+    setReplyToMessage(index);
+    telegram.hapticFeedback('light');
+  };
 
   const scrollToTop = () => {
     messagesContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
@@ -134,6 +147,7 @@ export function AIChat({ user }: AIChatProps) {
     } catch (error) {
       console.error('Ошибка загрузки фото:', error);
       telegram.notifyError();
+      telegram.showAlert('Не удалось загрузить фото');
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
@@ -158,58 +172,22 @@ export function AIChat({ user }: AIChatProps) {
     setIsRecording(true); // Блокируем UI
 
     try {
-      const isAndroid = /Android/i.test(navigator.userAgent);
-      const constraints = { audio: true };
-
       console.log('🎤 Запрос микрофона...');
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      // Важное исправление списка MIME типов для Android
-      // Пробуем webm, если не работает - mp4, потом пустой (default)
-      const typesToTry = isAndroid
-        ? ['audio/webm', 'audio/mp4', '']
-        : ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/webm', ''];
-
-      let mediaRecorder: MediaRecorder | null = null;
-      let selectedMime = '';
-
-      // Пробуем создать рекордер с разными форматами
-      for (const mime of typesToTry) {
-        if (mime && !MediaRecorder.isTypeSupported(mime)) continue;
-
-        try {
-          const options = mime ? { mimeType: mime } : undefined;
-          const recorder = new MediaRecorder(stream, options);
-          // Пробуем запустить, чтобы проверить, не вылетит ли сразу
-          recorder.start();
-          recorder.stop(); // Сразу стоп для теста
-
-          // Если долетели сюда, значит формат работает
-          mediaRecorder = recorder;
-          selectedMime = mime || 'default';
-          console.log('✅ Формат выбран:', selectedMime);
-          break;
-        } catch (e) {
-          console.warn('⚠️ Формат не сработал:', mime, e);
-          // Очищаем треки после тестового старта, чтобы не сломать поток
-          if (mediaRecorder) {
-            try {
-              mediaRecorder.stop();
-            } catch {
-              // Игнорируем ошибки при остановке тестового рекордера
-            }
-          }
-        }
+      // Выбираем формат: webm для большинства, fallback на default
+      let mimeType = '';
+      if (MediaRecorder.isTypeSupported('audio/webm')) {
+        mimeType = 'audio/webm';
       }
+      // Если mp4 поддерживается лучше на конкретном устройстве (редко), можно добавить,
+      // но сейчас попробуем стандартный webm или пустую строку.
 
-      if (!mediaRecorder) {
-        throw new Error('Не удалось найти подходящий формат записи. Обновите Telegram.');
-      }
-
-      // Настраиваем рекордер по-нормальному
+      const options = mimeType ? { mimeType } : undefined;
+      const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
-      mimeTypeRef.current = selectedMime;
+      mimeTypeRef.current = mimeType;
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
@@ -221,57 +199,54 @@ export function AIChat({ user }: AIChatProps) {
       mediaRecorder.onstop = () => {
         const recordingDuration = Date.now() - recordingStartTimeRef.current;
         const totalSize = audioChunksRef.current.reduce((acc, chunk) => acc + chunk.size, 0);
-        const MIN_DURATION = 500;
+
+        const MIN_DURATION = 500; // 0.5 сек
         const MIN_SIZE = 1000;
 
-        console.log('🛑 onStop:', { duration: recordingDuration, size: totalSize });
-
-        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ ФОТО И БЛОКИРОВКИ:
-        // Если запись упала мгновенно (< 200мс), это ошибка формата.
-        // НЕ пытаемся перезапустить, а просто выключаемся и разблокируем UI.
-        if (recordingDuration < 200 && totalSize === 0 && !isGettingAccessRef.current) {
-            console.error('❌ Мгновенный сбой рекордера (ошибка формата)');
-            telegram.notifyError();
-            stopRecordingCleanup();
-            telegram.showAlert('Ошибка записи на этом устройстве. Попробуйте обновить Telegram.').catch(()=>{});
-            return;
-        }
-
-        if (totalSize < MIN_SIZE || recordingDuration < MIN_DURATION) {
-          console.warn('⚠️ Запись слишком короткая');
-          if (!isRecording) { // Если мы уже вручную остановили
-             stopRecordingCleanup();
-          } else {
-             // Если остановилась сама, но была достаточно длинной, возможно прерывание
-             // Для простоты пока просто очищаем
-             stopRecordingCleanup();
-          }
+        // 1. Ошибка формата (упал мгновенно)
+        if (recordingDuration < 200 && totalSize === 0) {
+          console.error('❌ Мгновенный сбой рекордера');
+          telegram.notifyError();
+          telegram.showAlert('Ошибка записи на этом устройстве. Попробуйте обновить Telegram или использовать стандартное приложение.');
+          stopRecordingCleanup();
           return;
         }
 
-        // Успешная запись
-        const audioBlob = new Blob(audioChunksRef.current, { type: mimeTypeRef.current || 'audio/webm' });
+        // 2. Слишком короткая запись (пользователь быстро отпустил)
+        if (recordingDuration < MIN_DURATION || totalSize < MIN_SIZE) {
+          console.warn('⚠️ Запись слишком короткая');
+          // Показываем алерт пользователю, чтобы он понимал, почему сброс
+          telegram.hapticFeedback('light');
+          telegram.showAlert('Запись слишком короткая. Удерживай кнопку микрофона дольше (полсекунды).');
+          stopRecordingCleanup();
+          return;
+        }
+
+        // 3. Успешная запись
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType || 'audio/webm' });
         telegram.hapticFeedback('medium');
 
         const reader = new FileReader();
         reader.onload = () => {
-           const base64Audio = reader.result as string;
-           sendMessage({
-             audioBase64: base64Audio,
-             ...(inputText.trim() ? { message: inputText.trim() } : {}),
-           });
-           setInputText('');
+          const base64Audio = reader.result as string;
+          sendMessage({
+            audioBase64: base64Audio,
+            ...(inputText.trim() ? { message: inputText.trim() } : {}),
+          });
+          setInputText('');
+        };
+        reader.onerror = () => {
+          telegram.showAlert('Ошибка обработки аудио');
+          stopRecordingCleanup();
         };
         reader.readAsDataURL(audioBlob);
-
-        // Важно: очищаем только после отправки
-        stopRecordingCleanup();
       };
 
       mediaRecorder.onerror = (event: Event) => {
         console.error('❌ MediaRecorder Error:', event);
         telegram.notifyError();
         stopRecordingCleanup();
+        telegram.showAlert('Произошла ошибка записи аудио.');
       };
 
       recordingStartTimeRef.current = Date.now();
@@ -283,22 +258,16 @@ export function AIChat({ user }: AIChatProps) {
       telegram.notifyError();
       stopRecordingCleanup();
       if (error instanceof DOMException && error.name === 'NotAllowedError') {
-        telegram.showAlert('Доступ к микрофону запрещен.');
+        telegram.showAlert('Доступ к микрофону запрещен. Разрешите доступ в настройках.');
       } else {
-        telegram.showAlert('Не удалось начать запись. Проверьте настройки микрофона.');
+        telegram.showAlert('Не удалось начать запись. Проверьте микрофон.');
       }
     }
   };
 
   const handleVoiceStop = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      const recordingDuration = Date.now() - recordingStartTimeRef.current;
-      if (recordingDuration < 500) {
-        console.warn('⚠️ Слишком коротко, отменяем');
-        mediaRecorderRef.current.onstop = null; // Отключаем обработчик, чтобы не сработал обычный onStop
-        stopRecordingCleanup();
-        return;
-      }
+      // Останавливаем рекордер, сработает onstop
       mediaRecorderRef.current.stop();
     }
   };
@@ -349,6 +318,13 @@ export function AIChat({ user }: AIChatProps) {
                   }`}>
                     {new Date(msg.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
                   </time>
+                </div>
+                {/* Кнопки действий */}
+                <div className="absolute -bottom-7 left-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => handleCopyMessage(msg.content)} className="px-2 py-1 text-xs bg-gray-200 dark:bg-slate-700 rounded hover:bg-gray-300 dark:hover:bg-slate-600">📋</button>
+                  {msg.role === 'ai' && (
+                    <button onClick={() => handleReplyToMessage(index)} className="px-2 py-1 text-xs bg-gray-200 dark:bg-slate-700 rounded hover:bg-gray-300 dark:hover:bg-slate-600">↩️</button>
+                  )}
                 </div>
               </div>
             </div>
