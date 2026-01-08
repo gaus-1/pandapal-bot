@@ -23,21 +23,21 @@ const GAMES = [
     name: 'Крестики-нолики',
     icon: '❌⭕',
     description: 'Играй против панды! Кто первым соберет линию?',
-    color: 'from-orange-200 to-orange-100',
+    color: 'from-blue-200 to-blue-100',
   },
   {
     id: 'checkers',
     name: 'Шашки',
     icon: '⚫⚪',
     description: 'Играй против панды! Кто первым возьмет все фишки?',
-    color: 'from-orange-200 to-orange-100',
+    color: 'from-blue-200 to-blue-100',
   },
   {
     id: '2048',
     name: '2048',
     icon: '🔢',
     description: 'Объединяй числа и достигни 2048!',
-    color: 'from-orange-200 to-orange-100',
+    color: 'from-blue-200 to-blue-100',
   },
 ] as const;
 
@@ -166,7 +166,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
                   text-gray-800 dark:text-gray-900 shadow-lg hover:shadow-xl transform hover:scale-105
                   active:scale-100 transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
-                  text-left h-[150px] flex flex-col overflow-hidden border border-orange-200/50 dark:border-orange-300/30
+                  text-left h-[150px] flex flex-col overflow-hidden border border-blue-200/50 dark:border-blue-300/30
                 `}
               >
                 <div className="text-2xl sm:text-3xl mb-1.5 flex-shrink-0 leading-none">{game.icon}</div>
@@ -182,7 +182,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
                 {/* Статистика - всегда резервируем место */}
                 <div className="mt-auto min-h-[34px] flex-shrink-0">
                   {hasStats ? (
-                    <div className="pt-2 border-t border-orange-300/40 dark:border-orange-400/30">
+                    <div className="pt-2 border-t border-blue-300/40 dark:border-blue-400/30">
                       <div className="flex justify-between text-xs leading-tight text-gray-700 dark:text-gray-800 font-medium">
                         <span>Побед: {gameStats.wins}</span>
                         <span>Игр: {gameStats.total_games}</span>
