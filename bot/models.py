@@ -91,6 +91,8 @@ class User(Base):
     reminder_sent_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    last_name_mention_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    skip_name_asking: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
 
     parent: Mapped[Optional["User"]] = relationship(
         "User",
