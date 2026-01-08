@@ -93,6 +93,9 @@ class User(Base):
     )
     last_name_mention_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     skip_name_asking: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    non_educational_questions_count: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0"
+    )
 
     parent: Mapped[Optional["User"]] = relationship(
         "User",
