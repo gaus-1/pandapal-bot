@@ -18,7 +18,13 @@
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+    WebAppInfo,
+)
 from loguru import logger
 
 from bot.database import get_db
@@ -211,4 +217,47 @@ async def back_to_main_menu(callback: CallbackQuery, state: FSMContext):
         text="🏠 <b>Главное меню</b>\n\n" "Выбери действие из меню ниже 👇", parse_mode="HTML"
     )
 
+    await callback.answer()
+
+
+@router.callback_query(F.data == "premium:info")
+async def premium_info_callback(callback: CallbackQuery):
+    """
+    Обработчик кнопки "💎 Узнать о Premium"
+    Показывает информацию о Premium и предлагает открыть Mini App
+    """
+    from bot.config import settings
+
+    premium_text = """
+💎 <b>Premium подписка PandaPal</b>
+
+✨ <b>Что ты получишь:</b>
+• Неограниченные вопросы к AI панде
+• Помощь по всем школьным предметам
+• Игры без ограничений
+• Приоритетная поддержка
+• Эксклюзивные достижения
+
+🚀 <b>Открой Mini App</b> чтобы узнать больше и оформить подписку!
+"""
+
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🚀 Открыть Premium",
+                    web_app=WebAppInfo(url=f"{settings.frontend_url}#premium"),
+                )
+            ],
+            [
+                InlineKeyboardButton(text="🔙 Назад", callback_data="menu:main"),
+            ],
+        ]
+    )
+
+    await callback.message.edit_text(
+        text=premium_text,
+        reply_markup=keyboard,
+        parse_mode="HTML",
+    )
     await callback.answer()

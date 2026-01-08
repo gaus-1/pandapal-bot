@@ -234,7 +234,13 @@ export async function sendAIMessage(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(errorData.error || 'Ошибка отправки сообщения');
+    const error = new Error(errorData.error || 'Ошибка отправки сообщения') as Error & {
+      data?: unknown;
+      response?: { data?: unknown; status?: number };
+    };
+    error.data = errorData;
+    error.response = { data: errorData, status: response.status };
+    throw error;
   }
 
   return await response.json();

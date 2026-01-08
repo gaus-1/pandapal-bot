@@ -204,10 +204,19 @@ async def handle_ai_message(message: Message, state: FSMContext):
 
             if not can_request:
                 logger.warning(f"🚫 AI запрос заблокирован для user={telegram_id}: {limit_reason}")
-                await message.answer(
-                    f"🚫 {limit_reason}\n\n"
-                    f"💎 Купи Premium для неограниченных AI запросов! /premium"
+                from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+                keyboard = InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(
+                                text="💎 Узнать о Premium", callback_data="premium:info"
+                            )
+                        ]
+                    ]
                 )
+
+                await message.answer(limit_reason, reply_markup=keyboard, parse_mode="HTML")
                 return
 
             # Для premium - больше истории для контекста
