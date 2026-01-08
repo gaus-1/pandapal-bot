@@ -4,13 +4,13 @@
 
 ## Что тестируем
 
-- Защита от SQL Injection - нельзя ли через запросы удалить данные
-- Защита от XSS - нельзя ли внедрить вредоносный код
-- Защита от CSRF - нельзя ли выполнить действия от имени другого пользователя
-- Rate limiting - защита от перегрузки
-- DDoS protection - защита от атак
-- Валидация входных данных - проверяем что некорректные данные отклоняются
-- Авторизация и аутентификация - только авторизованные пользователи получают доступ
+- Защита от SQL Injection
+- Защита от XSS
+- Защита от CSRF
+- Rate limiting
+- DDoS protection
+- Валидация входных данных
+- Авторизация и аутентификация
 
 ## Тесты
 
@@ -23,38 +23,26 @@
 ## Примеры
 
 ### Тест SQL Injection
+
 ```python
 @pytest.mark.asyncio
 async def test_sql_injection():
     malicious_input = "'; DROP TABLE users; --"
 
-    # Попытка SQL инъекции должна быть безопасной
     result = await api_endpoint(f"/api/user?name={malicious_input}")
-
     assert result.status == 200
-    # Таблица не должна быть удалена - используем ORM, не сырой SQL
+    # Таблица не должна быть удалена - используем ORM
 ```
 
 ### Тест Rate Limiting
+
 ```python
 @pytest.mark.asyncio
 async def test_rate_limiting():
-    # Отправляем много запросов
     for i in range(100):
         response = await api_request("/api/endpoint")
-
         if i > 60:  # Лимит 60 req/min
-            assert response.status == 429  # Too Many Requests
-```
-
-### Тест валидации
-```python
-def test_input_validation():
-    from bot.api.validators import ChatRequest
-
-    # Некорректные данные должны быть отклонены
-    with pytest.raises(ValidationError):
-        ChatRequest(message="", user_id=-1)
+            assert response.status == 429
 ```
 
 ## Запуск
@@ -70,6 +58,6 @@ pytest tests/security/test_sql_injection.py -v
 ## Важно
 
 - Критически важные тесты - должны проходить всегда
-- Проверяют защиту от реальных атак - SQL injection, XSS, CSRF
+- Проверяют защиту от реальных атак
 - Регулярно обновляй тесты - появляются новые типы атак
 - Если тест падает - это серьезная проблема безопасности

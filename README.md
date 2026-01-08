@@ -1,184 +1,104 @@
-<div align="center">
-
-<img src="frontend/public/logo.png" alt="PandaPal Logo" width="120" height="120">
-
 # PandaPal
 
-**Образовательная платформа для школьников 1-9 классов**
-
-[![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://reactjs.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-
-[Сайт](https://pandapal.ru) • [Telegram Бот](https://t.me/PandaPalBot) • [Документация](docs/) • [Безопасность](SECURITY.md) • [Вклад в проект](CONTRIBUTING.md)
-
-</div>
-
----
+Образовательная платформа для школьников 1-9 классов с Telegram-ботом и веб-приложением. Помогает детям учиться по всем предметам с защитой от небезопасного контента.
 
 ## О проекте
 
-PandaPal — образовательная платформа с Telegram-ботом и веб-приложением для школьников 1-9 классов. Помогает детям учиться по всем предметам с защитой от небезопасного контента.
+PandaPal — это AI-ассистент для помощи в учебе. Бот работает 24/7 и помогает детям с домашними заданиями, объясняет сложные темы и поддерживает изучение иностранных языков.
 
-### Ключевые особенности
-
-- **Безопасное обучение** — 150+ фильтров, 5-уровневая модерация защищают детей от опасного контента
-- **Доступность 24/7** — AI-ассистент всегда готов помочь с домашним заданием по любому предмету
-- **Мультимодальность** — поддержка текста, голоса и изображений делает обучение интерактивным
-- **Иностранные языки** — автоматическое определение языка и перевод с объяснением грамматики
-- **Геймификация** — достижения, уровни и игры мотивируют детей учиться
-
-### Возможности
-
-- **AI-ассистент**: YandexGPT для помощи по всем школьным предметам (1-9 класс)
-- **Мультимодальность**: текст, голос (SpeechKit), изображения (Vision API)
-- **Иностранные языки**: автоматическое определение и перевод (английский, немецкий, французский, испанский) с объяснением грамматики
-- **Переводчик**: Yandex Translate с поддержкой 4 языков и детальными объяснениями
-- **PandaPalGo**: игры (Крестики-нолики, Шашки, 2048) с AI противником, адаптивный UI
-- **Безопасность**: 150+ фильтров контента, 5-уровневая модерация, фильтры мата на 4 языках
-- **Telegram Mini App**: React веб-приложение внутри Telegram
-- **Геймификация**: достижения, уровни, XP, статистика игр
-- **Экстренные номера**: 112, 101, 102, 103
-- **Premium**: YooKassa (карты, СБП) и Telegram Stars
-- **Авторизация**: Telegram Login Widget для сайта, Redis сессии (Upstash)
-- **Обратная связь**: Yandex Forms для сбора отзывов
-- **Донаты**: Telegram Stars для поддержки проекта
-- **Тестирование**: 37+ интеграционных тестов для всех предметов и иностранных языков
-
----
+Ключевые возможности:
+- AI-ассистент на базе YandexGPT для помощи по всем школьным предметам
+- Поддержка текста, голоса и изображений
+- Автоматический перевод и объяснение грамматики для английского, немецкого, французского, испанского
+- Игры PandaPalGo: Крестики-нолики, Шашки, 2048 с AI противником
+- Система достижений и прогресса
+- Premium подписки через YooKassa и Telegram Stars
+- Многоуровневая модерация контента для безопасности детей
 
 ## Технологии
 
 ### Backend
-
-- **Python 3.13**, **aiogram 3.23**, **aiohttp 3.13** — бот и webhook сервер
-- **SQLAlchemy 2.0**, **PostgreSQL 17**, **Alembic** — БД (connection pool: 100/200)
-- **Redis 6.4** — персистентные сессии (Upstash, fallback на in-memory)
-- **Yandex Cloud** — YandexGPT (yandexgpt-lite), SpeechKit STT, Vision OCR, Translate API
-- **Yandex Forms** — сбор обратной связи
-- **YooKassa 3.0** — платежи (карты, СБП, чеки 54-ФЗ)
+- Python 3.13, aiogram 3.23, aiohttp 3.13
+- SQLAlchemy 2.0, PostgreSQL 17, Alembic
+- Redis 6.4 для сессий (Upstash)
+- Yandex Cloud: YandexGPT, SpeechKit STT, Vision OCR, Translate API
+- YooKassa 3.0 для платежей
 
 ### Frontend
+- React 19, TypeScript 5, Vite 7
+- TanStack Query 5, Zustand 5
+- Tailwind CSS 3
+- Telegram Mini App SDK 8.0
 
-- **React 19**, **TypeScript 5**, **Vite 7**
-- **TanStack Query 5** (API клиент), **Zustand 5** (state management)
-- **Tailwind CSS 3** (dark/light themes)
-- **Telegram Mini App SDK 8.0** (web.telegram.org поддержка)
-- **Playwright** — E2E тесты
-
-### Infrastructure
-
-- **Railway.app** — хостинг (24/7, webhook, auto deploy, keep-alive ping)
-- **Cloudflare** — DNS, SSL, CDN, Full Strict mode
-- **GitHub Actions** — CI/CD, тесты
-- **Upstash Redis** — персистентные сессии (fallback на in-memory)
-
----
+### Инфраструктура
+- Railway.app для хостинга
+- Cloudflare для DNS, SSL, CDN
+- GitHub Actions для CI/CD
+- Upstash Redis для сессий
 
 ## Структура проекта
 
 ```
 PandaPal/
-├── bot/
-│   ├── handlers/         # Команды (start, ai_chat, translate, feedback, payment, games)
-│   ├── services/         # Логика (AI, модерация, перевод, Premium, сессии, игры)
-│   ├── config/           # Настройки, промпты (поддержка иностранных языков)
-│   ├── security/         # Middleware, модерация, аудит
-│   ├── api/              # Endpoints (Mini App, Premium, Auth, Games, Metrics)
-│   ├── keyboards/        # Клавиатуры Telegram (inline, reply)
-│   ├── localization/     # Локализация (ru, en)
-│   ├── monitoring/       # Мониторинг (Prometheus, Sentry)
-│   ├── models.py         # SQLAlchemy модели (User, ChatHistory, GameSession, GameStats)
-│   └── database.py       # БД (PostgreSQL, connection pool)
-├── frontend/
+├── bot/                    # Backend логика
+│   ├── handlers/           # Обработчики команд Telegram
+│   ├── services/           # Бизнес-логика (AI, платежи, игры)
+│   ├── api/                # HTTP endpoints для Mini App
+│   ├── config/             # Настройки, промпты, паттерны модерации
+│   ├── security/           # Middleware, валидация, rate limiting
+│   ├── models.py           # SQLAlchemy модели БД
+│   └── database.py         # Подключение к PostgreSQL
+├── frontend/               # React веб-приложение
 │   ├── src/
-│   │   ├── components/   # UI (Header, Hero)
-│   │   ├── features/     # AIChat, Premium, Donation, Games (адаптивный UI)
-│   │   └── services/     # API клиенты
-│   └── public/           # Статика
-├── tests/                # Unit, integration, E2E, security, performance
-│   ├── integration/      # 37+ тестов: все предметы, иностранные языки
-│   ├── unit/             # Unit тесты сервисов
-│   ├── e2e/              # End-to-end тесты
-│   └── security/         # Тесты безопасности
-├── alembic/              # Миграции БД
-└── scripts/              # Утилиты (миграции, аналитика, проверки)
+│   │   ├── components/     # UI компоненты
+│   │   ├── features/       # Основные фичи (AIChat, Premium, Games)
+│   │   └── services/       # API клиенты
+│   └── public/             # Статические файлы
+├── tests/                  # Тесты (unit, integration, e2e, security)
+├── alembic/                # Миграции БД
+└── scripts/                # Утилиты
 ```
-
----
 
 ## Архитектура
 
-### Backend (PEP 20)
+### Entry Point
+- `web_server.py` — aiohttp сервер с webhook для Telegram, раздача frontend
 
-**Zen of Python** в коде:
-- **Simple is better than complex** — services слой, прямые зависимости
-- **Explicit is better than implicit** — type hints, Pydantic валидация
-- **Readability counts** — docstrings для публичных API
-- **Errors should never pass silently** — try/except с логированием
-- **Flat is better than nested** — модульная структура
-
-### Ключевые компоненты
-
-**Entry Point:**
-- `web_server.py` — aiohttp сервер, webhook для Telegram
-
-**Services (бизнес-логика):**
-- `ai_service_solid.py` — Yandex Cloud (GPT, Speech, Vision)
-- `translate_service.py` — Yandex Translate (автоопределение языка, 4 языка: EN, DE, FR, ES)
-- `moderation_service.py` — фильтрация контента (150+ паттернов, мат на 4 языках)
-- `yandex_cloud_service.py` — интеграция Yandex Cloud (OCR с переводом иностранных текстов)
-- `speech_service.py` — распознавание речи (SpeechKit STT)
-- `vision_service.py` — анализ изображений (Vision OCR)
-- `payment_service.py` — YooKassa интеграция (карты, СБП)
-- `subscription_service.py` — Premium подписки
-- `session_service.py` — Redis сессии (Upstash, fallback на in-memory)
-- `telegram_auth_service.py` — Telegram Login Widget
-- `games_service.py` — PandaPalGo игры (TicTacToe, Checkers, 2048)
+### Services
+- `ai_service_solid.py` — главный AI сервис через Yandex Cloud
+- `yandex_ai_response_generator.py` — генерация ответов с учетом контекста
+- `moderation_service.py` — фильтрация контента (150+ паттернов)
+- `payment_service.py` — интеграция с YooKassa
+- `games_service.py` — логика игр PandaPalGo
 - `gamification_service.py` — достижения, уровни, XP
 
-**API Endpoints:**
-- `miniapp_endpoints.py` — Mini App API (AI chat, голос, изображения)
-- `premium_endpoints.py` — YooKassa webhook, создание платежей
-- `premium_features_endpoints.py` — Premium функции API
-- `auth_endpoints.py` — Telegram Login Widget, сессии
-- `games_endpoints.py` — PandaPalGo API (создание игр, ходы, статистика)
-- `metrics_endpoint.py` — метрики и мониторинг
+### API Endpoints
+- `miniapp_endpoints.py` — AI chat, голос, изображения
+- `premium_endpoints.py` — обработка платежей YooKassa
+- `games_endpoints.py` — API для игр
+- `auth_endpoints.py` — Telegram Login Widget для сайта
 
-**Security:**
-- `middleware.py` — CSP, CORS, rate limiting
-- `telegram_auth.py` — HMAC-SHA256 валидация
-- `overload_protection.py` — защита от перегрузки
-
----
+### Security
+- Многоуровневая модерация контента
+- Rate limiting (60 req/min API, 30 req/min AI)
+- CSP headers, CORS, CSRF защита
+- Валидация всех входных данных через Pydantic
+- Аудит логирование
 
 ## Безопасность
 
-- **Валидация** — Pydantic V2 для всех входных данных
-- **SQL Injection** — SQLAlchemy ORM, параметризованные запросы
-- **XSS** — CSP headers, санитизация HTML
-- **Модерация** — 150+ паттернов, 5-уровневая система фильтрации, мат-фильтры на 4 языках (RU, EN, DE, FR, ES)
-- **Rate Limiting** — 60 req/min API, 30 req/min AI, sliding window
-- **CSRF** — Origin/Referer проверка, HMAC-SHA256 для Telegram
-- **DDoS Protection** — overload protection middleware, IP блокировка
-- **HTTPS** — Cloudflare Full Strict, обязательный SSL
-- **Секреты** — только в .env, валидация при старте
-- **OWASP Top 10** — покрыто тестами (security/), аудит логов
+- Валидация через Pydantic V2
+- SQLAlchemy ORM для защиты от SQL injection
+- CSP headers для защиты от XSS
+- Модерация: 150+ паттернов, фильтры мата на 4 языках
+- Rate limiting для защиты от перегрузки
+- HTTPS через Cloudflare Full Strict
+- Секреты только в переменных окружения
 
-**Сообщить об уязвимости:** см. [SECURITY.md](SECURITY.md)
-
----
+Сообщить об уязвимости: см. [SECURITY.md](SECURITY.md)
 
 ## Контакты
 
-- **Сайт:** [pandapal.ru](https://pandapal.ru)
-- **Бот:** [@PandaPalBot](https://t.me/PandaPalBot)
-- **GitHub:** [github.com/gaus-1/pandapal-bot](https://github.com/gaus-1/pandapal-bot)
-
----
-
-<div align="center">
-
-**Сделано для детей и их родителей**
-
-</div>
+- Сайт: https://pandapal.ru
+- Бот: https://t.me/PandaPalBot
+- GitHub: https://github.com/gaus-1/pandapal-bot

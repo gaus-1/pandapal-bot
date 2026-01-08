@@ -1,23 +1,25 @@
 # Integration Tests - Интеграционные тесты
 
-Тесты, которые проверяют работу компонентов вместе с реальными сервисами. Здесь тестируем не отдельные функции, а целые сценарии.
+Тесты, которые проверяют работу компонентов вместе с реальными сервисами. Тестируем целые сценарии.
 
 ## Что тестируем
 
-- Работа с реальной БД (PostgreSQL) - создание пользователей, сохранение данных
-- Интеграция с Yandex Cloud API - реальные запросы к GPT, SpeechKit, Vision
-- Интеграция с YooKassa - тестируем платежи (в тестовом режиме)
-- Работа handlers с aiogram - как бот реагирует на команды
-- Полные пользовательские сценарии - от начала до конца
+- Работа с реальной БД (PostgreSQL)
+- Интеграция с Yandex Cloud API (GPT, SpeechKit, Vision)
+- Интеграция с YooKassa (в тестовом режиме)
+- Работа handlers с aiogram
+- Полные пользовательские сценарии
 
 ## Структура
 
 - `test_*_real.py` - тесты с реальными сервисами
+- `test_foreign_languages_*.py` - тесты обработки иностранных языков
 - `conftest_payment.py` - фикстуры для платежей
 
 ## Примеры
 
 ### Тест с реальной БД
+
 ```python
 import pytest
 from bot.database import get_db
@@ -30,24 +32,24 @@ async def test_user_creation(real_db_session):
         db.add(user)
         db.commit()
 
-        # Проверяем что пользователь создан
-        found = db.query(User).filter_by(telegram_id=123).first()
-        assert found is not None
-        assert found.age == 10
+        assert user.telegram_id == 123
 ```
 
-### Тест с AI API
-```python
-from bot.services.ai_service_solid import YandexAIService
+### Тест AI сервиса
 
+```python
 @pytest.mark.asyncio
 async def test_ai_response():
-    service = YandexAIService()
-    response = await service.generate_response("Привет", user_age=10)
+    from bot.services.ai_service_solid import get_ai_service
 
-    assert response is not None
+    ai_service = get_ai_service()
+    response = await ai_service.generate_response(
+        user_message="Что такое фотосинтез?",
+        user_age=10
+    )
+
     assert len(response) > 0
-    # Проверяем что ответ подходит для детей
+    assert "растение" in response.lower() or "фотосинтез" in response.lower()
 ```
 
 ## Запуск
@@ -56,16 +58,12 @@ async def test_ai_response():
 # Все интеграционные тесты
 pytest tests/integration/ -v
 
-# Конкретный тест
-pytest tests/integration/test_ai_chat_real.py -v
-
-# С покрытием
-pytest tests/integration/ --cov=bot --cov-report=html
+# Только тесты с реальным API
+pytest tests/integration/test_*_real.py -v
 ```
 
 ## Важно
 
-- Используют реальные сервисы - нужны переменные окружения для API
-- Медленнее unit тестов - делают реальные запросы
-- Не должны влиять на production данные - используй тестовую БД
-- Могут быть нестабильными - внешние API могут быть недоступны
+- Эти тесты требуют реальных API ключей в `.env`
+- Они медленнее unit тестов
+- Используют реальные ресурсы (Yandex Cloud)

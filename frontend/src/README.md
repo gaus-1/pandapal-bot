@@ -1,14 +1,14 @@
 # Frontend Source - Исходный код
 
-Исходный код React приложения для PandaPal. Здесь все что видит пользователь в Telegram Mini App.
+Исходный код React приложения для PandaPal. Все что видит пользователь в Telegram Mini App.
 
 ## Структура
 
 ```
 src/
-├── components/     # Переиспользуемые UI компоненты (Header, Footer и т.д.)
+├── components/     # Переиспользуемые UI компоненты
 ├── features/       # Функциональные модули (AIChat, Games, Premium)
-├── services/        # API клиенты и интеграция с Telegram
+├── services/       # API клиенты и интеграция с Telegram
 ├── hooks/          # Кастомные React хуки
 ├── store/          # State management (Zustand)
 ├── types/          # TypeScript типы и интерфейсы
@@ -20,15 +20,13 @@ src/
 ## Features
 
 Каждая фича - отдельный модуль со своим экраном:
-- `AIChat/` - чат с AI ассистентом
+- `AIChat/` - чат с AI ассистентом (streaming ответы через SSE)
 - `Games/` - игры (TicTacToe, Checkers, 2048)
 - `Premium/` - Premium подписка
 - `Donation/` - донаты через Telegram Stars
 - `Emergency/` - экстренные номера
 - `Achievements/` - достижения и статистика
 - `Settings/` - настройки пользователя
-- `Lessons/` - уроки и материалы
-- `Progress/` - прогресс обучения
 
 ## Services
 
@@ -42,8 +40,6 @@ Zustand store в `store/appStore.ts`:
 - Состояние авторизации
 - Настройки приложения
 
-Просто и удобно, без лишней сложности.
-
 ## TypeScript
 
 Строгая типизация везде:
@@ -54,12 +50,12 @@ Zustand store в `store/appStore.ts`:
 ## Стили
 
 Tailwind CSS для стилизации:
-- Utility-first подход - стили прямо в JSX
-- Dark/light темы - автоматическое переключение
-- Адаптивный дизайн - mobile-first, работает на всех устройствах
+- Utility-first подход
+- Dark/light темы
+- Адаптивный дизайн (mobile-first)
 
 ## Тестирование
 
-- Unit тесты рядом с компонентами (`__tests__/`)
+- Unit тесты рядом с компонентами
 - E2E тесты в `frontend/e2e/`
 - Playwright для браузерных тестов

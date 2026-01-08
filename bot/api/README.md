@@ -1,10 +1,10 @@
 # API - HTTP Endpoints
 
-HTTP endpoints для Telegram Mini App и внешних интеграций. Когда пользователь открывает приложение в Telegram, оно обращается к этим endpoints.
+HTTP endpoints для Telegram Mini App и внешних интеграций.
 
-## Что есть
+## Файлы
 
-- `miniapp_endpoints.py` - API для Mini App (AI chat, голос, изображения)
+- `miniapp_endpoints.py` - API для Mini App (AI chat, голос, изображения, streaming)
 - `premium_endpoints.py` - YooKassa webhook, создание платежей
 - `auth_endpoints.py` - Telegram Login Widget, сессии для веб-сайта
 - `games_endpoints.py` - PandaPalGo API (создание игр, ходы, статистика)
@@ -12,7 +12,7 @@ HTTP endpoints для Telegram Mini App и внешних интеграций. 
 - `metrics_endpoint.py` - метрики и мониторинг
 - `validators.py` - Pydantic валидаторы для запросов
 
-## Как регистрируются
+## Регистрация
 
 Endpoints подключаются в `web_server.py`:
 
@@ -25,23 +25,20 @@ setup_miniapp_routes(app)
 ## Примеры
 
 ### Простой endpoint
+
 ```python
 from aiohttp import web
 from bot.api.validators import ChatRequest
 
 async def chat_endpoint(request: web.Request) -> web.Response:
-    # Получаем и валидируем данные
     data = await request.json()
     chat_request = ChatRequest(**data)
-
-    # Обрабатываем
     result = await process_chat(chat_request.message)
-
-    # Возвращаем ответ
     return web.json_response({"response": result})
 ```
 
 ### С авторизацией
+
 Для Mini App нужна проверка авторизации Telegram:
 
 ```python
@@ -51,11 +48,11 @@ async def protected_endpoint(request: web.Request) -> web.Response:
     auth_data = request.headers.get("X-Telegram-Auth")
     if not verify_telegram_auth(auth_data):
         return web.json_response({"error": "Unauthorized"}, status=401)
-
     # Продолжаем работу
 ```
 
 ### С работой с БД
+
 ```python
 from bot.database import get_db
 from bot.models import User
