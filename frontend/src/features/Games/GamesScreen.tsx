@@ -30,7 +30,7 @@ const GAMES = [
     name: 'Шашки',
     icon: '⚫⚪',
     description: 'Играй против панды! Кто первым возьмет все фишки?',
-    color: 'from-purple-500 to-pink-500',
+    color: 'from-blue-500 to-cyan-500',
   },
   {
     id: '2048',

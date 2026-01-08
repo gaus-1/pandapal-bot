@@ -204,7 +204,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
                     }
                     ${
                       isUserMove
-                        ? "ring-2 sm:ring-4 ring-blue-400 ring-opacity-50"
+                        ? "ring-2 sm:ring-4 ring-blue-500 ring-opacity-50"
                         : ""
                     }
                     disabled:opacity-50 disabled:cursor-not-allowed
