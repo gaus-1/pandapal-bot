@@ -89,7 +89,13 @@ class YandexAIResponseGenerator:
         logger.info("✅ Yandex AI Response Generator инициализирован")
 
     async def generate_response(
-        self, user_message: str, chat_history: List[Dict] = None, user_age: Optional[int] = None
+        self,
+        user_message: str,
+        chat_history: List[Dict] = None,
+        user_age: Optional[int] = None,
+        user_name: Optional[str] = None,
+        is_history_cleared: bool = False,
+        message_count_since_name: int = 0,
     ) -> str:
         """
         Генерировать ответ AI на сообщение пользователя.
@@ -126,17 +132,42 @@ class YandexAIResponseGenerator:
             yandex_history = []
             if chat_history:
                 for msg in chat_history[-10:]:  # Последние 10 сообщений
-                    role = "user" if msg.get("is_user") else "assistant"
+                    role = msg.get("role", "user")  # Используем роль напрямую из истории
                     text = msg.get("text", "").strip()
                     if text:  # Только непустые сообщения
                         yandex_history.append({"role": role, "text": text})
 
-            # Формируем system_prompt с учетом возраста и веб-контекста
+            # Формируем system_prompt с учетом возраста, имени и веб-контекста
             enhanced_system_prompt = AI_SYSTEM_PROMPT
+
             if user_age:
                 enhanced_system_prompt += (
                     f"\n\nВажно: Адаптируй ответ под возраст пользователя ({user_age} лет)."
                 )
+
+            # Логика обращения по имени (1 раз в 5-10 сообщений пользователя)
+            # Считаем что если прошло 5-10 сообщений, можно обратиться по имени
+            if user_name and message_count_since_name >= 5:
+                # Обращаемся по имени если прошло 7-10 сообщений, или случайно при 5-6
+                if message_count_since_name >= 7 or (
+                    message_count_since_name >= 5 and random.random() < 0.3
+                ):
+                    enhanced_system_prompt += (
+                        f"\n\nВАЖНО: Обратись к пользователю по имени '{user_name}' в начале ответа. "
+                        f"Используй имя естественно, например: '{user_name}, давай разберём это!' или "
+                        f"'Понял, {user_name}! Сейчас объясню...' "
+                        f"Не злоупотребляй - обращайся по имени только иногда, не в каждом ответе!"
+                    )
+
+            # Если история очищена - уточнить имя
+            if is_history_cleared and not user_name:
+                enhanced_system_prompt += (
+                    "\n\nВАЖНО: История чата была очищена. "
+                    "В начале ответа ПОПРОСИ пользователя назвать своё имя, "
+                    "чтобы ты мог обращаться к нему по имени в будущем. "
+                    "Например: 'Привет! Давай знакомиться! Как тебя зовут? 🐼'"
+                )
+
             if web_context:
                 enhanced_system_prompt += f"\n\nДополнительная информация:\n{web_context}"
 

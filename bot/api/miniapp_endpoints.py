@@ -683,10 +683,22 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 f"📊 Размер истории чата: {history_size} символов, сообщений: {len(history)}"
             )
 
+            # Проверяем, была ли очистка истории (история пустая)
+            is_history_cleared = len(history) == 0
+
+            # Подсчитываем количество сообщений пользователя с последнего обращения по имени
+            # Ищем последнее обращение по имени в истории (простой подсчет)
+            user_message_count = sum(1 for msg in history if msg.get("role") == "user")
+
             # Генерируем ответ AI
             ai_service = get_ai_service()
             ai_response = await ai_service.generate_response(
-                user_message=user_message, chat_history=history, user_age=user.age
+                user_message=user_message,
+                chat_history=history,
+                user_age=user.age,
+                user_name=user.first_name,
+                is_history_cleared=is_history_cleared,
+                message_count_since_name=user_message_count,
             )
             logger.info(f"📊 Размер ответа AI: {len(ai_response)} символов")
 
@@ -715,6 +727,22 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 logger.info(f"💾 Сохраняю сообщение пользователя: {user_message[:50]}...")
                 user_msg = history_service.add_message(telegram_id, user_message, "user")
                 logger.info(f"✅ Сообщение пользователя добавлено в сессию: id={user_msg.id}")
+
+                # Если история была очищена и пользователь, возможно, назвал имя
+                # Простая проверка: короткое сообщение (2-30 символов), только буквы и пробелы
+                if is_history_cleared and not user.first_name:
+                    import re
+
+                    cleaned_message = user_message.strip()
+                    # Убираем знаки препинания в конце
+                    cleaned_message = re.sub(r"[.,!?;:]+$", "", cleaned_message)
+                    # Если сообщение похоже на имя (2-30 символов, буквы и пробелы)
+                    if 2 <= len(cleaned_message) <= 30 and re.match(
+                        r"^[а-яёА-ЯЁa-zA-Z\s-]+$", cleaned_message
+                    ):
+                        # Обновляем имя пользователя
+                        user.first_name = cleaned_message.split()[0]  # Берем первое слово
+                        logger.info(f"✅ Имя пользователя обновлено: {user.first_name}")
 
                 logger.info(f"💾 Сохраняю ответ AI: {full_response[:50]}...")
                 ai_msg = history_service.add_message(telegram_id, full_response, "ai")
@@ -1016,6 +1044,12 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             history_limit = 50 if premium_service.is_premium_active(telegram_id) else 10
             history = history_service.get_formatted_history_for_ai(telegram_id, limit=history_limit)
 
+            # Проверяем, была ли очистка истории (история пустая)
+            is_history_cleared = len(history) == 0
+
+            # Подсчитываем количество сообщений пользователя
+            user_message_count = sum(1 for msg in history if msg.get("role") == "user")
+
             # Отправляем событие начала генерации
             await response.write(b'event: status\ndata: {"status": "generating"}\n\n')
 
@@ -1035,12 +1069,39 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 relevant_materials
             )
 
-            # Формируем system prompt с учетом возраста и веб-контекста
+            # Формируем system prompt с учетом возраста, имени и веб-контекста
             enhanced_system_prompt = AI_SYSTEM_PROMPT
+
             if user.age:
                 enhanced_system_prompt += (
                     f"\n\nВажно: Адаптируй ответ под возраст пользователя ({user.age} лет)."
                 )
+
+            # Логика обращения по имени (1 раз в 5-10 сообщений)
+            import random
+
+            if user.first_name and user_message_count >= 5:
+                # Случайно решаем обращаться по имени (30% шанс при 5-10 сообщениях)
+                should_use_name = (user_message_count >= 7 and user_message_count <= 10) or (
+                    user_message_count == 5 and random.random() < 0.3
+                )
+
+                if should_use_name:
+                    enhanced_system_prompt += (
+                        f"\n\nВАЖНО: Обратись к пользователю по имени '{user.first_name}' в начале ответа. "
+                        f"Используй имя естественно, например: '{user.first_name}, давай разберём это!' или "
+                        f"'Понял, {user.first_name}! Сейчас объясню...'"
+                    )
+
+            # Если история очищена - уточнить имя
+            if is_history_cleared and not user.first_name:
+                enhanced_system_prompt += (
+                    "\n\nВАЖНО: История чата была очищена. "
+                    "В начале ответа ПОПРОСИ пользователя назвать своё имя, "
+                    "чтобы ты мог обращаться к нему по имени в будущем. "
+                    "Например: 'Привет! Давай знакомиться! Как тебя зовут? 🐼'"
+                )
+
             if web_context:
                 enhanced_system_prompt += f"\n\nДополнительная информация:\n{web_context}"
 
@@ -1048,7 +1109,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             yandex_history = []
             if history:
                 for msg in history[-10:]:
-                    role = "user" if msg.get("is_user") else "assistant"
+                    role = msg.get("role", "user")  # Используем роль напрямую
                     text = msg.get("text", "").strip()
                     if text:
                         yandex_history.append({"role": role, "text": text})
@@ -1081,6 +1142,22 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     premium_service.increment_request_count(telegram_id)
                     history_service.add_message(telegram_id, user_message, "user")
                     history_service.add_message(telegram_id, full_response_for_db, "ai")
+
+                    # Если история была очищена и пользователь, возможно, назвал имя
+                    # Простая проверка: короткое сообщение (2-30 символов), только буквы и пробелы
+                    if is_history_cleared and not user.first_name:
+                        import re
+
+                        cleaned_message = user_message.strip()
+                        # Убираем знаки препинания в конце
+                        cleaned_message = re.sub(r"[.,!?;:]+$", "", cleaned_message)
+                        # Если сообщение похоже на имя (2-30 символов, буквы и пробелы)
+                        if 2 <= len(cleaned_message) <= 30 and re.match(
+                            r"^[а-яёА-ЯЁa-zA-Z\s-]+$", cleaned_message
+                        ):
+                            # Обновляем имя пользователя
+                            user.first_name = cleaned_message.split()[0]  # Берем первое слово
+                            logger.info(f"✅ Stream: Имя пользователя обновлено: {user.first_name}")
 
                     # Геймификация
                     unlocked_achievements = []
