@@ -56,7 +56,13 @@ class YandexAIService:
 
     @safe_track_ai_service
     async def generate_response(
-        self, user_message: str, chat_history: List[Dict] = None, user_age: Optional[int] = None
+        self,
+        user_message: str,
+        chat_history: List[Dict] = None,
+        user_age: Optional[int] = None,
+        user_name: Optional[str] = None,
+        is_history_cleared: bool = False,
+        message_count_since_name: int = 0,
     ) -> str:
         """
         Генерация ответа через YandexGPT.
@@ -65,11 +71,21 @@ class YandexAIService:
             user_message: Сообщение пользователя
             chat_history: История чата
             user_age: Возраст пользователя для адаптации
+            user_name: Имя пользователя для обращения
+            is_history_cleared: Флаг очистки истории
+            message_count_since_name: Количество сообщений с последнего обращения по имени
 
         Returns:
             str: Ответ от AI
         """
-        return await self.response_generator.generate_response(user_message, chat_history, user_age)
+        return await self.response_generator.generate_response(
+            user_message,
+            chat_history,
+            user_age,
+            user_name,
+            is_history_cleared,
+            message_count_since_name,
+        )
 
     def get_model_info(self) -> Dict[str, str]:
         """
