@@ -23,13 +23,16 @@ interface AIChatProps {
 }
 
 export function AIChat({ user }: AIChatProps) {
+  // Используем streaming по умолчанию для более быстрых ответов
+  // При ошибке автоматически fallback на обычный режим
   const {
     messages,
     isLoadingHistory,
     sendMessage,
     isSending,
     clearHistory,
-  } = useChat({ telegramId: user.telegram_id, limit: 20 });
+    streamStatus,
+  } = useChat({ telegramId: user.telegram_id, limit: 20, useStreaming: true });
 
   const [inputText, setInputText] = useState('');
   const [replyToMessage, setReplyToMessage] = useState<number | null>(null);
@@ -198,7 +201,12 @@ export function AIChat({ user }: AIChatProps) {
             <div className="bg-white dark:bg-slate-800 rounded-3xl px-5 py-3 shadow-lg border border-gray-200 dark:border-slate-700">
               <div className="flex items-center gap-2">
                 <div className="flex gap-1"><span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></span><span className="w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-100"></span><span className="w-2 h-2 bg-pink-500 rounded-full animate-bounce delay-200"></span></div>
-                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">PandaPal думает...</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  {streamStatus?.status === 'transcribing' ? '🎤 Распознаю голос...' :
+                   streamStatus?.status === 'analyzing_photo' ? '📷 Анализирую фото...' :
+                   streamStatus?.status === 'generating' ? '✨ Генерирую ответ...' :
+                   'PandaPal думает...'}
+                </span>
               </div>
             </div>
           </div>

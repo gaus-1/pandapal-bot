@@ -810,6 +810,354 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
         return web.json_response({"error": f"Internal server error: {str(e)}"}, status=500)
 
 
+async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
+    """
+    Отправить сообщение AI и получить streaming ответ через SSE.
+
+    POST /api/miniapp/ai/chat-stream
+    Body: {
+        "telegram_id": 123,
+        "message": "...",
+        "photo_base64": "data:image/jpeg;base64,...", # опционально
+        "audio_base64": "data:audio/webm;base64,..." # опционально
+    }
+
+    Returns:
+        SSE stream с chunks ответа AI
+    """
+    client_ip = request.remote
+    logger.info(
+        f"📨 Mini App AI Chat Stream запрос от IP: {client_ip}, метод: {request.method}, путь: {request.path_qs}"
+    )
+
+    # Создаем SSE response
+    response = web.StreamResponse()
+    response.headers["Content-Type"] = "text/event-stream"
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["Connection"] = "keep-alive"
+    response.headers["X-Accel-Buffering"] = "no"  # Отключаем буферизацию в nginx
+
+    try:
+        await response.prepare(request)
+
+        # Читаем данные запроса
+        try:
+            data = await request.json()
+            logger.info(
+                f"📦 Stream: получен JSON запрос: telegram_id={data.get('telegram_id')}, "
+                f"has_message={bool(data.get('message'))}, "
+                f"has_photo={bool(data.get('photo_base64'))}, "
+                f"has_audio={bool(data.get('audio_base64'))}"
+            )
+        except Exception as json_error:
+            logger.error(f"❌ Stream: ошибка парсинга JSON: {json_error}", exc_info=True)
+            await response.write(b'event: error\ndata: {"error": "Invalid JSON"}\n\n')
+            return response
+
+        # Валидация входных данных
+        try:
+            validated = AIChatRequest(**data)
+        except ValidationError as e:
+            logger.warning(f"⚠️ Stream: Invalid request: {e}")
+            await response.write(b'event: error\ndata: {"error": "Invalid request data"}\n\n')
+            return response
+
+        telegram_id = validated.telegram_id
+        message = validated.message or ""
+        photo_base64 = validated.photo_base64
+        audio_base64 = validated.audio_base64
+        user_message = message
+
+        # Отправляем событие начала обработки
+        await response.write(b'event: start\ndata: {"status": "processing"}\n\n')
+
+        # Обработка аудио (приоритетнее фото)
+        if audio_base64:
+            try:
+                logger.info(f"🎤 Stream: Обработка голосового сообщения от {telegram_id}")
+
+                # Отправляем событие обработки аудио
+                await response.write(b'event: status\ndata: {"status": "transcribing"}\n\n')
+
+                # Убираем data:audio/...;base64, префикс
+                if "base64," in audio_base64:
+                    audio_base64 = audio_base64.split("base64,")[1]
+
+                MAX_AUDIO_BASE64_SIZE = 14 * 1024 * 1024  # 14MB
+                if len(audio_base64) > MAX_AUDIO_BASE64_SIZE:
+                    error_msg = 'event: error\ndata: {"error": "Аудио слишком большое"}\n\n'
+                    await response.write(error_msg.encode("utf-8"))
+                    return response
+
+                audio_bytes = base64.b64decode(audio_base64)
+
+                if len(audio_bytes) > 10 * 1024 * 1024:  # 10MB
+                    error_msg = 'event: error\ndata: {"error": "Аудио слишком большое"}\n\n'
+                    await response.write(error_msg.encode("utf-8"))
+                    return response
+
+                speech_service = get_speech_service()
+                transcribed_text = await speech_service.transcribe_voice(audio_bytes, language="ru")
+
+                if not transcribed_text or not transcribed_text.strip():
+                    error_msg = 'event: error\ndata: {"error": "Не удалось распознать речь"}\n\n'
+                    await response.write(error_msg.encode("utf-8"))
+                    return response
+
+                # Определяем язык и переводим если нужно
+                translate_service = get_translate_service()
+                detected_lang = await translate_service.detect_language(transcribed_text)
+
+                if (
+                    detected_lang
+                    and detected_lang != "ru"
+                    and detected_lang in translate_service.SUPPORTED_LANGUAGES
+                ):
+                    lang_name = translate_service.get_language_name(detected_lang)
+                    translated_text = await translate_service.translate_text(
+                        transcribed_text, target_language="ru", source_language=detected_lang
+                    )
+                    if translated_text:
+                        user_message = (
+                            f"🌍 Вижу, что ты сказал на {lang_name}!\n\n"
+                            f"📝 Оригинал: {transcribed_text}\n"
+                            f"🇷🇺 Перевод: {translated_text}\n\n"
+                            f"Объясни этот перевод и помоги понять грамматику простыми словами для ребенка."
+                        )
+                    else:
+                        user_message = transcribed_text
+                else:
+                    user_message = transcribed_text
+
+                logger.info(f"✅ Stream: Аудио распознано: {transcribed_text[:100]}")
+                await response.write(b'event: status\ndata: {"status": "transcribed"}\n\n')
+
+            except Exception as e:
+                logger.error(f"❌ Stream: Ошибка обработки аудио: {e}", exc_info=True)
+                await response.write(
+                    f'event: error\ndata: {{"error": "Ошибка обработки аудио: {str(e)}"}}\n\n'.encode()
+                )
+                return response
+
+        # Обработка фото
+        if photo_base64:
+            try:
+                logger.info(f"📷 Stream: Обработка фото от {telegram_id}")
+
+                # Отправляем событие обработки фото
+                await response.write(b'event: status\ndata: {"status": "analyzing_photo"}\n\n')
+
+                # Убираем data:image/...;base64, префикс
+                if "base64," in photo_base64:
+                    photo_base64 = photo_base64.split("base64,")[1]
+
+                photo_bytes = base64.b64decode(photo_base64)
+
+                with get_db() as db:
+                    user_service = UserService(db)
+                    user = user_service.get_user_by_telegram_id(telegram_id)
+
+                    if not user:
+                        await response.write(b'event: error\ndata: {"error": "User not found"}\n\n')
+                        return response
+
+                    vision_service = VisionService()
+                    vision_result = await vision_service.analyze_image(
+                        image_data=photo_bytes,
+                        user_message=message or "Помоги мне разобраться с этой задачей",
+                        user_age=user.age,
+                    )
+
+                    user_message = f"[Фото с заданием]\n{vision_result.analysis}"
+                    logger.info("✅ Stream: Фото проанализировано")
+                    await response.write(b'event: status\ndata: {"status": "photo_analyzed"}\n\n')
+
+            except Exception as e:
+                logger.error(f"❌ Stream: Ошибка обработки фото: {e}", exc_info=True)
+                await response.write(
+                    f'event: error\ndata: {{"error": "Ошибка обработки фото: {str(e)}"}}\n\n'.encode()
+                )
+                return response
+
+        # Если нет ни фото ни аудио - должно быть текстовое сообщение
+        if not user_message or not user_message.strip():
+            await response.write(
+                b'event: error\ndata: {"error": "message, photo or audio required"}\n\n'
+            )
+            return response
+
+        with get_db() as db:
+            user_service = UserService(db)
+            history_service = ChatHistoryService(db)
+
+            user = user_service.get_user_by_telegram_id(telegram_id)
+            if not user:
+                await response.write(b'event: error\ndata: {"error": "User not found"}\n\n')
+                return response
+
+            # Проверка Premium
+            from bot.services.premium_features_service import PremiumFeaturesService
+
+            premium_service = PremiumFeaturesService(db)
+            can_request, limit_reason = premium_service.can_make_ai_request(
+                telegram_id, username=user.username
+            )
+
+            if not can_request:
+                logger.warning(
+                    f"🚫 Stream: AI запрос заблокирован для user={telegram_id}: {limit_reason}"
+                )
+                await response.write(
+                    f'event: error\ndata: {{"error": "{limit_reason}", "error_code": "RATE_LIMIT_EXCEEDED"}}\n\n'.encode()
+                )
+                return response
+
+            # Загружаем историю
+            history_limit = 50 if premium_service.is_premium_active(telegram_id) else 10
+            history = history_service.get_formatted_history_for_ai(telegram_id, limit=history_limit)
+
+            # Отправляем событие начала генерации
+            await response.write(b'event: status\ndata: {"status": "generating"}\n\n')
+
+            # Получаем AI service для streaming
+            ai_service = get_ai_service()
+            response_generator = ai_service.response_generator
+            yandex_service = response_generator.yandex_service
+
+            # Получаем веб-контекст (как в обычном generate_response)
+            from bot.config import settings
+            from bot.config.prompts import AI_SYSTEM_PROMPT
+
+            relevant_materials = await response_generator.knowledge_service.get_helpful_content(
+                user_message, user.age
+            )
+            web_context = response_generator.knowledge_service.format_knowledge_for_ai(
+                relevant_materials
+            )
+
+            # Формируем system prompt с учетом возраста и веб-контекста
+            enhanced_system_prompt = AI_SYSTEM_PROMPT
+            if user.age:
+                enhanced_system_prompt += (
+                    f"\n\nВажно: Адаптируй ответ под возраст пользователя ({user.age} лет)."
+                )
+            if web_context:
+                enhanced_system_prompt += f"\n\nДополнительная информация:\n{web_context}"
+
+            # Преобразуем историю в формат Yandex
+            yandex_history = []
+            if history:
+                for msg in history[-10:]:
+                    role = "user" if msg.get("is_user") else "assistant"
+                    text = msg.get("text", "").strip()
+                    if text:
+                        yandex_history.append({"role": role, "text": text})
+
+            # Отправляем chunks через streaming
+            full_response = ""
+            try:
+                async for chunk in yandex_service.generate_text_response_stream(
+                    user_message=user_message,
+                    chat_history=yandex_history,
+                    system_prompt=enhanced_system_prompt,
+                    temperature=settings.ai_temperature,
+                    max_tokens=settings.ai_max_tokens,
+                ):
+                    full_response += chunk
+                    # Отправляем chunk через SSE
+                    import json as json_lib
+
+                    chunk_data = json_lib.dumps({"chunk": chunk}, ensure_ascii=False)
+                    await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode("utf-8"))
+
+                # Ограничиваем размер полного ответа
+                MAX_RESPONSE_LENGTH = 4000
+                full_response_for_db = full_response
+                if len(full_response) > MAX_RESPONSE_LENGTH:
+                    full_response = full_response[:MAX_RESPONSE_LENGTH] + "\n\n... (ответ обрезан)"
+
+                # Сохраняем в историю
+                try:
+                    premium_service.increment_request_count(telegram_id)
+                    history_service.add_message(telegram_id, user_message, "user")
+                    history_service.add_message(telegram_id, full_response_for_db, "ai")
+
+                    # Геймификация
+                    unlocked_achievements = []
+                    try:
+                        from bot.services.gamification_service import GamificationService
+
+                        gamification_service = GamificationService(db)
+                        unlocked_achievements = gamification_service.process_message(
+                            telegram_id, user_message
+                        )
+                    except Exception as e:
+                        logger.error(f"❌ Stream: Ошибка геймификации: {e}", exc_info=True)
+
+                    db.commit()
+
+                    # Отправляем информацию о достижениях если есть
+                    if unlocked_achievements:
+                        try:
+                            import json as json_lib
+
+                            from bot.services.gamification_service import ALL_ACHIEVEMENTS
+
+                            achievement_info = []
+                            for achievement_id in unlocked_achievements:
+                                achievement = next(
+                                    (a for a in ALL_ACHIEVEMENTS if a.id == achievement_id), None
+                                )
+                                if achievement:
+                                    achievement_info.append(
+                                        {
+                                            "id": achievement.id,
+                                            "title": achievement.title,
+                                            "description": achievement.description,
+                                            "icon": achievement.icon,
+                                            "xp_reward": achievement.xp_reward,
+                                        }
+                                    )
+                            if achievement_info:
+                                chunk_data = json_lib.dumps(
+                                    {"achievements": achievement_info}, ensure_ascii=False
+                                )
+                                await response.write(
+                                    f"event: achievements\ndata: {chunk_data}\n\n".encode("utf-8")
+                                )
+                        except Exception as e:
+                            logger.error(f"❌ Stream: Ошибка формирования достижений: {e}")
+
+                except Exception as save_error:
+                    logger.error(f"❌ Stream: Ошибка сохранения: {save_error}", exc_info=True)
+                    db.rollback()
+
+                # Отправляем событие завершения
+                await response.write(b'event: done\ndata: {"status": "completed"}\n\n')
+                logger.info(f"✅ Stream: Streaming завершен для {telegram_id}")
+
+            except Exception as stream_error:
+                logger.error(f"❌ Stream: Ошибка streaming: {stream_error}", exc_info=True)
+                error_msg = 'event: error\ndata: {"error": "Ошибка генерации ответа"}\n\n'
+                await response.write(error_msg.encode("utf-8"))
+                return response
+
+    except Exception as e:
+        logger.error(f"❌ Stream: Критическая ошибка: {e}", exc_info=True)
+        try:
+            error_msg = 'event: error\ndata: {"error": "Внутренняя ошибка сервера"}\n\n'
+            await response.write(error_msg.encode("utf-8"))
+        except Exception:
+            pass
+    finally:
+        try:
+            await response.write_eof()
+        except Exception:
+            pass
+
+    return response
+
+
 async def miniapp_get_chat_history(request: web.Request) -> web.Response:
     """
     Получить историю чата.
@@ -1205,6 +1553,7 @@ def setup_miniapp_routes(app: web.Application) -> None:
 
     # AI чат
     app.router.add_post("/api/miniapp/ai/chat", miniapp_ai_chat)
+    app.router.add_post("/api/miniapp/ai/chat-stream", miniapp_ai_chat_stream)  # Streaming endpoint
     app.router.add_get("/api/miniapp/chat/history/{telegram_id}", miniapp_get_chat_history)
     app.router.add_delete("/api/miniapp/chat/history/{telegram_id}", miniapp_clear_chat_history)
 
