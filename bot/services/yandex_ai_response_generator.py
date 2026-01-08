@@ -71,20 +71,35 @@ class YandexAIResponseGenerator:
     Модерация и контекст делегируются через Dependency Injection (SOLID).
     """
 
-    def __init__(self, moderator: IModerator, context_builder: IContextBuilder):
+    def __init__(
+        self,
+        moderator: IModerator,
+        context_builder: IContextBuilder,
+        knowledge_service=None,  # type: ignore
+        yandex_service=None,  # type: ignore
+    ):
         """
         Инициализация генератора ответов.
 
         Args:
             moderator: Сервис модерации контента.
             context_builder: Сервис построения контекста.
+            knowledge_service: Опционально - сервис знаний (для DI).
+                Если None, используется глобальный синглтон.
+            yandex_service: Опционально - Yandex Cloud сервис (для DI).
+                Если None, используется глобальный синглтон.
         """
         self.moderator = moderator
         self.context_builder = context_builder
-        self.knowledge_service = get_knowledge_service()
 
-        # Инициализация Yandex Cloud сервиса
-        self.yandex_service = get_yandex_cloud_service()
+        # Dependency Injection: используем переданные сервисы или глобальные синглтоны
+        # Это позволяет тестировать с моками и улучшает соблюдение DIP
+        self.knowledge_service = (
+            knowledge_service if knowledge_service is not None else get_knowledge_service()
+        )
+        self.yandex_service = (
+            yandex_service if yandex_service is not None else get_yandex_cloud_service()
+        )
 
         logger.info("✅ Yandex AI Response Generator инициализирован")
 
