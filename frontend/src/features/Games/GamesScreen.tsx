@@ -100,7 +100,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
 
   if (selectedGame && sessionId) {
     return (
-      <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
+      <div className="w-full h-full bg-white dark:bg-slate-900 overflow-y-auto">
         {selectedGame === 'tic_tac_toe' && (
           <TicTacToe
             sessionId={sessionId}
@@ -130,15 +130,15 @@ export function GamesScreen({ user }: GamesScreenProps) {
   }
 
   return (
-    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] flex flex-col">
+    <div className="w-full h-full bg-white dark:bg-slate-900 flex flex-col">
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Заголовок */}
         <div className="text-center mb-3">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--tg-theme-text-color)] mb-1">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-1">
             🎮 PandaPalGo
           </h1>
-          <p className="text-xs sm:text-sm md:text-base text-[var(--tg-theme-hint-color)] leading-tight">
+          <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400 leading-tight">
             Играй с пандой и зарабатывай достижения!
           </p>
         </div>
@@ -206,25 +206,25 @@ export function GamesScreen({ user }: GamesScreenProps) {
 
         {/* Общая статистика */}
         {Object.keys(stats).length > 0 && (
-          <div className="mt-4 p-3 bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-lg border border-[var(--tg-theme-hint-color)]/20">
-            <h2 className="text-base sm:text-lg md:text-xl font-bold text-[var(--tg-theme-text-color)] mb-2">
+          <div className="mt-4 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">
               📊 Твоя статистика
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {Object.values(stats).map((stat) => (
                 <div
                   key={stat.game_type}
-                  className="p-2 bg-[var(--tg-theme-bg-color)] rounded-lg"
+                  className="p-2 bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700"
                 >
-                  <div className="text-xs sm:text-sm text-[var(--tg-theme-hint-color)] mb-1">
+                  <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-1">
                     {stat.game_type === 'tic_tac_toe' && '❌⭕ Крестики-нолики'}
                     {stat.game_type === 'checkers' && '⚫⚪ Шашки'}
                     {stat.game_type === '2048' && '🔢 2048'}
                   </div>
-                  <div className="text-sm sm:text-base font-bold text-[var(--tg-theme-text-color)]">
+                  <div className="text-sm sm:text-base font-bold text-gray-900 dark:text-slate-100">
                     {stat.wins} побед
                   </div>
-                  <div className="text-xs sm:text-sm text-[var(--tg-theme-hint-color)]">
+                  <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">
                     {stat.total_games} игр • {stat.win_rate}% побед
                   </div>
                 </div>
@@ -236,27 +236,27 @@ export function GamesScreen({ user }: GamesScreenProps) {
       </div>
 
       {/* Нижняя навигация */}
-      <nav className="flex-shrink-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg safe-area-inset-bottom">
+      <nav className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom">
         <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
           <button
             onClick={() => {
               telegram.hapticFeedback('light');
               setCurrentScreen('ai-chat');
             }}
-            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors touch-manipulation min-h-[60px]"
+            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors touch-manipulation min-h-[60px]"
           >
             <span className="text-2xl">💬</span>
-            <span className="text-xs font-medium text-[var(--tg-theme-text-color)]">Чат</span>
+            <span className="text-xs font-medium text-gray-900 dark:text-slate-100">Чат</span>
           </button>
           <button
             onClick={() => {
               telegram.hapticFeedback('light');
               setCurrentScreen('premium');
             }}
-            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors touch-manipulation min-h-[60px]"
+            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors touch-manipulation min-h-[60px]"
           >
             <span className="text-2xl">👑</span>
-            <span className="text-xs font-medium text-[var(--tg-theme-text-color)]">Premium</span>
+            <span className="text-xs font-medium text-gray-900 dark:text-slate-100">Premium</span>
           </button>
         </div>
       </nav>

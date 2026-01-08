@@ -141,18 +141,18 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
   };
 
   return (
-    <div className="w-full h-full bg-[var(--tg-theme-bg-color)] overflow-y-auto">
+    <div className="w-full h-full bg-white dark:bg-slate-900 overflow-y-auto">
       <div className="max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Заголовок */}
         <div className="flex items-center justify-between mb-2">
           <button
             onClick={onBack}
-            className="p-2.5 sm:p-3 rounded-lg bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-2.5 sm:p-3 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
             aria-label="Назад"
           >
             ← Назад
           </button>
-          <h2 className="text-xl sm:text-2xl font-bold text-[var(--tg-theme-text-color)]">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-100">
             ❌⭕ Крестики-нолики
           </h2>
           <div className="w-10 sm:w-12" />
@@ -165,7 +165,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
               <PandaReaction mood={winner === "user" ? "sad" : "happy"} />
             </div>
           )}
-          <div className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--tg-theme-text-color)] mb-0">
+          <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-100 mb-0">
             {getStatusMessage()}
           </div>
           {error && (
@@ -174,7 +174,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] rounded-xl p-1 mb-4 w-full max-w-[260px] mx-auto">
+        <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 mb-4 w-full max-w-[260px] mx-auto border border-gray-200 dark:border-slate-700">
           <div className="grid grid-cols-3 gap-0.5 w-full">
             {Array.from({ length: 9 }).map((_, index) => {
               const content = getSquareContent(index);
@@ -194,8 +194,8 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
                     w-full
                     ${
                       isEmpty && !gameOver && !isLoading
-                        ? "bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] hover:opacity-80 active:scale-95"
-                        : "bg-[var(--tg-theme-bg-color)] text-[var(--tg-theme-text-color)]"
+                        ? "bg-blue-500 dark:bg-blue-600 text-white hover:opacity-80 active:scale-95"
+                        : "bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100"
                     }
                     ${
                       isAiMove
@@ -225,7 +225,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
 
         {/* Инструкция */}
         {!gameOver && (
-          <div className="text-center text-xs sm:text-sm text-[var(--tg-theme-hint-color)] max-w-[260px] mx-auto px-2">
+          <div className="text-center text-xs sm:text-sm text-gray-600 dark:text-slate-400 max-w-[260px] mx-auto px-2">
             <p>Ты играешь ❌, панда играет ⭕</p>
             <p className="mt-1">Нажми на клетку, чтобы сделать ход</p>
           </div>
@@ -236,7 +236,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
           <div className="text-center space-y-3">
             <button
               onClick={onBack}
-              className="px-6 py-3 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px]"
+              className="px-6 py-3 bg-blue-500 dark:bg-blue-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px]"
             >
               Вернуться к играм
             </button>

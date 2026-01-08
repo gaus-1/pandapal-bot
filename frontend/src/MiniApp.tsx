@@ -196,7 +196,7 @@ function MiniAppContent() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-[var(--tg-theme-bg-color)] overflow-hidden">
+    <div className="h-screen flex flex-col bg-white dark:bg-slate-900 overflow-hidden">
       {/* Основной контент с Suspense для lazy loading */}
       <div className="flex-1 overflow-hidden">
         <Suspense fallback={<LoadingFallback />}>
@@ -211,7 +211,7 @@ function MiniAppContent() {
 
       {/* Нижняя навигация - фиксированная */}
       {currentScreen === 'ai-chat' ? (
-        <nav className="flex-shrink-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
+        <nav className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
           <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
             <NavButton
               icon="🏆"
@@ -234,7 +234,7 @@ function MiniAppContent() {
           </div>
         </nav>
       ) : currentScreen === 'games' ? null : (
-        <nav className="flex-shrink-0 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/30 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
+        <nav className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
           <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
             <NavButton
               icon="💬"
@@ -286,8 +286,8 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
       onClick={onClick}
       className={`flex-1 flex flex-col items-center justify-center gap-0.5 sm:gap-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-lg sm:rounded-xl transition-all min-w-0 min-h-[60px] sm:min-h-[70px] touch-manipulation ${
         isActive
-          ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] font-semibold shadow-md'
-          : 'text-[var(--tg-theme-text-color)] bg-[var(--tg-theme-secondary-bg-color,var(--tg-theme-bg-color))] hover:bg-[var(--tg-theme-hint-color)]/10 active:bg-[var(--tg-theme-hint-color)]/20 active:scale-95 font-medium'
+          ? 'bg-blue-500 dark:bg-blue-600 text-white font-semibold shadow-md'
+          : 'text-gray-900 dark:text-slate-100 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 active:scale-95 font-medium'
       }`}
       aria-label={label}
       aria-current={isActive ? 'page' : undefined}
