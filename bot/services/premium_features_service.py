@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 from loguru import logger
 from sqlalchemy.orm import Session
 
+from bot.config import settings
 from bot.services.subscription_service import SubscriptionService
 
 
@@ -36,6 +37,31 @@ class PremiumFeaturesService:
         self.db = db
         self.subscription_service = SubscriptionService(db)
 
+    def is_admin(self, telegram_id: int, username: Optional[str] = None) -> bool:
+        """
+        Проверка, является ли пользователь админом.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+            username: Username пользователя (опционально, для проверки)
+
+        Returns:
+            bool: True если пользователь админ
+        """
+        if not username:
+            # Получаем username из БД
+            from bot.models import User
+
+            user = self.db.query(User).filter(User.telegram_id == telegram_id).first()
+            if user and user.username:
+                username = user.username
+
+        if username:
+            admin_list = settings.get_admin_usernames_list()
+            return username.lower() in admin_list
+
+        return False
+
     def is_premium_active(self, telegram_id: int) -> bool:
         """
         Проверка активной Premium подписки.
@@ -61,7 +87,9 @@ class PremiumFeaturesService:
         subscription = self.subscription_service.get_active_subscription(telegram_id)
         return subscription.plan_id if subscription else None
 
-    def can_make_ai_request(self, telegram_id: int) -> tuple[bool, Optional[str]]:
+    def can_make_ai_request(
+        self, telegram_id: int, username: Optional[str] = None
+    ) -> tuple[bool, Optional[str]]:
         """
         Проверка возможности сделать AI запрос.
 
@@ -70,10 +98,15 @@ class PremiumFeaturesService:
 
         Args:
             telegram_id: Telegram ID пользователя
+            username: Username пользователя (опционально, для проверки админа)
 
         Returns:
             tuple[bool, Optional[str]]: (разрешено, причина отказа)
         """
+        # Админы - неограниченные запросы
+        if self.is_admin(telegram_id, username):
+            return True, None
+
         if self.is_premium_active(telegram_id):
             # Premium пользователи - неограниченные запросы
             return True, None
@@ -163,17 +196,24 @@ class PremiumFeaturesService:
 
         self.db.flush()
 
-    def can_access_subject(self, telegram_id: int, subject_id: str) -> tuple[bool, Optional[str]]:
+    def can_access_subject(
+        self, telegram_id: int, subject_id: str, username: Optional[str] = None
+    ) -> tuple[bool, Optional[str]]:
         """
         Проверка доступа к предмету.
 
         Args:
             telegram_id: Telegram ID пользователя
             subject_id: ID предмета
+            username: Username пользователя (опционально, для проверки админа)
 
         Returns:
             tuple[bool, Optional[str]]: (разрешено, причина отказа)
         """
+        # Админы - доступ ко всем предметам
+        if self.is_admin(telegram_id, username):
+            return True, None
+
         if self.is_premium_active(telegram_id):
             # Premium пользователи - доступ ко всем предметам
             return True, None

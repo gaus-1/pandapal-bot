@@ -200,7 +200,9 @@ async def handle_ai_message(message: Message, state: FSMContext):
             from bot.services.premium_features_service import PremiumFeaturesService
 
             premium_service = PremiumFeaturesService(db)
-            can_request, limit_reason = premium_service.can_make_ai_request(telegram_id)
+            can_request, limit_reason = premium_service.can_make_ai_request(
+                telegram_id, username=message.from_user.username
+            )
 
             if not can_request:
                 logger.warning(f"🚫 AI запрос заблокирован для user={telegram_id}: {limit_reason}")
