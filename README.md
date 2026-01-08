@@ -1,6 +1,14 @@
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/gaus-1/pandapal-bot/main/frontend/public/logo.png" alt="PandaPal Logo" width="200">
+
 # PandaPal
 
 Образовательная платформа для школьников 1-9 классов с Telegram-ботом и веб-приложением. Помогает детям учиться по всем предметам с защитой от небезопасного контента.
+
+[🌐 Сайт](https://pandapal.ru) • [🤖 Telegram Бот](https://t.me/PandaPalBot) • [📦 GitHub](https://github.com/gaus-1/pandapal-bot)
+
+</div>
 
 ## О проекте
 
@@ -46,6 +54,9 @@ PandaPal/
 │   ├── api/                # HTTP endpoints для Mini App
 │   ├── config/             # Настройки, промпты, паттерны модерации
 │   ├── security/           # Middleware, валидация, rate limiting
+│   ├── monitoring/         # Метрики, мониторинг (Prometheus, Sentry)
+│   ├── interfaces.py       # Интерфейсы сервисов (SOLID)
+│   ├── decorators.py       # Декораторы для логирования и мониторинга
 │   ├── models.py           # SQLAlchemy модели БД
 │   └── database.py         # Подключение к PostgreSQL
 ├── frontend/               # React веб-приложение
@@ -53,21 +64,32 @@ PandaPal/
 │   │   ├── components/     # UI компоненты
 │   │   ├── features/       # Основные фичи (AIChat, Premium, Games)
 │   │   └── services/       # API клиенты
-│   └── public/             # Статические файлы
+│   └── public/             # Статические файлы (logo.png, manifest.json)
 ├── tests/                  # Тесты (unit, integration, e2e, security)
 ├── alembic/                # Миграции БД
-└── scripts/                # Утилиты
+├── scripts/                # Утилиты
+├── web_server.py           # Entry point (aiohttp + aiogram webhook)
+└── frontend_server.py      # Dev сервер для frontend
 ```
 
 ## Архитектура
 
 ### Entry Point
 - `web_server.py` — aiohttp сервер с webhook для Telegram, раздача frontend
+  - `PandaPalBotServer` — класс сервера с разделением ответственности (SRP)
+  - `_setup_app_base()` — базовая инициализация приложения
+  - `_setup_middleware()` — настройка security middleware
+  - `_setup_health_endpoints()` — health check endpoints
+  - `_setup_api_routes()` — регистрация API маршрутов
+  - `_setup_frontend_static()` — раздача статических файлов frontend
+  - `_setup_webhook_handler()` — обработчик webhook от Telegram
 
-### Services
-- `ai_service_solid.py` — главный AI сервис через Yandex Cloud
-- `yandex_ai_response_generator.py` — генерация ответов с учетом контекста
-- `moderation_service.py` — фильтрация контента (150+ паттернов)
+### Services (SOLID Architecture)
+- `interfaces.py` — интерфейсы сервисов (IUserService, IModerationService, IAIService)
+- `ai_service_solid.py` — главный AI сервис через Yandex Cloud (Facade паттерн)
+- `yandex_ai_response_generator.py` — генерация ответов с Dependency Injection
+- `moderation_service.py` — фильтрация контента (150+ паттернов), реализует IModerationService
+- `user_service.py` — управление пользователями, реализует IUserService
 - `payment_service.py` — интеграция с YooKassa
 - `games_service.py` — логика игр PandaPalGo
 - `gamification_service.py` — достижения, уровни, XP
