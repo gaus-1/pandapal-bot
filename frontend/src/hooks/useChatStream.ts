@@ -13,7 +13,6 @@ import { queryKeys } from '../lib/queryClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { telegram } from '../services/telegram';
 import type { ChatMessage } from './useChat';
-import type { AchievementUnlocked } from '../services/api';
 
 interface UseChatStreamOptions {
   telegramId: number;
@@ -181,15 +180,8 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                     }
                   );
                 } else if (eventType === 'achievements' && data.achievements) {
-                  // Получены достижения
-                  (data.achievements as AchievementUnlocked[]).forEach((achievement) => {
-                    telegram.showPopup({
-                      title: `🏆 Новое достижение!`,
-                      message: `${achievement.icon} ${achievement.title}\n\n${achievement.description}\n\n+${achievement.xp_reward} XP 🎉`,
-                      buttons: [{ type: 'close', text: 'Отлично!' }],
-                    });
-                    telegram.hapticFeedback('heavy');
-                  });
+                  // Достижения получены, но не показываем popup в чате
+                  // (достижения можно посмотреть в разделе "Достижения")
                 } else if (eventType === 'error' && data.error) {
                   throw new Error(data.error);
                 } else if (eventType === 'done') {
