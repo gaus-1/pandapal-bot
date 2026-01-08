@@ -25,7 +25,7 @@ if sys.platform == "win32":
 root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir))
 
-from sqlalchemy import create_engine, func, select, text
+from sqlalchemy import create_engine, func, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from bot.config import settings
