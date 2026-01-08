@@ -1,5 +1,5 @@
 /**
- * AI Chat Screen - Общение с AI (финальная правка)
+ * AI Chat Screen - Общение с AI (фикс UI блокировки)
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -176,13 +176,11 @@ export function AIChat({ user }: AIChatProps) {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      // Выбираем формат: webm для большинства, fallback на default
+      // Пробуем стандартный webm
       let mimeType = '';
       if (MediaRecorder.isTypeSupported('audio/webm')) {
         mimeType = 'audio/webm';
       }
-      // Если mp4 поддерживается лучше на конкретном устройстве (редко), можно добавить,
-      // но сейчас попробуем стандартный webm или пустую строку.
 
       const options = mimeType ? { mimeType } : undefined;
       const mediaRecorder = new MediaRecorder(stream, options);
@@ -207,18 +205,17 @@ export function AIChat({ user }: AIChatProps) {
         if (recordingDuration < 200 && totalSize === 0) {
           console.error('❌ Мгновенный сбой рекордера');
           telegram.notifyError();
-          telegram.showAlert('Ошибка записи на этом устройстве. Попробуйте обновить Telegram или использовать стандартное приложение.');
-          stopRecordingCleanup();
+          telegram.showAlert('Ошибка записи на этом устройстве. Попробуйте обновить Telegram.');
+          stopRecordingCleanup(); // РАЗБЛОКИРОВКА UI
           return;
         }
 
-        // 2. Слишком короткая запись (пользователь быстро отпустил)
+        // 2. Слишком короткая запись
         if (recordingDuration < MIN_DURATION || totalSize < MIN_SIZE) {
           console.warn('⚠️ Запись слишком короткая');
-          // Показываем алерт пользователю, чтобы он понимал, почему сброс
           telegram.hapticFeedback('light');
-          telegram.showAlert('Запись слишком короткая. Удерживай кнопку микрофона дольше (полсекунды).');
-          stopRecordingCleanup();
+          telegram.showAlert('Запись слишком короткая. Удерживай кнопку дольше.');
+          stopRecordingCleanup(); // РАЗБЛОКИРОВКА UI
           return;
         }
 
@@ -234,11 +231,14 @@ export function AIChat({ user }: AIChatProps) {
             ...(inputText.trim() ? { message: inputText.trim() } : {}),
           });
           setInputText('');
+          stopRecordingCleanup(); // КРИТИЧЕСКИ: Разблокируем UI ПОСЛЕ отправки
         };
+
         reader.onerror = () => {
           telegram.showAlert('Ошибка обработки аудио');
-          stopRecordingCleanup();
+          stopRecordingCleanup(); // Разблокировка при ошибке чтения
         };
+
         reader.readAsDataURL(audioBlob);
       };
 
@@ -267,7 +267,6 @@ export function AIChat({ user }: AIChatProps) {
 
   const handleVoiceStop = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      // Останавливаем рекордер, сработает onstop
       mediaRecorderRef.current.stop();
     }
   };
