@@ -287,7 +287,7 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
       className={`flex-1 flex flex-col items-center justify-center gap-0.5 sm:gap-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-lg sm:rounded-xl transition-all min-w-0 min-h-[60px] sm:min-h-[70px] touch-manipulation ${
         isActive
           ? 'bg-blue-500 dark:bg-blue-600 text-white font-semibold shadow-md'
-          : 'text-gray-900 dark:text-slate-100 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 active:scale-95 font-medium'
+          : 'text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 active:scale-95 font-medium border border-gray-200 dark:border-slate-700'
       }`}
       aria-label={label}
       aria-current={isActive ? 'page' : undefined}

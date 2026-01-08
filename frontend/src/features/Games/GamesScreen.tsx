@@ -243,7 +243,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
               telegram.hapticFeedback('light');
               setCurrentScreen('ai-chat');
             }}
-            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors touch-manipulation min-h-[60px]"
+            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors touch-manipulation min-h-[60px] border border-gray-200 dark:border-slate-700"
           >
             <span className="text-2xl">💬</span>
             <span className="text-xs font-medium text-gray-900 dark:text-slate-100">Чат</span>
@@ -253,7 +253,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
               telegram.hapticFeedback('light');
               setCurrentScreen('premium');
             }}
-            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors touch-manipulation min-h-[60px]"
+            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors touch-manipulation min-h-[60px] border border-gray-200 dark:border-slate-700"
           >
             <span className="text-2xl">👑</span>
             <span className="text-xs font-medium text-gray-900 dark:text-slate-100">Premium</span>
