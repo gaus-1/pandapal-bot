@@ -195,19 +195,19 @@ export function AIChat({ user }: AIChatProps) {
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-blue-50 via-white to-pink-50 dark:from-slate-900 dark:to-slate-800">
       {/* Заголовок */}
-      <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-cyan-500 shadow-sm p-1.5 sm:p-2 border-b border-blue-500/30">
+      <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-slate-800 dark:to-slate-700 shadow-sm p-1.5 sm:p-2 border-b border-blue-500/30 dark:border-slate-600">
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <img src="/logo.png" alt="PandaPal" width={32} height={32} loading="lazy" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 p-0.5 shadow-sm" />
+          <img src="/logo.png" alt="PandaPal" width={32} height={32} loading="lazy" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 dark:bg-slate-800/90 p-0.5 shadow-sm" />
           <div className="flex-1 min-w-0">
-            <h1 className="text-xs sm:text-sm md:text-base font-bold text-white drop-shadow-sm truncate">PandaPal AI</h1>
-            <p className="text-[10px] sm:text-xs md:text-sm text-blue-50 font-medium truncate">Привет, {user.first_name}! 🎓</p>
+            <h1 className="text-xs sm:text-sm md:text-base font-bold text-white dark:text-slate-100 drop-shadow-sm truncate">PandaPal AI</h1>
+            <p className="text-[10px] sm:text-xs md:text-sm text-blue-50 dark:text-slate-300 font-medium truncate">Привет, {user.first_name}! 🎓</p>
           </div>
           <div className="flex items-center gap-1.5">
             <MiniAppThemeToggle />
-            <button onClick={handleClearChat} className="flex-shrink-0 w-9 h-9 rounded-lg bg-gray-400/60 hover:bg-gray-500/70 active:scale-95 transition-all flex items-center justify-center border border-gray-400/40 shadow-sm">
-              <span className="text-base text-gray-700 dark:text-gray-200">🗑️</span>
+            <button onClick={handleClearChat} className="flex-shrink-0 w-9 h-9 rounded-lg bg-white/20 dark:bg-slate-700/80 hover:bg-white/30 dark:hover:bg-slate-600/80 active:scale-95 transition-all flex items-center justify-center border border-white/30 dark:border-slate-600/50 shadow-sm">
+              <span className="text-base text-white dark:text-slate-200">🗑️</span>
             </button>
-            <button onClick={() => { useAppStore.getState().setCurrentScreen('emergency'); haptic.medium(); }} className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-red-500/90 hover:bg-red-600/90 active:scale-95 transition-all flex items-center justify-center shadow-sm">
+            <button onClick={() => { useAppStore.getState().setCurrentScreen('emergency'); haptic.medium(); }} className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-red-500/90 dark:bg-red-600/90 hover:bg-red-600/90 dark:hover:bg-red-700/90 active:scale-95 transition-all flex items-center justify-center shadow-sm">
               <span className="text-lg sm:text-xl">🚨</span>
             </button>
           </div>
@@ -230,8 +230,8 @@ export function AIChat({ user }: AIChatProps) {
               <div className="relative max-w-[85%] sm:max-w-[80%]">
                 <div className={`rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-md ${
                   msg.role === 'user'
-                    ? 'bg-gradient-to-br from-blue-300/90 to-cyan-300/90 text-gray-800 dark:text-gray-900 border border-blue-200/50 dark:border-blue-300/30'
-                    : 'bg-white/95 dark:bg-slate-800/95 text-gray-800 dark:text-gray-100 border border-gray-200/80 dark:border-slate-600/80'
+                    ? 'bg-gradient-to-br from-blue-300/90 to-cyan-300/90 dark:from-blue-600/80 dark:to-cyan-600/80 text-gray-800 dark:text-white border border-blue-200/50 dark:border-blue-500/40'
+                    : 'bg-white/95 dark:bg-slate-700/95 text-gray-800 dark:text-slate-100 border border-gray-200/80 dark:border-slate-600/80'
                 }`}>
                   <p className="whitespace-pre-wrap break-words font-medium text-xs sm:text-sm leading-relaxed">{msg.content}</p>
                   <time className={`text-[10px] sm:text-xs mt-1.5 sm:mt-2 font-medium block ${
