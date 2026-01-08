@@ -192,6 +192,7 @@ export function AIChat({ user }: AIChatProps) {
     haptic.light();
   };
 
+  // Dark theme: full implementation v2
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-blue-50 via-white to-pink-50 dark:from-slate-900 dark:to-slate-800">
       {/* Заголовок */}
