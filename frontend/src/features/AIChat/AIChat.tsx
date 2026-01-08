@@ -228,12 +228,12 @@ export function AIChat({ user }: AIChatProps) {
               <div className="relative max-w-[85%] sm:max-w-[80%]">
                 <div className={`rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-md ${
                   msg.role === 'user'
-                    ? 'bg-gradient-to-br from-blue-500 to-cyan-500 text-white border border-blue-500/30'
+                    ? 'bg-gradient-to-br from-blue-300/90 to-cyan-300/90 text-gray-800 dark:text-gray-900 border border-blue-200/50 dark:border-blue-300/30'
                     : 'bg-white/95 dark:bg-slate-800/95 text-gray-800 dark:text-gray-100 border border-gray-200/80 dark:border-slate-600/80'
                 }`}>
                   <p className="whitespace-pre-wrap break-words font-medium text-xs sm:text-sm leading-relaxed">{msg.content}</p>
                   <time className={`text-[10px] sm:text-xs mt-1.5 sm:mt-2 font-medium block ${
-                    msg.role === 'user' ? 'text-blue-50' : 'text-gray-500 dark:text-gray-400'
+                    msg.role === 'user' ? 'text-gray-600 dark:text-gray-700' : 'text-gray-500 dark:text-gray-400'
                   }`}>
                     {new Date(msg.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
                   </time>
@@ -267,8 +267,8 @@ export function AIChat({ user }: AIChatProps) {
       {/* Кнопки скролла */}
       {showScrollButtons && (
         <div className="absolute right-4 bottom-24 flex flex-col gap-2">
-          <button onClick={scrollToTop} className="w-10 h-10 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 active:scale-95 transition-all flex items-center justify-center">⬆️</button>
-          <button onClick={scrollToBottom} className="w-10 h-10 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 active:scale-95 transition-all flex items-center justify-center">⬇️</button>
+          <button onClick={scrollToTop} className="w-10 h-10 rounded-full bg-blue-300/80 text-gray-700 dark:text-gray-800 shadow-lg hover:bg-blue-400/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm">⬆️</button>
+          <button onClick={scrollToBottom} className="w-10 h-10 rounded-full bg-blue-300/80 text-gray-700 dark:text-gray-800 shadow-lg hover:bg-blue-400/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm">⬇️</button>
         </div>
       )}
 
