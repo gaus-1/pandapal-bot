@@ -195,7 +195,7 @@ export function AIChat({ user }: AIChatProps) {
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-blue-50 via-white to-pink-50 dark:from-slate-900 dark:to-slate-800">
       {/* Заголовок */}
-      <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-slate-800 dark:to-slate-700 shadow-sm p-1.5 sm:p-2 border-b border-blue-500/30 dark:border-slate-600">
+      <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-slate-900 dark:to-slate-800 shadow-sm p-1.5 sm:p-2 border-b border-blue-500/30 dark:border-slate-700">
         <div className="flex items-center gap-1.5 sm:gap-2">
           <img src="/logo.png" alt="PandaPal" width={32} height={32} loading="lazy" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 dark:bg-slate-800/90 p-0.5 shadow-sm" />
           <div className="flex-1 min-w-0">
@@ -231,7 +231,7 @@ export function AIChat({ user }: AIChatProps) {
                 <div className={`rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-md ${
                   msg.role === 'user'
                     ? 'bg-gradient-to-br from-blue-300/90 to-cyan-300/90 dark:from-blue-600/80 dark:to-cyan-600/80 text-gray-800 dark:text-white border border-blue-200/50 dark:border-blue-500/40'
-                    : 'bg-white/95 dark:bg-slate-800/95 text-gray-800 dark:text-slate-100 border border-gray-200/80 dark:border-slate-600/80'
+                    : 'bg-white/95 dark:bg-slate-900/95 text-gray-800 dark:text-slate-100 border border-gray-200/80 dark:border-slate-700/80'
                 }`}>
                   <p className="whitespace-pre-wrap break-words font-medium text-xs sm:text-sm leading-relaxed">{msg.content}</p>
                   <time className={`text-[10px] sm:text-xs mt-1.5 sm:mt-2 font-medium block ${
