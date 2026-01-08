@@ -585,8 +585,73 @@ export function AIChat({ user }: AIChatProps) {
         console.log('📊 Размер аудио:', audioBlob.size, 'байт');
         console.log('📊 Длительность записи:', recordingDuration, 'мс');
 
+        // ВСЕГДА проверяем размер и длительность ПЕРЕД отправкой - блокируем поврежденные файлы
+        // независимо от того, была ли остановка вручную или автоматически
+        if (audioBlob.size < MIN_AUDIO_SIZE || recordingDuration < MIN_RECORDING_DURATION) {
+          console.error(`❌ Аудио повреждено или слишком короткое: размер=${audioBlob.size}байт (мин=${MIN_AUDIO_SIZE}), длительность=${recordingDuration}мс (мин=${MIN_RECORDING_DURATION}мс)`);
+          sendLogToServer('error', 'Аудио повреждено или слишком короткое', {
+            audioSize: audioBlob.size,
+            minSize: MIN_AUDIO_SIZE,
+            duration: recordingDuration,
+            minDuration: MIN_RECORDING_DURATION,
+            wasManuallyStopped,
+            isRecording,
+            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+          }, user.telegram_id).catch(() => {});
+
+          // Если запись еще идет и остановка была автоматической, пытаемся перезапустить
+          if (!wasManuallyStopped && isRecording) {
+            console.warn('⚠️ Пытаюсь перезапустить запись с новым stream...');
+            sendLogToServer('warn', 'Перезапуск записи (поврежденный файл)', {
+              duration: recordingDuration,
+              audioSize: audioBlob.size,
+              streamActive: streamRef.current?.active,
+              platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+            }, user.telegram_id).catch(() => {});
+
+            // Очищаем старые ресурсы
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach((track) => track.stop());
+              streamRef.current = null;
+            }
+            mediaRecorderRef.current = null;
+            audioChunksRef.current = [];
+            recordingStartTimeRef.current = 0;
+            recordingStartedRef.current = false;
+
+            // Пытаемся получить новый stream и перезапустить запись
+            setTimeout(() => {
+              if (isRecording) {
+                console.log('🔄 Перезапускаю запись с новым stream...');
+                handleVoiceStart().catch((restartError) => {
+                  console.error('❌ Ошибка перезапуска записи:', restartError);
+                  sendLogToServer('error', 'Ошибка перезапуска записи с новым stream', {
+                    error: restartError instanceof Error ? restartError.message : String(restartError),
+                    platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+                  }, user.telegram_id).catch(() => {});
+                  setIsRecording(false);
+                  telegram.notifyError();
+                  telegram.showAlert('Не удалось перезапустить запись. Попробуй еще раз!').catch(() => {});
+                });
+              }
+            }, 100);
+            return; // Не обрабатываем остановку, пытаемся перезапустить
+          }
+
+          // Если запись не идет или остановка была вручную, показываем ошибку
+          telegram.notifyError();
+          telegram.showAlert('Запись слишком короткая или повреждена. Нажми кнопку микрофона, подожди немного, затем нажми еще раз для отправки.');
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
+          setIsRecording(false);
+          mediaRecorderRef.current = null;
+          return;
+        }
+
         // Если запись остановилась автоматически (не вручную) и пользователь все еще хочет записывать,
-        // проверяем размер файла ПЕРЕД перезапуском - если файл поврежден, не отправляем его
+        // перезапускаем для непрерывности (файл уже проверен выше и валиден)
         if (!wasManuallyStopped && isRecording) {
           // Проверяем размер и длительность ДО перезапуска - если файл поврежден, не отправляем
           if (audioBlob.size < MIN_AUDIO_SIZE || recordingDuration < MIN_RECORDING_DURATION) {
@@ -669,51 +734,6 @@ export function AIChat({ user }: AIChatProps) {
             }
           }, 100);
           return; // Не обрабатываем остановку, пытаемся перезапустить
-        }
-
-        // Проверяем минимальную длительность записи ТОЛЬКО если остановлено вручную
-        // Если остановлено автоматически, запись уже перезапущена выше
-        if (wasManuallyStopped && recordingDuration < MIN_RECORDING_DURATION) {
-          console.error(`❌ Запись слишком короткая: ${recordingDuration}мс (минимум ${MIN_RECORDING_DURATION}мс)`);
-          sendLogToServer('error', 'Запись слишком короткая (остановлено вручную)', {
-            duration: recordingDuration,
-            minDuration: MIN_RECORDING_DURATION,
-            audioSize: audioBlob.size,
-            wasManuallyStopped,
-            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-          }, user.telegram_id).catch(() => {});
-          telegram.notifyError();
-          telegram.showAlert('Запись слишком короткая. Говори дольше и нажми кнопку еще раз для отправки!');
-          if (streamRef.current) {
-            streamRef.current.getTracks().forEach((track) => track.stop());
-            streamRef.current = null;
-          }
-          setIsRecording(false);
-          mediaRecorderRef.current = null;
-          return;
-        }
-
-        // Проверяем минимальный размер аудио ТОЛЬКО если остановлено вручную
-        // Если остановлено автоматически, запись уже перезапущена выше
-        if (wasManuallyStopped && audioBlob.size < MIN_AUDIO_SIZE) {
-          console.error(`❌ Аудио слишком маленькое: ${audioBlob.size} байт (минимум ${MIN_AUDIO_SIZE} байт)`);
-          sendLogToServer('error', 'Аудио слишком маленькое (остановлено вручную)', {
-            audioSize: audioBlob.size,
-            minSize: MIN_AUDIO_SIZE,
-            duration: recordingDuration,
-            chunksCount: audioChunksRef.current.length,
-            wasManuallyStopped,
-            platform: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
-          }, user.telegram_id).catch(() => {});
-          telegram.notifyError();
-          telegram.showAlert('Запись слишком короткая. Говори дольше и нажми кнопку еще раз для отправки!');
-          if (streamRef.current) {
-            streamRef.current.getTracks().forEach((track) => track.stop());
-            streamRef.current = null;
-          }
-          setIsRecording(false);
-          mediaRecorderRef.current = null;
-          return;
         }
 
         if (audioBlob.size > MAX_AUDIO_SIZE) {
