@@ -15,7 +15,6 @@ import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import { usePhotoUpload } from '../../hooks/usePhotoUpload';
 import { useScrollManagement } from '../../hooks/useScrollManagement';
 import { haptic } from '../../utils/hapticFeedback';
-import { DEFAULT_PHOTO_MESSAGE } from './constants';
 import { MiniAppThemeToggle } from '../../components/MiniAppThemeToggle';
 import type { UserProfile } from '../../services/api';
 
@@ -109,7 +108,7 @@ export function AIChat({ user }: AIChatProps) {
     onPhotoUploaded: (base64Photo) => {
       sendMessage({
         photoBase64: base64Photo,
-        message: inputText.trim() || DEFAULT_PHOTO_MESSAGE,
+        message: inputText.trim() || undefined, // Не отправляем DEFAULT_PHOTO_MESSAGE, только если пользователь сам написал текст
       });
       setInputText('');
     },
