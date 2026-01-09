@@ -1431,6 +1431,17 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     "вежливо скажи что это нормально и больше не спрашивай об имени."
                 )
 
+            # Проверяем, есть ли уже приветствие от панды в истории
+            # Если панда уже поздоровалась автоматически, не нужно приветствовать снова
+            ai_already_greeted = False
+            if history:
+                for msg in history:
+                    if msg.get("role") == "assistant" or msg.get("role") == "ai":
+                        msg_text = msg.get("text", "").lower()
+                        if "привет" in msg_text or "чем могу помочь" in msg_text:
+                            ai_already_greeted = True
+                            break
+
             # Проверяем, написал ли пользователь привет
             user_message_lower = user_message.lower().strip()
             greeting_words = [
@@ -1447,7 +1458,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             ]
             user_greeted = any(greeting in user_message_lower for greeting in greeting_words)
 
-            # Проверяем, написал ли пользователь прощание
+            # Проверяем, написал ли пользователь прощание (расширенный список)
             farewell_words = [
                 "пока",
                 "до свидания",
@@ -1456,9 +1467,17 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 "прощайте",
                 "увидимся",
                 "до встречи",
+                "до завтра",
+                "до скорого",
+                "до скорой встречи",
+                "всего доброго",
+                "всего хорошего",
+                "удачи",
                 "bye",
                 "goodbye",
                 "see you",
+                "see ya",
+                "farewell",
             ]
             user_farewelled = any(farewell in user_message_lower for farewell in farewell_words)
 
@@ -1466,8 +1485,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             # 1. История пустая (начало диалога) ИЛИ
             # 2. История была очищена ИЛИ
             # 3. Пользователь сам поздоровался (и НЕ прощается)
+            # И панда ЕЩЕ НЕ здоровалась (не было автоматического приветствия)
             should_greet = (
-                (not history) or is_history_cleared or user_greeted
+                ((not history) or is_history_cleared or user_greeted) and not ai_already_greeted
             ) and not user_farewelled
 
             if should_greet:
