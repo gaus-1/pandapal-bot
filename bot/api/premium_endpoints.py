@@ -46,12 +46,19 @@ async def create_donation_invoice(request: web.Request) -> web.Response:
             bot = Bot(token=settings.telegram_bot_token)
 
             # Создаем invoice для поддержки проекта (НЕ активирует Premium)
+            # Звезды отправляются на @SavnVE (админ) через provider_data
+            # Для Telegram Stars нужно указать username получателя в provider_data
+            import json
+
+            provider_data = json.dumps({"username": "SavnVE"})  # Админ получает звезды
+
             invoice = await bot.create_invoice_link(
                 title="Поддержка проекта PandaPal",
                 description="Спасибо за поддержку! Это помогает развитию проекта.",
                 payload=f"donation_{telegram_id}_{amount}",  # НЕ "premium_"
                 currency="XTR",  # Telegram Stars currency
                 prices=[{"label": "Поддержка проекта", "amount": amount}],
+                provider_data=provider_data,
             )
 
             await bot.session.close()
