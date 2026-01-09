@@ -10,55 +10,34 @@
     <!-- PNG для современных браузеров (fallback) -->
     <link rel="icon" type="image/png" sizes="32x32" href="/logo.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/logo.png" />
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="/logo.png" />
+    <!-- Для поисковых систем -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/logo.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/logo.png" />
 
     <!-- Поддержка светлой и темной темы -->
     <meta name="color-scheme" content="light dark" />
     <script>
       (function() {
+        // Ранняя инициализация темы для предотвращения мигания
         // Проверяем, открыто ли в Telegram Mini App
         const isInTelegram = typeof window !== 'undefined' &&
           (window.navigator.userAgent.includes('Telegram') ||
-           window.location.hostname.includes('telegram.org'));
+           window.location.hostname.includes('telegram.org') ||
+           window.location.hostname.includes('web.telegram.org'));
 
         if (isInTelegram) {
-          // В мини-апп: проверяем тему Telegram (может быть недоступна сразу)
-          try {
-            const telegramWebApp = typeof window !== 'undefined' &&
-              typeof window.Telegram !== 'undefined' &&
-              window.Telegram.WebApp ? window.Telegram.WebApp : null;
-
-            if (telegramWebApp && telegramWebApp.colorScheme === 'dark') {
-              document.documentElement.classList.add('dark');
-              document.documentElement.classList.remove('light');
-              localStorage.setItem('theme', 'dark');
-            } else {
-              // Проверяем сохраненный выбор пользователя
-              const savedTheme = localStorage.getItem('theme');
-              if (savedTheme === 'dark') {
-                document.documentElement.classList.add('dark');
-                document.documentElement.classList.remove('light');
-              } else {
-                document.documentElement.classList.remove('dark');
-                document.documentElement.classList.add('light');
-                // Устанавливаем светлую тему по умолчанию только если нет сохраненного выбора
-                if (!savedTheme) {
-                  localStorage.setItem('theme', 'light');
-                }
-              }
-            }
-          } catch (error) {
-            // Если Telegram WebApp недоступен - используем сохраненный выбор
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark') {
-              document.documentElement.classList.add('dark');
-              document.documentElement.classList.remove('light');
-            } else {
-              document.documentElement.classList.remove('dark');
-              document.documentElement.classList.add('light');
-              if (!savedTheme) {
-                localStorage.setItem('theme', 'light');
-              }
-            }
+          // В мини-апп: только читаем сохраненную тему, НЕ устанавливаем по умолчанию
+          // MiniAppThemeToggle будет управлять темой после монтирования
+          const savedTheme = localStorage.getItem('theme');
+          if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+          } else {
+            // Если нет сохраненной темы - оставляем светлую (класс light уже в HTML)
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
           }
         } else {
           // На сайте: по умолчанию светлая тема, но учитываем сохраненный выбор
