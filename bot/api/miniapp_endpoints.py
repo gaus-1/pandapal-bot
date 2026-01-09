@@ -289,17 +289,22 @@ async def _process_photo_message(
                 user_age=user.age,
             )
 
-            # Используем анализ напрямую, без префикса "[Фото с заданием]"
-            # Vision API уже проанализировал фото и дал ответ, используем его напрямую
+            # КРИТИЧЕСКИ ВАЖНО: Если Vision API дал готовый ответ - возвращаем его как готовый
             if vision_result.analysis and vision_result.analysis.strip():
-                user_message = vision_result.analysis
-            elif vision_result.recognized_text:
-                # Если есть только распознанный текст, используем его
+                # Vision API уже решил задачу - возвращаем готовый ответ с маркером
+                logger.info(
+                    f"✅ Фото проанализировано, готовый ответ получен: {len(vision_result.analysis)} символов"
+                )
+                # Возвращаем специальный маркер в начале строки
+                return f"__READY_ANSWER__{vision_result.analysis}", None
+
+            # Если Vision API не дал готовый ответ - используем распознанный текст
+            if vision_result.recognized_text:
                 user_message = f"На фото написано: {vision_result.recognized_text}\n\nПомоги решить эту задачу полностью."
             else:
                 user_message = message or "Помоги мне разобраться с этой задачей"
 
-            logger.info(f"✅ Фото проанализировано: {user_message[:100]}")
+            logger.info(f"✅ Фото проанализировано, текст распознан: {len(user_message)} символов")
             return user_message, None
 
     except Exception as e:
@@ -751,11 +756,68 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
 
         # Обработка фото
         if photo_base64:
-            user_message, error_response = await _process_photo_message(
+            photo_result, error_response = await _process_photo_message(
                 photo_base64, telegram_id, message
             )
             if error_response:
                 return error_response
+
+            # Проверяем, дал ли Vision API готовый ответ (маркер __READY_ANSWER__)
+            if photo_result and photo_result.startswith("__READY_ANSWER__"):
+                # Vision API дал готовый ответ - возвращаем его сразу
+                photo_analysis_result = photo_result.replace("__READY_ANSWER__", "", 1)
+                user_message = message or "📷 Фото"
+
+                # Сохраняем в историю и возвращаем ответ
+                with get_db() as db:
+                    user_service = UserService(db)
+                    history_service = ChatHistoryService(db)
+
+                    user = user_service.get_user_by_telegram_id(telegram_id)
+                    if not user:
+                        return web.json_response({"error": "User not found"}, status=404)
+
+                    # Очищаем ответ от запрещенных символов
+                    cleaned_response = clean_ai_response(photo_analysis_result)
+
+                    # Сохраняем в историю
+                    try:
+                        from bot.services.premium_features_service import PremiumFeaturesService
+
+                        premium_service = PremiumFeaturesService(db)
+                        premium_service.increment_request_count(telegram_id)
+                        history_service.add_message(telegram_id, user_message, "user")
+                        history_service.add_message(telegram_id, cleaned_response, "ai")
+
+                        # Геймификация
+                        unlocked_achievements = []
+                        try:
+                            from bot.services.gamification_service import GamificationService
+
+                            gamification_service = GamificationService(db)
+                            unlocked_achievements = gamification_service.process_message(
+                                telegram_id, user_message
+                            )
+                        except Exception as e:
+                            logger.error(f"❌ Ошибка геймификации: {e}", exc_info=True)
+
+                        db.commit()
+
+                        # Формируем ответ
+                        response_data = {"success": True, "response": cleaned_response}
+                        if unlocked_achievements:
+                            achievement_info = _format_achievements(unlocked_achievements)
+                            if achievement_info:
+                                response_data["achievements_unlocked"] = achievement_info
+
+                        return web.json_response(response_data)
+                    except Exception as save_error:
+                        logger.error(f"❌ Ошибка сохранения: {save_error}", exc_info=True)
+                        db.rollback()
+                        # Все равно возвращаем ответ
+                        return web.json_response({"success": True, "response": cleaned_response})
+            else:
+                user_message = photo_result
 
         # Если нет ни фото ни аудио - должно быть текстовое сообщение
         if not user_message or not user_message.strip():
@@ -1204,18 +1266,66 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         user_age=user.age,
                     )
 
-                    # Используем анализ напрямую, без префикса "[Фото с заданием]"
-                    # Vision API уже проанализировал фото и дал ответ, используем его напрямую
+                    logger.info("✅ Stream: Фото проанализировано")
+                    await response.write(b'event: status\ndata: {"status": "photo_analyzed"}\n\n')
+
+                    # КРИТИЧЕСКИ ВАЖНО: Если Vision API дал готовый ответ - сразу отправляем его!
                     if vision_result.analysis and vision_result.analysis.strip():
-                        user_message = vision_result.analysis
-                    elif vision_result.recognized_text:
-                        # Если есть только распознанный текст, используем его
+                        # Vision API уже решил задачу - отправляем ответ напрямую
+                        full_response = clean_ai_response(vision_result.analysis)
+
+                        # Отправляем ответ через streaming
+                        import json as json_lib
+
+                        chunk_data = json_lib.dumps({"chunk": full_response}, ensure_ascii=False)
+                        await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
+
+                        # Сохраняем в историю
+                        try:
+                            from bot.services.history_service import ChatHistoryService
+                            from bot.services.premium_features_service import PremiumFeaturesService
+
+                            premium_service = PremiumFeaturesService(db)
+                            history_service = ChatHistoryService(db)
+
+                            premium_service.increment_request_count(telegram_id)
+                            user_msg_text = message or "📷 Фото"
+                            history_service.add_message(telegram_id, user_msg_text, "user")
+                            history_service.add_message(telegram_id, full_response, "ai")
+
+                            # Геймификация
+                            unlocked_achievements = []
+                            try:
+                                from bot.services.gamification_service import GamificationService
+
+                                gamification_service = GamificationService(db)
+                                unlocked_achievements = gamification_service.process_message(
+                                    telegram_id, user_msg_text
+                                )
+                            except Exception as e:
+                                logger.error(f"❌ Stream: Ошибка геймификации: {e}", exc_info=True)
+
+                            db.commit()
+
+                            # Отправляем информацию о достижениях если есть
+                            if unlocked_achievements:
+                                await _send_achievements_event(response, unlocked_achievements)
+                        except Exception as save_error:
+                            logger.error(
+                                f"❌ Stream: Ошибка сохранения: {save_error}", exc_info=True
+                            )
+                            db.rollback()
+
+                        # Отправляем событие завершения
+                        await response.write(b'event: done\ndata: {"status": "completed"}\n\n')
+                        logger.info(f"✅ Stream: Фото ответ отправлен напрямую для {telegram_id}")
+                        return response
+
+                    # Если Vision API не дал готовый ответ - используем распознанный текст
+                    if vision_result.recognized_text:
                         user_message = f"На фото написано: {vision_result.recognized_text}\n\nПомоги решить эту задачу полностью."
                     else:
                         user_message = message or "Помоги мне разобраться с этой задачей"
-
-                    logger.info("✅ Stream: Фото проанализировано")
-                    await response.write(b'event: status\ndata: {"status": "photo_analyzed"}\n\n')
 
             except Exception as e:
                 logger.error(f"❌ Stream: Ошибка обработки фото: {e}", exc_info=True)
