@@ -11,8 +11,6 @@
 с поддержкой множественных алиасов для удобства.
 """
 
-from typing import List
-
 from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -201,6 +199,12 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("YOOKASSA_INN", "yookassa_inn"),
     )
 
+    yookassa_merchant_name: str = Field(
+        default="PandaPal",
+        description="Короткое имя магазина для банковской выписки (14 символов: YM* + 11). Настраивается в личном кабинете ЮKassa",
+        validation_alias=AliasChoices("YOOKASSA_MERCHANT_NAME", "yookassa_merchant_name"),
+    )
+
     # ============ REDIS (SESSION STORAGE) ============
     redis_url: str = Field(
         default="",
@@ -215,11 +219,11 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("ADMIN_USERNAMES", "admin_usernames"),
     )
 
-    def get_forbidden_topics_list(self) -> List[str]:
+    def get_forbidden_topics_list(self) -> list[str]:
         """Получить список запрещённых тем."""
         return [topic.strip() for topic in self.forbidden_topics.split(",") if topic.strip()]
 
-    def get_admin_usernames_list(self) -> List[str]:
+    def get_admin_usernames_list(self) -> list[str]:
         """Получить список username админов."""
         return [
             username.strip().lower()

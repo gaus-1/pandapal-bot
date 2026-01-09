@@ -3,6 +3,7 @@ Premium endpoints - Обработка платежей через ЮKassa
 """
 
 import uuid
+from datetime import UTC
 
 from aiohttp import web
 from loguru import logger
@@ -213,7 +214,6 @@ async def create_yookassa_payment(request: web.Request) -> web.Response:
             )
 
             # Сохраняем заказ в БД сразу после создания платежа
-            from datetime import datetime, timezone
 
             from bot.models import Payment as PaymentModel
 
@@ -301,7 +301,7 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
 
         # Активируем подписку для авторизованных пользователей
         with get_db() as db:
-            from datetime import datetime, timezone
+            from datetime import datetime
 
             from sqlalchemy import select
 
@@ -345,7 +345,7 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
                 payment_record.payment_method = payment_method
                 payment_record.webhook_data = data
                 if status == "succeeded":
-                    payment_record.paid_at = datetime.now(timezone.utc)
+                    payment_record.paid_at = datetime.now(UTC)
             else:
                 # Создаем новую запись если не была создана при создании платежа
                 amount_value = payment_object.get("amount", {}).get("value", "0")
@@ -358,7 +358,7 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
                     status=status,
                     payment_method=payment_method,
                     webhook_data=data,
-                    paid_at=datetime.now(timezone.utc) if status == "succeeded" else None,
+                    paid_at=datetime.now(UTC) if status == "succeeded" else None,
                 )
                 db.add(payment_record)
 
@@ -483,12 +483,62 @@ async def get_premium_status(request: web.Request) -> web.Response:
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
+async def remove_saved_payment_method(request: web.Request) -> web.Response:
+    """
+    Удалить сохраненный способ оплаты (отвязать карту).
+
+    POST /api/miniapp/premium/remove-payment-method
+    Body: { "telegram_id": 123 }
+
+    Отвязывает сохраненную карту - удаляет saved_payment_method_id из БД
+    и отключает автоплатежи. В ЮKassa нельзя удалить способ оплаты через API,
+    но удаление из нашей БД отключает автоплатежи.
+    """
+    try:
+        data = await request.json()
+        telegram_id = data.get("telegram_id")
+
+        if not telegram_id:
+            return web.json_response({"error": "telegram_id is required"}, status=400)
+
+        telegram_id = validate_telegram_id(telegram_id)
+
+        with get_db() as db:
+            subscription_service = SubscriptionService(db)
+            removed = subscription_service.remove_saved_payment_method(telegram_id)
+
+            if not removed:
+                return web.json_response(
+                    {"success": False, "message": "No saved payment method found"},
+                    status=404,
+                )
+
+            db.commit()
+
+            logger.info(f"✅ Способ оплаты отвязан: user={telegram_id}")
+
+            return web.json_response(
+                {
+                    "success": True,
+                    "message": "Payment method removed successfully",
+                }
+            )
+
+    except ValueError as e:
+        logger.warning(f"⚠️ Invalid telegram_id: {e}")
+        return web.json_response({"error": str(e)}, status=400)
+    except Exception as e:
+        logger.error(f"❌ Ошибка отвязки способа оплаты: {e}", exc_info=True)
+        return web.json_response({"error": "Internal server error"}, status=500)
+
+
 def setup_premium_routes(app: web.Application) -> None:
     """Регистрация роутов Premium (только ЮKassa)"""
     app.router.add_post("/api/miniapp/premium/create-payment", create_yookassa_payment)
     app.router.add_post("/api/miniapp/premium/payment-success", handle_successful_payment)
     app.router.add_post("/api/miniapp/premium/yookassa-webhook", yookassa_webhook)
     app.router.add_get("/api/miniapp/premium/status/{telegram_id}", get_premium_status)
+    app.router.add_post("/api/miniapp/premium/remove-payment-method", remove_saved_payment_method)
     # Donation endpoint (для поддержки проекта через Stars)
     app.router.add_post("/api/miniapp/donation/create-invoice", create_donation_invoice)
 

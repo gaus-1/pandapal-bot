@@ -5,8 +5,7 @@
 проверка статуса подписки, деактивация истёкших подписок.
 """
 
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 from loguru import logger
 from sqlalchemy import select
@@ -51,7 +50,7 @@ class SubscriptionService:
         Returns:
             bool: True если есть активная подписка
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Проверяем активную подписку
         stmt = (
@@ -74,12 +73,12 @@ class SubscriptionService:
                 # Убеждаемся что premium_until timezone-aware
                 premium_until = user.premium_until
                 if premium_until.tzinfo is None:
-                    premium_until = premium_until.replace(tzinfo=timezone.utc)
+                    premium_until = premium_until.replace(tzinfo=UTC)
                 return premium_until > now
 
         return False
 
-    def get_active_subscription(self, telegram_id: int) -> Optional[Subscription]:
+    def get_active_subscription(self, telegram_id: int) -> Subscription | None:
         """
         Получить активную подписку пользователя
 
@@ -89,7 +88,7 @@ class SubscriptionService:
         Returns:
             Optional[Subscription]: Активная подписка или None
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         stmt = (
             select(Subscription)
@@ -106,11 +105,11 @@ class SubscriptionService:
         self,
         telegram_id: int,
         plan_id: str,
-        transaction_id: Optional[str] = None,
-        invoice_payload: Optional[str] = None,
-        payment_method: Optional[str] = None,
-        payment_id: Optional[str] = None,
-        saved_payment_method_id: Optional[str] = None,
+        transaction_id: str | None = None,
+        invoice_payload: str | None = None,
+        payment_method: str | None = None,
+        payment_id: str | None = None,
+        saved_payment_method_id: str | None = None,
     ) -> Subscription:
         """
         Активировать Premium подписку
@@ -134,7 +133,7 @@ class SubscriptionService:
             raise ValueError(f"Invalid plan_id: {plan_id}")
 
         days = self.PLANS[plan_id]
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expires_at = now + timedelta(days=days)
 
         # Определяем автоплатеж:
@@ -176,7 +175,7 @@ class SubscriptionService:
                 # Убеждаемся что premium_until timezone-aware для сравнения
                 premium_until = user.premium_until
                 if premium_until.tzinfo is None:
-                    premium_until = premium_until.replace(tzinfo=timezone.utc)
+                    premium_until = premium_until.replace(tzinfo=UTC)
                 if premium_until > now:
                     user.premium_until = max(premium_until, expires_at)
                 else:
@@ -199,7 +198,7 @@ class SubscriptionService:
         Returns:
             int: Количество деактивированных подписок
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         stmt = (
             select(Subscription)
@@ -249,3 +248,52 @@ class SubscriptionService:
         )
 
         return list(self.db.execute(stmt).scalars().all())
+
+    def remove_saved_payment_method(self, telegram_id: int) -> bool:
+        """
+        Удалить сохраненный способ оплаты (отвязать карту).
+
+        В ЮKassa нельзя удалить сохраненный способ оплаты через API,
+        но мы удаляем его из нашей БД, что отключает автоплатежи.
+        Пользователь больше не будет получать автоматические списания.
+
+        Args:
+            telegram_id: Telegram ID пользователя
+
+        Returns:
+            bool: True если способ оплаты был удален, False если не найден
+        """
+        now = datetime.now(UTC)
+
+        # Находим все активные подписки с сохраненным способом оплаты
+        stmt = (
+            select(Subscription)
+            .where(Subscription.user_telegram_id == telegram_id)
+            .where(Subscription.is_active.is_(True))
+            .where(Subscription.expires_at > now)
+            .where(Subscription.saved_payment_method_id.isnot(None))
+        )
+
+        subscriptions = self.db.execute(stmt).scalars().all()
+
+        if not subscriptions:
+            logger.info(
+                f"ℹ️ Нет активных подписок с сохраненным способом оплаты для user={telegram_id}"
+            )
+            return False
+
+        # Удаляем saved_payment_method_id и отключаем автоплатеж
+        count = 0
+        for subscription in subscriptions:
+            subscription.saved_payment_method_id = None
+            subscription.auto_renew = False
+            count += 1
+
+        self.db.flush()
+
+        logger.info(
+            f"✅ Сохраненный способ оплаты удален: user={telegram_id}, "
+            f"подписок обновлено={count}"
+        )
+
+        return True

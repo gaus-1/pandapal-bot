@@ -8,6 +8,7 @@ import { telegram } from '../../services/telegram';
 import { TelegramLoginButton } from '../../components/Auth/TelegramLoginButton';
 import { useAppStore, type WebUser } from '../../store/appStore';
 import type { UserProfile } from '../../services/api';
+import { removeSavedPaymentMethod } from '../../services/api';
 
 interface PremiumScreenProps {
   user: UserProfile | null;
@@ -68,6 +69,8 @@ const PREMIUM_PLANS: PremiumPlan[] = [
 export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [isRemovingCard, setIsRemovingCard] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
   // App store для веб-сайта (Telegram Login Widget)
   const { webUser, isAuthenticated, verifySession, logout, sessionToken } = useAppStore();
@@ -113,6 +116,42 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
     checkPaymentStatus();
   }, [currentUser, setUser]);
+
+  // Обработчик отвязки карты
+  const handleRemoveCard = async () => {
+    if (!currentUser) return;
+
+    setIsRemovingCard(true);
+    try {
+      await removeSavedPaymentMethod(currentUser.telegram_id);
+
+      // Обновляем данные пользователя через API
+      const response = await fetch(`/api/miniapp/user/${currentUser.telegram_id}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.user) {
+          setUser(data.user);
+        }
+      }
+
+      setShowRemoveConfirm(false);
+
+      if (inTelegram) {
+        await telegram.showAlert('✅ Карта успешно отвязана. Автоплатежи отключены.');
+      } else {
+        alert('✅ Карта успешно отвязана. Автоплатежи отключены.');
+      }
+    } catch (error) {
+      console.error('Ошибка отвязки карты:', error);
+      if (inTelegram) {
+        await telegram.showAlert('❌ Ошибка отвязки карты. Попробуйте позже.');
+      } else {
+        alert('❌ Ошибка отвязки карты. Попробуйте позже.');
+      }
+    } finally {
+      setIsRemovingCard(false);
+    }
+  };
 
   const handlePurchase = async (plan: PremiumPlan) => {
     // Проверка авторизации
@@ -252,6 +291,66 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
             </div>
           )}
         </div>
+
+        {/* Сохраненная карта (если есть активная подписка с автоплатежом) */}
+        {currentUser?.is_premium &&
+         (currentUser as UserProfile)?.active_subscription?.has_saved_payment_method && (
+          <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl sm:rounded-2xl border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xl sm:text-2xl">💳</span>
+                <div>
+                  <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-slate-100">
+                    Сохраненная карта
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">
+                    Автоплатеж включен
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowRemoveConfirm(true)}
+                disabled={isRemovingCard}
+                className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 active:text-red-800 dark:active:text-red-200 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 dark:border-red-800"
+              >
+                {isRemovingCard ? 'Отвязка...' : 'Отвязать'}
+              </button>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">
+              Подписка будет автоматически продлеваться. Вы можете отвязать карту в любой момент.
+            </p>
+          </div>
+        )}
+
+        {/* Диалог подтверждения отвязки */}
+        {showRemoveConfirm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full border border-gray-200 dark:border-slate-700">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-slate-100 mb-2">
+                Отвязать карту?
+              </h3>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-slate-400 mb-4">
+                После отвязки карты автоплатежи будут отключены. Подписка не будет продлеваться автоматически.
+              </p>
+              <div className="flex gap-2 sm:gap-3">
+                <button
+                  onClick={() => setShowRemoveConfirm(false)}
+                  disabled={isRemovingCard}
+                  className="flex-1 px-4 py-2 text-sm sm:text-base text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 active:text-gray-950 dark:active:text-slate-50 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300 dark:border-slate-600"
+                >
+                  Отмена
+                </button>
+                <button
+                  onClick={handleRemoveCard}
+                  disabled={isRemovingCard}
+                  className="flex-1 px-4 py-2 text-sm sm:text-base text-white bg-red-600 hover:bg-red-700 active:bg-red-800 transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isRemovingCard ? 'Отвязка...' : 'Отвязать'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Преимущества */}
         <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl sm:rounded-2xl border-2 border-blue-500/30">

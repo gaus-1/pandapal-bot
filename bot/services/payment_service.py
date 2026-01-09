@@ -9,7 +9,6 @@ import asyncio
 import hashlib
 import hmac
 import uuid
-from typing import Optional
 
 from loguru import logger
 from yookassa import Configuration, Payment
@@ -49,7 +48,7 @@ class PaymentService:
         self._api_timeout = 30.0
 
     @staticmethod
-    def verify_webhook_signature(request_body: str, signature: Optional[str]) -> bool:
+    def verify_webhook_signature(request_body: str, signature: str | None) -> bool:
         """
         Верифицировать подпись webhook от ЮKassa.
 
@@ -98,8 +97,8 @@ class PaymentService:
         self,
         telegram_id: int,
         plan_id: str,
-        user_email: Optional[str] = None,
-        user_phone: Optional[str] = None,
+        user_email: str | None = None,
+        user_phone: str | None = None,
     ) -> dict:
         """
         Создать платеж через ЮKassa.
@@ -144,6 +143,9 @@ class PaymentService:
                 "telegram_id": str(telegram_id),
                 "plan_id": plan_id,
             },
+            # merchant_customer_id используется для идентификации пользователя
+            # Короткое имя магазина настраивается в личном кабинете ЮKassa
+            "merchant_customer_id": str(telegram_id),
         }
 
         # Для подписок month и year - сохраняем метод оплаты для автоплатежа
@@ -204,9 +206,9 @@ class PaymentService:
                 },
             }
 
-        except asyncio.TimeoutError:
+        except TimeoutError as e:
             logger.error(f"❌ Timeout при создании платежа ЮKassa (>{self._api_timeout}s)")
-            raise TimeoutError(f"YooKassa API timeout after {self._api_timeout}s")
+            raise TimeoutError(f"YooKassa API timeout after {self._api_timeout}s") from e
         except ApiError as e:
             logger.error(f"❌ Ошибка создания платежа ЮKassa: {e}")
             raise
@@ -214,7 +216,7 @@ class PaymentService:
             logger.error(f"❌ Неожиданная ошибка при создании платежа: {e}", exc_info=True)
             raise
 
-    async def get_payment_status(self, payment_id: str) -> Optional[dict]:
+    async def get_payment_status(self, payment_id: str) -> dict | None:
         """
         Получить статус платежа.
 
@@ -242,7 +244,7 @@ class PaymentService:
                 "payment_metadata": payment.payment_metadata or {},
             }
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(
                 f"❌ Timeout при получении статуса платежа {payment_id} (>{self._api_timeout}s)"
             )
@@ -254,7 +256,7 @@ class PaymentService:
             logger.error(f"❌ Неожиданная ошибка при получении платежа: {e}", exc_info=True)
             return None
 
-    def process_webhook(self, webhook_data: dict) -> Optional[dict]:
+    def process_webhook(self, webhook_data: dict) -> dict | None:
         """
         Обработать webhook уведомление от ЮKassa.
 

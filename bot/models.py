@@ -8,8 +8,8 @@
 Mapped для типизации полей.
 """
 
-from datetime import datetime
-from typing import Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Optional
 
 from sqlalchemy import (
     JSON,
@@ -65,30 +65,28 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False, index=True)
 
-    username: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    first_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    last_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    username: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    first_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    last_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
-    age: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    grade: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    age: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    grade: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     user_type: Mapped[str] = mapped_column(String(20), nullable=False, default="child")
-    parent_telegram_id: Mapped[Optional[int]] = mapped_column(
+    parent_telegram_id: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("users.telegram_id", ondelete="SET NULL"), nullable=True
     )
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
-    premium_until: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    premium_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Активность и напоминания
     message_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
-    last_activity: Mapped[Optional[datetime]] = mapped_column(
+    last_activity: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, onupdate=func.now()
     )
-    reminder_sent_at: Mapped[Optional[datetime]] = mapped_column(
+    reminder_sent_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     last_name_mention_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
@@ -104,26 +102,26 @@ class User(Base):
         back_populates="children",
     )
 
-    children: Mapped[List["User"]] = relationship(
+    children: Mapped[list["User"]] = relationship(
         "User", back_populates="parent", foreign_keys=[parent_telegram_id]
     )
 
-    sessions: Mapped[List["LearningSession"]] = relationship(
+    sessions: Mapped[list["LearningSession"]] = relationship(
         "LearningSession", back_populates="user", cascade="all, delete-orphan"
     )
 
-    progress: Mapped[List["UserProgress"]] = relationship(
+    progress: Mapped[list["UserProgress"]] = relationship(
         "UserProgress", back_populates="user", cascade="all, delete-orphan"
     )
 
-    messages: Mapped[List["ChatHistory"]] = relationship(
+    messages: Mapped[list["ChatHistory"]] = relationship(
         "ChatHistory",
         back_populates="user",
         cascade="all, delete-orphan",
         order_by="ChatHistory.timestamp.desc()",
     )
 
-    subscriptions: Mapped[List["Subscription"]] = relationship(
+    subscriptions: Mapped[list["Subscription"]] = relationship(
         "Subscription",
         back_populates="user",
         cascade="all, delete-orphan",
@@ -143,18 +141,18 @@ class User(Base):
         """Строковое представление пользователя"""
         return f"<User(id={self.id}, telegram_id={self.telegram_id}, type={self.user_type})>"
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Преобразование модели в словарь для API"""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         is_premium = False
         premium_days_left = None
 
         if self.premium_until:
             premium_until = self.premium_until
             if premium_until.tzinfo is None:
-                premium_until = premium_until.replace(tzinfo=timezone.utc)
+                premium_until = premium_until.replace(tzinfo=UTC)
             is_premium = premium_until > now
             if is_premium:
                 delta = premium_until - now
@@ -162,15 +160,21 @@ class User(Base):
 
         # Получаем активную подписку если есть
         active_subscription = None
-        if self.subscriptions:
-            for sub in self.subscriptions:
-                if sub.is_active:
-                    expires_at = sub.expires_at
-                    if expires_at.tzinfo is None:
-                        expires_at = expires_at.replace(tzinfo=timezone.utc)
-                    if expires_at > now:
-                        active_subscription = sub.to_dict()
-                        break
+        try:
+            if self.subscriptions:
+                for sub in self.subscriptions:
+                    if sub.is_active:
+                        expires_at = sub.expires_at
+                        if expires_at.tzinfo is None:
+                            expires_at = expires_at.replace(tzinfo=UTC)
+                        if expires_at > now:
+                            active_subscription = sub.to_dict()
+                            break
+        except Exception:
+            # Временная защита: если столбец saved_payment_method_id отсутствует в БД
+            # (миграция еще не применена), пропускаем загрузку подписок
+            # После применения миграции эта обработка не понадобится
+            pass
 
         return {
             "telegram_id": self.telegram_id,
@@ -208,11 +212,11 @@ class LearningSession(Base):
     )
 
     # Информация о сессии
-    subject: Mapped[Optional[str]] = mapped_column(String(100))
+    subject: Mapped[str | None] = mapped_column(String(100))
 
-    topic: Mapped[Optional[str]] = mapped_column(String(255))
+    topic: Mapped[str | None] = mapped_column(String(255))
 
-    difficulty_level: Mapped[Optional[int]] = mapped_column(Integer)
+    difficulty_level: Mapped[int | None] = mapped_column(Integer)
 
     # Статистика
     questions_answered: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
@@ -224,7 +228,7 @@ class LearningSession(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
-    session_end: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    session_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     is_completed: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
 
@@ -259,12 +263,12 @@ class UserProgress(Base):
     # Предмет и уровень
     subject: Mapped[str] = mapped_column(String(100), nullable=False, default="general")
 
-    level: Mapped[Optional[int]] = mapped_column(Integer)
+    level: Mapped[int | None] = mapped_column(Integer)
 
     # Геймификация
     points: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
-    achievements: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    achievements: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     # Последняя активность
     last_activity: Mapped[datetime] = mapped_column(
@@ -282,7 +286,7 @@ class UserProgress(Base):
         """Строковое представление прогресса пользователя"""
         return f"<UserProgress(user_id={self.user_telegram_id}, subject={self.subject}, level={self.level})>"
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Преобразование модели в словарь для API"""
         return {
             "subject": self.subject,
@@ -370,14 +374,14 @@ class AnalyticsMetric(Base):
     metric_name: Mapped[str] = mapped_column(String(100), nullable=False)
     metric_value: Mapped[float] = mapped_column(Float, nullable=False)
     metric_type: Mapped[str] = mapped_column(String(50), nullable=False)
-    tags: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
+    tags: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
     )
     period: Mapped[str] = mapped_column(String(20), nullable=False)
-    user_telegram_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    user_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
 
     __table_args__ = (
         Index("idx_analytics_metrics_name_time", "metric_name", "timestamp"),
@@ -408,17 +412,17 @@ class UserSession(Base):
         server_default=func.now(),
         nullable=False,
     )
-    session_end: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-    session_duration: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    session_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    session_duration: Mapped[int | None] = mapped_column(Integer, nullable=True)
     messages_count: Mapped[int] = mapped_column(Integer, default=0)
     ai_interactions: Mapped[int] = mapped_column(Integer, default=0)
     voice_messages: Mapped[int] = mapped_column(Integer, default=0)
     blocked_messages: Mapped[int] = mapped_column(Integer, default=0)
-    subjects_covered: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
-    engagement_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    safety_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    subjects_covered: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+    engagement_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    safety_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     session_type: Mapped[str] = mapped_column(String(50), default="regular")
-    device_info: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
+    device_info: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     __table_args__ = (
         Index("idx_user_sessions_user_start", "user_telegram_id", "session_start"),
@@ -445,13 +449,13 @@ class UserEvent(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_telegram_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
-    event_data: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
+    event_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
     )
-    session_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    session_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     importance: Mapped[str] = mapped_column(String(20), default="normal")
     processed: Mapped[bool] = mapped_column(Boolean, default=False)
 
@@ -529,15 +533,15 @@ class AnalyticsReport(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     report_type: Mapped[str] = mapped_column(String(50), nullable=False)
     report_period: Mapped[str] = mapped_column(String(20), nullable=False)
-    report_data: Mapped[Dict] = mapped_column(JSON, nullable=False)
+    report_data: Mapped[dict] = mapped_column(JSON, nullable=False)
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
     )
-    generated_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    parent_telegram_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
-    child_telegram_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    generated_by: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    parent_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    child_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     is_scheduled: Mapped[bool] = mapped_column(Boolean, default=False)
 
     __table_args__ = (
@@ -569,7 +573,7 @@ class AnalyticsTrend(Base):
     confidence: Mapped[float] = mapped_column(Float, nullable=False)
     period_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     period_end: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    prediction_data: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
+    prediction_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -602,16 +606,16 @@ class AnalyticsAlert(Base):
     alert_type: Mapped[str] = mapped_column(String(50), nullable=False)
     alert_level: Mapped[str] = mapped_column(String(20), nullable=False)
     alert_message: Mapped[str] = mapped_column(Text, nullable=False)
-    alert_data: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)
+    alert_data: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     triggered_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
     )
-    resolved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-    resolved_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    parent_telegram_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
-    child_telegram_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolved_by: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    parent_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    child_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     is_sent: Mapped[bool] = mapped_column(Boolean, default=False)
 
     __table_args__ = (
@@ -639,9 +643,9 @@ class AnalyticsConfig(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     config_key: Mapped[str] = mapped_column(String(100), nullable=False)
-    config_value: Mapped[Dict] = mapped_column(JSON, nullable=False)
+    config_value: Mapped[dict] = mapped_column(JSON, nullable=False)
     config_type: Mapped[str] = mapped_column(String(50), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -703,19 +707,19 @@ class Subscription(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
 
-    transaction_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    invoice_payload: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    transaction_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    invoice_payload: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Платежная информация
-    payment_method: Mapped[Optional[str]] = mapped_column(
+    payment_method: Mapped[str | None] = mapped_column(
         String(20), nullable=True
     )  # 'stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other'
-    payment_id: Mapped[Optional[str]] = mapped_column(
+    payment_id: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )  # ID платежа в ЮKassa или Telegram
 
     # Сохраненный метод оплаты для автоплатежа (ЮKassa)
-    saved_payment_method_id: Mapped[Optional[str]] = mapped_column(
+    saved_payment_method_id: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )  # ID сохраненного метода оплаты в ЮKassa для автоплатежа
 
@@ -749,7 +753,7 @@ class Subscription(Base):
             f"plan={self.plan_id}, expires='{self.expires_at}', active={self.is_active})>"
         )
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Преобразование модели в словарь для API"""
         return {
             "id": self.id,
@@ -758,6 +762,8 @@ class Subscription(Base):
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
             "is_active": self.is_active,
             "payment_method": self.payment_method,
+            "auto_renew": self.auto_renew,
+            "has_saved_payment_method": bool(self.saved_payment_method_id),
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
@@ -800,7 +806,7 @@ class Payment(Base):
         index=True,
     )
 
-    subscription_id: Mapped[Optional[int]] = mapped_column(
+    subscription_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("subscriptions.id", ondelete="SET NULL"),
         nullable=True,
@@ -820,10 +826,10 @@ class Payment(Base):
         String(20), nullable=False, default="pending", index=True
     )  # 'pending', 'succeeded', 'cancelled', 'failed'
 
-    payment_metadata: Mapped[Optional[Dict]] = mapped_column(
+    payment_metadata: Mapped[dict | None] = mapped_column(
         JSON, nullable=True
     )  # Дополнительные данные платежа
-    webhook_data: Mapped[Optional[Dict]] = mapped_column(
+    webhook_data: Mapped[dict | None] = mapped_column(
         JSON, nullable=True
     )  # Полные данные webhook для отладки
 
@@ -836,7 +842,7 @@ class Payment(Base):
         onupdate=func.now(),
         nullable=False,
     )
-    paid_at: Mapped[Optional[datetime]] = mapped_column(
+    paid_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )  # Дата успешной оплаты
 
@@ -868,7 +874,7 @@ class Payment(Base):
             f"user={self.user_telegram_id}, status='{self.status}', amount={self.amount} {self.currency})>"
         )
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Преобразование модели в словарь для API"""
         return {
             "id": self.id,
@@ -909,19 +915,17 @@ class GameSession(Base):
     game_type: Mapped[str] = mapped_column(
         String(50), nullable=False
     )  # 'tic_tac_toe', 'checkers', '2048'
-    game_state: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)  # Состояние игры (JSON)
-    result: Mapped[Optional[str]] = mapped_column(
+    game_state: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Состояние игры (JSON)
+    result: Mapped[str | None] = mapped_column(
         String(20), nullable=True
     )  # 'win', 'loss', 'draw', 'in_progress'
-    score: Mapped[Optional[int]] = mapped_column(
-        Integer, nullable=True
-    )  # Финальный счет (для 2048)
+    score: Mapped[int | None] = mapped_column(Integer, nullable=True)  # Финальный счет (для 2048)
 
     started_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-    duration_seconds: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # Relationship
     user: Mapped["User"] = relationship("User", foreign_keys=[user_telegram_id])
@@ -945,7 +949,7 @@ class GameSession(Base):
             f"game={self.game_type}, result={self.result})>"
         )
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Преобразование модели в словарь для API"""
         return {
             "id": self.id,
@@ -980,12 +984,10 @@ class GameStats(Base):
     wins: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     losses: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     draws: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
-    best_score: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # Для 2048
+    best_score: Mapped[int | None] = mapped_column(Integer, nullable=True)  # Для 2048
     total_score: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
-    last_played_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    last_played_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -1013,7 +1015,7 @@ class GameStats(Base):
             f"wins={self.wins}, losses={self.losses})>"
         )
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Преобразование модели в словарь для API"""
         win_rate = (self.wins / self.total_games * 100) if self.total_games > 0 else 0.0
 
