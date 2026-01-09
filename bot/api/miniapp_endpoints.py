@@ -4,6 +4,7 @@ API endpoints для Telegram Mini App
 """
 
 import base64
+from contextlib import suppress
 
 import httpx
 from aiohttp import web
@@ -13,6 +14,8 @@ from pydantic import ValidationError
 from bot.api.validators import (
     AIChatRequest,
     AuthRequest,
+    DashboardStatsResponse,
+    DetailedAnalyticsResponse,
     UpdateUserRequest,
     validate_limit,
     validate_telegram_id,
@@ -349,26 +352,34 @@ async def miniapp_get_dashboard(request: web.Request) -> web.Response:
                 or 0
             )
 
-            stats = {
-                "total_messages": messages_count,
-                "learning_sessions": sessions_count,
-                "total_points": total_points,
-                "subjects_studied": subjects_count,
-                "current_streak": 1,  # Временно hardcode
-            }
-
             # Детальная аналитика только для Premium
+            detailed_analytics = None
             if is_premium:
                 from bot.services.analytics_service import AnalyticsService
 
                 analytics_service = AnalyticsService(db)
-                stats["detailed_analytics"] = {
-                    "messages_per_day": analytics_service.get_messages_per_day(telegram_id),
-                    "most_active_subjects": analytics_service.get_most_active_subjects(telegram_id),
-                    "learning_trends": analytics_service.get_learning_trends(telegram_id),
-                }
+                detailed_analytics = DetailedAnalyticsResponse(
+                    messages_per_day=analytics_service.get_messages_per_day(telegram_id),
+                    most_active_subjects=analytics_service.get_most_active_subjects(telegram_id),
+                    learning_trends=analytics_service.get_learning_trends(telegram_id),
+                )
 
-            return web.json_response({"success": True, "stats": stats, "is_premium": is_premium})
+            stats = DashboardStatsResponse(
+                total_messages=messages_count,
+                learning_sessions=sessions_count,
+                total_points=total_points,
+                subjects_studied=subjects_count,
+                current_streak=1,  # Временно hardcode
+                detailed_analytics=detailed_analytics,
+            )
+
+            return web.json_response(
+                {
+                    "success": True,
+                    "stats": stats.model_dump(exclude_none=True),
+                    "is_premium": is_premium,
+                }
+            )
 
     except Exception as e:
         logger.error(f"❌ Ошибка получения дашборда: {e}")
@@ -1363,7 +1374,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     import json as json_lib
 
                     chunk_data = json_lib.dumps({"chunk": chunk}, ensure_ascii=False)
-                    await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode("utf-8"))
+                    await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
 
                 # Ограничиваем размер полного ответа
                 MAX_RESPONSE_LENGTH = 4000
@@ -1434,7 +1445,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     {"achievements": achievement_info}, ensure_ascii=False
                                 )
                                 await response.write(
-                                    f"event: achievements\ndata: {chunk_data}\n\n".encode("utf-8")
+                                    f"event: achievements\ndata: {chunk_data}\n\n".encode()
                                 )
                         except Exception as e:
                             logger.error(f"❌ Stream: Ошибка формирования достижений: {e}")
@@ -1461,10 +1472,8 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
         except Exception:
             pass
     finally:
-        try:
+        with suppress(Exception):
             await response.write_eof()
-        except Exception:
-            pass
 
     return response
 
@@ -1616,10 +1625,7 @@ async def miniapp_log(request: web.Request) -> web.Response:
                     import json
 
                     parsed = json.loads(log_data)
-                    if isinstance(parsed, dict):
-                        log_data = parsed
-                    else:
-                        log_data = {"value": str(parsed)[:500]}
+                    log_data = parsed if isinstance(parsed, dict) else {"value": str(parsed)[:500]}
                 except Exception as parse_err:
                     # Если не JSON, просто строка
                     logger.debug(f"⚠️ Не удалось распарсить log_data как JSON: {parse_err}")
@@ -1701,10 +1707,8 @@ async def miniapp_log(request: web.Request) -> web.Response:
                 logger.debug(log_message)
         except Exception as log_err:
             # Если не удалось залогировать, просто логируем ошибку без форматирования
-            try:
+            with suppress(Exception):
                 logger.debug(f"⚠️ Ошибка логирования: {type(log_err).__name__}: {str(log_err)}")
-            except Exception:
-                pass  # Если даже это не работает, просто пропускаем
 
         return web.json_response({"success": True})
 
@@ -1748,10 +1752,8 @@ async def miniapp_get_subjects(request: web.Request) -> web.Response:
         telegram_id = None
         telegram_id_str = request.query.get("telegram_id")
         if telegram_id_str:
-            try:
+            with suppress(ValueError):
                 telegram_id = validate_telegram_id(telegram_id_str)
-            except ValueError:
-                pass  # Игнорируем невалидный ID
 
         # Предметы (в будущем можно вынести в БД)
         all_subjects = [

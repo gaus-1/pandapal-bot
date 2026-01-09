@@ -213,8 +213,10 @@ async def init_database() -> None:
                                         logger.info(
                                             "✅ Текущее состояние БД помечено как актуальное"
                                         )
-                                    except Exception:
-                                        pass
+                                    except Exception as stamp_err:
+                                        logger.warning(
+                                            f"⚠️ Не удалось пометить состояние БД: {stamp_err}"
+                                        )
                                 migration_applied = True
                             elif "multiple head revisions" in error_str:
                                 # Если есть множественные head ревизии, пытаемся применить все heads
