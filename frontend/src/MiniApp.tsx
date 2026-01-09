@@ -38,29 +38,8 @@ function MiniAppContent() {
   const { setCurrentScreen } = useAppStore();
   const { authenticate } = useAuth();
 
-  // Ранняя инициализация темы - применяем сохраненную тему сразу при монтировании MiniApp
-  useEffect(() => {
-    // Принудительно применяем сохраненную тему при монтировании MiniApp
-    // Это гарантирует, что тема применяется до рендера компонентов
-    const savedTheme = localStorage.getItem('theme');
-    console.log('🔍 MiniApp: Чтение темы из localStorage:', savedTheme);
-
-    if (savedTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-      console.log('🌙 MiniApp: Применена темная тема');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.classList.add('light');
-      // Если темы нет - устанавливаем светлую
-      if (!savedTheme) {
-        localStorage.setItem('theme', 'light');
-        console.log('☀️ MiniApp: Установлена светлая тема по умолчанию');
-      } else {
-        console.log('☀️ MiniApp: Применена светлая тема');
-      }
-    }
-  }, []);
+  // Тема управляется через MiniAppThemeToggle и index.html
+  // Здесь не дублируем логику, чтобы избежать конфликтов
 
   useEffect(() => {
     // Инициализация Telegram Mini App

@@ -21,38 +21,24 @@
     <script>
       (function() {
         // Ранняя инициализация темы для предотвращения мигания
-        // Проверяем, открыто ли в Telegram Mini App
-        const isInTelegram = typeof window !== 'undefined' &&
-          (window.navigator.userAgent.includes('Telegram') ||
-           window.location.hostname.includes('telegram.org') ||
-           window.location.hostname.includes('web.telegram.org'));
-
-        if (isInTelegram) {
-          // В мини-апп: только читаем сохраненную тему, НЕ устанавливаем по умолчанию
-          // MiniAppThemeToggle будет управлять темой после монтирования
+        // ВСЕГДА светлая тема по умолчанию
+        try {
           const savedTheme = localStorage.getItem('theme');
           if (savedTheme === 'dark') {
             document.documentElement.classList.add('dark');
             document.documentElement.classList.remove('light');
           } else {
-            // Если нет сохраненной темы - оставляем светлую (класс light уже в HTML)
+            // По умолчанию светлая тема
             document.documentElement.classList.remove('dark');
             document.documentElement.classList.add('light');
-          }
-        } else {
-          // На сайте: по умолчанию светлая тема, но учитываем сохраненный выбор
-          const savedTheme = localStorage.getItem('theme');
-          if (savedTheme === 'dark') {
-            document.documentElement.classList.add('dark');
-            document.documentElement.classList.remove('light');
-          } else {
-            document.documentElement.classList.remove('dark');
-            document.documentElement.classList.add('light');
-            // Устанавливаем светлую тему по умолчанию только если нет сохраненного выбора
             if (!savedTheme) {
               localStorage.setItem('theme', 'light');
             }
           }
+        } catch (e) {
+          // Если localStorage недоступен - используем светлую тему
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
         }
       })();
     </script>
@@ -190,10 +176,10 @@
 
         ym(104525544, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
     </script>
-    <noscript><img src="https://mc.yandex.ru/watch/104525544" style="position:absolute; left:-9999px;" alt="" /></noscript>
     <!-- /Yandex.Metrika counter -->
   </head>
   <body>
+    <noscript><img src="https://mc.yandex.ru/watch/104525544" style="position:absolute; left:-9999px;" alt="" /></noscript>
     <div id="root"></div>
     <script>
       // РАННЕЕ подавление ошибок Telegram WebView (до загрузки React)
