@@ -3,10 +3,15 @@
  * Как на скринах - QR слева, кнопка справа
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { SITE_CONFIG } from '../config/constants';
 
 export const CallToAction: React.FC = React.memo(() => {
+  const [qrError, setQrError] = useState(false);
+  const [qrLoaded, setQrLoaded] = useState(false);
+
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(SITE_CONFIG.botUrl)}`;
+
   return (
     <section id="cta" className="py-16 bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-slate-800/60 dark:via-slate-900 dark:to-slate-800/60 rounded-3xl my-16 border border-gray-100 dark:border-slate-700 dark:border-slate-600/50 scroll-mt-20">
       <div className="max-w-6xl mx-auto px-4 text-center">
@@ -22,13 +27,46 @@ export const CallToAction: React.FC = React.memo(() => {
         <div className="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-16 mb-12">
           {/* QR-код */}
           <div className="flex flex-col items-center">
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl dark:shadow-2xl border-2 border-gray-100 dark:border-slate-700 dark:border-slate-600/50">
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(SITE_CONFIG.botUrl)}`}
-                alt="QR-код для перехода в Telegram бота"
-                className="w-52 h-52"
-                loading="lazy"
-              />
+            <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-xl dark:shadow-2xl border-2 border-gray-100 dark:border-slate-700 dark:border-slate-600/50 relative min-w-[220px] min-h-[220px] flex items-center justify-center">
+              {qrError ? (
+                <div className="flex flex-col items-center justify-center p-4 text-center">
+                  <div className="text-4xl mb-2">📱</div>
+                  <p className="text-sm text-gray-600 dark:text-slate-400 mb-2">
+                    QR-код не загрузился
+                  </p>
+                  <a
+                    href={SITE_CONFIG.botUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 dark:text-blue-400 hover:underline text-xs"
+                  >
+                    Нажми здесь
+                  </a>
+                </div>
+              ) : (
+                <>
+                  <img
+                    src={qrUrl}
+                    alt="QR-код для перехода в Telegram бота"
+                    className={`w-48 h-48 sm:w-52 sm:h-52 transition-opacity duration-300 ${
+                      qrLoaded ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    loading="lazy"
+                    onLoad={() => setQrLoaded(true)}
+                    onError={() => {
+                      setQrError(true);
+                      setQrLoaded(false);
+                    }}
+                  />
+                  {!qrLoaded && !qrError && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="animate-pulse text-gray-400 dark:text-slate-500">
+                        <div className="w-12 h-12 border-4 border-gray-300 dark:border-slate-600 border-t-blue-500 rounded-full"></div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mt-4 font-medium">
               Наведи камеру на QR-код
