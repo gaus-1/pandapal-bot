@@ -6,8 +6,7 @@
 
 import asyncio
 import random
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple
+from datetime import UTC, datetime
 
 from loguru import logger
 from sqlalchemy import and_, select
@@ -28,7 +27,7 @@ class TicTacToeAI:
         """
         self.difficulty = difficulty
 
-    def get_best_move(self, board: List[Optional[str]], player: str) -> int:
+    def get_best_move(self, board: list[str | None], player: str) -> int:
         """
         Получить лучший ход для AI.
 
@@ -81,7 +80,7 @@ class TicTacToeAI:
             _, move = self._minimax(board, player, True)
             return move
 
-    def _find_winning_move(self, board: List[Optional[str]], player: str) -> int:
+    def _find_winning_move(self, board: list[str | None], player: str) -> int:
         """Найти выигрышный ход"""
         lines = [
             [0, 1, 2],
@@ -102,8 +101,8 @@ class TicTacToeAI:
         return -1
 
     def _minimax(
-        self, board: List[Optional[str]], player: str, is_maximizing: bool
-    ) -> Tuple[int, int]:
+        self, board: list[str | None], player: str, is_maximizing: bool
+    ) -> tuple[int, int]:
         """Minimax алгоритм для оптимальной игры"""
         opponent = "X" if player == "O" else "O"
         winner = self._check_winner(board)
@@ -135,7 +134,7 @@ class TicTacToeAI:
 
         return best_score, best_move
 
-    def _check_winner(self, board: List[Optional[str]]) -> Optional[str]:
+    def _check_winner(self, board: list[str | None]) -> str | None:
         """Проверить победителя"""
         lines = [
             [0, 1, 2],
@@ -155,7 +154,7 @@ class TicTacToeAI:
 
         return None
 
-    def _is_board_full(self, board: List[Optional[str]]) -> bool:
+    def _is_board_full(self, board: list[str | None]) -> bool:
         """Проверить заполнена ли доска"""
         return all(cell is not None for cell in board)
 
@@ -164,8 +163,8 @@ class CheckersAI:
     """AI для шашек (панда)"""
 
     def get_best_move(
-        self, board: List[List[Optional[str]]], player: str
-    ) -> Optional[Tuple[int, int, int, int]]:
+        self, board: list[list[str | None]], player: str
+    ) -> tuple[int, int, int, int] | None:
         """
         Получить лучший ход для AI.
 
@@ -193,37 +192,46 @@ class CheckersAI:
         return random.choice(moves)
 
     def _get_all_moves(
-        self, board: List[List[Optional[str]]], player: str
-    ) -> List[Tuple[int, int, int, int]]:
+        self, board: list[list[str | None]], player: str
+    ) -> list[tuple[int, int, int, int]]:
         """Получить все возможные ходы для игрока"""
         moves = []
         for row in range(8):
             for col in range(8):
                 if board[row][col] == player:
-                    # Проверяем возможные ходы из этой позиции
-                    # AI двигается вниз (увеличение row, так как он вверху доски)
-                    for dr, dc in [(1, -1), (1, 1)]:
-                        new_row, new_col = row + dr, col + dc
-                        if 0 <= new_row < 8 and 0 <= new_col < 8:
-                            if board[new_row][new_col] is None:
-                                moves.append((row, col, new_row, new_col))
-                            elif board[new_row][new_col] == "user":
-                                # Проверяем возможность взятия
-                                jump_row, jump_col = new_row + dr, new_col + dc
-                                if 0 <= jump_row < 8 and 0 <= jump_col < 8:
-                                    if board[jump_row][jump_col] is None:
-                                        moves.append((row, col, jump_row, jump_col))
+                    moves.extend(self._get_moves_from_position(board, row, col))
+        return moves
+
+    def _get_moves_from_position(
+        self, board: list[list[str | None]], row: int, col: int
+    ) -> list[tuple[int, int, int, int]]:
+        """Получить все возможные ходы из заданной позиции."""
+        moves = []
+        # AI двигается вниз (увеличение row, так как он вверху доски)
+        for dr, dc in [(1, -1), (1, 1)]:
+            new_row, new_col = row + dr, col + dc
+            if not (0 <= new_row < 8 and 0 <= new_col < 8):
+                continue
+
+            if board[new_row][new_col] is None:
+                moves.append((row, col, new_row, new_col))
+            elif board[new_row][new_col] == "user":
+                # Проверяем возможность взятия
+                jump_row, jump_col = new_row + dr, new_col + dc
+                if 0 <= jump_row < 8 and 0 <= jump_col < 8:
+                    if board[jump_row][jump_col] is None:
+                        moves.append((row, col, jump_row, jump_col))
         return moves
 
     def _is_capture_move(
-        self, board: List[List[Optional[str]]], move: Tuple[int, int, int, int], player: str
+        self, board: list[list[str | None]], move: tuple[int, int, int, int], player: str
     ) -> bool:
         """Проверить, является ли ход взятием фишки"""
         from_row, from_col, to_row, to_col = move
         # Если ход на 2 клетки по диагонали - это взятие
         return abs(to_row - from_row) == 2 and abs(to_col - from_col) == 2
 
-    def _is_forward_move(self, move: Tuple[int, int, int, int], player: str) -> bool:
+    def _is_forward_move(self, move: tuple[int, int, int, int], player: str) -> bool:
         """Проверить, является ли ход движением вперед"""
         from_row, _, to_row, _ = move
         # Для AI (который вверху) движение вперед = движение вниз (увеличение row)
@@ -239,7 +247,7 @@ class GamesService:
         self.checkers_ai = CheckersAI()
 
     def create_game_session(
-        self, telegram_id: int, game_type: str, initial_state: Optional[Dict] = None
+        self, telegram_id: int, game_type: str, initial_state: dict | None = None
     ) -> GameSession:
         """
         Создать новую игровую сессию.
@@ -264,7 +272,7 @@ class GamesService:
         return session
 
     def update_game_session(
-        self, session_id: int, game_state: Dict, result: Optional[str] = None
+        self, session_id: int, game_state: dict, result: str | None = None
     ) -> GameSession:
         """
         Обновить игровую сессию.
@@ -297,15 +305,15 @@ class GamesService:
         if result:
             session.result = result
             if result != "in_progress":
-                session.finished_at = datetime.now(timezone.utc)
+                session.finished_at = datetime.now(UTC)
                 if session.started_at:
                     # Нормализуем timezone для обоих datetime
                     finished = session.finished_at
                     started = session.started_at
                     if finished.tzinfo is None:
-                        finished = finished.replace(tzinfo=timezone.utc)
+                        finished = finished.replace(tzinfo=UTC)
                     if started.tzinfo is None:
-                        started = started.replace(tzinfo=timezone.utc)
+                        started = started.replace(tzinfo=UTC)
                     delta = finished - started
                     session.duration_seconds = int(delta.total_seconds())
 
@@ -313,7 +321,7 @@ class GamesService:
         return session
 
     def finish_game_session(
-        self, session_id: int, result: str, score: Optional[int] = None
+        self, session_id: int, result: str, score: int | None = None
     ) -> GameSession:
         """
         Завершить игровую сессию и обновить статистику.
@@ -341,7 +349,7 @@ class GamesService:
         return session
 
     def _update_game_stats(
-        self, telegram_id: int, game_type: str, result: str, score: Optional[int] = None
+        self, telegram_id: int, game_type: str, result: str, score: int | None = None
     ) -> None:
         """Обновить статистику игры"""
         stmt = select(GameStats).where(
@@ -364,7 +372,7 @@ class GamesService:
             self.db.add(stats)
 
         stats.total_games += 1
-        stats.last_played_at = datetime.now(timezone.utc)
+        stats.last_played_at = datetime.now(UTC)
 
         if result == "win":
             stats.wins += 1
@@ -409,7 +417,7 @@ class GamesService:
         if total_games == 100:
             gamification_service.check_and_unlock_achievements(telegram_id)
 
-    def get_game_stats(self, telegram_id: int, game_type: Optional[str] = None) -> Dict:
+    def get_game_stats(self, telegram_id: int, game_type: str | None = None) -> dict:
         """
         Получить статистику игр пользователя.
 
@@ -453,8 +461,8 @@ class GamesService:
         return result
 
     def get_recent_sessions(
-        self, telegram_id: int, game_type: Optional[str] = None, limit: int = 10
-    ) -> List[GameSession]:
+        self, telegram_id: int, game_type: str | None = None, limit: int = 10
+    ) -> list[GameSession]:
         """
         Получить последние игровые сессии.
 
@@ -482,7 +490,7 @@ class GamesService:
 
     async def tic_tac_toe_make_move(
         self, session_id: int, position: int, user_symbol: str = "X"
-    ) -> Dict:
+    ) -> dict:
         """
         Сделать ход в крестики-нолики.
 
@@ -628,7 +636,7 @@ class GamesService:
             "ai_move": ai_position,
         }
 
-    def get_checkers_valid_moves(self, session_id: int) -> List[Dict]:
+    def get_checkers_valid_moves(self, session_id: int) -> list[dict]:
         """
         Получить валидные ходы для пользователя в шашках.
 
@@ -685,7 +693,7 @@ class GamesService:
 
     async def checkers_move(
         self, session_id: int, from_row: int, from_col: int, to_row: int, to_col: int
-    ) -> Dict:
+    ) -> dict:
         """
         Сделать ход в шашках.
 
@@ -931,7 +939,7 @@ class GamesService:
             "ai_move": (ai_from_row, ai_from_col, ai_to_row, ai_to_col),
         }
 
-    def game_2048_move(self, session_id: int, direction: str) -> Dict:
+    def game_2048_move(self, session_id: int, direction: str) -> dict:
         """
         Сделать ход в 2048.
 
