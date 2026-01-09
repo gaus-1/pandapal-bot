@@ -1282,7 +1282,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                         # Сохраняем в историю
                         try:
-                            from bot.services.history_service import ChatHistoryService
                             from bot.services.premium_features_service import PremiumFeaturesService
 
                             premium_service = PremiumFeaturesService(db)
