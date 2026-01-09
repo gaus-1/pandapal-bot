@@ -422,7 +422,9 @@ class YandexCloudService:
 
             # Внутренняя функция для выполнения запроса (оборачивается в очередь)
             async def _execute_request():
-                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                # Увеличенный таймаут для SpeechKit (60 секунд)
+                stt_timeout = httpx.Timeout(60.0, connect=10.0)
+                async with httpx.AsyncClient(timeout=stt_timeout) as client:
                     response = await client.post(
                         self.stt_url,
                         headers={
