@@ -24,8 +24,8 @@ Best Practices:
 """
 
 import os
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Generator
 
 from loguru import logger
 from sqlalchemy import create_engine, event, text
@@ -143,7 +143,7 @@ async def init_database() -> None:
 
                 alembic_cfg = Config("alembic.ini")
                 # Переопределяем URL из переменной окружения
-                database_url = os.getenv("DATABASE_URL") or os.getenv("database_url")
+                database_url = os.getenv("DATABASE_URL")
                 if database_url:
                     if database_url.startswith("postgresql://") and "+psycopg" not in database_url:
                         database_url = database_url.replace(
@@ -216,6 +216,21 @@ async def init_database() -> None:
                                     except Exception:
                                         pass
                                 migration_applied = True
+                            elif "multiple head revisions" in error_str:
+                                # Если есть множественные head ревизии, пытаемся применить все heads
+                                logger.warning(
+                                    "⚠️ Обнаружены множественные head ревизии, пытаемся применить все heads..."
+                                )
+                                try:
+                                    command.upgrade(alembic_cfg, "heads")
+                                    migration_applied = True
+                                    logger.info(
+                                        "✅ Миграции Alembic применены успешно (через heads)"
+                                    )
+                                except Exception as heads_err:
+                                    logger.warning(
+                                        f"⚠️ Не удалось применить миграции через heads: {heads_err}"
+                                    )
                             else:
                                 logger.warning(f"⚠️ Alembic миграция не удалась: {alembic_err}")
                 else:
@@ -225,12 +240,23 @@ async def init_database() -> None:
                         migration_applied = True
                         logger.info("✅ Миграции Alembic применены успешно")
                     except Exception as alembic_err:
-                        if (
-                            "already exists" in str(alembic_err).lower()
-                            or "duplicate" in str(alembic_err).lower()
-                        ):
+                        error_str = str(alembic_err).lower()
+                        if "already exists" in error_str or "duplicate" in error_str:
                             logger.info("ℹ️ Таблицы уже существуют, миграция не требуется")
                             migration_applied = True
+                        elif "multiple head revisions" in error_str:
+                            # Если есть множественные head ревизии, пытаемся применить все heads
+                            logger.warning(
+                                "⚠️ Обнаружены множественные head ревизии, пытаемся применить все heads..."
+                            )
+                            try:
+                                command.upgrade(alembic_cfg, "heads")
+                                migration_applied = True
+                                logger.info("✅ Миграции Alembic применены успешно (через heads)")
+                            except Exception as heads_err:
+                                logger.warning(
+                                    f"⚠️ Не удалось применить миграции через heads: {heads_err}"
+                                )
                         else:
                             logger.warning(f"⚠️ Alembic миграция не удалась: {alembic_err}")
 
@@ -535,7 +561,7 @@ async def init_database() -> None:
 
 
 @contextmanager
-def get_db() -> Generator[Session, None, None]:
+def get_db() -> Generator[Session]:
     """
     Контекстный менеджер для получения сессии базы данных.
 
@@ -604,12 +630,12 @@ class DatabaseService:
         """
         # Логируем URL для диагностики (без пароля)
         db_url_clean = "***:***@***"
-        try:
+        from contextlib import suppress
+
+        with suppress(Exception):
             db_url_clean = settings.database_url.replace(
                 settings.database_url.split("@")[0].split("//")[1], "***:***"
             )
-        except Exception:
-            pass
 
         try:
             logger.info(f"🔍 Подключение к БД: {db_url_clean}")
