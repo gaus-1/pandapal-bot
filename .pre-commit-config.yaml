@@ -49,19 +49,37 @@ repos:
         args: ['--profile', 'black', '--line-length', '100']
 
   # ============================================================================
-  # ЛИНТИНГ PYTHON (ТОЛЬКО КРИТИЧНЫЕ ОШИБКИ)
+  # ЛИНТИНГ PYTHON (RUFF - БЫСТРЫЙ И СОВРЕМЕННЫЙ)
   # ============================================================================
-  - repo: https://github.com/pycqa/flake8
-    rev: 7.3.0
+  # Ruff заменяет flake8, isort и часть pylint
+  # В 10-100 раз быстрее, проверяет PEP8 и больше правил
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
     hooks:
-      - id: flake8
-        name: 🔍 flake8 - проверка стиля
-        args:
-          - '--max-line-length=100'
-          - '--extend-ignore=E203,W503,D205,D400,D200,F841,C901,E501'
-          - '--max-complexity=15'
-        additional_dependencies: [flake8-docstrings]
+      - id: ruff
+        name: 🔍 ruff - линтинг и форматирование (PEP8)
+        args: ['--fix', '--exit-non-zero-on-fix']
         exclude: ^(tests/|scripts/|alembic/)
+      - id: ruff-format
+        name: 🎨 ruff format - форматирование кода
+        exclude: ^(tests/|scripts/|alembic/)
+
+  # ============================================================================
+  # ПРОВЕРКА СЛОЖНОСТИ КОДА (SOLID ПРИНЦИПЫ)
+  # ============================================================================
+  # Radon проверяет цикломатическую сложность
+  # Помогает соблюдать Single Responsibility Principle (SOLID)
+  - repo: local
+    hooks:
+      - id: radon-complexity
+        name: 📊 radon - проверка сложности (SOLID)
+        entry: bash -c 'radon cc bot/ --min B --show-complexity --average || true'
+        language: system
+        types: [python]
+        files: ^bot/.*\.py$
+        exclude: ^(tests/|scripts/|alembic/)
+        pass_filenames: false
+        stages: [manual]  # Запускается вручную: pre-commit run radon-complexity --all-files
 
   # ============================================================================
   # MYPY - ТОЛЬКО ДЛЯ НОВЫХ ФАЙЛОВ (НЕ БЛОКИРУЕТ КОММИТЫ)
@@ -163,7 +181,8 @@ repos:
 #
 # ОБЫЧНЫЙ КОММИТ:
 #   git commit -m "feat: новая функция"
-#   → Запустятся: trailing-whitespace, black, isort, flake8, eslint
+#   → Запустятся: trailing-whitespace, black, ruff, pylint, eslint
+#   → Проверяются: PEP8, SOLID принципы, сложность кода
 #
 # БЫСТРЫЙ КОММИТ (БЕЗ ПРОВЕРОК):
 #   git commit --no-verify -m "fix: быстрое исправление"
@@ -176,5 +195,8 @@ repos:
 #
 # ПРОВЕРКА БЕЗОПАСНОСТИ ВРУЧНУЮ:
 #   pre-commit run bandit --all-files
+#
+# ПРОВЕРКА СЛОЖНОСТИ КОДА (SOLID):
+#   pre-commit run radon-complexity --all-files
 #
 # ============================================================================
