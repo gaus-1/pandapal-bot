@@ -148,7 +148,7 @@ export function DonationScreen({ user }: DonationScreenProps) {
                 className={`w-full py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all touch-manipulation ${
                   selectedAmount === amount
                     ? 'bg-blue-500 dark:bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-700'
+                    : 'bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600'
                 }`}
               >
                 <span className="text-yellow-400">⭐</span> {amount}

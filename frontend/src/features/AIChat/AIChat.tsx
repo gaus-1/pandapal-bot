@@ -205,7 +205,7 @@ export function AIChat({ user }: AIChatProps) {
           </div>
           <div className="flex items-center gap-1.5">
             <MiniAppThemeToggle />
-            <button onClick={handleClearChat} className="flex-shrink-0 w-9 h-9 rounded-lg bg-white/20 dark:bg-slate-700 hover:bg-white/30 dark:hover:bg-slate-600 active:scale-95 transition-all flex items-center justify-center border border-white/30 dark:border-slate-600 shadow-sm">
+            <button onClick={handleClearChat} className="flex-shrink-0 w-9 h-9 rounded-lg bg-white/20 dark:bg-slate-700/80 hover:bg-white/30 dark:hover:bg-slate-600 active:bg-white/40 dark:active:bg-slate-500 active:scale-95 transition-all flex items-center justify-center border border-white/30 dark:border-slate-600 shadow-sm">
               <span className="text-base text-white dark:text-slate-200">🗑️</span>
             </button>
             <button onClick={() => { useAppStore.getState().setCurrentScreen('emergency'); haptic.medium(); }} className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-red-500/90 dark:bg-red-600/90 hover:bg-red-600/90 dark:hover:bg-red-700/90 active:scale-95 transition-all flex items-center justify-center shadow-sm">
@@ -232,7 +232,7 @@ export function AIChat({ user }: AIChatProps) {
                 <div className={`rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-md ${
                   msg.role === 'user'
                     ? 'bg-gradient-to-br from-blue-300/90 to-cyan-300/90 dark:from-blue-600/80 dark:to-cyan-600/80 text-gray-800 dark:text-white border border-blue-200/50 dark:border-blue-500/40'
-                    : 'bg-white/95 dark:bg-slate-800 text-gray-800 dark:text-slate-100 border border-gray-200/80 dark:border-slate-600/80'
+                    : 'bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 border border-gray-200 dark:border-slate-600'
                 }`}>
                   <p className="whitespace-pre-wrap break-words font-medium text-xs sm:text-sm leading-relaxed">{msg.content}</p>
                   <time className={`text-[10px] sm:text-xs mt-1.5 sm:mt-2 font-medium block ${
@@ -243,9 +243,9 @@ export function AIChat({ user }: AIChatProps) {
                 </div>
                 {/* Кнопки действий */}
                 <div className="absolute -bottom-7 left-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => handleCopyMessage(msg.content)} className="px-2 py-1 text-xs bg-gray-200 dark:bg-slate-700 rounded hover:bg-gray-300 dark:hover:bg-slate-600">📋</button>
+                  <button onClick={() => handleCopyMessage(msg.content)} className="px-2 py-1 text-xs bg-gray-200 dark:bg-slate-700 rounded hover:bg-gray-300 dark:hover:bg-slate-600 active:bg-gray-400 dark:active:bg-slate-500 transition-colors">📋</button>
                   {msg.role === 'ai' && (
-                    <button onClick={() => handleReplyToMessage(index)} className="px-2 py-1 text-xs bg-gray-200 dark:bg-slate-700 rounded hover:bg-gray-300 dark:hover:bg-slate-600">↩️</button>
+                    <button onClick={() => handleReplyToMessage(index)} className="px-2 py-1 text-xs bg-gray-200 dark:bg-slate-700 rounded hover:bg-gray-300 dark:hover:bg-slate-600 active:bg-gray-400 dark:active:bg-slate-500 transition-colors">↩️</button>
                   )}
                 </div>
               </div>
@@ -270,8 +270,8 @@ export function AIChat({ user }: AIChatProps) {
       {/* Кнопки скролла */}
       {showScrollButtons && (
         <div className="absolute right-4 bottom-24 flex flex-col gap-2">
-          <button onClick={scrollToTop} className="w-10 h-10 rounded-full bg-blue-300/80 text-gray-700 dark:text-gray-800 shadow-lg hover:bg-blue-400/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm">⬆️</button>
-          <button onClick={scrollToBottom} className="w-10 h-10 rounded-full bg-blue-300/80 text-gray-700 dark:text-gray-800 shadow-lg hover:bg-blue-400/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm">⬇️</button>
+          <button onClick={scrollToTop} className="w-10 h-10 rounded-full bg-blue-300/80 dark:bg-blue-600/80 text-gray-700 dark:text-white shadow-lg hover:bg-blue-400/80 dark:hover:bg-blue-500/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm">⬆️</button>
+          <button onClick={scrollToBottom} className="w-10 h-10 rounded-full bg-blue-300/80 dark:bg-blue-600/80 text-gray-700 dark:text-white shadow-lg hover:bg-blue-400/80 dark:hover:bg-blue-500/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm">⬇️</button>
         </div>
       )}
 
@@ -282,7 +282,7 @@ export function AIChat({ user }: AIChatProps) {
             <p className="text-xs text-blue-500 dark:text-blue-400 font-semibold">Ответ на:</p>
             <p className="text-sm text-gray-700 dark:text-gray-300 truncate">{messages[replyToMessage].content.slice(0, 50)}...</p>
           </div>
-          <button onClick={() => setReplyToMessage(null)} className="ml-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">✖️</button>
+          <button onClick={() => setReplyToMessage(null)} className="ml-2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 active:text-gray-800 dark:active:text-slate-100 transition-colors">✖️</button>
         </div>
       )}
 
@@ -294,7 +294,7 @@ export function AIChat({ user }: AIChatProps) {
             <span className="text-base sm:text-lg">📷</span>
           </button>
 
-          <textarea value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyPress={handleKeyPress} placeholder="Задай вопрос..." disabled={isSending || isRecording} className="flex-1 resize-none rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-2 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 text-sm sm:text-base border border-gray-200 dark:border-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-400 disabled:opacity-50 transition-all h-[44px] sm:h-[48px] leading-tight" rows={1} style={{ maxHeight: '120px', minHeight: '44px' }} />
+          <textarea value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyPress={handleKeyPress} placeholder="Задай вопрос..." disabled={isSending || isRecording} className="flex-1 resize-none rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-2 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-400 text-sm sm:text-base border border-gray-200 dark:border-slate-700 outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:focus:ring-blue-500 disabled:opacity-50 transition-all h-[44px] sm:h-[48px] leading-tight" rows={1} style={{ maxHeight: '120px', minHeight: '44px' }} />
 
           {isRecording ? (
             <button onClick={stopRecording} className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-red-400/90 to-pink-400/90 text-white flex items-center justify-center animate-pulse shadow-md self-center">

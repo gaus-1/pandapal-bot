@@ -1,11 +1,10 @@
 /**
  * Mini App Theme Toggle Component
- * Переключатель темы для Telegram Mini App с синхронизацией с темой Telegram
+ * Переключатель темы для Telegram Mini App
+ * Всегда светлая тема по умолчанию, независимо от настроек Telegram
  */
 
 import React, { useEffect, useState } from 'react';
-import WebApp from '@twa-dev/sdk';
-import { telegram } from '../services/telegram';
 
 export const MiniAppThemeToggle: React.FC = () => {
   const [isDark, setIsDark] = useState(false);
@@ -29,48 +28,16 @@ export const MiniAppThemeToggle: React.FC = () => {
       setIsDark(dark);
     };
 
-    // Проверяем тему Telegram (приоритет для мини-апп)
-    const telegramColorScheme = telegram.getColorScheme();
-
-    if (telegramColorScheme === 'dark') {
-      // Если Telegram в темной теме - используем темную
+    // Всегда светлая тема по умолчанию, игнорируем тему Telegram
+    // Проверяем только сохраненный выбор пользователя
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
       applyTheme(true);
     } else {
-      // Иначе проверяем сохраненный выбор пользователя
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme === 'dark') {
-        applyTheme(true);
-      } else {
-        applyTheme(false);
-      }
+      // По умолчанию всегда светлая тема
+      applyTheme(false);
+      localStorage.setItem('theme', 'light');
     }
-
-    // Подписываемся на изменения темы Telegram
-    const handleThemeChange = () => {
-      const newColorScheme = telegram.getColorScheme();
-      if (newColorScheme === 'dark') {
-        applyTheme(true);
-      } else if (newColorScheme === 'light') {
-        // При смене Telegram на светлую - используем сохраненный выбор пользователя
-        const savedTheme = localStorage.getItem('theme');
-        applyTheme(savedTheme === 'dark');
-      }
-    };
-
-    // Слушаем изменения темы Telegram через SDK
-    try {
-      WebApp.onEvent('themeChanged', handleThemeChange);
-    } catch (error) {
-      console.warn('Не удалось подписаться на изменения темы Telegram:', error);
-    }
-
-    return () => {
-      try {
-        WebApp.offEvent('themeChanged', handleThemeChange);
-      } catch {
-        // Игнорируем ошибки при отписке
-      }
-    };
   }, []);
 
   // Переключение темы
@@ -96,7 +63,7 @@ export const MiniAppThemeToggle: React.FC = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="flex-shrink-0 w-9 h-9 rounded-lg bg-gray-400/60 dark:bg-slate-600/60 hover:bg-gray-500/70 dark:hover:bg-slate-500/70 active:scale-95 transition-all flex items-center justify-center border border-gray-400/40 dark:border-slate-500/40 shadow-sm"
+      className="flex-shrink-0 w-9 h-9 rounded-lg bg-gray-400/60 dark:bg-slate-600/60 hover:bg-gray-500/70 dark:hover:bg-slate-500/70 active:bg-gray-600/80 dark:active:bg-slate-500/80 active:scale-95 transition-all flex items-center justify-center border border-gray-400/40 dark:border-slate-500/40 shadow-sm"
       aria-label={isDark ? 'Включить светлую тему' : 'Включить темную тему'}
       title={isDark ? 'Светлая тема' : 'Темная тема'}
     >

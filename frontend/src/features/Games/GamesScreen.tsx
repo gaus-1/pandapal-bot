@@ -162,11 +162,11 @@ export function GamesScreen({ user }: GamesScreenProps) {
                 onClick={() => handleStartGame(game.id)}
                 disabled={isLoading}
                 className={`
-                  relative p-2.5 rounded-lg bg-gradient-to-br ${game.color}
-                  text-gray-800 dark:text-gray-900 shadow-lg hover:shadow-xl transform hover:scale-105
-                  active:scale-100 transition-all duration-200
+                  relative p-2.5 rounded-lg bg-gradient-to-br ${game.color} dark:from-slate-700 dark:to-slate-800
+                  text-gray-800 dark:text-slate-100 shadow-lg hover:shadow-xl dark:hover:shadow-2xl transform hover:scale-105
+                  active:scale-100 active:bg-gradient-to-br ${game.color} dark:active:from-slate-600 dark:active:to-slate-700 transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
-                  text-left h-[150px] flex flex-col overflow-hidden border border-blue-200/50 dark:border-blue-300/30
+                  text-left h-[150px] flex flex-col overflow-hidden border border-blue-200/50 dark:border-slate-600/50
                 `}
               >
                 <div className="text-2xl sm:text-3xl mb-1.5 flex-shrink-0 leading-none">{game.icon}</div>
@@ -182,13 +182,13 @@ export function GamesScreen({ user }: GamesScreenProps) {
                 {/* Статистика - всегда резервируем место */}
                 <div className="mt-auto min-h-[34px] flex-shrink-0">
                   {hasStats ? (
-                    <div className="pt-2 border-t border-blue-300/40 dark:border-blue-400/30">
-                      <div className="flex justify-between text-xs leading-tight text-gray-700 dark:text-gray-800 font-medium">
+                    <div className="pt-2 border-t border-blue-300/40 dark:border-slate-600/50">
+                      <div className="flex justify-between text-xs leading-tight text-gray-700 dark:text-slate-200 font-medium">
                         <span>Побед: {gameStats.wins}</span>
                         <span>Игр: {gameStats.total_games}</span>
                       </div>
                       {hasBestScore ? (
-                        <div className="text-xs mt-0.5 leading-tight text-gray-700 dark:text-gray-800 font-medium">
+                        <div className="text-xs mt-0.5 leading-tight text-gray-700 dark:text-slate-200 font-medium">
                           Лучший счет: {gameStats.best_score}
                         </div>
                       ) : (
@@ -243,7 +243,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
               telegram.hapticFeedback('light');
               setCurrentScreen('ai-chat');
             }}
-            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors touch-manipulation min-h-[60px] border border-gray-200 dark:border-slate-700"
+            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 transition-colors touch-manipulation min-h-[60px] border border-gray-200 dark:border-slate-700"
           >
             <span className="text-2xl">💬</span>
             <span className="text-xs font-medium text-gray-900 dark:text-slate-100">Чат</span>
@@ -253,7 +253,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
               telegram.hapticFeedback('light');
               setCurrentScreen('premium');
             }}
-            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors touch-manipulation min-h-[60px] border border-gray-200 dark:border-slate-700"
+            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 transition-colors touch-manipulation min-h-[60px] border border-gray-200 dark:border-slate-700"
           >
             <span className="text-2xl">👑</span>
             <span className="text-xs font-medium text-gray-900 dark:text-slate-100">Premium</span>

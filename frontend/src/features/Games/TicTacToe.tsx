@@ -147,7 +147,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
         <div className="flex items-center justify-between mb-2">
           <button
             onClick={onBack}
-            className="p-2.5 sm:p-3 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
+            className="p-2.5 sm:p-3 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
             aria-label="Назад"
           >
             ← Назад
@@ -174,7 +174,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 mb-4 w-full max-w-[260px] mx-auto border border-gray-200 dark:border-slate-700">
+        <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 mb-4 w-full max-w-[260px] mx-auto border border-gray-200 dark:border-slate-600">
           <div className="grid grid-cols-3 gap-0.5 w-full">
             {Array.from({ length: 9 }).map((_, index) => {
               const content = getSquareContent(index);
@@ -194,17 +194,17 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
                     w-full
                     ${
                       isEmpty && !gameOver && !isLoading
-                        ? "bg-blue-500 dark:bg-blue-600 text-white hover:opacity-80 active:scale-95"
-                        : "bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100"
+                        ? "bg-blue-500 dark:bg-blue-600 text-white hover:opacity-80 dark:hover:opacity-70 active:scale-95"
+                        : "bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-600"
                     }
                     ${
                       isAiMove
-                        ? "ring-2 sm:ring-4 ring-yellow-400 ring-opacity-50 animate-[fadeInScale_0.3s_ease-out]"
+                        ? "ring-2 sm:ring-4 ring-yellow-400 dark:ring-yellow-500 ring-opacity-60 dark:ring-opacity-70 animate-[fadeInScale_0.3s_ease-out]"
                         : ""
                     }
                     ${
                       isUserMove
-                        ? "ring-2 sm:ring-4 ring-blue-500 ring-opacity-50"
+                        ? "ring-2 sm:ring-4 ring-blue-500 dark:ring-blue-400 ring-opacity-60 dark:ring-opacity-70"
                         : ""
                     }
                     disabled:opacity-50 disabled:cursor-not-allowed

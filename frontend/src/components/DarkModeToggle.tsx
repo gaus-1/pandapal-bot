@@ -24,7 +24,7 @@ export const DarkModeToggle: React.FC<DarkModeToggleProps> = ({ isInline = false
           document.documentElement.classList.add('dark');
           document.documentElement.classList.remove('light');
         } else {
-          // Явно устанавливаем светлую тему
+          // Явно устанавливаем светлую тему по умолчанию
           setIsDark(false);
           document.documentElement.classList.remove('dark');
           document.documentElement.classList.add('light');

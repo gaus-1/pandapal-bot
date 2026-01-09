@@ -198,7 +198,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
             </div>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100 transition-colors"
+              className="px-4 py-2 text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100 active:text-gray-950 dark:active:text-slate-50 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600"
             >
               Выйти
             </button>

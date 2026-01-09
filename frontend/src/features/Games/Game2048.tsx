@@ -199,23 +199,29 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
   const getTileColor = (value: number): string => {
     const colors: Record<number, string> = {
-      2: "bg-gray-200 dark:bg-gray-700",
-      4: "bg-gray-300 dark:bg-gray-600",
-      8: "bg-orange-200 dark:bg-orange-900",
-      16: "bg-orange-300 dark:bg-orange-800",
-      32: "bg-orange-400 dark:bg-orange-700",
-      64: "bg-orange-500 dark:bg-orange-600",
+      2: "bg-gray-200 dark:bg-slate-700",
+      4: "bg-gray-300 dark:bg-slate-600",
+      8: "bg-orange-200 dark:bg-orange-800",
+      16: "bg-orange-300 dark:bg-orange-700",
+      32: "bg-orange-400 dark:bg-orange-600",
+      64: "bg-orange-500 dark:bg-orange-500",
       128: "bg-yellow-400 dark:bg-yellow-600",
       256: "bg-yellow-500 dark:bg-yellow-500",
       512: "bg-yellow-600 dark:bg-yellow-400",
       1024: "bg-yellow-700 dark:bg-yellow-300",
       2048: "bg-yellow-800 dark:bg-yellow-200",
     };
-    return colors[value] || "bg-gray-100 dark:bg-gray-800";
+    return colors[value] || "bg-gray-100 dark:bg-slate-800";
   };
 
   const getTileTextColor = (value: number): string => {
-    return value <= 4 ? "text-gray-800 dark:text-gray-200" : "text-white";
+    if (value <= 4) {
+      return "text-gray-800 dark:text-slate-100";
+    }
+    if (value >= 128 && value <= 512) {
+      return "text-white dark:text-slate-900";
+    }
+    return "text-white dark:text-slate-800";
   };
 
   const getTileFontSize = (value: number): string => {
@@ -231,7 +237,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
         <div className="flex items-center justify-between mb-2">
           <button
             onClick={onBack}
-            className="p-2.5 sm:p-3 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
+            className="p-2.5 sm:p-3 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
             aria-label="Назад"
           >
             ← Назад
@@ -274,7 +280,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
         {/* Игровая доска с поддержкой swipe */}
         <div
-          className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 mb-4 touch-none select-none w-full max-w-[260px] mx-auto border border-gray-200 dark:border-slate-700"
+          className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 mb-4 touch-none select-none w-full max-w-[260px] mx-auto border border-gray-200 dark:border-slate-600"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
@@ -292,7 +298,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
                       w-full h-full
                       ${
                         value === 0
-                          ? "bg-white dark:bg-slate-900"
+                          ? "bg-white dark:bg-slate-700"
                           : `${getTileColor(value)} ${getTileTextColor(
                               value,
                             )} ${getTileFontSize(value)}`
@@ -311,7 +317,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               })}
             </div>
           ) : (
-            <div className="text-center text-gray-600 dark:text-slate-400 py-8">
+            <div className="text-center text-gray-600 dark:text-slate-300 py-8">
               Загрузка...
             </div>
           )}
@@ -323,7 +329,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
             <div className="text-xs text-gray-600 dark:text-slate-400 mb-1.5 text-center font-medium">
               Используй кнопки или свайп по доске
             </div>
-            <div className="grid grid-cols-3 gap-1 max-w-[260px] mx-auto bg-gray-50 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700">
+            <div className="grid grid-cols-3 gap-1 max-w-[260px] mx-auto bg-gray-50 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-600">
               <div /> {/* Spacer */}
               <button
                 onClick={() => handleMove("up")}

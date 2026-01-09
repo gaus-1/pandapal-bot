@@ -220,7 +220,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-700">
         <button
           onClick={onBack}
-          className="p-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-sm touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
+          className="p-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 transition-colors text-sm touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
           aria-label="Назад"
         >
           ← Назад
@@ -264,7 +264,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       {/* Игровая доска */}
       <div className="flex-1 flex items-center justify-center px-2 sm:px-4 pb-2 min-h-0 w-full">
         <div className="w-full max-w-[600px] aspect-square relative">
-          <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-[2px] bg-gray-400 dark:bg-slate-600 border-[4px] border-gray-400 dark:border-slate-600 rounded-xl shadow-2xl overflow-hidden">
+          <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-[2px] bg-gray-400 dark:bg-slate-700 border-[4px] border-gray-400 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden">
             {board.length > 0 ? (
               board.map((row, rowIndex) =>
                 row.map((_, colIndex) => {
@@ -284,20 +284,19 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                         transition-all duration-200 touch-manipulation outline-none
                         ${
                           isDark
-                            ? "bg-blue-500 dark:bg-blue-600"
-                            : "bg-white dark:bg-slate-900"
+                            ? "bg-blue-500 dark:bg-blue-700"
+                            : "bg-white dark:bg-slate-600"
                         }
                         ${
                           selected
-                            ? "brightness-125 ring-inset ring-4 ring-yellow-400/60 z-10"
+                            ? "brightness-125 dark:brightness-110 ring-inset ring-4 ring-yellow-400 dark:ring-yellow-500 ring-opacity-60 dark:ring-opacity-70 z-10"
                             : ""
                         }
                         ${
                           isValidTarget
-                            ? "ring-2 ring-green-400/80 ring-inset brightness-110"
+                            ? "ring-2 ring-green-400 dark:ring-green-500 ring-opacity-80 dark:ring-opacity-70 ring-inset brightness-110 dark:brightness-105"
                             : ""
                         }
-                        // Убрано условие opacity-50, чтобы убрать "серую зону"
                       `}
                       aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
                     >
@@ -308,8 +307,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                             transition-transform active:scale-95
                             -mt-[6px]
                             ${cell === "user"
-                              ? "bg-white border-[3px] border-gray-300"
-                              : "bg-gray-800 border-[3px] border-gray-900"}
+                              ? "bg-white dark:bg-slate-300 border-[3px] border-gray-300 dark:border-slate-500"
+                              : "bg-gray-800 dark:bg-slate-900 border-[3px] border-gray-900 dark:border-slate-800"}
                           `}
                           style={{
                             boxShadow: cell === "user"
@@ -318,14 +317,14 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                           }}
                         >
                           {/* Блик */}
-                          <div className="absolute inset-[15%] rounded-full bg-gradient-to-tr from-black/5 to-white/40 pointer-events-none"></div>
+                          <div className="absolute inset-[15%] rounded-full bg-gradient-to-tr from-black/5 to-white/40 dark:from-black/10 dark:to-white/30 pointer-events-none"></div>
 
                           {/* Корона */}
                           {isKing(rowIndex, colIndex) && (
                             <span
                               className={`
                                 text-[1.4em] leading-none drop-shadow-sm relative z-10
-                                ${cell === "user" ? "text-yellow-600" : "text-yellow-400"}
+                                ${cell === "user" ? "text-yellow-600 dark:text-yellow-500" : "text-yellow-400 dark:text-yellow-300"}
                               `}
                             >
                               👑
@@ -338,7 +337,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                 })
               )
             ) : (
-              <div className="col-span-8 row-span-8 flex items-center justify-center text-gray-600 dark:text-slate-400">
+              <div className="col-span-8 row-span-8 flex items-center justify-center text-gray-600 dark:text-slate-300">
                 Загрузка...
               </div>
             )}
