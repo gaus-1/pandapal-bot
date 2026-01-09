@@ -150,8 +150,18 @@ class PaymentService:
 
         # Для подписок month и year - сохраняем метод оплаты для автоплатежа
         # ВАЖНО: Функция автоплатежей должна быть активирована в ЮKassa
-        if plan_id in ("month", "year"):
+        # Пока автоплатежи не активированы - планы month/year работают БЕЗ сохранения карты
+        if plan_id in ("month", "year") and settings.yookassa_recurring_enabled:
             payment_data["save_payment_method"] = True
+            logger.info(
+                f"💳 Сохранение метода оплаты включено для плана {plan_id} "
+                f"(автоплатежи активированы)"
+            )
+        elif plan_id in ("month", "year") and not settings.yookassa_recurring_enabled:
+            logger.info(
+                f"ℹ️ Сохранение метода оплаты отключено для плана {plan_id} "
+                f"(автоплатежи не активированы в ЮKassa)"
+            )
 
         # Добавляем чек для самозанятого (если ИНН указан)
         if settings.yookassa_inn:
@@ -210,7 +220,19 @@ class PaymentService:
             logger.error(f"❌ Timeout при создании платежа ЮKassa (>{self._api_timeout}s)")
             raise TimeoutError(f"YooKassa API timeout after {self._api_timeout}s") from e
         except ApiError as e:
-            logger.error(f"❌ Ошибка создания платежа ЮKassa: {e}")
+            # Логируем детали ошибки для отладки
+            error_message = str(e)
+            if "403" in error_message or "Forbidden" in error_message:
+                logger.error(
+                    f"❌ ЮKassa вернул 403 Forbidden. "
+                    f"Возможные причины:\n"
+                    f"  1. Автоплатежи не активированы (если plan={plan_id} и save_payment_method=True)\n"
+                    f"  2. Неверные shop_id или secret_key\n"
+                    f"  3. Магазин не настроен для приема платежей\n"
+                    f"  Проверьте настройки в личном кабинете ЮKassa"
+                )
+            else:
+                logger.error(f"❌ Ошибка создания платежа ЮKassa: {e}")
             raise
         except Exception as e:
             logger.error(f"❌ Неожиданная ошибка при создании платежа: {e}", exc_info=True)

@@ -192,6 +192,23 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
       const data = await response.json();
 
+      if (!response.ok) {
+        // Ошибка от сервера
+        const errorMessage = data.error || 'Ошибка создания платежа';
+        console.error('Ошибка создания платежа:', errorMessage, data);
+
+        if (inTelegram) {
+          await telegram.showAlert(
+            `❌ Ошибка: ${errorMessage}\n\n` +
+            `Если вы пытаетесь купить подписку на месяц или год, ` +
+            `автоплатежи еще не активированы. Попробуйте план на неделю.`
+          );
+        } else {
+          alert(`Ошибка: ${errorMessage}`);
+        }
+        return;
+      }
+
       if (data.success && data.confirmation_url) {
         // Открываем страницу оплаты ЮKassa
         if (inTelegram) {
@@ -202,10 +219,13 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
           window.location.href = data.confirmation_url;
         }
       } else {
+        const errorMessage = data.error || 'Не удалось создать платеж';
+        console.error('Ошибка создания платежа:', errorMessage, data);
+
         if (inTelegram) {
-          telegram.notifyError();
+          await telegram.showAlert(`❌ ${errorMessage}`);
         } else {
-          alert('Ошибка создания платежа. Попробуй еще раз!');
+          alert(`Ошибка: ${errorMessage}`);
         }
       }
     } catch (error) {

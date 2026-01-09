@@ -205,6 +205,12 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("YOOKASSA_MERCHANT_NAME", "yookassa_merchant_name"),
     )
 
+    yookassa_recurring_enabled: bool = Field(
+        default=False,
+        description="Автоплатежи активированы в ЮKassa. Установите True после активации автоплатежей менеджером",
+        validation_alias=AliasChoices("YOOKASSA_RECURRING_ENABLED", "yookassa_recurring_enabled"),
+    )
+
     # ============ REDIS (SESSION STORAGE) ============
     redis_url: str = Field(
         default="",
