@@ -29,6 +29,7 @@
 """
 
 import asyncio
+import contextlib
 import os
 import sys
 from pathlib import Path
@@ -231,7 +232,7 @@ class PandaPalBotServer:
         Регистрирует быстрый и детальный health check endpoints.
         """
 
-        async def health_check(request: web.Request) -> web.Response:
+        async def health_check(_request: web.Request) -> web.Response:
             """
             Health check endpoint с проверкой компонентов.
 
@@ -248,7 +249,7 @@ class PandaPalBotServer:
                 status=200,
             )
 
-        async def health_check_detailed(request: web.Request) -> web.Response:
+        async def health_check_detailed(_request: web.Request) -> web.Response:
             """Детальный health check с проверкой всех компонентов."""
             components = {}
             overall_status = "ok"
@@ -355,6 +356,7 @@ class PandaPalBotServer:
                 "sitemap.xml",
                 "panda-happy.png",  # Веселая панда для игр
                 "panda-sad.png",  # Грустная панда для игр
+                "yandex_3f9e35f6d79cfb2f.html",  # Яндекс.Вебмастер верификация
             ]
 
             # Если favicon.ico нет, используем logo.png как favicon
@@ -392,7 +394,7 @@ class PandaPalBotServer:
                     # Кэширование для статических файлов (кроме HTML)
                     # Используем замыкание с дефолтными аргументами для захвата переменных
                     async def serve_static_file(
-                        request: web.Request,
+                        _request: web.Request,
                         fp=file_path,
                         ct=content_type,
                         sf=static_file,
@@ -509,7 +511,7 @@ class PandaPalBotServer:
             logger.info(f"✅ Frontend настроен: {frontend_dist}")
         else:
             # Fallback - если frontend не собран
-            async def root_handler(request: web.Request) -> web.Response:
+            async def root_handler(_request: web.Request) -> web.Response:
                 # Используем простой health check для fallback
                 return web.json_response(
                     {
@@ -747,10 +749,8 @@ class PandaPalBotServer:
                 logger.info("🛑 Получен KeyboardInterrupt, останавливаем сервер...")
             finally:
                 keep_alive_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await keep_alive_task
-                except asyncio.CancelledError:
-                    pass
 
         except Exception as e:
             logger.error(f"❌ Ошибка запуска веб-сервера: {e}")
