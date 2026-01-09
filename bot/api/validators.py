@@ -5,20 +5,18 @@
 Защита от injection атак через строгую типизацию.
 """
 
-from typing import Optional
-
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class UpdateUserRequest(BaseModel):
     """Валидация запроса на обновление профиля пользователя."""
 
-    age: Optional[int] = Field(None, ge=6, le=18, description="Возраст пользователя (6-18)")
-    grade: Optional[int] = Field(None, ge=1, le=11, description="Класс пользователя (1-11)")
+    age: int | None = Field(None, ge=6, le=18, description="Возраст пользователя (6-18)")
+    grade: int | None = Field(None, ge=1, le=11, description="Класс пользователя (1-11)")
 
     @field_validator("age")
     @classmethod
-    def validate_age(cls, v: Optional[int]) -> Optional[int]:
+    def validate_age(cls, v: int | None) -> int | None:
         """Валидация возраста."""
         if v is not None and not (6 <= v <= 18):
             raise ValueError("Age must be between 6 and 18")
@@ -26,7 +24,7 @@ class UpdateUserRequest(BaseModel):
 
     @field_validator("grade")
     @classmethod
-    def validate_grade(cls, v: Optional[int]) -> Optional[int]:
+    def validate_grade(cls, v: int | None) -> int | None:
         """Валидация класса."""
         if v is not None and not (1 <= v <= 11):
             raise ValueError("Grade must be between 1 and 11")
@@ -37,17 +35,13 @@ class AIChatRequest(BaseModel):
     """Валидация запроса на AI чат."""
 
     telegram_id: int = Field(..., ge=1, description="Telegram ID пользователя")
-    message: Optional[str] = Field(None, max_length=4000, description="Текстовое сообщение")
-    photo_base64: Optional[str] = Field(
-        None, max_length=15 * 1024 * 1024, description="Base64 фото"
-    )
-    audio_base64: Optional[str] = Field(
-        None, max_length=15 * 1024 * 1024, description="Base64 аудио"
-    )
+    message: str | None = Field(None, max_length=4000, description="Текстовое сообщение")
+    photo_base64: str | None = Field(None, max_length=15 * 1024 * 1024, description="Base64 фото")
+    audio_base64: str | None = Field(None, max_length=15 * 1024 * 1024, description="Base64 аудио")
 
     @field_validator("message")
     @classmethod
-    def validate_message(cls, v: Optional[str]) -> Optional[str]:
+    def validate_message(cls, v: str | None) -> str | None:
         """Валидация сообщения."""
         # Если пустая строка - преобразуем в None (разрешено если есть фото/аудио)
         if v is not None and len(v.strip()) == 0:
@@ -81,7 +75,7 @@ class PremiumInvoiceRequest(BaseModel):
 
     telegram_id: int = Field(..., ge=1, description="Telegram ID пользователя")
     plan_id: str = Field(..., pattern="^(week|month|year)$", description="ID тарифного плана")
-    payment_method: Optional[str] = Field(
+    payment_method: str | None = Field(
         default="stars", pattern="^(stars)$", description="Способ оплаты (только stars для invoice)"
     )
 
@@ -91,8 +85,8 @@ class PremiumPaymentRequest(BaseModel):
 
     telegram_id: int = Field(..., ge=1, description="Telegram ID пользователя")
     plan_id: str = Field(..., pattern="^(week|month|year)$", description="ID тарифного плана")
-    transaction_id: Optional[str] = Field(None, max_length=255, description="ID транзакции")
-    payment_method: Optional[str] = Field(
+    transaction_id: str | None = Field(None, max_length=255, description="ID транзакции")
+    payment_method: str | None = Field(
         default="stars",
         pattern="^(stars|yookassa_card|yookassa_sbp|yookassa_other)$",
         description="Способ оплаты",
@@ -106,10 +100,10 @@ class PremiumYooKassaRequest(BaseModel):
         ..., ge=1, description="Telegram ID пользователя (требуется авторизация)"
     )
     plan_id: str = Field(..., pattern="^(week|month|year)$", description="ID тарифного плана")
-    user_email: Optional[str] = Field(
+    user_email: str | None = Field(
         None, max_length=255, description="Email пользователя (для чека)"
     )
-    user_phone: Optional[str] = Field(
+    user_phone: str | None = Field(
         None, max_length=20, description="Телефон пользователя (для чека)"
     )
 
@@ -138,7 +132,7 @@ def validate_telegram_id(telegram_id_str: str) -> int:
         raise
 
 
-def validate_limit(limit_str: Optional[str], default: int = 50, max_limit: int = 100) -> int:
+def validate_limit(limit_str: str | None, default: int = 50, max_limit: int = 100) -> int:
     """
     Безопасная валидация limit из query параметров.
 
@@ -162,3 +156,55 @@ def validate_limit(limit_str: Optional[str], default: int = 50, max_limit: int =
         return limit
     except ValueError:
         return default
+
+
+# ============ RESPONSE MODELS (Явные контракты данных) ============
+
+
+class DetailedAnalyticsResponse(BaseModel):
+    """Детальная аналитика для Premium пользователей."""
+
+    messages_per_day: list[dict] = Field(default_factory=list, description="Сообщений в день")
+    most_active_subjects: list[dict] = Field(
+        default_factory=list, description="Самые активные предметы"
+    )
+    learning_trends: list[dict] = Field(default_factory=list, description="Тренды обучения")
+
+
+class DashboardStatsResponse(BaseModel):
+    """Статистика дашборда пользователя."""
+
+    total_messages: int = Field(..., ge=0, description="Всего сообщений")
+    learning_sessions: int = Field(..., ge=0, description="Учебных сессий")
+    total_points: int = Field(..., ge=0, description="Всего очков")
+    subjects_studied: int = Field(..., ge=0, description="Изучено предметов")
+    current_streak: int = Field(..., ge=0, description="Текущая серия дней")
+    detailed_analytics: DetailedAnalyticsResponse | None = Field(
+        None, description="Детальная аналитика (только для Premium)"
+    )
+
+
+class PaymentAmountResponse(BaseModel):
+    """Сумма платежа."""
+
+    value: float = Field(..., ge=0, description="Сумма")
+    currency: str = Field(..., description="Валюта")
+
+
+class PaymentStatusResponse(BaseModel):
+    """Статус платежа."""
+
+    payment_id: str = Field(..., description="ID платежа")
+    status: str = Field(..., description="Статус платежа")
+    paid: bool = Field(..., description="Оплачен ли")
+    amount: PaymentAmountResponse = Field(..., description="Сумма платежа")
+    payment_metadata: dict = Field(default_factory=dict, description="Метаданные платежа")
+
+
+class PaymentCreateResponse(BaseModel):
+    """Ответ при создании платежа."""
+
+    payment_id: str = Field(..., description="ID платежа")
+    confirmation_url: str = Field(..., description="URL для подтверждения оплаты")
+    amount: PaymentAmountResponse = Field(..., description="Сумма платежа")
+    description: str = Field(..., description="Описание платежа")
