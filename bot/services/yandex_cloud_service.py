@@ -11,7 +11,8 @@
 
 import base64
 import json
-from typing import Any, AsyncIterator, Dict, List, Optional
+from collections.abc import AsyncIterator
+from typing import Any
 
 import httpx
 from loguru import logger
@@ -57,7 +58,7 @@ class YandexCloudService:
 
         logger.info(f"✅ YandexCloudService инициализирован: модель {self.gpt_model}")
 
-    def _extract_text_from_line(self, line: Dict[str, Any]) -> str:
+    def _extract_text_from_line(self, line: dict[str, Any]) -> str:
         """
         Извлечь текст из строки Vision API (уменьшает вложенность).
 
@@ -91,6 +92,115 @@ class YandexCloudService:
 
         return ""
 
+    def _parse_streaming_chunk(self, line: str):
+        """
+        Парсинг одного chunk из streaming ответа YandexGPT.
+
+        Args:
+            line: Строка из streaming ответа
+
+        Yields:
+            str: Извлеченный текст из chunk
+        """
+        # YandexGPT streaming может возвращать в разных форматах
+        # Вариант 1: JSON chunk напрямую
+        # Вариант 2: SSE формат "data: {...}"
+        try:
+            # Убираем префикс "data: " если есть (SSE формат)
+            json_line = line[6:] if line.startswith("data: ") else line
+            chunk_data = json.loads(json_line)
+
+            # Извлекаем текст из chunk
+            # Формат может быть:
+            # {"result": {"alternatives": [{"message": {"text": "chunk"}}]}}
+            # или {"alternatives": [{"message": {"text": "chunk"}}]}
+            result = chunk_data.get("result", chunk_data)
+            if not isinstance(result, dict):
+                return
+
+            alternatives = result.get("alternatives", [])
+            if not alternatives or not isinstance(alternatives, list):
+                return
+
+            for alt in alternatives:
+                if not isinstance(alt, dict):
+                    continue
+
+                message = alt.get("message", {})
+                if not isinstance(message, dict):
+                    continue
+
+                text = message.get("text", "")
+                if text and isinstance(text, str):
+                    yield text
+
+        except json.JSONDecodeError:
+            logger.debug(f"⚠️ Пропущен не-JSON chunk: {line[:100]}")
+        except Exception as e:
+            logger.debug(f"⚠️ Ошибка парсинга chunk: {e}, line: {line[:100]}")
+
+    def _extract_text_from_vision_result(self, vision_result: dict[str, Any]) -> str:
+        """
+        Извлечь весь распознанный текст из Vision API response.
+
+        Args:
+            vision_result: Полный ответ Vision API
+
+        Returns:
+            str: Распознанный текст, объединенный из всех строк
+        """
+        all_lines = []
+        try:
+            results = vision_result.get("results", [])
+            logger.info(f"📊 Results length: {len(results)}")
+
+            if not results:
+                return ""
+
+            inner_results = results[0].get("results", [])
+            logger.info(f"📊 Inner results length: {len(inner_results)}")
+
+            if not inner_results:
+                return ""
+
+            text_detection = inner_results[0].get("textDetection", {})
+            logger.info(f"📊 Text detection keys: {list(text_detection.keys())}")
+
+            pages = text_detection.get("pages", [])
+            logger.info(f"📄 Найдено страниц: {len(pages)}")
+
+            for page_idx, page in enumerate(pages):
+                blocks = page.get("blocks", [])
+                logger.info(f"📦 Страница {page_idx}: блоков {len(blocks)}")
+
+                for block_idx, block in enumerate(blocks):
+                    lines = block.get("lines", [])
+                    logger.info(f"  📦 Блок {block_idx}: строк {len(lines)}")
+
+                    if block_idx == 0 and lines:
+                        logger.info(f"  🔍 Структура первой строки: {list(lines[0].keys())}")
+
+                    for line_idx, line in enumerate(lines):
+                        line_text = self._extract_text_from_line(line)
+                        if line_text:
+                            all_lines.append(line_text)
+                            logger.info(f"    ✅ Строка {line_idx}: {line_text[:80]}")
+                        else:
+                            logger.warning(
+                                f"    ⚠️ Строка {line_idx} пустая! Ключи: {list(line.keys())}"
+                            )
+
+            recognized_text = "\n".join(all_lines)
+            if recognized_text:
+                logger.info(
+                    f"✅ Vision OCR УСПЕШНО: {len(recognized_text)} символов, {len(all_lines)} строк"
+                )
+            return recognized_text
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка извлечения текста из Vision API: {e}", exc_info=True)
+            return ""
+
     # ============================================================================
     # YANDEXGPT - ТЕКСТОВЫЕ ОТВЕТЫ
     # ============================================================================
@@ -98,8 +208,8 @@ class YandexCloudService:
     async def generate_text_response(
         self,
         user_message: str,
-        chat_history: Optional[List[Dict[str, str]]] = None,
-        system_prompt: Optional[str] = None,
+        chat_history: list[dict[str, str]] | None = None,
+        system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
     ) -> str:
@@ -180,8 +290,8 @@ class YandexCloudService:
     async def generate_text_response_stream(
         self,
         user_message: str,
-        chat_history: Optional[List[Dict[str, str]]] = None,
-        system_prompt: Optional[str] = None,
+        chat_history: list[dict[str, str]] | None = None,
+        system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
     ) -> AsyncIterator[str]:
@@ -250,38 +360,9 @@ class YandexCloudService:
                                 if not line:
                                     continue
 
-                                # YandexGPT streaming может возвращать в разных форматах
-                                # Вариант 1: JSON chunk напрямую
-                                # Вариант 2: SSE формат "data: {...}"
-                                try:
-                                    # Убираем префикс "data: " если есть (SSE формат)
-                                    json_line = line[6:] if line.startswith("data: ") else line
-
-                                    chunk_data = json.loads(json_line)
-
-                                    # Извлекаем текст из chunk
-                                    # Формат может быть:
-                                    # {"result": {"alternatives": [{"message": {"text": "chunk"}}]}}
-                                    # или {"alternatives": [{"message": {"text": "chunk"}}]}
-                                    result = chunk_data.get("result", chunk_data)
-                                    if isinstance(result, dict):
-                                        alternatives = result.get("alternatives", [])
-                                        if alternatives and isinstance(alternatives, list):
-                                            for alt in alternatives:
-                                                if isinstance(alt, dict):
-                                                    message = alt.get("message", {})
-                                                    if isinstance(message, dict):
-                                                        text = message.get("text", "")
-                                                        if text and isinstance(text, str):
-                                                            yield text
-                                except json.JSONDecodeError:
-                                    logger.debug(f"⚠️ Пропущен не-JSON chunk: {line[:100]}")
-                                    continue
-                                except Exception as e:
-                                    logger.debug(
-                                        f"⚠️ Ошибка парсинга chunk: {e}, line: {line[:100]}"
-                                    )
-                                    continue
+                                # Обрабатываем chunk через отдельный метод
+                                for text_chunk in self._parse_streaming_chunk(line):
+                                    yield text_chunk
 
             # Выполняем streaming запрос через очередь
             async for chunk in self.request_queue.process_stream(_execute_streaming_request):
@@ -378,8 +459,8 @@ class YandexCloudService:
     # ============================================================================
 
     async def analyze_image_with_text(
-        self, image_data: bytes, user_question: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, image_data: bytes, user_question: str | None = None
+    ) -> dict[str, Any]:
         """
         Анализ изображения: OCR + описание через YandexGPT.
 
@@ -440,129 +521,82 @@ class YandexCloudService:
             # Сохраняем полный ответ для детального анализа
             logger.debug(f"📊 ВЕСЬ Vision API response:\n{response_full}")
 
-            # Извлекаем распознанный текст (ВСЕ строки, не только первую!)
+            recognized_text = self._extract_text_from_vision_result(vision_result)
+
+            if recognized_text:
+                logger.info(f"✅ Vision OCR УСПЕШНО: {len(recognized_text)} символов")
+                logger.info(f"📝 Первые 200 символов:\n{recognized_text[:200]}")
+            else:
+                logger.warning("⚠️ Vision API вернул ответ, но текст пустой!")
+                logger.warning(f"⚠️ Проверьте структуру: {response_preview}")
+
+        except (KeyError, IndexError, AttributeError) as e:
+            logger.error(f"❌ Ошибка парсинга Vision API: {type(e).__name__}: {e}")
+            logger.error(f"❌ Response structure: {response_preview}")
             recognized_text = ""
-            all_lines = []
 
-            try:
-                # Пытаемся получить текст разными способами
-                results = vision_result.get("results", [])
-                logger.info(f"📊 Results length: {len(results)}")
+        # ВАЖНО: Не обрываем процесс даже если OCR распознал мало текста!
+        # YandexGPT попробует работать с тем что есть
 
-                if results and len(results) > 0:
-                    inner_results = results[0].get("results", [])
-                    logger.info(f"📊 Inner results length: {len(inner_results)}")
+        # Если текст совсем не распознан - даем подробный совет
+        if not recognized_text:
+            logger.warning("⚠️ OCR не распознал НИКАКОГО текста на изображении")
+            return {
+                "recognized_text": "",
+                "analysis": (
+                    "📷 **Разбор задания:**\n"
+                    "📸 Я не смог распознать текст на фотографии.\n\n"
+                    "💡 **Совет:** Лучше фотографировать **БУМАГУ**, а не экран!\n\n"
+                    "**Как сделать хорошее фото:**\n"
+                    "✅ При хорошем освещении\n"
+                    "✅ Четко и ровно (не под углом)\n"
+                    "✅ Крупным планом\n"
+                    "✅ Без бликов и теней\n"
+                    "✅ Текст должен быть четким\n\n"
+                    "**Или проще:**\n"
+                    "📝 Напиши задачи **текстом** — так будет точнее и быстрее! ✨"
+                ),
+                "has_text": False,
+            }
 
-                    if inner_results and len(inner_results) > 0:
-                        text_detection = inner_results[0].get("textDetection", {})
-                        logger.info(f"📊 Text detection keys: {list(text_detection.keys())}")
-
-                        pages = text_detection.get("pages", [])
-                        logger.info(f"📄 Найдено страниц: {len(pages)}")
-
-                        for page_idx, page in enumerate(pages):
-                            blocks = page.get("blocks", [])
-                            logger.info(f"📦 Страница {page_idx}: блоков {len(blocks)}")
-
-                            for block_idx, block in enumerate(blocks):
-                                lines = block.get("lines", [])
-                                logger.info(f"  📦 Блок {block_idx}: строк {len(lines)}")
-
-                                # Логируем структуру первого блока для анализа
-                                if block_idx == 0 and lines:
-                                    logger.info(
-                                        f"  🔍 Структура первой строки: {list(lines[0].keys())}"
-                                    )
-
-                                for line_idx, line in enumerate(lines):
-                                    line_text = self._extract_text_from_line(line)
-                                    if line_text:
-                                        all_lines.append(line_text)
-                                        logger.info(f"    ✅ Строка {line_idx}: {line_text[:80]}")
-                                    else:
-                                        logger.warning(
-                                            f"    ⚠️ Строка {line_idx} пустая! Ключи: {list(line.keys())}"
-                                        )
-
-                recognized_text = "\n".join(all_lines)
-
-                if recognized_text:
-                    logger.info(
-                        f"✅ Vision OCR УСПЕШНО: {len(recognized_text)} символов, {len(all_lines)} строк"
-                    )
-                    logger.info(f"📝 Первые 200 символов:\n{recognized_text[:200]}")
-                else:
-                    logger.warning("⚠️ Vision API вернул ответ, но текст пустой!")
-                    logger.warning(f"⚠️ Проверьте структуру: {response_preview}")
-
-            except (KeyError, IndexError, AttributeError) as e:
-                logger.error(f"❌ Ошибка парсинга Vision API: {type(e).__name__}: {e}")
-                logger.error(f"❌ Response structure: {response_preview}")
-
-            # ВАЖНО: Не обрываем процесс даже если OCR распознал мало текста!
-            # YandexGPT попробует работать с тем что есть
-
-            # Если текст совсем не распознан - даем подробный совет
-            if not recognized_text:
-                logger.warning("⚠️ OCR не распознал НИКАКОГО текста на изображении")
-                return {
-                    "recognized_text": "",
-                    "analysis": (
-                        "📷 **Разбор задания:**\n"
-                        "📸 Я не смог распознать текст на фотографии.\n\n"
-                        "💡 **Совет:** Лучше фотографировать **БУМАГУ**, а не экран!\n\n"
-                        "**Как сделать хорошее фото:**\n"
-                        "✅ При хорошем освещении\n"
-                        "✅ Четко и ровно (не под углом)\n"
-                        "✅ Крупным планом\n"
-                        "✅ Без бликов и теней\n"
-                        "✅ Текст должен быть четким\n\n"
-                        "**Или проще:**\n"
-                        "📝 Напиши задачи **текстом** — так будет точнее и быстрее! ✨"
-                    ),
-                    "has_text": False,
-                }
-
-            # Если текст короткий - предупреждаем, но всё равно пробуем
-            if len(recognized_text) < 20:
-                logger.warning(
-                    f"⚠️ OCR распознал мало текста ({len(recognized_text)} символов): '{recognized_text}'"
-                )
-
-            # Шаг 2: Определяем язык текста и переводим если не русский
-            translated_text = recognized_text
-            language_info = ""
-
-            try:
-                from bot.services.translate_service import get_translate_service
-
-                translate_service = get_translate_service()
-                detected_lang = await translate_service.detect_language(recognized_text)
-
-                if (
-                    detected_lang
-                    and detected_lang != "ru"
-                    and detected_lang in translate_service.SUPPORTED_LANGUAGES
-                ):
-                    lang_name = translate_service.get_language_name(detected_lang)
-                    logger.info(f"🌍 OCR: Обнаружен текст на {lang_name} ({detected_lang})")
-                    translated_text = await translate_service.translate_text(
-                        recognized_text, target_language="ru", source_language=detected_lang
-                    )
-                    if translated_text:
-                        language_info = f"\n\n🌍 ОБНАРУЖЕН ИНОСТРАННЫЙ ЯЗЫК: {lang_name}\n📝 Оригинал: {recognized_text}\n🇷🇺 Перевод: {translated_text}\n\n"
-                        logger.info(f"✅ Текст переведен с {detected_lang} на русский")
-            except Exception as e:
-                logger.warning(
-                    f"⚠️ Ошибка перевода OCR текста: {e}, продолжаем с оригинальным текстом"
-                )
-
-            # Шаг 3: Решаем через YandexGPT (даже если текста мало)
-            logger.info(
-                f"🤖 Отправляю распознанный текст ({len(translated_text)} символов) в YandexGPT"
+        # Если текст короткий - предупреждаем, но всё равно пробуем
+        if len(recognized_text) < 20:
+            logger.warning(
+                f"⚠️ OCR распознал мало текста ({len(recognized_text)} символов): '{recognized_text}'"
             )
 
-            analysis_prompt = f"""
+        # Шаг 2: Определяем язык текста и переводим если не русский
+        translated_text = recognized_text
+        language_info = ""
+
+        try:
+            from bot.services.translate_service import get_translate_service
+
+            translate_service = get_translate_service()
+            detected_lang = await translate_service.detect_language(recognized_text)
+
+            if (
+                detected_lang
+                and detected_lang != "ru"
+                and detected_lang in translate_service.SUPPORTED_LANGUAGES
+            ):
+                lang_name = translate_service.get_language_name(detected_lang)
+                logger.info(f"🌍 OCR: Обнаружен текст на {lang_name} ({detected_lang})")
+                translated_text = await translate_service.translate_text(
+                    recognized_text, target_language="ru", source_language=detected_lang
+                )
+                if translated_text:
+                    language_info = f"\n\n🌍 ОБНАРУЖЕН ИНОСТРАННЫЙ ЯЗЫК: {lang_name}\n📝 Оригинал: {recognized_text}\n🇷🇺 Перевод: {translated_text}\n\n"
+                    logger.info(f"✅ Текст переведен с {detected_lang} на русский")
+        except Exception as e:
+            logger.warning(f"⚠️ Ошибка перевода OCR текста: {e}, продолжаем с оригинальным текстом")
+
+        # Шаг 3: Решаем через YandexGPT (даже если текста мало)
+        logger.info(
+            f"🤖 Отправляю распознанный текст ({len(translated_text)} символов) в YandexGPT"
+        )
+
+        analysis_prompt = f"""
 На фотографии школьное задание или учебный материал.
 
 {language_info}РАСПОЗНАННЫЙ ТЕКСТ с изображения (на русском):
@@ -634,35 +668,31 @@ class YandexCloudService:
 Если есть еще задачи - решаем их по очереди!
 """
 
-            gpt_analysis = await self.generate_text_response(
-                user_message=analysis_prompt,
-                system_prompt=(
-                    "Ты образовательный помощник для детей 1-9 класса. "
-                    "РЕШАЙ задачи ПОЛНОСТЬЮ, а не только подсказывай! "
-                    "Объясняй каждый шаг ПРОСТО, используй эмодзи. "
-                    "ВСЕГДА давай конкретные ОТВЕТЫ. "
-                    "КРИТИЧЕСКИ ВАЖНО: БЕЗ LaTeX, БЕЗ символа $ (доллар) - в школе его НЕТ! "
-                    "Только простой текст, как в школьных тетрадях! "
-                    "Формулы словами или простыми знаками: +, -, ×, ÷, ="
-                ),
-                temperature=0.3,  # Меньше креативности, больше точности
-            )
+        gpt_analysis = await self.generate_text_response(
+            user_message=analysis_prompt,
+            system_prompt=(
+                "Ты образовательный помощник для детей 1-9 класса. "
+                "РЕШАЙ задачи ПОЛНОСТЬЮ, а не только подсказывай! "
+                "Объясняй каждый шаг ПРОСТО, используй эмодзи. "
+                "ВСЕГДА давай конкретные ОТВЕТЫ. "
+                "КРИТИЧЕСКИ ВАЖНО: БЕЗ LaTeX, БЕЗ символа $ (доллар) - в школе его НЕТ! "
+                "Только простой текст, как в школьных тетрадях! "
+                "Формулы словами или простыми знаками: +, -, ×, ÷, ="
+            ),
+            temperature=0.3,  # Меньше креативности, больше точности
+        )
 
-            return {
-                "recognized_text": recognized_text,
-                "analysis": gpt_analysis,
-                "has_text": bool(recognized_text),
-            }
-
-        except Exception as e:
-            logger.error(f"❌ Ошибка Vision + GPT: {e}")
-            raise
+        return {
+            "recognized_text": recognized_text,
+            "analysis": gpt_analysis,
+            "has_text": bool(recognized_text),
+        }
 
     # ============================================================================
     # УТИЛИТЫ
     # ============================================================================
 
-    def get_model_info(self) -> Dict[str, str]:
+    def get_model_info(self) -> dict[str, str]:
         """Информация о текущей модели."""
         return {
             "provider": "Yandex Cloud",
@@ -676,7 +706,7 @@ class YandexCloudService:
 # ГЛОБАЛЬНЫЙ ЭКЗЕМПЛЯР (SINGLETON)
 # ============================================================================
 
-_yandex_service: Optional[YandexCloudService] = None
+_yandex_service: YandexCloudService | None = None
 
 
 def get_yandex_cloud_service() -> YandexCloudService:

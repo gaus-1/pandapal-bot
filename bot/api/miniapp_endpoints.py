@@ -33,6 +33,269 @@ from bot.services.translate_service import get_translate_service
 from bot.services.vision_service import VisionService
 
 
+async def _process_audio_message(
+    audio_base64: str, telegram_id: int, message: str
+) -> tuple[str | None, web.Response | None]:
+    """
+    Обработка голосового сообщения.
+
+    Returns:
+        tuple: (user_message, error_response) - если error_response не None, вернуть его
+    """
+    try:
+        logger.info(f"🎤 Mini App: Обработка голосового сообщения от {telegram_id}")
+        logger.info(f"🎤 Mini App: audio_base64 length: {len(audio_base64)}")
+
+        if "base64," in audio_base64:
+            audio_base64 = audio_base64.split("base64,")[1]
+            logger.info(f"🎤 Mini App: После удаления префикса, length: {len(audio_base64)}")
+
+        MAX_AUDIO_BASE64_SIZE = 14 * 1024 * 1024  # 14MB
+        if len(audio_base64) > MAX_AUDIO_BASE64_SIZE:
+            logger.warning(f"⚠️ Аудио слишком большое: {len(audio_base64)} байт")
+            return None, web.json_response(
+                {"error": "Аудио слишком большое. Максимум 10MB. Попробуй записать короче!"},
+                status=413,
+            )
+
+        try:
+            audio_bytes = base64.b64decode(audio_base64)
+            logger.info(f"🎤 Mini App: Декодировано {len(audio_bytes)} байт аудио")
+        except Exception as decode_error:
+            logger.error(f"❌ Ошибка декодирования base64 аудио: {decode_error}")
+            return None, web.json_response(
+                {"error": "Неверный формат аудио. Попробуй записать заново!"},
+                status=400,
+            )
+
+        MAX_AUDIO_SIZE = 10 * 1024 * 1024  # 10MB
+        if len(audio_bytes) > MAX_AUDIO_SIZE:
+            logger.warning(f"⚠️ Декодированное аудио слишком большое: {len(audio_bytes)} байт")
+            return None, web.json_response(
+                {"error": "Аудио слишком большое. Максимум 10MB. Попробуй записать короче!"},
+                status=413,
+            )
+
+        speech_service = get_speech_service()
+        transcribed_text = await speech_service.transcribe_voice(audio_bytes, language="ru")
+
+        if not transcribed_text or not transcribed_text.strip():
+            logger.warning("⚠️ Аудио не распознано или пустое")
+            return None, web.json_response(
+                {
+                    "error": "Не удалось распознать речь. Попробуй говорить четче или напиши текстом!"
+                },
+                status=400,
+            )
+
+        translate_service = get_translate_service()
+        detected_lang = await translate_service.detect_language(transcribed_text)
+
+        if (
+            detected_lang
+            and detected_lang != "ru"
+            and detected_lang in translate_service.SUPPORTED_LANGUAGES
+        ):
+            lang_name = translate_service.get_language_name(detected_lang)
+            logger.info(f"🌍 Mini App: Обнаружен иностранный язык: {detected_lang}")
+            translated_text = await translate_service.translate_text(
+                transcribed_text, target_language="ru", source_language=detected_lang
+            )
+            if translated_text:
+                user_message = (
+                    f"🌍 Вижу, что ты сказал на {lang_name}!\n\n"
+                    f"📝 Оригинал: {transcribed_text}\n"
+                    f"🇷🇺 Перевод: {translated_text}\n\n"
+                    f"Объясни этот перевод и помоги понять грамматику простыми словами для ребенка."
+                )
+                logger.info(f"✅ Mini App: Аудио переведено: {detected_lang} → ru")
+            else:
+                user_message = transcribed_text
+        else:
+            user_message = transcribed_text
+
+        logger.info(f"✅ Mini App: Аудио распознано: {transcribed_text[:100]}")
+        if not user_message or not user_message.strip():
+            logger.warning("⚠️ user_message не установлен после распознавания аудио")
+            user_message = transcribed_text if transcribed_text else message
+
+        return user_message, None
+
+    except httpx.HTTPStatusError as e:
+        logger.error(f"❌ Ошибка SpeechKit API (HTTP {e.response.status_code}): {e}", exc_info=True)
+        error_message = "Ошибка распознавания речи. Попробуй записать заново или напиши текстом!"
+        if e.response.status_code == 401:
+            error_message = (
+                "Ошибка авторизации в сервисе распознавания речи. Обратитесь в поддержку."
+            )
+        elif e.response.status_code == 413:
+            error_message = "Аудио слишком большое. Попробуй записать короче!"
+        elif e.response.status_code == 400:
+            error_message = "Неверный формат аудио. Попробуй записать заново!"
+        return None, web.json_response({"error": error_message}, status=500)
+    except httpx.TimeoutException as e:
+        logger.error(f"❌ Таймаут распознавания речи: {e}", exc_info=True)
+        return None, web.json_response(
+            {"error": "Аудио слишком длинное или сервис недоступен. Попробуй записать короче!"},
+            status=504,
+        )
+    except Exception as e:
+        logger.error(f"❌ Ошибка обработки аудио: {e}", exc_info=True)
+        error_message = "Ошибка обработки аудио. Попробуй записать заново или напиши текстом!"
+        if "timeout" in str(e).lower() or "time" in str(e).lower():
+            error_message = "Аудио слишком длинное. Попробуй записать короче!"
+        elif "format" in str(e).lower() or "decode" in str(e).lower():
+            error_message = "Неверный формат аудио. Попробуй записать заново!"
+        elif "401" in str(e) or "unauthorized" in str(e).lower():
+            error_message = (
+                "Ошибка авторизации в сервисе распознавания речи. Обратитесь в поддержку."
+            )
+        return None, web.json_response({"error": error_message}, status=500)
+
+
+def _format_achievements(unlocked_achievements: list) -> list:
+    """Форматирование списка достижений для ответа."""
+    try:
+        from bot.services.gamification_service import ALL_ACHIEVEMENTS
+
+        achievement_info = []
+        for achievement_id in unlocked_achievements:
+            achievement = next((a for a in ALL_ACHIEVEMENTS if a.id == achievement_id), None)
+            if achievement:
+                achievement_info.append(
+                    {
+                        "id": achievement.id,
+                        "title": achievement.title,
+                        "description": achievement.description,
+                        "icon": achievement.icon,
+                        "xp_reward": achievement.xp_reward,
+                    }
+                )
+        return achievement_info
+    except Exception as e:
+        logger.error(f"❌ Ошибка формирования достижений: {e}")
+        return []
+
+
+async def _send_achievements_event(response, unlocked_achievements: list) -> None:
+    """Отправка события о достижениях через SSE."""
+    try:
+        import json as json_lib
+
+        achievement_info = _format_achievements(unlocked_achievements)
+        if achievement_info:
+            chunk_data = json_lib.dumps({"achievements": achievement_info}, ensure_ascii=False)
+            await response.write(f"event: achievements\ndata: {chunk_data}\n\n".encode())
+    except Exception as e:
+        logger.error(f"❌ Stream: Ошибка формирования достижений: {e}")
+
+
+def _extract_user_name_from_message(user_message: str) -> tuple[str | None, bool]:
+    """
+    Извлечение имени пользователя из сообщения.
+
+    Returns:
+        tuple: (имя или None, является ли отказом)
+    """
+    import re
+
+    cleaned_message = user_message.strip().lower()
+    cleaned_message = re.sub(r"[.,!?;:]+$", "", cleaned_message)
+
+    refusal_patterns = [
+        r"не\s+хочу",
+        r"не\s+скажу",
+        r"не\s+буду",
+        r"не\s+назову",
+        r"не\s+хочу\s+называть",
+        r"не\s+буду\s+называть",
+        r"не\s+хочу\s+говорить",
+        r"не\s+скажу\s+имя",
+        r"не\s+хочу\s+сказать",
+    ]
+    is_refusal = any(re.search(pattern, cleaned_message) for pattern in refusal_patterns)
+    if is_refusal:
+        return None, True
+
+    common_words = [
+        "да",
+        "нет",
+        "ок",
+        "окей",
+        "хорошо",
+        "спасибо",
+        "привет",
+        "пока",
+        "здравствуй",
+        "здравствуйте",
+        "как дела",
+        "что",
+        "как",
+        "почему",
+        "где",
+        "когда",
+        "кто",
+    ]
+
+    cleaned_for_check = cleaned_message.split()[0] if cleaned_message.split() else cleaned_message
+
+    is_like_name = (
+        2 <= len(cleaned_for_check) <= 15
+        and re.match(r"^[а-яёА-ЯЁa-zA-Z-]+$", cleaned_for_check)
+        and cleaned_for_check not in common_words
+        and len(cleaned_message.split()) <= 2
+    )
+
+    if is_like_name:
+        return cleaned_message.split()[0].capitalize(), False
+
+    return None, False
+
+
+async def _process_photo_message(
+    photo_base64: str, telegram_id: int, message: str
+) -> tuple[str | None, web.Response | None]:
+    """
+    Обработка фото сообщения.
+
+    Returns:
+        tuple: (user_message, error_response) - если error_response не None, вернуть его
+    """
+    try:
+        logger.info(f"📷 Mini App: Обработка фото от {telegram_id}")
+        logger.info(f"📷 Mini App: photo_base64 length: {len(photo_base64)}")
+
+        if "base64," in photo_base64:
+            photo_base64 = photo_base64.split("base64,")[1]
+            logger.info(f"📷 Mini App: После удаления префикса, length: {len(photo_base64)}")
+
+        photo_bytes = base64.b64decode(photo_base64)
+        logger.info(f"📷 Mini App: Декодировано {len(photo_bytes)} байт изображения")
+
+        with get_db() as db:
+            user_service = UserService(db)
+            user = user_service.get_user_by_telegram_id(telegram_id)
+
+            if not user:
+                return None, web.json_response({"error": "User not found"}, status=404)
+
+            vision_service = VisionService()
+            logger.info(f"📷 Mini App: Вызываю analyze_image для пользователя {user.age} лет")
+            vision_result = await vision_service.analyze_image(
+                image_data=photo_bytes,
+                user_message=message or "Помоги мне разобраться с этой задачей",
+                user_age=user.age,
+            )
+
+            user_message = f"[Фото с заданием]\n{vision_result.analysis}"
+            logger.info(f"✅ Фото проанализировано: {user_message[:100]}")
+            return user_message, None
+
+    except Exception as e:
+        logger.error(f"❌ Ошибка обработки фото: {e}", exc_info=True)
+        return None, web.json_response({"error": f"Ошибка обработки фото: {str(e)}"}, status=500)
+
+
 async def miniapp_auth(request: web.Request) -> web.Response:
     """
     Аутентификация пользователя Mini App.
@@ -469,177 +732,19 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
 
         # Обработка аудио (приоритетнее фото)
         if audio_base64:
-            try:
-                logger.info(f"🎤 Mini App: Обработка голосового сообщения от {telegram_id}")
-                logger.info(f"🎤 Mini App: audio_base64 length: {len(audio_base64)}")
-
-                # Убираем data:audio/...;base64, префикс
-                if "base64," in audio_base64:
-                    audio_base64 = audio_base64.split("base64,")[1]
-                    logger.info(
-                        f"🎤 Mini App: После удаления префикса, length: {len(audio_base64)}"
-                    )
-
-                # Проверяем размер base64 строки (примерно 4/3 от размера бинарных данных)
-                # Лимит: 10MB аудио = ~13.3MB base64
-                MAX_AUDIO_BASE64_SIZE = 14 * 1024 * 1024  # 14MB
-                if len(audio_base64) > MAX_AUDIO_BASE64_SIZE:
-                    logger.warning(f"⚠️ Аудио слишком большое: {len(audio_base64)} байт")
-                    return web.json_response(
-                        {
-                            "error": "Аудио слишком большое. Максимум 10MB. Попробуй записать короче!"
-                        },
-                        status=413,
-                    )
-
-                try:
-                    audio_bytes = base64.b64decode(audio_base64)
-                    logger.info(f"🎤 Mini App: Декодировано {len(audio_bytes)} байт аудио")
-                except Exception as decode_error:
-                    logger.error(f"❌ Ошибка декодирования base64 аудио: {decode_error}")
-                    return web.json_response(
-                        {"error": "Неверный формат аудио. Попробуй записать заново!"},
-                        status=400,
-                    )
-
-                # Проверяем размер декодированного аудио
-                MAX_AUDIO_SIZE = 10 * 1024 * 1024  # 10MB
-                if len(audio_bytes) > MAX_AUDIO_SIZE:
-                    logger.warning(
-                        f"⚠️ Декодированное аудио слишком большое: {len(audio_bytes)} байт"
-                    )
-                    return web.json_response(
-                        {
-                            "error": "Аудио слишком большое. Максимум 10MB. Попробуй записать короче!"
-                        },
-                        status=413,
-                    )
-
-                speech_service = get_speech_service()
-                transcribed_text = await speech_service.transcribe_voice(audio_bytes, language="ru")
-
-                if transcribed_text and transcribed_text.strip():
-                    # Определяем язык текста и переводим если не русский
-                    translate_service = get_translate_service()
-                    detected_lang = await translate_service.detect_language(transcribed_text)
-
-                    # Если язык определен и это не русский, но поддерживаемый язык
-                    if (
-                        detected_lang
-                        and detected_lang != "ru"
-                        and detected_lang in translate_service.SUPPORTED_LANGUAGES
-                    ):
-                        lang_name = translate_service.get_language_name(detected_lang)
-                        logger.info(f"🌍 Mini App: Обнаружен иностранный язык: {detected_lang}")
-                        # Переводим текст
-                        translated_text = await translate_service.translate_text(
-                            transcribed_text, target_language="ru", source_language=detected_lang
-                        )
-                        if translated_text:
-                            # Формируем сообщение с переводом и объяснением
-                            user_message = (
-                                f"🌍 Вижу, что ты сказал на {lang_name}!\n\n"
-                                f"📝 Оригинал: {transcribed_text}\n"
-                                f"🇷🇺 Перевод: {translated_text}\n\n"
-                                f"Объясни этот перевод и помоги понять грамматику простыми словами для ребенка."
-                            )
-                            logger.info(f"✅ Mini App: Аудио переведено: {detected_lang} → ru")
-                        else:
-                            user_message = transcribed_text
-                    else:
-                        user_message = transcribed_text
-
-                    logger.info(f"✅ Mini App: Аудио распознано: {transcribed_text[:100]}")
-                    # Убеждаемся что user_message установлен
-                    if not user_message or not user_message.strip():
-                        logger.warning("⚠️ user_message не установлен после распознавания аудио")
-                        user_message = transcribed_text if transcribed_text else message
-                else:
-                    logger.warning("⚠️ Аудио не распознано или пустое")
-                    # Возвращаем понятную ошибку пользователю
-                    return web.json_response(
-                        {
-                            "error": "Не удалось распознать речь. Попробуй говорить четче или напиши текстом!",
-                        },
-                        status=400,
-                    )
-            except httpx.HTTPStatusError as e:
-                logger.error(
-                    f"❌ Ошибка SpeechKit API (HTTP {e.response.status_code}): {e}", exc_info=True
-                )
-                error_message = (
-                    "Ошибка распознавания речи. Попробуй записать заново или напиши текстом!"
-                )
-                if e.response.status_code == 401:
-                    error_message = (
-                        "Ошибка авторизации в сервисе распознавания речи. Обратитесь в поддержку."
-                    )
-                elif e.response.status_code == 413:
-                    error_message = "Аудио слишком большое. Попробуй записать короче!"
-                elif e.response.status_code == 400:
-                    error_message = "Неверный формат аудио. Попробуй записать заново!"
-                return web.json_response({"error": error_message}, status=500)
-            except httpx.TimeoutException as e:
-                logger.error(f"❌ Таймаут распознавания речи: {e}", exc_info=True)
-                return web.json_response(
-                    {
-                        "error": "Аудио слишком длинное или сервис недоступен. Попробуй записать короче!"
-                    },
-                    status=504,
-                )
-            except Exception as e:
-                logger.error(f"❌ Ошибка обработки аудио: {e}", exc_info=True)
-                # Возвращаем понятную ошибку пользователю
-                error_message = (
-                    "Ошибка обработки аудио. Попробуй записать заново или напиши текстом!"
-                )
-                if "timeout" in str(e).lower() or "time" in str(e).lower():
-                    error_message = "Аудио слишком длинное. Попробуй записать короче!"
-                elif "format" in str(e).lower() or "decode" in str(e).lower():
-                    error_message = "Неверный формат аудио. Попробуй записать заново!"
-                elif "401" in str(e) or "unauthorized" in str(e).lower():
-                    error_message = (
-                        "Ошибка авторизации в сервисе распознавания речи. Обратитесь в поддержку."
-                    )
-                return web.json_response({"error": error_message}, status=500)
+            user_message, error_response = await _process_audio_message(
+                audio_base64, telegram_id, message
+            )
+            if error_response:
+                return error_response
 
         # Обработка фото
         if photo_base64:
-            try:
-                logger.info(f"📷 Mini App: Обработка фото от {telegram_id}")
-                logger.info(f"📷 Mini App: photo_base64 length: {len(photo_base64)}")
-                # Убираем data:image/...;base64, префикс
-                if "base64," in photo_base64:
-                    photo_base64 = photo_base64.split("base64,")[1]
-                    logger.info(
-                        f"📷 Mini App: После удаления префикса, length: {len(photo_base64)}"
-                    )
-
-                photo_bytes = base64.b64decode(photo_base64)
-                logger.info(f"📷 Mini App: Декодировано {len(photo_bytes)} байт изображения")
-
-                with get_db() as db:
-                    user_service = UserService(db)
-                    user = user_service.get_user_by_telegram_id(telegram_id)
-
-                    if not user:
-                        return web.json_response({"error": "User not found"}, status=404)
-
-                    vision_service = VisionService()
-                    logger.info(
-                        f"📷 Mini App: Вызываю analyze_image для пользователя {user.age} лет"
-                    )
-                    vision_result = await vision_service.analyze_image(
-                        image_data=photo_bytes,
-                        user_message=message or "Помоги мне разобраться с этой задачей",
-                        user_age=user.age,
-                    )
-
-                    user_message = f"[Фото с заданием]\n{vision_result.analysis}"
-                    logger.info(f"✅ Фото проанализировано: {user_message[:100]}")
-            except Exception as e:
-                logger.error(f"❌ Ошибка обработки фото: {e}", exc_info=True)
-                return web.json_response({"error": f"Ошибка обработки фото: {str(e)}"}, status=500)
+            user_message, error_response = await _process_photo_message(
+                photo_base64, telegram_id, message
+            )
+            if error_response:
+                return error_response
 
         # Если нет ни фото ни аудио - должно быть текстовое сообщение
         if not user_message or not user_message.strip():
@@ -800,81 +905,15 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
 
                 # Если история была очищена и пользователь, возможно, назвал имя
                 if is_history_cleared and not user.first_name and not user.skip_name_asking:
-                    import re
-
-                    cleaned_message = user_message.strip().lower()
-                    # Убираем знаки препинания в конце
-                    cleaned_message = re.sub(r"[.,!?;:]+$", "", cleaned_message)
-
-                    # Проверяем отказ от имени
-                    refusal_patterns = [
-                        r"не\s+хочу",
-                        r"не\s+скажу",
-                        r"не\s+буду",
-                        r"не\s+назову",
-                        r"не\s+скажу",
-                        r"не\s+хочу\s+называть",
-                        r"не\s+буду\s+называть",
-                        r"не\s+хочу\s+говорить",
-                        r"не\s+скажу\s+имя",
-                        r"не\s+хочу\s+сказать",
-                    ]
-                    is_refusal = any(
-                        re.search(pattern, cleaned_message) for pattern in refusal_patterns
-                    )
-
+                    extracted_name, is_refusal = _extract_user_name_from_message(user_message)
                     if is_refusal:
-                        # Пользователь отказался - устанавливаем флаг
                         user.skip_name_asking = True
                         logger.info(
                             "✅ Пользователь отказался называть имя, устанавливаем флаг skip_name_asking"
                         )
-                    else:
-                        # Проверяем что это похоже на имя
-                        # Имя должно быть 2-15 символов, только буквы и дефис
-                        # НЕ должно быть обычных слов
-                        common_words = [
-                            "да",
-                            "нет",
-                            "ок",
-                            "окей",
-                            "хорошо",
-                            "спасибо",
-                            "привет",
-                            "пока",
-                            "здравствуй",
-                            "здравствуйте",
-                            "как дела",
-                            "что",
-                            "как",
-                            "почему",
-                            "где",
-                            "когда",
-                            "кто",
-                        ]
-
-                        cleaned_for_check = (
-                            cleaned_message.split()[0]
-                            if cleaned_message.split()
-                            else cleaned_message
-                        )
-
-                        # Проверяем что это не обычное слово и похоже на имя
-                        is_like_name = (
-                            2 <= len(cleaned_for_check) <= 15
-                            and re.match(r"^[а-яёА-ЯЁa-zA-Z-]+$", cleaned_for_check)
-                            and cleaned_for_check not in common_words
-                            and len(cleaned_message.split())
-                            <= 2  # Максимум 2 слова (имя и отчество)
-                        )
-
-                        if is_like_name:
-                            # Обновляем имя пользователя
-                            user.first_name = cleaned_message.split()[
-                                0
-                            ].capitalize()  # Берем первое слово с заглавной
-                            logger.info(f"✅ Имя пользователя обновлено: {user.first_name}")
-                        # Если не похоже на имя - AI сам уточнит в ответе
+                    elif extracted_name:
+                        user.first_name = extracted_name
+                        logger.info(f"✅ Имя пользователя обновлено: {user.first_name}")
 
                 logger.info(f"💾 Сохраняю ответ AI: {full_response[:50]}...")
                 ai_msg = history_service.add_message(telegram_id, full_response, "ai")
@@ -1420,35 +1459,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                     # Отправляем информацию о достижениях если есть
                     if unlocked_achievements:
-                        try:
-                            import json as json_lib
-
-                            from bot.services.gamification_service import ALL_ACHIEVEMENTS
-
-                            achievement_info = []
-                            for achievement_id in unlocked_achievements:
-                                achievement = next(
-                                    (a for a in ALL_ACHIEVEMENTS if a.id == achievement_id), None
-                                )
-                                if achievement:
-                                    achievement_info.append(
-                                        {
-                                            "id": achievement.id,
-                                            "title": achievement.title,
-                                            "description": achievement.description,
-                                            "icon": achievement.icon,
-                                            "xp_reward": achievement.xp_reward,
-                                        }
-                                    )
-                            if achievement_info:
-                                chunk_data = json_lib.dumps(
-                                    {"achievements": achievement_info}, ensure_ascii=False
-                                )
-                                await response.write(
-                                    f"event: achievements\ndata: {chunk_data}\n\n".encode()
-                                )
-                        except Exception as e:
-                            logger.error(f"❌ Stream: Ошибка формирования достижений: {e}")
+                        await _send_achievements_event(response, unlocked_achievements)
 
                 except Exception as save_error:
                     logger.error(f"❌ Stream: Ошибка сохранения: {save_error}", exc_info=True)

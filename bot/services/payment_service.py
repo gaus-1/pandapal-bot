@@ -110,7 +110,7 @@ class PaymentService:
             user_phone: Телефон пользователя (для чека)
 
         Returns:
-            dict: Данные платежа с confirmation_url
+            dict: Данные платежа с confirmation_url (совместимость с существующим кодом)
 
         Raises:
             ValueError: Если plan_id невалидный
