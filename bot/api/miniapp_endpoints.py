@@ -5,6 +5,7 @@ API endpoints для Telegram Mini App
 
 import base64
 from contextlib import suppress
+from datetime import UTC, datetime
 
 import httpx
 from aiohttp import web
@@ -1644,6 +1645,24 @@ async def miniapp_get_chat_history(request: web.Request) -> web.Response:
                 for msg in messages
             ]
 
+            # Если история пустая (первый вход), добавляем приветственное сообщение
+            if not history:
+                greeting_message = "Привет, чем могу помочь?"
+                history_service.add_message(telegram_id, greeting_message, "ai")
+                db.commit()
+
+                # Добавляем приветствие в ответ
+                history = [
+                    {
+                        "role": "ai",
+                        "content": greeting_message,
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    }
+                ]
+                logger.info(
+                    f"👋 Добавлено приветственное сообщение для нового пользователя {telegram_id}"
+                )
+
             return web.json_response({"success": True, "history": history})
 
     except Exception as e:
@@ -1668,9 +1687,15 @@ async def miniapp_clear_chat_history(request: web.Request) -> web.Response:
         with get_db() as db:
             history_service = ChatHistoryService(db)
             deleted_count = history_service.clear_history(telegram_id)
+
+            # Добавляем приветственное сообщение от панды после очистки
+            greeting_message = "Привет, чем могу помочь?"
+            history_service.add_message(telegram_id, greeting_message, "ai")
+
             db.commit()
 
             logger.info(f"🗑️ Очищена история для {telegram_id}: {deleted_count} сообщений")
+            logger.info("👋 Добавлено приветственное сообщение от панды")
 
             return web.json_response({"success": True, "deleted_count": deleted_count})
 
