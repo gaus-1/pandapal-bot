@@ -9,14 +9,20 @@ import hashlib
 import json
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from loguru import logger
 
 from bot.config import settings
 
-# Redis imports закомментированы - используем только in-memory cache
-REDIS_AVAILABLE = False
+# Попытка импорта Redis
+try:
+    import redis.asyncio as aioredis
+
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+    logger.warning("⚠️ redis package не установлен, используется in-memory кэш")
 
 
 @dataclass
@@ -52,11 +58,11 @@ class MemoryCache:
         Args:
             max_size (int): Максимальное количество записей в кэше (по умолчанию 1000).
         """
-        self._cache: Dict[str, Dict[str, Any]] = {}
+        self._cache: dict[str, dict[str, Any]] = {}
         self._max_size = max_size
-        self._access_times: Dict[str, datetime] = {}
+        self._access_times: dict[str, datetime] = {}
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """
         Получить значение из кэша.
 
@@ -72,18 +78,19 @@ class MemoryCache:
         cache_item = self._cache[key]
 
         # Проверяем TTL
-        if cache_item.get("expires_at"):
-            if datetime.utcnow() > datetime.fromisoformat(cache_item["expires_at"]):
-                del self._cache[key]
-                del self._access_times[key]
-                return None
+        if cache_item.get("expires_at") and datetime.utcnow() > datetime.fromisoformat(
+            cache_item["expires_at"]
+        ):
+            del self._cache[key]
+            del self._access_times[key]
+            return None
 
         # Обновляем время доступа
         self._access_times[key] = datetime.utcnow()
 
         return cache_item["value"]
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """
         Установить значение в кэш.
 
@@ -143,11 +150,12 @@ class MemoryCache:
 
         # Проверяем TTL
         cache_item = self._cache[key]
-        if cache_item.get("expires_at"):
-            if datetime.utcnow() > datetime.fromisoformat(cache_item["expires_at"]):
-                del self._cache[key]
-                del self._access_times[key]
-                return False
+        if cache_item.get("expires_at") and datetime.utcnow() > datetime.fromisoformat(
+            cache_item["expires_at"]
+        ):
+            del self._cache[key]
+            del self._access_times[key]
+            return False
 
         return True
 
@@ -175,7 +183,7 @@ class MemoryCache:
         del self._cache[oldest_key]
         del self._access_times[oldest_key]
 
-    async def get_stats(self) -> Dict[str, Any]:
+    async def get_stats(self) -> dict[str, Any]:
         """
         Получить статистику использования кэша.
 
@@ -186,9 +194,8 @@ class MemoryCache:
         expired_count = 0
 
         for item in self._cache.values():
-            if item.get("expires_at"):
-                if now > datetime.fromisoformat(item["expires_at"]):
-                    expired_count += 1
+            if item.get("expires_at") and now > datetime.fromisoformat(item["expires_at"]):
+                expired_count += 1
 
         return {
             "total_items": len(self._cache),
@@ -221,23 +228,25 @@ class CacheService:
         """Инициализация подключения к Redis"""
         try:
             # Настройки Redis из конфигурации
-            _ = getattr(
-                settings, "redis_url", "redis://localhost:6379/0"
-            )  # для будущего использования
+            redis_url = getattr(settings, "redis_url", "")
 
-            # Redis отключен для упрощения деплоя
-            # self._redis_client = aioredis.from_url(
-            #     redis_url,
-            #     encoding="utf-8",
-            #     decode_responses=True,
-            #     socket_connect_timeout=5,
-            #     socket_timeout=5,
-            #     retry_on_timeout=True,
-            #     health_check_interval=30,
-            # )
+            if not redis_url:
+                logger.info("📋 REDIS_URL не задан, используется in-memory кэш")
+                return
 
-            # Проверяем подключение (синхронно для инициализации)
-            # asyncio.create_task(self._test_redis_connection())
+            # Инициализируем Redis клиент
+            self._redis_client = aioredis.from_url(
+                redis_url,
+                encoding="utf-8",
+                decode_responses=True,
+                socket_connect_timeout=5,
+                socket_timeout=5,
+                retry_on_timeout=True,
+                health_check_interval=30,
+            )
+
+            # Проверяем подключение асинхронно
+            asyncio.create_task(self._test_redis_connection())
 
         except Exception as e:
             logger.error(f"❌ Ошибка подключения к Redis: {e}")
@@ -255,7 +264,7 @@ class CacheService:
             self._use_redis = False
             self._redis_client = None
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """
         Получить значение из кэша
 
@@ -279,7 +288,7 @@ class CacheService:
             return None
 
     async def set(
-        self, key: str, value: Any, ttl: Optional[int] = None, serialize: bool = True
+        self, key: str, value: Any, ttl: int | None = None, serialize: bool = True
     ) -> bool:
         """
         Установить значение в кэш
@@ -398,13 +407,13 @@ class CacheService:
         key_parts = [prefix]
 
         for arg in args:
-            if isinstance(arg, (dict, list)):
+            if isinstance(arg, dict | list):
                 key_parts.append(json.dumps(arg, sort_keys=True))
             else:
                 key_parts.append(str(arg))
 
         for key, value in sorted(kwargs.items()):
-            if isinstance(value, (dict, list)):
+            if isinstance(value, dict | list):
                 key_parts.append(f"{key}:{json.dumps(value, sort_keys=True)}")
             else:
                 key_parts.append(f"{key}:{value}")
@@ -414,15 +423,13 @@ class CacheService:
         # Создаем хэш для длинных ключей
         if len(key_string) > 250:
             # MD5 используется только для кэширования, не для безопасности
-            key_hash = hashlib.md5(
-                key_string.encode(), usedforsecurity=False
-            ).hexdigest()  # noqa: S324
+            key_hash = hashlib.md5(key_string.encode(), usedforsecurity=False).hexdigest()  # noqa: S324
             return f"{prefix}:hash:{key_hash}"
 
         return key_string
 
     async def get_or_set(
-        self, key: str, fetch_func, ttl: Optional[int] = None, *args, **kwargs
+        self, key: str, fetch_func, ttl: int | None = None, *args, **kwargs
     ) -> Any:
         """
         Получить значение из кэша или установить если не существует
@@ -458,7 +465,7 @@ class CacheService:
             logger.error(f"❌ Ошибка в fetch_func для ключа {key}: {e}")
             raise
 
-    async def get_stats(self) -> Dict[str, Any]:
+    async def get_stats(self) -> dict[str, Any]:
         """
         Получить статистику кэша
 
@@ -480,7 +487,7 @@ class CacheService:
                 }
             else:
                 stats_result = await self._memory_cache.get_stats()
-                stats: Dict[str, Any] = dict(stats_result) if isinstance(stats_result, dict) else {}
+                stats: dict[str, Any] = dict(stats_result) if isinstance(stats_result, dict) else {}
                 stats["type"] = "memory"
                 stats["connected"] = False
                 return stats
@@ -489,7 +496,7 @@ class CacheService:
             logger.error(f"❌ Ошибка получения статистики кэша: {e}")
             return {"type": "unknown", "connected": False, "error": str(e)}
 
-    def _calculate_hit_rate(self, info: Dict[str, Any]) -> float:
+    def _calculate_hit_rate(self, info: dict[str, Any]) -> float:
         """Рассчитать процент попаданий в кэш"""
         hits = info.get("keyspace_hits", 0)
         misses = info.get("keyspace_misses", 0)
@@ -552,13 +559,13 @@ class UserCache:
     """Кэш для пользовательских данных"""
 
     @staticmethod
-    async def get_user(telegram_id: int) -> Optional[Dict[str, Any]]:
+    async def get_user(telegram_id: int) -> dict[str, Any] | None:
         """Получить пользователя из кэша"""
         key = cache_service.generate_key("user", telegram_id)
         return await cache_service.get(key)
 
     @staticmethod
-    async def set_user(telegram_id: int, user_data: Dict[str, Any], ttl: int = 1800) -> bool:
+    async def set_user(telegram_id: int, user_data: dict[str, Any], ttl: int = 1800) -> bool:
         """Сохранить пользователя в кэш"""
         key = cache_service.generate_key("user", telegram_id)
         return await cache_service.set(key, user_data, ttl)
@@ -574,14 +581,14 @@ class ModerationCache:
     """Кэш для результатов модерации"""
 
     @staticmethod
-    async def get_moderation_result(content_hash: str) -> Optional[Dict[str, Any]]:
+    async def get_moderation_result(content_hash: str) -> dict[str, Any] | None:
         """Получить результат модерации из кэша"""
         key = cache_service.generate_key("moderation", content_hash)
         return await cache_service.get(key)
 
     @staticmethod
     async def set_moderation_result(
-        content_hash: str, result: Dict[str, Any], ttl: int = 7200
+        content_hash: str, result: dict[str, Any], ttl: int = 7200
     ) -> bool:
         """Сохранить результат модерации в кэш"""
         key = cache_service.generate_key("moderation", content_hash)
@@ -598,7 +605,7 @@ class AIResponseCache:
     """Кэш для ответов AI"""
 
     @staticmethod
-    async def get_response(query_hash: str) -> Optional[str]:
+    async def get_response(query_hash: str) -> str | None:
         """Получить ответ AI из кэша"""
         key = cache_service.generate_key("ai_response", query_hash)
         return await cache_service.get(key)

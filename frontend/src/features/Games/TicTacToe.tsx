@@ -78,21 +78,14 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
       telegram.hapticFeedback("light");
       const result = await ticTacToeMove(sessionId, index);
 
-      // Если игра не окончена, показываем задержку перед ходом AI
-      if (!result.game_over) {
-        setIsUserTurn(false); // Показываем "Ход панды..."
-        // Задержка перед показом хода AI (900ms для плавности)
-        await new Promise((resolve) => setTimeout(resolve, 900));
-      }
-
       setBoard(result.board);
       setAiMoveIndex(result.ai_move);
 
-      // Сбрасываем анимацию через 400ms
+      // Сбрасываем анимацию через 300ms (быстрее для лучшего UX)
       if (result.ai_move !== null && result.ai_move !== undefined) {
         setTimeout(() => {
           setAiMoveIndex(null);
-        }, 400);
+        }, 300);
       }
 
       if (result.game_over) {
@@ -160,7 +153,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
 
         {/* Статус */}
         <div className="text-center mb-0">
-          {gameOver && winner && winner !== "draw" && (
+          {winner && winner !== "draw" && (
             <div className="mb-3">
               <PandaReaction mood={winner === "user" ? "sad" : "happy"} />
             </div>

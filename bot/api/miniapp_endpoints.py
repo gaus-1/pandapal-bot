@@ -31,6 +31,7 @@ from bot.services.ai_service_solid import get_ai_service
 from bot.services.speech_service import get_speech_service
 from bot.services.translate_service import get_translate_service
 from bot.services.vision_service import VisionService
+from bot.services.yandex_ai_response_generator import clean_ai_response
 
 
 async def _process_audio_message(
@@ -1426,21 +1427,50 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             ]
             user_greeted = any(greeting in user_message_lower for greeting in greeting_words)
 
+            # Проверяем, написал ли пользователь прощание
+            farewell_words = [
+                "пока",
+                "до свидания",
+                "до свиданья",
+                "прощай",
+                "прощайте",
+                "увидимся",
+                "до встречи",
+                "bye",
+                "goodbye",
+                "see you",
+            ]
+            user_farewelled = any(farewell in user_message_lower for farewell in farewell_words)
+
             # Приветствие ТОЛЬКО если:
             # 1. История пустая (начало диалога) ИЛИ
             # 2. История была очищена ИЛИ
-            # 3. Пользователь сам поздоровался
-            should_greet = (not history) or is_history_cleared or user_greeted
+            # 3. Пользователь сам поздоровался (и НЕ прощается)
+            should_greet = (
+                (not history) or is_history_cleared or user_greeted
+            ) and not user_farewelled
 
             if should_greet:
                 enhanced_system_prompt += (
                     "\n\n👋 ПРИВЕТСТВИЕ: Пользователь поздоровался или это начало диалога. "
-                    "Поприветствуй его естественно (можно использовать варианты приветствий из промпта)."
+                    "Поприветствуй его естественно ОДИН РАЗ (можно использовать варианты приветствий из промпта). "
+                    "НЕ повторяй 'Привет' в следующих ответах!"
                 )
             else:
                 enhanced_system_prompt += (
-                    "\n\n⚠️ ВАЖНО: Пользователь НЕ здоровался и это НЕ начало диалога. "
-                    "НЕ говори 'Привет' в начале ответа! Начинай сразу с сути вопроса."
+                    "\n\n⚠️ КРИТИЧЕСКИ ВАЖНО: Пользователь НЕ здоровался и это НЕ начало диалога. "
+                    "НЕ говори 'Привет' в начале ответа! Начинай сразу с сути вопроса. "
+                    "НЕ используй приветствия в каждом ответе - только когда пользователь сам поздоровался!"
+                )
+
+            # Прощание ТОЛЬКО если пользователь прощается
+            if user_farewelled:
+                enhanced_system_prompt += (
+                    "\n\n👋 ПРОЩАНИЕ: Пользователь прощается. "
+                    "Попрощайся с ним естественно: 'Пока! Удачи в учёбе! 🐼' или "
+                    "'До свидания! Если будут вопросы - обращайся! 📚' или "
+                    "'Пока! Желаю успехов! ✨' "
+                    "НЕ говори 'Привет' в ответе на прощание!"
                 )
 
             # Логика перенаправления на учебу после 2+ непредметных вопросов
@@ -1474,12 +1504,17 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     temperature=settings.ai_temperature,
                     max_tokens=settings.ai_max_tokens,
                 ):
-                    full_response += chunk
-                    # Отправляем chunk через SSE
+                    # Очищаем chunk от запрещенных символов
+                    cleaned_chunk = clean_ai_response(chunk)
+                    full_response += cleaned_chunk
+                    # Отправляем очищенный chunk через SSE
                     import json as json_lib
 
-                    chunk_data = json_lib.dumps({"chunk": chunk}, ensure_ascii=False)
+                    chunk_data = json_lib.dumps({"chunk": cleaned_chunk}, ensure_ascii=False)
                     await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
+
+                # Очищаем полный ответ от запрещенных символов
+                full_response = clean_ai_response(full_response)
 
                 # Ограничиваем размер полного ответа
                 MAX_RESPONSE_LENGTH = 4000

@@ -306,10 +306,10 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
  */
 function LoadingFallback() {
   return (
-    <div className="flex items-center justify-center h-full">
+    <div className="flex items-center justify-center h-full min-h-screen">
       <div className="text-center">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--tg-theme-button-color)]"></div>
-        <p className="mt-2 text-sm text-[var(--tg-theme-hint-color)]">Загрузка...</p>
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Загрузка...</p>
       </div>
     </div>
   );

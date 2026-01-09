@@ -52,6 +52,8 @@ export const CallToAction: React.FC = React.memo(() => {
                       qrLoaded ? 'opacity-100' : 'opacity-0'
                     }`}
                     loading="lazy"
+                    width="220"
+                    height="220"
                     onLoad={() => setQrLoaded(true)}
                     onError={() => {
                       setQrError(true);
