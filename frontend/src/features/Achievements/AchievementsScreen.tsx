@@ -79,8 +79,8 @@ export function AchievementsScreen({ user }: AchievementsScreenProps) {
                 onClick={() => handleAchievementClick(achievement)}
                 className={`flex flex-col items-center justify-center p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl transition-all min-h-[120px] sm:min-h-[140px] md:min-h-[160px] border ${
                   achievement.unlocked
-                    ? 'bg-blue-500/20 dark:bg-blue-500/30 hover:bg-blue-500/30 dark:hover:bg-blue-500/40 active:scale-95 border-blue-500/30 dark:border-blue-500/50'
-                    : 'bg-gray-50 dark:bg-slate-800 opacity-60 border-gray-200 dark:border-slate-700'
+                    ? 'bg-blue-500/20 dark:bg-blue-500/30 hover:bg-blue-500/30 dark:hover:bg-blue-500/40 active:bg-blue-500/40 dark:active:bg-blue-500/50 active:scale-95 border-blue-500/30 dark:border-blue-500/50'
+                    : 'bg-gray-50 dark:bg-slate-800 opacity-60 border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600'
                 }`}
               >
                 <div className={`text-4xl sm:text-5xl md:text-6xl mb-2 sm:mb-3 ${!achievement.unlocked ? 'grayscale opacity-50' : ''}`}>

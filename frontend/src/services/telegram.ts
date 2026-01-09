@@ -152,45 +152,29 @@ export class TelegramService {
       }
 
       // Устанавливаем цветовую схему для CSS
-      // В мини-апп: приоритет у темы Telegram, но учитываем выбор пользователя
-      const colorScheme = this.webApp.colorScheme || "light";
+      // Всегда светлая тема по умолчанию, игнорируем тему Telegram
+      const colorScheme = "light";
       document.documentElement.setAttribute("data-theme", colorScheme);
 
-      // Для мини-апп: если Telegram в темной теме - используем темную
-      // Иначе проверяем сохраненный выбор пользователя
-      if (this.isInTelegram()) {
-        if (colorScheme === "dark") {
-          document.documentElement.classList.add("dark");
-          document.documentElement.classList.remove("light");
-        } else {
-          // Если Telegram в светлой теме - проверяем выбор пользователя
-          const savedTheme = localStorage.getItem("theme");
-          if (savedTheme === "dark") {
-            document.documentElement.classList.add("dark");
-            document.documentElement.classList.remove("light");
-          } else {
-            document.documentElement.classList.remove("dark");
-            document.documentElement.classList.add("light");
-          }
-        }
+      // Всегда светлая тема по умолчанию (и для мини-апп, и для сайта)
+      // Проверяем только сохраненный выбор пользователя
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+        document.documentElement.classList.remove("light");
       } else {
-        // Для сайта: используем только сохраненный выбор
-        const savedTheme = localStorage.getItem("theme");
-        if (savedTheme === "dark") {
-          document.documentElement.classList.add("dark");
-          document.documentElement.classList.remove("light");
-        } else {
-          document.documentElement.classList.remove("dark");
-          document.documentElement.classList.add("light");
-        }
+        // По умолчанию всегда светлая тема
+        document.documentElement.classList.remove("dark");
+        document.documentElement.classList.add("light");
+        localStorage.setItem("theme", "light");
       }
     };
 
     // Применяем тему сразу
     applyTheme();
 
-    // Подписываемся на изменения темы (динамическое обновление)
-    this.webApp.onEvent("themeChanged", applyTheme);
+    // НЕ подписываемся на изменения темы Telegram - всегда светлая по умолчанию
+    // Пользователь может переключить тему вручную через MiniAppThemeToggle
   }
 
   /**
