@@ -64,3 +64,69 @@ omit = [
 precision = 2
 show_missing = true
 skip_covered = false
+
+# ============================================================================
+# RUFF - БЫСТРЫЙ ЛИНТЕР (ЗАМЕНЯЕТ FLAKE8, ISORT)
+# ============================================================================
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "tests",
+    "scripts",
+    "alembic",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "ARG", # flake8-unused-arguments
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "E203",  # whitespace before ':' (conflicts with black)
+    "W503",  # line break before binary operator (conflicts with black)
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex (handled by radon)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ARG", "F401", "F811"]
+"scripts/*" = ["ARG", "F401"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# ============================================================================
+# RADON - ПРОВЕРКА СЛОЖНОСТИ (SOLID)
+# ============================================================================
+[tool.radon]
+exclude = [
+    "tests/*",
+    "scripts/*",
+    "alembic/*",
+    "*/__pycache__/*",
+]
+
+[tool.radon.complexity]
+min = "B"  # Минимальная сложность для предупреждения
+max = "F"  # Максимальная сложность (F = очень сложно)
+no_assert = false
+show_complexity = true
+average = true
