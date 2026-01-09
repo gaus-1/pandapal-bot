@@ -284,11 +284,20 @@ async def _process_photo_message(
             logger.info(f"📷 Mini App: Вызываю analyze_image для пользователя {user.age} лет")
             vision_result = await vision_service.analyze_image(
                 image_data=photo_bytes,
-                user_message=message or "Помоги мне разобраться с этой задачей",
+                user_message=message or "Проанализируй это фото с заданием и реши задачу полностью",
                 user_age=user.age,
             )
 
-            user_message = f"[Фото с заданием]\n{vision_result.analysis}"
+            # Используем анализ напрямую, без префикса "[Фото с заданием]"
+            # Vision API уже проанализировал фото и дал ответ, используем его напрямую
+            if vision_result.analysis and vision_result.analysis.strip():
+                user_message = vision_result.analysis
+            elif vision_result.recognized_text:
+                # Если есть только распознанный текст, используем его
+                user_message = f"На фото написано: {vision_result.recognized_text}\n\nПомоги решить эту задачу полностью."
+            else:
+                user_message = message or "Помоги мне разобраться с этой задачей"
+
             logger.info(f"✅ Фото проанализировано: {user_message[:100]}")
             return user_message, None
 
@@ -1189,11 +1198,21 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     vision_service = VisionService()
                     vision_result = await vision_service.analyze_image(
                         image_data=photo_bytes,
-                        user_message=message or "Помоги мне разобраться с этой задачей",
+                        user_message=message
+                        or "Проанализируй это фото с заданием и реши задачу полностью",
                         user_age=user.age,
                     )
 
-                    user_message = f"[Фото с заданием]\n{vision_result.analysis}"
+                    # Используем анализ напрямую, без префикса "[Фото с заданием]"
+                    # Vision API уже проанализировал фото и дал ответ, используем его напрямую
+                    if vision_result.analysis and vision_result.analysis.strip():
+                        user_message = vision_result.analysis
+                    elif vision_result.recognized_text:
+                        # Если есть только распознанный текст, используем его
+                        user_message = f"На фото написано: {vision_result.recognized_text}\n\nПомоги решить эту задачу полностью."
+                    else:
+                        user_message = message or "Помоги мне разобраться с этой задачей"
+
                     logger.info("✅ Stream: Фото проанализировано")
                     await response.write(b'event: status\ndata: {"status": "photo_analyzed"}\n\n')
 
