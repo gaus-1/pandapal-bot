@@ -160,17 +160,8 @@ export class TelegramService {
       const colorScheme = "light";
       document.documentElement.setAttribute("data-theme", colorScheme);
 
-      // НЕ устанавливаем тему здесь - это делает MiniAppThemeToggle
-      // Только читаем сохраненную тему для предотвращения мигания
-      const savedTheme = localStorage.getItem("theme");
-      if (savedTheme === "dark") {
-        document.documentElement.classList.add("dark");
-        document.documentElement.classList.remove("light");
-      } else {
-        // Если нет сохраненной темы - оставляем светлую
-        document.documentElement.classList.remove("dark");
-        document.documentElement.classList.add("light");
-      }
+      // НЕ устанавливаем тему здесь - это делает index.html и MiniAppThemeToggle
+      // Этот метод только устанавливает CSS переменные Telegram
     };
 
     // Применяем тему сразу
