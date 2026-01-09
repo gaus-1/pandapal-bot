@@ -38,20 +38,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     // Проверяем, открыто ли приложение в Telegram
-    const isTelegramWeb = telegram.isInTelegram();
+    // СТРОГАЯ проверка: только если есть initData ИЛИ явные признаки Telegram
     const hasInitData = telegram.getInitData() !== '' && telegram.getInitData() !== undefined;
-
-    // Для web.telegram.org разрешаем без initData (он может появиться позже)
-    // Для обычного браузера - только с initData
-    const isTelegramUserAgent = typeof window !== 'undefined' &&
-      (window.navigator.userAgent.includes('Telegram') ||
-       window.location.hostname.includes('telegram.org') ||
-       window.location.hostname.includes('web.telegram.org'));
-
-    // Проверяем наличие window.Telegram.WebApp (даже без initData)
-    const hasTelegramWebApp = typeof window !== 'undefined' &&
-      typeof (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram !== 'undefined' &&
-      typeof (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram?.WebApp !== 'undefined';
 
     // Проверяем наличие tgaddr в URL (явный признак Telegram Mini App)
     let hasTgaddr = false;
@@ -67,12 +55,24 @@ const App: React.FC = () => {
       }
     }
 
-    // Для web.telegram.org разрешаем показывать Mini App если:
-    // 1. Есть initData ИЛИ
-    // 2. Есть window.Telegram.WebApp ИЛИ
-    // 3. Есть tgaddr в URL (явный признак Mini App)
-    const inTelegram = isTelegramWeb ||
-      (isTelegramUserAgent && (hasInitData || hasTelegramWebApp || hasTgaddr));
+    // Проверяем наличие window.Telegram.WebApp (только если есть initData или tgaddr)
+    const hasTelegramWebApp = typeof window !== 'undefined' &&
+      typeof (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram !== 'undefined' &&
+      typeof (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram?.WebApp !== 'undefined';
+
+    // Для web.telegram.org разрешаем без initData (он может появиться позже)
+    const isTelegramUserAgent = typeof window !== 'undefined' &&
+      (window.navigator.userAgent.includes('Telegram') ||
+       window.location.hostname.includes('telegram.org') ||
+       window.location.hostname.includes('web.telegram.org'));
+
+    // СТРОГАЯ проверка: Mini App только если:
+    // 1. Есть initData (главный признак) ИЛИ
+    // 2. Есть tgaddr в URL (явный признак) ИЛИ
+    // 3. Есть window.Telegram.WebApp И (Telegram User Agent ИЛИ web.telegram.org)
+    const inTelegram = hasInitData ||
+      hasTgaddr ||
+      (hasTelegramWebApp && isTelegramUserAgent);
 
     setIsInTelegram(inTelegram);
     setIsChecking(false);
