@@ -160,21 +160,15 @@ class User(Base):
 
         # Получаем активную подписку если есть
         active_subscription = None
-        try:
-            if self.subscriptions:
-                for sub in self.subscriptions:
-                    if sub.is_active:
-                        expires_at = sub.expires_at
-                        if expires_at.tzinfo is None:
-                            expires_at = expires_at.replace(tzinfo=UTC)
-                        if expires_at > now:
-                            active_subscription = sub.to_dict()
-                            break
-        except Exception:
-            # Временная защита: если столбец saved_payment_method_id отсутствует в БД
-            # (миграция еще не применена), пропускаем загрузку подписок
-            # После применения миграции эта обработка не понадобится
-            pass
+        if self.subscriptions:
+            for sub in self.subscriptions:
+                if sub.is_active:
+                    expires_at = sub.expires_at
+                    if expires_at.tzinfo is None:
+                        expires_at = expires_at.replace(tzinfo=UTC)
+                    if expires_at > now:
+                        active_subscription = sub.to_dict()
+                        break
 
         return {
             "telegram_id": self.telegram_id,
