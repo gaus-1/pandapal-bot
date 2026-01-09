@@ -233,7 +233,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
       {/* Статус */}
       <div className="flex-shrink-0 text-center py-2 px-4">
-        {gameOver && winner && (
+        {winner && (
           <div className="mb-3">
             <PandaReaction mood={winner === "user" ? "sad" : "happy"} />
           </div>

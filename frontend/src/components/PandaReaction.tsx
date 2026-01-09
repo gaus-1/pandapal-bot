@@ -22,10 +22,14 @@ export function PandaReaction({ mood, className = '' }: PandaReactionProps) {
       <img
         src={imageSrc}
         alt={altText}
-        className="w-full max-w-[200px] sm:max-w-[250px] md:max-w-[300px] h-auto object-contain animate-[fadeInScale_0.5s_ease-out]"
+        className="w-full max-w-[200px] sm:max-w-[250px] md:max-w-[300px] h-auto object-contain animate-[fadeInScale_0.3s_ease-out]"
         style={{
-          animation: 'fadeInScale 0.5s ease-out',
+          animation: 'fadeInScale 0.3s ease-out',
         }}
+        loading="eager"
+        fetchPriority="high"
+        width="300"
+        height="300"
         onError={(e) => {
           // Fallback если изображение не загрузилось
           const target = e.target as HTMLImageElement;
