@@ -152,21 +152,19 @@ export class TelegramService {
       }
 
       // Устанавливаем цветовую схему для CSS
-      // Всегда светлая тема по умолчанию, игнорируем тему Telegram
       const colorScheme = "light";
       document.documentElement.setAttribute("data-theme", colorScheme);
 
-      // Всегда светлая тема по умолчанию (и для мини-апп, и для сайта)
-      // Проверяем только сохраненный выбор пользователя
+      // НЕ устанавливаем тему здесь - это делает MiniAppThemeToggle
+      // Только читаем сохраненную тему для предотвращения мигания
       const savedTheme = localStorage.getItem("theme");
       if (savedTheme === "dark") {
         document.documentElement.classList.add("dark");
         document.documentElement.classList.remove("light");
       } else {
-        // По умолчанию всегда светлая тема
+        // Если нет сохраненной темы - оставляем светлую
         document.documentElement.classList.remove("dark");
         document.documentElement.classList.add("light");
-        localStorage.setItem("theme", "light");
       }
     };
 
@@ -327,7 +325,7 @@ export class TelegramService {
 
   /**
    * Проверка, запущено ли приложение в Telegram
-   * СТРОГАЯ проверка - только по initData (самый надежный признак)
+   * Проверка по initData, user agent, tgaddr в URL и window.Telegram.WebApp
    */
   isInTelegram(): boolean {
     // СТРОГАЯ проверка: только initData (объект WebApp может существовать и вне Telegram)
@@ -343,8 +341,28 @@ export class TelegramService {
         window.location.hostname.includes("telegram.org") ||
         window.location.hostname.includes("web.telegram.org"));
 
-    // Только если есть initData ИЛИ точно в Telegram по user agent
-    return hasInitData || isTelegramUserAgent;
+    // Проверяем наличие tgaddr в URL (явный признак Telegram Mini App)
+    let hasTgaddr = false;
+    if (typeof window !== "undefined") {
+      // Проверяем search параметры
+      const urlParams = new URLSearchParams(window.location.search);
+      hasTgaddr = urlParams.has("tgaddr");
+
+      // Если нет в search, проверяем hash (для web.telegram.org/k/#?tgaddr=...)
+      if (!hasTgaddr && window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.slice(1));
+        hasTgaddr = hashParams.has("tgaddr");
+      }
+    }
+
+    // Проверяем наличие window.Telegram.WebApp
+    const hasTelegramWebApp =
+      typeof window !== "undefined" &&
+      typeof (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram !== "undefined" &&
+      typeof (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram?.WebApp !== "undefined";
+
+    // Если есть initData ИЛИ точно в Telegram по user agent ИЛИ есть tgaddr ИЛИ есть WebApp
+    return hasInitData || isTelegramUserAgent || hasTgaddr || hasTelegramWebApp;
   }
 
   /**

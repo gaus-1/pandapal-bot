@@ -53,10 +53,26 @@ const App: React.FC = () => {
       typeof (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram !== 'undefined' &&
       typeof (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram?.WebApp !== 'undefined';
 
-    // Для web.telegram.org разрешаем показывать Mini App даже без initData
-    // initData появится позже через Telegram WebApp API
+    // Проверяем наличие tgaddr в URL (явный признак Telegram Mini App)
+    let hasTgaddr = false;
+    if (typeof window !== 'undefined') {
+      // Проверяем search параметры
+      const urlParams = new URLSearchParams(window.location.search);
+      hasTgaddr = urlParams.has('tgaddr');
+
+      // Если нет в search, проверяем hash (для web.telegram.org/k/#?tgaddr=...)
+      if (!hasTgaddr && window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.slice(1));
+        hasTgaddr = hashParams.has('tgaddr');
+      }
+    }
+
+    // Для web.telegram.org разрешаем показывать Mini App если:
+    // 1. Есть initData ИЛИ
+    // 2. Есть window.Telegram.WebApp ИЛИ
+    // 3. Есть tgaddr в URL (явный признак Mini App)
     const inTelegram = isTelegramWeb ||
-      (isTelegramUserAgent && (hasInitData || hasTelegramWebApp));
+      (isTelegramUserAgent && (hasInitData || hasTelegramWebApp || hasTgaddr));
 
     setIsInTelegram(inTelegram);
     setIsChecking(false);
@@ -65,6 +81,7 @@ const App: React.FC = () => {
     console.log('🔍 InitData доступен:', hasInitData);
     console.log('🔍 Telegram User Agent:', isTelegramUserAgent);
     console.log('🔍 Telegram WebApp доступен:', hasTelegramWebApp);
+    console.log('🔍 tgaddr в URL:', hasTgaddr);
   }, []);
 
   // Роутинг через URL hash или pathname

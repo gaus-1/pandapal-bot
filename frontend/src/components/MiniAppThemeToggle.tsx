@@ -14,29 +14,45 @@ export const MiniAppThemeToggle: React.FC = () => {
   useEffect(() => {
     setMounted(true);
 
-    // Функция для применения темы
-    const applyTheme = (dark: boolean) => {
+    // Функция для применения темы (синхронно)
+    const applyTheme = (dark: boolean, saveToStorage: boolean = true) => {
       if (dark) {
         document.documentElement.classList.add('dark');
         document.documentElement.classList.remove('light');
-        localStorage.setItem('theme', 'dark');
+        if (saveToStorage) {
+          localStorage.setItem('theme', 'dark');
+        }
       } else {
         document.documentElement.classList.remove('dark');
         document.documentElement.classList.add('light');
-        localStorage.setItem('theme', 'light');
+        if (saveToStorage) {
+          localStorage.setItem('theme', 'light');
+        }
       }
       setIsDark(dark);
     };
 
-    // Всегда светлая тема по умолчанию, игнорируем тему Telegram
-    // Проверяем только сохраненный выбор пользователя
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      applyTheme(true);
-    } else {
-      // По умолчанию всегда светлая тема
-      applyTheme(false);
-      localStorage.setItem('theme', 'light');
+    // Читаем сохраненную тему из localStorage
+    // Если темы нет - устанавливаем светлую по умолчанию
+    try {
+      const savedTheme = localStorage.getItem('theme');
+      console.log('🔍 MiniAppThemeToggle: Чтение темы из localStorage:', savedTheme);
+
+      if (savedTheme === 'dark') {
+        applyTheme(true, false); // Не сохраняем, т.к. уже есть в localStorage
+        console.log('🌙 MiniAppThemeToggle: Применена темная тема из localStorage');
+      } else if (savedTheme === 'light') {
+        applyTheme(false, false); // Не сохраняем, т.к. уже есть в localStorage
+        console.log('☀️ MiniAppThemeToggle: Применена светлая тема из localStorage');
+      } else {
+        // Если темы нет в localStorage - устанавливаем светлую и сохраняем
+        applyTheme(false, true);
+        console.log('☀️ MiniAppThemeToggle: Установлена светлая тема по умолчанию');
+      }
+    } catch (error) {
+      // Если localStorage недоступен (например, в приватном режиме)
+      console.warn('⚠️ MiniAppThemeToggle: localStorage недоступен, используем светлую тему:', error);
+      applyTheme(false, false);
     }
   }, []);
 
@@ -44,17 +60,24 @@ export const MiniAppThemeToggle: React.FC = () => {
   const toggleTheme = () => {
     const newTheme = !isDark;
 
+    // Применяем тему синхронно
     if (newTheme) {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.remove('light');
       localStorage.setItem('theme', 'dark');
       setIsDark(true);
+      console.log('🌙 Темная тема включена');
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('light');
       localStorage.setItem('theme', 'light');
       setIsDark(false);
+      console.log('☀️ Светлая тема включена');
     }
+
+    // Дополнительная проверка - убеждаемся что тема сохранилась
+    const verifyTheme = localStorage.getItem('theme');
+    console.log('✅ Тема сохранена в localStorage:', verifyTheme);
   };
 
   // Не показываем кнопку до монтирования
