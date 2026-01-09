@@ -389,67 +389,77 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
         {/* Тарифные планы */}
         <div className="space-y-2.5 sm:space-y-3 mb-4 sm:mb-5">
-          {PREMIUM_PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={`p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl transition-all ${
-                plan.popular
-                  ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 dark:from-blue-500/30 dark:to-cyan-500/30 border-2 border-blue-500/50 dark:border-blue-500/70'
-                  : 'bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700'
-              }`}
-            >
-              {plan.popular && (
-                <div className="inline-block px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-500 text-white text-xs font-bold rounded-full mb-1.5 sm:mb-2">
-                  🔥 ПОПУЛЯРНЫЙ
-                </div>
-              )}
-
-              <div className="flex items-center justify-between mb-2 sm:mb-3">
-                <div>
-                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100">
-                    {plan.name}
-                  </h3>
-                  <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
-                    {plan.duration}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-100">
-                    {plan.priceRub} ₽
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">
-                    {(() => {
-                      const days = plan.id === 'week' ? 7 : plan.id === 'month' ? 30 : 365;
-                      return `${(plan.priceRub / days).toFixed(0)} ₽/день`;
-                    })()}
-                  </div>
-                </div>
-              </div>
-
-              <ul className="grid grid-cols-2 gap-1 sm:gap-1.5 mb-3 sm:mb-4">
-                {plan.features.map((feature, index) => (
-                  <li
-                    key={index}
-                    className="text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100"
-                  >
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                onClick={() => handlePurchase(plan)}
-                disabled={isProcessing && selectedPlan === plan.id || (!inTelegram && !isAuthenticated)}
-                className="w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          {PREMIUM_PLANS.map((plan) => {
+            const isLocked = !inTelegram && !isAuthenticated;
+            return (
+              <div
+                key={plan.id}
+                className={`relative p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl transition-all ${
+                  plan.popular
+                    ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 dark:from-blue-500/30 dark:to-cyan-500/30 border-2 border-blue-500/50 dark:border-blue-500/70'
+                    : 'bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700'
+                } ${isLocked ? 'opacity-75' : ''}`}
               >
-                {isProcessing && selectedPlan === plan.id
-                  ? 'Обработка...'
-                  : !inTelegram && !isAuthenticated
-                  ? '🔐 Войдите для оплаты'
-                  : `Купить Premium за ${plan.priceRub} ₽`}
-              </button>
-            </div>
-          ))}
+                {/* Замочек для неавторизованных */}
+                {isLocked && (
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 text-2xl sm:text-3xl">
+                    🔒
+                  </div>
+                )}
+
+                {plan.popular && (
+                  <div className="inline-block px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-500 text-white text-xs font-bold rounded-full mb-1.5 sm:mb-2">
+                    🔥 ПОПУЛЯРНЫЙ
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <div>
+                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100">
+                      {plan.name}
+                    </h3>
+                    <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
+                      {plan.duration}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-100">
+                      {plan.priceRub} ₽
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">
+                      {(() => {
+                        const days = plan.id === 'week' ? 7 : plan.id === 'month' ? 30 : 365;
+                        return `${(plan.priceRub / days).toFixed(0)} ₽/день`;
+                      })()}
+                    </div>
+                  </div>
+                </div>
+
+                <ul className="grid grid-cols-2 gap-1 sm:gap-1.5 mb-3 sm:mb-4">
+                  {plan.features.map((feature, index) => (
+                    <li
+                      key={index}
+                      className="text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100"
+                    >
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={() => handlePurchase(plan)}
+                  disabled={isProcessing && selectedPlan === plan.id || isLocked}
+                  className="w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessing && selectedPlan === plan.id
+                    ? 'Обработка...'
+                    : isLocked
+                    ? '🔐 Войдите для оплаты'
+                    : `Купить Premium за ${plan.priceRub} ₽`}
+                </button>
+              </div>
+            );
+          })}
         </div>
 
         {/* Информация о способах оплаты */}
@@ -460,12 +470,27 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
               Безопасная оплата через ЮKassa
             </h3>
           </div>
-          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs sm:text-sm text-gray-600 dark:text-slate-400">
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-2 sm:mb-3">
             <span>• Visa, Mastercard, МИР</span>
             <span>• СБП</span>
             <span>• Автоматический чек</span>
             <span>• Мгновенная активация</span>
           </div>
+          {!inTelegram && !isAuthenticated && (
+            <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-200 dark:border-slate-700">
+              <p className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 font-medium mb-1">
+                🔐 Для оплаты Premium необходимо войти:
+              </p>
+              <ul className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 space-y-0.5 sm:space-y-1 ml-4 list-disc">
+                <li>Через Telegram мини-приложение (откройте PandaPal в Telegram)</li>
+                <li>Или через Telegram бота @pandapal_bot</li>
+                <li>Или войдите на сайте через Telegram Login Widget выше</li>
+              </ul>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mt-1.5 sm:mt-2 italic">
+                💡 Оплата доступна только через Telegram
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

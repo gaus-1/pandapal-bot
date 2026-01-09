@@ -176,7 +176,7 @@ export function useVoiceRecorder({
       telegram.showAlert(errorMessage);
       onError(errorMessage);
     }
-  }, [validateRecording, onRecordingComplete, onError, stopRecordingCleanup]);
+  }, [validateRecording, onRecordingComplete, onError, stopRecordingCleanup, isRecording]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
