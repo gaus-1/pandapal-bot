@@ -592,6 +592,14 @@ class PandaPalBotServer:
             # Инициализация бота
             await self.init_bot()
 
+            # Запуск SimpleEngagementService для еженедельных напоминаний
+            if self.bot:
+                from bot.services.simple_engagement import SimpleEngagementService
+
+                self.engagement_service = SimpleEngagementService(self.bot)
+                await self.engagement_service.start()
+                logger.info("⏰ SimpleEngagementService запущен")
+
             # Настройка webhook
             webhook_url = await self.setup_webhook()
 
@@ -640,6 +648,14 @@ class PandaPalBotServer:
                     logger.info("✅ AppRunner очищен")
                 except Exception as e:
                     logger.warning(f"⚠️ Ошибка очистки AppRunner: {e}")
+
+            # Останавливаем SimpleEngagementService
+            if hasattr(self, "engagement_service") and self.engagement_service:
+                try:
+                    await self.engagement_service.stop()
+                    logger.info("✅ SimpleEngagementService остановлен")
+                except Exception as e:
+                    logger.warning(f"⚠️ Ошибка остановки SimpleEngagementService: {e}")
 
             # Удаляем webhook (опционально, для чистоты)
             if self.bot:
