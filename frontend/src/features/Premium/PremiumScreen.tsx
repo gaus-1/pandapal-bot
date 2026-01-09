@@ -77,12 +77,42 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
   // Определяем текущего пользователя (Mini App или Web)
   const currentUser = inTelegram ? miniAppUser : webUser;
 
+  const { setUser } = useAppStore();
+
   // Проверяем сессию при загрузке (только для веб-сайта)
   useEffect(() => {
     if (!inTelegram) {
       verifySession();
     }
   }, [inTelegram, verifySession]);
+
+  // Автообновление статуса подписки после возврата с оплаты
+  useEffect(() => {
+    const checkPaymentStatus = async () => {
+      // Проверяем наличие параметра payment_id в URL (возврат с ЮKassa)
+      const urlParams = new URLSearchParams(window.location.search);
+      const paymentId = urlParams.get('payment_id');
+
+      if (paymentId && currentUser) {
+        // Обновляем данные пользователя для получения актуального статуса подписки
+        try {
+          const response = await fetch(`/api/miniapp/user/${currentUser.telegram_id}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.user) {
+              setUser(data.user);
+              // Убираем payment_id из URL
+              window.history.replaceState({}, '', window.location.pathname);
+            }
+          }
+        } catch (error) {
+          console.error('Ошибка обновления статуса подписки:', error);
+        }
+      }
+    };
+
+    checkPaymentStatus();
+  }, [currentUser, setUser]);
 
   const handlePurchase = async (plan: PremiumPlan) => {
     // Проверка авторизации

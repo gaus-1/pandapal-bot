@@ -135,6 +135,17 @@ class SubscriptionService:
         now = datetime.now(timezone.utc)
         expires_at = now + timedelta(days=days)
 
+        # Определяем автоплатеж:
+        # - Для ЮKassa подписок month и year - включаем автоплатеж по умолчанию
+        # - Stars не используется для подписок (только для донатов)
+        auto_renew = False
+        if (
+            payment_method
+            and payment_method.startswith("yookassa_")
+            and plan_id in ("month", "year")
+        ):
+            auto_renew = True
+
         # Создаем подписку
         subscription = Subscription(
             user_telegram_id=telegram_id,
@@ -146,6 +157,7 @@ class SubscriptionService:
             invoice_payload=invoice_payload,
             payment_method=payment_method,
             payment_id=payment_id,
+            auto_renew=auto_renew,
         )
 
         self.db.add(subscription)

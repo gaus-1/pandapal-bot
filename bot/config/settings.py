@@ -210,7 +210,7 @@ class Settings(BaseSettings):
 
     # ============ ADMIN ============
     admin_usernames: str = Field(
-        default="SavnVE",
+        default="SavinVE",
         description="Список username админов через запятую",
         validation_alias=AliasChoices("ADMIN_USERNAMES", "admin_usernames"),
     )
