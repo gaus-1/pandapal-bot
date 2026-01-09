@@ -16,7 +16,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from bot.config import settings
-from bot.models import Payment, Subscription, User
+from bot.models import Payment as PaymentModel
+from bot.models import Subscription, User
 from bot.services.payment_service import PaymentService
 from bot.services.subscription_service import SubscriptionService
 
@@ -110,18 +111,55 @@ class RecurringPaymentService:
         Args:
             subscription: Подписка для продления
         """
-        # TODO: Реализовать когда ЮKassa добавит поддержку saved payment methods
-        # Пока что просто логируем
-        logger.info(
-            f"🔄 Продление ЮKassa подписки: user={subscription.user_telegram_id}, "
-            f"plan={subscription.plan_id}, payment_id={subscription.payment_id}"
-        )
+        if not subscription.saved_payment_method_id:
+            logger.warning(
+                f"⚠️ Нет saved_payment_method_id для подписки {subscription.id}, "
+                f"автоплатеж невозможен"
+            )
+            return
 
-        # В будущем здесь будет:
-        # 1. Получить payment_method_id из subscription.payment_method_id
-        # 2. Создать новый платеж через Payment.create с payment_method_id
-        # 3. Дождаться webhook о успешной оплате
-        # 4. Активировать новую подписку
+        try:
+            import uuid
+
+            from yookassa import Payment as YooKassaPayment
+
+            plan = self.subscription_service.PLANS[subscription.plan_id]
+            plan_price = PaymentService.PLANS[subscription.plan_id]["price"]
+
+            # Создаем новый платеж используя сохраненный метод оплаты
+            payment_data = {
+                "amount": {
+                    "value": f"{plan_price:.2f}",
+                    "currency": "RUB",
+                },
+                "payment_method_id": subscription.saved_payment_method_id,
+                "capture": True,
+                "description": f"PandaPal Premium: автоматическое продление {subscription.plan_id}",
+                "metadata": {
+                    "telegram_id": str(subscription.user_telegram_id),
+                    "plan_id": subscription.plan_id,
+                    "subscription_id": str(subscription.id),
+                    "is_recurring": "true",
+                },
+            }
+
+            idempotence_key = str(uuid.uuid4())
+            payment = await asyncio.to_thread(YooKassaPayment.create, payment_data, idempotence_key)
+
+            logger.info(
+                f"🔄 Создан автоплатеж для подписки {subscription.id}: "
+                f"payment_id={payment.id}, user={subscription.user_telegram_id}"
+            )
+
+            # Webhook от ЮKassa автоматически активирует новую подписку
+            # через yookassa_webhook в premium_endpoints.py
+
+        except Exception as e:
+            logger.error(
+                f"❌ Ошибка создания автоплатежа для подписки {subscription.id}: {e}",
+                exc_info=True,
+            )
+            raise
 
     def mark_subscription_for_auto_renew(
         self, subscription: Subscription, auto_renew: bool = True

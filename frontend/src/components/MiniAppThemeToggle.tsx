@@ -33,20 +33,21 @@ export const MiniAppThemeToggle: React.FC = () => {
     };
 
     // Читаем сохраненную тему из localStorage
-    // Если темы нет - устанавливаем светлую по умолчанию
+    // ВСЕГДА светлая тема по умолчанию
     try {
       const savedTheme = localStorage.getItem('theme');
       console.log('🔍 MiniAppThemeToggle: Чтение темы из localStorage:', savedTheme);
 
+      // Принудительно устанавливаем светлую тему по умолчанию
+      applyTheme(false, false);
+
+      // Если пользователь явно выбрал темную тему - применяем её
       if (savedTheme === 'dark') {
         applyTheme(true, false); // Не сохраняем, т.к. уже есть в localStorage
         console.log('🌙 MiniAppThemeToggle: Применена темная тема из localStorage');
-      } else if (savedTheme === 'light') {
-        applyTheme(false, false); // Не сохраняем, т.к. уже есть в localStorage
-        console.log('☀️ MiniAppThemeToggle: Применена светлая тема из localStorage');
       } else {
-        // Если темы нет в localStorage - устанавливаем светлую и сохраняем
-        applyTheme(false, true);
+        // Светлая тема по умолчанию - сохраняем
+        localStorage.setItem('theme', 'light');
         console.log('☀️ MiniAppThemeToggle: Установлена светлая тема по умолчанию');
       }
     } catch (error) {

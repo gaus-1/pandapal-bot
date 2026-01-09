@@ -325,6 +325,9 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
             else:
                 payment_method = "yookassa_other"
 
+            # Сохраняем payment_method_id для автоплатежа (если есть)
+            saved_payment_method_id = payment_method_data.get("id")
+
             # Определяем статус из события
             event = data.get("event", "")
             if event == "payment.succeeded":
@@ -389,6 +392,7 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
                     plan_id=plan_id,
                     payment_method=payment_method,
                     payment_id=payment_id,
+                    saved_payment_method_id=saved_payment_method_id,
                 )
 
                 # Связываем подписку с платежом

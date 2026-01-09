@@ -110,6 +110,7 @@ class SubscriptionService:
         invoice_payload: Optional[str] = None,
         payment_method: Optional[str] = None,
         payment_id: Optional[str] = None,
+        saved_payment_method_id: Optional[str] = None,
     ) -> Subscription:
         """
         Активировать Premium подписку
@@ -121,6 +122,7 @@ class SubscriptionService:
             invoice_payload: Payload из invoice (для Stars)
             payment_method: Способ оплаты ('stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other')
             payment_id: ID платежа в платежной системе
+            saved_payment_method_id: ID сохраненного метода оплаты в ЮKassa (для автоплатежа)
 
         Returns:
             Subscription: Созданная подписка
@@ -157,6 +159,7 @@ class SubscriptionService:
             invoice_payload=invoice_payload,
             payment_method=payment_method,
             payment_id=payment_id,
+            saved_payment_method_id=saved_payment_method_id,
             auto_renew=auto_renew,
         )
 

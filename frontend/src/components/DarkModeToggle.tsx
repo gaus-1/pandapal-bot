@@ -16,9 +16,14 @@ export const DarkModeToggle: React.FC<DarkModeToggleProps> = ({ isInline = false
       // Загрузить тему из localStorage при монтировании
       useEffect(() => {
         setMounted(true);
+
+        // ВСЕГДА светлая тема по умолчанию
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+
         const savedTheme = localStorage.getItem('theme');
 
-        // Если тема сохранена и это dark - используем её, иначе светлая по умолчанию
+        // Если пользователь явно выбрал темную тему - используем её
         if (savedTheme === 'dark') {
           setIsDark(true);
           document.documentElement.classList.add('dark');
