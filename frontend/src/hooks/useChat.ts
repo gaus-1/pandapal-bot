@@ -103,9 +103,11 @@ export function useChat({ telegramId, limit = 20, useStreaming = false }: UseCha
       );
 
       // Оптимистично добавляем сообщение пользователя
+      // Если отправлено фото без текста - показываем "📷 Фото"
+      const userMessageContent = variables.message || (variables.photoBase64 ? '📷 Фото' : '');
       const userMessage: ChatMessage = {
         role: 'user' as const,
-        content: variables.message || '',
+        content: userMessageContent,
         timestamp: new Date().toISOString(),
       };
 
