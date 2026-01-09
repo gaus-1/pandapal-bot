@@ -714,6 +714,11 @@ class Subscription(Base):
         String(255), nullable=True
     )  # ID платежа в ЮKassa или Telegram
 
+    # Сохраненный метод оплаты для автоплатежа (ЮKassa)
+    saved_payment_method_id: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True
+    )  # ID сохраненного метода оплаты в ЮKassa для автоплатежа
+
     # Автоплатеж
     auto_renew: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default="false", nullable=False

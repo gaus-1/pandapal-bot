@@ -146,6 +146,11 @@ class PaymentService:
             },
         }
 
+        # Для подписок month и year - сохраняем метод оплаты для автоплатежа
+        # ВАЖНО: Функция автоплатежей должна быть активирована в ЮKassa
+        if plan_id in ("month", "year"):
+            payment_data["save_payment_method"] = True
+
         # Добавляем чек для самозанятого (если ИНН указан)
         if settings.yookassa_inn:
             # Для анонимных платежей (без email/phone) используем no-reply email

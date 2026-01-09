@@ -21,19 +21,21 @@
     <script>
       (function() {
         // Ранняя инициализация темы для предотвращения мигания
-        // ВСЕГДА светлая тема по умолчанию
+        // ВСЕГДА светлая тема по умолчанию при первом открытии
         try {
+          // Принудительно устанавливаем светлую тему по умолчанию
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
+
+          // Читаем сохраненную тему только если она явно установлена пользователем
           const savedTheme = localStorage.getItem('theme');
           if (savedTheme === 'dark') {
+            // Пользователь выбрал темную тему - применяем её
             document.documentElement.classList.add('dark');
             document.documentElement.classList.remove('light');
           } else {
-            // По умолчанию светлая тема
-            document.documentElement.classList.remove('dark');
-            document.documentElement.classList.add('light');
-            if (!savedTheme) {
-              localStorage.setItem('theme', 'light');
-            }
+            // По умолчанию светлая тема - сохраняем в localStorage
+            localStorage.setItem('theme', 'light');
           }
         } catch (e) {
           // Если localStorage недоступен - используем светлую тему
