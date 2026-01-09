@@ -45,8 +45,13 @@ export class TelegramService {
       console.log("🔐 InitData длина:", this.webApp.initData?.length || 0);
       console.log("👤 Пользователь:", this.webApp.initDataUnsafe.user);
 
-      // Проверка доступности initData
-      if (!this.webApp.initData) {
+      // Проверка доступности initData (только если точно в Telegram)
+      const isTelegramUA = typeof window !== 'undefined' &&
+        (window.navigator.userAgent.includes('Telegram') ||
+         window.location.hostname.includes('telegram.org') ||
+         window.location.hostname.includes('web.telegram.org'));
+
+      if (!this.webApp.initData && isTelegramUA) {
         console.warn(
           "⚠️ КРИТИЧНО: initData недоступен! Приложение запущено НЕ через Telegram.",
         );
