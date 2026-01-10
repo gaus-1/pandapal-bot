@@ -46,6 +46,15 @@ async def cmd_premium(message: Message):
         # Проверяем активную подписку
         subscription = subscription_service.get_active_subscription(telegram_id)
 
+        # Детальное логирование для отладки
+        logger.info(
+            f"🔍 Premium статус для user={telegram_id}: "
+            f"subscription={subscription is not None}, "
+            f"is_active={subscription.is_active if subscription else False}, "
+            f"saved_payment_method_id={subscription.saved_payment_method_id if subscription else None}, "
+            f"auto_renew={subscription.auto_renew if subscription else False}"
+        )
+
         if not subscription or not subscription.is_active:
             # Нет активной подписки
             premium_text = """
