@@ -275,7 +275,6 @@ export function AIChat({ user }: AIChatProps) {
         // useEffect сам покажет welcome screen когда messages.length === 0
         setHasShownWelcomeMessage(false);
         setShowWelcome(true);
-        await telegram.showAlert('История чата очищена');
       } catch (error) {
         console.error('Ошибка очистки истории:', error);
         telegram.showAlert('Ошибка при очистке истории');
