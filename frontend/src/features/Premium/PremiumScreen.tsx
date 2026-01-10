@@ -356,8 +356,10 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   </p>
                 </div>
               </div>
-              {/* Показываем кнопку отвязки только если есть saved_payment_method (реальная карта сохранена) */}
-              {(currentUser as UserProfile).active_subscription?.has_saved_payment_method && (
+              {/* Показываем кнопку отвязки если есть активная подписка с автоплатежом */}
+              {/* В тестовом режиме карта может не сохраняться, но автоплатеж активен, поэтому показываем кнопку */}
+              {((currentUser as UserProfile).active_subscription?.has_saved_payment_method ||
+                (currentUser as UserProfile).active_subscription?.auto_renew) && (
                 <button
                   onClick={() => setShowRemoveConfirm(true)}
                   disabled={isRemovingCard}
