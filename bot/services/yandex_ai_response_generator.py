@@ -30,13 +30,18 @@ def clean_ai_response(text: str) -> str:
 
     # Убираем специфичные LaTeX команды (включая скобки)
     latex_patterns = [
+        r"\\begin\{[^}]+\}.*?\\end\{[^}]+\}",  # Окружения (сначала сложные)
         r"\\frac\{[^}]+\}\{[^}]+\}",  # \frac{}{}
         r"\\sqrt\[[^\]]+\]\{[^}]+\}",  # \sqrt[n]{}
         r"\\sqrt\{[^}]+\}",  # \sqrt{}
         r"\\[a-zA-Z]+\{[^}]*\}",  # \command{}
-        r"\\[a-zA-Z]+",  # \command
-        r"\\[\\\]\{\}\(\)",  # Пробелы и спецсимволы escape
-        r"\\begin\{[^}]+\}.*?\\end\{[^}]+\}",  # Окружения
+        r"\\\[",  # \[
+        r"\\\]",  # \]
+        r"\\\{",  # \{
+        r"\\\}",  # \}
+        r"\\\(",  # \(
+        r"\\\)",  # \)
+        r"\\[a-zA-Z]+",  # \command (после всех других)
     ]
     for pattern in latex_patterns:
         text = re.sub(pattern, "", text, flags=re.IGNORECASE | re.DOTALL)
