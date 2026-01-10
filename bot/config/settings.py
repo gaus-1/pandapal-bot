@@ -33,7 +33,7 @@ class Settings(BaseSettings):
         telegram_bot_token (str): Токен Telegram бота от @BotFather.
         yandex_cloud_api_key (str): API ключ для Yandex Cloud (YandexGPT, SpeechKit, Vision).
         yandex_cloud_folder_id (str): Folder ID в Yandex Cloud.
-        yandex_gpt_model (str): Модель YandexGPT (yandexgpt-lite или yandexgpt).
+        yandex_gpt_model (str): Модель YandexGPT (всегда yandexgpt-pro для всех пользователей).
         ai_temperature (float): Температура генерации AI (0.0-1.0).
         ai_max_tokens (int): Максимальное количество токенов в ответе AI.
         forbidden_topics (str): Запрещенные темы через запятую для модерации.
@@ -78,26 +78,43 @@ class Settings(BaseSettings):
     )
 
     yandex_gpt_model: str = Field(
-        default="yandexgpt-lite",
-        description="Модель YandexGPT (yandexgpt-lite или yandexgpt)",
+        default="yandexgpt-pro",
+        description="Модель YandexGPT (всегда yandexgpt-pro для всех пользователей)",
         validation_alias=AliasChoices("YANDEX_GPT_MODEL", "yandex_gpt_model"),
     )
 
     # ============ AI SETTINGS ============
     ai_temperature: float = Field(
-        default=0.7,
+        default=0.4,
         ge=0.0,
         le=1.0,
-        description="Температура генерации AI (0.0 = детерминированно, 1.0 = креативно)",
+        description="Температура для Pro модели (рекомендуется 0.4 для структурированных ответов)",
         validation_alias=AliasChoices("AI_TEMPERATURE", "ai_temperature"),
     )
 
     ai_max_tokens: int = Field(
-        default=8192,
+        default=2000,
         ge=100,
         le=8192,
-        description="Максимум токенов в ответе AI (увеличен до максимума)",
+        description="Максимум токенов для Pro модели (рекомендуется 2000)",
         validation_alias=AliasChoices("AI_MAX_TOKENS", "ai_max_tokens"),
+    )
+
+    # Настройки для Pro модели (для обратной совместимости, используются как основные)
+    ai_temperature_pro: float = Field(
+        default=0.4,
+        ge=0.0,
+        le=1.0,
+        description="Температура для Pro модели (рекомендуется 0.4 для структурированных ответов)",
+        validation_alias=AliasChoices("AI_TEMPERATURE_PRO", "ai_temperature_pro"),
+    )
+
+    ai_max_tokens_pro: int = Field(
+        default=2000,
+        ge=100,
+        le=8192,
+        description="Максимум токенов для Pro модели (рекомендуется 2000)",
+        validation_alias=AliasChoices("AI_MAX_TOKENS_PRO", "ai_max_tokens_pro"),
     )
 
     # ============ CONTENT MODERATION ============

@@ -5,9 +5,8 @@
 для бесплатных пользователей согласно обещаниям на frontend.
 """
 
-from typing import Dict, List, Optional
+from datetime import UTC
 
-from loguru import logger
 from sqlalchemy.orm import Session
 
 from bot.config import settings
@@ -21,8 +20,10 @@ class PremiumFeaturesService:
     Проверяет premium статус и применяет ограничения для бесплатных пользователей.
     """
 
-    # Лимиты для бесплатных пользователей
-    FREE_AI_REQUESTS_PER_DAY = 50  # 50 запросов в день для бесплатных (согласно TERMS.md)
+    # Лимиты для разных тарифов
+    FREE_AI_REQUESTS_PER_DAY = 50  # 50 запросов в день для бесплатных
+    MONTH_PLAN_AI_REQUESTS_PER_DAY = 500  # 500 запросов в день для месячного плана (99₽)
+    # Годовая подписка - без ограничений (неограниченные запросы)
     FREE_SUBJECTS_LIMIT = 3  # Только 3 предмета для бесплатных
     FREE_ANALYTICS_BASIC = True  # Базовая аналитика доступна всем
     FREE_ANALYTICS_DETAILED = False  # Детальная аналитика только для premium
@@ -37,7 +38,7 @@ class PremiumFeaturesService:
         self.db = db
         self.subscription_service = SubscriptionService(db)
 
-    def is_admin(self, telegram_id: int, username: Optional[str] = None) -> bool:
+    def is_admin(self, telegram_id: int, username: str | None = None) -> bool:
         """
         Проверка, является ли пользователь админом.
 
@@ -74,7 +75,7 @@ class PremiumFeaturesService:
         """
         return self.subscription_service.is_premium_active(telegram_id)
 
-    def get_premium_plan(self, telegram_id: int) -> Optional[str]:
+    def get_premium_plan(self, telegram_id: int) -> str | None:
         """
         Получить тип активной Premium подписки.
 
@@ -88,10 +89,16 @@ class PremiumFeaturesService:
         return subscription.plan_id if subscription else None
 
     def can_make_ai_request(
-        self, telegram_id: int, username: Optional[str] = None
-    ) -> tuple[bool, Optional[str]]:
+        self, telegram_id: int, username: str | None = None
+    ) -> tuple[bool, str | None]:
         """
         Проверка возможности сделать AI запрос.
+
+        Лимиты по тарифам:
+        - Бесплатные: 50 запросов в день
+        - Месячный план (99₽): 500 запросов в день
+        - Годовая подписка: без ограничений
+        - Админы: без ограничений
 
         Использует DailyRequestCount для подсчета, который не зависит от ChatHistory.
         Это предотвращает обход лимита через удаление истории.
@@ -107,18 +114,21 @@ class PremiumFeaturesService:
         if self.is_admin(telegram_id, username):
             return True, None
 
-        if self.is_premium_active(telegram_id):
-            # Premium пользователи - неограниченные запросы
+        # Проверяем Premium статус и план
+        plan = self.get_premium_plan(telegram_id)
+
+        # Годовая подписка - без ограничений
+        if plan == "year":
             return True, None
 
-        # Для бесплатных проверяем дневной лимит через DailyRequestCount
-        from datetime import datetime, timezone
+        # Для всех остальных проверяем дневной лимит через DailyRequestCount
+        from datetime import datetime
 
         from sqlalchemy import select
 
         from bot.models import DailyRequestCount
 
-        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = today_start.replace(hour=23, minute=59, second=59, microsecond=999999)
 
         # Получаем счетчик запросов за сегодня (точное совпадение по дате)
@@ -134,17 +144,36 @@ class PremiumFeaturesService:
         today_counter = self.db.execute(stmt).scalar_one_or_none()
         today_requests = today_counter.request_count if today_counter else 0
 
-        if today_requests >= self.FREE_AI_REQUESTS_PER_DAY:
-            return (
-                False,
-                f"🐼 Ой! Ты уже использовал все {self.FREE_AI_REQUESTS_PER_DAY} бесплатных вопросов сегодня!\n\n"
-                f"💎 Чтобы задавать вопросы без ограничений, перейди на Premium!\n\n"
-                f"✨ С Premium ты сможешь:\n"
-                f"• Задавать сколько угодно вопросов\n"
-                f"• Получать помощь по всем предметам\n"
-                f"• Играть в игры без ограничений\n\n"
-                f"Нажми /premium чтобы узнать больше! 🚀",
-            )
+        # Определяем лимит в зависимости от плана
+        if plan == "month":
+            # Месячный план (99₽) - 500 запросов в день
+            daily_limit = self.MONTH_PLAN_AI_REQUESTS_PER_DAY
+            if today_requests >= daily_limit:
+                return (
+                    False,
+                    f"🐼 Ой! Ты уже использовал все {daily_limit} запросов сегодня!\n\n"
+                    f"💎 Чтобы задавать вопросы без ограничений, перейди на годовую подписку!\n\n"
+                    f"✨ С годовой подпиской ты сможешь:\n"
+                    f"• Задавать сколько угодно вопросов\n"
+                    f"• Получать помощь по всем предметам\n"
+                    f"• Играть в игры без ограничений\n\n"
+                    f"Нажми /premium чтобы узнать больше! 🚀",
+                )
+        else:
+            # Бесплатные пользователи - 50 запросов в день
+            daily_limit = self.FREE_AI_REQUESTS_PER_DAY
+            if today_requests >= daily_limit:
+                return (
+                    False,
+                    f"🐼 Ой! Ты уже использовал все {daily_limit} бесплатных вопросов сегодня!\n\n"
+                    f"💎 Чтобы задавать больше вопросов, перейди на Premium!\n\n"
+                    f"✨ С Premium ты сможешь:\n"
+                    f"• Задавать до {self.MONTH_PLAN_AI_REQUESTS_PER_DAY} вопросов в день (месячная)\n"
+                    f"• Или без ограничений (годовая)\n"
+                    f"• Получать помощь по всем предметам\n"
+                    f"• Играть в игры без ограничений\n\n"
+                    f"Нажми /premium чтобы узнать больше! 🚀",
+                )
 
         return True, None
 
@@ -158,13 +187,13 @@ class PremiumFeaturesService:
         Args:
             telegram_id: Telegram ID пользователя
         """
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         from sqlalchemy import select
 
         from bot.models import DailyRequestCount
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = today_start.replace(hour=23, minute=59, second=59, microsecond=999999)
 
@@ -197,8 +226,8 @@ class PremiumFeaturesService:
         self.db.flush()
 
     def can_access_subject(
-        self, telegram_id: int, subject_id: str, username: Optional[str] = None
-    ) -> tuple[bool, Optional[str]]:
+        self, telegram_id: int, subject_id: str, username: str | None = None
+    ) -> tuple[bool, str | None]:
         """
         Проверка доступа к предмету.
 
@@ -293,7 +322,7 @@ class PremiumFeaturesService:
         plan = self.get_premium_plan(telegram_id)
         return plan == "year"
 
-    def get_premium_features_status(self, telegram_id: int) -> Dict:
+    def get_premium_features_status(self, telegram_id: int) -> dict:
         """
         Получить статус всех Premium функций для пользователя.
 

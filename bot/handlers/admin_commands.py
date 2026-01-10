@@ -17,10 +17,9 @@
 диагностическую информацию для поддержания стабильной работы 24/7.
 """
 
-from aiogram import F, Router
-from aiogram.filters import Command, CommandStart
-from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram import Router
+from aiogram.filters import Command
+from aiogram.types import Message
 from loguru import logger
 
 from bot.services.ai_service_solid import get_ai_service
@@ -180,7 +179,9 @@ async def cmd_force_check(message: Message):
     try:
         # Проверка AI
         ai_service = get_ai_service()
-        test_response = await ai_service.generate_response("Тест", user_age=10)
+        test_response = await ai_service.generate_response(
+            "Тест", chat_history=[], user_age=10, is_premium=False
+        )
         ai_ok = bool(test_response and len(test_response) > 0)
 
         # Проверка монитора
