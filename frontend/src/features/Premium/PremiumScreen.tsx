@@ -426,7 +426,6 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         {/* Тарифные планы */}
         <div className="space-y-2.5 sm:space-y-3 mb-4 sm:mb-5">
           {PREMIUM_PLANS.map((plan) => {
-            const isLocked = !inTelegram && !isAuthenticated;
             return (
               <div
                 key={plan.id}
@@ -434,7 +433,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   plan.popular
                     ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 dark:from-blue-500/30 dark:to-cyan-500/30 border-2 border-blue-500/50 dark:border-blue-500/70'
                     : 'bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700'
-                } ${isLocked ? 'opacity-75' : ''}`}
+                }`}
               >
                 {/* Замочек (всегда вне мини-аппа) */}
                 {!inTelegram && (
