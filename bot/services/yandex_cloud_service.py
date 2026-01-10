@@ -359,7 +359,41 @@ class YandexCloudService:
                         "POST", self.gpt_url, headers=self.headers, json=payload
                     ) as response,
                 ):
-                    response.raise_for_status()
+                    # Проверяем статус ДО чтения stream
+                    if response.status_code != 200:
+                        # Читаем ошибку ДО выброса исключения (для streaming response используем aiter_bytes)
+                        error_text = ""
+                        try:
+                            error_bytes = b""
+                            async for chunk in response.aiter_bytes():
+                                error_bytes += chunk
+                                if len(error_bytes) > 10000:  # Ограничиваем размер ошибки
+                                    break
+                            error_text = (
+                                error_bytes.decode("utf-8", errors="ignore") if error_bytes else ""
+                            )
+                            # Пытаемся распарсить JSON ошибку
+                            try:
+                                import json
+
+                                error_json = json.loads(error_text) if error_text else {}
+                                error_message = error_json.get("error", {}).get(
+                                    "message", error_text
+                                )
+                                error_text = error_message if error_message else error_text
+                            except Exception:
+                                pass  # Если не JSON, оставляем как есть
+                        except Exception as read_err:
+                            logger.debug(f"⚠️ Не удалось прочитать ошибку: {read_err}")
+                            error_text = f"<unable to read response: {read_err}>"
+
+                        logger.error(
+                            f"❌ YandexGPT streaming API вернул HTTP {response.status_code}: {error_text[:500]}"
+                        )
+                        # Поднимаем исключение с полной информацией
+                        response.raise_for_status()
+                        return  # Не должно достичь сюда, но на всякий случай
+
                     buffer = ""
                     async for chunk_bytes in response.aiter_bytes():
                         # Декодируем байты в строку
@@ -388,8 +422,8 @@ class YandexCloudService:
 
         except httpx.HTTPStatusError as e:
             logger.error(f"❌ Ошибка YandexGPT streaming API (HTTP {e.response.status_code}): {e}")
-            if e.response is not None:
-                logger.error(f"Response: {e.response.text}")
+            # Для streaming response нельзя просто так читать .text
+            # Ошибка уже прочитана в _execute_streaming_request
             raise
         except httpx.TimeoutException as e:
             logger.error(f"❌ Таймаут YandexGPT streaming API: {e}")

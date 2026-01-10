@@ -235,8 +235,8 @@ class YandexAIResponseGenerator:
 
             # Используем Pro модель для всех пользователей
             model_name = "yandexgpt-pro"
-            temperature = settings.ai_temperature_pro
-            max_tokens = settings.ai_max_tokens_pro
+            temperature = settings.ai_temperature  # Основной параметр для всех пользователей
+            max_tokens = settings.ai_max_tokens  # Основной параметр для всех пользователей
 
             # Генерация ответа через Yandex Cloud
             logger.info("📤 Отправка запроса в YandexGPT Pro...")
