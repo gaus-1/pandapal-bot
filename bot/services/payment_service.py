@@ -37,12 +37,20 @@ class PaymentService:
 
     def __init__(self):
         """Инициализация сервиса платежей."""
-        # Настройка ЮKassa
-        Configuration.account_id = settings.yookassa_shop_id
-        Configuration.secret_key = settings.yookassa_secret_key
+        # Настройка ЮKassa (тестовый или продакшн режим)
+        Configuration.account_id = settings.active_yookassa_shop_id
+        Configuration.secret_key = settings.active_yookassa_secret_key
 
-        if not settings.yookassa_shop_id or not settings.yookassa_secret_key:
-            logger.warning("⚠️ ЮKassa не настроен: отсутствуют shop_id или secret_key")
+        mode_text = "ТЕСТОВЫЙ" if settings.yookassa_test_mode else "ПРОДАКШН"
+        logger.info(
+            f"💳 ЮKassa инициализирован в режиме {mode_text}: "
+            f"shop_id={settings.active_yookassa_shop_id}"
+        )
+
+        if not settings.active_yookassa_shop_id or not settings.active_yookassa_secret_key:
+            logger.warning(
+                f"⚠️ ЮKassa не настроен ({mode_text}): отсутствуют shop_id или secret_key"
+            )
 
         # Timeout для YooKassa API вызовов (30 секунд)
         self._api_timeout = 30.0
@@ -66,7 +74,8 @@ class PaymentService:
             )
             return False
 
-        if not settings.yookassa_secret_key:
+        secret_key = settings.active_yookassa_secret_key
+        if not secret_key:
             logger.error("❌ Secret key не настроен для верификации подписи")
             return False
 
@@ -74,7 +83,7 @@ class PaymentService:
             # Вычисляем ожидаемую подпись
             # YooKassa использует HMAC-SHA256 с secret_key в качестве ключа
             expected_signature = hmac.new(
-                settings.yookassa_secret_key.encode("utf-8"),
+                secret_key.encode("utf-8"),
                 request_body.encode("utf-8"),
                 hashlib.sha256,
             ).hexdigest()
@@ -149,19 +158,28 @@ class PaymentService:
         }
 
         # Для подписок month и year - сохраняем метод оплаты для автоплатежа
-        # ВАЖНО: Функция автоплатежей должна быть активирована в ЮKassa
-        # Пока автоплатежи не активированы - планы month/year работают БЕЗ сохранения карты
-        if plan_id in ("month", "year") and settings.yookassa_recurring_enabled:
-            payment_data["save_payment_method"] = True
-            logger.info(
-                f"💳 Сохранение метода оплаты включено для плана {plan_id} "
-                f"(автоплатежи активированы)"
-            )
-        elif plan_id in ("month", "year") and not settings.yookassa_recurring_enabled:
-            logger.info(
-                f"ℹ️ Сохранение метода оплаты отключено для плана {plan_id} "
-                f"(автоплатежи не активированы в ЮKassa)"
-            )
+        # В ТЕСТОВОМ РЕЖИМЕ автоплатежи работают автоматически (без активации менеджером)
+        # В ПРОДАКШН режиме автоплатежи должны быть активированы менеджером ЮKassa
+        if plan_id in ("month", "year"):
+            if settings.yookassa_test_mode:
+                # В тестовом режиме автоплатежи работают автоматически
+                payment_data["save_payment_method"] = True
+                logger.info(
+                    f"💳 ТЕСТОВЫЙ РЕЖИМ: Сохранение метода оплаты включено для плана {plan_id} "
+                    f"(автоплатежи работают в тестовом режиме)"
+                )
+            elif settings.yookassa_recurring_enabled:
+                # В продакшн режиме только если активировано
+                payment_data["save_payment_method"] = True
+                logger.info(
+                    f"💳 ПРОДАКШН: Сохранение метода оплаты включено для плана {plan_id} "
+                    f"(автоплатежи активированы)"
+                )
+            else:
+                logger.info(
+                    f"ℹ️ Сохранение метода оплаты отключено для плана {plan_id} "
+                    f"(автоплатежи не активированы в ЮKassa)"
+                )
 
         # Добавляем чек для самозанятого (если ИНН указан)
         if settings.yookassa_inn:
