@@ -394,24 +394,16 @@ class GamesService:
         # Получаем статистику игры (возвращает dict)
         stats = self.get_game_stats(telegram_id, game_type)
 
-        # Проверяем достижения
+        # Проверяем достижения - вызываем один раз, проверка внутри предотвратит повторные разблокировки
         if result == "win":
             wins = stats.get("wins", 0)
-            # "Победил панду 1 раз"
-            if wins == 1:
+            # Проверяем все достижения за победы одним вызовом
+            if wins >= 1:  # Если есть хотя бы 1 победа, проверяем все достижения
                 gamification_service.check_and_unlock_achievements(telegram_id)
 
-            # "Победил панду 10 раз"
-            if wins == 10:
-                gamification_service.check_and_unlock_achievements(telegram_id)
-
-            # "Победил панду 50 раз"
-            if wins == 50:
-                gamification_service.check_and_unlock_achievements(telegram_id)
-
-        # "Сыграл 100 партий"
+        # "Сыграл 100 партий" - отдельная проверка
         total_games = stats.get("total_games", 0)
-        if total_games == 100:
+        if total_games >= 100:
             gamification_service.check_and_unlock_achievements(telegram_id)
 
     def get_game_stats(self, telegram_id: int, game_type: str | None = None) -> dict:
