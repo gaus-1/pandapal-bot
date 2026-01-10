@@ -37,8 +37,11 @@ async def check_model_availability(model_name: str) -> bool:
     }
 
     # Минимальный тестовый запрос
+    # Формат modelUri: gpt://folder_id/model_name
+    # Если model_name уже содержит /latest или /rc, не добавляем их снова
+    model_uri = f"gpt://{folder_id}/{model_name}"
     payload = {
-        "modelUri": f"gpt://{folder_id}/{model_name}/latest",
+        "modelUri": model_uri,
         "completionOptions": {
             "stream": False,
             "temperature": 0.3,
@@ -81,12 +84,17 @@ async def main():
     logger.info("🔍 Проверка доступности моделей YandexGPT в каталоге...")
     logger.info(f"📁 Folder ID: {settings.yandex_cloud_folder_id}")
 
-    # Список моделей для проверки
+    # Список моделей для проверки (разные форматы из документации Yandex Cloud)
     models_to_check = [
-        "yandexgpt-lite",
+        # Стандартные модели (как в документации)
+        "yandexgpt/latest",  # Последняя стабильная версия (используется сейчас)
+        "yandexgpt/rc",  # Release candidate
+        # Альтернативные форматы (могут быть доступны)
         "yandexgpt-pro",
+        "yandexgpt-lite",
         "yandexgpt-5-pro",
         "yandexgpt-5.1-pro",
+        "yandexgpt-5-lite",
     ]
 
     results = {}
