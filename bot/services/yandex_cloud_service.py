@@ -11,6 +11,7 @@
 
 import base64
 import json
+import uuid
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -46,6 +47,7 @@ class YandexCloudService:
         self.headers = {
             "Authorization": f"Api-Key {self.api_key}",
             "Content-Type": "application/json",
+            "x-data-logging-enabled": "true",  # Для диагностики ошибок Yandex Cloud
         }
 
         # Таймаут для всех запросов (30 секунд)
@@ -248,12 +250,13 @@ class YandexCloudService:
             messages.append({"role": "user", "text": user_message})
 
             # Формируем запрос к YandexGPT
+            # Для yandexgpt-pro maxTokens должен быть числом, не строкой
             payload = {
                 "modelUri": f"gpt://{self.folder_id}/{model_name}/latest",
                 "completionOptions": {
                     "stream": False,
                     "temperature": temperature,
-                    "maxTokens": str(max_tokens),
+                    "maxTokens": max_tokens,  # Число для yandexgpt-pro
                 },
                 "messages": messages,
             }
@@ -264,8 +267,15 @@ class YandexCloudService:
 
             # Внутренняя функция для выполнения запроса (оборачивается в очередь)
             async def _execute_request():
+                # Добавляем динамический request ID для диагностики
+                request_headers = {
+                    **self.headers,
+                    "x-client-request-id": str(uuid.uuid4()),
+                }
                 async with httpx.AsyncClient(timeout=self.timeout) as client:
-                    response = await client.post(self.gpt_url, headers=self.headers, json=payload)
+                    response = await client.post(
+                        self.gpt_url, headers=request_headers, json=payload
+                    )
                     response.raise_for_status()
                     result = response.json()
                     return result
@@ -337,12 +347,13 @@ class YandexCloudService:
             messages.append({"role": "user", "text": user_message})
 
             # Формируем запрос к YandexGPT с streaming
+            # Для yandexgpt-pro maxTokens должен быть числом, не строкой
             payload = {
                 "modelUri": f"gpt://{self.folder_id}/{model_name}/latest",
                 "completionOptions": {
                     "stream": True,  # Включаем streaming
                     "temperature": temperature,
-                    "maxTokens": str(max_tokens),
+                    "maxTokens": max_tokens,  # Число для yandexgpt-pro
                 },
                 "messages": messages,
             }
@@ -353,10 +364,15 @@ class YandexCloudService:
 
             # Внутренняя функция для выполнения streaming запроса
             async def _execute_streaming_request():
+                # Добавляем динамический request ID для диагностики
+                request_headers = {
+                    **self.headers,
+                    "x-client-request-id": str(uuid.uuid4()),
+                }
                 async with (
                     httpx.AsyncClient(timeout=self.timeout) as client,
                     client.stream(
-                        "POST", self.gpt_url, headers=self.headers, json=payload
+                        "POST", self.gpt_url, headers=request_headers, json=payload
                     ) as response,
                 ):
                     # Проверяем статус ДО чтения stream
