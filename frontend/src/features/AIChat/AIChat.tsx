@@ -148,26 +148,43 @@ export function AIChat({ user }: AIChatProps) {
 
   // Показываем приветствие при первом открытии или очистке чата
   useEffect(() => {
-    if (!isLoadingHistory && messages.length === 0) {
-      setShowWelcome(true);
-      setHasShownWelcomeMessage(false);
-    } else if (messages.length > 0) {
-      setShowWelcome(false);
-      setHasShownWelcomeMessage(true);
+    // Управляем состоянием приветствия на основе истории сообщений
+    if (!isLoadingHistory) {
+      if (messages.length === 0) {
+        // История пустая - показываем приветствие и сбрасываем флаг отправки
+        setShowWelcome(true);
+        setHasShownWelcomeMessage(false);
+      } else {
+        // Есть сообщения - скрываем приветствие
+        setShowWelcome(false);
+        setHasShownWelcomeMessage(true);
+      }
     }
   }, [messages.length, isLoadingHistory]);
 
   // Автоматическое приветствие от панды через 5 секунд после показа приветствия
   useEffect(() => {
-    if (showWelcome && !hasShownWelcomeMessage && !isLoadingHistory && messages.length === 0 && !isSending) {
+    // Проверяем, что все условия выполнены для отправки приветствия
+    const shouldSendWelcome =
+      showWelcome &&
+      !hasShownWelcomeMessage &&
+      !isLoadingHistory &&
+      messages.length === 0 &&
+      !isSending;
+
+    if (shouldSendWelcome) {
       const timer = setTimeout(() => {
-        // Отправляем приветственное сообщение от панды
-        // Панда ответит "Привет, начнем?" или "Привет! Чем могу помочь?" согласно промпту
-        const greetings = ['Привет, начнем?', 'Привет! Чем могу помочь?'];
-        const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-        sendMessage({ message: randomGreeting });
-        setHasShownWelcomeMessage(true);
-        setShowWelcome(false);
+        // Проверяем еще раз перед отправкой (на случай, если состояние изменилось)
+        if (messages.length === 0 && !isSending && !hasShownWelcomeMessage) {
+          // Отправляем приветственное сообщение от панды
+          // Панда ответит "Привет, начнем?" или "Привет! Чем могу помочь?" согласно промпту
+          const greetings = ['Привет, начнем?', 'Привет! Чем могу помочь?'];
+          const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+          console.log('🐼 Отправляем приветственное сообщение:', randomGreeting);
+          sendMessage({ message: randomGreeting });
+          setHasShownWelcomeMessage(true);
+          setShowWelcome(false);
+        }
       }, 5000); // 5 секунд задержка
 
       return () => clearTimeout(timer);
@@ -197,11 +214,12 @@ export function AIChat({ user }: AIChatProps) {
     const confirmed = await telegram.showConfirm('Очистить историю чата?');
     if (confirmed) {
       try {
-        await clearHistory();
         haptic.medium();
-        // Сбрасываем состояние приветствия при очистке
-        setShowWelcome(true);
+        await clearHistory();
+        // Сбрасываем состояние приветствия ПОСЛЕ очистки истории
+        // Это важно, чтобы useEffect правильно обработал изменения
         setHasShownWelcomeMessage(false);
+        setShowWelcome(true);
         await telegram.showAlert('История чата очищена');
       } catch (error) {
         console.error('Ошибка очистки истории:', error);
