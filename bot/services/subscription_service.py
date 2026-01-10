@@ -265,20 +265,24 @@ class SubscriptionService:
         """
         now = datetime.now(UTC)
 
-        # Находим все активные подписки с сохраненным способом оплаты
+        # Находим все активные подписки с сохраненным способом оплаты ИЛИ с включенным автоплатежом
+        # (в тестовом режиме карта может не сохраняться, но auto_renew=True)
         stmt = (
             select(Subscription)
             .where(Subscription.user_telegram_id == telegram_id)
             .where(Subscription.is_active.is_(True))
             .where(Subscription.expires_at > now)
-            .where(Subscription.saved_payment_method_id.isnot(None))
+            .where(
+                (Subscription.saved_payment_method_id.isnot(None))
+                | (Subscription.auto_renew.is_(True))
+            )
         )
 
         subscriptions = self.db.execute(stmt).scalars().all()
 
         if not subscriptions:
             logger.info(
-                f"ℹ️ Нет активных подписок с сохраненным способом оплаты для user={telegram_id}"
+                f"ℹ️ Нет активных подписок с сохраненным способом оплаты или автоплатежом для user={telegram_id}"
             )
             return False
 
@@ -288,6 +292,10 @@ class SubscriptionService:
             subscription.saved_payment_method_id = None
             subscription.auto_renew = False
             count += 1
+            logger.info(
+                f"✅ Способ оплаты отвязан: subscription_id={subscription.id}, user={telegram_id}, "
+                f"saved_payment_method_id={subscription.saved_payment_method_id}, auto_renew={subscription.auto_renew}"
+            )
 
         self.db.flush()
 
