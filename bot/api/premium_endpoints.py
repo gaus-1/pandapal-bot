@@ -318,12 +318,24 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
 
         data = json.loads(request_body)
 
+        # Логируем полную структуру webhook для отладки
+        event = data.get("event", "")
+        payment_object = data.get("object", {})
+        payment_id = payment_object.get("id", "unknown")
+
+        logger.info(
+            f"📋 Webhook событие: {event}, payment_id={payment_id}, "
+            f"status={payment_object.get('status')}, "
+            f"metadata={payment_object.get('metadata', {})}"
+        )
+
         # Обрабатываем webhook через PaymentService
         webhook_result = payment_service.process_webhook(data)
 
         if not webhook_result:
-            # Событие не требует обработки
-            return web.json_response({"success": True, "message": "Event ignored"})
+            # Событие не требует обработки (например, payment.canceled, payment.waiting_for_capture)
+            logger.info(f"ℹ️ Webhook событие {event} не требует активации подписки (игнорируем)")
+            return web.json_response({"success": True, "message": f"Event {event} ignored"})
 
         payment_id = webhook_result["payment_id"]
         telegram_id = webhook_result["telegram_id"]
@@ -364,20 +376,45 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
                 payment_method = "yookassa_other"
 
             # Сохраняем payment_method_id для автоплатежа (если есть)
-            # По документации ЮKassa, если save_payment_method=True, то в payment_method.id приходит ID сохраненного метода
+            # По документации ЮKassa, если save_payment_method=True, то:
+            # 1. В payment_method.saved приходит true (если карта сохранена)
+            # 2. В payment_method.id приходит ID сохраненного метода оплаты
+            # 3. Также может быть в payment.saved_payment_method_id
             saved_payment_method_id = None
+
+            # Вариант 1: Проверяем payment_method.saved и payment_method.id
             if payment_method_data:
-                # Проверяем, есть ли поле saved (boolean) - означает, что карта была сохранена
                 saved = payment_method_data.get("saved", False)
-                if saved:
-                    # ID сохраненного метода оплаты (для автоплатежей)
-                    saved_payment_method_id = payment_method_data.get("id")
+                payment_method_id = payment_method_data.get("id")
+
+                logger.info(
+                    f"💳 Payment method данные: saved={saved}, "
+                    f"id={payment_method_id}, type={payment_method_type}"
+                )
+
+                if saved and payment_method_id:
+                    saved_payment_method_id = payment_method_id
                     logger.info(
-                        f"💳 Сохраненный метод оплаты найден: saved={saved}, "
+                        f"✅ Сохраненный метод оплаты найден в payment_method: "
+                        f"saved={saved}, payment_method_id={saved_payment_method_id}"
+                    )
+
+            # Вариант 2: Проверяем payment.saved_payment_method_id (альтернативный способ)
+            if not saved_payment_method_id:
+                saved_pm_id = payment_object.get("saved_payment_method_id")
+                if saved_pm_id:
+                    saved_payment_method_id = saved_pm_id
+                    logger.info(
+                        f"✅ Сохраненный метод оплаты найден в payment.saved_payment_method_id: "
                         f"payment_method_id={saved_payment_method_id}"
                     )
-                else:
-                    logger.info(f"💳 Карта не сохранена: saved={saved}")
+
+            if not saved_payment_method_id:
+                logger.warning(
+                    f"⚠️ Сохраненный метод оплаты не найден в webhook! "
+                    f"payment_method_data={payment_method_data}, "
+                    f"payment_object={payment_object.get('id')}"
+                )
 
             # Определяем статус из события
             event = data.get("event", "")
