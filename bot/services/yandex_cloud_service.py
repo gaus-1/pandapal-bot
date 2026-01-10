@@ -251,8 +251,10 @@ class YandexCloudService:
 
             # Формируем запрос к YandexGPT
             # По документации Yandex Cloud maxTokens должен быть строкой для всех моделей
+            # Название модели уже содержит /latest или /rc (например: yandexgpt/latest или yandexgpt/rc)
+            # Итоговый формат: gpt://folder_id/yandexgpt/latest
             payload = {
-                "modelUri": f"gpt://{self.folder_id}/{model_name}/latest",
+                "modelUri": f"gpt://{self.folder_id}/{model_name}",
                 "completionOptions": {
                     "stream": False,
                     "temperature": temperature,
@@ -348,8 +350,10 @@ class YandexCloudService:
 
             # Формируем запрос к YandexGPT с streaming
             # По документации Yandex Cloud maxTokens должен быть строкой для всех моделей
+            # Название модели уже содержит /latest или /rc (например: yandexgpt/latest или yandexgpt/rc)
+            # Итоговый формат: gpt://folder_id/yandexgpt/latest
             payload = {
-                "modelUri": f"gpt://{self.folder_id}/{model_name}/latest",
+                "modelUri": f"gpt://{self.folder_id}/{model_name}",
                 "completionOptions": {
                     "stream": True,  # Включаем streaming
                     "temperature": temperature,
