@@ -242,18 +242,22 @@ class GamificationService:
         if "?" in message_text:
             self.add_xp(telegram_id, self.xp_per_question, "вопрос")
 
-        # Проверяем достижения
-        unlocked = self.check_and_unlock_achievements(telegram_id)
+        # Проверяем достижения (кроме игровых - они проверяются только при завершении игр)
+        unlocked = self.check_and_unlock_achievements(telegram_id, skip_game_achievements=True)
         unlocked_achievements.extend(unlocked)
 
         return unlocked_achievements
 
-    def check_and_unlock_achievements(self, telegram_id: int) -> list[str]:
+    def check_and_unlock_achievements(
+        self, telegram_id: int, skip_game_achievements: bool = False
+    ) -> list[str]:
         """
         Проверить и разблокировать достижения пользователя.
 
         Args:
             telegram_id: Telegram ID пользователя
+            skip_game_achievements: Если True, пропускает проверку игровых достижений
+                                   (они проверяются только при завершении игр)
 
         Returns:
             List[str]: Список ID разблокированных достижений
@@ -295,6 +299,13 @@ class GamificationService:
         unlocked_achievements = progress.achievements or {}
         newly_unlocked = []
 
+        # Дополнительная проверка: логируем уже разблокированные достижения для отладки
+        if unlocked_achievements:
+            logger.debug(
+                f"🔍 Уже разблокированные достижения для user={telegram_id}: "
+                f"{list(unlocked_achievements.keys())}"
+            )
+
         # Проверяем premium статус для эксклюзивных достижений
         from bot.services.premium_features_service import PremiumFeaturesService
 
@@ -318,7 +329,25 @@ class GamificationService:
         for achievement in ALL_ACHIEVEMENTS:
             # Пропускаем уже разблокированные
             if achievement.id in unlocked_achievements:
+                logger.debug(f"✅ Достижение '{achievement.id}' уже разблокировано, пропускаем")
                 continue
+
+            # КРИТИЧЕСКИ ВАЖНО: Игровые достижения проверяются ТОЛЬКО при завершении игр,
+            # а НЕ при обработке AI сообщений
+            if skip_game_achievements:
+                game_achievement_types = [
+                    "game_wins",
+                    "total_games",
+                    "tic_tac_toe_wins",
+                    "checkers_wins",
+                    "2048_best_score",
+                ]
+                if achievement.condition_type in game_achievement_types:
+                    logger.debug(
+                        f"⏭️ Пропускаем игровое достижение '{achievement.id}' "
+                        f"(проверяется только при завершении игр)"
+                    )
+                    continue  # Пропускаем игровые достижения при AI ответах
 
             # Проверяем premium требования для эксклюзивных достижений
             if (
