@@ -1527,8 +1527,8 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     if text:
                         yandex_history.append({"role": role, "text": text})
 
-            # Используем Pro модель для всех пользователей
-            model_name = "yandexgpt-pro"
+            # Используем Pro модель для всех пользователей (YandexGPT 5.1 Pro)
+            model_name = "yandexgpt-5.1-pro"
             temperature = settings.ai_temperature  # Основной параметр для всех пользователей
             max_tokens = settings.ai_max_tokens  # Основной параметр для всех пользователей
             logger.info(f"💎 Stream: Используем Pro модель для пользователя {telegram_id}")
