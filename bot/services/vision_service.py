@@ -7,7 +7,6 @@ Wrapper для совместимости с существующими handlers
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 from loguru import logger
 
@@ -53,8 +52,8 @@ class VisionService:
     async def analyze_image(
         self,
         image_data: bytes,
-        user_message: Optional[str] = None,
-        user_age: Optional[int] = None,
+        user_message: str | None = None,
+        user_age: int | None = None,  # noqa: ARG002
     ) -> ImageAnalysisResult:
         """
         Анализировать изображение через Yandex Vision + YandexGPT.
@@ -89,11 +88,15 @@ class VisionService:
             )
 
         except Exception as e:
-            logger.error(f"❌ Ошибка анализа изображения (Yandex): {e}")
+            logger.error(f"❌ Ошибка анализа изображения (Yandex): {e}", exc_info=True)
+            # Возвращаем явный маркер ошибки, чтобы можно было проверить в вызывающем коде
+            error_msg = f"Не удалось проанализировать изображение: {str(e)}"
+            if "500" in str(e) or "Internal Server Error" in str(e):
+                error_msg = "Временная проблема с AI сервисом. Попробуйте позже."
             return ImageAnalysisResult(
                 recognized_text="",
                 description="Ошибка анализа",
-                analysis="Не удалось проанализировать изображение",
+                analysis=error_msg,
                 safety_level=SafetyLevel.UNKNOWN,
                 has_text=False,
             )
@@ -101,8 +104,8 @@ class VisionService:
     async def generate_educational_response(
         self,
         analysis_result: ImageAnalysisResult,
-        user_message: Optional[str] = None,
-        user_age: Optional[int] = None,
+        user_message: str | None = None,  # noqa: ARG002
+        user_age: int | None = None,  # noqa: ARG002
     ) -> str:
         """
         Генерировать образовательный ответ на основе анализа изображения.
