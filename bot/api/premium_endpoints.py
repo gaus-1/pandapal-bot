@@ -322,11 +322,20 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
         event = data.get("event", "")
         payment_object = data.get("object", {})
         payment_id = payment_object.get("id", "unknown")
+        payment_status = payment_object.get("status", "unknown")
+        payment_metadata = payment_object.get("metadata", {})
 
         logger.info(
             f"📋 Webhook событие: {event}, payment_id={payment_id}, "
-            f"status={payment_object.get('status')}, "
-            f"metadata={payment_object.get('metadata', {})}"
+            f"status={payment_status}, "
+            f"metadata={payment_metadata}, "
+            f"paid={payment_object.get('paid', False)}, "
+            f"amount={payment_object.get('amount', {})}"
+        )
+
+        # Детальное логирование структуры webhook для отладки
+        logger.debug(
+            f"🔍 Полная структура webhook: {json.dumps(data, indent=2, ensure_ascii=False)}"
         )
 
         # Обрабатываем webhook через PaymentService
@@ -571,6 +580,15 @@ async def get_premium_status(request: web.Request) -> web.Response:
             subscription_service = SubscriptionService(db)
             is_premium = subscription_service.is_premium_active(telegram_id)
             active_subscription = subscription_service.get_active_subscription(telegram_id)
+
+            # Детальное логирование для отладки
+            logger.info(
+                f"🔍 Premium статус для user={telegram_id}: "
+                f"is_premium={is_premium}, "
+                f"has_active_subscription={active_subscription is not None}, "
+                f"saved_payment_method_id={active_subscription.saved_payment_method_id if active_subscription else None}, "
+                f"has_saved_payment_method={bool(active_subscription.saved_payment_method_id) if active_subscription else False}"
+            )
 
             status_data = {
                 "is_premium": is_premium,
