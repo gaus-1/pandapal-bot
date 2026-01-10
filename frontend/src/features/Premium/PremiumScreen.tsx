@@ -103,6 +103,9 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
           if (response.ok) {
             const data = await response.json();
             if (data.success && data.user) {
+              console.log('🔍 Обновленные данные пользователя:', data.user);
+              console.log('🔍 Active subscription:', data.user.active_subscription);
+              console.log('🔍 has_saved_payment_method:', data.user.active_subscription?.has_saved_payment_method);
               setUser(data.user);
               // Убираем payment_id из URL
               window.history.replaceState({}, '', window.location.pathname);
@@ -116,6 +119,17 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
     checkPaymentStatus();
   }, [currentUser, setUser]);
+
+  // Логирование для отладки
+  useEffect(() => {
+    if (currentUser) {
+      console.log('🔍 Premium Screen - currentUser:', currentUser);
+      console.log('🔍 is_premium:', currentUser.is_premium);
+      console.log('🔍 active_subscription:', (currentUser as UserProfile).active_subscription);
+      console.log('🔍 has_saved_payment_method:', (currentUser as UserProfile).active_subscription?.has_saved_payment_method);
+      console.log('🔍 auto_renew:', (currentUser as UserProfile).active_subscription?.auto_renew);
+    }
+  }, [currentUser]);
 
   // Обработчик отвязки карты
   const handleRemoveCard = async () => {
@@ -321,8 +335,12 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         </div>
 
         {/* Сохраненная карта (если есть активная подписка с автоплатежом) */}
+        {/* В тестовом режиме ЮKassa карта может не сохраняться (saved=False), но auto_renew=True */}
+        {/* Показываем блок если есть активная подписка И (есть saved_payment_method ИЛИ auto_renew включен) */}
         {currentUser?.is_premium &&
-         (currentUser as UserProfile)?.active_subscription?.has_saved_payment_method && (
+         (currentUser as UserProfile)?.active_subscription &&
+         ((currentUser as UserProfile).active_subscription?.has_saved_payment_method ||
+          (currentUser as UserProfile).active_subscription?.auto_renew) && (
           <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl sm:rounded-2xl border border-blue-200 dark:border-blue-800">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -332,20 +350,27 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                     Сохраненная карта
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">
-                    Автоплатеж включен
+                    {(currentUser as UserProfile).active_subscription?.has_saved_payment_method
+                      ? 'Автоплатеж включен'
+                      : 'Автоплатеж активен'}
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setShowRemoveConfirm(true)}
-                disabled={isRemovingCard}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 active:text-red-800 dark:active:text-red-200 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 dark:border-red-800"
-              >
-                {isRemovingCard ? 'Отвязка...' : 'Отвязать'}
-              </button>
+              {/* Показываем кнопку отвязки только если есть saved_payment_method (реальная карта сохранена) */}
+              {(currentUser as UserProfile).active_subscription?.has_saved_payment_method && (
+                <button
+                  onClick={() => setShowRemoveConfirm(true)}
+                  disabled={isRemovingCard}
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 active:text-red-800 dark:active:text-red-200 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 dark:border-red-800"
+                >
+                  {isRemovingCard ? 'Отвязка...' : 'Отвязать'}
+                </button>
+              )}
             </div>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">
-              Подписка будет автоматически продлеваться. Вы можете отвязать карту в любой момент.
+              {(currentUser as UserProfile).active_subscription?.has_saved_payment_method
+                ? 'Подписка будет автоматически продлеваться. Вы можете отвязать карту в любой момент.'
+                : 'Подписка будет автоматически продлеваться. В тестовом режиме карта не сохраняется, но автоплатеж активен.'}
             </p>
           </div>
         )}
