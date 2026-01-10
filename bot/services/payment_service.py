@@ -38,19 +38,35 @@ class PaymentService:
     def __init__(self):
         """Инициализация сервиса платежей."""
         # Настройка ЮKassa (тестовый или продакшн режим)
-        Configuration.account_id = settings.active_yookassa_shop_id
-        Configuration.secret_key = settings.active_yookassa_secret_key
+        # ВАЖНО: Переинициализируем Configuration при каждом создании сервиса
+        # чтобы использовать актуальные настройки (на случай изменения переменных окружения)
+        self._update_configuration()
+
+    def _update_configuration(self):
+        """Обновить конфигурацию ЮKassa из настроек."""
+        shop_id = settings.active_yookassa_shop_id
+        secret_key = settings.active_yookassa_secret_key
+
+        Configuration.account_id = shop_id
+        Configuration.secret_key = secret_key
 
         mode_text = "ТЕСТОВЫЙ" if settings.yookassa_test_mode else "ПРОДАКШН"
-        logger.info(
-            f"💳 ЮKassa инициализирован в режиме {mode_text}: "
-            f"shop_id={settings.active_yookassa_shop_id}"
-        )
+        logger.info(f"💳 ЮKassa инициализирован в режиме {mode_text}: " f"shop_id={shop_id}")
 
-        if not settings.active_yookassa_shop_id or not settings.active_yookassa_secret_key:
-            logger.warning(
-                f"⚠️ ЮKassa не настроен ({mode_text}): отсутствуют shop_id или secret_key"
+        if not shop_id or not secret_key:
+            logger.error(
+                f"❌ ЮKassa не настроен ({mode_text}): "
+                f"shop_id={'установлен' if shop_id else 'ОТСУТСТВУЕТ'}, "
+                f"secret_key={'установлен' if secret_key else 'ОТСУТСТВУЕТ'}"
             )
+            if settings.yookassa_test_mode:
+                logger.error(
+                    "❌ Для тестового режима нужны переменные окружения в Railway: "
+                    "YOOKASSA_TEST_MODE=true, YOOKASSA_TEST_SHOP_ID=1242170, YOOKASSA_TEST_SECRET_KEY=<ключ из ЛК ЮKassa>"
+                )
+                logger.error(
+                    "📋 Получить ключ: Личный кабинет ЮKassa → Настройки → Секретный ключ (для тестового магазина)"
+                )
 
         # Timeout для YooKassa API вызовов (30 секунд)
         self._api_timeout = 30.0
@@ -125,6 +141,9 @@ class PaymentService:
             ValueError: Если plan_id невалидный
             ApiError: Если ошибка API ЮKassa
         """
+        # Обновляем конфигурацию перед каждым запросом (на случай изменения настроек)
+        self._update_configuration()
+
         if plan_id not in self.PLANS:
             raise ValueError(f"Invalid plan_id: {plan_id}")
 
@@ -240,7 +259,25 @@ class PaymentService:
         except ApiError as e:
             # Логируем детали ошибки для отладки
             error_message = str(e)
-            if "403" in error_message or "Forbidden" in error_message:
+            error_code = getattr(e, "code", None) or getattr(e, "status_code", None)
+
+            # Детальное логирование для 401 ошибки
+            if "401" in error_message or error_code == 401:
+                logger.error(f"❌ Ошибка аутентификации ЮKassa (401): {error_message}")
+                logger.error(
+                    f"🔑 Проверь настройки: "
+                    f"shop_id={settings.active_yookassa_shop_id}, "
+                    f"secret_key={'установлен' if settings.active_yookassa_secret_key else 'ОТСУТСТВУЕТ'}"
+                )
+                if settings.yookassa_test_mode:
+                    logger.error(
+                        "🔑 Для тестового режима проверь переменные окружения: "
+                        "YOOKASSA_TEST_MODE=true, YOOKASSA_TEST_SHOP_ID=1242170, YOOKASSA_TEST_SECRET_KEY=<ключ из ЛК ЮKassa>"
+                    )
+                raise ValueError(
+                    "Ошибка аутентификации ЮKassa: проверь YOOKASSA_TEST_SECRET_KEY для тестового режима"
+                ) from e
+            elif "403" in error_message or error_code == 403 or "Forbidden" in error_message:
                 logger.error(
                     f"❌ ЮKassa вернул 403 Forbidden. "
                     f"Возможные причины:\n"

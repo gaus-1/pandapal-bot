@@ -194,8 +194,16 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
       if (!response.ok) {
         // Ошибка от сервера
-        const errorMessage = data.error || 'Ошибка создания платежа';
+        const errorMessage = data.error || data.message || 'Ошибка создания платежа';
         console.error('Ошибка создания платежа:', errorMessage, data);
+
+        // Специальная обработка ошибки аутентификации
+        if (response.status === 401 || errorMessage.includes('аутентификации') || errorMessage.includes('401')) {
+          await telegram.showAlert(
+            'Ошибка настройки платежей: проверь переменные окружения YOOKASSA_TEST_SECRET_KEY в Railway'
+          );
+          return;
+        }
 
         if (inTelegram) {
           await telegram.showAlert(

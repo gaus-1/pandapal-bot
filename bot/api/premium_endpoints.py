@@ -246,10 +246,40 @@ async def create_yookassa_payment(request: web.Request) -> web.Response:
             )
 
     except ValueError as e:
-        logger.error(f"❌ Ошибка валидации: {e}")
-        return web.json_response({"error": str(e)}, status=400)
+        error_msg = str(e)
+        logger.error(f"❌ Ошибка валидации: {error_msg}")
+
+        # Специальная обработка ошибки аутентификации
+        if "аутентификации" in error_msg or "401" in error_msg:
+            return web.json_response(
+                {
+                    "error": "Ошибка аутентификации ЮKassa",
+                    "message": (
+                        "Проверь переменные окружения в Railway: "
+                        "YOOKASSA_TEST_MODE=true, YOOKASSA_TEST_SECRET_KEY=<ключ из ЛК ЮKassa>"
+                    ),
+                },
+                status=401,
+            )
+
+        return web.json_response({"error": error_msg}, status=400)
     except Exception as e:
-        logger.error("❌ Ошибка создания платежа ЮKassa: %s", str(e), exc_info=True)
+        error_msg = str(e)
+        logger.error("❌ Ошибка создания платежа ЮKassa: %s", error_msg, exc_info=True)
+
+        # Проверяем, не связана ли ошибка с аутентификацией
+        if "401" in error_msg or "Unauthorized" in error_msg:
+            return web.json_response(
+                {
+                    "error": "Ошибка аутентификации ЮKassa",
+                    "message": (
+                        "Проверь переменные окружения в Railway: "
+                        "YOOKASSA_TEST_MODE=true, YOOKASSA_TEST_SECRET_KEY=<ключ из ЛК ЮKassa>"
+                    ),
+                },
+                status=401,
+            )
+
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
