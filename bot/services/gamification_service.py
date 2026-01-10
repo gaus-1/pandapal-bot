@@ -12,13 +12,12 @@
 """
 
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Set
 
 from loguru import logger
 from sqlalchemy import and_, func, select
 from sqlalchemy.orm import Session
 
-from bot.models import ChatHistory, User, UserProgress
+from bot.models import ChatHistory, UserProgress
 
 
 class Achievement:
@@ -223,7 +222,7 @@ class GamificationService:
         level = int(math.sqrt(total_xp / 100)) + 1
         return min(level, 50)  # Максимальный уровень 50
 
-    def process_message(self, telegram_id: int, message_text: str) -> List[str]:
+    def process_message(self, telegram_id: int, message_text: str) -> list[str]:
         """
         Обработать сообщение пользователя и начислить XP, проверить достижения.
 
@@ -249,7 +248,7 @@ class GamificationService:
 
         return unlocked_achievements
 
-    def check_and_unlock_achievements(self, telegram_id: int) -> List[str]:
+    def check_and_unlock_achievements(self, telegram_id: int) -> list[str]:
         """
         Проверить и разблокировать достижения пользователя.
 
@@ -259,7 +258,26 @@ class GamificationService:
         Returns:
             List[str]: Список ID разблокированных достижений
         """
+        # КРИТИЧЕСКИ ВАЖНО: Загружаем progress заново из БД, чтобы получить актуальные данные
+        # Это предотвращает повторное разблокирование уже разблокированных достижений
         progress = self.get_or_create_progress(telegram_id)
+
+        # Принудительно обновляем данные из БД, чтобы получить актуальные достижения
+        # Сбрасываем кеш сессии для этого объекта, чтобы загрузить актуальные данные
+        self.db.expire(progress, ["achievements"])
+        # Делаем flush перед refresh, чтобы убедиться, что изменения сохранены
+        self.db.flush()
+        # Перезагружаем achievements из БД
+        try:
+            self.db.refresh(progress, attribute_names=["achievements"])
+        except Exception as e:
+            # Если refresh не сработал (например, объект не в БД), делаем новый запрос
+            logger.debug(f"⚠️ Не удалось refresh progress: {e}, делаем новый запрос")
+            stmt = select(UserProgress).where(UserProgress.user_telegram_id == telegram_id)
+            progress_from_db = self.db.scalar(stmt)
+            if progress_from_db:
+                progress = progress_from_db
+
         unlocked_achievements = progress.achievements or {}
         newly_unlocked = []
 
@@ -292,14 +310,12 @@ class GamificationService:
             if (
                 achievement.condition_type.startswith("premium_")
                 or achievement.condition_type == "vip_status"
-            ):
-                if not is_premium:
-                    continue  # Пропускаем premium достижения для бесплатных
+            ) and not is_premium:
+                continue  # Пропускаем premium достижения для бесплатных
 
             # Проверяем VIP требования
-            if achievement.id == "vip_legend":
-                if premium_plan != "year":
-                    continue  # VIP достижение только для годовой подписки
+            if achievement.id == "vip_legend" and premium_plan != "year":
+                continue  # VIP достижение только для годовой подписки
 
             # Проверяем условие достижения
             if self._check_achievement_condition(achievement, stats):
@@ -318,13 +334,19 @@ class GamificationService:
                     f"(user={telegram_id}, +{achievement.xp_reward} XP)"
                 )
 
-        # Сохраняем обновленные достижения
-        progress.achievements = unlocked_achievements
-        self.db.flush()
+        # Сохраняем обновленные достижения только если есть новые
+        if newly_unlocked:
+            progress.achievements = unlocked_achievements
+            self.db.flush()  # flush для сохранения изменений в текущей транзакции
+            # КРИТИЧЕСКИ ВАЖНО: коммит должен происходить в вызывающем коде, не здесь
+            logger.debug(
+                f"✅ Обновлены достижения для user={telegram_id}: "
+                f"новых {len(newly_unlocked)}, всего {len(unlocked_achievements)}"
+            )
 
         return newly_unlocked
 
-    def _check_achievement_condition(self, achievement: Achievement, stats: Dict) -> bool:
+    def _check_achievement_condition(self, achievement: Achievement, stats: dict) -> bool:
         """
         Проверить условие достижения.
 
@@ -369,7 +391,7 @@ class GamificationService:
 
         return False
 
-    def get_user_stats(self, telegram_id: int) -> Dict:
+    def get_user_stats(self, telegram_id: int) -> dict:
         """
         Получить статистику пользователя для проверки достижений.
 
@@ -408,7 +430,7 @@ class GamificationService:
         solved_tasks = 0
 
         # Игровая статистика
-        from bot.models import GameSession, GameStats
+        from bot.models import GameStats
 
         game_stats_stmt = select(GameStats).where(GameStats.user_telegram_id == telegram_id)
         game_stats_list = self.db.scalars(game_stats_stmt).all()
@@ -426,9 +448,8 @@ class GamificationService:
                 tic_tac_toe_wins = gs.wins
             elif gs.game_type == "checkers":
                 checkers_wins = gs.wins
-            elif gs.game_type == "2048":
-                if gs.best_score and gs.best_score > game_2048_best_score:
-                    game_2048_best_score = gs.best_score
+            elif gs.game_type == "2048" and gs.best_score and gs.best_score > game_2048_best_score:
+                game_2048_best_score = gs.best_score
 
         return {
             "total_messages": total_messages,
@@ -515,7 +536,7 @@ class GamificationService:
         )
 
         messages = self.db.execute(stmt).scalars().all()
-        found_subjects: Set[str] = set()
+        found_subjects: set[str] = set()
 
         for message in messages:
             message_lower = message.lower()
@@ -526,7 +547,7 @@ class GamificationService:
 
         return len(found_subjects)
 
-    def get_achievements_with_progress(self, telegram_id: int) -> List[Dict]:
+    def get_achievements_with_progress(self, telegram_id: int) -> list[dict]:
         """
         Получить все достижения с прогрессом пользователя.
 
@@ -566,7 +587,7 @@ class GamificationService:
 
         return result
 
-    def _get_achievement_progress(self, achievement: Achievement, stats: Dict) -> int:
+    def _get_achievement_progress(self, achievement: Achievement, stats: dict) -> int:
         """
         Получить текущий прогресс по достижению.
 
@@ -602,7 +623,7 @@ class GamificationService:
 
         return 0
 
-    def get_user_progress_summary(self, telegram_id: int) -> Dict:
+    def get_user_progress_summary(self, telegram_id: int) -> dict:
         """
         Получить сводку прогресса пользователя.
 
