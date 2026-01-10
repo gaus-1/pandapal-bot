@@ -96,21 +96,28 @@ class PaymentService:
             return False
 
         try:
+            import base64
+
             # Вычисляем ожидаемую подпись
             # YooKassa использует HMAC-SHA256 с secret_key в качестве ключа
-            expected_signature = hmac.new(
+            # Подпись приходит в формате Base64 (по документации YooKassa)
+            hmac_signature = hmac.new(
                 secret_key.encode("utf-8"),
                 request_body.encode("utf-8"),
                 hashlib.sha256,
-            ).hexdigest()
+            ).digest()
 
-            # Сравниваем подписи безопасным способом
+            # Конвертируем в Base64 для сравнения
+            expected_signature = base64.b64encode(hmac_signature).decode("utf-8")
+
+            # Сравниваем подписи безопасным способом (case-sensitive)
             is_valid = hmac.compare_digest(expected_signature, signature)
             if not is_valid:
                 logger.warning(
-                    f"⚠️ Невалидная подпись webhook: {signature[:20]}... "
-                    f"(ожидалось: {expected_signature[:20]}...). "
-                    "Проверь, что YOOKASSA_SECRET_KEY совпадает с ключом в личном кабинете YooKassa."
+                    f"⚠️ Невалидная подпись webhook: получено={signature[:30]}..., "
+                    f"ожидалось={expected_signature[:30]}... "
+                    "Проверь, что YOOKASSA_TEST_SECRET_KEY (для тестового режима) "
+                    "совпадает с ключом в личном кабинете YooKassa."
                 )
 
             return is_valid
@@ -341,14 +348,19 @@ class PaymentService:
             webhook_data: Данные webhook от ЮKassa
 
         Returns:
-            dict: Результат обработки или None при ошибке
+            dict: Результат обработки или None если событие не требует обработки
         """
         try:
             event = webhook_data.get("event")
             payment_object = webhook_data.get("object", {})
 
-            if event != "payment.succeeded":
-                logger.debug(f"⚠️ Игнорируем событие: {event}")
+            # Обрабатываем только события, требующие активации подписки
+            # payment.waiting_for_capture - не активируем подписку (платеж еще не завершен)
+            # payment.succeeded - активируем подписку ✅
+            # payment.canceled - не активируем подписку (платеж отменен)
+            # refund.succeeded - не активируем подписку (это возврат, не платеж)
+            if event not in ("payment.succeeded",):
+                logger.info(f"ℹ️ Событие {event} не требует активации подписки (игнорируем)")
                 return None
 
             payment_id = payment_object.get("id")
