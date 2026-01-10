@@ -385,10 +385,17 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
                 status = "succeeded"
             elif event == "payment.canceled":
                 status = "cancelled"
+            elif event == "payment.waiting_for_capture":
+                status = "pending"  # Платеж ожидает подтверждения
+                logger.info(f"⏳ Платеж {payment_id} ожидает подтверждения (capture)")
             elif event == "payment.failed":
                 status = "failed"
+            elif event == "refund.succeeded":
+                status = "refunded"  # Возврат успешен
+                logger.info(f"💰 Возврат успешен для платежа {payment_id}")
             else:
                 status = "pending"
+                logger.info(f"ℹ️ Неизвестное событие: {event}, статус={status}")
 
             if payment_record:
                 # Обновляем существующую запись
