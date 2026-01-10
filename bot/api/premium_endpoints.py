@@ -295,10 +295,10 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
         signature = request.headers.get("X-Yookassa-Signature")
 
         # Логируем информацию о webhook для отладки
-        logger.debug(
-            f"📥 YooKassa webhook: signature={'present' if signature else 'missing'}, "
+        logger.info(
+            f"📥 YooKassa webhook получен: signature={'present' if signature else 'missing'}, "
             f"body_length={len(request_body)}, "
-            f"headers={dict(request.headers)}"
+            f"ip={request.remote}"
         )
 
         # Верифицируем подпись webhook
@@ -347,6 +347,14 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
             payment_method_data = payment_object.get("payment_method", {})
             payment_method_type = payment_method_data.get("type", "")
 
+            # Логируем структуру webhook для отладки
+            logger.info(
+                f"📋 Webhook данные: event={data.get('event')}, "
+                f"payment_id={payment_object.get('id')}, "
+                f"payment_method_type={payment_method_type}, "
+                f"payment_method_data={payment_method_data}"
+            )
+
             # Маппинг типов оплаты ЮKassa на наши значения
             if payment_method_type == "bank_card":
                 payment_method = "yookassa_card"
@@ -356,7 +364,20 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
                 payment_method = "yookassa_other"
 
             # Сохраняем payment_method_id для автоплатежа (если есть)
-            saved_payment_method_id = payment_method_data.get("id")
+            # По документации ЮKassa, если save_payment_method=True, то в payment_method.id приходит ID сохраненного метода
+            saved_payment_method_id = None
+            if payment_method_data:
+                # Проверяем, есть ли поле saved (boolean) - означает, что карта была сохранена
+                saved = payment_method_data.get("saved", False)
+                if saved:
+                    # ID сохраненного метода оплаты (для автоплатежей)
+                    saved_payment_method_id = payment_method_data.get("id")
+                    logger.info(
+                        f"💳 Сохраненный метод оплаты найден: saved={saved}, "
+                        f"payment_method_id={saved_payment_method_id}"
+                    )
+                else:
+                    logger.info(f"💳 Карта не сохранена: saved={saved}")
 
             # Определяем статус из события
             event = data.get("event", "")
@@ -417,12 +438,23 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
                         f"webhook={status}, api={payment_status['status']}"
                     )
 
+                logger.info(
+                    f"💰 Активируем подписку: user={telegram_id}, plan={plan_id}, "
+                    f"payment_id={payment_id}, saved_payment_method_id={saved_payment_method_id}"
+                )
+
                 subscription = subscription_service.activate_subscription(
                     telegram_id=telegram_id,
                     plan_id=plan_id,
                     payment_method=payment_method,
                     payment_id=payment_id,
                     saved_payment_method_id=saved_payment_method_id,
+                )
+
+                logger.info(
+                    f"✅ Подписка активирована: subscription_id={subscription.id}, "
+                    f"saved_payment_method_id={subscription.saved_payment_method_id}, "
+                    f"auto_renew={subscription.auto_renew}"
                 )
 
                 # Связываем подписку с платежом
