@@ -320,7 +320,7 @@ export function AIChat({ user }: AIChatProps) {
       </div>
 
       {/* Сообщения */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4" role="log">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-5 space-y-4" role="log">
         {isLoadingHistory ? (
           <div className="text-center py-8"><div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--tg-theme-button-color)]"></div></div>
         ) : showWelcome && messages.length === 0 ? (
@@ -345,7 +345,7 @@ export function AIChat({ user }: AIChatProps) {
         ) : (
           messages.map((msg, index) => (
             <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group`} role="article">
-              <div className="relative max-w-[85%] sm:max-w-[80%]">
+              <div className={`relative ${msg.role === 'ai' ? 'max-w-[92%] sm:max-w-[88%] md:max-w-[85%]' : 'max-w-[85%] sm:max-w-[80%]'}`}>
                 <div className={`rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-md ${
                   msg.role === 'user'
                     ? 'bg-gradient-to-br from-blue-300/90 to-cyan-300/90 dark:from-blue-600/80 dark:to-cyan-600/80 text-gray-800 dark:text-white border border-blue-200/50 dark:border-blue-500/40'
@@ -386,9 +386,9 @@ export function AIChat({ user }: AIChatProps) {
 
       {/* Кнопки скролла */}
       {showScrollButtons && (
-        <div className="absolute right-4 bottom-24 flex flex-col gap-2">
-          <button onClick={scrollToTop} className="w-10 h-10 rounded-full bg-blue-300/80 dark:bg-blue-600/80 text-gray-700 dark:text-white shadow-lg hover:bg-blue-400/80 dark:hover:bg-blue-500/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm">⬆️</button>
-          <button onClick={scrollToBottom} className="w-10 h-10 rounded-full bg-blue-300/80 dark:bg-blue-600/80 text-gray-700 dark:text-white shadow-lg hover:bg-blue-400/80 dark:hover:bg-blue-500/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm">⬇️</button>
+        <div className="absolute right-2 sm:right-3 bottom-24 flex flex-col gap-1.5 sm:gap-2">
+          <button onClick={scrollToTop} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-300/80 dark:bg-blue-600/80 text-gray-700 dark:text-white shadow-lg hover:bg-blue-400/80 dark:hover:bg-blue-500/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm text-sm sm:text-base">⬆️</button>
+          <button onClick={scrollToBottom} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-300/80 dark:bg-blue-600/80 text-gray-700 dark:text-white shadow-lg hover:bg-blue-400/80 dark:hover:bg-blue-500/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm text-sm sm:text-base">⬇️</button>
         </div>
       )}
 
