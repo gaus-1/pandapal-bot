@@ -5,11 +5,13 @@
 ## Основные сервисы
 
 ### AI сервисы
-- `ai_service_solid.py` - главный сервис, через него работаем с YandexGPT
-- `yandex_cloud_service.py` - низкоуровневая работа с Yandex Cloud API
-- `speech_service.py` - распознавание голоса (SpeechKit)
-- `vision_service.py` - анализ изображений (Vision API)
-- `yandex_ai_response_generator.py` - генерация ответов AI с учетом контекста, истории чата, возраста
+- `ai_service_solid.py` - главный сервис, через него работаем с YandexGPT (Facade паттерн)
+- `yandex_cloud_service.py` - низкоуровневая работа с Yandex Cloud API (streaming/non-streaming, Vision, SpeechKit)
+- `yandex_ai_response_generator.py` - генерация ответов AI с учетом контекста, истории чата, возраста, очистка от повторов
+- `speech_service.py` - распознавание голоса через Yandex SpeechKit STT (WebM → OGG конвертация)
+- `vision_service.py` - анализ изображений через Yandex Vision API (OCR + GPT анализ)
+- `ai_context_builder.py` - сбор контекста для AI из истории чата
+- `ai_request_queue.py` - очередь запросов для предотвращения перегрузки API
 
 ### Модерация
 - `moderation_service.py` - базовая модерация, проверка на запрещенные слова
@@ -17,14 +19,14 @@
 - `ai_moderator.py` - модерация через AI, когда обычных фильтров недостаточно
 
 ### Платежи и Premium
-- `payment_service.py` - работа с YooKassa (карты, СБП)
-- `subscription_service.py` - управление Premium подписками
-- `premium_features_service.py` - функции доступные только Premium пользователям
+- `payment_service.py` - работа с YooKassa (продакшн режим, карты, СБП, сохранение карт, webhooks)
+- `subscription_service.py` - управление Premium подписками (активация, деактивация, проверка статуса)
+- `premium_features_service.py` - проверка Premium статуса и лимитов (50/500/unlimited запросов в день)
 
 ### Игры
-- `games_service.py` - управление игровыми сессиями, сохранение прогресса
-- `game_engines.py` - игровая логика (TicTacToe, Checkers, 2048)
-- `gamification_service.py` - достижения, уровни, XP, мотивация
+- `games_service.py` - управление игровыми сессиями, сохранение прогресса, проверка игровых достижений
+- `game_engines.py` - игровая логика (TicTacToe, Checkers, 2048) с AI противниками
+- `gamification_service.py` - достижения, уровни, XP, мотивация (исправлена логика: игровые достижения не проверяются при AI ответах)
 
 ### Образование
 - `personal_tutor_service.py` - персональный репетитор, анализ слабых мест ученика
