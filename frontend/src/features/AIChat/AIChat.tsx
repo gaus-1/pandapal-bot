@@ -161,9 +161,11 @@ export function AIChat({ user }: AIChatProps) {
   useEffect(() => {
     if (showWelcome && !hasShownWelcomeMessage && !isLoadingHistory && messages.length === 0 && !isSending) {
       const timer = setTimeout(() => {
-        // Отправляем приветственное сообщение от панды (как будто от пользователя, но оно вызовет ответ от AI)
-        // Панда получит это сообщение и ответит "Привет! Начнем?" согласно промпту
-        sendMessage({ message: 'Привет! Начнем?' });
+        // Отправляем приветственное сообщение от панды
+        // Панда ответит "Привет, начнем?" или "Привет! Чем могу помочь?" согласно промпту
+        const greetings = ['Привет, начнем?', 'Привет! Чем могу помочь?'];
+        const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+        sendMessage({ message: randomGreeting });
         setHasShownWelcomeMessage(true);
         setShowWelcome(false);
       }, 5000); // 5 секунд задержка
@@ -259,9 +261,9 @@ export function AIChat({ user }: AIChatProps) {
               loading="eager"
               className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl animate-logo-bounce bg-white/50 dark:bg-slate-800/50 p-2"
             />
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Привет! Я PandaPal 🐼</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>
             <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 text-center max-w-md mx-auto px-4 animate-fade-in delay-300">
-              Твой умный помощник в учебе! Задай любой вопрос, и я помогу тебе разобраться с любым предметом! 📚✨
+              Задай любой вопрос, и я помогу тебе с учебой! 📚
             </p>
           </div>
         ) : messages.length === 0 ? (

@@ -175,17 +175,47 @@ class Settings(BaseSettings):
     )
 
     # ============ YOOKASSA PAYMENTS ============
+    yookassa_test_mode: bool = Field(
+        default=False,
+        description="Тестовый режим ЮKassa. True = тестовый магазин, False = продакшн",
+        validation_alias=AliasChoices("YOOKASSA_TEST_MODE", "yookassa_test_mode"),
+    )
+
     yookassa_shop_id: str = Field(
         default="1240345",
-        description="Идентификатор магазина ЮKassa (shop_id)",
+        description="Идентификатор магазина ЮKassa (shop_id) - продакшн",
         validation_alias=AliasChoices("YOOKASSA_SHOP_ID", "yookassa_shop_id"),
+    )
+
+    yookassa_test_shop_id: str = Field(
+        default="1242170",
+        description="Идентификатор тестового магазина ЮKassa (Test, pandapal.ru)",
+        validation_alias=AliasChoices("YOOKASSA_TEST_SHOP_ID", "yookassa_test_shop_id"),
     )
 
     yookassa_secret_key: str = Field(
         default="",
-        description="Секретный ключ ЮKassa",
+        description="Секретный ключ ЮKassa (продакшн)",
         validation_alias=AliasChoices("YOOKASSA_SECRET_KEY", "yookassa_secret_key"),
     )
+
+    yookassa_test_secret_key: str = Field(
+        default="",
+        description="Секретный ключ тестового магазина ЮKassa",
+        validation_alias=AliasChoices("YOOKASSA_TEST_SECRET_KEY", "yookassa_test_secret_key"),
+    )
+
+    @property
+    def active_yookassa_shop_id(self) -> str:
+        """Получить активный shop_id в зависимости от режима"""
+        return self.yookassa_test_shop_id if self.yookassa_test_mode else self.yookassa_shop_id
+
+    @property
+    def active_yookassa_secret_key(self) -> str:
+        """Получить активный secret_key в зависимости от режима"""
+        return (
+            self.yookassa_test_secret_key if self.yookassa_test_mode else self.yookassa_secret_key
+        )
 
     yookassa_return_url: str = Field(
         default="https://pandapal.ru/premium/success",
