@@ -83,9 +83,18 @@ class PaymentService:
         Returns:
             bool: True если подпись валидна
         """
-        if not signature:
+        # В тестовом режиме разрешаем webhook без подписи (для удобства тестирования)
+        # В продакшене подпись обязательна!
+        if settings.yookassa_test_mode and not signature:
             logger.warning(
-                "⚠️ Webhook без подписи. "
+                "⚠️ Webhook без подписи в ТЕСТОВОМ режиме. "
+                "Разрешаем для тестирования, но рекомендуется включить подпись в ЛК ЮKassa."
+            )
+            return True  # Разрешаем в тестовом режиме
+
+        if not signature:
+            logger.error(
+                "❌ Webhook без подписи в ПРОДАКШН режиме - ОТКЛОНЯЕМ! "
                 "Проверь настройки webhook в личном кабинете YooKassa - должна быть включена подпись."
             )
             return False

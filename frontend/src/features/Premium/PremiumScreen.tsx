@@ -410,8 +410,20 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
               >
                 {/* Замочек для неавторизованных */}
                 {isLocked && (
-                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 text-2xl sm:text-3xl">
-                    🔒
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-600 dark:text-slate-400">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-6 h-6 sm:w-7 sm:h-7"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
                   </div>
                 )}
 
@@ -457,12 +469,26 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                 <button
                   onClick={() => handlePurchase(plan)}
                   disabled={isProcessing && selectedPlan === plan.id || isLocked}
-                  className="w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
+                  {/* Иконка замка */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
                   {isProcessing && selectedPlan === plan.id
                     ? 'Обработка...'
                     : isLocked
-                    ? '🔐 Войдите для оплаты'
+                    ? 'Войдите для оплаты'
                     : `Купить Premium за ${plan.priceRub} ₽`}
                 </button>
               </div>
@@ -473,9 +499,21 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         {/* Информация о способах оплаты */}
         <div className="p-3 sm:p-4 bg-gray-50 dark:bg-slate-800 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-slate-700">
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-base sm:text-lg">💳</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5 text-gray-900 dark:text-slate-100"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
             <h3 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 dark:text-slate-100">
-              Безопасная оплата через ЮKassa
+              Оплата только через Telegram
             </h3>
           </div>
           <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-2 sm:mb-3">
@@ -486,8 +524,21 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
           </div>
           {!inTelegram && !isAuthenticated && (
             <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-200 dark:border-slate-700">
-              <p className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 font-medium mb-1">
-                🔐 Для оплаты Premium необходимо войти:
+              <p className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 font-medium mb-1 flex items-center gap-1.5">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4 text-gray-700 dark:text-slate-300"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                Для оплаты Premium необходимо войти:
               </p>
               <ul className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 space-y-0.5 sm:space-y-1 ml-4 list-disc">
                 <li>Через Telegram мини-приложение (откройте PandaPal в Telegram)</li>
