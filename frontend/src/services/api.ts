@@ -270,6 +270,26 @@ export async function getChatHistory(
 /**
  * Очистить историю чата
  */
+/**
+ * Добавить приветственное сообщение от бота в историю чата
+ */
+export async function addGreetingMessage(telegramId: number, message?: string): Promise<{ success: boolean; message: string; role: string }> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/chat/greeting/${telegramId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(message ? { message } : {}),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка добавления приветствия');
+  }
+
+  return await response.json();
+}
+
 export async function clearChatHistory(telegramId: number): Promise<{ deleted_count: number }> {
   const response = await fetch(
     `${API_BASE_URL}/miniapp/chat/history/${telegramId}`,

@@ -5,7 +5,6 @@ API endpoints для Telegram Mini App
 
 import base64
 from contextlib import suppress
-from datetime import UTC, datetime
 
 import httpx
 from aiohttp import web
@@ -1622,23 +1621,8 @@ async def miniapp_get_chat_history(request: web.Request) -> web.Response:
                 for msg in messages
             ]
 
-            # Если история пустая (первый вход), добавляем приветственное сообщение
-            if not history:
-                greeting_message = "Привет, чем могу помочь?"
-                history_service.add_message(telegram_id, greeting_message, "ai")
-                db.commit()
-
-                # Добавляем приветствие в ответ
-                history = [
-                    {
-                        "role": "ai",
-                        "content": greeting_message,
-                        "timestamp": datetime.now(UTC).isoformat(),
-                    }
-                ]
-                logger.info(
-                    f"👋 Добавлено приветственное сообщение для нового пользователя {telegram_id}"
-                )
+            # НЕ добавляем приветствие автоматически - фронтенд сам управляет временем отправки
+            # Приветствие будет отправлено через 5 секунд после показа welcome screen
 
             return web.json_response({"success": True, "history": history})
 
@@ -1665,19 +1649,67 @@ async def miniapp_clear_chat_history(request: web.Request) -> web.Response:
             history_service = ChatHistoryService(db)
             deleted_count = history_service.clear_history(telegram_id)
 
-            # Добавляем приветственное сообщение от панды после очистки
-            greeting_message = "Привет, чем могу помочь?"
-            history_service.add_message(telegram_id, greeting_message, "ai")
-
             db.commit()
 
             logger.info(f"🗑️ Очищена история для {telegram_id}: {deleted_count} сообщений")
-            logger.info("👋 Добавлено приветственное сообщение от панды")
+            logger.info("ℹ️ История очищена, приветствие будет отправлено фронтендом")
 
             return web.json_response({"success": True, "deleted_count": deleted_count})
 
     except Exception as e:
         logger.error(f"❌ Ошибка очистки истории: {e}", exc_info=True)
+        return web.json_response({"error": f"Internal server error: {str(e)}"}, status=500)
+
+
+async def miniapp_add_greeting(request: web.Request) -> web.Response:
+    """
+    Добавить приветственное сообщение от бота в историю чата.
+
+    POST /api/miniapp/chat/greeting/{telegram_id}
+    Body: { "message": "Привет, начнем?" } (опционально)
+    """
+    try:
+        telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+
+        # Парсим тело запроса (может быть пустым)
+        greeting_message = None
+        try:
+            data = await request.json()
+            greeting_message = data.get("message") if data else None
+        except Exception:
+            # Если тело пустое или не JSON - это нормально
+            pass
+
+        # Если сообщение не указано, выбираем случайное
+        if not greeting_message:
+            import random
+
+            greetings = ["Привет, начнем?", "Привет! Чем могу помочь?"]
+            greeting_message = random.choice(greetings)
+
+        with get_db() as db:
+            history_service = ChatHistoryService(db)
+
+            # Проверяем, что история пустая (только для безопасности)
+            messages = history_service.get_recent_history(telegram_id, limit=1)
+            if messages:
+                logger.info(f"ℹ️ История не пустая, приветствие не добавлено: user={telegram_id}")
+                return web.json_response(
+                    {"success": False, "message": "History is not empty"}, status=400
+                )
+
+            # Добавляем приветственное сообщение от бота
+            history_service.add_message(telegram_id, greeting_message, "ai")
+            db.commit()
+
+            logger.info(
+                f"👋 Приветственное сообщение добавлено: user={telegram_id}, message={greeting_message}"
+            )
+
+            return web.json_response({"success": True, "message": greeting_message, "role": "ai"})
+
+    except Exception as e:
+        logger.error(f"❌ Ошибка добавления приветствия: {e}", exc_info=True)
         return web.json_response({"error": f"Internal server error: {str(e)}"}, status=500)
 
 
@@ -2007,6 +2039,7 @@ def setup_miniapp_routes(app: web.Application) -> None:
     app.router.add_post("/api/miniapp/ai/chat-stream", miniapp_ai_chat_stream)  # Streaming endpoint
     app.router.add_get("/api/miniapp/chat/history/{telegram_id}", miniapp_get_chat_history)
     app.router.add_delete("/api/miniapp/chat/history/{telegram_id}", miniapp_clear_chat_history)
+    app.router.add_post("/api/miniapp/chat/greeting/{telegram_id}", miniapp_add_greeting)
 
     # Предметы
     app.router.add_get("/api/miniapp/subjects", miniapp_get_subjects)
