@@ -36,6 +36,8 @@ export function AIChat({ user }: AIChatProps) {
 
   const [inputText, setInputText] = useState('');
   const [replyToMessage, setReplyToMessage] = useState<number | null>(null);
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [hasShownWelcomeMessage, setHasShownWelcomeMessage] = useState(false);
 
   // Сохраняем выбранное случайное сообщение для генерации
   const randomMessageRef = useRef<string | null>(null);
@@ -144,6 +146,31 @@ export function AIChat({ user }: AIChatProps) {
     };
   }, [cleanupVoice]);
 
+  // Показываем приветствие при первом открытии или очистке чата
+  useEffect(() => {
+    if (!isLoadingHistory && messages.length === 0) {
+      setShowWelcome(true);
+      setHasShownWelcomeMessage(false);
+    } else if (messages.length > 0) {
+      setShowWelcome(false);
+      setHasShownWelcomeMessage(true);
+    }
+  }, [messages.length, isLoadingHistory]);
+
+  // Автоматическое приветствие от панды через 5 секунд после показа приветствия
+  useEffect(() => {
+    if (showWelcome && !hasShownWelcomeMessage && !isLoadingHistory && messages.length === 0 && !isSending) {
+      const timer = setTimeout(() => {
+        // Отправляем приветственное сообщение от пользователя, которое вызовет ответ от AI
+        sendMessage({ message: 'Привет! Начнем?' });
+        setHasShownWelcomeMessage(true);
+        setShowWelcome(false);
+      }, 5000); // 5 секунд
+
+      return () => clearTimeout(timer);
+    }
+  }, [showWelcome, hasShownWelcomeMessage, isLoadingHistory, messages.length, isSending, sendMessage]);
+
   const handleSend = () => {
     if (!inputText.trim() || isSending) return;
     let fullMessage = inputText;
@@ -169,6 +196,9 @@ export function AIChat({ user }: AIChatProps) {
       try {
         await clearHistory();
         haptic.medium();
+        // Сбрасываем состояние приветствия при очистке
+        setShowWelcome(true);
+        setHasShownWelcomeMessage(false);
         await telegram.showAlert('История чата очищена');
       } catch (error) {
         console.error('Ошибка очистки истории:', error);
@@ -218,6 +248,24 @@ export function AIChat({ user }: AIChatProps) {
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4" role="log">
         {isLoadingHistory ? (
           <div className="text-center py-8"><div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--tg-theme-button-color)]"></div></div>
+        ) : showWelcome && messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center min-h-full py-8 animate-fade-in">
+            <img
+              src="/logo.png"
+              alt="PandaPal"
+              width={120}
+              height={120}
+              loading="eager"
+              className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl animate-logo-bounce bg-white/50 dark:bg-slate-800/50 p-2"
+            />
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Добро пожаловать в PandaPal! 🐼</h2>
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 text-center max-w-md mx-auto px-4 animate-fade-in delay-300">
+              Я твой умный помощник в учебе! Задай любой вопрос, и я помогу тебе разобраться с любым предметом! 📚✨
+            </p>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-500 mt-4 animate-fade-in delay-500">
+              Panda скоро напишет тебе... ⏱️
+            </p>
+          </div>
         ) : messages.length === 0 ? (
           <div className="text-center py-8">
             <img src="/logo.png" alt="PandaPal" width={96} height={96} loading="lazy" className="w-24 h-24 mx-auto mb-4 rounded-full shadow-xl" />

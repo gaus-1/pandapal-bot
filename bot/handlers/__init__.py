@@ -11,6 +11,7 @@ from bot.handlers.emergency import router as emergency_router
 from bot.handlers.feedback import router as feedback_router
 from bot.handlers.menu import router as menu_router
 from bot.handlers.payment_handler import router as payment_router
+from bot.handlers.premium_handler import router as premium_router
 from bot.handlers.settings import router as settings_router
 from bot.handlers.start import router as start_router
 from bot.handlers.translate import router as translate_router
@@ -26,6 +27,7 @@ routers = [
     menu_router,  # Обработка кнопок меню
     achievements_router,  # Система достижений
     settings_router,
+    premium_router,  # Premium подписка и управление картой
     ai_chat_router,  # AI chat должен быть последним (ловит все текстовые сообщения)
 ]
 

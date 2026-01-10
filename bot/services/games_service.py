@@ -181,11 +181,11 @@ class CheckersAI:
             return None
 
         # Приоритет: взятие фишки > движение вперед > случайный ход
-        capture_moves = [m for m in moves if self._is_capture_move(board, m, player)]
+        capture_moves = [m for m in moves if self._is_capture_move(m)]
         if capture_moves:
             return random.choice(capture_moves)
 
-        forward_moves = [m for m in moves if self._is_forward_move(m, player)]
+        forward_moves = [m for m in moves if self._is_forward_move(m)]
         if forward_moves:
             return random.choice(forward_moves)
 
@@ -218,20 +218,17 @@ class CheckersAI:
             elif board[new_row][new_col] == "user":
                 # Проверяем возможность взятия
                 jump_row, jump_col = new_row + dr, new_col + dc
-                if 0 <= jump_row < 8 and 0 <= jump_col < 8:
-                    if board[jump_row][jump_col] is None:
-                        moves.append((row, col, jump_row, jump_col))
+                if 0 <= jump_row < 8 and 0 <= jump_col < 8 and board[jump_row][jump_col] is None:
+                    moves.append((row, col, jump_row, jump_col))
         return moves
 
-    def _is_capture_move(
-        self, board: list[list[str | None]], move: tuple[int, int, int, int], player: str
-    ) -> bool:
+    def _is_capture_move(self, move: tuple[int, int, int, int]) -> bool:
         """Проверить, является ли ход взятием фишки"""
         from_row, from_col, to_row, to_col = move
         # Если ход на 2 клетки по диагонали - это взятие
         return abs(to_row - from_row) == 2 and abs(to_col - from_col) == 2
 
-    def _is_forward_move(self, move: tuple[int, int, int, int], player: str) -> bool:
+    def _is_forward_move(self, move: tuple[int, int, int, int]) -> bool:
         """Проверить, является ли ход движением вперед"""
         from_row, _, to_row, _ = move
         # Для AI (который вверху) движение вперед = движение вниз (увеличение row)
@@ -488,16 +485,13 @@ class GamesService:
 
     # ============ ЛОГИКА ИГР ============
 
-    async def tic_tac_toe_make_move(
-        self, session_id: int, position: int, user_symbol: str = "X"
-    ) -> dict:
+    async def tic_tac_toe_make_move(self, session_id: int, position: int) -> dict:
         """
         Сделать ход в крестики-нолики.
 
         Args:
             session_id: ID сессии
             position: Позиция (0-8)
-            user_symbol: Символ пользователя ('X')
 
         Returns:
             Dict: Обновленное состояние игры
@@ -749,6 +743,10 @@ class GamesService:
             game = CheckersGame()
 
         # Ход пользователя (player = 1)
+        # Устанавливаем текущего игрока на пользователя перед проверкой хода
+        # Это необходимо, так как после хода AI current_player = 1, но состояние может быть сохранено неправильно
+        game.current_player = 1
+
         # Получаем валидные ходы для диагностики
         user_valid_moves = game.get_valid_moves(1)
         if not game.make_move(from_row, from_col, to_row, to_col):
@@ -811,7 +809,7 @@ class GamesService:
             }
 
         # Проверяем формат хода перед распаковкой
-        if not isinstance(ai_move, (tuple, list)) or len(ai_move) != 4:
+        if not isinstance(ai_move, tuple | list) or len(ai_move) != 4:
             logger.warning(
                 f"⚠️ AI вернул невалидный формат хода: {ai_move}, используем первый валидный ход"
             )
@@ -823,7 +821,7 @@ class GamesService:
                     from_pos = first_move.get("from", (0, 0))
                     to_pos = first_move.get("to", (0, 0))
                     ai_move = (from_pos[0], from_pos[1], to_pos[0], to_pos[1])
-                elif isinstance(first_move, (tuple, list)) and len(first_move) == 4:
+                elif isinstance(first_move, tuple | list) and len(first_move) == 4:
                     ai_move = first_move
                 else:
                     logger.error(f"⚠️ Неожиданный формат хода в valid_moves: {first_move}")
@@ -863,7 +861,7 @@ class GamesService:
                     to_pos = first_move.get("to", (0, 0))
                     ai_from_row, ai_from_col = from_pos
                     ai_to_row, ai_to_col = to_pos
-                elif isinstance(first_move, (tuple, list)) and len(first_move) == 4:
+                elif isinstance(first_move, tuple | list) and len(first_move) == 4:
                     ai_from_row, ai_from_col, ai_to_row, ai_to_col = first_move
                 else:
                     logger.error(f"⚠️ Неожиданный формат хода: {first_move}")
@@ -920,12 +918,14 @@ class GamesService:
 
         # Сохраняем состояние
         state = game.get_board_state()
+        must_capture = list(state.get("must_capture")) if state.get("must_capture") else None
         self.update_game_session(
             session_id,
             {
                 "board": state["board"],
                 "kings": state.get("kings"),
                 "current_player": game.current_player,
+                "must_capture": must_capture,
             },
             "in_progress",
         )
