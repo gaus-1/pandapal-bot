@@ -16,6 +16,9 @@ import { usePhotoUpload } from '../../hooks/usePhotoUpload';
 import { useScrollManagement } from '../../hooks/useScrollManagement';
 import { haptic } from '../../utils/hapticFeedback';
 import { MiniAppThemeToggle } from '../../components/MiniAppThemeToggle';
+import { addGreetingMessage } from '../../services/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../../lib/queryClient';
 import type { UserProfile } from '../../services/api';
 
 interface AIChatProps {
@@ -38,6 +41,7 @@ export function AIChat({ user }: AIChatProps) {
   const [replyToMessage, setReplyToMessage] = useState<number | null>(null);
   const [showWelcome, setShowWelcome] = useState(true);
   const [hasShownWelcomeMessage, setHasShownWelcomeMessage] = useState(false);
+  const queryClient = useQueryClient();
 
   // Сохраняем выбранное случайное сообщение для генерации
   const randomMessageRef = useRef<string | null>(null);
@@ -173,23 +177,35 @@ export function AIChat({ user }: AIChatProps) {
       !isSending;
 
     if (shouldSendWelcome) {
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         // Проверяем еще раз перед отправкой (на случай, если состояние изменилось)
         if (messages.length === 0 && !isSending && !hasShownWelcomeMessage) {
-          // Отправляем приветственное сообщение от панды
-          // Панда ответит "Привет, начнем?" или "Привет! Чем могу помочь?" согласно промпту
-          const greetings = ['Привет, начнем?', 'Привет! Чем могу помочь?'];
-          const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-          console.log('🐼 Отправляем приветственное сообщение:', randomGreeting);
-          sendMessage({ message: randomGreeting });
-          setHasShownWelcomeMessage(true);
-          setShowWelcome(false);
+          try {
+            // Добавляем приветственное сообщение от бота напрямую в историю (без отправки через AI)
+            const greetings = ['Привет, начнем?', 'Привет! Чем могу помочь?'];
+            const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+            console.log('🐼 Добавляем приветственное сообщение от панды:', randomGreeting);
+            await addGreetingMessage(user.telegram_id, randomGreeting);
+
+            // Обновляем историю чата после добавления приветствия
+            await queryClient.invalidateQueries({
+              queryKey: queryKeys.chatHistory(user.telegram_id, 20),
+            });
+
+            setHasShownWelcomeMessage(true);
+            setShowWelcome(false);
+          } catch (error) {
+            console.error('❌ Ошибка добавления приветствия:', error);
+            // Если не удалось добавить приветствие, просто скрываем welcome screen
+            setHasShownWelcomeMessage(true);
+            setShowWelcome(false);
+          }
         }
       }, 5000); // 5 секунд задержка
 
       return () => clearTimeout(timer);
     }
-  }, [showWelcome, hasShownWelcomeMessage, isLoadingHistory, messages.length, isSending, sendMessage]);
+  }, [showWelcome, hasShownWelcomeMessage, isLoadingHistory, messages.length, isSending, user.telegram_id, queryClient]);
 
   const handleSend = () => {
     if (!inputText.trim() || isSending) return;
@@ -279,9 +295,9 @@ export function AIChat({ user }: AIChatProps) {
               loading="eager"
               className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl animate-logo-bounce bg-white/50 dark:bg-slate-800/50 p-2"
             />
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Привет! Я PandaPal 🐼</h2>
             <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 text-center max-w-md mx-auto px-4 animate-fade-in delay-300">
-              Задай любой вопрос, и я помогу тебе с учебой! 📚
+              Твой умный помощник в учебе! Задай любой вопрос, и я помогу тебе разобраться с любым предметом! 📚✨
             </p>
           </div>
         ) : messages.length === 0 ? (
