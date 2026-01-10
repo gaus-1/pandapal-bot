@@ -167,9 +167,14 @@ export function AIChat({ user }: AIChatProps) {
         setHasShownWelcomeMessage(true);
       }
     } else {
-      console.log('📋 [Welcome] История загружается, ждем...');
+      // Пока история загружается, показываем welcome screen если еще не установлено
+      if (!showWelcome && messages.length === 0) {
+        console.log('📋 [Welcome] История загружается, но показываем welcome screen');
+        setShowWelcome(true);
+        setHasShownWelcomeMessage(false);
+      }
     }
-  }, [messages.length, isLoadingHistory]);
+  }, [messages.length, isLoadingHistory, showWelcome]);
 
   // Автоматическое приветствие от панды через 5 секунд после показа приветствия
   useEffect(() => {
@@ -331,14 +336,12 @@ export function AIChat({ user }: AIChatProps) {
             />
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>
             <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 text-center max-w-md mx-auto px-4 animate-fade-in delay-300">
-              Задай любой вопрос, и я помогу тебе с учебой! 📚
+              Задай любой вопрос, и я помогу тебе с учебой! 📚✨
             </p>
           </div>
         ) : messages.length === 0 ? (
           <div className="text-center py-8">
-            <img src="/logo.png" alt="PandaPal" width={96} height={96} loading="lazy" className="w-24 h-24 mx-auto mb-4 rounded-full shadow-xl" />
-            <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Начни общение!</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">Задай любой вопрос, и я помогу тебе с учебой! 📚</p>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--tg-theme-button-color)]"></div>
           </div>
         ) : (
           messages.map((msg, index) => (
