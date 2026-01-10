@@ -260,23 +260,37 @@ class GamificationService:
         """
         # КРИТИЧЕСКИ ВАЖНО: Загружаем progress заново из БД, чтобы получить актуальные данные
         # Это предотвращает повторное разблокирование уже разблокированных достижений
-        progress = self.get_or_create_progress(telegram_id)
+        # НО: db.expire/refresh работают только в рамках одной транзакции!
+        # Если данные уже закоммичены в предыдущей транзакции, нужно делать новый запрос
+        # Решение: всегда делаем новый запрос из БД, чтобы гарантировать актуальность
 
-        # Принудительно обновляем данные из БД, чтобы получить актуальные достижения
-        # Сбрасываем кеш сессии для этого объекта, чтобы загрузить актуальные данные
-        self.db.expire(progress, ["achievements"])
-        # Делаем flush перед refresh, чтобы убедиться, что изменения сохранены
+        # Делаем flush всех изменений перед запросом, чтобы увидеть незакоммиченные изменения
         self.db.flush()
-        # Перезагружаем achievements из БД
+
+        # КРИТИЧЕСКИ ВАЖНО: Делаем НОВЫЙ запрос к БД, чтобы получить актуальные данные
+        # Это гарантирует, что мы увидим уже разблокированные достижения из предыдущих транзакций
+        stmt = select(UserProgress).where(UserProgress.user_telegram_id == telegram_id)
+        progress_from_db = self.db.scalar(stmt)
+
+        if progress_from_db:
+            # Используем объект из БД напрямую (он уже отслеживается сессией)
+            progress = progress_from_db
+        else:
+            # Если прогресса нет - создаем новый
+            progress = self.get_or_create_progress(telegram_id)
+
+        # Принудительно сбрасываем кеш и перезагружаем achievements из БД
+        self.db.expire(progress, ["achievements"])
         try:
             self.db.refresh(progress, attribute_names=["achievements"])
         except Exception as e:
-            # Если refresh не сработал (например, объект не в БД), делаем новый запрос
-            logger.debug(f"⚠️ Не удалось refresh progress: {e}, делаем новый запрос")
-            stmt = select(UserProgress).where(UserProgress.user_telegram_id == telegram_id)
-            progress_from_db = self.db.scalar(stmt)
-            if progress_from_db:
-                progress = progress_from_db
+            # Если refresh не сработал, делаем еще один запрос
+            logger.debug(f"⚠️ Не удалось refresh progress: {e}, делаем еще один запрос")
+            progress = self.db.scalar(
+                select(UserProgress).where(UserProgress.user_telegram_id == telegram_id)
+            )
+            if not progress:
+                progress = self.get_or_create_progress(telegram_id)
 
         unlocked_achievements = progress.achievements or {}
         newly_unlocked = []
