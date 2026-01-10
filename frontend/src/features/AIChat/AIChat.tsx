@@ -156,6 +156,7 @@ export function AIChat({ user }: AIChatProps) {
     if (!isLoadingHistory) {
       if (messages.length === 0) {
         // История пустая - показываем приветствие и сбрасываем флаг отправки
+        // Это происходит при первом открытии или после очистки истории
         setShowWelcome(true);
         setHasShownWelcomeMessage(false);
       } else {
@@ -232,8 +233,16 @@ export function AIChat({ user }: AIChatProps) {
       try {
         haptic.medium();
         await clearHistory();
+        // Обновляем историю чата после очистки и ждем обновления
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.chatHistory(user.telegram_id, 20),
+        });
+        // Ждем, чтобы история обновилась в компоненте
+        await queryClient.refetchQueries({
+          queryKey: queryKeys.chatHistory(user.telegram_id, 20),
+        });
         // Сбрасываем состояние приветствия ПОСЛЕ очистки истории
-        // Это важно, чтобы useEffect правильно обработал изменения
+        // useEffect сам покажет welcome screen когда messages.length === 0
         setHasShownWelcomeMessage(false);
         setShowWelcome(true);
         await telegram.showAlert('История чата очищена');
@@ -295,9 +304,9 @@ export function AIChat({ user }: AIChatProps) {
               loading="eager"
               className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl animate-logo-bounce bg-white/50 dark:bg-slate-800/50 p-2"
             />
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Привет! Я PandaPal 🐼</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>
             <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 text-center max-w-md mx-auto px-4 animate-fade-in delay-300">
-              Твой умный помощник в учебе! Задай любой вопрос, и я помогу тебе разобраться с любым предметом! 📚✨
+              Задай любой вопрос, и я помогу тебе с учебой! 📚
             </p>
           </div>
         ) : messages.length === 0 ? (
