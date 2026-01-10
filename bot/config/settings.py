@@ -33,7 +33,7 @@ class Settings(BaseSettings):
         telegram_bot_token (str): Токен Telegram бота от @BotFather.
         yandex_cloud_api_key (str): API ключ для Yandex Cloud (YandexGPT, SpeechKit, Vision).
         yandex_cloud_folder_id (str): Folder ID в Yandex Cloud.
-        yandex_gpt_model (str): Модель YandexGPT (всегда yandexgpt-5.1-pro для всех пользователей).
+        yandex_gpt_model (str): Модель YandexGPT (всегда yandexgpt/latest для всех пользователей - стабильная Latest версия).
         ai_temperature (float): Температура генерации AI (0.0-1.0).
         ai_max_tokens (int): Максимальное количество токенов в ответе AI.
         forbidden_topics (str): Запрещенные темы через запятую для модерации.
@@ -78,8 +78,8 @@ class Settings(BaseSettings):
     )
 
     yandex_gpt_model: str = Field(
-        default="yandexgpt-5.1-pro",
-        description="Модель YandexGPT (всегда yandexgpt-5.1-pro для всех пользователей)",
+        default="yandexgpt/latest",
+        description="Модель YandexGPT (всегда yandexgpt/latest для всех пользователей - стабильная Latest версия)",
         validation_alias=AliasChoices("YANDEX_GPT_MODEL", "yandex_gpt_model"),
     )
 
