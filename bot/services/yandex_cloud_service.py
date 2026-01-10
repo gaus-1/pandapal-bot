@@ -250,13 +250,13 @@ class YandexCloudService:
             messages.append({"role": "user", "text": user_message})
 
             # Формируем запрос к YandexGPT
-            # Для yandexgpt-pro maxTokens должен быть числом, не строкой
+            # По документации Yandex Cloud maxTokens должен быть строкой для всех моделей
             payload = {
                 "modelUri": f"gpt://{self.folder_id}/{model_name}/latest",
                 "completionOptions": {
                     "stream": False,
                     "temperature": temperature,
-                    "maxTokens": max_tokens,  # Число для yandexgpt-pro
+                    "maxTokens": str(max_tokens),  # Строка по документации Yandex Cloud
                 },
                 "messages": messages,
             }
@@ -347,13 +347,13 @@ class YandexCloudService:
             messages.append({"role": "user", "text": user_message})
 
             # Формируем запрос к YandexGPT с streaming
-            # Для yandexgpt-pro maxTokens должен быть числом, не строкой
+            # По документации Yandex Cloud maxTokens должен быть строкой для всех моделей
             payload = {
                 "modelUri": f"gpt://{self.folder_id}/{model_name}/latest",
                 "completionOptions": {
                     "stream": True,  # Включаем streaming
                     "temperature": temperature,
-                    "maxTokens": max_tokens,  # Число для yandexgpt-pro
+                    "maxTokens": str(max_tokens),  # Строка по документации Yandex Cloud
                 },
                 "messages": messages,
             }
