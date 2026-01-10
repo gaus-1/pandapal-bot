@@ -9,6 +9,7 @@ import { TelegramLoginButton } from '../../components/Auth/TelegramLoginButton';
 import { useAppStore, type WebUser } from '../../store/appStore';
 import type { UserProfile } from '../../services/api';
 import { removeSavedPaymentMethod } from '../../services/api';
+import { SITE_CONFIG } from '../../config/constants';
 
 interface PremiumScreenProps {
   user: UserProfile | null;
@@ -435,8 +436,8 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                     : 'bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700'
                 } ${isLocked ? 'opacity-75' : ''}`}
               >
-                {/* Замочек для неавторизованных */}
-                {isLocked && (
+                {/* Замочек (всегда вне мини-аппа) */}
+                {!inTelegram && (
                   <div className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-600 dark:text-slate-400">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -494,11 +495,17 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                 </ul>
 
                 <button
-                  onClick={() => handlePurchase(plan)}
-                  disabled={isProcessing && selectedPlan === plan.id || isLocked}
+                  onClick={() => {
+                    if (!inTelegram) {
+                      window.open(SITE_CONFIG.botUrl, '_blank', 'noopener,noreferrer');
+                      return;
+                    }
+                    handlePurchase(plan);
+                  }}
+                  disabled={isProcessing && selectedPlan === plan.id}
                   className="w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {/* Иконка замка (только вне мини-аппа) */}
+                  {/* Иконка замка (всегда вне мини-аппа) */}
                   {!inTelegram && (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -516,8 +523,8 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   )}
                   {isProcessing && selectedPlan === plan.id
                     ? 'Обработка...'
-                    : isLocked
-                    ? 'Войдите для оплаты'
+                    : !inTelegram
+                    ? 'Открыть в мини-апп для оплаты'
                     : `Купить Premium за ${plan.priceRub} ₽`}
                 </button>
               </div>
