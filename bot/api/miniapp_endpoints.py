@@ -1509,8 +1509,8 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
             # Используем Pro модель для всех пользователей
             model_name = "yandexgpt-pro"
-            temperature = settings.ai_temperature_pro
-            max_tokens = settings.ai_max_tokens_pro
+            temperature = settings.ai_temperature  # Основной параметр для всех пользователей
+            max_tokens = settings.ai_max_tokens  # Основной параметр для всех пользователей
             logger.info(f"💎 Stream: Используем Pro модель для пользователя {telegram_id}")
 
             # Отправляем chunks через streaming
@@ -1586,8 +1586,72 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 await response.write(b'event: done\ndata: {"status": "completed"}\n\n')
                 logger.info(f"✅ Stream: Streaming завершен для {telegram_id}")
 
+            except (
+                httpx.HTTPStatusError,
+                httpx.TimeoutException,
+                httpx.RequestError,
+            ) as stream_error:
+                # Ошибка YandexGPT API - пытаемся fallback на не-streaming запрос
+                logger.warning(
+                    f"⚠️ Stream: Ошибка streaming (HTTP {getattr(stream_error, 'response', None) and stream_error.response.status_code or 'unknown'}): {stream_error}"
+                )
+                logger.info(f"🔄 Stream: Пробуем fallback на не-streaming запрос для {telegram_id}")
+
+                try:
+                    # Fallback на не-streaming запрос
+                    ai_response = await yandex_service.generate_text_response(
+                        user_message=user_message,
+                        chat_history=yandex_history,
+                        system_prompt=enhanced_system_prompt,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        model=model_name,
+                    )
+
+                    if ai_response:
+                        # Очищаем ответ
+                        cleaned_response = clean_ai_response(ai_response)
+
+                        # Отправляем полный ответ как один chunk
+                        import json as json_lib
+
+                        chunk_data = json_lib.dumps({"chunk": cleaned_response}, ensure_ascii=False)
+                        await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
+
+                        # Сохраняем в историю
+                        try:
+                            premium_service.increment_request_count(telegram_id)
+                            history_service.add_message(telegram_id, user_message, "user")
+                            history_service.add_message(telegram_id, cleaned_response, "ai")
+                            db.commit()
+                            logger.info(
+                                f"✅ Stream: Fallback успешен, ответ сохранен для {telegram_id}"
+                            )
+                        except Exception as save_err:
+                            logger.error(
+                                f"❌ Stream: Ошибка сохранения fallback ответа: {save_err}"
+                            )
+                            db.rollback()
+
+                        # Отправляем событие завершения
+                        await response.write(b'event: done\ndata: {"status": "completed"}\n\n')
+                        logger.info(f"✅ Stream: Fallback streaming завершен для {telegram_id}")
+                    else:
+                        raise ValueError("AI response is empty")
+
+                except Exception as fallback_error:
+                    # Если и fallback не помог - возвращаем ошибку пользователю
+                    logger.error(
+                        f"❌ Stream: Fallback также не удался: {fallback_error}", exc_info=True
+                    )
+                    error_msg = 'event: error\ndata: {"error": "Временная проблема с AI сервисом. Попробуйте позже."}\n\n'
+                    await response.write(error_msg.encode("utf-8"))
+                    return response
+
             except Exception as stream_error:
-                logger.error(f"❌ Stream: Ошибка streaming: {stream_error}", exc_info=True)
+                logger.error(
+                    f"❌ Stream: Неожиданная ошибка streaming: {stream_error}", exc_info=True
+                )
                 error_msg = 'event: error\ndata: {"error": "Ошибка генерации ответа"}\n\n'
                 await response.write(error_msg.encode("utf-8"))
                 return response
