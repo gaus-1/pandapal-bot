@@ -39,7 +39,7 @@ export function AIChat({ user }: AIChatProps) {
 
   const [inputText, setInputText] = useState('');
   const [replyToMessage, setReplyToMessage] = useState<number | null>(null);
-  const [showWelcome, setShowWelcome] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
   const [hasShownWelcomeMessage, setHasShownWelcomeMessage] = useState(false);
   const queryClient = useQueryClient();
 
@@ -157,13 +157,17 @@ export function AIChat({ user }: AIChatProps) {
       if (messages.length === 0) {
         // История пустая - показываем приветствие и сбрасываем флаг отправки
         // Это происходит при первом открытии или после очистки истории
+        console.log('📋 [Welcome] История пустая, показываем welcome screen');
         setShowWelcome(true);
         setHasShownWelcomeMessage(false);
       } else {
         // Есть сообщения - скрываем приветствие
+        console.log('📋 [Welcome] Есть сообщения, скрываем welcome screen');
         setShowWelcome(false);
         setHasShownWelcomeMessage(true);
       }
+    } else {
+      console.log('📋 [Welcome] История загружается, ждем...');
     }
   }, [messages.length, isLoadingHistory]);
 
@@ -174,39 +178,60 @@ export function AIChat({ user }: AIChatProps) {
       showWelcome &&
       !hasShownWelcomeMessage &&
       !isLoadingHistory &&
-      messages.length === 0 &&
-      !isSending;
+      messages.length === 0;
 
     if (shouldSendWelcome) {
+      console.log('⏰ [Welcome] Запускаем таймер для приветствия через 5 секунд...', {
+        showWelcome,
+        hasShownWelcomeMessage,
+        isLoadingHistory,
+        messagesLength: messages.length,
+      });
+
       const timer = setTimeout(async () => {
+        console.log('⏰ [Welcome] Таймер сработал! Проверяем условия...', {
+          messagesLength: messages.length,
+          hasShownWelcomeMessage,
+          showWelcome,
+        });
+
         // Проверяем еще раз перед отправкой (на случай, если состояние изменилось)
-        if (messages.length === 0 && !isSending && !hasShownWelcomeMessage) {
+        if (messages.length === 0 && !hasShownWelcomeMessage && showWelcome) {
           try {
+            console.log('✅ [Welcome] Условия выполнены, добавляем приветствие...');
             // Добавляем приветственное сообщение от бота напрямую в историю (без отправки через AI)
             const greetings = ['Привет, начнем?', 'Привет! Чем могу помочь?'];
             const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-            console.log('🐼 Добавляем приветственное сообщение от панды:', randomGreeting);
-            await addGreetingMessage(user.telegram_id, randomGreeting);
+            console.log('🐼 [Welcome] Отправляем запрос:', randomGreeting, 'to', `/api/miniapp/chat/greeting/${user.telegram_id}`);
+
+            const result = await addGreetingMessage(user.telegram_id, randomGreeting);
+            console.log('✅ [Welcome] Приветствие добавлено:', result);
 
             // Обновляем историю чата после добавления приветствия
             await queryClient.invalidateQueries({
               queryKey: queryKeys.chatHistory(user.telegram_id, 20),
             });
+            console.log('✅ [Welcome] История чата обновлена');
 
             setHasShownWelcomeMessage(true);
             setShowWelcome(false);
           } catch (error) {
-            console.error('❌ Ошибка добавления приветствия:', error);
+            console.error('❌ [Welcome] Ошибка добавления приветствия:', error);
             // Если не удалось добавить приветствие, просто скрываем welcome screen
             setHasShownWelcomeMessage(true);
             setShowWelcome(false);
           }
+        } else {
+          console.log('⚠️ [Welcome] Условия не выполнены, приветствие не отправлено');
         }
       }, 5000); // 5 секунд задержка
 
-      return () => clearTimeout(timer);
+      return () => {
+        console.log('🧹 [Welcome] Очистка таймера приветствия');
+        clearTimeout(timer);
+      };
     }
-  }, [showWelcome, hasShownWelcomeMessage, isLoadingHistory, messages.length, isSending, user.telegram_id, queryClient]);
+  }, [showWelcome, hasShownWelcomeMessage, isLoadingHistory, messages.length, user.telegram_id, queryClient]);
 
   const handleSend = () => {
     if (!inputText.trim() || isSending) return;
