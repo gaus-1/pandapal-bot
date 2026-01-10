@@ -252,9 +252,10 @@ class YandexCloudService:
             # Формируем запрос к YandexGPT
             # По документации Yandex Cloud maxTokens должен быть строкой для всех моделей
             # Название модели уже содержит /latest или /rc (например: yandexgpt/latest или yandexgpt/rc)
-            # Итоговый формат: gpt://folder_id/yandexgpt/latest
+            # Итоговый формат: gpt://folder_id/yandexgpt/latest (как в примере Yandex Cloud Console)
+            model_uri = f"gpt://{self.folder_id}/{model_name}"
             payload = {
-                "modelUri": f"gpt://{self.folder_id}/{model_name}",
+                "modelUri": model_uri,
                 "completionOptions": {
                     "stream": False,
                     "temperature": temperature,
@@ -264,7 +265,8 @@ class YandexCloudService:
             }
 
             logger.info(
-                f"📤 YandexGPT запрос ({model_name}): {len(user_message)} символов, temp={temperature}, max_tokens={max_tokens}"
+                f"📤 YandexGPT запрос ({model_name}): modelUri={model_uri}, "
+                f"{len(user_message)} символов, temp={temperature}, max_tokens={max_tokens}"
             )
 
             # Внутренняя функция для выполнения запроса (оборачивается в очередь)
@@ -351,9 +353,10 @@ class YandexCloudService:
             # Формируем запрос к YandexGPT с streaming
             # По документации Yandex Cloud maxTokens должен быть строкой для всех моделей
             # Название модели уже содержит /latest или /rc (например: yandexgpt/latest или yandexgpt/rc)
-            # Итоговый формат: gpt://folder_id/yandexgpt/latest
+            # Итоговый формат: gpt://folder_id/yandexgpt/latest (как в примере Yandex Cloud Console)
+            model_uri = f"gpt://{self.folder_id}/{model_name}"
             payload = {
-                "modelUri": f"gpt://{self.folder_id}/{model_name}",
+                "modelUri": model_uri,
                 "completionOptions": {
                     "stream": True,  # Включаем streaming
                     "temperature": temperature,
@@ -363,7 +366,8 @@ class YandexCloudService:
             }
 
             logger.info(
-                f"📤 YandexGPT streaming запрос ({model_name}): {len(user_message)} символов, temp={temperature}, max_tokens={max_tokens}"
+                f"📤 YandexGPT streaming запрос ({model_name}): modelUri={model_uri}, "
+                f"{len(user_message)} символов, temp={temperature}, max_tokens={max_tokens}"
             )
 
             # Внутренняя функция для выполнения streaming запроса
