@@ -1482,13 +1482,17 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             enhanced_system_prompt = prompt_builder.build_system_prompt(
                 user_age=user.age,
                 user_name=user.first_name,
-                user_message_count=user_message_count,
+                message_count_since_name=user_message_count,
                 is_history_cleared=is_history_cleared,
-                history=history,
+                chat_history=history,
                 user_message=user_message,
-                web_context=web_context,
-                non_educational_count=user.non_educational_questions_count,
+                non_educational_questions_count=user.non_educational_questions_count,
+                is_auto_greeting_sent=False,  # Определяется на фронтенде, здесь всегда False
             )
+
+            # Добавляем веб-контекст к промпту, если он есть
+            if web_context:
+                enhanced_system_prompt += f"\n\n📚 Дополнительная информация:\n{web_context}"
 
             # Преобразуем историю в формат Yandex
             yandex_history = []
