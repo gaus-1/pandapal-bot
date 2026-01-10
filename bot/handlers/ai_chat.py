@@ -36,7 +36,6 @@ from loguru import logger
 from bot.database import get_db
 from bot.monitoring import log_user_activity, monitor_performance
 from bot.services import ChatHistoryService, ContentModerationService, UserService
-from bot.services.advanced_moderation import ModerationResult
 from bot.services.ai_service_solid import get_ai_service
 
 # Создаём роутер для AI чата
@@ -45,7 +44,7 @@ router = Router(name="ai_chat")
 
 @router.message(F.text & (F.text == "💬 Общение с AI"))
 @monitor_performance
-async def start_ai_chat(message: Message, state: FSMContext):
+async def start_ai_chat(message: Message, state: FSMContext):  # noqa: ARG001
     """
     Активация режима общения с AI
 
@@ -62,7 +61,7 @@ async def start_ai_chat(message: Message, state: FSMContext):
 
 @router.message(F.text)
 @monitor_performance
-async def handle_ai_message(message: Message, state: FSMContext):
+async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG001
     """
     Обработка текстового сообщения для AI
 
@@ -263,6 +262,9 @@ async def handle_ai_message(message: Message, state: FSMContext):
                     )
                     logger.info(f"✅ Текст переведен: {detected_lang} → ru")
 
+            # Определяем Premium статус пользователя
+            is_premium = premium_service.is_premium_active(telegram_id)
+
             # Получаем AI сервис (SOLID фасад)
             ai_service = get_ai_service()
 
@@ -271,6 +273,7 @@ async def handle_ai_message(message: Message, state: FSMContext):
                 user_message=user_message,
                 chat_history=history,
                 user_age=user.age,
+                is_premium=is_premium,
             )
 
             # Промодерируем ответ AI на безопасность
@@ -618,7 +621,7 @@ async def handle_audio(message: Message):
 
 @router.message(F.photo)
 @monitor_performance
-async def handle_image(message: Message, state: FSMContext):
+async def handle_image(message: Message, state: FSMContext):  # noqa: ARG001
     """
     Обработка изображений через AI Vision
 
@@ -713,7 +716,7 @@ async def handle_image(message: Message, state: FSMContext):
 
 @router.message(F.document)
 @monitor_performance
-async def handle_document(message: Message, state: FSMContext):
+async def handle_document(message: Message, state: FSMContext):  # noqa: ARG001
     """
     Обработка документов (PDF, Word и т.д.)
 

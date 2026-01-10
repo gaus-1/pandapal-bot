@@ -960,6 +960,9 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 # Если непредметный - увеличиваем счетчик
                 user.non_educational_questions_count += 1
 
+            # Определяем Premium статус пользователя
+            is_premium = premium_service.is_premium_active(telegram_id)
+
             # Генерируем ответ AI
             ai_service = get_ai_service()
             ai_response = await ai_service.generate_response(
@@ -971,6 +974,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 message_count_since_name=user_message_count,
                 skip_name_asking=user.skip_name_asking,
                 non_educational_questions_count=user.non_educational_questions_count,
+                is_premium=is_premium,
             )
             logger.info(f"📊 Размер ответа AI: {len(ai_response)} символов")
 
@@ -1503,6 +1507,12 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     if text:
                         yandex_history.append({"role": role, "text": text})
 
+            # Используем Pro модель для всех пользователей
+            model_name = "yandexgpt-pro"
+            temperature = settings.ai_temperature_pro
+            max_tokens = settings.ai_max_tokens_pro
+            logger.info(f"💎 Stream: Используем Pro модель для пользователя {telegram_id}")
+
             # Отправляем chunks через streaming
             full_response = ""
             try:
@@ -1510,8 +1520,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     user_message=user_message,
                     chat_history=yandex_history,
                     system_prompt=enhanced_system_prompt,
-                    temperature=settings.ai_temperature,
-                    max_tokens=settings.ai_max_tokens,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    model=model_name,
                 ):
                     # Очищаем chunk от запрещенных символов
                     cleaned_chunk = clean_ai_response(chunk)

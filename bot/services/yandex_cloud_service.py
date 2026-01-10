@@ -212,6 +212,7 @@ class YandexCloudService:
         system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
+        model: str | None = None,
     ) -> str:
         """
         Генерация текстового ответа через YandexGPT.
@@ -222,11 +223,15 @@ class YandexCloudService:
             system_prompt: Системный промпт (инструкция для AI)
             temperature: Креативность (0.0-1.0)
             max_tokens: Максимальная длина ответа
+            model: Модель YandexGPT (yandexgpt-lite или yandexgpt-pro). Если None, используется self.gpt_model
 
         Returns:
             str: Ответ от YandexGPT
         """
         try:
+            # Используем переданную модель или дефолтную
+            model_name = model if model else self.gpt_model
+
             # Формируем историю сообщений
             messages = []
 
@@ -244,7 +249,7 @@ class YandexCloudService:
 
             # Формируем запрос к YandexGPT
             payload = {
-                "modelUri": f"gpt://{self.folder_id}/{self.gpt_model}/latest",
+                "modelUri": f"gpt://{self.folder_id}/{model_name}/latest",
                 "completionOptions": {
                     "stream": False,
                     "temperature": temperature,
@@ -253,7 +258,9 @@ class YandexCloudService:
                 "messages": messages,
             }
 
-            logger.info(f"📤 YandexGPT запрос: {len(user_message)} символов")
+            logger.info(
+                f"📤 YandexGPT запрос ({model_name}): {len(user_message)} символов, temp={temperature}, max_tokens={max_tokens}"
+            )
 
             # Внутренняя функция для выполнения запроса (оборачивается в очередь)
             async def _execute_request():
@@ -294,6 +301,7 @@ class YandexCloudService:
         system_prompt: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
+        model: str | None = None,
     ) -> AsyncIterator[str]:
         """
         Генерация текстового ответа через YandexGPT с streaming.
@@ -304,11 +312,15 @@ class YandexCloudService:
             system_prompt: Системный промпт (инструкция для AI)
             temperature: Креативность (0.0-1.0)
             max_tokens: Максимальная длина ответа
+            model: Модель YandexGPT (yandexgpt-lite или yandexgpt-pro). Если None, используется self.gpt_model
 
         Yields:
             str: Chunks текста от YandexGPT по мере генерации
         """
         try:
+            # Используем переданную модель или дефолтную
+            model_name = model if model else self.gpt_model
+
             # Формируем историю сообщений
             messages = []
 
@@ -326,7 +338,7 @@ class YandexCloudService:
 
             # Формируем запрос к YandexGPT с streaming
             payload = {
-                "modelUri": f"gpt://{self.folder_id}/{self.gpt_model}/latest",
+                "modelUri": f"gpt://{self.folder_id}/{model_name}/latest",
                 "completionOptions": {
                     "stream": True,  # Включаем streaming
                     "temperature": temperature,
@@ -335,7 +347,9 @@ class YandexCloudService:
                 "messages": messages,
             }
 
-            logger.info(f"📤 YandexGPT streaming запрос: {len(user_message)} символов")
+            logger.info(
+                f"📤 YandexGPT streaming запрос ({model_name}): {len(user_message)} символов, temp={temperature}, max_tokens={max_tokens}"
+            )
 
             # Внутренняя функция для выполнения streaming запроса
             async def _execute_streaming_request():

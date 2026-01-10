@@ -6,8 +6,6 @@ AI сервис для генерации ответов через Yandex Cloud
 Реализует паттерн Facade и следует принципам SOLID.
 """
 
-from typing import Dict, List, Optional, Tuple
-
 from loguru import logger
 
 from bot.services.ai_context_builder import ContextBuilder
@@ -58,13 +56,14 @@ class YandexAIService:
     async def generate_response(
         self,
         user_message: str,
-        chat_history: List[Dict] = None,
-        user_age: Optional[int] = None,
-        user_name: Optional[str] = None,
+        chat_history: list[dict] = None,
+        user_age: int | None = None,
+        user_name: str | None = None,
         is_history_cleared: bool = False,
         message_count_since_name: int = 0,
         skip_name_asking: bool = False,
         non_educational_questions_count: int = 0,
+        is_premium: bool = False,
     ) -> str:
         """
         Генерация ответа через YandexGPT.
@@ -76,6 +75,9 @@ class YandexAIService:
             user_name: Имя пользователя для обращения
             is_history_cleared: Флаг очистки истории
             message_count_since_name: Количество сообщений с последнего обращения по имени
+            skip_name_asking: Пропустить запрос имени
+            non_educational_questions_count: Количество непредметных вопросов подряд
+            is_premium: Premium статус пользователя (определяет модель: Pro для Premium, Lite для обычных)
 
         Returns:
             str: Ответ от AI
@@ -89,9 +91,10 @@ class YandexAIService:
             message_count_since_name,
             skip_name_asking,
             non_educational_questions_count,
+            is_premium,
         )
 
-    def get_model_info(self) -> Dict[str, str]:
+    def get_model_info(self) -> dict[str, str]:
         """
         Получить информацию о текущей AI модели.
 
@@ -101,7 +104,7 @@ class YandexAIService:
         return self.response_generator.get_model_info()
 
     async def analyze_image(
-        self, image_data: bytes, user_message: Optional[str] = None, user_age: Optional[int] = None
+        self, image_data: bytes, user_message: str | None = None, user_age: int | None = None
     ) -> str:
         """
         Анализировать изображение через Yandex Vision API.
@@ -116,7 +119,7 @@ class YandexAIService:
         """
         return await self.response_generator.analyze_image(image_data, user_message, user_age)
 
-    async def moderate_image_content(self, image_data: bytes) -> Tuple[bool, str]:
+    async def moderate_image_content(self, image_data: bytes) -> tuple[bool, str]:
         """
         Проверить изображение на безопасность через модерацию.
 
@@ -132,7 +135,7 @@ class YandexAIService:
 
 
 # Глобальный экземпляр (Singleton)
-_ai_service: Optional[YandexAIService] = None
+_ai_service: YandexAIService | None = None
 
 
 def get_ai_service() -> YandexAIService:
