@@ -1272,8 +1272,19 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     logger.info("✅ Stream: Фото проанализировано")
                     await response.write(b'event: status\ndata: {"status": "photo_analyzed"}\n\n')
 
+                    # Проверяем, что анализ не является сообщением об ошибке
+                    is_error_message = vision_result.analysis and (
+                        "Не удалось проанализировать" in vision_result.analysis
+                        or "Временная проблема с AI сервисом" in vision_result.analysis
+                        or "Ошибка анализа" in vision_result.analysis
+                    )
+
                     # КРИТИЧЕСКИ ВАЖНО: Если Vision API дал готовый ответ - сразу отправляем его!
-                    if vision_result.analysis and vision_result.analysis.strip():
+                    if (
+                        vision_result.analysis
+                        and vision_result.analysis.strip()
+                        and not is_error_message
+                    ):
                         # Vision API уже решил задачу - отправляем ответ напрямую
                         full_response = clean_ai_response(vision_result.analysis)
 
@@ -1321,6 +1332,15 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         # Отправляем событие завершения
                         await response.write(b'event: done\ndata: {"status": "completed"}\n\n')
                         logger.info(f"✅ Stream: Фото ответ отправлен напрямую для {telegram_id}")
+                        return response
+
+                    # Если Vision API вернул ошибку - отправляем ошибку пользователю
+                    if is_error_message:
+                        logger.error(
+                            f"❌ Stream: Vision API вернул ошибку для фото от {telegram_id}"
+                        )
+                        error_msg = 'event: error\ndata: {"error": "Временная проблема с AI сервисом. Попробуйте позже."}\n\n'
+                        await response.write(error_msg.encode("utf-8"))
                         return response
 
                     # Если Vision API не дал готовый ответ - используем распознанный текст
