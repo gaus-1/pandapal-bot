@@ -17,6 +17,38 @@ from bot.services.game_engines import CheckersGame, Game2048, TicTacToe
 from bot.services.gamification_service import GamificationService
 
 
+def _debug_log(
+    *,
+    hypothesis_id: str,
+    location: str,
+    message: str,
+    data: dict | None = None,
+    run_id: str = "initial",
+) -> None:
+    """Записать отладочное сообщение в NDJSON-файл debug.log."""
+    # region agent log
+    try:
+        import json
+        from time import time
+
+        log_path = r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log"
+        payload = {
+            "sessionId": "debug-session",
+            "runId": run_id,
+            "hypothesisId": hypothesis_id,
+            "location": location,
+            "message": message,
+            "data": data or {},
+            "timestamp": int(time() * 1000),
+        }
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception:
+        # Логи не должны ломать основной поток
+        return
+    # endregion
+
+
 class TicTacToeAI:
     """AI противник для крестиков-ноликов (панда)"""
 
@@ -675,6 +707,18 @@ class GamesService:
 
         # Получаем валидные ходы для пользователя (player = 1)
         valid_moves = game.get_valid_moves(1)
+
+        _debug_log(
+            hypothesis_id="H1",
+            location="GamesService.get_checkers_valid_moves",
+            message="Calculated valid moves for user",
+            data={
+                "session_id": session_id,
+                "current_player": game.current_player,
+                "must_capture_from": game.must_capture_from,
+                "valid_moves_count": len(valid_moves),
+            },
+        )
         return valid_moves
 
     async def checkers_move(
@@ -741,6 +785,20 @@ class GamesService:
 
         # Получаем валидные ходы для диагностики
         user_valid_moves = game.get_valid_moves(1)
+
+        _debug_log(
+            hypothesis_id="H1",
+            location="GamesService.checkers_move.before_user",
+            message="Before user move",
+            data={
+                "session_id": session_id,
+                "from": [from_row, from_col],
+                "to": [to_row, to_col],
+                "current_player": game.current_player,
+                "must_capture_from": game.must_capture_from,
+                "user_valid_moves_count": len(user_valid_moves),
+            },
+        )
         if not game.make_move(from_row, from_col, to_row, to_col):
             # Логируем детали для отладки
             logger.warning(
@@ -753,6 +811,17 @@ class GamesService:
             if user_valid_moves:
                 logger.warning(f"📋 Примеры валидных ходов: {user_valid_moves[:3]}")
             raise ValueError("Invalid move")
+
+        _debug_log(
+            hypothesis_id="H2",
+            location="GamesService.checkers_move.after_user",
+            message="After successful user move",
+            data={
+                "session_id": session_id,
+                "current_player": game.current_player,
+                "must_capture_from": game.must_capture_from,
+            },
+        )
 
         # Проверяем победу пользователя
         if game.winner == 1:
@@ -769,6 +838,17 @@ class GamesService:
         # Ход AI (player = 2)
         # Получаем все возможные ходы для AI
         valid_moves = game.get_valid_moves(2)
+        _debug_log(
+            hypothesis_id="H3",
+            location="GamesService.checkers_move.before_ai",
+            message="Before AI move",
+            data={
+                "session_id": session_id,
+                "current_player": game.current_player,
+                "must_capture_from": game.must_capture_from,
+                "ai_valid_moves_count": len(valid_moves),
+            },
+        )
         if not valid_moves:
             # AI не может сделать ход - пользователь победил
             state = game.get_board_state()
@@ -832,6 +912,16 @@ class GamesService:
 
         ai_from_row, ai_from_col, ai_to_row, ai_to_col = ai_move
 
+        _debug_log(
+            hypothesis_id="H3",
+            location="GamesService.checkers_move.ai_chosen",
+            message="AI move chosen",
+            data={
+                "session_id": session_id,
+                "ai_move": [ai_from_row, ai_from_col, ai_to_row, ai_to_col],
+            },
+        )
+
         # Проверяем валидность хода AI перед выполнением
         valid_moves_ai = game.get_valid_moves(2)
         # get_valid_moves возвращает List[Dict] с форматом {'from': (r, c), 'to': (r, c), ...}
@@ -885,6 +975,16 @@ class GamesService:
 
         # Выполняем ход AI
         if game.make_move(ai_from_row, ai_from_col, ai_to_row, ai_to_col):
+            _debug_log(
+                hypothesis_id="H4",
+                location="GamesService.checkers_move.after_ai",
+                message="After AI move",
+                data={
+                    "session_id": session_id,
+                    "current_player": game.current_player,
+                    "must_capture_from": game.must_capture_from,
+                },
+            )
             # Проверяем победу AI
             if game.winner == 2:
                 state = game.get_board_state()
