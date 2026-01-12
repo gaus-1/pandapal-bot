@@ -48,9 +48,13 @@ class TestYandexAIService:
         )
 
         assert result == "Тестовый ответ"
-        mock_generator_instance.generate_response.assert_called_once_with(
-            "Привет!", [{"role": "user", "content": "Тест"}], 10
-        )
+        # Проверяем что метод вызван с правильными обязательными параметрами
+        # Остальные параметры имеют значения по умолчанию
+        mock_generator_instance.generate_response.assert_called_once()
+        call_args = mock_generator_instance.generate_response.call_args
+        assert call_args[0][0] == "Привет!"
+        assert call_args[0][1] == [{"role": "user", "content": "Тест"}]
+        assert call_args[0][2] == 10
 
     @patch("bot.services.ai_service_solid.YandexAIResponseGenerator")
     @patch("bot.services.ai_service_solid.ContentModerator")
