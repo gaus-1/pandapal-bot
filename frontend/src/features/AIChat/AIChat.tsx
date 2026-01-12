@@ -376,6 +376,13 @@ export function AIChat({ user }: AIChatProps) {
                       : 'bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 border border-gray-200 dark:border-slate-600'
                   }`}
                 >
+                  {msg.imageUrl && msg.role === 'ai' && (
+                    <img
+                      src={msg.imageUrl}
+                      alt="Визуализация"
+                      className="w-full rounded-lg mb-2 shadow-sm"
+                    />
+                  )}
                   <MessageContent content={msg.content} role={msg.role} />
                   <time
                     className={`text-[10px] sm:text-xs mt-1.5 sm:mt-2 font-medium block ${

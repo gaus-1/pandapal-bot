@@ -181,6 +181,30 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                       return updated;
                     }
                   );
+                } else if (eventType === 'image' && data.image) {
+                  // Получено изображение визуализации
+                  const imageBase64 = data.image;
+                  const imageUrl = `data:image/png;base64,${imageBase64}`;
+
+                  // Обновляем последнее сообщение AI, добавляя изображение
+                  queryClient.setQueryData<ChatMessage[]>(
+                    queryKeys.chatHistory(telegramId, limit),
+                    (old) => {
+                      if (!old) return old;
+                      const updated = [...old];
+                      const lastMessage = updated[updated.length - 1];
+
+                      if (lastMessage && lastMessage.role === 'ai') {
+                        // Добавляем изображение к сообщению AI
+                        updated[updated.length - 1] = {
+                          ...lastMessage,
+                          imageUrl: imageUrl,
+                        };
+                      }
+
+                      return updated;
+                    }
+                  );
                 } else if (eventType === 'achievements' && data.achievements) {
                   // Достижения получены, но не показываем popup в чате
                   // (достижения можно посмотреть в разделе "Достижения")
