@@ -1560,6 +1560,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 # Проверяем, нужна ли визуализация (таблица умножения, графики)
                 # Проверяем и в запросе пользователя, и в ответе AI
                 visualization_image_base64 = None
+                multiplication_number = None
                 try:
                     import re
 
@@ -1576,7 +1577,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         r"умнож[а-я]*\s+(\d+)",  # "умнож на 5", "умножить 5"
                     ]
                     multiplication_match = None
-                    multiplication_number = None
                     # Сначала проверяем запрос пользователя
                     for pattern in multiplication_patterns:
                         multiplication_match = re.search(pattern, user_message.lower())
@@ -1685,7 +1685,8 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     await response.write(f"event: image\ndata: {image_data}\n\n".encode())
                     logger.info("📊 Stream: Изображение визуализации отправлено")
 
-                    # Удаляем дублирование: если есть визуализация, убираем текст таблицы/графика из ответа
+                    # КРИТИЧНО: Удаляем дублирование ДО отправки финального chunk
+                    # Если есть визуализация, убираем текст таблицы/графика из ответа
                     if multiplication_number:
                         # #region agent log
                         logger.info(

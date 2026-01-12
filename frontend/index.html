@@ -264,8 +264,14 @@
               // В Mini App - позиционируем ПОД нижними кнопками навигации
               // Навигация: min-h-[60px] sm:min-h-[70px] + padding py-2 sm:py-2.5 md:py-3 + border ≈ 80-100px
               // Плюс отступ под кнопками ≈ 20px, итого ≈ 100-120px
+              // Учитываем safe-area-inset-bottom для устройств с вырезом экрана
+              const safeAreaBottom = window.innerHeight - document.documentElement.clientHeight;
+              const navHeight = 100; // Примерная высота навигации
+              const offset = 20; // Отступ под кнопками
+              const calculatedBottom = navHeight + offset + safeAreaBottom;
+
               counter.style.display = 'block';
-              counter.style.bottom = '100px'; // Под кнопками навигации (Достижения, PandaPalGo, Premium)
+              counter.style.bottom = calculatedBottom + 'px'; // Под кнопками навигации (Достижения, PandaPalGo, Premium)
               counter.style.left = '10px';
             } else {
               // На основном сайте - в левом нижнем углу
