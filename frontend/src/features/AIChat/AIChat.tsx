@@ -482,7 +482,14 @@ function MessageContent({ content, role }: MessageContentProps) {
     );
   }
 
-  const { summary, steps, rest } = parseAiMessage(content);
+  // Исправляем форматирование таблицы умножения перед парсингом
+  const cleanedContent = content
+    // Исправляем "3 3 = 9" на "3 × 3 = 9"
+    .replace(/(\d+)\s+(\d+)\s*=\s*(\d+)/g, '$1 × $2 = $3')
+    // Исправляем "3*3=9" на "3 × 3 = 9"
+    .replace(/(\d+)\*(\d+)\s*=\s*(\d+)/g, '$1 × $2 = $3');
+
+  const { summary, steps, rest } = parseAiMessage(cleanedContent);
 
   return (
     <div className="space-y-2 sm:space-y-3">
@@ -593,6 +600,9 @@ function parseAiMessage(content: string): {
   steps: string[];
   rest: string[];
 } {
+  // Сначала удаляем явные дубликаты (повторяющиеся блоки текста)
+  content = removeDuplicateBlocks(content);
+
   // Проверяем наличие задач
   const taskRegex = /###Задача\s+\d+:/i;
   const hasTasks = taskRegex.test(content);
@@ -733,4 +743,34 @@ function parseAiMessage(content: string): {
 
 function stripLeadingNumber(line: string): string {
   return line.replace(/^\s*\d+[.)]\s+/, '').trim();
+}
+
+/**
+ * Удаляет повторяющиеся блоки текста из ответа AI.
+ * Ищет блоки длиной от 50 символов, которые повторяются несколько раз.
+ */
+function removeDuplicateBlocks(text: string): string {
+  if (!text || text.length < 100) return text;
+
+  // Разбиваем на абзацы (по двойным переносам или длинным блокам)
+  const blocks = text.split(/\n\n+/).filter(b => b.trim().length > 30);
+
+  if (blocks.length < 2) return text;
+
+  // Удаляем дубликаты блоков
+  const seen = new Set<string>();
+  const unique: string[] = [];
+
+  for (const block of blocks) {
+    const normalized = block.trim().toLowerCase().replace(/\s+/g, ' ');
+    if (normalized.length >= 30 && !seen.has(normalized)) {
+      seen.add(normalized);
+      unique.push(block.trim());
+    } else if (normalized.length < 30) {
+      // Короткие блоки добавляем всегда (могут быть важными)
+      unique.push(block.trim());
+    }
+  }
+
+  return unique.join('\n\n');
 }
