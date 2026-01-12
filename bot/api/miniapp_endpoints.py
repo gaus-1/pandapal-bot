@@ -1537,6 +1537,33 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             # Отправляем chunks через streaming
             full_response = ""
             try:
+                # КРИТИЧНО: Проверяем запрос ДО начала streaming, чтобы фильтровать chunks
+                import re
+
+                from bot.services.visualization_service import get_visualization_service
+
+                viz_service = get_visualization_service()
+                multiplication_patterns = [
+                    r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)",
+                    r"табл[иы]ц[аеы]?\s*умножени[яе]\s+(\d+)",
+                    r"умножени[яе]\s+на\s*(\d+)",
+                    r"умнож[а-я]*\s+(\d+)",
+                ]
+                multiplication_number = None
+                for pattern in multiplication_patterns:
+                    multiplication_match = re.search(pattern, user_message.lower())
+                    if multiplication_match:
+                        try:
+                            multiplication_number = int(multiplication_match.group(1))
+                            if 1 <= multiplication_number <= 10:
+                                break
+                        except (ValueError, IndexError):
+                            continue
+
+                # Если запрос на таблицу умножения - собираем весь ответ, не отправляем chunks с таблицей
+                will_have_visualization = multiplication_number is not None
+                collected_chunks = []  # Для фильтрации
+
                 async for chunk in yandex_service.generate_text_response_stream(
                     user_message=user_message,
                     chat_history=yandex_history,
@@ -1548,45 +1575,36 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     # Очищаем chunk от запрещенных символов
                     cleaned_chunk = clean_ai_response(chunk)
                     full_response += cleaned_chunk
-                    # Отправляем очищенный chunk через SSE
-                    import json as json_lib
+                    collected_chunks.append(cleaned_chunk)
 
-                    chunk_data = json_lib.dumps({"chunk": cleaned_chunk}, ensure_ascii=False)
-                    await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
+                    # Если будет визуализация - НЕ отправляем chunks с таблицей умножения
+                    if will_have_visualization:
+                        # Проверяем, содержит ли chunk таблицу умножения
+                        multiplication_text_pattern = re.compile(
+                            r"\d+\s*[×x*]\s*\d+\s*=\s*\d+", re.IGNORECASE
+                        )
+                        if not multiplication_text_pattern.search(cleaned_chunk):
+                            # Отправляем только chunks без таблицы умножения
+                            import json as json_lib
+
+                            chunk_data = json_lib.dumps(
+                                {"chunk": cleaned_chunk}, ensure_ascii=False
+                            )
+                            await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
+                    else:
+                        # Обычная отправка всех chunks
+                        import json as json_lib
+
+                        chunk_data = json_lib.dumps({"chunk": cleaned_chunk}, ensure_ascii=False)
+                        await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
 
                 # Очищаем полный ответ от запрещенных символов
                 full_response = clean_ai_response(full_response)
 
                 # Проверяем, нужна ли визуализация (таблица умножения, графики)
-                # Проверяем и в запросе пользователя, и в ответе AI
+                # multiplication_number уже определен выше, если не был - проверяем в ответе AI
                 visualization_image_base64 = None
-                multiplication_number = None
                 try:
-                    import re
-
-                    from bot.services.visualization_service import get_visualization_service
-
-                    viz_service = get_visualization_service()
-
-                    # Определяем, нужна ли таблица умножения (расширенные паттерны)
-                    # Проверяем в запросе пользователя И в ответе AI
-                    multiplication_patterns = [
-                        r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)",  # "таблица умножения на 5"
-                        r"табл[иы]ц[аеы]?\s*умножени[яе]\s+(\d+)",  # "таблица умножения 5"
-                        r"умножени[яе]\s+на\s*(\d+)",  # "умножение на 5"
-                        r"умнож[а-я]*\s+(\d+)",  # "умнож на 5", "умножить 5"
-                    ]
-                    multiplication_match = None
-                    # Сначала проверяем запрос пользователя
-                    for pattern in multiplication_patterns:
-                        multiplication_match = re.search(pattern, user_message.lower())
-                        if multiplication_match:
-                            try:
-                                multiplication_number = int(multiplication_match.group(1))
-                                if 1 <= multiplication_number <= 10:
-                                    break
-                            except (ValueError, IndexError):
-                                continue
                     # Если не нашли в запросе, проверяем ответ AI
                     if not multiplication_number:
                         for pattern in multiplication_patterns:
