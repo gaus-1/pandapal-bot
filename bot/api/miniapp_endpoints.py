@@ -2001,9 +2001,16 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 multiplication_text_pattern = re.compile(
                                     r"\d+\s*[×x*]\s*\d+\s*=\s*\d+", re.IGNORECASE
                                 )
-                                # Удаляем все вхождения таблицы умножения
+                                # КРИТИЧНО: паттерн БЕЗ символа умножения - именно такой формат приходит
+                                multiplication_text_pattern_no_symbol = re.compile(
+                                    r"\d+\s+\d+\s*=\s*\d+", re.IGNORECASE
+                                )
+                                # Удаляем все вхождения таблицы умножения (оба паттерна)
                                 cleaned_response_before = cleaned_response
                                 cleaned_response = multiplication_text_pattern.sub(
+                                    "", cleaned_response
+                                )
+                                cleaned_response = multiplication_text_pattern_no_symbol.sub(
                                     "", cleaned_response
                                 )
 
@@ -2034,10 +2041,12 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 filtered_lines = []
                                 for line in lines:
                                     line_stripped = line.strip()
-                                    # Пропускаем строки, которые выглядят как таблица умножения
+                                    # Пропускаем строки, которые выглядят как таблица умножения (оба паттерна!)
                                     if multiplication_text_pattern.search(line_stripped):
                                         continue
-                                    # Пропускаем строки только с числами и знаками
+                                    if multiplication_text_pattern_no_symbol.search(line_stripped):
+                                        continue
+                                    # Пропускаем строки только с числами и знаками (включая пробелы)
                                     if re.match(r"^[\d\s×x*=\s,\.]+$", line_stripped):
                                         continue
                                     filtered_lines.append(line)
