@@ -1,0 +1,226 @@
+---
+alwaysApply: false
+---
+
+# Дополнительные правила разработки
+
+Этот файл содержит дополнительные технические правила, которые применяются при специфических задачах.
+
+## Правила именования
+
+### Python (Backend)
+
+```python
+# Модули
+bot/services/user_service.py  # snake_case
+
+# Классы
+class UserService:  # PascalCase
+    pass
+
+# Функции и методы
+def get_user_by_id(user_id: int) -> User:  # snake_case
+    pass
+
+# Константы
+MAX_MESSAGE_LENGTH = 4000  # UPPER_SNAKE_CASE
+
+# Приватные методы
+def _internal_method(self):  # одно подчёркивание
+    pass
+```
+
+### TypeScript (Frontend)
+
+```typescript
+// Компоненты
+export const FeatureCard: React.FC<Props> = () => {}  // PascalCase
+
+// Функции
+function handleClick(): void {}  // camelCase
+
+// Константы
+const API_BASE_URL = "..."  // UPPER_SNAKE_CASE
+```
+
+## Структура новых модулей
+
+### Новый обработчик (handler)
+
+```python
+# bot/handlers/my_feature.py
+"""
+Обработчик [название функции].
+
+Описание что делает этот обработчик.
+"""
+from aiogram import F, Router
+from aiogram.types import Message
+
+router = Router(name="my_feature")
+
+
+@router.message(F.text == "команда")
+async def handle_command(message: Message):
+    """Обработка команды."""
+    pass
+```
+
+Не забудь зарегистрировать в `bot/handlers/__init__.py`.
+
+### Новый сервис
+
+```python
+# bot/services/my_service.py
+"""
+Сервис [название].
+
+Описание назначения сервиса.
+"""
+from loguru import logger
+from typing import Optional
+
+
+class MyService:
+    """Описание сервиса."""
+
+    def __init__(self):
+        """Инициализация."""
+        logger.info("✅ MyService инициализирован")
+
+    def my_method(self, param: str) -> Optional[str]:
+        """
+        Описание метода.
+
+        Args:
+            param: Описание параметра
+
+        Returns:
+            Описание возвращаемого значения
+        """
+        pass
+
+
+# Singleton (если нужен глобальный экземпляр)
+_service: Optional[MyService] = None
+
+
+def get_my_service() -> MyService:
+    """Получить глобальный экземпляр."""
+    global _service
+    if _service is None:
+        _service = MyService()
+    return _service
+```
+
+## Работа с БД
+
+### Правильно
+
+```python
+from bot.database import get_db
+from bot.services import UserService
+
+# Через context manager
+with get_db() as db:
+    user_service = UserService(db)
+    user = user_service.get_user_by_telegram_id(telegram_id)
+    # Транзакция автоматически коммитится/откатывается
+```
+
+### Неправильно
+
+```python
+# ❌ Прямое создание сессии
+db = SessionLocal()
+# ... код
+db.close()  # Легко забыть!
+
+# ❌ Raw SQL
+db.execute("SELECT * FROM users WHERE id = " + user_id)  # SQL injection!
+```
+
+## Модерация контента
+
+Любой пользовательский ввод ОБЯЗАТЕЛЬНО проходит модерацию:
+
+```python
+from bot.services.moderation_service import ContentModerationService
+
+moderation = ContentModerationService()
+
+# Базовая проверка
+is_safe, reason = moderation.is_safe_content(user_text)
+if not is_safe:
+    # Заблокировать и ответить безопасным сообщением
+    return moderation.get_safe_response_alternative("blocked_content")
+
+# Продвинутая проверка (при необходимости)
+result = await moderation.advanced_moderate_content(text, user_context)
+```
+
+## Логирование
+
+```python
+from loguru import logger
+
+# Уровни логирования
+logger.debug("Детальная информация для отладки")
+logger.info("✅ Важное событие произошло")
+logger.warning("⚠️ Что-то подозрительное")
+logger.error("❌ Ошибка: {}", error_message)
+
+# Контекст
+logger.info("Пользователь {} отправил сообщение", telegram_id)
+```
+
+## Обработка ошибок
+
+```python
+try:
+    result = await some_operation()
+except SpecificError as e:
+    logger.error("❌ Конкретная ошибка: {}", e)
+    # Обработка
+except Exception as e:
+    logger.error("❌ Неожиданная ошибка: {}", e)
+    # Graceful degradation
+    return fallback_result
+```
+
+## Тестирование
+
+### Новый тест
+
+```python
+# tests/unit/test_my_feature.py
+import pytest
+from bot.services.my_service import MyService
+
+
+class TestMyService:
+    """Тесты для MyService."""
+
+    def test_basic_functionality(self):
+        """Тест базовой функциональности."""
+        service = MyService()
+        result = service.my_method("input")
+        assert result == "expected"
+
+    @pytest.mark.asyncio
+    async def test_async_method(self):
+        """Тест асинхронного метода."""
+        service = MyService()
+        result = await service.async_method()
+        assert result is not None
+```
+
+### Запуск
+
+```bash
+# Конкретный тест
+pytest tests/unit/test_my_feature.py -v
+
+# С покрытием
+pytest tests/ --cov=bot --cov-report=html
+```

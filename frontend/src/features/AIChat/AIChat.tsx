@@ -287,12 +287,18 @@ export function AIChat({ user }: AIChatProps) {
       await navigator.clipboard.writeText(content);
       haptic.light();
       // Используем только telegram.showPopup, без дополнительных уведомлений
+      // Убираем браузерные уведомления - используем только Telegram popup
       telegram.showPopup({
         message: 'Скопировано!',
         buttons: [{ type: 'ok', text: 'OK' }],
       });
     } catch (error) {
       console.error('Ошибка копирования:', error);
+      // При ошибке показываем только Telegram popup, без браузерных уведомлений
+      telegram.showPopup({
+        message: 'Не удалось скопировать',
+        buttons: [{ type: 'ok', text: 'OK' }],
+      });
     }
   };
 
@@ -747,30 +753,72 @@ function stripLeadingNumber(line: string): string {
 
 /**
  * Удаляет повторяющиеся блоки текста из ответа AI.
- * Ищет блоки длиной от 50 символов, которые повторяются несколько раз.
+ * Агрессивная версия для полного удаления всех повторений.
  */
 function removeDuplicateBlocks(text: string): string {
-  if (!text || text.length < 100) return text;
+  if (!text || text.length < 50) return text;
 
-  // Разбиваем на абзацы (по двойным переносам или длинным блокам)
-  const blocks = text.split(/\n\n+/).filter(b => b.trim().length > 30);
+  // Шаг 1: Разбиваем на строки
+  const lines = text.split('\n').filter(l => l.trim().length > 0);
 
-  if (blocks.length < 2) return text;
+  if (lines.length < 2) return text;
 
-  // Удаляем дубликаты блоков
-  const seen = new Set<string>();
-  const unique: string[] = [];
+  // Шаг 2: Удаляем дубликаты строк
+  const seenLines = new Set<string>();
+  const uniqueLines: string[] = [];
 
-  for (const block of blocks) {
-    const normalized = block.trim().toLowerCase().replace(/\s+/g, ' ');
-    if (normalized.length >= 30 && !seen.has(normalized)) {
-      seen.add(normalized);
-      unique.push(block.trim());
-    } else if (normalized.length < 30) {
-      // Короткие блоки добавляем всегда (могут быть важными)
-      unique.push(block.trim());
+  for (const line of lines) {
+    const normalized = line.trim().toLowerCase().replace(/\s+/g, ' ');
+    if (normalized.length >= 20) {
+      if (!seenLines.has(normalized)) {
+        seenLines.add(normalized);
+        uniqueLines.push(line.trim());
+      }
+    } else {
+      // Короткие строки проверяем на точное совпадение
+      if (!uniqueLines.includes(line.trim())) {
+        uniqueLines.push(line.trim());
+      }
     }
   }
 
-  return unique.join('\n\n');
+  let result = uniqueLines.join('\n');
+
+  // Шаг 3: Удаляем повторяющиеся блоки (несколько строк подряд)
+  if (uniqueLines.length >= 4) {
+    const seenBlocks = new Set<string>();
+    const finalLines: string[] = [];
+    let i = 0;
+
+    while (i < uniqueLines.length) {
+      let foundDuplicate = false;
+      // Проверяем блоки разной длины (от 5 до 2 строк)
+      for (let blockLen = 5; blockLen >= 2; blockLen--) {
+        if (i + blockLen > uniqueLines.length) continue;
+
+        const block = uniqueLines.slice(i, i + blockLen).join('\n');
+        const normalizedBlock = block.toLowerCase().replace(/\s+/g, ' ');
+
+        if (normalizedBlock.length >= 40) {
+          if (seenBlocks.has(normalizedBlock)) {
+            // Пропускаем весь блок
+            i += blockLen;
+            foundDuplicate = true;
+            break;
+          } else {
+            seenBlocks.add(normalizedBlock);
+          }
+        }
+      }
+
+      if (!foundDuplicate) {
+        finalLines.push(uniqueLines[i]);
+        i++;
+      }
+    }
+
+    result = finalLines.join('\n');
+  }
+
+  return result;
 }

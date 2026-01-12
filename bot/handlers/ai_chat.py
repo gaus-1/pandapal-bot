@@ -279,6 +279,44 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
             # Промодерируем ответ AI на безопасность
             ai_response = moderation_service.sanitize_ai_response(ai_response)
 
+            # Проверяем, нужна ли визуализация (таблица умножения, графики)
+            visualization_image = None
+            try:
+                import re
+
+                from bot.services.visualization_service import get_visualization_service
+
+                viz_service = get_visualization_service()
+
+                # Определяем, нужна ли таблица умножения
+                multiplication_match = re.search(
+                    r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)", user_message.lower()
+                )
+                if multiplication_match:
+                    number = int(multiplication_match.group(1))
+                    if 1 <= number <= 10:
+                        visualization_image = viz_service.generate_multiplication_table_image(
+                            number
+                        )
+                        logger.info(f"📊 Сгенерирована таблица умножения на {number}")
+
+                # Определяем, нужен ли график функции
+                graph_match = re.search(
+                    r"график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)", user_message.lower()
+                )
+                if graph_match and not visualization_image:
+                    expression = graph_match.group(1).strip()
+                    # Безопасные выражения для графиков
+                    if re.match(r"^[x\s+\-*/().\d\s]+$", expression):
+                        # Заменяем x на x для numpy
+                        safe_expr = expression.replace("x", "x")
+                        visualization_image = viz_service.generate_function_graph(safe_expr)
+                        if visualization_image:
+                            logger.info(f"📈 Сгенерирован график функции: {expression}")
+
+            except Exception as e:
+                logger.debug(f"⚠️ Ошибка генерации визуализации: {e}")
+
             # Увеличиваем счетчик запросов (независимо от истории)
             premium_service.increment_request_count(telegram_id)
 
@@ -343,9 +381,22 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
             message_count = user.message_count
 
         # Отправляем ответ пользователю (без parse_mode для избежания ошибок форматирования)
-        await message.answer(
-            text=ai_response,
-        )
+        if visualization_image:
+            # Отправляем изображение вместе с текстом
+            from aiogram.types import BufferedInputFile
+
+            photo = BufferedInputFile(visualization_image, filename="visualization.png")
+            await message.answer_photo(
+                photo=photo,
+                caption=ai_response[:1024],  # Telegram ограничение на caption
+            )
+            # Если текст длиннее, отправляем остаток отдельным сообщением
+            if len(ai_response) > 1024:
+                await message.answer(text=ai_response[1024:])
+        else:
+            await message.answer(
+                text=ai_response,
+            )
 
         # Предлагаем форму обратной связи после каждого 20-го сообщения
         if message_count % 20 == 0 and message_count > 0:
