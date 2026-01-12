@@ -1717,77 +1717,23 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     await response.write(f"event: image\ndata: {image_data}\n\n".encode())
                     logger.info("📊 Stream: Изображение визуализации отправлено")
 
-                    # КРИТИЧНО: Удаляем дублирование ДО отправки финального chunk
-                    # Если есть визуализация, убираем текст таблицы/графика из ответа
+                    # КРИТИЧНО: Если есть визуализация - заменяем весь текст на короткий ответ
+                    # Не пытаемся удалять фрагменты - это ломает ответ!
                     if multiplication_number:
                         # #region agent log
                         logger.info(
-                            f"🔍 Stream: ДО удаления дублирования (multiplication_number={multiplication_number}): {full_response[:200]}"
+                            f"🔍 Stream: ДО замены (multiplication_number={multiplication_number}): {full_response[:200]}"
                         )
                         # #endregion
 
-                        # Удаляем ВСЕ варианты текста таблицы умножения (более агрессивный паттерн)
-                        # Паттерн 1: "4 x 1 = 4" или "4 × 1 = 4" или "4*1=4" (с пробелами и без)
-                        # Паттерн 2: "4 1 = 4" (БЕЗ символа умножения - именно такой формат приходит от AI!)
-                        multiplication_text_pattern = re.compile(
-                            r"\d+\s*[×x*]\s*\d+\s*=\s*\d+", re.IGNORECASE
-                        )
-                        # КРИТИЧНО: паттерн БЕЗ символа умножения - именно такой формат приходит
-                        multiplication_text_pattern_no_symbol = re.compile(
-                            r"\d+\s+\d+\s*=\s*\d+", re.IGNORECASE
-                        )
-                        # Удаляем все вхождения таблицы умножения (оба паттерна)
-                        full_response_before = full_response
-                        full_response = multiplication_text_pattern.sub("", full_response)
-                        full_response = multiplication_text_pattern_no_symbol.sub("", full_response)
-
-                        # #region agent log
-                        if full_response != full_response_before:
-                            logger.info(
-                                f"✅ Stream: Удалены вхождения таблицы умножения: {full_response[:200]}"
-                            )
-                        # #endregion
-
-                        # Удаляем множественные пробелы и переносы строк
-                        full_response = re.sub(r"\s+", " ", full_response)
-                        # Удаляем фразы про таблицу умножения и "Понятно?"
-                        full_response = re.sub(
-                            r"табл[иы]ц[аеы]?\s*умножени[яе].*?(?:Понятно|Или|$)",
-                            "",
-                            full_response,
-                            flags=re.IGNORECASE | re.DOTALL,
-                        )
-                        full_response = re.sub(
-                            r"Понятно\?.*?Или.*?подробнее",
-                            "",
-                            full_response,
-                            flags=re.IGNORECASE | re.DOTALL,
-                        )
-                        # Дополнительно: удаляем строки, которые содержат только числа и знаки умножения
-                        lines = full_response.split("\n")
-                        filtered_lines = []
-                        for line in lines:
-                            line_stripped = line.strip()
-                            # Пропускаем строки, которые выглядят как таблица умножения (оба паттерна!)
-                            if multiplication_text_pattern.search(line_stripped):
-                                continue
-                            if multiplication_text_pattern_no_symbol.search(line_stripped):
-                                continue
-                            # Пропускаем строки только с числами и знаками (включая пробелы)
-                            if re.match(r"^[\d\s×x*=\s,\.]+$", line_stripped):
-                                continue
-                            filtered_lines.append(line)
-                        full_response = "\n".join(filtered_lines).strip()
+                        # Просто заменяем весь ответ на короткий, если есть визуализация
+                        full_response = "Вот таблица умножения."
 
                         # #region agent log
                         logger.info(
-                            f"🔍 Stream: ПОСЛЕ удаления дублирования: {full_response[:200]}"
+                            f"✅ Stream: Текст заменен на короткий ответ (есть визуализация): {full_response}"
                         )
                         # #endregion
-
-                        # Оставляем только краткий ответ
-                        if len(full_response) > 50 or not full_response:
-                            full_response = "Вот таблица умножения."
 
                     # Удаляем упоминания про "систему автоматически" и подобное
                     full_response = re.sub(
@@ -1989,78 +1935,23 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             await response.write(f"event: image\ndata: {image_data}\n\n".encode())
                             logger.info("📊 Stream: Fallback - изображение визуализации отправлено")
 
-                            # Удаляем дублирование: если есть визуализация, убираем текст таблицы/графика из ответа
+                            # Если есть визуализация - заменяем весь текст на короткий ответ
+                            # Не пытаемся удалять фрагменты - это ломает ответ!
                             if multiplication_number_fallback:
                                 # #region agent log
                                 logger.info(
-                                    f"🔍 Stream: Fallback ДО удаления дублирования (multiplication_number={multiplication_number_fallback}): {cleaned_response[:200]}"
+                                    f"🔍 Stream: Fallback ДО замены (multiplication_number={multiplication_number_fallback}): {cleaned_response[:200]}"
                                 )
                                 # #endregion
 
-                                # Удаляем ВСЕ варианты текста таблицы умножения (более агрессивный паттерн)
-                                multiplication_text_pattern = re.compile(
-                                    r"\d+\s*[×x*]\s*\d+\s*=\s*\d+", re.IGNORECASE
-                                )
-                                # КРИТИЧНО: паттерн БЕЗ символа умножения - именно такой формат приходит
-                                multiplication_text_pattern_no_symbol = re.compile(
-                                    r"\d+\s+\d+\s*=\s*\d+", re.IGNORECASE
-                                )
-                                # Удаляем все вхождения таблицы умножения (оба паттерна)
-                                cleaned_response_before = cleaned_response
-                                cleaned_response = multiplication_text_pattern.sub(
-                                    "", cleaned_response
-                                )
-                                cleaned_response = multiplication_text_pattern_no_symbol.sub(
-                                    "", cleaned_response
-                                )
-
-                                # #region agent log
-                                if cleaned_response != cleaned_response_before:
-                                    logger.info(
-                                        f"✅ Stream: Fallback - удалены вхождения таблицы умножения: {cleaned_response[:200]}"
-                                    )
-                                # #endregion
-
-                                # Удаляем множественные пробелы и переносы строк
-                                cleaned_response = re.sub(r"\s+", " ", cleaned_response)
-                                # Удаляем фразы про таблицу умножения и "Понятно?"
-                                cleaned_response = re.sub(
-                                    r"табл[иы]ц[аеы]?\s*умножени[яе].*?(?:Понятно|Или|$)",
-                                    "",
-                                    cleaned_response,
-                                    flags=re.IGNORECASE | re.DOTALL,
-                                )
-                                cleaned_response = re.sub(
-                                    r"Понятно\?.*?Или.*?подробнее",
-                                    "",
-                                    cleaned_response,
-                                    flags=re.IGNORECASE | re.DOTALL,
-                                )
-                                # Дополнительно: удаляем строки, которые содержат только числа и знаки умножения
-                                lines = cleaned_response.split("\n")
-                                filtered_lines = []
-                                for line in lines:
-                                    line_stripped = line.strip()
-                                    # Пропускаем строки, которые выглядят как таблица умножения (оба паттерна!)
-                                    if multiplication_text_pattern.search(line_stripped):
-                                        continue
-                                    if multiplication_text_pattern_no_symbol.search(line_stripped):
-                                        continue
-                                    # Пропускаем строки только с числами и знаками (включая пробелы)
-                                    if re.match(r"^[\d\s×x*=\s,\.]+$", line_stripped):
-                                        continue
-                                    filtered_lines.append(line)
-                                cleaned_response = "\n".join(filtered_lines).strip()
+                                # Просто заменяем весь ответ на короткий, если есть визуализация
+                                cleaned_response = "Вот таблица умножения."
 
                                 # #region agent log
                                 logger.info(
-                                    f"🔍 Stream: Fallback ПОСЛЕ удаления дублирования: {cleaned_response[:200]}"
+                                    f"✅ Stream: Fallback - текст заменен на короткий ответ (есть визуализация): {cleaned_response}"
                                 )
                                 # #endregion
-
-                                # Оставляем только краткий ответ
-                                if len(cleaned_response) > 50 or not cleaned_response:
-                                    cleaned_response = "Вот таблица умножения."
 
                             # Удаляем упоминания про "систему автоматически" и подобное
                             cleaned_response = re.sub(
