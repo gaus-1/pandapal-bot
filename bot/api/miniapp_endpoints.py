@@ -1687,20 +1687,31 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                     # Удаляем дублирование: если есть визуализация, убираем текст таблицы/графика из ответа
                     if multiplication_number:
-                        # Удаляем текст таблицы умножения из ответа
+                        # Удаляем ВСЕ варианты текста таблицы умножения (более агрессивный паттерн)
+                        # Паттерн 1: "4 x 1 = 4" или "4 × 1 = 4" или "4*1=4" (с пробелами и без)
                         multiplication_text_pattern = re.compile(
-                            r"(?:\d+\s*[×x*]\s*\d+\s*=\s*\d+[,\s]*)+", re.IGNORECASE
+                            r"\d+\s*[×x*]\s*\d+\s*=\s*\d+", re.IGNORECASE
                         )
+                        # Удаляем все вхождения таблицы умножения
                         full_response = multiplication_text_pattern.sub("", full_response)
-                        # Удаляем фразы про таблицу умножения
+                        # Удаляем множественные пробелы и переносы строк
+                        full_response = re.sub(r"\s+", " ", full_response)
+                        # Удаляем фразы про таблицу умножения и "Понятно?"
                         full_response = re.sub(
-                            r"табл[иы]ц[аеы]?\s*умножени[яе].*?(?:Понятно|$)",
+                            r"табл[иы]ц[аеы]?\s*умножени[яе].*?(?:Понятно|Или|$)",
+                            "",
+                            full_response,
+                            flags=re.IGNORECASE | re.DOTALL,
+                        )
+                        full_response = re.sub(
+                            r"Понятно\?.*?Или.*?подробнее",
                             "",
                             full_response,
                             flags=re.IGNORECASE | re.DOTALL,
                         )
                         # Оставляем только краткий ответ
-                        if len(full_response.strip()) > 100:
+                        full_response = full_response.strip()
+                        if len(full_response) > 50 or not full_response:
                             full_response = "Вот таблица умножения."
 
                     # Удаляем упоминания про "систему автоматически" и подобное
