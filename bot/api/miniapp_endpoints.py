@@ -1557,6 +1557,64 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 # Очищаем полный ответ от запрещенных символов
                 full_response = clean_ai_response(full_response)
 
+                # Проверяем, нужна ли визуализация (таблица умножения, графики)
+                visualization_image_base64 = None
+                try:
+                    import re
+
+                    from bot.services.visualization_service import get_visualization_service
+
+                    viz_service = get_visualization_service()
+
+                    # Определяем, нужна ли таблица умножения
+                    multiplication_match = re.search(
+                        r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)", user_message.lower()
+                    )
+                    if multiplication_match:
+                        number = int(multiplication_match.group(1))
+                        if 1 <= number <= 10:
+                            visualization_image = viz_service.generate_multiplication_table_image(
+                                number
+                            )
+                            if visualization_image:
+                                visualization_image_base64 = viz_service.image_to_base64(
+                                    visualization_image
+                                )
+                                logger.info(
+                                    f"📊 Stream: Сгенерирована таблица умножения на {number}"
+                                )
+
+                    # Определяем, нужен ли график функции
+                    graph_match = re.search(
+                        r"график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)", user_message.lower()
+                    )
+                    if graph_match and not visualization_image_base64:
+                        expression = graph_match.group(1).strip()
+                        # Безопасные выражения для графиков
+                        if re.match(r"^[x\s+\-*/().\d\s]+$", expression):
+                            # Заменяем x на x для numpy
+                            safe_expr = expression.replace("x", "x")
+                            visualization_image = viz_service.generate_function_graph(safe_expr)
+                            if visualization_image:
+                                visualization_image_base64 = viz_service.image_to_base64(
+                                    visualization_image
+                                )
+                                logger.info(f"📈 Stream: Сгенерирован график функции: {expression}")
+
+                except Exception as e:
+                    logger.debug(f"⚠️ Stream: Ошибка генерации визуализации: {e}")
+
+                # Отправляем изображение если есть
+                if visualization_image_base64:
+                    import json as json_lib
+
+                    image_data = json_lib.dumps(
+                        {"image": visualization_image_base64, "type": "visualization"},
+                        ensure_ascii=False,
+                    )
+                    await response.write(f"event: image\ndata: {image_data}\n\n".encode())
+                    logger.info("📊 Stream: Изображение визуализации отправлено")
+
                 # Ограничиваем размер полного ответа
                 MAX_RESPONSE_LENGTH = 4000
                 full_response_for_db = full_response
@@ -1632,6 +1690,67 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     if ai_response:
                         # Очищаем ответ
                         cleaned_response = clean_ai_response(ai_response)
+
+                        # Проверяем, нужна ли визуализация (fallback случай)
+                        visualization_image_base64 = None
+                        try:
+                            import re
+
+                            from bot.services.visualization_service import get_visualization_service
+
+                            viz_service = get_visualization_service()
+
+                            # Определяем, нужна ли таблица умножения
+                            multiplication_match = re.search(
+                                r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)", user_message.lower()
+                            )
+                            if multiplication_match:
+                                number = int(multiplication_match.group(1))
+                                if 1 <= number <= 10:
+                                    visualization_image = (
+                                        viz_service.generate_multiplication_table_image(number)
+                                    )
+                                    if visualization_image:
+                                        visualization_image_base64 = viz_service.image_to_base64(
+                                            visualization_image
+                                        )
+                                        logger.info(
+                                            f"📊 Stream: Fallback - сгенерирована таблица умножения на {number}"
+                                        )
+
+                            # Определяем, нужен ли график функции
+                            graph_match = re.search(
+                                r"график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                                user_message.lower(),
+                            )
+                            if graph_match and not visualization_image_base64:
+                                expression = graph_match.group(1).strip()
+                                if re.match(r"^[x\s+\-*/().\d\s]+$", expression):
+                                    safe_expr = expression.replace("x", "x")
+                                    visualization_image = viz_service.generate_function_graph(
+                                        safe_expr
+                                    )
+                                    if visualization_image:
+                                        visualization_image_base64 = viz_service.image_to_base64(
+                                            visualization_image
+                                        )
+                                        logger.info(
+                                            f"📈 Stream: Fallback - сгенерирован график функции: {expression}"
+                                        )
+
+                        except Exception as e:
+                            logger.debug(f"⚠️ Stream: Fallback - ошибка генерации визуализации: {e}")
+
+                        # Отправляем изображение если есть
+                        if visualization_image_base64:
+                            import json as json_lib
+
+                            image_data = json_lib.dumps(
+                                {"image": visualization_image_base64, "type": "visualization"},
+                                ensure_ascii=False,
+                            )
+                            await response.write(f"event: image\ndata: {image_data}\n\n".encode())
+                            logger.info("📊 Stream: Fallback - изображение визуализации отправлено")
 
                         # Отправляем полный ответ как один chunk
                         import json as json_lib

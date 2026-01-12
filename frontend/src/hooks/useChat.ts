@@ -23,6 +23,7 @@ export type ChatMessage = {
   role: 'user' | 'ai';
   content: string;
   timestamp: string;
+  imageUrl?: string; // URL изображения визуализации (для AI сообщений)
 };
 
 /**
