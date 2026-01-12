@@ -38,11 +38,10 @@ PandaPal is a smart assistant for children that:
 
 ## 🚀 Quick Start
 
-### 1. Clone Repository
-```bash
-git clone https://github.com/gaus-1/pandapal-bot.git
-cd pandapal-bot
-```
+### 1. View Repository
+
+**⚠️ NOTE:** This is proprietary software. Clone/download is prohibited without written permission.
+See [LICENSE](LICENSE) for details.
 
 ### 2. Install Dependencies
 ```bash
@@ -189,8 +188,6 @@ npm run lint
 
 ## 📚 Documentation
 
-- [Analytics Setup](docs/SETUP/ANALYTICS_SETUP.md)
-- [Security](docs/SECURITY/SECURITY_GUIDE.md)
 - [API Documentation](docs/api/openapi.yaml)
 - [Testing](docs/TESTING/TESTING.md)
 
@@ -201,7 +198,7 @@ Please see [LICENSE](LICENSE) for details.
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE)
+Proprietary License - see [LICENSE](LICENSE)
 
 ## 🆘 Support
 
