@@ -246,10 +246,21 @@
   <body>
     <noscript><img src="https://mc.yandex.ru/watch/104525544" style="position:absolute; left:-9999px;" alt="" /></noscript>
 
-    <!-- Яндекс.Вебмастер: Счетчик ИКС (Индекс Качества Сайта) -->
-    <a href="https://webmaster.yandex.ru/siteinfo/?site=pandapal.ru" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: block; text-decoration: none;">
-      <img width="88" height="31" alt="Индекс качества сайта" border="0" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" src="https://yandex.ru/cycounter?pandapal.ru&theme=light&lang=ru"/>
+    <!-- Яндекс.Вебмастер: Счетчик ИКС (Индекс Качества Сайта) - только на основном сайте, не в Mini App -->
+    <a href="https://webmaster.yandex.ru/siteinfo/?site=pandapal.ru" id="yandex-iks-counter" style="position: fixed; bottom: 15px; right: 15px; z-index: 1000; display: none; text-decoration: none;">
+      <img width="60" height="21" alt="Индекс качества сайта" border="0" style="border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" src="https://yandex.ru/cycounter?pandapal.ru&theme=light&lang=ru"/>
     </a>
+    <script>
+      // Показываем счетчик ИКС только на основном сайте, не в Telegram Mini App
+      (function() {
+        if (typeof window !== 'undefined' && window.location.hostname === 'pandapal.ru' && !window.location.search.includes('tgaddr')) {
+          const counter = document.getElementById('yandex-iks-counter');
+          if (counter) {
+            counter.style.display = 'block';
+          }
+        }
+      })();
+    </script>
 
     <div id="root"></div>
     <script>

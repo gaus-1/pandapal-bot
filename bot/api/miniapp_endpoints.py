@@ -1584,22 +1584,47 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     f"📊 Stream: Сгенерирована таблица умножения на {number}"
                                 )
 
-                    # Определяем, нужен ли график функции
-                    graph_match = re.search(
-                        r"график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)", user_message.lower()
-                    )
+                    # Определяем, нужен ли график функции (расширенный паттерн)
+                    graph_patterns = [
+                        r"график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                        r"нарисуй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                        r"построй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                        r"покажи\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                        r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log)",
+                    ]
+                    graph_match = None
+                    for pattern in graph_patterns:
+                        graph_match = re.search(pattern, user_message.lower())
+                        if graph_match:
+                            break
+
                     if graph_match and not visualization_image_base64:
-                        expression = graph_match.group(1).strip()
-                        # Безопасные выражения для графиков
-                        if re.match(r"^[x\s+\-*/().\d\s]+$", expression):
-                            # Заменяем x на x для numpy
-                            safe_expr = expression.replace("x", "x")
-                            visualization_image = viz_service.generate_function_graph(safe_expr)
+                        # Если это запрос на синусоиду/косинус и т.д. без конкретной формулы
+                        if re.search(
+                            r"(?:синусоид|sin|косинус|cos|тангенс|tan)", user_message.lower()
+                        ):
+                            # Генерируем стандартный график синуса
+                            visualization_image = viz_service.generate_function_graph("sin(x)")
                             if visualization_image:
                                 visualization_image_base64 = viz_service.image_to_base64(
                                     visualization_image
                                 )
-                                logger.info(f"📈 Stream: Сгенерирован график функции: {expression}")
+                                logger.info("📈 Stream: Сгенерирован график синусоиды")
+                        else:
+                            expression = (
+                                graph_match.group(1).strip() if graph_match.groups() else ""
+                            )
+                            # Безопасные выражения для графиков
+                            if expression and re.match(r"^[x\s+\-*/().\d\s]+$", expression):
+                                safe_expr = expression.replace("x", "x")
+                                visualization_image = viz_service.generate_function_graph(safe_expr)
+                                if visualization_image:
+                                    visualization_image_base64 = viz_service.image_to_base64(
+                                        visualization_image
+                                    )
+                                    logger.info(
+                                        f"📈 Stream: Сгенерирован график функции: {expression}"
+                                    )
 
                 except Exception as e:
                     logger.debug(f"⚠️ Stream: Ошибка генерации визуализации: {e}")
@@ -1718,15 +1743,42 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                             f"📊 Stream: Fallback - сгенерирована таблица умножения на {number}"
                                         )
 
-                            # Определяем, нужен ли график функции
-                            graph_match = re.search(
+                            # Определяем, нужен ли график функции (расширенный паттерн для fallback)
+                            graph_patterns = [
                                 r"график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
-                                user_message.lower(),
-                            )
+                                r"нарисуй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                                r"построй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                                r"покажи\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                                r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log)",
+                            ]
+                            graph_match = None
+                            for pattern in graph_patterns:
+                                graph_match = re.search(pattern, user_message.lower())
+                                if graph_match:
+                                    break
+
                             if graph_match and not visualization_image_base64:
-                                expression = graph_match.group(1).strip()
-                                if re.match(r"^[x\s+\-*/().\d\s]+$", expression):
-                                    safe_expr = expression.replace("x", "x")
+                                # Если это запрос на синусоиду/косинус и т.д. без конкретной формулы
+                                if re.search(
+                                    r"(?:синусоид|sin|косинус|cos|тангенс|tan)",
+                                    user_message.lower(),
+                                ):
+                                    visualization_image = viz_service.generate_function_graph(
+                                        "sin(x)"
+                                    )
+                                    if visualization_image:
+                                        visualization_image_base64 = viz_service.image_to_base64(
+                                            visualization_image
+                                        )
+                                        logger.info(
+                                            "📈 Stream: Fallback - сгенерирован график синусоиды"
+                                        )
+                                else:
+                                    expression = (
+                                        graph_match.group(1).strip() if graph_match.groups() else ""
+                                    )
+                                    if expression and re.match(r"^[x\s+\-*/().\d\s]+$", expression):
+                                        safe_expr = expression.replace("x", "x")
                                     visualization_image = viz_service.generate_function_graph(
                                         safe_expr
                                     )
