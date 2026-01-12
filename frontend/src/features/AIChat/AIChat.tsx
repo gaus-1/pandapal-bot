@@ -282,13 +282,18 @@ export function AIChat({ user }: AIChatProps) {
     }
   };
 
-  const handleCopyMessage = (content: string) => {
-    navigator.clipboard.writeText(content);
-    haptic.light();
-    telegram.showPopup({
-      message: 'Скопировано!',
-      buttons: [{ type: 'ok', text: 'OK' }],
-    });
+  const handleCopyMessage = async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      haptic.light();
+      // Используем только telegram.showPopup, без дополнительных уведомлений
+      telegram.showPopup({
+        message: 'Скопировано!',
+        buttons: [{ type: 'ok', text: 'OK' }],
+      });
+    } catch (error) {
+      console.error('Ошибка копирования:', error);
+    }
   };
 
   const handleReplyToMessage = (index: number) => {
@@ -480,16 +485,16 @@ function MessageContent({ content, role }: MessageContentProps) {
   const { summary, steps, rest } = parseAiMessage(content);
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2 sm:space-y-3">
       {summary && (
         <p className="whitespace-pre-wrap break-words font-semibold text-xs sm:text-sm leading-relaxed">
           {summary}
         </p>
       )}
       {steps.length > 0 && (
-        <ol className="list-decimal list-inside space-y-0.5 text-xs sm:text-sm leading-relaxed">
+        <ol className="list-decimal list-inside space-y-1 text-xs sm:text-sm leading-relaxed pl-2">
           {steps.map((step, index) => (
-            <li key={index} className="whitespace-pre-wrap break-words">
+            <li key={index} className="whitespace-pre-wrap break-words mb-1">
               {stripLeadingNumber(step)}
             </li>
           ))}
@@ -498,12 +503,85 @@ function MessageContent({ content, role }: MessageContentProps) {
       {rest.map(
         (paragraph, index) =>
           paragraph.trim() && (
-            <p
+            <div
               key={index}
-              className="whitespace-pre-wrap break-words text-[11px] sm:text-xs leading-relaxed opacity-90"
+              className="whitespace-pre-wrap break-words text-[11px] sm:text-xs leading-relaxed"
             >
-              {paragraph.trim()}
-            </p>
+              {/* Обработка задач с структурированным форматированием */}
+              {paragraph.includes('**Задача') || paragraph.includes('**Условие:') || paragraph.includes('**Решение:') || paragraph.includes('**Ответ:') || paragraph.includes('**Проверка:') ? (
+                <div className="space-y-3 border-l-2 border-blue-300 dark:border-blue-600 pl-3 py-2">
+                  {paragraph.split(/\n\n+/).map((section, sectionIndex) => {
+                    if (!section.trim()) return null;
+
+                    // Заголовок задачи
+                    if (section.includes('**Задача')) {
+                      const title = section.replace(/\*\*/g, '').trim();
+                      return (
+                        <h3 key={sectionIndex} className="font-bold text-sm sm:text-base text-blue-600 dark:text-blue-400 mb-2">
+                          {title}
+                        </h3>
+                      );
+                    }
+
+                    // Секции с заголовками
+                    if (section.match(/^\*\*[^*]+\*\*/)) {
+                      const parts = section.split(/(\*\*[^*]+\*\*)/);
+                      return (
+                        <div key={sectionIndex} className="space-y-1">
+                          {parts.map((part, partIndex) => {
+                            if (part.startsWith('**') && part.endsWith('**')) {
+                              const header = part.replace(/\*\*/g, '');
+                              return (
+                                <p key={partIndex} className="font-semibold text-xs sm:text-sm text-gray-800 dark:text-gray-200 mt-2 first:mt-0">
+                                  {header}
+                                </p>
+                              );
+                            } else if (part.trim()) {
+                              // Проверяем, есть ли нумерованные шаги
+                              if (/^\d+\./.test(part.trim())) {
+                                const steps = part.split(/(\d+\.\s+[^\n]+)/g).filter(s => s.trim());
+                                return (
+                                  <ol key={partIndex} className="list-decimal list-inside space-y-1 ml-2">
+                                    {steps.map((step, stepIndex) => {
+                                      const stepMatch = step.match(/^(\d+\.)\s+(.+)/);
+                                      if (stepMatch) {
+                                        return (
+                                          <li key={stepIndex} className="text-[11px] sm:text-xs leading-relaxed">
+                                            {stepMatch[2]}
+                                          </li>
+                                        );
+                                      }
+                                      return null;
+                                    })}
+                                  </ol>
+                                );
+                              }
+                              return (
+                                <p key={partIndex} className="text-[11px] sm:text-xs leading-relaxed text-gray-700 dark:text-gray-300">
+                                  {part.trim()}
+                                </p>
+                              );
+                            }
+                            return null;
+                          })}
+                        </div>
+                      );
+                    }
+
+                    // Обычный текст
+                    return (
+                      <p key={sectionIndex} className="text-[11px] sm:text-xs leading-relaxed text-gray-700 dark:text-gray-300">
+                        {section.trim()}
+                      </p>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-[11px] sm:text-xs leading-relaxed opacity-90">
+                  {paragraph.trim()}
+                </p>
+              )}
+            </div>
           ),
       )}
     </div>
@@ -515,6 +593,97 @@ function parseAiMessage(content: string): {
   steps: string[];
   rest: string[];
 } {
+  // Проверяем наличие задач
+  const taskRegex = /###Задача\s+\d+:/i;
+  const hasTasks = taskRegex.test(content);
+
+  if (hasTasks) {
+    // Разбиваем на задачи
+    const tasks = content.split(/(?=###Задача\s+\d+:)/i).filter(t => t.trim());
+    const parsedBlocks: string[] = [];
+
+    for (const task of tasks) {
+      if (!task.trim()) continue;
+
+      // Разбиваем задачу на секции
+      const sections: string[] = [];
+      let currentSection = '';
+      let currentSectionType = '';
+
+      const lines = task.split(/\r?\n/);
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        if (!line) {
+          if (currentSection) {
+            sections.push(currentSection.trim());
+            currentSection = '';
+            currentSectionType = '';
+          }
+          continue;
+        }
+
+        // Определяем тип секции
+        if (/^###Задача\s+\d+:/.test(line)) {
+          if (currentSection) sections.push(currentSection.trim());
+          currentSection = line.replace(/###/g, '**').replace(/:/g, ':**');
+          currentSectionType = 'title';
+        } else if (line.includes('**Условие:**')) {
+          // Обрабатываем случай, когда Условие на той же строке
+          const parts = line.split(/(\*\*Условие:\*\*)/);
+          if (currentSection) sections.push(currentSection.trim());
+          currentSection = parts.join('');
+          currentSectionType = 'condition';
+        } else if (line.includes('**Решение:**')) {
+          const parts = line.split(/(\*\*Решение:\*\*)/);
+          if (currentSection) sections.push(currentSection.trim());
+          currentSection = parts.join('');
+          currentSectionType = 'solution';
+        } else if (line.includes('**Ответ:**')) {
+          const parts = line.split(/(\*\*Ответ:\*\*)/);
+          if (currentSection) sections.push(currentSection.trim());
+          currentSection = parts.join('');
+          currentSectionType = 'answer';
+        } else if (line.includes('**Проверка:**')) {
+          const parts = line.split(/(\*\*Проверка:\*\*)/);
+          if (currentSection) sections.push(currentSection.trim());
+          currentSection = parts.join('');
+          currentSectionType = 'check';
+        } else if (/^Понятно\?/.test(line)) {
+          if (currentSection) sections.push(currentSection.trim());
+          currentSection = line;
+          currentSectionType = 'question';
+        } else {
+          // Продолжение текущей секции
+          if (currentSectionType === 'solution' && /^\d+\./.test(line)) {
+            // Шаг решения
+            currentSection += '\n' + line;
+          } else {
+            currentSection += (currentSection ? (currentSection.endsWith(':') ? ' ' : '\n') : '') + line;
+          }
+        }
+      }
+
+      if (currentSection) {
+        sections.push(currentSection.trim());
+      }
+
+      // Объединяем секции задачи
+      if (sections.length > 0) {
+        parsedBlocks.push(sections.join('\n\n'));
+      }
+    }
+
+    if (parsedBlocks.length > 0) {
+      return {
+        summary: null,
+        steps: [],
+        rest: parsedBlocks,
+      };
+    }
+  }
+
+  // Обычный парсинг для не-задач
   const lines = content.split(/\r?\n/);
   const summaryLines: string[] = [];
   const stepLines: string[] = [];
@@ -529,7 +698,7 @@ function parseAiMessage(content: string): {
 
     if (/^\s*\d+[.)]\s+/.test(line)) {
       stepLines.push(line.trim());
-    } else if (summaryLines.length === 0) {
+    } else if (summaryLines.length === 0 && !line.startsWith('**') && !line.startsWith('###')) {
       summaryLines.push(line.trim());
     } else {
       otherLines.push(line);

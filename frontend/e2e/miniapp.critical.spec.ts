@@ -94,7 +94,7 @@ test.describe('Mini App - Критические функции (REAL API)', () 
     // Даём разрешение на микрофон (правильный формат для Playwright)
     try {
       await context.grantPermissions(['microphone']);
-    } catch (e) {
+    } catch {
       // Игнорируем ошибку если разрешение не поддерживается (например, в мобильном эмуляторе)
       console.log('Microphone permission not supported in this context');
     }
