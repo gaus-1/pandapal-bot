@@ -8,12 +8,110 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Mini App - Критические функции (REAL API)', () => {
 
-  test.beforeEach(async ({ page }) => {
-    // Открываем Mini App напрямую (в продакшене)
-    await page.goto('/');
+  test.beforeEach(async ({ page, context }) => {
+    // Эмулируем Telegram Mini App контекст
+    await context.addInitScript(() => {
+      // Создаём полноценный мок Telegram WebApp API
+      const mockInitData = 'query_id=AAHdF6IQAAAAAN0XohDhrOrc&user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22Test%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22testuser%22%2C%22language_code%22%3A%22ru%22%7D&auth_date=1234567890&hash=test_hash';
 
-    // Ждём загрузки приложения
+      (window as Window & { Telegram?: unknown }).Telegram = {
+        WebApp: {
+          initData: mockInitData,
+          initDataUnsafe: {
+            user: {
+              id: 123456789,
+              first_name: 'Test',
+              last_name: 'User',
+              username: 'testuser',
+              language_code: 'ru',
+              is_premium: false,
+            },
+            auth_date: 1234567890,
+            hash: 'test_hash',
+            start_param: null,
+          },
+          version: '7.0',
+          platform: 'web',
+          colorScheme: 'light' as const,
+          themeParams: {
+            bg_color: '#ffffff',
+            text_color: '#000000',
+            hint_color: '#999999',
+            link_color: '#0088cc',
+            button_color: '#0088cc',
+            button_text_color: '#ffffff',
+            secondary_bg_color: '#f4f4f4',
+          },
+          isExpanded: true,
+          viewportHeight: 600,
+          viewportStableHeight: 600,
+          headerColor: '#ffffff',
+          backgroundColor: '#ffffff',
+          isClosingConfirmationEnabled: false,
+          isVerticalSwipesEnabled: false,
+          ready: () => {},
+          expand: () => {},
+          close: () => {},
+          MainButton: {
+            text: '',
+            color: '#0088cc',
+            textColor: '#ffffff',
+            isVisible: false,
+            isActive: true,
+            isProgressVisible: false,
+            setText: () => {},
+            show: () => {},
+            hide: () => {},
+            enable: () => {},
+            disable: () => {},
+            showProgress: () => {},
+            hideProgress: () => {},
+            setParams: () => {},
+            onClick: () => {},
+            offClick: () => {},
+          },
+          BackButton: {
+            isVisible: false,
+            show: () => {},
+            hide: () => {},
+            onClick: () => {},
+            offClick: () => {},
+          },
+          HapticFeedback: {
+            impactOccurred: () => {},
+            notificationOccurred: () => {},
+            selectionChanged: () => {},
+          },
+          showPopup: (params: { message?: string; title?: string; buttons?: Array<{ id?: string; text?: string; type?: string }> }, callback?: (id?: string) => void) => {
+            if (callback) callback('ok');
+          },
+          showAlert: (message: string, callback?: () => void) => {
+            if (callback) callback();
+          },
+          showConfirm: (message: string, callback?: (confirmed: boolean) => void) => {
+            if (callback) callback(true);
+          },
+          openLink: () => {},
+          openTelegramLink: () => {},
+          sendData: () => {},
+          isVersionAtLeast: () => true,
+        },
+      };
+    });
+
+    // Устанавливаем User Agent для имитации Telegram
+    await context.setExtraHTTPHeaders({
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Telegram/10.0.0',
+    });
+
+    // Открываем Mini App с параметром tgaddr (имитация Telegram)
+    await page.goto('/?tgaddr=test');
+
+    // Ждём загрузки приложения и инициализации Telegram контекста
     await page.waitForLoadState('networkidle');
+
+    // Дополнительная задержка для инициализации React и Telegram SDK
+    await page.waitForTimeout(1000);
   });
 
   test('1. CRITICAL: AI должен отвечать на РЕАЛЬНЫЙ текст через Yandex GPT', async ({ page }) => {

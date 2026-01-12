@@ -35,6 +35,9 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
 
+  // Глобальная настройка для эмуляции Telegram Mini App
+  globalSetup: undefined, // Можно добавить setup скрипт если нужно
+
   projects: [
     {
       name: 'chromium',

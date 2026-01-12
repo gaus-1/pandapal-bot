@@ -43,6 +43,7 @@ export class TelegramService {
       console.log("📦 Версия:", this.webApp.version);
       console.log("🌓 Тема:", this.webApp.colorScheme);
       console.log("🔐 InitData длина:", this.webApp.initData?.length || 0);
+      console.log("🔑 InitData (полный):", this.webApp.initData);
       console.log("👤 Пользователь:", this.webApp.initDataUnsafe.user);
 
       // Проверка доступности initData (только если точно в Telegram)
