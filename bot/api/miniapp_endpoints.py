@@ -1916,22 +1916,32 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                             # Удаляем дублирование: если есть визуализация, убираем текст таблицы/графика из ответа
                             if multiplication_number_fallback:
-                                # Удаляем текст таблицы умножения из ответа
+                                # Удаляем ВСЕ варианты текста таблицы умножения (более агрессивный паттерн)
                                 multiplication_text_pattern = re.compile(
-                                    r"(?:\d+\s*[×x*]\s*\d+\s*=\s*\d+[,\s]*)+", re.IGNORECASE
+                                    r"\d+\s*[×x*]\s*\d+\s*=\s*\d+", re.IGNORECASE
                                 )
+                                # Удаляем все вхождения таблицы умножения
                                 cleaned_response = multiplication_text_pattern.sub(
                                     "", cleaned_response
                                 )
-                                # Удаляем фразы про таблицу умножения
+                                # Удаляем множественные пробелы и переносы строк
+                                cleaned_response = re.sub(r"\s+", " ", cleaned_response)
+                                # Удаляем фразы про таблицу умножения и "Понятно?"
                                 cleaned_response = re.sub(
-                                    r"табл[иы]ц[аеы]?\s*умножени[яе].*?(?:Понятно|$)",
+                                    r"табл[иы]ц[аеы]?\s*умножени[яе].*?(?:Понятно|Или|$)",
+                                    "",
+                                    cleaned_response,
+                                    flags=re.IGNORECASE | re.DOTALL,
+                                )
+                                cleaned_response = re.sub(
+                                    r"Понятно\?.*?Или.*?подробнее",
                                     "",
                                     cleaned_response,
                                     flags=re.IGNORECASE | re.DOTALL,
                                 )
                                 # Оставляем только краткий ответ
-                                if len(cleaned_response.strip()) > 100:
+                                cleaned_response = cleaned_response.strip()
+                                if len(cleaned_response) > 50 or not cleaned_response:
                                     cleaned_response = "Вот таблица умножения."
 
                             # Удаляем упоминания про "систему автоматически" и подобное
