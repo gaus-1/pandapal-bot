@@ -1558,6 +1558,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 full_response = clean_ai_response(full_response)
 
                 # Проверяем, нужна ли визуализация (таблица умножения, графики)
+                # Проверяем и в запросе пользователя, и в ответе AI
                 visualization_image_base64 = None
                 try:
                     import re
@@ -1566,23 +1567,49 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                     viz_service = get_visualization_service()
 
-                    # Определяем, нужна ли таблица умножения
-                    multiplication_match = re.search(
-                        r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)", user_message.lower()
-                    )
-                    if multiplication_match:
-                        number = int(multiplication_match.group(1))
-                        if 1 <= number <= 10:
-                            visualization_image = viz_service.generate_multiplication_table_image(
-                                number
+                    # Определяем, нужна ли таблица умножения (расширенные паттерны)
+                    # Проверяем в запросе пользователя И в ответе AI
+                    multiplication_patterns = [
+                        r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)",  # "таблица умножения на 5"
+                        r"табл[иы]ц[аеы]?\s*умножени[яе]\s+(\d+)",  # "таблица умножения 5"
+                        r"умножени[яе]\s+на\s*(\d+)",  # "умножение на 5"
+                        r"умнож[а-я]*\s+(\d+)",  # "умнож на 5", "умножить 5"
+                    ]
+                    multiplication_match = None
+                    multiplication_number = None
+                    # Сначала проверяем запрос пользователя
+                    for pattern in multiplication_patterns:
+                        multiplication_match = re.search(pattern, user_message.lower())
+                        if multiplication_match:
+                            try:
+                                multiplication_number = int(multiplication_match.group(1))
+                                if 1 <= multiplication_number <= 10:
+                                    break
+                            except (ValueError, IndexError):
+                                continue
+                    # Если не нашли в запросе, проверяем ответ AI
+                    if not multiplication_number:
+                        for pattern in multiplication_patterns:
+                            multiplication_match = re.search(pattern, full_response.lower())
+                            if multiplication_match:
+                                try:
+                                    multiplication_number = int(multiplication_match.group(1))
+                                    if 1 <= multiplication_number <= 10:
+                                        break
+                                except (ValueError, IndexError):
+                                    continue
+
+                    if multiplication_number:
+                        visualization_image = viz_service.generate_multiplication_table_image(
+                            multiplication_number
+                        )
+                        if visualization_image:
+                            visualization_image_base64 = viz_service.image_to_base64(
+                                visualization_image
                             )
-                            if visualization_image:
-                                visualization_image_base64 = viz_service.image_to_base64(
-                                    visualization_image
-                                )
-                                logger.info(
-                                    f"📊 Stream: Сгенерирована таблица умножения на {number}"
-                                )
+                            logger.info(
+                                f"📊 Stream: Сгенерирована таблица умножения на {multiplication_number}"
+                            )
 
                     # Определяем, нужен ли график функции (расширенный паттерн)
                     graph_patterns = [
