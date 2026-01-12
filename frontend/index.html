@@ -123,6 +123,14 @@
     <!-- Yandex Webmaster -->
     <meta name="yandex-verification" content="3f9e35f6d79cfb2f" />
 
+    <!-- Географическая привязка (Россия, Санкт-Петербург) -->
+    <meta name="geo.region" content="RU-SPE" />
+    <meta name="geo.placename" content="Санкт-Петербург" />
+    <meta name="geo.position" content="59.934280;30.335098" />
+    <meta name="ICBM" content="59.934280, 30.335098" />
+    <meta name="geo.region" content="RU" />
+    <meta name="geo.country" content="RU" />
+
     <!-- Structured Data (JSON-LD) - Russian -->
     <script type="application/ld+json">
     {
@@ -164,6 +172,21 @@
       "url": "https://pandapal.ru",
       "logo": "https://pandapal.ru/logo.png",
       "description": "Безопасный ИИ-друг для детей 1-9 классов. Telegram Mini App с YandexGPT для помощи с уроками.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "RU",
+        "addressRegion": "Санкт-Петербург",
+        "addressLocality": "Санкт-Петербург"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "59.934280",
+        "longitude": "30.335098"
+      },
+      "areaServed": {
+        "@type": "Country",
+        "name": "Россия"
+      },
       "sameAs": [
         "https://t.me/PandaPalBot"
       ],
@@ -222,6 +245,12 @@
   </head>
   <body>
     <noscript><img src="https://mc.yandex.ru/watch/104525544" style="position:absolute; left:-9999px;" alt="" /></noscript>
+
+    <!-- Яндекс.Вебмастер: Счетчик ИКС (Индекс Качества Сайта) -->
+    <a href="https://webmaster.yandex.ru/siteinfo/?site=pandapal.ru" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: block; text-decoration: none;">
+      <img width="88" height="31" alt="Индекс качества сайта" border="0" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" src="https://yandex.ru/cycounter?pandapal.ru&theme=light&lang=ru"/>
+    </a>
+
     <div id="root"></div>
     <script>
       // РАННЕЕ подавление ошибок Telegram WebView (до загрузки React)
