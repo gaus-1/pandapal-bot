@@ -1752,23 +1752,40 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                             viz_service = get_visualization_service()
 
-                            # Определяем, нужна ли таблица умножения
-                            multiplication_match = re.search(
-                                r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)", user_message.lower()
-                            )
-                            if multiplication_match:
-                                number = int(multiplication_match.group(1))
-                                if 1 <= number <= 10:
-                                    visualization_image = (
-                                        viz_service.generate_multiplication_table_image(number)
+                            # Определяем, нужна ли таблица умножения (расширенные паттерны для fallback)
+                            combined_text_fallback = f"{user_message} {cleaned_response}".lower()
+                            multiplication_patterns_fallback = [
+                                r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)",
+                                r"табл[иы]ц[аеы]?\s*умножени[яе]\s+(\d+)",
+                                r"умножени[яе]\s+на\s*(\d+)",
+                                r"умнож[а-я]*\s+(\d+)",
+                            ]
+                            multiplication_number_fallback = None
+                            for pattern in multiplication_patterns_fallback:
+                                multiplication_match = re.search(pattern, combined_text_fallback)
+                                if multiplication_match:
+                                    try:
+                                        multiplication_number_fallback = int(
+                                            multiplication_match.group(1)
+                                        )
+                                        if 1 <= multiplication_number_fallback <= 10:
+                                            break
+                                    except (ValueError, IndexError):
+                                        continue
+
+                            if multiplication_number_fallback:
+                                visualization_image = (
+                                    viz_service.generate_multiplication_table_image(
+                                        multiplication_number_fallback
                                     )
-                                    if visualization_image:
-                                        visualization_image_base64 = viz_service.image_to_base64(
-                                            visualization_image
-                                        )
-                                        logger.info(
-                                            f"📊 Stream: Fallback - сгенерирована таблица умножения на {number}"
-                                        )
+                                )
+                                if visualization_image:
+                                    visualization_image_base64 = viz_service.image_to_base64(
+                                        visualization_image
+                                    )
+                                    logger.info(
+                                        f"📊 Stream: Fallback - сгенерирована таблица умножения на {multiplication_number_fallback}"
+                                    )
 
                             # Определяем, нужен ли график функции (расширенный паттерн для fallback)
                             graph_patterns = [
