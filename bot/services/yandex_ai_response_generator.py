@@ -17,10 +17,10 @@ from bot.services.prompt_builder import get_prompt_builder
 from bot.services.yandex_cloud_service import get_yandex_cloud_service
 
 
-def remove_duplicate_text(text: str, min_length: int = 30) -> str:
+def remove_duplicate_text(text: str, min_length: int = 20) -> str:
     """
     Удаляет повторяющиеся фрагменты текста (дубликаты).
-    Улучшенная версия для агрессивного удаления повторений.
+    Агрессивная версия для полного удаления всех повторений.
 
     Args:
         text: Исходный текст
@@ -32,54 +32,81 @@ def remove_duplicate_text(text: str, min_length: int = 30) -> str:
     if not text or len(text) < min_length * 2:
         return text
 
-    # Сначала проверяем, не повторяется ли весь текст целиком
+    # Шаг 1: Проверяем, не повторяется ли весь текст целиком несколько раз
     text_len = len(text)
     if text_len > min_length * 3:
-        # Разбиваем на части и проверяем повторения
-        parts = [text[i : i + text_len // 3] for i in range(0, text_len, text_len // 3)]
+        # Разбиваем на 3 части и проверяем
+        part_size = text_len // 3
+        parts = [text[i : i + part_size] for i in range(0, text_len, part_size)]
         if len(parts) >= 2:
             normalized_parts = [re.sub(r"\s+", " ", p.lower().strip()) for p in parts[:3]]
-            # Если первые две части одинаковые - оставляем только первую
-            if len(normalized_parts) >= 2 and normalized_parts[0] == normalized_parts[1]:
+            # Если все части одинаковые - оставляем только первую
+            if len(normalized_parts) >= 2 and all(
+                p == normalized_parts[0] for p in normalized_parts[1:] if len(p) >= min_length
+            ):
                 return parts[0].strip()
 
-    # Разбиваем текст на абзацы (по двойным переносам строк)
-    paragraphs = re.split(r"\n\n+", text)
+    # Шаг 2: Разбиваем на строки (по переносам)
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
 
-    # Если абзацев мало, разбиваем по одинарным переносам
-    if len(paragraphs) < 3:
-        paragraphs = re.split(r"\n+", text)
-
-    if len(paragraphs) < 2:
+    if len(lines) < 2:
         return text
 
-    # Удаляем дубликаты абзацев
-    seen_paragraphs = set()
-    unique_paragraphs = []
+    # Шаг 3: Удаляем дубликаты строк
+    seen_lines = set()
+    unique_lines = []
 
-    for para in paragraphs:
-        para = para.strip()
-        if not para:
-            continue
+    for line in lines:
+        # Нормализуем для сравнения
+        normalized = re.sub(r"\s+", " ", line.lower().strip())
 
-        # Нормализуем для сравнения (убираем лишние пробелы, приводим к нижнему регистру)
-        normalized = re.sub(r"\s+", " ", para.lower().strip())
-
-        # Проверяем только достаточно длинные абзацы
+        # Проверяем дубликаты
         if len(normalized) >= min_length:
-            if normalized not in seen_paragraphs:
-                seen_paragraphs.add(normalized)
-                unique_paragraphs.append(para)
+            if normalized not in seen_lines:
+                seen_lines.add(normalized)
+                unique_lines.append(line)
         else:
-            # Короткие абзацы добавляем всегда (могут быть важными)
-            unique_paragraphs.append(para)
+            # Короткие строки проверяем на точное совпадение
+            if line not in unique_lines:
+                unique_lines.append(line)
 
-    # Объединяем обратно
-    result = "\n\n".join(unique_paragraphs)
+    result = "\n".join(unique_lines)
 
-    # Дополнительная проверка: ищем повторяющиеся предложения внутри абзацев
+    # Шаг 4: Проверяем повторяющиеся блоки (несколько строк подряд)
+    if len(unique_lines) >= 4:
+        # Ищем блоки из 2-5 строк, которые повторяются
+        seen_blocks = set()
+        final_lines = []
+        i = 0
+
+        while i < len(unique_lines):
+            # Проверяем блоки разной длины
+            found_duplicate = False
+            for block_len in range(5, 1, -1):  # От 5 до 2 строк
+                if i + block_len > len(unique_lines):
+                    continue
+
+                block = "\n".join(unique_lines[i : i + block_len])
+                normalized_block = re.sub(r"\s+", " ", block.lower().strip())
+
+                if len(normalized_block) >= min_length * 2:
+                    if normalized_block in seen_blocks:
+                        # Пропускаем весь блок
+                        i += block_len
+                        found_duplicate = True
+                        break
+                    else:
+                        seen_blocks.add(normalized_block)
+
+            if not found_duplicate:
+                final_lines.append(unique_lines[i])
+                i += 1
+
+        result = "\n".join(final_lines)
+
+    # Шаг 5: Финальная проверка - удаляем повторяющиеся предложения
     sentences = re.split(r"([.!?]\s+)", result)
-    if len(sentences) >= 6:
+    if len(sentences) >= 4:
         seen_sentences = set()
         unique_sentences = []
 
@@ -92,10 +119,9 @@ def remove_duplicate_text(text: str, min_length: int = 30) -> str:
                 if normalized_sent not in seen_sentences:
                     seen_sentences.add(normalized_sent)
                     unique_sentences.append(sentence)
-                i += 2
             else:
                 unique_sentences.append(sentence)
-                i += 2
+            i += 2
 
         result = "".join(unique_sentences)
 
@@ -111,13 +137,15 @@ def clean_ai_response(text: str) -> str:
     if not text:
         return text
 
-    # Сначала удаляем дубликаты (более агрессивно)
-    text = remove_duplicate_text(text, min_length=30)
+    # Сначала удаляем дубликаты (более агрессивно, минимальная длина 20)
+    text = remove_duplicate_text(text, min_length=20)
 
     # Исправляем форматирование таблицы умножения
-    # Заменяем "3 3 = 9" на "3 × 3 = 9"
-    text = re.sub(r"(\d+)\s+(\d+)\s*=\s*(\d+)", r"\1 × \2 = \3", text)
-    # Заменяем "3*3=9" на "3 × 3 = 9"
+    # Паттерн 1: "1. 3 1 = 3" → "1. 3 × 1 = 3" (нумерованные списки - сначала обрабатываем их)
+    text = re.sub(r"(\d+\.\s+)(\d+)\s+(\d+)\s*=\s*(\d+)", r"\1\2 × \3 = \4", text)
+    # Паттерн 2: "3 1 = 3" → "3 × 1 = 3" (обычные выражения, но не если перед первым числом есть точка)
+    text = re.sub(r"(?<!\d\.\s)(?<!\d\.)(\d+)\s+(\d+)\s*=\s*(\d+)", r"\1 × \2 = \3", text)
+    # Паттерн 3: "3*3=9" → "3 × 3 = 9"
     text = re.sub(r"(\d+)\*(\d+)\s*=\s*(\d+)", r"\1 × \2 = \3", text)
 
     # Убираем знак доллара (ограничители формул в Telegram/Markdown)
