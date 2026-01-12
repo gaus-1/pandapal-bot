@@ -334,7 +334,7 @@ class PaymentService:
                     "value": float(payment.amount.value),
                     "currency": payment.amount.currency,
                 },
-                "payment_metadata": payment.payment_metadata or {},
+                "payment_metadata": getattr(payment, "payment_metadata", None) or {},
             }
 
         except TimeoutError:
