@@ -19,8 +19,8 @@ test.describe('Mini App - Критические функции (REAL API)', () 
   test('1. CRITICAL: AI должен отвечать на РЕАЛЬНЫЙ текст через Yandex GPT', async ({ page }) => {
     test.setTimeout(60000); // 60 секунд для реального API
 
-    // Ждём загрузки Mini App
-    await expect(page.locator('text=PandaPal AI')).toBeVisible({ timeout: 10000 });
+    // Ждём загрузки Mini App (проверяем поле ввода или заголовок)
+    await expect(page.locator('textarea[placeholder*="Задай вопрос"]')).toBeVisible({ timeout: 10000 });
 
     // Находим поле ввода
     const input = page.locator('textarea[placeholder*="Задай вопрос"]');
@@ -30,8 +30,8 @@ test.describe('Mini App - Критические функции (REAL API)', () 
     const testQuestion = 'Реши уравнение: 2x + 5 = 13. Напиши только ответ x = ?';
     await input.fill(testQuestion);
 
-    // Находим и кликаем кнопку отправки
-    const sendButton = page.locator('button[title*="Отправить сообщение"]');
+    // Находим и кликаем кнопку отправки (по иконке ▶️ или по наличию текста в input)
+    const sendButton = page.locator('button:has-text("▶️"), button:has([aria-label*="Отправить"])').first();
     await expect(sendButton).toBeVisible();
     await sendButton.click();
 
@@ -54,7 +54,7 @@ test.describe('Mini App - Критические функции (REAL API)', () 
   test('2. CRITICAL: AI должен анализировать РЕАЛЬНОЕ фото через Yandex Vision', async ({ page }) => {
     test.setTimeout(90000); // 90 секунд для Vision API
 
-    await expect(page.locator('text=PandaPal AI')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('textarea[placeholder*="Задай вопрос"]')).toBeVisible({ timeout: 10000 });
 
     // Находим скрытый input для фото
     const fileInput = page.locator('input[type="file"]');
@@ -91,17 +91,22 @@ test.describe('Mini App - Критические функции (REAL API)', () 
   test('3. CRITICAL: AI должен распознавать РЕАЛЬНОЕ аудио через Yandex SpeechKit', async ({ page, context }) => {
     test.setTimeout(90000); // 90 секунд для SpeechKit
 
-    // Даём разрешение на микрофон
-    await context.grantPermissions(['microphone']);
+    // Даём разрешение на микрофон (правильный формат для Playwright)
+    try {
+      await context.grantPermissions(['microphone']);
+    } catch (e) {
+      // Игнорируем ошибку если разрешение не поддерживается (например, в мобильном эмуляторе)
+      console.log('Microphone permission not supported in this context');
+    }
 
-    await expect(page.locator('text=PandaPal AI')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('textarea[placeholder*="Задай вопрос"]')).toBeVisible({ timeout: 10000 });
 
     // Проверяем что поле ввода пустое (чтобы показалась кнопка записи)
     const input = page.locator('textarea[placeholder*="Задай вопрос"]');
     await expect(input).toHaveValue('');
 
-    // Находим кнопку записи аудио (показывается когда input пустой)
-    const recordButton = page.locator('button[title*="Записать голосовое"]');
+    // Находим кнопку записи аудио (показывается когда input пустой, иконка 🎤)
+    const recordButton = page.locator('button:has-text("🎤")').first();
     await expect(recordButton).toBeVisible();
 
     // КРИТИЧНО: Для реального теста нужен реальный аудио файл
@@ -121,10 +126,10 @@ test.describe('Mini App - Критические функции (REAL API)', () 
   });
 
   test('4. CRITICAL: Emergency номера должны быть кликабельны', async ({ page }) => {
-    await expect(page.locator('text=PandaPal AI')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('textarea[placeholder*="Задай вопрос"]')).toBeVisible({ timeout: 10000 });
 
-    // Переходим на экран Emergency
-    const sosButton = page.locator('button:has-text("SOS")');
+    // Переходим на экран Emergency (кнопка с иконкой 🚨)
+    const sosButton = page.locator('button:has-text("🚨")').first();
     await expect(sosButton).toBeVisible();
     await sosButton.click();
 
@@ -148,17 +153,17 @@ test.describe('Mini App - Критические функции (REAL API)', () 
   });
 
   test('5. CRITICAL: Навигация между экранами должна работать', async ({ page }) => {
-    await expect(page.locator('text=PandaPal AI')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('textarea[placeholder*="Задай вопрос"]')).toBeVisible({ timeout: 10000 });
 
     // Проверяем что по умолчанию AI Chat
     await expect(page.locator('textarea[placeholder*="Задай вопрос"]')).toBeVisible();
 
-    // Переходим на Emergency
-    await page.locator('button:has-text("SOS")').click();
+    // Переходим на Emergency (кнопка с иконкой 🚨)
+    await page.locator('button:has-text("🚨")').first().click();
     await expect(page.locator('text=/Экстренные номера/i')).toBeVisible({ timeout: 3000 });
 
-    // Возвращаемся на AI Chat
-    await page.locator('button:has-text("Panda чат")').click();
+    // Возвращаемся на AI Chat (кнопка "Чат" в навигации)
+    await page.locator('button:has-text("Чат")').first().click();
     await expect(page.locator('textarea[placeholder*="Задай вопрос"]')).toBeVisible({ timeout: 3000 });
 
     console.log('✅ Навигация работает корректно.');
@@ -171,13 +176,15 @@ test.describe('Mini App - История чата (REAL API)', () => {
     test.setTimeout(60000);
 
     await page.goto('/');
-    await expect(page.locator('text=PandaPal AI')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('textarea[placeholder*="Задай вопрос"]')).toBeVisible({ timeout: 10000 });
 
     // Отправляем сообщение
     const input = page.locator('textarea[placeholder*="Задай вопрос"]');
     const testMessage = `Тест ${Date.now()}: Привет!`;
     await input.fill(testMessage);
-    await page.locator('button[title*="Отправить сообщение"]').click();
+    const sendButton = page.locator('button:has-text("▶️")').first();
+    await expect(sendButton).toBeVisible();
+    await sendButton.click();
 
     // Проверяем что сообщение появилось
     await expect(page.locator(`text="${testMessage}"`)).toBeVisible({ timeout: 5000 });
@@ -187,7 +194,7 @@ test.describe('Mini App - История чата (REAL API)', () => {
 
     // Перезагружаем страницу
     await page.reload();
-    await expect(page.locator('text=PandaPal AI')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('textarea[placeholder*="Задай вопрос"]')).toBeVisible({ timeout: 10000 });
 
     // КРИТИЧНО: История должна загрузиться
     await expect(page.locator(`text="${testMessage}"`)).toBeVisible({ timeout: 10000 });
@@ -207,7 +214,9 @@ test.describe('Mini App - Error Handling (REAL scenarios)', () => {
     // Пытаемся отправить сообщение
     const input = page.locator('textarea[placeholder*="Задай вопрос"]');
     await input.fill('Тест ошибки');
-    await page.locator('button[title*="Отправить сообщение"]').click();
+    const sendButton = page.locator('button:has-text("▶️")').first();
+    await expect(sendButton).toBeVisible();
+    await sendButton.click();
 
     // Должна показаться ошибка (не просто зависание!)
     // Проверяем через console или UI feedback

@@ -170,13 +170,13 @@ class TestErrorHandlingE2E:
             mock_get_db.return_value.__exit__.return_value = None
 
             # Мокаем только SpeechKit чтобы эмулировать ошибку
-            with patch("bot.api.miniapp_endpoints.SpeechService") as mock_speech:
+            with patch("bot.api.miniapp_endpoints.get_speech_service") as mock_get_speech:
                 mock_speech_service = AsyncMock()
                 # Эмулируем ошибку SpeechKit
                 mock_speech_service.transcribe_voice = AsyncMock(
                     side_effect=Exception("SpeechKit API недоступен")
                 )
-                mock_speech.return_value = mock_speech_service
+                mock_get_speech.return_value = mock_speech_service
 
                 # Выполняем запрос - РЕАЛЬНАЯ БД, РЕАЛЬНАЯ модерация
                 response = await miniapp_ai_chat(request)
