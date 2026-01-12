@@ -4,15 +4,13 @@
 """
 
 import asyncio
-from datetime import datetime, time, timedelta
-from typing import Dict, List, Optional
+from datetime import datetime, timedelta
 
 from aiogram import Bot
 from loguru import logger
-from sqlalchemy import and_, select
-from sqlalchemy.orm import Session
+from sqlalchemy import and_, func, select
 
-from bot.models import ChatHistory, User
+from bot.models import User
 
 
 class SimpleEngagementService:
@@ -22,7 +20,6 @@ class SimpleEngagementService:
         """Инициализация сервиса"""
         self.bot = bot
         self.is_running = False
-        self.last_reminder_sent: Dict[int, datetime] = {}  # telegram_id -> datetime
         logger.info("✅ Simple Engagement Service инициализирован")
 
     async def start(self):
@@ -60,45 +57,84 @@ class SimpleEngagementService:
         """Отправка еженедельных напоминаний"""
         try:
             from bot.database import get_db
+            from bot.services.analytics_service import AnalyticsService
 
             with next(get_db()) as db:
                 # Находим неактивных пользователей (7 дней без сообщений)
                 week_ago = datetime.now() - timedelta(days=7)
+
+                # Проверяем, что напоминание не отправлялось в последние 6 дней
+                # (чтобы не спамить, но можно отправить снова через неделю)
+                reminder_threshold = datetime.now() - timedelta(days=6)
 
                 inactive_users = db.scalars(
                     select(User).where(
                         and_(
                             User.is_active.is_(True),
                             User.last_activity < week_ago,
-                            User.telegram_id.notin_(self.last_reminder_sent.keys()),
+                            # Либо напоминание не отправлялось, либо прошло больше 6 дней
+                            (
+                                (User.reminder_sent_at.is_(None))
+                                | (User.reminder_sent_at < reminder_threshold)
+                            ),
                         )
                     )
                 ).all()
 
                 sent_count = 0
+                failed_count = 0
+                analytics_service = AnalyticsService(db)
+
                 for user in inactive_users:
                     try:
                         message = self._get_reminder_message(user.age)
                         await self.bot.send_message(chat_id=user.telegram_id, text=message)
 
-                        self.last_reminder_sent[user.telegram_id] = datetime.now()
+                        # Обновляем дату отправки напоминания в БД
+                        user.reminder_sent_at = datetime.now()
+                        db.flush()
+
+                        # Записываем метрику
+                        analytics_service.record_education_metric(
+                            metric_name="weekly_reminder_sent",
+                            value=1.0,
+                            user_telegram_id=user.telegram_id,
+                        )
+
                         sent_count += 1
+                        logger.info(
+                            f"📧 Отправлено напоминание пользователю {user.telegram_id} ({user.first_name})"
+                        )
 
                         # Пауза между сообщениями
                         await asyncio.sleep(1)
 
                     except Exception as e:
+                        failed_count += 1
                         logger.error(
                             f"❌ Ошибка отправки напоминания пользователю {user.telegram_id}: {e}"
                         )
 
-                if sent_count > 0:
-                    logger.info(f"📧 Отправлено {sent_count} напоминаний")
+                # Записываем общую метрику
+                if sent_count > 0 or failed_count > 0:
+                    analytics_service.record_technical_metric(
+                        metric_name="weekly_reminders_campaign",
+                        value=sent_count,
+                        tags={
+                            "total_found": len(inactive_users),
+                            "sent": sent_count,
+                            "failed": failed_count,
+                        },
+                    )
+                    logger.info(
+                        f"📧 Еженедельная кампания завершена: найдено {len(inactive_users)} неактивных, "
+                        f"отправлено {sent_count}, ошибок {failed_count}"
+                    )
 
         except Exception as e:
-            logger.error(f"❌ Ошибка отправки напоминаний: {e}")
+            logger.error(f"❌ Ошибка отправки напоминаний: {e}", exc_info=True)
 
-    def _get_reminder_message(self, user_age: Optional[int]) -> str:
+    def _get_reminder_message(self, user_age: int | None) -> str:
         """Получение сообщения напоминания в зависимости от возраста"""
         if user_age and user_age <= 8:
             return (
@@ -122,7 +158,7 @@ class SimpleEngagementService:
                 "Напиши /start для продолжения! ✨"
             )
 
-    async def send_immediate_reminder(self, telegram_id: int, user_age: Optional[int] = None):
+    async def send_immediate_reminder(self, telegram_id: int, user_age: int | None = None):
         """Отправка немедленного напоминания"""
         try:
             message = self._get_reminder_message(user_age)
@@ -133,11 +169,35 @@ class SimpleEngagementService:
 
     def get_stats(self) -> dict:
         """Получение статистики сервиса"""
-        return {
-            "is_running": self.is_running,
-            "reminders_sent": len(self.last_reminder_sent),
-            "last_reminders": list(self.last_reminder_sent.keys())[-5:],  # Последние 5
-        }
+        try:
+            from bot.database import get_db
+
+            with next(get_db()) as db:
+                # Подсчитываем пользователей с отправленными напоминаниями
+                week_ago = datetime.now() - timedelta(days=7)
+                total_with_reminders = (
+                    db.scalar(
+                        select(func.count(User.id)).where(
+                            and_(
+                                User.reminder_sent_at.isnot(None),
+                                User.reminder_sent_at >= week_ago,
+                            )
+                        )
+                    )
+                    or 0
+                )
+
+                return {
+                    "is_running": self.is_running,
+                    "reminders_sent_last_week": total_with_reminders,
+                }
+        except Exception as e:
+            logger.error(f"❌ Ошибка получения статистики: {e}")
+            return {
+                "is_running": self.is_running,
+                "reminders_sent_last_week": 0,
+                "error": str(e),
+            }
 
 
 # Глобальный экземпляр
