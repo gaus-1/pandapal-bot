@@ -261,9 +261,9 @@
                              (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp);
 
             if (isMiniApp) {
-              // В Mini App - позиционируем под нижней навигацией (примерно 70px от низа)
+              // В Mini App - позиционируем ПОД нижними кнопками навигации (примерно 120px от низа)
               counter.style.display = 'block';
-              counter.style.bottom = '70px'; // Под навигацией
+              counter.style.bottom = '120px'; // Под кнопками навигации (Достижения, PandaPalGo, Premium)
               counter.style.left = '10px';
             } else {
               // На основном сайте - в левом нижнем углу
