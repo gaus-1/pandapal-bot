@@ -1617,7 +1617,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         r"нарисуй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
                         r"построй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
                         r"покажи\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
-                        r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log)",
+                        r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол)",
                     ]
                     graph_match = None
                     for pattern in graph_patterns:
@@ -1626,10 +1626,8 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             break
 
                     if graph_match and not visualization_image_base64:
-                        # Если это запрос на синусоиду/косинус и т.д. без конкретной формулы
-                        if re.search(
-                            r"(?:синусоид|sin|косинус|cos|тангенс|tan)", user_message.lower()
-                        ):
+                        # Если это запрос на синусоиду/косинус/параболу и т.д. без конкретной формулы
+                        if re.search(r"(?:синусоид|sin)", user_message.lower()):
                             # Генерируем стандартный график синуса
                             visualization_image = viz_service.generate_function_graph("sin(x)")
                             if visualization_image:
@@ -1637,21 +1635,41 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     visualization_image
                                 )
                                 logger.info("📈 Stream: Сгенерирован график синусоиды")
+                        elif re.search(r"(?:косинус|cos)", user_message.lower()):
+                            visualization_image = viz_service.generate_function_graph("cos(x)")
+                            if visualization_image:
+                                visualization_image_base64 = viz_service.image_to_base64(
+                                    visualization_image
+                                )
+                                logger.info("📈 Stream: Сгенерирован график косинуса")
+                        elif re.search(r"(?:парабол)", user_message.lower()):
+                            # Парабола y = x^2
+                            visualization_image = viz_service.generate_function_graph("x**2")
+                            if visualization_image:
+                                visualization_image_base64 = viz_service.image_to_base64(
+                                    visualization_image
+                                )
+                                logger.info("📈 Stream: Сгенерирован график параболы")
                         else:
                             expression = (
                                 graph_match.group(1).strip() if graph_match.groups() else ""
                             )
-                            # Безопасные выражения для графиков
-                            if expression and re.match(r"^[x\s+\-*/().\d\s]+$", expression):
-                                safe_expr = expression.replace("x", "x")
-                                visualization_image = viz_service.generate_function_graph(safe_expr)
-                                if visualization_image:
-                                    visualization_image_base64 = viz_service.image_to_base64(
-                                        visualization_image
+                            # Безопасные выражения для графиков (поддерживаем x^2, x**2)
+                            if expression:
+                                # Заменяем x^2 на x**2 для Python
+                                expression = expression.replace("^", "**")
+                                if re.match(r"^[x\s+\-*/().\d\s]+$", expression):
+                                    safe_expr = expression.replace("x", "x")
+                                    visualization_image = viz_service.generate_function_graph(
+                                        safe_expr
                                     )
-                                    logger.info(
-                                        f"📈 Stream: Сгенерирован график функции: {expression}"
-                                    )
+                                    if visualization_image:
+                                        visualization_image_base64 = viz_service.image_to_base64(
+                                            visualization_image
+                                        )
+                                        logger.info(
+                                            f"📈 Stream: Сгенерирован график функции: {expression}"
+                                        )
 
                 except Exception as e:
                     logger.debug(f"⚠️ Stream: Ошибка генерации визуализации: {e}")
@@ -1666,6 +1684,38 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     )
                     await response.write(f"event: image\ndata: {image_data}\n\n".encode())
                     logger.info("📊 Stream: Изображение визуализации отправлено")
+
+                    # Удаляем дублирование: если есть визуализация, убираем текст таблицы/графика из ответа
+                    if multiplication_number:
+                        # Удаляем текст таблицы умножения из ответа
+                        multiplication_text_pattern = re.compile(
+                            r"(?:\d+\s*[×x*]\s*\d+\s*=\s*\d+[,\s]*)+", re.IGNORECASE
+                        )
+                        full_response = multiplication_text_pattern.sub("", full_response)
+                        # Удаляем фразы про таблицу умножения
+                        full_response = re.sub(
+                            r"табл[иы]ц[аеы]?\s*умножени[яе].*?(?:Понятно|$)",
+                            "",
+                            full_response,
+                            flags=re.IGNORECASE | re.DOTALL,
+                        )
+                        # Оставляем только краткий ответ
+                        if len(full_response.strip()) > 100:
+                            full_response = "Вот таблица умножения."
+
+                    # Удаляем упоминания про "систему автоматически" и подобное
+                    full_response = re.sub(
+                        r"(?:систем[аеы]?\s+)?автоматически\s+сгенериру[ею]т?\s+изображени[ея]?",
+                        "",
+                        full_response,
+                        flags=re.IGNORECASE,
+                    )
+                    full_response = re.sub(
+                        r"покажу\s+график.*?систем[аеы]?\s+автоматически",
+                        "Вот график",
+                        full_response,
+                        flags=re.IGNORECASE,
+                    )
 
                 # Ограничиваем размер полного ответа
                 MAX_RESPONSE_LENGTH = 4000
@@ -1793,7 +1843,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 r"нарисуй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
                                 r"построй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
                                 r"покажи\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
-                                r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log)",
+                                r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол)",
                             ]
                             graph_match = None
                             for pattern in graph_patterns:
@@ -1802,13 +1852,18 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     break
 
                             if graph_match and not visualization_image_base64:
-                                # Если это запрос на синусоиду/косинус и т.д. без конкретной формулы
-                                if re.search(
-                                    r"(?:синусоид|sin|косинус|cos|тангенс|tan)",
-                                    user_message.lower(),
-                                ):
+                                # Если это запрос на синусоиду/косинус/параболу и т.д. без конкретной формулы
+                                if re.search(r"(?:синусоид|sin)", user_message.lower()):
                                     visualization_image = viz_service.generate_function_graph(
                                         "sin(x)"
+                                    )
+                                elif re.search(r"(?:косинус|cos)", user_message.lower()):
+                                    visualization_image = viz_service.generate_function_graph(
+                                        "cos(x)"
+                                    )
+                                elif re.search(r"(?:парабол)", user_message.lower()):
+                                    visualization_image = viz_service.generate_function_graph(
+                                        "x**2"
                                     )
                                     if visualization_image:
                                         visualization_image_base64 = viz_service.image_to_base64(
@@ -1847,6 +1902,40 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             )
                             await response.write(f"event: image\ndata: {image_data}\n\n".encode())
                             logger.info("📊 Stream: Fallback - изображение визуализации отправлено")
+
+                            # Удаляем дублирование: если есть визуализация, убираем текст таблицы/графика из ответа
+                            if multiplication_number_fallback:
+                                # Удаляем текст таблицы умножения из ответа
+                                multiplication_text_pattern = re.compile(
+                                    r"(?:\d+\s*[×x*]\s*\d+\s*=\s*\d+[,\s]*)+", re.IGNORECASE
+                                )
+                                cleaned_response = multiplication_text_pattern.sub(
+                                    "", cleaned_response
+                                )
+                                # Удаляем фразы про таблицу умножения
+                                cleaned_response = re.sub(
+                                    r"табл[иы]ц[аеы]?\s*умножени[яе].*?(?:Понятно|$)",
+                                    "",
+                                    cleaned_response,
+                                    flags=re.IGNORECASE | re.DOTALL,
+                                )
+                                # Оставляем только краткий ответ
+                                if len(cleaned_response.strip()) > 100:
+                                    cleaned_response = "Вот таблица умножения."
+
+                            # Удаляем упоминания про "систему автоматически" и подобное
+                            cleaned_response = re.sub(
+                                r"(?:систем[аеы]?\s+)?автоматически\s+сгенериру[ею]т?\s+изображени[ея]?",
+                                "",
+                                cleaned_response,
+                                flags=re.IGNORECASE,
+                            )
+                            cleaned_response = re.sub(
+                                r"покажу\s+график.*?систем[аеы]?\s+автоматически",
+                                "Вот график",
+                                cleaned_response,
+                                flags=re.IGNORECASE,
+                            )
 
                         # Отправляем полный ответ как один chunk
                         import json as json_lib
