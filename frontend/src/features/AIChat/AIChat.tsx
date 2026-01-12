@@ -309,7 +309,11 @@ export function AIChat({ user }: AIChatProps) {
           </div>
           <div className="flex items-center gap-1.5">
             <MiniAppThemeToggle />
-            <button onClick={handleClearChat} className="flex-shrink-0 w-9 h-9 rounded-lg bg-white/20 dark:bg-slate-700/80 hover:bg-white/30 dark:hover:bg-slate-600 active:bg-white/40 dark:active:bg-slate-500 active:scale-95 transition-all flex items-center justify-center border border-white/30 dark:border-slate-600 shadow-sm">
+            <button
+              onClick={handleClearChat}
+              className="flex-shrink-0 w-9 h-9 rounded-lg bg-white/20 dark:bg-slate-700/80 hover:bg-white/30 dark:hover:bg-slate-600 active:bg-white/40 dark:active:bg-slate-500 active:scale-95 transition-all flex items-center justify-center border border-white/30 dark:border-slate-600 shadow-sm"
+              aria-label="Очистить чат"
+            >
               <span className="text-base text-white dark:text-slate-200">🗑️</span>
             </button>
             <button onClick={() => { useAppStore.getState().setCurrentScreen('emergency'); haptic.medium(); }} className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-red-500/90 dark:bg-red-600/90 hover:bg-red-600/90 dark:hover:bg-red-700/90 active:scale-95 transition-all flex items-center justify-center shadow-sm">
@@ -344,25 +348,52 @@ export function AIChat({ user }: AIChatProps) {
           </div>
         ) : (
           messages.map((msg, index) => (
-            <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group`} role="article">
-              <div className={`relative ${msg.role === 'ai' ? 'max-w-[92%] sm:max-w-[88%] md:max-w-[85%]' : 'max-w-[85%] sm:max-w-[80%]'}`}>
-                <div className={`rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-md ${
-                  msg.role === 'user'
-                    ? 'bg-gradient-to-br from-blue-300/90 to-cyan-300/90 dark:from-blue-600/80 dark:to-cyan-600/80 text-gray-800 dark:text-white border border-blue-200/50 dark:border-blue-500/40'
-                    : 'bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 border border-gray-200 dark:border-slate-600'
-                }`}>
-                  <p className="whitespace-pre-wrap break-words font-medium text-xs sm:text-sm leading-relaxed">{msg.content}</p>
-                  <time className={`text-[10px] sm:text-xs mt-1.5 sm:mt-2 font-medium block ${
-                    msg.role === 'user' ? 'text-gray-600 dark:text-gray-700' : 'text-gray-500 dark:text-gray-400'
-                  }`}>
-                    {new Date(msg.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+            <div
+              key={index}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group`}
+              role="article"
+            >
+              <div
+                className={`relative ${
+                  msg.role === 'ai' ? 'max-w-[92%] sm:max-w-[88%] md:max-w-[85%]' : 'max-w[85%] sm:max-w-[80%]'
+                }`}
+              >
+                <div
+                  className={`rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-md ${
+                    msg.role === 'user'
+                      ? 'bg-gradient-to-br from-blue-300/90 to-cyan-300/90 dark:from-blue-600/80 dark:to-cyan-600/80 text-gray-800 dark:text-white border border-blue-200/50 dark:border-blue-500/40'
+                      : 'bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 border border-gray-200 dark:border-slate-600'
+                  }`}
+                >
+                  <MessageContent content={msg.content} role={msg.role} />
+                  <time
+                    className={`text-[10px] sm:text-xs mt-1.5 sm:mt-2 font-medium block ${
+                      msg.role === 'user' ? 'text-gray-600 dark:text-gray-700' : 'text-gray-500 dark:text-gray-400'
+                    }`}
+                  >
+                    {new Date(msg.timestamp).toLocaleTimeString('ru-RU', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   </time>
                 </div>
                 {/* Кнопки действий */}
                 <div className="absolute -bottom-6 left-0 flex gap-0.5 sm:gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => handleCopyMessage(msg.content)} className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs bg-gray-200/90 dark:bg-slate-700/90 rounded-md hover:bg-gray-300 dark:hover:bg-slate-600 active:bg-gray-400 dark:active:bg-slate-500 transition-colors shadow-sm">📋</button>
+                  <button
+                    onClick={() => handleCopyMessage(msg.content)}
+                    className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs bg-gray-200/90 dark:bg-slate-700/90 rounded-md hover:bg-gray-300 dark:hover:bg-slate-600 active:bg-gray-400 dark:active:bg-slate-500 transition-colors shadow-sm"
+                    title="Копировать сообщение"
+                  >
+                    📋
+                  </button>
                   {msg.role === 'ai' && (
-                    <button onClick={() => handleReplyToMessage(index)} className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs bg-gray-200/90 dark:bg-slate-700/90 rounded-md hover:bg-gray-300 dark:hover:bg-slate-600 active:bg-gray-400 dark:active:bg-slate-500 transition-colors shadow-sm">↩️</button>
+                    <button
+                      onClick={() => handleReplyToMessage(index)}
+                      className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs bg-gray-200/90 dark:bg-slate-700/90 rounded-md hover:bg-gray-300 dark:hover:bg-slate-600 active:bg-gray-400 dark:active:bg-slate-500 transition-colors shadow-sm"
+                      title="Ответить"
+                    >
+                      ↩️
+                    </button>
                   )}
                 </div>
               </div>
@@ -430,4 +461,107 @@ export function AIChat({ user }: AIChatProps) {
       </div>
     </div>
   );
+}
+
+interface MessageContentProps {
+  content: string;
+  role: string;
+}
+
+function MessageContent({ content, role }: MessageContentProps) {
+  if (role !== 'ai') {
+    return (
+      <p className="whitespace-pre-wrap break-words font-medium text-xs sm:text-sm leading-relaxed">
+        {content}
+      </p>
+    );
+  }
+
+  const { summary, steps, rest } = parseAiMessage(content);
+
+  return (
+    <div className="space-y-1">
+      {summary && (
+        <p className="whitespace-pre-wrap break-words font-semibold text-xs sm:text-sm leading-relaxed">
+          {summary}
+        </p>
+      )}
+      {steps.length > 0 && (
+        <ol className="list-decimal list-inside space-y-0.5 text-xs sm:text-sm leading-relaxed">
+          {steps.map((step, index) => (
+            <li key={index} className="whitespace-pre-wrap break-words">
+              {stripLeadingNumber(step)}
+            </li>
+          ))}
+        </ol>
+      )}
+      {rest.map(
+        (paragraph, index) =>
+          paragraph.trim() && (
+            <p
+              key={index}
+              className="whitespace-pre-wrap break-words text-[11px] sm:text-xs leading-relaxed opacity-90"
+            >
+              {paragraph.trim()}
+            </p>
+          ),
+      )}
+    </div>
+  );
+}
+
+function parseAiMessage(content: string): {
+  summary: string | null;
+  steps: string[];
+  rest: string[];
+} {
+  const lines = content.split(/\r?\n/);
+  const summaryLines: string[] = [];
+  const stepLines: string[] = [];
+  const otherLines: string[] = [];
+
+  for (const rawLine of lines) {
+    const line = rawLine.trimEnd();
+    if (!line.trim()) {
+      otherLines.push(line);
+      continue;
+    }
+
+    if (/^\s*\d+[.)]\s+/.test(line)) {
+      stepLines.push(line.trim());
+    } else if (summaryLines.length === 0) {
+      summaryLines.push(line.trim());
+    } else {
+      otherLines.push(line);
+    }
+  }
+
+  const summary = summaryLines.length > 0 ? summaryLines.join(' ') : null;
+
+  // Склеиваем остальные строки обратно в абзацы по пустым строкам
+  const rest: string[] = [];
+  let buffer: string[] = [];
+  for (const line of otherLines) {
+    if (!line.trim()) {
+      if (buffer.length) {
+        rest.push(buffer.join(' ').trim());
+        buffer = [];
+      }
+    } else {
+      buffer.push(line.trim());
+    }
+  }
+  if (buffer.length) {
+    rest.push(buffer.join(' ').trim());
+  }
+
+  return {
+    summary,
+    steps: stepLines,
+    rest,
+  };
+}
+
+function stripLeadingNumber(line: string): string {
+  return line.replace(/^\s*\d+[.)]\s+/, '').trim();
 }

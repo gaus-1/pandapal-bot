@@ -1,0 +1,2 @@
+"id","user_telegram_id","plan_id","starts_at","expires_at","is_active","transaction_id","invoice_payload","created_at","payment_method","payment_id","auto_renew","saved_payment_method_id"
+2,"963126718","month","2026-01-10 14:12:59.296442+00","2026-02-09 14:12:59.296442+00",True,NULL,NULL,"2026-01-10 14:12:58.649861+00","yookassa_card","30f4577b-000f-5001-9000-1a001cee4a56",False,NULL
