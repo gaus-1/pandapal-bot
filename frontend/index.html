@@ -246,17 +246,31 @@
   <body>
     <noscript><img src="https://mc.yandex.ru/watch/104525544" style="position:absolute; left:-9999px;" alt="" /></noscript>
 
-    <!-- Яндекс.Вебмастер: Счетчик ИКС (Индекс Качества Сайта) - только на основном сайте, не в Mini App -->
+    <!-- Яндекс.Вебмастер: Счетчик ИКС (Индекс Качества Сайта) -->
     <a href="https://webmaster.yandex.ru/siteinfo/?site=pandapal.ru" id="yandex-iks-counter" style="position: fixed; bottom: 10px; left: 10px; z-index: 1000; display: none; text-decoration: none;">
       <img width="60" height="21" alt="Индекс качества сайта" border="0" style="border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" src="https://yandex.ru/cycounter?pandapal.ru&theme=light&lang=ru"/>
     </a>
     <script>
-      // Показываем счетчик ИКС только на основном сайте, не в Telegram Mini App
+      // Показываем счетчик ИКС на основном сайте и в Mini App
       (function() {
-        if (typeof window !== 'undefined' && window.location.hostname === 'pandapal.ru' && !window.location.search.includes('tgaddr')) {
+        if (typeof window !== 'undefined' && window.location.hostname === 'pandapal.ru') {
           const counter = document.getElementById('yandex-iks-counter');
           if (counter) {
-            counter.style.display = 'block';
+            // Проверяем, находимся ли мы в Mini App (есть tgaddr или Telegram WebApp)
+            const isMiniApp = window.location.search.includes('tgaddr') ||
+                             (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp);
+
+            if (isMiniApp) {
+              // В Mini App - позиционируем под нижней навигацией (примерно 70px от низа)
+              counter.style.display = 'block';
+              counter.style.bottom = '70px'; // Под навигацией
+              counter.style.left = '10px';
+            } else {
+              // На основном сайте - в левом нижнем углу
+              counter.style.display = 'block';
+              counter.style.bottom = '10px';
+              counter.style.left = '10px';
+            }
           }
         }
       })();
