@@ -253,34 +253,50 @@
     <script>
       // Показываем счетчик ИКС на основном сайте и в Mini App
       (function() {
-        if (typeof window !== 'undefined' && window.location.hostname === 'pandapal.ru') {
-          const counter = document.getElementById('yandex-iks-counter');
-          if (counter) {
-            // Проверяем, находимся ли мы в Mini App (есть tgaddr или Telegram WebApp)
-            const isMiniApp = window.location.search.includes('tgaddr') ||
-                             (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp);
+        function updateCounterPosition() {
+          if (typeof window !== 'undefined' && window.location.hostname === 'pandapal.ru') {
+            const counter = document.getElementById('yandex-iks-counter');
+            if (counter) {
+              // Проверяем, находимся ли мы в Mini App (есть tgaddr или Telegram WebApp)
+              const isMiniApp = window.location.search.includes('tgaddr') ||
+                               (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp);
 
-            if (isMiniApp) {
-              // В Mini App - позиционируем ПОД нижними кнопками навигации
-              // Навигация: min-h-[60px] sm:min-h-[70px] + padding py-2 sm:py-2.5 md:py-3 + border ≈ 80-100px
-              // Плюс отступ под кнопками ≈ 20px, итого ≈ 100-120px
-              // Учитываем safe-area-inset-bottom для устройств с вырезом экрана
-              const safeAreaBottom = window.innerHeight - document.documentElement.clientHeight;
-              const navHeight = 100; // Примерная высота навигации
-              const offset = 20; // Отступ под кнопками
-              const calculatedBottom = navHeight + offset + safeAreaBottom;
+              if (isMiniApp) {
+                // В Mini App - позиционируем ПОД нижними кнопками навигации
+                // Навигация: min-h-[60px] sm:min-h-[70px] + padding py-2 sm:py-2.5 md:py-3 + border ≈ 80-100px
+                // Плюс отступ под кнопками ≈ 20px, итого ≈ 100-120px
+                // Учитываем safe-area-inset-bottom для устройств с вырезом экрана
+                const safeAreaBottom = Math.max(0, window.innerHeight - document.documentElement.clientHeight);
+                const navHeight = 100; // Примерная высота навигации
+                const offset = 20; // Отступ под кнопками
+                const calculatedBottom = navHeight + offset + safeAreaBottom;
 
-              counter.style.display = 'block';
-              counter.style.bottom = calculatedBottom + 'px'; // Под кнопками навигации (Достижения, PandaPalGo, Premium)
-              counter.style.left = '10px';
-            } else {
-              // На основном сайте - в левом нижнем углу
-              counter.style.display = 'block';
-              counter.style.bottom = '10px';
-              counter.style.left = '10px';
+                counter.style.display = 'block';
+                counter.style.position = 'fixed';
+                counter.style.bottom = calculatedBottom + 'px'; // Под кнопками навигации (Достижения, PandaPalGo, Premium)
+                counter.style.left = '10px';
+                counter.style.zIndex = '999';
+              } else {
+                // На основном сайте - в левом нижнем углу
+                counter.style.display = 'block';
+                counter.style.position = 'fixed';
+                counter.style.bottom = '10px';
+                counter.style.left = '10px';
+                counter.style.zIndex = '999';
+              }
             }
           }
         }
+
+        // Выполняем сразу и после загрузки DOM
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', updateCounterPosition);
+        } else {
+          updateCounterPosition();
+        }
+
+        // Также обновляем при изменении размера окна
+        window.addEventListener('resize', updateCounterPosition);
       })();
     </script>
 
