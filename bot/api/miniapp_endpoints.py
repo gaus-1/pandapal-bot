@@ -1579,11 +1579,25 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                     # Если будет визуализация - НЕ отправляем chunks с таблицей умножения
                     if will_have_visualization:
-                        # Проверяем, содержит ли chunk таблицу умножения
+                        # Проверяем, содержит ли chunk таблицу умножения (оба паттерна!)
                         multiplication_text_pattern = re.compile(
                             r"\d+\s*[×x*]\s*\d+\s*=\s*\d+", re.IGNORECASE
                         )
-                        if not multiplication_text_pattern.search(cleaned_chunk):
+                        # КРИТИЧНО: паттерн БЕЗ символа умножения - именно такой формат приходит от AI
+                        multiplication_text_pattern_no_symbol = re.compile(
+                            r"\d+\s+\d+\s*=\s*\d+", re.IGNORECASE
+                        )
+                        # #region agent log
+                        if multiplication_text_pattern.search(
+                            cleaned_chunk
+                        ) or multiplication_text_pattern_no_symbol.search(cleaned_chunk):
+                            logger.debug(
+                                f"🚫 Stream: Chunk отфильтрован (содержит таблицу): {cleaned_chunk[:50]}"
+                            )
+                        # #endregion
+                        if not multiplication_text_pattern.search(
+                            cleaned_chunk
+                        ) and not multiplication_text_pattern_no_symbol.search(cleaned_chunk):
                             # Отправляем только chunks без таблицы умножения
                             import json as json_lib
 
@@ -1714,12 +1728,18 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                         # Удаляем ВСЕ варианты текста таблицы умножения (более агрессивный паттерн)
                         # Паттерн 1: "4 x 1 = 4" или "4 × 1 = 4" или "4*1=4" (с пробелами и без)
+                        # Паттерн 2: "4 1 = 4" (БЕЗ символа умножения - именно такой формат приходит от AI!)
                         multiplication_text_pattern = re.compile(
                             r"\d+\s*[×x*]\s*\d+\s*=\s*\d+", re.IGNORECASE
                         )
-                        # Удаляем все вхождения таблицы умножения
+                        # КРИТИЧНО: паттерн БЕЗ символа умножения - именно такой формат приходит
+                        multiplication_text_pattern_no_symbol = re.compile(
+                            r"\d+\s+\d+\s*=\s*\d+", re.IGNORECASE
+                        )
+                        # Удаляем все вхождения таблицы умножения (оба паттерна)
                         full_response_before = full_response
                         full_response = multiplication_text_pattern.sub("", full_response)
+                        full_response = multiplication_text_pattern_no_symbol.sub("", full_response)
 
                         # #region agent log
                         if full_response != full_response_before:
@@ -1748,10 +1768,12 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         filtered_lines = []
                         for line in lines:
                             line_stripped = line.strip()
-                            # Пропускаем строки, которые выглядят как таблица умножения
+                            # Пропускаем строки, которые выглядят как таблица умножения (оба паттерна!)
                             if multiplication_text_pattern.search(line_stripped):
                                 continue
-                            # Пропускаем строки только с числами и знаками
+                            if multiplication_text_pattern_no_symbol.search(line_stripped):
+                                continue
+                            # Пропускаем строки только с числами и знаками (включая пробелы)
                             if re.match(r"^[\d\s×x*=\s,\.]+$", line_stripped):
                                 continue
                             filtered_lines.append(line)
