@@ -194,13 +194,10 @@ npm run lint
 - [API Documentation](docs/api/openapi.yaml)
 - [Testing](docs/TESTING/TESTING.md)
 
-## 🤝 Contributing
+## ⚠️ License Notice
 
-1. Fork the repository
-2. Create a branch for new feature
-3. Make changes
-4. Add tests
-5. Create Pull Request
+This repository is proprietary software. All rights reserved.
+Please see [LICENSE](LICENSE) for details.
 
 ## 📄 License
 
