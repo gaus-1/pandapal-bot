@@ -23,7 +23,7 @@ from bot.api.miniapp_endpoints import (
     miniapp_get_user,
     miniapp_update_user,
 )
-from bot.api.premium_endpoints import create_premium_invoice, handle_successful_payment
+from bot.api.premium_endpoints import create_yookassa_payment, handle_successful_payment
 from bot.models import Base
 
 
@@ -296,7 +296,7 @@ class TestPremiumEndpoints:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await create_premium_invoice(request)
+            response = await create_yookassa_payment(request)
             assert response.status == 400
 
     @pytest.mark.asyncio
@@ -313,7 +313,7 @@ class TestPremiumEndpoints:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await create_premium_invoice(request)
+            response = await create_yookassa_payment(request)
             assert response.status == 404
 
 
