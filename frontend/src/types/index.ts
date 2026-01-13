@@ -24,8 +24,8 @@ export interface Section {
   id: string;
   /** Заголовок секции */
   title: string;
-  /** Описание секции */
-  description: string;
+  /** Описание секции (строка или массив строк для структурированного отображения) */
+  description: string | string[];
 }
 
 /**
