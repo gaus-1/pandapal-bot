@@ -26,6 +26,7 @@ class PromptBuilder:
         non_educational_questions_count: int = 0,
         user_age: int | None = None,
         is_auto_greeting_sent: bool = False,
+        is_educational: bool = True,
     ) -> str:
         """
         Построить системный промпт с учетом контекста.
@@ -70,16 +71,27 @@ class PromptBuilder:
 
         # 6. ФИНАЛЬНОЕ УТОЧНЕНИЕ СТРУКТУРЫ (ВЫЗЫВАЕТСЯ ВСЕГДА В КОНЦЕ)
         # Это ключевая инструкция, которая перекрывает все остальное
-        prompt += self._get_strict_structure_instruction()
+        prompt += self._get_strict_structure_instruction(is_educational=is_educational)
 
         return prompt
 
-    def _get_strict_structure_instruction(self) -> str:
+    def _get_strict_structure_instruction(self, is_educational: bool = True) -> str:
         """
         Возвращает жесткую инструкцию по структуре ответа.
         Эта часть промпта имеет наивысший приоритет, так как она последняя.
+
+        Args:
+            is_educational: True если вопрос образовательный (школьный), False для общих вопросов
         """
-        return """
+        question_instruction = ""
+        if is_educational:
+            question_instruction = (
+                '5. В конце ответа ОБЯЗАТЕЛЬНО спроси: "Понятно? Или расскажу подробнее?"'
+            )
+        else:
+            question_instruction = '5. В конце ответа НЕ спрашивай "Понятно?" - это общий вопрос, не требует уточнения.'
+
+        return f"""
 ══════════════════════════════════════════════════════════════
 ⚠️ КРИТИЧЕСКИ ВАЖНО: ФОРМАТ ТВОЕГО ОТВЕТА
 ══════════════════════════════════════════════════════════════
@@ -90,7 +102,7 @@ class PromptBuilder:
 2. Не пиши "Привет", "Рад помочь", "Конечно" в начале.
 3. Разбей текст на абзацы. Используй пустые строки между блоками.
 4. Если решение задачи — нумеруй шаги (1., 2., 3.).
-5. В конце ответа ОБЯЗАТЕЛЬНО спроси: "Понятно? Или расскажу подробнее?"
+{question_instruction}
 
 Не пиши всё в одну строку! Делай переносы строк логически.
 """
