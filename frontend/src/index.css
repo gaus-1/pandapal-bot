@@ -105,6 +105,40 @@
     animation: textReveal 1.5s ease-out forwards;
   }
 
+  /* Анимация букв при наведении на заголовок */
+  .hover-letter-bounce {
+    transition: transform 0.3s ease, color 0.3s ease;
+    display: inline-block;
+  }
+
+  .group:hover .hover-letter-bounce {
+    animation: letterBounce 0.6s ease-in-out;
+  }
+
+  @keyframes letterBounce {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-8px) scale(1.05);
+      color: rgb(59 130 246); /* blue-500 */
+    }
+  }
+
+  .dark .group:hover .hover-letter-bounce {
+    animation: letterBounceDark 0.6s ease-in-out;
+  }
+
+  @keyframes letterBounceDark {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-8px) scale(1.05);
+      color: rgb(96 165 250); /* blue-400 */
+    }
+  }
+
   /* Адаптивные утилиты для контейнеров */
   .container-responsive {
     @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;

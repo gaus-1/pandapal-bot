@@ -39,10 +39,30 @@ export const Hero: React.FC = React.memo(() => {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
         {/* Основной заголовок (H1 для SEO) */}
-        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight animate-fade-in text-gray-900 dark:text-slate-50">
-          Безопасный AI-друг
+        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight animate-fade-in text-gray-900 dark:text-slate-50 group cursor-default">
+          <span className="inline-block">
+            {'Безопасный AI-друг'.split('').map((char, index) => (
+              <span
+                key={index}
+                className="inline-block hover-letter-bounce"
+                style={{ animationDelay: `${index * 0.02}s` }}
+              >
+                {char === ' ' ? '\u00A0' : char}
+              </span>
+            ))}
+          </span>
           <br />
-          для твоего ребенка
+          <span className="inline-block">
+            {'для твоего ребенка'.split('').map((char, index) => (
+              <span
+                key={index + 20}
+                className="inline-block hover-letter-bounce"
+                style={{ animationDelay: `${(index + 20) * 0.02}s` }}
+              >
+                {char === ' ' ? '\u00A0' : char}
+              </span>
+            ))}
+          </span>
         </h1>
 
         {/* Описание продукта */}
