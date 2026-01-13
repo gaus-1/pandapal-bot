@@ -1984,6 +1984,13 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     visualization_image
                                 )
                                 logger.info("📈 Stream: Сгенерирован график косинуса")
+                        elif re.search(r"(?:тангенс|tan|тангенсоид)", user_msg_lower):
+                            visualization_image = viz_service.generate_function_graph("tan(x)")
+                            if visualization_image:
+                                visualization_image_base64 = viz_service.image_to_base64(
+                                    visualization_image
+                                )
+                                logger.info("📈 Stream: Сгенерирован график тангенса")
                         elif re.search(r"(?:парабол|порабол|парабола|порабола)", user_msg_lower):
                             # Парабола y = x^2
                             visualization_image = viz_service.generate_function_graph("x**2")
