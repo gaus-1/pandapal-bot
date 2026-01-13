@@ -97,7 +97,7 @@ export function DonationScreen({ user }: DonationScreenProps) {
   };
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-amber-50/40 via-orange-50/40 to-yellow-50/40 dark:from-slate-900 dark:via-slate-850 dark:to-slate-800 overflow-y-auto backdrop-blur-sm">
+    <div className="w-full h-full bg-gradient-to-br from-amber-50/40 via-orange-50/40 to-yellow-50/40 dark:from-slate-900 dark:via-slate-800 dark:to-slate-800 overflow-y-auto backdrop-blur-sm">
       <div className="max-w-2xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-16 sm:pb-20 md:pb-24">
         {/* Заголовок */}
         <div className="mb-3 sm:mb-4 md:mb-6 text-center">
