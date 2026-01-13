@@ -1543,25 +1543,171 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 from bot.services.visualization_service import get_visualization_service
 
                 viz_service = get_visualization_service()
+
+                # #region agent log
+                import json as json_lib_debug
+
+                debug_log_path = r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log"
+                try:
+                    with open(debug_log_path, "a", encoding="utf-8") as f:
+                        f.write(
+                            json_lib_debug.dumps(
+                                {
+                                    "timestamp": __import__("time").time() * 1000,
+                                    "location": "miniapp_endpoints.py:1545",
+                                    "message": "Детекция визуализации - начало",
+                                    "data": {"user_message": user_message[:100]},
+                                    "sessionId": "debug-session",
+                                    "runId": "detection",
+                                    "hypothesisId": "A",
+                                },
+                                ensure_ascii=False,
+                            )
+                            + "\n"
+                        )
+                except Exception:
+                    pass
+                # #endregion
+
+                # Расширенные паттерны для таблиц умножения (конкретные числа)
                 multiplication_patterns = [
                     r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)",
                     r"табл[иы]ц[аеы]?\s*умножени[яе]\s+(\d+)",
                     r"умножени[яе]\s+на\s*(\d+)",
                     r"умнож[а-я]*\s+(\d+)",
                 ]
+                # Общие паттерны для запросов на таблицы (без числа)
+                general_table_patterns = [
+                    r"состав[ьи]\s+табл[иы]ц[аеы]?",
+                    r"пришли\s+табл[иы]ц[аеы]?",
+                    r"покажи\s+табл[иы]ц[аеы]?",
+                    r"сделай\s+табл[иы]ц[аеы]?",
+                    r"нарисуй\s+табл[иы]ц[аеы]?",
+                    r"построй\s+табл[иы]ц[аеы]?",
+                    r"выведи\s+табл[иы]ц[аеы]?",
+                    r"табл[иы]ц[аеы]?\s*(?:пришли|покажи|сделай|нарисуй|состав[ьи]|построй)",
+                    r"покажи\s+умножени[яе]",
+                    r"табл[иы]ц[аеы]?\s*умножени[яе](?:\s+на\s+все)?",
+                    r"полную\s+табл[иы]ц[аеы]?\s*умножени[яе]",
+                ]
+                # Расширенные паттерны для графиков
+                general_graph_patterns = [
+                    r"состав[ьи]\s+график",
+                    r"пришли\s+график",
+                    r"покажи\s+график",
+                    r"сделай\s+график",
+                    r"нарисуй\s+график",
+                    r"построй\s+график",
+                    r"выведи\s+график",
+                ]
+
+                user_msg_lower = user_message.lower()
+
+                # Проверяем конкретные таблицы умножения (с числом)
                 multiplication_number = None
                 for pattern in multiplication_patterns:
-                    multiplication_match = re.search(pattern, user_message.lower())
+                    multiplication_match = re.search(pattern, user_msg_lower)
                     if multiplication_match:
                         try:
                             multiplication_number = int(multiplication_match.group(1))
                             if 1 <= multiplication_number <= 10:
+                                # #region agent log
+                                try:
+                                    with open(debug_log_path, "a", encoding="utf-8") as f:
+                                        f.write(
+                                            json_lib_debug.dumps(
+                                                {
+                                                    "timestamp": __import__("time").time() * 1000,
+                                                    "location": "miniapp_endpoints.py:1558",
+                                                    "message": "Детектирована таблица умножения с числом",
+                                                    "data": {
+                                                        "number": multiplication_number,
+                                                        "pattern": pattern,
+                                                    },
+                                                    "sessionId": "debug-session",
+                                                    "runId": "detection",
+                                                    "hypothesisId": "A",
+                                                },
+                                                ensure_ascii=False,
+                                            )
+                                            + "\n"
+                                        )
+                                except Exception:
+                                    pass
+                                # #endregion
                                 break
                         except (ValueError, IndexError):
                             continue
 
-                # Если запрос на таблицу умножения - собираем весь ответ, не отправляем chunks с таблицей
-                will_have_visualization = multiplication_number is not None
+                # Проверяем общие запросы на таблицы (без числа) - показываем полную таблицу
+                general_table_request = None
+                if not multiplication_number:
+                    for pattern in general_table_patterns:
+                        if re.search(pattern, user_msg_lower):
+                            general_table_request = True
+                            logger.info(
+                                f"📊 Детектирован общий запрос на таблицу: '{user_message[:50]}', pattern: {pattern}"
+                            )
+                            # #region agent log
+                            try:
+                                with open(debug_log_path, "a", encoding="utf-8") as f:
+                                    f.write(
+                                        json_lib_debug.dumps(
+                                            {
+                                                "timestamp": __import__("time").time() * 1000,
+                                                "location": "miniapp_endpoints.py:1576",
+                                                "message": "Детектирован общий запрос на таблицу",
+                                                "data": {"pattern": pattern},
+                                                "sessionId": "debug-session",
+                                                "runId": "detection",
+                                                "hypothesisId": "B",
+                                            },
+                                            ensure_ascii=False,
+                                        )
+                                        + "\n"
+                                    )
+                            except Exception:
+                                pass
+                            # #endregion
+                            break
+
+                # Проверяем общие запросы на графики
+                general_graph_request = None
+                for pattern in general_graph_patterns:
+                    if re.search(pattern, user_msg_lower):
+                        general_graph_request = True
+                        logger.info(
+                            f"📈 Детектирован общий запрос на график: '{user_message[:50]}', pattern: {pattern}"
+                        )
+                        # #region agent log
+                        try:
+                            with open(debug_log_path, "a", encoding="utf-8") as f:
+                                f.write(
+                                    json_lib_debug.dumps(
+                                        {
+                                            "timestamp": __import__("time").time() * 1000,
+                                            "location": "miniapp_endpoints.py:1591",
+                                            "message": "Детектирован общий запрос на график",
+                                            "data": {"pattern": pattern},
+                                            "sessionId": "debug-session",
+                                            "runId": "detection",
+                                            "hypothesisId": "C",
+                                        },
+                                        ensure_ascii=False,
+                                    )
+                                    + "\n"
+                                )
+                        except Exception:
+                            pass
+                        # #endregion
+                        break
+
+                # Если запрос на таблицу умножения или график - собираем весь ответ, не отправляем chunks с таблицей
+                will_have_visualization = (
+                    multiplication_number is not None
+                    or general_table_request
+                    or general_graph_request
+                )
                 collected_chunks = []  # Для фильтрации
 
                 async for chunk in yandex_service.generate_text_response_stream(
@@ -1619,6 +1765,33 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 # multiplication_number уже определен выше, если не был - проверяем в ответе AI
                 visualization_image_base64 = None
                 try:
+                    # #region agent log
+                    try:
+                        with open(debug_log_path, "a", encoding="utf-8") as f:
+                            f.write(
+                                json_lib_debug.dumps(
+                                    {
+                                        "timestamp": __import__("time").time() * 1000,
+                                        "location": "miniapp_endpoints.py:1620",
+                                        "message": "Начало генерации визуализации",
+                                        "data": {
+                                            "multiplication_number": multiplication_number,
+                                            "general_table_request": general_table_request,
+                                            "general_graph_request": general_graph_request,
+                                            "full_response_length": len(full_response),
+                                        },
+                                        "sessionId": "debug-session",
+                                        "runId": "generation",
+                                        "hypothesisId": "A",
+                                    },
+                                    ensure_ascii=False,
+                                )
+                                + "\n"
+                            )
+                    except Exception:
+                        pass
+                    # #endregion
+
                     # Если не нашли в запросе, проверяем ответ AI
                     if not multiplication_number:
                         for pattern in multiplication_patterns:
@@ -1627,10 +1800,35 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 try:
                                     multiplication_number = int(multiplication_match.group(1))
                                     if 1 <= multiplication_number <= 10:
+                                        # #region agent log
+                                        try:
+                                            with open(debug_log_path, "a", encoding="utf-8") as f:
+                                                f.write(
+                                                    json_lib_debug.dumps(
+                                                        {
+                                                            "timestamp": __import__("time").time()
+                                                            * 1000,
+                                                            "location": "miniapp_endpoints.py:1636",
+                                                            "message": "Найдено число в ответе AI",
+                                                            "data": {
+                                                                "number": multiplication_number
+                                                            },
+                                                            "sessionId": "debug-session",
+                                                            "runId": "generation",
+                                                            "hypothesisId": "A",
+                                                        },
+                                                        ensure_ascii=False,
+                                                    )
+                                                    + "\n"
+                                                )
+                                        except Exception:
+                                            pass
+                                        # #endregion
                                         break
                                 except (ValueError, IndexError):
                                     continue
 
+                    # Генерируем таблицу умножения (конкретное число или полную таблицу)
                     if multiplication_number:
                         visualization_image = viz_service.generate_multiplication_table_image(
                             multiplication_number
@@ -1642,39 +1840,146 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             logger.info(
                                 f"📊 Stream: Сгенерирована таблица умножения на {multiplication_number}"
                             )
+                            # #region agent log
+                            try:
+                                with open(debug_log_path, "a", encoding="utf-8") as f:
+                                    f.write(
+                                        json_lib_debug.dumps(
+                                            {
+                                                "timestamp": __import__("time").time() * 1000,
+                                                "location": "miniapp_endpoints.py:1654",
+                                                "message": "Таблица умножения сгенерирована",
+                                                "data": {
+                                                    "number": multiplication_number,
+                                                    "image_size": len(visualization_image_base64),
+                                                },
+                                                "sessionId": "debug-session",
+                                                "runId": "generation",
+                                                "hypothesisId": "A",
+                                            },
+                                            ensure_ascii=False,
+                                        )
+                                        + "\n"
+                                    )
+                            except Exception:
+                                pass
+                            # #endregion
+                    elif general_table_request:
+                        # Генерируем полную таблицу умножения (1-10)
+                        visualization_image = viz_service.generate_full_multiplication_table()
+                        if visualization_image:
+                            visualization_image_base64 = viz_service.image_to_base64(
+                                visualization_image
+                            )
+                            logger.info("📊 Stream: Сгенерирована полная таблица умножения")
+                            # #region agent log
+                            try:
+                                with open(debug_log_path, "a", encoding="utf-8") as f:
+                                    f.write(
+                                        json_lib_debug.dumps(
+                                            {
+                                                "timestamp": __import__("time").time() * 1000,
+                                                "location": "miniapp_endpoints.py:1672",
+                                                "message": "Полная таблица умножения сгенерирована",
+                                                "data": {
+                                                    "image_size": len(visualization_image_base64)
+                                                },
+                                                "sessionId": "debug-session",
+                                                "runId": "generation",
+                                                "hypothesisId": "B",
+                                            },
+                                            ensure_ascii=False,
+                                        )
+                                        + "\n"
+                                    )
+                            except Exception:
+                                pass
+                            # #endregion
 
                     # Определяем, нужен ли график функции (расширенный паттерн)
-                    graph_patterns = [
-                        r"график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
-                        r"нарисуй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
-                        r"построй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
-                        r"покажи\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
-                        r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол)",
-                    ]
-                    graph_match = None
-                    for pattern in graph_patterns:
-                        graph_match = re.search(pattern, user_message.lower())
-                        if graph_match:
-                            break
+                    if general_graph_request and not visualization_image_base64:
+                        # Общий запрос на график - анализируем контекст для определения типа
+                        graph_patterns = [
+                            r"график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                            r"нарисуй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                            r"построй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                            r"покажи\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                            r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол)",
+                        ]
+                        graph_match = None
+                        for pattern in graph_patterns:
+                            graph_match = re.search(pattern, user_msg_lower)
+                            if graph_match:
+                                break
 
-                    if graph_match and not visualization_image_base64:
+                        # Если не нашли в запросе, проверяем в ответе AI
+                        if not graph_match:
+                            for pattern in graph_patterns:
+                                graph_match = re.search(pattern, full_response.lower())
+                                if graph_match:
+                                    break
+
+                    # Если есть график в запросе (не общий запрос)
+                    if not general_graph_request and not visualization_image_base64:
+                        graph_patterns = [
+                            r"график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                            r"нарисуй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                            r"построй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                            r"покажи\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+                            r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол)",
+                        ]
+                        graph_match = None
+                        for pattern in graph_patterns:
+                            graph_match = re.search(pattern, user_msg_lower)
+                            if graph_match:
+                                break
+
+                    if (general_graph_request or graph_match) and not visualization_image_base64:
                         # Если это запрос на синусоиду/косинус/параболу и т.д. без конкретной формулы
-                        if re.search(r"(?:синусоид|sin)", user_message.lower()):
-                            # Генерируем стандартный график синуса
+                        if re.search(r"(?:синусоид|sin)", user_msg_lower) or (
+                            general_graph_request and not graph_match
+                        ):
+                            # Генерируем стандартный график синуса (для общих запросов или явных запросов на синусоиду)
                             visualization_image = viz_service.generate_function_graph("sin(x)")
                             if visualization_image:
                                 visualization_image_base64 = viz_service.image_to_base64(
                                     visualization_image
                                 )
                                 logger.info("📈 Stream: Сгенерирован график синусоиды")
-                        elif re.search(r"(?:косинус|cos)", user_message.lower()):
+                                # #region agent log
+                                try:
+                                    with open(debug_log_path, "a", encoding="utf-8") as f:
+                                        f.write(
+                                            json_lib_debug.dumps(
+                                                {
+                                                    "timestamp": __import__("time").time() * 1000,
+                                                    "location": "miniapp_endpoints.py:1699",
+                                                    "message": "График синусоиды сгенерирован",
+                                                    "data": {
+                                                        "is_general_request": general_graph_request,
+                                                        "image_size": len(
+                                                            visualization_image_base64
+                                                        ),
+                                                    },
+                                                    "sessionId": "debug-session",
+                                                    "runId": "generation",
+                                                    "hypothesisId": "C",
+                                                },
+                                                ensure_ascii=False,
+                                            )
+                                            + "\n"
+                                        )
+                                except Exception:
+                                    pass
+                                # #endregion
+                        elif re.search(r"(?:косинус|cos)", user_msg_lower):
                             visualization_image = viz_service.generate_function_graph("cos(x)")
                             if visualization_image:
                                 visualization_image_base64 = viz_service.image_to_base64(
                                     visualization_image
                                 )
                                 logger.info("📈 Stream: Сгенерирован график косинуса")
-                        elif re.search(r"(?:парабол)", user_message.lower()):
+                        elif re.search(r"(?:парабол)", user_msg_lower):
                             # Парабола y = x^2
                             visualization_image = viz_service.generate_function_graph("x**2")
                             if visualization_image:
@@ -1710,29 +2015,149 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 if visualization_image_base64:
                     import json as json_lib
 
+                    # #region agent log
+                    try:
+                        with open(debug_log_path, "a", encoding="utf-8") as f:
+                            f.write(
+                                json_lib_debug.dumps(
+                                    {
+                                        "timestamp": __import__("time").time() * 1000,
+                                        "location": "miniapp_endpoints.py:1715",
+                                        "message": "Отправка изображения визуализации",
+                                        "data": {
+                                            "image_size": len(visualization_image_base64),
+                                            "has_image": True,
+                                        },
+                                        "sessionId": "debug-session",
+                                        "runId": "image_send",
+                                        "hypothesisId": "D",
+                                    },
+                                    ensure_ascii=False,
+                                )
+                                + "\n"
+                            )
+                    except Exception:
+                        pass
+                    # #endregion
+
                     image_data = json_lib.dumps(
                         {"image": visualization_image_base64, "type": "visualization"},
                         ensure_ascii=False,
                     )
                     await response.write(f"event: image\ndata: {image_data}\n\n".encode())
                     logger.info("📊 Stream: Изображение визуализации отправлено")
+                else:
+                    # #region agent log
+                    try:
+                        with open(debug_log_path, "a", encoding="utf-8") as f:
+                            f.write(
+                                json_lib_debug.dumps(
+                                    {
+                                        "timestamp": __import__("time").time() * 1000,
+                                        "location": "miniapp_endpoints.py:1732",
+                                        "message": "Изображение НЕ отправлено - не сгенерировано",
+                                        "data": {
+                                            "multiplication_number": multiplication_number,
+                                            "general_table": general_table_request,
+                                            "general_graph": general_graph_request,
+                                        },
+                                        "sessionId": "debug-session",
+                                        "runId": "image_send",
+                                        "hypothesisId": "D",
+                                    },
+                                    ensure_ascii=False,
+                                )
+                                + "\n"
+                            )
+                    except Exception:
+                        pass
+                    # #endregion
 
                     # КРИТИЧНО: Если есть визуализация - заменяем весь текст на короткий ответ
                     # Не пытаемся удалять фрагменты - это ломает ответ!
-                    if multiplication_number:
+                    if multiplication_number or general_table_request:
                         # #region agent log
                         logger.info(
-                            f"🔍 Stream: ДО замены (multiplication_number={multiplication_number}): {full_response[:200]}"
+                            f"🔍 Stream: ДО замены (multiplication_number={multiplication_number}, general_table={general_table_request}): {full_response[:200]}"
                         )
+                        try:
+                            with open(debug_log_path, "a", encoding="utf-8") as f:
+                                f.write(
+                                    json_lib_debug.dumps(
+                                        {
+                                            "timestamp": __import__("time").time() * 1000,
+                                            "location": "miniapp_endpoints.py:1735",
+                                            "message": "Замена текста перед отправкой",
+                                            "data": {
+                                                "multiplication_number": multiplication_number,
+                                                "general_table": general_table_request,
+                                                "full_response_preview": full_response[:200],
+                                            },
+                                            "sessionId": "debug-session",
+                                            "runId": "text_replacement",
+                                            "hypothesisId": "A",
+                                        },
+                                        ensure_ascii=False,
+                                    )
+                                    + "\n"
+                                )
+                        except Exception:
+                            pass
                         # #endregion
 
                         # Просто заменяем весь ответ на короткий, если есть визуализация
-                        full_response = "Вот таблица умножения."
+                        if multiplication_number:
+                            full_response = "Вот таблица умножения."
+                        else:
+                            full_response = "Вот полная таблица умножения."
 
                         # #region agent log
                         logger.info(
                             f"✅ Stream: Текст заменен на короткий ответ (есть визуализация): {full_response}"
                         )
+                        try:
+                            with open(debug_log_path, "a", encoding="utf-8") as f:
+                                f.write(
+                                    json_lib_debug.dumps(
+                                        {
+                                            "timestamp": __import__("time").time() * 1000,
+                                            "location": "miniapp_endpoints.py:1753",
+                                            "message": "Текст заменен",
+                                            "data": {"new_response": full_response},
+                                            "sessionId": "debug-session",
+                                            "runId": "text_replacement",
+                                            "hypothesisId": "A",
+                                        },
+                                        ensure_ascii=False,
+                                    )
+                                    + "\n"
+                                )
+                        except Exception:
+                            pass
+                        # #endregion
+                    elif general_graph_request or graph_match:
+                        # Для графиков тоже заменяем на короткий ответ
+                        full_response = "Вот график."
+                        # #region agent log
+                        try:
+                            with open(debug_log_path, "a", encoding="utf-8") as f:
+                                f.write(
+                                    json_lib_debug.dumps(
+                                        {
+                                            "timestamp": __import__("time").time() * 1000,
+                                            "location": "miniapp_endpoints.py:1762",
+                                            "message": "Текст заменен для графика",
+                                            "data": {"new_response": full_response},
+                                            "sessionId": "debug-session",
+                                            "runId": "text_replacement",
+                                            "hypothesisId": "C",
+                                        },
+                                        ensure_ascii=False,
+                                    )
+                                    + "\n"
+                                )
+                        except Exception:
+                            pass
                         # #endregion
 
                     # Удаляем упоминания про "систему автоматически" и подобное
@@ -1842,6 +2267,19 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 r"умножени[яе]\s+на\s*(\d+)",
                                 r"умнож[а-я]*\s+(\d+)",
                             ]
+                            general_table_patterns_fallback = [
+                                r"состав[ьи]\s+табл[иы]ц[аеы]?",
+                                r"пришли\s+табл[иы]ц[аеы]?",
+                                r"покажи\s+табл[иы]ц[аеы]?",
+                                r"сделай\s+табл[иы]ц[аеы]?",
+                                r"нарисуй\s+табл[иы]ц[аеы]?",
+                                r"построй\s+табл[иы]ц[аеы]?",
+                                r"выведи\s+табл[иы]ц[аеы]?",
+                                r"табл[иы]ц[аеы]?\s*(?:пришли|покажи|сделай|нарисуй|состав[ьи]|построй)",
+                                r"покажи\s+умножени[яе]",
+                                r"табл[иы]ц[аеы]?\s*умножени[яе](?:\s+на\s+все)?",
+                                r"полную\s+табл[иы]ц[аеы]?\s*умножени[яе]",
+                            ]
                             multiplication_number_fallback = None
                             for pattern in multiplication_patterns_fallback:
                                 multiplication_match = re.search(pattern, combined_text_fallback)
@@ -1854,6 +2292,13 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                             break
                                     except (ValueError, IndexError):
                                         continue
+
+                            general_table_fallback = None
+                            if not multiplication_number_fallback:
+                                for pattern in general_table_patterns_fallback:
+                                    if re.search(pattern, combined_text_fallback):
+                                        general_table_fallback = True
+                                        break
 
                             if multiplication_number_fallback:
                                 visualization_image = (
@@ -1868,8 +2313,33 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     logger.info(
                                         f"📊 Stream: Fallback - сгенерирована таблица умножения на {multiplication_number_fallback}"
                                     )
+                            elif general_table_fallback:
+                                visualization_image = (
+                                    viz_service.generate_full_multiplication_table()
+                                )
+                                if visualization_image:
+                                    visualization_image_base64 = viz_service.image_to_base64(
+                                        visualization_image
+                                    )
+                                    logger.info(
+                                        "📊 Stream: Fallback - сгенерирована полная таблица умножения"
+                                    )
 
                             # Определяем, нужен ли график функции (расширенный паттерн для fallback)
+                            combined_text_lower = combined_text_fallback.lower()
+                            general_graph_fallback = any(
+                                re.search(pattern, combined_text_lower)
+                                for pattern in [
+                                    r"состав[ьи]\s+график",
+                                    r"пришли\s+график",
+                                    r"покажи\s+график",
+                                    r"сделай\s+график",
+                                    r"нарисуй\s+график",
+                                    r"построй\s+график",
+                                    r"выведи\s+график",
+                                ]
+                            )
+
                             graph_patterns = [
                                 r"график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
                                 r"нарисуй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
@@ -1879,21 +2349,40 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             ]
                             graph_match = None
                             for pattern in graph_patterns:
-                                graph_match = re.search(pattern, user_message.lower())
+                                graph_match = re.search(pattern, combined_text_lower)
                                 if graph_match:
                                     break
 
-                            if graph_match and not visualization_image_base64:
+                            if (
+                                general_graph_fallback or graph_match
+                            ) and not visualization_image_base64:
                                 # Если это запрос на синусоиду/косинус/параболу и т.д. без конкретной формулы
-                                if re.search(r"(?:синусоид|sin)", user_message.lower()):
+                                if (
+                                    re.search(r"(?:синусоид|sin)", combined_text_lower)
+                                    or general_graph_fallback
+                                ):
                                     visualization_image = viz_service.generate_function_graph(
                                         "sin(x)"
                                     )
-                                elif re.search(r"(?:косинус|cos)", user_message.lower()):
+                                    if visualization_image:
+                                        visualization_image_base64 = viz_service.image_to_base64(
+                                            visualization_image
+                                        )
+                                        logger.info(
+                                            "📈 Stream: Fallback - сгенерирован график синусоиды"
+                                        )
+                                elif re.search(r"(?:косинус|cos)", combined_text_lower):
                                     visualization_image = viz_service.generate_function_graph(
                                         "cos(x)"
                                     )
-                                elif re.search(r"(?:парабол)", user_message.lower()):
+                                    if visualization_image:
+                                        visualization_image_base64 = viz_service.image_to_base64(
+                                            visualization_image
+                                        )
+                                        logger.info(
+                                            "📈 Stream: Fallback - сгенерирован график косинуса"
+                                        )
+                                elif re.search(r"(?:парабол)", combined_text_lower):
                                     visualization_image = viz_service.generate_function_graph(
                                         "x**2"
                                     )
@@ -1902,7 +2391,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                             visualization_image
                                         )
                                         logger.info(
-                                            "📈 Stream: Fallback - сгенерирован график синусоиды"
+                                            "📈 Stream: Fallback - сгенерирован график параболы"
                                         )
                                 else:
                                     expression = (
