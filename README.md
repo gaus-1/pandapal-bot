@@ -81,8 +81,7 @@ PandaPal/
 ├── tests/                  # Тесты (unit, integration, e2e, security)
 ├── alembic/                # Миграции БД
 ├── scripts/                # Утилиты
-├── web_server.py           # Entry point (aiohttp + aiogram webhook)
-└── frontend_server.py      # Dev сервер для frontend
+└── web_server.py           # Entry point (aiohttp + aiogram webhook + frontend)
 ```
 
 ## Архитектура

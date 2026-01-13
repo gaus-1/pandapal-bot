@@ -155,7 +155,7 @@ class SecurityChecker:
     def run_check(self, directories: List[str] = None) -> bool:
         """Запуск проверки"""
         if directories is None:
-            directories = ["bot", "scripts", "web_server.py", "frontend_server.py"]
+            directories = ["bot", "scripts", "web_server.py"]
 
         try:
             print("Security check started...")
@@ -193,7 +193,7 @@ def main():
     checker = SecurityChecker()
 
     # Проверяем только нужные директории
-    directories = ["bot", "scripts", "web_server.py", "frontend_server.py"]
+    directories = ["bot", "scripts", "web_server.py"]
     success = checker.run_check(directories)
 
     if success:
