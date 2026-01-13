@@ -1904,7 +1904,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             r"нарисуй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
                             r"построй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
                             r"покажи\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
-                            r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол)",
+                            r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол|порабол|парабола|порабола)",
                         ]
                         graph_match = None
                         for pattern in graph_patterns:
@@ -1926,7 +1926,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             r"нарисуй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
                             r"построй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
                             r"покажи\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
-                            r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол)",
+                            r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол|порабол|парабола|порабола)",
                         ]
                         graph_match = None
                         for pattern in graph_patterns:
@@ -1936,6 +1936,10 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                     if (general_graph_request or graph_match) and not visualization_image_base64:
                         # Если это запрос на синусоиду/косинус/параболу и т.д. без конкретной формулы
+                        logger.info(
+                            f"🔍 Stream: Проверка типа графика: general_graph={general_graph_request}, "
+                            f"graph_match={bool(graph_match)}, user_msg='{user_message[:50]}'"
+                        )
                         if re.search(r"(?:синусоид|sin)", user_msg_lower) or (
                             general_graph_request and not graph_match
                         ):
@@ -1979,7 +1983,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     visualization_image
                                 )
                                 logger.info("📈 Stream: Сгенерирован график косинуса")
-                        elif re.search(r"(?:парабол)", user_msg_lower):
+                        elif re.search(r"(?:парабол|порабол|парабола|порабола)", user_msg_lower):
                             # Парабола y = x^2
                             visualization_image = viz_service.generate_function_graph("x**2")
                             if visualization_image:
@@ -1987,6 +1991,31 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     visualization_image
                                 )
                                 logger.info("📈 Stream: Сгенерирован график параболы")
+                                # #region agent log
+                                try:
+                                    with open(debug_log_path, "a", encoding="utf-8") as f:
+                                        f.write(
+                                            json_lib_debug.dumps(
+                                                {
+                                                    "timestamp": __import__("time").time() * 1000,
+                                                    "location": "miniapp_endpoints.py:1989",
+                                                    "message": "График параболы сгенерирован",
+                                                    "data": {
+                                                        "image_size": len(
+                                                            visualization_image_base64
+                                                        )
+                                                    },
+                                                    "sessionId": "debug-session",
+                                                    "runId": "generation",
+                                                    "hypothesisId": "C",
+                                                },
+                                                ensure_ascii=False,
+                                            )
+                                            + "\n"
+                                        )
+                                except Exception:
+                                    pass
+                                # #endregion
                         else:
                             expression = (
                                 graph_match.group(1).strip() if graph_match.groups() else ""
@@ -2075,7 +2104,10 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                     # КРИТИЧНО: Если есть визуализация - заменяем весь текст на короткий ответ
                     # Не пытаемся удалять фрагменты - это ломает ответ!
-                    if multiplication_number or general_table_request:
+                    # Заменяем текст ЕСЛИ изображение сгенерировано ИЛИ был запрос на визуализацию
+                    if visualization_image_base64 and (
+                        multiplication_number or general_table_request
+                    ):
                         # #region agent log
                         logger.info(
                             f"🔍 Stream: ДО замены (multiplication_number={multiplication_number}, general_table={general_table_request}): {full_response[:200]}"
@@ -2135,7 +2167,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         except Exception:
                             pass
                         # #endregion
-                    elif general_graph_request or graph_match:
+                    elif visualization_image_base64 and (general_graph_request or graph_match):
                         # Для графиков тоже заменяем на короткий ответ
                         full_response = "Вот график."
                         # #region agent log
@@ -2345,7 +2377,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 r"нарисуй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
                                 r"построй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
                                 r"покажи\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
-                                r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол)",
+                                r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол|порабол|парабола|порабола)",
                             ]
                             graph_match = None
                             for pattern in graph_patterns:
