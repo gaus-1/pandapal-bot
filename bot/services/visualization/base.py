@@ -338,3 +338,21 @@ class BaseVisualizationService:
         except Exception as e:
             logger.error(f"❌ Ошибка генерации круговой диаграммы: {e}", exc_info=True)
             return None
+
+    def image_to_base64(self, image_bytes: bytes) -> str:
+        """
+        Конвертирует изображение в base64 строку.
+
+        Args:
+            image_bytes: Изображение в формате bytes
+
+        Returns:
+            str: Base64 строка изображения
+        """
+        import base64
+
+        try:
+            return base64.b64encode(image_bytes).decode("utf-8")
+        except Exception as e:
+            logger.error(f"❌ Ошибка конвертации изображения в base64: {e}", exc_info=True)
+            return ""
