@@ -7,7 +7,13 @@
 Каждый файл - отдельный роутер с обработчиками:
 
 - `start.py` - команда /start, приветствие, главное меню
-- `ai_chat.py` - общение с AI, обработка текста, голоса, изображений
+- `ai_chat/` - **модульная структура** общения с AI:
+  - `text.py` - обработка текстовых сообщений
+  - `voice.py` - голосовые и аудио сообщения
+  - `image.py` - анализ изображений
+  - `document.py` - обработка документов
+  - `helpers.py` - вспомогательные функции (потоковое чтение файлов)
+  - `__init__.py` - регистрация router и всех handlers
 - `translate.py` - перевод текста через Yandex Translate
 - `payment_handler.py` - обработка платежей и Premium
 - `feedback.py` - сбор обратной связи через Yandex Forms
@@ -22,16 +28,37 @@
 
 ```python
 from .start import router as start_router
-from .ai_chat import router as ai_chat_router
+from .ai_chat import router as ai_chat_router  # Модульная структура
 
 routers = [
     start_router,
-    ai_chat_router,
+    ai_chat_router,  # Регистрирует все handlers из ai_chat/
     # ... остальные
 ]
 ```
 
 Затем они подключаются к Dispatcher в `web_server.py`.
+
+### Модульная структура ai_chat
+
+`ai_chat/` использует модульную структуру для разделения ответственности:
+
+```python
+# bot/handlers/ai_chat/__init__.py
+from aiogram import Router
+
+router = Router(name="ai_chat")
+
+from . import document, image, text, voice
+
+# Регистрируем handlers на router
+text.register_handlers(router)
+voice.register_handlers(router)
+image.register_handlers(router)
+document.register_handlers(router)
+```
+
+Каждый модуль регистрирует свои handlers через функцию `register_handlers(router)`.
 
 ## Примеры
 
