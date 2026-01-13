@@ -273,7 +273,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
   };
 
   return (
-    <div className="w-full h-full bg-white dark:bg-slate-900 overflow-y-auto">
+    <div className="w-full h-full bg-gradient-to-br from-rose-50/40 via-purple-50/40 to-sky-50/40 dark:from-slate-900 dark:via-slate-850 dark:to-slate-800 overflow-y-auto backdrop-blur-sm">
       <div className="max-w-4xl mx-auto px-3 xs:px-4 sm:px-6 md:px-8 py-2 xs:py-3 sm:py-4 md:py-6 pb-16 xs:pb-20 sm:pb-24">
 
         {/* Telegram Login Widget (только для веб-сайта) */}
