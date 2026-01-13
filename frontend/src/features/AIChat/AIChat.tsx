@@ -315,7 +315,7 @@ export function AIChat({ user }: AIChatProps) {
         <div className="flex items-center gap-1.5 sm:gap-2">
           <img src="/logo.png" alt="PandaPal" width={32} height={32} loading="lazy" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 dark:bg-slate-800/90 p-0.5 shadow-sm" />
           <div className="flex-1 min-w-0">
-            <h1 className="text-xs sm:text-sm md:text-base font-bold text-white dark:text-slate-100 drop-shadow-sm truncate">PandaPal AI</h1>
+            <h1 className="text-xs sm:text-sm md:text-base font-display font-bold text-white dark:text-slate-100 drop-shadow-sm truncate">PandaPal AI</h1>
             <p className="text-[10px] sm:text-xs md:text-sm text-blue-50 dark:text-slate-300 font-medium truncate">Привет, {user.first_name}! 🎓</p>
           </div>
           <div className="flex items-center gap-1.5">
@@ -348,7 +348,7 @@ export function AIChat({ user }: AIChatProps) {
               loading="eager"
               className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl animate-logo-bounce bg-white/50 dark:bg-slate-800/50 p-2"
             />
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>
             <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 text-center max-w-md mx-auto px-4 animate-fade-in delay-300">
               Задай любой вопрос, и я помогу тебе с учебой! 📚✨
             </p>
@@ -537,7 +537,7 @@ function MessageContent({ content, role }: MessageContentProps) {
                     if (section.includes('**Задача')) {
                       const title = section.replace(/\*\*/g, '').trim();
                       return (
-                        <h3 key={sectionIndex} className="font-bold text-sm sm:text-base text-blue-600 dark:text-blue-400 mb-2">
+                        <h3 key={sectionIndex} className="font-display font-bold text-sm sm:text-base text-blue-600 dark:text-blue-400 mb-2">
                           {title}
                         </h3>
                       );

@@ -53,7 +53,7 @@ export function AchievementsScreen({ user }: AchievementsScreenProps) {
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-3 mb-2 sm:mb-3">
             <span className="text-3xl sm:text-4xl md:text-5xl">🏆</span>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-slate-100">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-gray-900 dark:text-slate-100">
               Достижения
             </h1>
           </div>

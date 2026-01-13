@@ -242,7 +242,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
           >
             ← Назад
           </button>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-100">
+          <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 dark:text-slate-100">
             🔢 2048
           </h2>
           <div className="w-10 sm:w-12" />

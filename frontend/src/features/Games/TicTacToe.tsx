@@ -145,7 +145,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
           >
             ← Назад
           </button>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-100">
+          <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 dark:text-slate-100">
             ❌⭕ Крестики-нолики
           </h2>
           <div className="w-10 sm:w-12" />
