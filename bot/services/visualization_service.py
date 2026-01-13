@@ -42,6 +42,80 @@ class VisualizationService:
         else:
             logger.info("✅ VisualizationService инициализирован")
 
+    def generate_full_multiplication_table(self) -> bytes | None:
+        """
+        Генерирует полную таблицу умножения (1-10).
+
+        Returns:
+            bytes: Изображение в формате PNG или None при ошибке
+        """
+        if not MATPLOTLIB_AVAILABLE:
+            return None
+
+        try:
+            fig, ax = plt.subplots(figsize=(12, 14))
+            fig.patch.set_facecolor("white")
+            ax.axis("off")
+
+            # Заголовок
+            title = "Таблица умножения"
+            ax.text(
+                0.5,
+                0.98,
+                title,
+                ha="center",
+                va="top",
+                fontsize=18,
+                fontweight="bold",
+                transform=ax.transAxes,
+            )
+
+            # Генерируем полную таблицу (10x10)
+            table_data = []
+            for i in range(1, 11):
+                row = []
+                for j in range(1, 11):
+                    row.append(f"{i}×{j}={i*j}")
+                table_data.append(row)
+
+            # Создаем таблицу
+            table = ax.table(
+                cellText=table_data,
+                cellLoc="center",
+                loc="center",
+                bbox=[0, 0.05, 1, 0.9],
+            )
+            table.auto_set_font_size(False)
+            table.set_fontsize(9)
+            table.scale(1, 1.5)
+
+            # Стилизация - чередующиеся цвета
+            for i in range(10):
+                for j in range(10):
+                    cell = table[(i, j)]
+                    if (i + j) % 2 == 0:
+                        cell.set_facecolor("#f0f8ff")
+                    else:
+                        cell.set_facecolor("white")
+                    cell.set_text_props(weight="normal")
+
+            plt.tight_layout()
+
+            # Сохраняем в bytes
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", dpi=100, bbox_inches="tight", facecolor="white")
+            buf.seek(0)
+            image_bytes = buf.read()
+            buf.close()
+            plt.close(fig)
+
+            logger.info("✅ Сгенерирована полная таблица умножения")
+            return image_bytes
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка генерации полной таблицы умножения: {e}", exc_info=True)
+            return None
+
     def generate_multiplication_table_image(self, number: int) -> bytes | None:
         """
         Генерирует изображение таблицы умножения для заданного числа.
@@ -247,7 +321,23 @@ class VisualizationService:
 
         text_lower = text.lower()
 
-        # Паттерны для таблиц умножения
+        # Сначала проверяем полную таблицу умножения (без указания числа)
+        full_table_patterns = [
+            r"табл[иы]ц[аеы]?\s*умножени[яе](?:\s+на\s+все)?",
+            r"покажи\s+табл[иы]ц[аеы]?\s*умножени[яе]",
+            r"выведи\s+табл[иы]ц[аеы]?\s*умножени[яе]",
+            r"покажи\s+умножени[яе]",
+        ]
+
+        for pattern in full_table_patterns:
+            if re.search(pattern, text_lower):
+                # Генерируем полную таблицу умножения (1-10)
+                image = self.generate_full_multiplication_table()
+                if image:
+                    logger.info("📊 Детектирована полная таблица умножения")
+                    return image
+
+        # Паттерны для таблиц умножения на конкретное число
         multiplication_patterns = [
             r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)",
             r"табл[иы]ц[аеы]?\s*умножени[яе]\s+(\d+)",
@@ -255,7 +345,7 @@ class VisualizationService:
             r"умнож[а-я]*\s+(\d+)",
         ]
 
-        # Проверяем таблицы умножения
+        # Проверяем таблицы умножения на конкретное число
         for pattern in multiplication_patterns:
             match = re.search(pattern, text_lower)
             if match:
@@ -268,6 +358,23 @@ class VisualizationService:
                         return image
                 except (ValueError, IndexError):
                     continue
+
+        # Паттерны для таблицы Менделеева
+        mendeleev_patterns = [
+            r"табл[иы]ц[аеы]?\s*менделеева",
+            r"периодическая\s+табл[иы]ц[аеы]?",
+            r"менделеева",
+            r"покажи\s+табл[иы]ц[аеы]?\s*менделеева",
+            r"покажи\s+периодическую\s+табл[иы]ц[аеы]?",
+        ]
+
+        for pattern in mendeleev_patterns:
+            if re.search(pattern, text_lower):
+                # Пока просто возвращаем None - таблица Менделеева слишком сложная для генерации
+                # Но детекция работает, чтобы AI знал, что это образовательный запрос
+                logger.info("📊 Детектирован запрос на таблицу Менделеева (образовательная тема)")
+                # Возвращаем None, чтобы AI ответил текстом, но это будет образовательный вопрос
+                return None
 
         # Паттерны для графиков функций
         graph_patterns = [

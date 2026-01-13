@@ -10,10 +10,10 @@
 - Мягкое перенаправление без упоминания запрещённых тем
 """
 
-import asyncio
 import re
 import secrets
-from typing import Any, Dict, List, Optional, Pattern, Tuple
+from re import Pattern
+from typing import Any
 
 from loguru import logger
 
@@ -72,6 +72,9 @@ class ContentModerationService(IModerationService):
         "деление",
         "сложение",
         "вычитание",
+        "таблица менделеева",
+        "периодическая таблица",
+        "менделеева",
         # Русский язык
         "подчеркни",
         "слово",
@@ -98,13 +101,13 @@ class ContentModerationService(IModerationService):
     def __init__(self) -> None:
         """Инициализация сервиса модерации."""
         # Список запрещённых тем из настроек -> компилируем в простой regex для кириллицы
-        topics: List[str] = settings.get_forbidden_topics_list()
-        self._topic_regexes: List[Pattern[str]] = [
+        topics: list[str] = settings.get_forbidden_topics_list()
+        self._topic_regexes: list[Pattern[str]] = [
             re.compile(rf"{re.escape(topic)}", re.IGNORECASE) for topic in topics
         ]
 
         # Паттерны высокого уровня из конфигурации -> компилируем с границами слов
-        self._forbidden_regexes: List[Pattern[str]] = [
+        self._forbidden_regexes: list[Pattern[str]] = [
             re.compile(rf"\b{re.escape(pattern)}\b", re.IGNORECASE)
             for pattern in FORBIDDEN_PATTERNS
         ]
@@ -202,18 +205,18 @@ class ContentModerationService(IModerationService):
         )
 
         # SQLi/XSS паттерны
-        self._sql_regexes: List[Pattern[str]] = [
+        self._sql_regexes: list[Pattern[str]] = [
             re.compile(r"'\s*OR\s*'1'\s*=\s*'1", re.IGNORECASE),
             re.compile(r";\s*DROP\s+TABLE", re.IGNORECASE),
             re.compile(r"UNION\s+SELECT", re.IGNORECASE),
         ]
-        self._xss_regexes: List[Pattern[str]] = [
+        self._xss_regexes: list[Pattern[str]] = [
             re.compile(r"<script.*?>", re.IGNORECASE),
             re.compile(r"javascript:", re.IGNORECASE),
             re.compile(r"on\w+\s*=", re.IGNORECASE),  # onclick=, onerror=
         ]
 
-    def is_safe_content(self, text: str) -> Tuple[bool, Optional[str]]:
+    def is_safe_content(self, text: str) -> tuple[bool, str | None]:
         """
         Проверка, безопасен ли контент для ребёнка (базовая версия).
 
@@ -332,7 +335,7 @@ class ContentModerationService(IModerationService):
         # В будущем можно добавить асинхронное сохранение в БД
 
     async def advanced_moderate_content(
-        self, content: str, user_context: Dict[str, Any] = None
+        self, content: str, user_context: dict[str, Any] = None
     ) -> ModerationResult:
         """
         Продвинутая модерация контента с использованием ML и контекстного анализа.
@@ -346,6 +349,6 @@ class ContentModerationService(IModerationService):
         """
         return await self.advanced_moderation.moderate_content(content, user_context)
 
-    async def get_moderation_stats(self) -> Dict[str, Any]:
+    async def get_moderation_stats(self) -> dict[str, Any]:
         """Возвращает статистику модерации"""
         return await self.advanced_moderation.get_moderation_stats()
