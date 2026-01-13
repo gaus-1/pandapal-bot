@@ -435,25 +435,6 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                     : 'bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700'
                 }`}
               >
-                {/* Замочек (вне мини-аппа или когда не авторизован) */}
-                {(!inTelegram || !isAuthenticated) && (
-                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-600 dark:text-slate-400">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-6 h-6 sm:w-7 sm:h-7"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
-                  </div>
-                )}
-
                 {plan.popular && (
                   <div className="inline-block px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-500 text-white text-xs font-bold rounded-full mb-1.5 sm:mb-2">
                     🔥 ПОПУЛЯРНЫЙ
