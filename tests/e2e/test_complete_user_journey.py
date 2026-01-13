@@ -15,7 +15,7 @@ from aiohttp.test_utils import make_mocked_request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from bot.api.miniapp_endpoints import (
+from bot.api.miniapp import (
     miniapp_ai_chat,
     miniapp_auth,
     miniapp_get_achievements,
