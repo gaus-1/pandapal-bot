@@ -548,7 +548,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     return any(re.search(keyword, text) for keyword in specific_keywords)
 
                 # Общие паттерны для запросов на таблицы (без числа)
-                # ВАЖНО: Эти паттерны срабатывают ТОЛЬКО если нет специфичного контекста
+                # ВАЖНО: Эти паттерны имеют ВЫСОКИЙ ПРИОРИТЕТ - срабатывают при явных запросах
                 general_table_patterns = [
                     r"состав[ьи]\s+табл[иы]ц[аеы]?",
                     r"пришли\s+табл[иы]ц[аеы]?",
@@ -557,12 +557,16 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     r"нарисуй\s+табл[иы]ц[аеы]?",
                     r"построй\s+табл[иы]ц[аеы]?",
                     r"выведи\s+табл[иы]ц[аеы]?",
-                    r"табл[иы]ц[аеы]?\s*(?:пришли|покажи|сделай|нарисуй|состав[ьи]|построй)",
+                    r"дай\s+табл[иы]ц[аеы]?",
+                    r"нужн[аы]?\s+табл[иы]ц[аеы]?",
+                    r"табл[иы]ц[аеы]?\s*(?:пришли|покажи|сделай|нарисуй|состав[ьи]|построй|дай)",
                     r"покажи\s+умножени[яе]",
                     r"табл[иы]ц[аеы]?\s*умножени[яе](?:\s+на\s+все)?",
                     r"полную\s+табл[иы]ц[аеы]?\s*умножени[яе]",
+                    r"хочу\s+табл[иы]ц[аеы]?",
                 ]
                 # Расширенные паттерны для графиков
+                # ВАЖНО: Эти паттерны имеют ВЫСОКИЙ ПРИОРИТЕТ - срабатывают при явных запросах
                 general_graph_patterns = [
                     r"состав[ьи]\s+график",
                     r"пришли\s+график",
@@ -571,6 +575,10 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     r"нарисуй\s+график",
                     r"построй\s+график",
                     r"выведи\s+график",
+                    r"дай\s+график",
+                    r"нужен\s+график",
+                    r"хочу\s+график",
+                    r"график\s+(?:покажи|нарисуй|построй|сделай|выведи)",
                 ]
 
                 # КРИТИЧНО: Сначала проверяем специфичные таблицы через detect_visualization_request
@@ -700,10 +708,8 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 continue
 
                 # Проверяем общие запросы на таблицы (без числа)
-                # ВАЖНО: Только если:
-                # 1. Специфичная визуализация не найдена
-                # 2. Нет числа для умножения
-                # 3. НЕТ специфичного контекста в запросе (глаголы, падежи и т.д.)
+                # ИЗМЕНЕНО: Убрана блокировка has_specific_context - явные запросы "покажи/нарисуй" имеют приоритет
+                # ВАЖНО: Только если специфичная визуализация не найдена и нет числа для умножения
                 general_table_request = None
                 has_context = has_specific_context(user_msg_lower)
                 # #region agent log
@@ -733,16 +739,13 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 except Exception:
                     pass
                 # #endregion
-                if (
-                    not specific_visualization_image
-                    and not multiplication_number
-                    and not has_context
-                ):
+                # ИЗМЕНЕНО: Убрана проверка has_context - явные запросы "покажи/нарисуй таблицу" должны срабатывать всегда
+                if not specific_visualization_image and not multiplication_number:
                     for pattern in general_table_patterns:
                         if re.search(pattern, user_msg_lower):
                             general_table_request = True
                             logger.info(
-                                f"📊 Детектирован общий запрос на таблицу (без специфичного контекста): '{user_message[:50]}', pattern: {pattern}"
+                                f"📊 Детектирован общий запрос на таблицу: '{user_message[:50]}', pattern: {pattern}"
                             )
                             # #region agent log
                             try:
@@ -753,7 +756,10 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                                 "timestamp": __import__("time").time() * 1000,
                                                 "location": "miniapp_endpoints.py:1676",
                                                 "message": "Детектирован общий запрос на таблицу",
-                                                "data": {"pattern": pattern},
+                                                "data": {
+                                                    "pattern": pattern,
+                                                    "user_message": user_message[:100],
+                                                },
                                                 "sessionId": "debug-session",
                                                 "runId": "detection",
                                                 "hypothesisId": "B",
@@ -768,15 +774,14 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             break
 
                 # Проверяем общие запросы на графики
-                # ВАЖНО: Только если НЕТ специфичного контекста в запросе
+                # ИЗМЕНЕНО: Убрана проверка has_specific_context - явные запросы "покажи/нарисуй график" должны срабатывать всегда
                 general_graph_request = None
-                if not has_specific_context(user_msg_lower):
-                    for pattern in general_graph_patterns:
-                        if re.search(pattern, user_msg_lower):
-                            general_graph_request = True
-                            logger.info(
-                                f"📈 Детектирован общий запрос на график (без специфичного контекста): '{user_message[:50]}', pattern: {pattern}"
-                            )
+                for pattern in general_graph_patterns:
+                    if re.search(pattern, user_msg_lower):
+                        general_graph_request = True
+                        logger.info(
+                            f"📈 Детектирован общий запрос на график: '{user_message[:50]}', pattern: {pattern}"
+                        )
                         # #region agent log
                         try:
                             with open(debug_log_path, "a", encoding="utf-8") as f:
@@ -786,7 +791,10 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                             "timestamp": __import__("time").time() * 1000,
                                             "location": "miniapp_endpoints.py:1591",
                                             "message": "Детектирован общий запрос на график",
-                                            "data": {"pattern": pattern},
+                                            "data": {
+                                                "pattern": pattern,
+                                                "user_message": user_message[:100],
+                                            },
                                             "sessionId": "debug-session",
                                             "runId": "detection",
                                             "hypothesisId": "C",
