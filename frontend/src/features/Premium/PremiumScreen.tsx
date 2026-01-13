@@ -409,11 +409,11 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         )}
 
         {/* Преимущества */}
-        <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl sm:rounded-2xl border-2 border-blue-500/30">
-            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">
+        <div className="mb-4 sm:mb-5 p-5 sm:p-6 md:p-7 bg-gradient-to-r from-pink-100/60 via-purple-100/60 to-blue-100/60 dark:from-pink-900/20 dark:via-purple-900/20 dark:to-blue-900/20 rounded-3xl sm:rounded-[2rem] border border-pink-200/40 dark:border-pink-800/30 shadow-sm">
+            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-slate-100 mb-3 sm:mb-4">
               🌟 Что дает Premium?
             </h2>
-            <ul className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-900 dark:text-slate-100">
+            <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 text-xs sm:text-sm text-gray-900 dark:text-slate-100">
             <li>✨ <strong>Неограниченные запросы</strong></li>
             <li>📚 <strong>Все предметы</strong></li>
             <li>🎯 <strong>Персональный план</strong></li>
