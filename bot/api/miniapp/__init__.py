@@ -13,20 +13,7 @@ Mini App API endpoints модуль.
 from aiohttp import web
 from loguru import logger
 
-# Экспортируем все endpoints для обратной совместимости
-# Ленивый импорт auth модуля для обработки ошибок импорта
-try:
-    from bot.api.miniapp.auth import (
-        miniapp_auth,
-        miniapp_get_user,
-        miniapp_update_user,
-    )
-except ImportError as e:
-    logger.error(f"❌ Ошибка импорта bot.api.miniapp.auth: {e}", exc_info=True)
-    # Создаем заглушки, чтобы модуль мог загрузиться
-    miniapp_auth = None
-    miniapp_get_user = None
-    miniapp_update_user = None
+# Импортируем только те модули, которые точно работают
 from bot.api.miniapp.chat import miniapp_ai_chat
 from bot.api.miniapp.helpers import (
     extract_user_name_from_message,
@@ -63,18 +50,23 @@ def setup_miniapp_routes(app: web.Application) -> None:
     Args:
         app: aiohttp приложение
     """
-    # Аутентификация
-    if miniapp_auth is None:
-        logger.error("❌ miniapp_auth не импортирован, пропускаем регистрацию /api/miniapp/auth")
-    else:
+    # Ленивый импорт auth модуля для обработки ошибок
+    try:
+        from bot.api.miniapp.auth import (
+            miniapp_auth,
+            miniapp_get_user,
+            miniapp_update_user,
+        )
+
+        # Аутентификация
         app.router.add_post("/api/miniapp/auth", miniapp_auth)
         logger.info("✅ POST /api/miniapp/auth зарегистрирован")
-
-    # Пользователь
-    if miniapp_get_user is not None:
+        # Пользователь
         app.router.add_get("/api/miniapp/user/{telegram_id}", miniapp_get_user)
-    if miniapp_update_user is not None:
         app.router.add_patch("/api/miniapp/user/{telegram_id}", miniapp_update_user)
+    except ImportError as e:
+        logger.error(f"❌ Ошибка импорта bot.api.miniapp.auth: {e}", exc_info=True)
+        logger.warning("⚠️ Пропускаем регистрацию auth роутов")
 
     # Прогресс и достижения
     app.router.add_get("/api/miniapp/progress/{telegram_id}", miniapp_get_progress)
@@ -121,10 +113,6 @@ def setup_miniapp_routes(app: web.Application) -> None:
 
 
 __all__ = [
-    # Auth
-    "miniapp_auth",
-    "miniapp_get_user",
-    "miniapp_update_user",
     # Chat
     "miniapp_ai_chat",
     "miniapp_ai_chat_stream",
