@@ -251,7 +251,7 @@
       <img width="60" height="21" alt="Индекс качества сайта" border="0" style="border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" src="https://yandex.ru/cycounter?pandapal.ru&theme=light&lang=ru"/>
     </a>
     <script>
-      // Показываем счетчик ИКС на основном сайте и в Mini App
+      // Показываем счетчик ИКС только на основном сайте (не в Mini App)
       (function() {
         function updateCounterPosition() {
           if (typeof window !== 'undefined' && window.location.hostname === 'pandapal.ru') {
@@ -262,16 +262,8 @@
                                (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp);
 
               if (isMiniApp) {
-                // В Mini App - позиционируем в самый низ экрана
-                // Учитываем safe-area-inset-bottom для устройств с вырезом экрана
-                const safeAreaBottom = Math.max(0, window.innerHeight - document.documentElement.clientHeight);
-                const bottomOffset = 5 + safeAreaBottom; // Минимальный отступ от самого низа
-
-                counter.style.display = 'block';
-                counter.style.position = 'fixed';
-                counter.style.bottom = bottomOffset + 'px'; // В самый низ экрана
-                counter.style.left = '10px';
-                counter.style.zIndex = '999';
+                // В Mini App - скрываем кнопку
+                counter.style.display = 'none';
               } else {
                 // На основном сайте - в левом нижнем углу
                 counter.style.display = 'block';
