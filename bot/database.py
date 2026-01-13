@@ -192,6 +192,35 @@ def _apply_alembic_migration_for_existing_tables(alembic_cfg, current_revision: 
                 return True
             except Exception as heads_err:
                 logger.warning(f"⚠️ Не удалось применить миграции через heads: {heads_err}")
+        elif "overlaps" in error_str or "overlap" in error_str:
+            logger.warning("⚠️ Обнаружен конфликт миграций (overlaps). Проверяем состояние БД...")
+            try:
+                # Проверяем, есть ли поле в БД
+                from sqlalchemy import inspect
+
+                conn = engine.connect()
+                inspector = inspect(conn)
+                users_columns = {col["name"] for col in inspector.get_columns("users")}
+                conn.close()
+
+                # Если поле уже есть в БД, значит миграция применена, но не записана
+                if "panda_lazy_until" in users_columns:
+                    logger.info(
+                        "✅ Поле panda_lazy_until уже существует в БД, помечаем миграцию как примененную..."
+                    )
+                    try:
+                        command.stamp(alembic_cfg, "a1b2c3d4e5f8")
+                        logger.info("✅ Миграция a1b2c3d4e5f8 помечена как примененная")
+                        return True
+                    except Exception as stamp_err:
+                        logger.warning(f"⚠️ Не удалось пометить миграцию: {stamp_err}")
+                else:
+                    # Поле нет, но есть конфликт - пытаемся применить напрямую через stamp текущей версии
+                    logger.warning(
+                        "⚠️ Поле отсутствует, но есть конфликт миграций. Требуется ручное вмешательство."
+                    )
+            except Exception as check_err:
+                logger.warning(f"⚠️ Не удалось проверить состояние БД: {check_err}")
         else:
             logger.warning(f"⚠️ Alembic миграция не удалась: {alembic_err}")
 
