@@ -15,7 +15,7 @@ import { trackButtonClick } from '../utils/analytics';
  */
 export const Header: React.FC = React.memo(() => {
   return (
-    <header className="absolute top-0 left-0 right-0 z-40">
+    <header className="absolute top-0 left-0 right-0 z-40 bg-gradient-to-b from-white/80 via-white/60 to-transparent dark:from-slate-900/80 dark:via-slate-900/60 dark:to-transparent backdrop-blur-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 md:py-6 flex items-center justify-between">
         {/* Логотип и название - кликабельные для возврата на главную */}
         <a

@@ -435,8 +435,8 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                     : 'bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700'
                 }`}
               >
-                {/* Замочек (всегда вне мини-аппа) */}
-                {!inTelegram && (
+                {/* Замочек (вне мини-аппа или когда не авторизован) */}
+                {(!inTelegram || !isAuthenticated) && (
                   <div className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-600 dark:text-slate-400">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -504,8 +504,8 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   disabled={isProcessing && selectedPlan === plan.id}
                   className="w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {/* Иконка замка (всегда вне мини-аппа) */}
-                  {!inTelegram && (
+                  {/* Иконка замка (вне мини-аппа или когда не авторизован) */}
+                  {(!inTelegram || !isAuthenticated) && (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0"
