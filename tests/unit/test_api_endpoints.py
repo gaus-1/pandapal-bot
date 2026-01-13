@@ -12,7 +12,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from bot.api.metrics_endpoint import MetricsEndpoint
-from bot.api.miniapp_endpoints import (
+from bot.api.miniapp import (
     miniapp_ai_chat,
     miniapp_auth,
     miniapp_get_achievements,
