@@ -1512,6 +1512,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 user_message=user_message,
                 non_educational_questions_count=user.non_educational_questions_count,
                 is_auto_greeting_sent=False,  # Определяется на фронтенде, здесь всегда False
+                is_educational=is_educational,
             )
 
             # Добавляем веб-контекст к промпту, если он есть
