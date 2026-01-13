@@ -180,7 +180,7 @@ function MiniAppContent() {
       <div className="flex items-center justify-center min-h-screen bg-[var(--tg-theme-bg-color)] p-4">
         <div className="text-center">
           <div className="text-6xl mb-4">😔</div>
-          <h2 className="text-xl font-bold text-[var(--tg-theme-text-color)] mb-2">
+          <h2 className="text-xl font-display font-bold text-[var(--tg-theme-text-color)] mb-2">
             Ошибка загрузки
           </h2>
           <p className="text-[var(--tg-theme-hint-color)]">

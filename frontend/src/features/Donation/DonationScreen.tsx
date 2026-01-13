@@ -101,7 +101,7 @@ export function DonationScreen({ user }: DonationScreenProps) {
       <div className="max-w-2xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-16 sm:pb-20 md:pb-24">
         {/* Заголовок */}
         <div className="mb-3 sm:mb-4 md:mb-6 text-center">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-1.5 sm:mb-2">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-slate-100 mb-1.5 sm:mb-2">
             PandaPal
           </h1>
           <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
@@ -111,7 +111,7 @@ export function DonationScreen({ user }: DonationScreenProps) {
 
         {/* Информация о поддержке */}
         <div className="mb-3 sm:mb-4 md:mb-6 p-4 sm:p-5 md:p-6 bg-gradient-to-br from-amber-50/80 via-orange-50/80 to-yellow-50/80 dark:from-amber-950/30 dark:via-orange-950/30 dark:to-yellow-950/30 rounded-[1.5rem] sm:rounded-[2rem] border border-amber-200/25 dark:border-amber-800/20 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
-          <h2 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 dark:text-slate-100 mb-2 sm:mb-2.5">
+          <h2 className="text-xs sm:text-sm md:text-base font-display font-semibold text-gray-900 dark:text-slate-100 mb-2 sm:mb-2.5">
             Зачем поддерживать проект?
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 md:gap-3 text-xs sm:text-sm text-gray-900 dark:text-slate-100">
@@ -136,7 +136,7 @@ export function DonationScreen({ user }: DonationScreenProps) {
 
         {/* Выбор суммы */}
         <div className="mb-3 sm:mb-4 md:mb-6">
-          <h3 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 dark:text-slate-100 mb-2 sm:mb-3 md:mb-4">
+          <h3 className="text-xs sm:text-sm md:text-base font-display font-semibold text-gray-900 dark:text-slate-100 mb-2 sm:mb-3 md:mb-4">
             Выберите сумму поддержки:
           </h3>
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2 md:gap-3 mb-3 sm:mb-4 md:mb-5">
@@ -203,7 +203,7 @@ export function DonationScreen({ user }: DonationScreenProps) {
         <div className="p-4 sm:p-5 md:p-6 bg-gradient-to-br from-sky-50/80 via-blue-50/80 to-indigo-50/80 dark:from-sky-950/30 dark:via-blue-950/30 dark:to-indigo-950/30 rounded-[1.5rem] sm:rounded-[2rem] border border-sky-200/25 dark:border-sky-800/20 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
           <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
             <span className="text-base sm:text-lg md:text-xl">⭐</span>
-            <h3 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 dark:text-slate-100">
+            <h3 className="text-xs sm:text-sm md:text-base font-display font-semibold text-gray-900 dark:text-slate-100">
               Telegram Stars
             </h3>
           </div>
