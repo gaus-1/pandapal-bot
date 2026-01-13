@@ -12,7 +12,6 @@
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Optional
 
 from loguru import logger
 
@@ -35,9 +34,7 @@ class SpeechRecognitionService:
         self.yandex_service = get_yandex_cloud_service()
         logger.info("✅ Yandex SpeechKit STT сервис инициализирован")
 
-    async def transcribe_voice(
-        self, voice_file_bytes: bytes, language: str = "ru"
-    ) -> Optional[str]:
+    async def transcribe_voice(self, voice_file_bytes: bytes, language: str = "ru") -> str | None:
         """
         Распознать речь из голосового сообщения через Yandex SpeechKit.
 
@@ -122,9 +119,26 @@ class SpeechRecognitionService:
                         check=True,
                     )
 
-                    # Читаем конвертированный файл
+                    # Читаем конвертированный файл потоково с ограничением размера
+                    max_converted_size = 20 * 1024 * 1024  # 20MB лимит
+                    converted_bytes = b""
+                    total_read = 0
+                    chunk_size = 64 * 1024  # 64KB chunks
+
                     with open(output_path, "rb") as f:
-                        converted_bytes = f.read()
+                        while True:
+                            chunk = f.read(chunk_size)
+                            if not chunk:
+                                break
+                            converted_bytes += chunk
+                            total_read += len(chunk)
+                            if total_read > max_converted_size:
+                                logger.error(
+                                    f"❌ Конвертированный файл слишком большой: "
+                                    f"{total_read} байт > {max_converted_size} байт"
+                                )
+                                # Возвращаем исходные байты в случае ошибки
+                                return audio_bytes
 
                     logger.info(
                         f"✅ Конвертация успешна: {len(audio_bytes)} -> {len(converted_bytes)} байт"
@@ -167,7 +181,7 @@ class SpeechRecognitionService:
 SpeechService = SpeechRecognitionService
 
 # Глобальный экземпляр (Singleton)
-_speech_service: Optional[SpeechRecognitionService] = None
+_speech_service: SpeechRecognitionService | None = None
 
 
 def get_speech_service() -> SpeechRecognitionService:

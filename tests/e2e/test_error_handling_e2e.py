@@ -14,7 +14,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from bot.api.miniapp_endpoints import miniapp_ai_chat
+from bot.api.miniapp import miniapp_ai_chat
 from bot.database import get_db
 from bot.models import Base
 from bot.services.moderation_service import ContentModerationService

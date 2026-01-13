@@ -4,7 +4,8 @@ HTTP endpoints для Telegram Mini App и внешних интеграций.
 
 ## Файлы
 
-- `miniapp_endpoints.py` - API для Mini App (AI chat, голос, изображения, streaming)
+- `miniapp/` - API для Mini App (разбито на модули: auth, chat, chat_stream, progress, other, helpers)
+- `miniapp_endpoints.py` - Обертка для обратной совместимости (DEPRECATED, используйте bot.api.miniapp)
 - `premium_endpoints.py` - YooKassa webhook, создание платежей
 - `auth_endpoints.py` - Telegram Login Widget, сессии для веб-сайта
 - `games_endpoints.py` - PandaPalGo API (создание игр, ходы, статистика)
@@ -17,7 +18,7 @@ HTTP endpoints для Telegram Mini App и внешних интеграций.
 Endpoints подключаются в `web_server.py`:
 
 ```python
-from bot.api.miniapp_endpoints import setup_miniapp_routes
+from bot.api.miniapp import setup_miniapp_routes
 
 setup_miniapp_routes(app)
 ```
