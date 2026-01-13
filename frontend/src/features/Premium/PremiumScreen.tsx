@@ -279,7 +279,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         {/* Telegram Login Widget (только для веб-сайта) */}
         {!inTelegram && !isAuthenticated && (
           <div className="mb-6 p-6 bg-gradient-to-br from-blue-50/80 via-cyan-50/80 to-sky-50/80 dark:from-blue-950/30 dark:via-cyan-950/30 dark:to-sky-950/30 rounded-[2rem] border border-blue-200/30 dark:border-blue-800/25 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3 text-center">
+            <h2 className="text-xl font-display font-bold text-gray-900 dark:text-slate-100 mb-3 text-center">
               🔐 Войдите через Telegram
             </h2>
             <p className="text-sm text-gray-600 dark:text-slate-400 mb-4 text-center">
@@ -320,7 +320,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         {/* Заголовок */}
         <div className="mb-2 xs:mb-3 sm:mb-4 text-center">
           <div className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl mb-1.5 xs:mb-2 sm:mb-3">👑</div>
-          <h1 className="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-1 xs:mb-1.5 sm:mb-2">
+          <h1 className="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-display font-bold text-gray-900 dark:text-slate-100 mb-1 xs:mb-1.5 sm:mb-2">
             PandaPal Premium
           </h1>
           <p className="text-xs xs:text-sm sm:text-base md:text-base text-gray-600 dark:text-slate-400">
@@ -347,7 +347,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
               <div className="flex items-center gap-2">
                 <span className="text-xl sm:text-2xl">💳</span>
                 <div>
-                  <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-slate-100">
+                  <h3 className="text-sm sm:text-base font-display font-semibold text-gray-900 dark:text-slate-100">
                     Сохраненная карта
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">
@@ -382,7 +382,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         {showRemoveConfirm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-gradient-to-br from-white/95 to-stone-50/95 dark:from-slate-800/95 dark:to-slate-750/95 rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-6 max-w-sm w-full border border-stone-200/30 dark:border-slate-700/40 shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-slate-100 mb-2">
+              <h3 className="text-base sm:text-lg font-display font-bold text-gray-900 dark:text-slate-100 mb-2">
                 Отвязать карту?
               </h3>
               <p className="text-sm sm:text-base text-gray-600 dark:text-slate-400 mb-4">
@@ -410,7 +410,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
         {/* Преимущества */}
         <div className="mb-2.5 xs:mb-3 sm:mb-4 p-4 xs:p-5 sm:p-6 md:p-7 lg:p-8 bg-gradient-to-br from-rose-50/70 via-purple-50/70 to-sky-50/70 dark:from-rose-950/25 dark:via-purple-950/25 dark:to-sky-950/25 rounded-[1.5rem] xs:rounded-[1.75rem] sm:rounded-[2rem] md:rounded-[2.5rem] border border-rose-200/25 dark:border-rose-800/15 shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.25)] backdrop-blur-[0.5px]">
-            <h2 className="text-xs xs:text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2 xs:mb-2.5 sm:mb-3 md:mb-4">
+            <h2 className="text-xs xs:text-sm sm:text-base md:text-lg font-display font-semibold text-gray-900 dark:text-slate-100 mb-2 xs:mb-2.5 sm:mb-3 md:mb-4">
               🌟 Что дает Premium?
             </h2>
             <ul className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 gap-1.5 xs:gap-2 sm:gap-2.5 md:gap-3 text-xs xs:text-xs sm:text-sm md:text-sm text-gray-900 dark:text-slate-100">
@@ -443,7 +443,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
                 <div className="flex items-center justify-between mb-1.5 xs:mb-2 sm:mb-3">
                   <div>
-                    <h3 className="text-sm xs:text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100">
+                    <h3 className="text-sm xs:text-base sm:text-lg md:text-xl font-display font-bold text-gray-900 dark:text-slate-100">
                       {plan.name}
                     </h3>
                     <p className="text-[10px] xs:text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
@@ -528,7 +528,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
-            <h3 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 dark:text-slate-100">
+            <h3 className="text-xs sm:text-sm md:text-base font-display font-semibold text-gray-900 dark:text-slate-100">
               Оплата только через Telegram
             </h3>
           </div>

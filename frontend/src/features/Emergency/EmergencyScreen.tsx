@@ -110,7 +110,7 @@ export function EmergencyScreen() {
     <div ref={containerRef} data-emergency-screen className="h-full overflow-y-auto bg-white dark:bg-slate-900 p-4 sm:p-6 md:p-8 max-w-4xl mx-auto pb-24">
       {/* Заголовок */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-2 sm:mb-3">
+        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold text-gray-900 dark:text-slate-100 mb-2 sm:mb-3">
           🚨 Экстренные номера
         </h1>
         <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
@@ -130,7 +130,7 @@ export function EmergencyScreen() {
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="text-3xl sm:text-4xl md:text-5xl">{emergency.icon}</div>
                 <div>
-                  <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-slate-100">
+                  <h3 className="text-sm sm:text-base md:text-lg font-display font-bold text-gray-900 dark:text-slate-100">
                     {emergency.title}
                   </h3>
                   <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
