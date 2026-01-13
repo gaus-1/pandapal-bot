@@ -4,6 +4,7 @@
 
 import { useState } from 'react';
 import { telegram } from '../../services/telegram';
+import { useAppStore } from '../../store/appStore';
 import type { UserProfile } from '../../services/api';
 
 interface DonationScreenProps {
@@ -17,6 +18,7 @@ export function DonationScreen({ user }: DonationScreenProps) {
   const [selectedAmount, setSelectedAmount] = useState<number>(100);
   const [customAmount, setCustomAmount] = useState<string>('');
   const inTelegram = telegram.isInTelegram();
+  const { isAuthenticated } = useAppStore();
 
   const handleDonate = async (amount: number) => {
     // Telegram Stars работают ТОЛЬКО в Telegram
@@ -173,8 +175,24 @@ export function DonationScreen({ user }: DonationScreenProps) {
               <button
                 onClick={handleCustomDonate}
                 disabled={isProcessing || !customAmount}
-                className="px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base bg-blue-500 dark:bg-blue-600 text-white font-semibold disabled:opacity-50 active:opacity-80 transition-opacity touch-manipulation min-h-[44px] whitespace-nowrap"
+                className="px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base bg-blue-500 dark:bg-blue-600 text-white font-semibold disabled:opacity-50 active:opacity-80 transition-opacity touch-manipulation min-h-[44px] whitespace-nowrap flex items-center justify-center gap-2"
               >
+                {/* Иконка замка (вне мини-аппа или когда не авторизован) */}
+                {(!inTelegram || !isAuthenticated) && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                )}
                 Поддержать
               </button>
             </div>
