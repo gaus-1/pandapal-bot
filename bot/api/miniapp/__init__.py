@@ -14,11 +14,19 @@ from aiohttp import web
 from loguru import logger
 
 # Экспортируем все endpoints для обратной совместимости
-from bot.api.miniapp.auth import (
-    miniapp_auth,
-    miniapp_get_user,
-    miniapp_update_user,
-)
+# Ленивый импорт auth модуля для обработки ошибок импорта
+try:
+    from bot.api.miniapp.auth import (
+        miniapp_auth,
+        miniapp_get_user,
+        miniapp_update_user,
+    )
+except ImportError as e:
+    logger.error(f"❌ Ошибка импорта bot.api.miniapp.auth: {e}", exc_info=True)
+    # Создаем заглушки, чтобы модуль мог загрузиться
+    miniapp_auth = None
+    miniapp_get_user = None
+    miniapp_update_user = None
 from bot.api.miniapp.chat import miniapp_ai_chat
 from bot.api.miniapp.helpers import (
     extract_user_name_from_message,
@@ -55,54 +63,18 @@ def setup_miniapp_routes(app: web.Application) -> None:
     Args:
         app: aiohttp приложение
     """
-    # #region agent log
-    import json
-    import time
-
-    log_data = {
-        "sessionId": "debug-session",
-        "runId": "run1",
-        "hypothesisId": "C",
-        "location": "bot/api/miniapp/__init__.py:51",
-        "message": "Начало регистрации роутов",
-        "data": {},
-        "timestamp": time.time() * 1000,
-    }
-    with open(r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8") as f:
-        f.write(json.dumps(log_data) + "\n")
-    # #endregion
     # Аутентификация
-    # #region agent log
-    log_data = {
-        "sessionId": "debug-session",
-        "runId": "run1",
-        "hypothesisId": "C",
-        "location": "bot/api/miniapp/__init__.py:59",
-        "message": "Регистрация POST /api/miniapp/auth",
-        "data": {"handler": str(miniapp_auth)},
-        "timestamp": time.time() * 1000,
-    }
-    with open(r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8") as f:
-        f.write(json.dumps(log_data) + "\n")
-    # #endregion
-    app.router.add_post("/api/miniapp/auth", miniapp_auth)
-    # #region agent log
-    log_data = {
-        "sessionId": "debug-session",
-        "runId": "run1",
-        "hypothesisId": "C",
-        "location": "bot/api/miniapp/__init__.py:61",
-        "message": "POST /api/miniapp/auth зарегистрирован",
-        "data": {},
-        "timestamp": time.time() * 1000,
-    }
-    with open(r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8") as f:
-        f.write(json.dumps(log_data) + "\n")
-    # #endregion
+    if miniapp_auth is None:
+        logger.error("❌ miniapp_auth не импортирован, пропускаем регистрацию /api/miniapp/auth")
+    else:
+        app.router.add_post("/api/miniapp/auth", miniapp_auth)
+        logger.info("✅ POST /api/miniapp/auth зарегистрирован")
 
     # Пользователь
-    app.router.add_get("/api/miniapp/user/{telegram_id}", miniapp_get_user)
-    app.router.add_patch("/api/miniapp/user/{telegram_id}", miniapp_update_user)
+    if miniapp_get_user is not None:
+        app.router.add_get("/api/miniapp/user/{telegram_id}", miniapp_get_user)
+    if miniapp_update_user is not None:
+        app.router.add_patch("/api/miniapp/user/{telegram_id}", miniapp_update_user)
 
     # Прогресс и достижения
     app.router.add_get("/api/miniapp/progress/{telegram_id}", miniapp_get_progress)
