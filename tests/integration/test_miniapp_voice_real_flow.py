@@ -79,7 +79,7 @@ class TestMiniAppVoiceRealFlow:
         КРИТИЧНО: Тест что мини-апп принимает аудио от пользователя (симуляция нажатия кнопки).
         Проверяет весь поток: кнопка -> audio_base64 -> SpeechService -> AI -> ответ.
         """
-        from bot.api.miniapp_endpoints import miniapp_ai_chat
+        from bot.api.miniapp import miniapp_ai_chat
 
         telegram_id = test_user.telegram_id
         # Симулируем audio_base64 который приходит от пользователя при нажатии кнопки записи
@@ -174,7 +174,7 @@ class TestMiniAppVoiceRealFlow:
         КРИТИЧНО: Тест обработки иностранного языка в аудио.
         Проверяет: аудио -> распознавание -> определение языка -> перевод -> AI.
         """
-        from bot.api.miniapp_endpoints import miniapp_ai_chat
+        from bot.api.miniapp import miniapp_ai_chat
 
         telegram_id = test_user.telegram_id
         audio_base64 = "UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQAAAAA="
@@ -252,7 +252,7 @@ class TestMiniAppVoiceRealFlow:
         КРИТИЧНО: Тест обработки ошибок в потоке аудио.
         Проверяет что мини-апп корректно обрабатывает ошибки распознавания.
         """
-        from bot.api.miniapp_endpoints import miniapp_ai_chat
+        from bot.api.miniapp import miniapp_ai_chat
 
         telegram_id = test_user.telegram_id
         audio_base64 = "invalid_audio_data"
@@ -304,7 +304,7 @@ class TestMiniAppVoiceRealFlow:
         КРИТИЧНО: Полный поток обработки аудио с сохранением в историю.
         Проверяет: аудио -> распознавание -> AI -> сохранение в БД -> ответ.
         """
-        from bot.api.miniapp_endpoints import miniapp_ai_chat
+        from bot.api.miniapp import miniapp_ai_chat
 
         telegram_id = test_user.telegram_id
         audio_base64 = "UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQAAAAA="

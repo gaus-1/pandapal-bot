@@ -263,10 +263,7 @@ def check_dependencies() -> bool:
             log_debug("scripts/verify_data_persistence.py:check_dependencies", "requirements.txt not found", {}, "4")
             return False
 
-        with open(requirements_path, "r", encoding="utf-8") as f:
-            requirements = f.read()
-
-        # Ключевые зависимости для работы с БД
+        # Потоковое чтение requirements.txt построчно
         critical_deps = [
             "sqlalchemy",
             "alembic",
@@ -275,9 +272,21 @@ def check_dependencies() -> bool:
             "pydantic",
         ]
 
+        found_deps = set()
+        with open(requirements_path, "r", encoding="utf-8") as f:
+            for line in f:
+                # Убираем пробелы и комментарии, извлекаем имя пакета
+                line = line.strip().split("#")[0]  # Убираем комментарии
+                if not line:
+                    continue
+                # Извлекаем имя пакета (до ==, >=, <=, >, <, ~=)
+                dep_name = line.split("==")[0].split(">=")[0].split("<=")[0].split(">")[0].split("<")[0].split("~=")[0].strip()
+                if dep_name in critical_deps:
+                    found_deps.add(dep_name)
+
         missing_deps = []
         for dep in critical_deps:
-            if dep.lower() not in requirements.lower():
+            if dep not in found_deps:
                 missing_deps.append(dep)
                 print(f"❌ Зависимость {dep} не найдена в requirements.txt")
                 log_debug("scripts/verify_data_persistence.py:check_dependencies", "Missing dependency", {"dependency": dep}, "4")

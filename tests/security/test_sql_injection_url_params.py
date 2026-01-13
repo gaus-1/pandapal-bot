@@ -11,7 +11,7 @@ from aiohttp.test_utils import make_mocked_request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from bot.api.miniapp_endpoints import miniapp_get_user
+from bot.api.miniapp import miniapp_get_user
 from bot.models import Base, User
 from bot.services.user_service import UserService
 
