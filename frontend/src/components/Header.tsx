@@ -22,7 +22,6 @@ export const Header: React.FC = React.memo(() => {
           href="/"
           onClick={(e) => {
             e.preventDefault();
-            window.location.hash = '';
             window.history.pushState(null, '', '/');
             window.dispatchEvent(new Event('popstate'));
             trackButtonClick('header_logo_home');
@@ -57,10 +56,11 @@ export const Header: React.FC = React.memo(() => {
           {/* Навигация */}
           <nav className="hidden sm:flex items-center gap-2">
             <a
-              href="#premium"
+              href="/premium"
               onClick={(e) => {
                 e.preventDefault();
-                window.location.hash = 'premium';
+                window.history.pushState(null, '', '/premium');
+                window.dispatchEvent(new Event('popstate'));
                 trackButtonClick('header_premium');
               }}
               className="nav-link-header"
@@ -68,10 +68,11 @@ export const Header: React.FC = React.memo(() => {
               Premium
             </a>
             <a
-              href="#donation"
+              href="/donation"
               onClick={(e) => {
                 e.preventDefault();
-                window.location.hash = 'donation';
+                window.history.pushState(null, '', '/donation');
+                window.dispatchEvent(new Event('popstate'));
                 trackButtonClick('header_donation');
               }}
               className="nav-link-header"
