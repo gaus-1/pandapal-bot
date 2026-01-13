@@ -42,6 +42,68 @@ from bot.services.ai_service_solid import get_ai_service
 router = Router(name="ai_chat")
 
 
+def _extract_user_name_from_message(user_message: str) -> tuple[str | None, bool]:
+    """
+    Извлечение имени пользователя из сообщения.
+
+    Returns:
+        tuple: (имя или None, является ли отказом)
+    """
+    import re
+
+    cleaned_message = user_message.strip().lower()
+    cleaned_message = re.sub(r"[.,!?;:]+$", "", cleaned_message)
+
+    refusal_patterns = [
+        r"не\s+хочу",
+        r"не\s+скажу",
+        r"не\s+буду",
+        r"не\s+назову",
+        r"не\s+хочу\s+называть",
+        r"не\s+буду\s+называть",
+        r"не\s+хочу\s+говорить",
+        r"не\s+скажу\s+имя",
+        r"не\s+хочу\s+сказать",
+    ]
+    is_refusal = any(re.search(pattern, cleaned_message) for pattern in refusal_patterns)
+    if is_refusal:
+        return None, True
+
+    common_words = [
+        "да",
+        "нет",
+        "ок",
+        "окей",
+        "хорошо",
+        "спасибо",
+        "привет",
+        "пока",
+        "здравствуй",
+        "здравствуйте",
+        "как дела",
+        "что",
+        "как",
+        "почему",
+        "где",
+        "когда",
+        "кто",
+    ]
+
+    cleaned_for_check = cleaned_message.split()[0] if cleaned_message.split() else cleaned_message
+
+    is_like_name = (
+        2 <= len(cleaned_for_check) <= 15
+        and re.match(r"^[а-яёА-ЯЁa-zA-Z-]+$", cleaned_for_check)
+        and cleaned_for_check not in common_words
+        and len(cleaned_message.split()) <= 2
+    )
+
+    if is_like_name:
+        return cleaned_message.split()[0].capitalize(), False
+
+    return None, False
+
+
 @router.message(F.text & (F.text == "💬 Общение с AI"))
 @monitor_performance
 async def start_ai_chat(message: Message, state: FSMContext):  # noqa: ARG001
@@ -220,15 +282,58 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 await message.answer(limit_reason, reply_markup=keyboard, parse_mode="HTML")
                 return
 
+            # Проверка ленивости панды (перед обработкой запроса)
+            from bot.services.panda_lazy_service import PandaLazyService
+
+            lazy_service = PandaLazyService(db)
+            is_lazy, lazy_message = lazy_service.check_and_update_lazy_state(telegram_id)
+            if is_lazy and lazy_message:
+                logger.info(f"😴 Панда 'ленива' для пользователя {telegram_id}")
+                await message.answer(text=lazy_message)
+                return
+
             # Для premium - больше истории для контекста
             history_limit = 50 if premium_service.is_premium_active(telegram_id) else 10
 
             # Загружаем историю сообщений для контекста
             history = history_service.get_formatted_history_for_ai(telegram_id, limit=history_limit)
 
+            # Проверяем, была ли очистка истории (история пустая)
+            is_history_cleared = len(history) == 0
+
+            # Подсчитываем количество сообщений пользователя с последнего обращения по имени
+            # Ищем последнее обращение по имени в истории (ищем в ответах AI)
+            user_message_count = 0
+            if user.first_name:
+                # Ищем последнее обращение по имени в ответах AI (ищем имя в тексте)
+                last_name_mention_index = -1
+                for i, msg in enumerate(history):
+                    if (
+                        msg.get("role") == "assistant"
+                        and user.first_name.lower() in msg.get("text", "").lower()
+                    ):
+                        last_name_mention_index = i
+                        break
+
+                # Считаем сообщения пользователя ПОСЛЕ последнего обращения по имени
+                if last_name_mention_index >= 0:
+                    # Есть обращение по имени - считаем сообщения после него
+                    user_message_count = sum(
+                        1
+                        for msg in history[last_name_mention_index + 1 :]
+                        if msg.get("role") == "user"
+                    )
+                else:
+                    # Нет обращения по имени - считаем все сообщения пользователя
+                    user_message_count = sum(1 for msg in history if msg.get("role") == "user")
+            else:
+                # Нет имени - считаем все сообщения пользователя
+                user_message_count = sum(1 for msg in history if msg.get("role") == "user")
+
             logger.info(
                 f"💬 Сообщение от {telegram_id} ({user.first_name}): "
-                f"{user_message[:50]}... | История: {len(history)} сообщений"
+                f"{user_message[:50]}... | История: {len(history)} сообщений | "
+                f"Сообщений с последнего обращения: {user_message_count}"
             )
 
             # Показываем статус "Панда печатает..."
@@ -268,11 +373,72 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
             # Получаем AI сервис (SOLID фасад)
             ai_service = get_ai_service()
 
+            # Определяем, является ли вопрос образовательным
+            educational_keywords = [
+                "математика",
+                "алгебра",
+                "геометрия",
+                "арифметика",
+                "русский",
+                "литература",
+                "сочинение",
+                "диктант",
+                "история",
+                "география",
+                "биология",
+                "физика",
+                "химия",
+                "английский",
+                "немецкий",
+                "французский",
+                "испанский",
+                "информатика",
+                "программирование",
+                "задача",
+                "решить",
+                "решение",
+                "пример",
+                "уравнение",
+                "урок",
+                "домашнее",
+                "задание",
+                "дз",
+                "контрольная",
+                "объясни",
+                "помоги",
+                "как решить",
+                "как сделать",
+                "сколько",
+                "вычисли",
+                "посчитай",
+                "найди",
+                "таблица",
+                "умножение",
+                "деление",
+                "сложение",
+                "вычитание",
+            ]
+            user_message_lower = user_message.lower()
+            is_educational = any(keyword in user_message_lower for keyword in educational_keywords)
+
+            # Обновляем счетчик непредметных вопросов
+            if is_educational:
+                # Если вопрос образовательный - сбрасываем счетчик
+                user.non_educational_questions_count = 0
+            else:
+                # Если непредметный - увеличиваем счетчик
+                user.non_educational_questions_count += 1
+
             # Генерируем ответ с учётом контекста, возраста и класса
             ai_response = await ai_service.generate_response(
                 user_message=user_message,
                 chat_history=history,
                 user_age=user.age,
+                user_name=user.first_name,
+                is_history_cleared=is_history_cleared,
+                message_count_since_name=user_message_count,
+                skip_name_asking=user.skip_name_asking,
+                non_educational_questions_count=user.non_educational_questions_count,
                 is_premium=is_premium,
             )
 
@@ -298,6 +464,18 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
             history_service.add_message(
                 telegram_id=telegram_id, message_text=user_message, message_type="user"
             )
+
+            # Если история была очищена и пользователь, возможно, назвал имя
+            if is_history_cleared and not user.first_name and not user.skip_name_asking:
+                extracted_name, is_refusal = _extract_user_name_from_message(user_message)
+                if is_refusal:
+                    user.skip_name_asking = True
+                    logger.info(
+                        "✅ Пользователь отказался называть имя, устанавливаем флаг skip_name_asking"
+                    )
+                elif extracted_name:
+                    user.first_name = extracted_name
+                    logger.info(f"✅ Имя пользователя обновлено: {user.first_name}")
 
             # Сохраняем ответ AI в историю
             history_service.add_message(

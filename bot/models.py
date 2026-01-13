@@ -94,6 +94,9 @@ class User(Base):
     non_educational_questions_count: Mapped[int] = mapped_column(
         Integer, default=0, server_default="0"
     )
+    panda_lazy_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     parent: Mapped[Optional["User"]] = relationship(
         "User",
