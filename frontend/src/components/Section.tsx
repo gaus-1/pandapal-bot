@@ -24,7 +24,7 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
   return (
     <section id={section.id} className="py-8 xs:py-10 sm:py-12 md:py-14 lg:py-16">
       {/* Контейнер с профессиональным дизайном */}
-      <div className="max-w-6xl mx-auto px-3 xs:px-4 sm:px-6 md:px-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
         <div className="rounded-2xl xs:rounded-2.5xl sm:rounded-3xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 dark:border-slate-600/50 p-4 xs:p-5 sm:p-6 md:p-8 lg:p-12 shadow-lg dark:shadow-xl hover:shadow-xl dark:hover:shadow-2xl transition-shadow duration-300 text-center">
           {/* Заголовок секции */}
           <h2 className="font-display text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 xs:mb-5 sm:mb-6 md:mb-7 lg:mb-8 text-gray-900 dark:text-slate-50">
