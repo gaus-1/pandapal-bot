@@ -51,12 +51,70 @@ def setup_miniapp_routes(app: web.Application) -> None:
         app: aiohttp приложение
     """
     # Ленивый импорт auth модуля для обработки ошибок
+    # #region agent log
+    import json
+    import time
+
+    log_path = r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log"
     try:
-        from bot.api.miniapp.auth import (
+        log_data = {
+            "sessionId": "debug-session",
+            "runId": "run1",
+            "hypothesisId": "A",
+            "location": "bot/api/miniapp/__init__.py:53",
+            "message": "Начало импорта auth модуля",
+            "data": {"method": "relative"},
+            "timestamp": time.time() * 1000,
+        }
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(log_data) + "\n")
+    except Exception:
+        pass
+    # #endregion
+    try:
+        # Пробуем относительный импорт сначала
+        # #region agent log
+        try:
+            log_data = {
+                "sessionId": "debug-session",
+                "runId": "run1",
+                "hypothesisId": "A",
+                "location": "bot/api/miniapp/__init__.py:56",
+                "message": "Попытка относительного импорта .auth",
+                "data": {},
+                "timestamp": time.time() * 1000,
+            }
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(log_data) + "\n")
+        except Exception:
+            pass
+        # #endregion
+        from .auth import (
             miniapp_auth,
             miniapp_get_user,
             miniapp_update_user,
         )
+
+        # #region agent log
+        try:
+            log_data = {
+                "sessionId": "debug-session",
+                "runId": "run1",
+                "hypothesisId": "A",
+                "location": "bot/api/miniapp/__init__.py:62",
+                "message": "Относительный импорт успешен",
+                "data": {
+                    "miniapp_auth": str(type(miniapp_auth)),
+                    "miniapp_get_user": str(type(miniapp_get_user)),
+                    "miniapp_update_user": str(type(miniapp_update_user)),
+                },
+                "timestamp": time.time() * 1000,
+            }
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(log_data) + "\n")
+        except Exception:
+            pass
+        # #endregion
 
         # Аутентификация
         app.router.add_post("/api/miniapp/auth", miniapp_auth)
@@ -64,9 +122,109 @@ def setup_miniapp_routes(app: web.Application) -> None:
         # Пользователь
         app.router.add_get("/api/miniapp/user/{telegram_id}", miniapp_get_user)
         app.router.add_patch("/api/miniapp/user/{telegram_id}", miniapp_update_user)
+        # #region agent log
+        try:
+            log_data = {
+                "sessionId": "debug-session",
+                "runId": "run1",
+                "hypothesisId": "A",
+                "location": "bot/api/miniapp/__init__.py:68",
+                "message": "Роуты auth зарегистрированы",
+                "data": {},
+                "timestamp": time.time() * 1000,
+            }
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(log_data) + "\n")
+        except Exception:
+            pass
+        # #endregion
     except ImportError as e:
-        logger.error(f"❌ Ошибка импорта bot.api.miniapp.auth: {e}", exc_info=True)
-        logger.warning("⚠️ Пропускаем регистрацию auth роутов")
+        # #region agent log
+        try:
+            log_data = {
+                "sessionId": "debug-session",
+                "runId": "run1",
+                "hypothesisId": "B",
+                "location": "bot/api/miniapp/__init__.py:69",
+                "message": "Ошибка относительного импорта",
+                "data": {"error": str(e), "error_type": type(e).__name__},
+                "timestamp": time.time() * 1000,
+            }
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(log_data) + "\n")
+        except Exception:
+            pass
+        # #endregion
+        logger.error(f"❌ Ошибка импорта .auth: {e}", exc_info=True)
+        # Пробуем абсолютный импорт как fallback
+        # #region agent log
+        try:
+            log_data = {
+                "sessionId": "debug-session",
+                "runId": "run1",
+                "hypothesisId": "C",
+                "location": "bot/api/miniapp/__init__.py:72",
+                "message": "Попытка абсолютного импорта",
+                "data": {},
+                "timestamp": time.time() * 1000,
+            }
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(log_data) + "\n")
+        except Exception:
+            pass
+        # #endregion
+        try:
+            from bot.api.miniapp.auth import (
+                miniapp_auth,
+                miniapp_get_user,
+                miniapp_update_user,
+            )
+
+            app.router.add_post("/api/miniapp/auth", miniapp_auth)
+            app.router.add_get("/api/miniapp/user/{telegram_id}", miniapp_get_user)
+            app.router.add_patch("/api/miniapp/user/{telegram_id}", miniapp_update_user)
+            logger.info("✅ POST /api/miniapp/auth зарегистрирован (через абсолютный импорт)")
+            # #region agent log
+            try:
+                log_data = {
+                    "sessionId": "debug-session",
+                    "runId": "run1",
+                    "hypothesisId": "C",
+                    "location": "bot/api/miniapp/__init__.py:81",
+                    "message": "Абсолютный импорт успешен",
+                    "data": {},
+                    "timestamp": time.time() * 1000,
+                }
+                with open(log_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(log_data) + "\n")
+            except Exception:
+                pass
+            # #endregion
+        except ImportError as e2:
+            # #region agent log
+            try:
+                import traceback
+
+                log_data = {
+                    "sessionId": "debug-session",
+                    "runId": "run1",
+                    "hypothesisId": "D",
+                    "location": "bot/api/miniapp/__init__.py:83",
+                    "message": "Ошибка абсолютного импорта",
+                    "data": {
+                        "error": str(e2),
+                        "error_type": type(e2).__name__,
+                        "traceback": traceback.format_exc(),
+                    },
+                    "timestamp": time.time() * 1000,
+                }
+                with open(log_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(log_data) + "\n")
+            except Exception:
+                pass
+            # #endregion
+            logger.error(f"❌ Ошибка абсолютного импорта bot.api.miniapp.auth: {e2}", exc_info=True)
+            logger.warning("⚠️ Пропускаем регистрацию auth роутов")
 
     # Прогресс и достижения
     app.router.add_get("/api/miniapp/progress/{telegram_id}", miniapp_get_progress)
