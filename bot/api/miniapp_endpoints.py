@@ -2091,7 +2091,12 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             except Exception:
                                 pass
                             # #endregion
-                    elif general_table_request and not visualization_image_base64:
+                    # ВАЖНО: Генерируем общую таблицу только если нет специфичной визуализации
+                    elif (
+                        general_table_request
+                        and not visualization_image_base64
+                        and not specific_visualization_image
+                    ):
                         # Генерируем полную таблицу умножения (1-10)
                         # Дополнительная проверка на случай, если специфичная визуализация уже найдена
                         visualization_image = viz_service.generate_full_multiplication_table()
