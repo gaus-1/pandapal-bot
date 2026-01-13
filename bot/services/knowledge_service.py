@@ -5,9 +5,7 @@
 предоставления более точных и актуальных ответов по школьным предметам.
 """
 
-import asyncio
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
 
 from loguru import logger
 
@@ -24,8 +22,8 @@ class KnowledgeService:
 
     def __init__(self):
         """Инициализация сервиса знаний."""
-        self.knowledge_base: Dict[str, List[EducationalContent]] = {}
-        self.last_update: Optional[datetime] = None
+        self.knowledge_base: dict[str, list[EducationalContent]] = {}
+        self.last_update: datetime | None = None
         self.update_interval = timedelta(days=7)  # Обновляем раз в неделю
         self.auto_update_enabled = False  # Отключено для быстрых ответов
 
@@ -33,7 +31,7 @@ class KnowledgeService:
 
     async def get_knowledge_for_subject(
         self, subject: str, query: str = ""
-    ) -> List[EducationalContent]:
+    ) -> list[EducationalContent]:
         """
         Получить знания по конкретному предмету.
 
@@ -63,8 +61,10 @@ class KnowledgeService:
         return subject_materials
 
     async def get_helpful_content(
-        self, user_question: str, user_age: Optional[int] = None
-    ) -> List[EducationalContent]:
+        self,
+        user_question: str,
+        user_age: int | None = None,  # noqa: ARG002
+    ) -> list[EducationalContent]:
         """
         Найти полезный контент для ответа на вопрос пользователя.
 
@@ -225,6 +225,10 @@ class KnowledgeService:
                 "атом",
                 "периодическая",
                 "таблица",
+                "менделеева",
+                "менделеев",
+                "периодическая таблица",
+                "таблица менделеева",
                 "кислота",
                 "щелочь",
                 "соль",
@@ -291,7 +295,7 @@ class KnowledgeService:
         except Exception as e:
             logger.error(f"❌ Ошибка обновления базы знаний: {e}")
 
-    def get_knowledge_stats(self) -> Dict[str, int]:
+    def get_knowledge_stats(self) -> dict[str, int]:
         """
         Получить статистику базы знаний.
 
@@ -304,7 +308,7 @@ class KnowledgeService:
 
         return stats
 
-    def format_knowledge_for_ai(self, materials: List[EducationalContent]) -> str:
+    def format_knowledge_for_ai(self, materials: list[EducationalContent]) -> str:
         """
         Форматировать материалы для передачи в AI.
 
