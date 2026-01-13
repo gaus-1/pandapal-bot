@@ -55,8 +55,50 @@ def setup_miniapp_routes(app: web.Application) -> None:
     Args:
         app: aiohttp приложение
     """
+    # #region agent log
+    import json
+    import time
+
+    log_data = {
+        "sessionId": "debug-session",
+        "runId": "run1",
+        "hypothesisId": "C",
+        "location": "bot/api/miniapp/__init__.py:51",
+        "message": "Начало регистрации роутов",
+        "data": {},
+        "timestamp": time.time() * 1000,
+    }
+    with open(r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8") as f:
+        f.write(json.dumps(log_data) + "\n")
+    # #endregion
     # Аутентификация
+    # #region agent log
+    log_data = {
+        "sessionId": "debug-session",
+        "runId": "run1",
+        "hypothesisId": "C",
+        "location": "bot/api/miniapp/__init__.py:59",
+        "message": "Регистрация POST /api/miniapp/auth",
+        "data": {"handler": str(miniapp_auth)},
+        "timestamp": time.time() * 1000,
+    }
+    with open(r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8") as f:
+        f.write(json.dumps(log_data) + "\n")
+    # #endregion
     app.router.add_post("/api/miniapp/auth", miniapp_auth)
+    # #region agent log
+    log_data = {
+        "sessionId": "debug-session",
+        "runId": "run1",
+        "hypothesisId": "C",
+        "location": "bot/api/miniapp/__init__.py:61",
+        "message": "POST /api/miniapp/auth зарегистрирован",
+        "data": {},
+        "timestamp": time.time() * 1000,
+    }
+    with open(r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8") as f:
+        f.write(json.dumps(log_data) + "\n")
+    # #endregion
 
     # Пользователь
     app.router.add_get("/api/miniapp/user/{telegram_id}", miniapp_get_user)
