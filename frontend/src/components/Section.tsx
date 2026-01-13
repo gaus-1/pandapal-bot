@@ -31,9 +31,20 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
         </h2>
 
         {/* Текст описания */}
-        <p className="text-sm sm:text-base md:text-lg text-gray-700 dark:text-slate-200 max-w-3xl leading-relaxed mx-auto">
-          {section.description}
-        </p>
+        <div className="text-sm sm:text-base md:text-lg text-gray-700 dark:text-slate-200 max-w-3xl leading-relaxed mx-auto space-y-3 xs:space-y-2.5 sm:space-y-3 md:space-y-4">
+          {Array.isArray(section.description) ? (
+            <ul className="text-left space-y-2.5 xs:space-y-2 sm:space-y-2.5 md:space-y-3 list-none pl-0">
+              {section.description.map((item, index) => (
+                <li key={index} className="flex items-start gap-2.5 xs:gap-2 sm:gap-2.5 md:gap-3">
+                  <span className="text-blue-500 dark:text-blue-400 font-bold mt-0.5 xs:mt-0.5 sm:mt-1 flex-shrink-0">•</span>
+                  <span className="flex-1">{item}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>{section.description}</p>
+          )}
+        </div>
       </div>
     </section>
   );
