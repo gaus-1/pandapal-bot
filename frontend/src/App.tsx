@@ -84,16 +84,15 @@ const App: React.FC = () => {
     console.log('🔍 tgaddr в URL:', hasTgaddr);
   }, []);
 
-  // Роутинг через URL hash или pathname
+  // Роутинг через URL pathname (history-based routing)
   useEffect(() => {
     const updateRoute = () => {
       if (typeof window !== 'undefined') {
-        const hash = window.location.hash.slice(1); // Убираем #
         const pathname = window.location.pathname;
 
-        if (hash === 'premium' || pathname === '/premium') {
+        if (pathname === '/premium') {
           setCurrentRoute('premium');
-        } else if (hash === 'donation' || pathname === '/donation' || pathname === '/support') {
+        } else if (pathname === '/donation' || pathname === '/support') {
           setCurrentRoute('donation');
         } else {
           setCurrentRoute('');
@@ -102,11 +101,9 @@ const App: React.FC = () => {
     };
 
     updateRoute();
-    window.addEventListener('hashchange', updateRoute);
     window.addEventListener('popstate', updateRoute);
 
     return () => {
-      window.removeEventListener('hashchange', updateRoute);
       window.removeEventListener('popstate', updateRoute);
     };
   }, []);
