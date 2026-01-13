@@ -91,27 +91,28 @@ class SecurityChecker:
         violations = []
 
         try:
+            # Потоковое чтение файла построчно (не загружаем весь файл в память)
             with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                content = f.read()
-                lines = content.split("\n")
+                for line_num, line in enumerate(f, 1):
+                    # Убираем символ новой строки в конце
+                    line = line.rstrip("\n\r")
 
-            for line_num, line in enumerate(lines, 1):
-                # Пропускаем безопасные паттерны
-                is_safe = any(safe_pattern in line for safe_pattern in self.safe_patterns)
-                if is_safe:
-                    continue
+                    # Пропускаем безопасные паттерны
+                    is_safe = any(safe_pattern in line for safe_pattern in self.safe_patterns)
+                    if is_safe:
+                        continue
 
-                for pattern_name, pattern in self.sensitive_patterns.items():
-                    matches = re.finditer(pattern, line)
-                    for match in matches:
-                        violation = {
-                            "file": str(file_path),
-                            "line": line_num,
-                            "pattern": pattern_name,
-                            "content": line.strip(),
-                            "match": match.group(0) if match.groups() else match.group(0),
-                        }
-                        violations.append(violation)
+                    for pattern_name, pattern in self.sensitive_patterns.items():
+                        matches = re.finditer(pattern, line)
+                        for match in matches:
+                            violation = {
+                                "file": str(file_path),
+                                "line": line_num,
+                                "pattern": pattern_name,
+                                "content": line.strip(),
+                                "match": match.group(0) if match.groups() else match.group(0),
+                            }
+                            violations.append(violation)
 
         except Exception as e:
             print(f"⚠️ Ошибка чтения файла {file_path}: {e}")

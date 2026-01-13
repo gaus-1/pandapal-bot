@@ -23,7 +23,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import sessionmaker
 
-from bot.api.miniapp_endpoints import miniapp_ai_chat
+from bot.api.miniapp import miniapp_ai_chat
 from bot.api.premium_endpoints import create_donation_invoice, get_premium_status
 from bot.models import Base
 from bot.services import (

@@ -17,7 +17,7 @@ import pytest
 from aiohttp import ClientSession, web
 from aiohttp.test_utils import make_mocked_request
 
-from bot.api.miniapp_endpoints import miniapp_ai_chat, miniapp_get_subjects
+from bot.api.miniapp import miniapp_ai_chat, miniapp_get_subjects
 from bot.api.premium_endpoints import (
     create_donation_invoice,
     create_yookassa_payment,
