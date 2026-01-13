@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Веб-сервер для запуска PandaPal Telegram бота через webhook.
 
@@ -385,7 +384,9 @@ class PandaPalBotServer:
                     elif static_file.endswith(".txt"):
                         content_type = "text/plain"
                     elif static_file.endswith(".xml"):
-                        content_type = "application/xml"
+                        content_type = (
+                            "text/xml; charset=utf-8"  # text/xml предпочтительнее для sitemap.xml
+                        )
                     elif static_file.endswith(".js"):
                         content_type = "application/javascript"
                     elif static_file.endswith(".html"):
@@ -774,12 +775,14 @@ class PandaPalBotServer:
             try:
                 await asyncio.sleep(240)  # 4 минуты
 
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(f"http://localhost:{port}/health", timeout=5) as resp:
-                        if resp.status == 200:
-                            logger.debug("💓 Keep-alive ping OK")
-                        else:
-                            logger.warning(f"⚠️ Keep-alive ping failed: {resp.status}")
+                async with (
+                    aiohttp.ClientSession() as session,
+                    session.get(f"http://localhost:{port}/health", timeout=5) as resp,
+                ):
+                    if resp.status == 200:
+                        logger.debug("💓 Keep-alive ping OK")
+                    else:
+                        logger.warning(f"⚠️ Keep-alive ping failed: {resp.status}")
 
             except asyncio.CancelledError:
                 logger.info("🛑 Keep-alive пинг остановлен")

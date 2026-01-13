@@ -7,6 +7,7 @@
 
 import base64
 import io
+import re
 
 from loguru import logger
 
@@ -227,6 +228,99 @@ class VisualizationService:
         except Exception as e:
             logger.error(f"❌ Ошибка генерации диаграммы: {e}", exc_info=True)
             return None
+
+    def detect_visualization_request(self, text: str) -> bytes | None:
+        """
+        Универсальный метод для детекции и генерации визуализации из текста.
+
+        Анализирует текст и определяет, нужна ли визуализация (таблица умножения, график).
+        Если нужна - генерирует и возвращает изображение.
+
+        Args:
+            text: Текст сообщения для анализа
+
+        Returns:
+            bytes: Изображение визуализации или None, если визуализация не нужна
+        """
+        if not MATPLOTLIB_AVAILABLE:
+            return None
+
+        text_lower = text.lower()
+
+        # Паттерны для таблиц умножения
+        multiplication_patterns = [
+            r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)",
+            r"табл[иы]ц[аеы]?\s*умножени[яе]\s+(\d+)",
+            r"умножени[яе]\s+на\s*(\d+)",
+            r"умнож[а-я]*\s+(\d+)",
+        ]
+
+        # Проверяем таблицы умножения
+        for pattern in multiplication_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                try:
+                    number = int(match.group(1))
+                    if 1 <= number <= 10:
+                        image = self.generate_multiplication_table_image(number)
+                        if image:
+                            logger.info(f"📊 Детектирована таблица умножения на {number}")
+                        return image
+                except (ValueError, IndexError):
+                    continue
+
+        # Паттерны для графиков функций
+        graph_patterns = [
+            r"график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+            r"нарисуй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+            r"построй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+            r"покажи\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+            r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол)",
+        ]
+
+        # Проверяем графики
+        graph_match = None
+        for pattern in graph_patterns:
+            graph_match = re.search(pattern, text_lower)
+            if graph_match:
+                break
+
+        if graph_match:
+            # Стандартные функции по названию
+            if re.search(r"(?:синусоид|sin)", text_lower):
+                image = self.generate_function_graph("sin(x)")
+                if image:
+                    logger.info("📈 Детектирован график синусоиды")
+                return image
+            elif re.search(r"(?:косинус|cos)", text_lower):
+                image = self.generate_function_graph("cos(x)")
+                if image:
+                    logger.info("📈 Детектирован график косинуса")
+                return image
+            elif re.search(r"(?:тангенс|tan)", text_lower):
+                image = self.generate_function_graph("tan(x)")
+                if image:
+                    logger.info("📈 Детектирован график тангенса")
+                return image
+            elif re.search(r"(?:парабол)", text_lower):
+                image = self.generate_function_graph("x**2")
+                if image:
+                    logger.info("📈 Детектирован график параболы")
+                return image
+            else:
+                # Извлекаем выражение из паттерна
+                expression = graph_match.group(1).strip() if graph_match.groups() else ""
+                if expression:
+                    # Заменяем x^2 на x**2 для Python
+                    expression = expression.replace("^", "**")
+                    # Безопасная проверка выражения
+                    if re.match(r"^[x\s+\-*/().\d\s]+$", expression):
+                        image = self.generate_function_graph(expression)
+                        if image:
+                            logger.info(f"📈 Детектирован график функции: {expression}")
+                        return image
+
+        return None
 
     def image_to_base64(self, image_bytes: bytes) -> str:
         """
