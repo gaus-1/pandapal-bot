@@ -1,7 +1,7 @@
 """add_panda_lazy_until_field
 
 Revision ID: a1b2c3d4e5f8
-Revises: 6e97d652b9a0
+Revises: bb9254f89058
 Create Date: 2026-01-13 16:00:00.000000
 
 """
@@ -14,7 +14,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "a1b2c3d4e5f8"
-down_revision: Union[str, None] = "6e97d652b9a0"
+down_revision: Union[str, None] = "bb9254f89058"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
