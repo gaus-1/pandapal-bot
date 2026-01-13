@@ -274,11 +274,11 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
   return (
     <div className="w-full h-full bg-white dark:bg-slate-900 overflow-y-auto">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 pb-20 sm:pb-24">
+      <div className="max-w-4xl mx-auto px-3 xs:px-4 sm:px-6 md:px-8 py-2 xs:py-3 sm:py-4 md:py-6 pb-16 xs:pb-20 sm:pb-24">
 
         {/* Telegram Login Widget (только для веб-сайта) */}
         {!inTelegram && !isAuthenticated && (
-          <div className="mb-6 p-6 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 dark:from-blue-500/20 dark:to-cyan-500/20 rounded-2xl border-2 border-blue-500/30 dark:border-blue-500/50">
+          <div className="mb-6 p-6 bg-gradient-to-br from-blue-50/80 via-cyan-50/80 to-sky-50/80 dark:from-blue-950/30 dark:via-cyan-950/30 dark:to-sky-950/30 rounded-[2rem] border border-blue-200/30 dark:border-blue-800/25 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
             <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3 text-center">
               🔐 Войдите через Telegram
             </h2>
@@ -296,7 +296,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
         {/* Информация о пользователе (для веб-сайта) */}
         {!inTelegram && isAuthenticated && webUser && (
-          <div className="mb-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-between">
+          <div className="mb-4 p-4 bg-gradient-to-br from-stone-50/90 to-amber-50/90 dark:from-slate-800/90 dark:to-slate-750/90 rounded-[1.5rem] border border-stone-200/25 dark:border-slate-700/40 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-slate-400">Вы вошли как:</p>
               <p className="text-base font-semibold text-gray-900 dark:text-slate-100">
@@ -318,17 +318,17 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         )}
 
         {/* Заголовок */}
-        <div className="mb-4 sm:mb-5 text-center">
-          <div className="text-5xl sm:text-6xl md:text-7xl mb-2 sm:mb-3">👑</div>
-          <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-1.5 sm:mb-2">
+        <div className="mb-2 xs:mb-3 sm:mb-4 text-center">
+          <div className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl mb-1.5 xs:mb-2 sm:mb-3">👑</div>
+          <h1 className="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-1 xs:mb-1.5 sm:mb-2">
             PandaPal Premium
           </h1>
-          <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
+          <p className="text-xs xs:text-sm sm:text-base md:text-base text-gray-600 dark:text-slate-400">
             Получи максимум от обучения
           </p>
           {currentUser?.is_premium && (
-            <div className="mt-2 px-3 py-1.5 bg-green-500/20 rounded-lg border border-green-500/50">
-              <p className="text-xs sm:text-sm text-green-600 dark:text-green-400 font-medium">
+            <div className="mt-1.5 xs:mt-2 px-2.5 xs:px-3 py-1 xs:py-1.5 bg-green-500/20 rounded-lg border border-green-500/50">
+              <p className="text-xs xs:text-sm sm:text-sm text-green-600 dark:text-green-400 font-medium">
                 ✅ Premium активен
               </p>
             </div>
@@ -342,7 +342,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
          (currentUser as UserProfile)?.active_subscription &&
          ((currentUser as UserProfile).active_subscription?.has_saved_payment_method ||
           (currentUser as UserProfile).active_subscription?.auto_renew) && (
-          <div className="mb-4 sm:mb-5 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl sm:rounded-2xl border border-blue-200 dark:border-blue-800">
+          <div className="mb-4 sm:mb-5 p-4 sm:p-5 bg-gradient-to-br from-blue-50/85 via-indigo-50/85 to-purple-50/85 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 rounded-[1.5rem] sm:rounded-[2rem] border border-blue-200/25 dark:border-blue-800/20 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-xl sm:text-2xl">💳</span>
@@ -381,7 +381,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         {/* Диалог подтверждения отвязки */}
         {showRemoveConfirm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full border border-gray-200 dark:border-slate-700">
+            <div className="bg-gradient-to-br from-white/95 to-stone-50/95 dark:from-slate-800/95 dark:to-slate-750/95 rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-6 max-w-sm w-full border border-stone-200/30 dark:border-slate-700/40 shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
               <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-slate-100 mb-2">
                 Отвязать карту?
               </h3>
@@ -409,11 +409,11 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         )}
 
         {/* Преимущества */}
-        <div className="mb-4 sm:mb-5 p-5 sm:p-6 md:p-7 bg-gradient-to-r from-pink-100/60 via-purple-100/60 to-blue-100/60 dark:from-pink-900/20 dark:via-purple-900/20 dark:to-blue-900/20 rounded-3xl sm:rounded-[2rem] border border-pink-200/40 dark:border-pink-800/30 shadow-sm">
-            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-slate-100 mb-3 sm:mb-4">
+        <div className="mb-2.5 xs:mb-3 sm:mb-4 p-4 xs:p-5 sm:p-6 md:p-7 lg:p-8 bg-gradient-to-br from-rose-50/70 via-purple-50/70 to-sky-50/70 dark:from-rose-950/25 dark:via-purple-950/25 dark:to-sky-950/25 rounded-[1.5rem] xs:rounded-[1.75rem] sm:rounded-[2rem] md:rounded-[2.5rem] border border-rose-200/25 dark:border-rose-800/15 shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.25)] backdrop-blur-[0.5px]">
+            <h2 className="text-xs xs:text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2 xs:mb-2.5 sm:mb-3 md:mb-4">
               🌟 Что дает Premium?
             </h2>
-            <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 text-xs sm:text-sm text-gray-900 dark:text-slate-100">
+            <ul className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 gap-1.5 xs:gap-2 sm:gap-2.5 md:gap-3 text-xs xs:text-xs sm:text-sm md:text-sm text-gray-900 dark:text-slate-100">
             <li>✨ <strong>Неограниченные запросы</strong></li>
             <li>📚 <strong>Все предметы</strong></li>
             <li>🎯 <strong>Персональный план</strong></li>
@@ -424,37 +424,37 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         </div>
 
         {/* Тарифные планы */}
-        <div className="space-y-2.5 sm:space-y-3 mb-4 sm:mb-5">
+        <div className="space-y-2 xs:space-y-2.5 sm:space-y-3 mb-3 xs:mb-4 sm:mb-5">
           {PREMIUM_PLANS.map((plan) => {
             return (
               <div
                 key={plan.id}
-                className={`relative p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl transition-all ${
+                className={`relative p-3 xs:p-4 sm:p-5 md:p-6 rounded-[1.25rem] xs:rounded-[1.5rem] sm:rounded-[1.75rem] md:rounded-[2rem] transition-all ${
                   plan.popular
-                    ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 dark:from-blue-500/30 dark:to-cyan-500/30 border-2 border-blue-500/50 dark:border-blue-500/70'
-                    : 'bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700'
+                    ? 'bg-gradient-to-br from-purple-50/85 via-pink-50/85 to-rose-50/85 dark:from-purple-950/35 dark:via-pink-950/35 dark:to-rose-950/35 border border-purple-200/30 dark:border-purple-800/25 shadow-[0_4px_16px_rgba(139,92,246,0.1)] dark:shadow-[0_4px_16px_rgba(139,92,246,0.2)]'
+                    : 'bg-gradient-to-br from-stone-50/90 via-amber-50/90 to-orange-50/90 dark:from-slate-800/90 dark:to-slate-750/90 border border-stone-200/25 dark:border-slate-700/40 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]'
                 }`}
               >
                 {plan.popular && (
-                  <div className="inline-block px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-500 text-white text-xs font-bold rounded-full mb-1.5 sm:mb-2">
+                  <div className="inline-block px-2 xs:px-2.5 sm:px-3 py-0.5 xs:py-0.5 sm:py-1 bg-blue-500 text-white text-[10px] xs:text-xs sm:text-xs font-bold rounded-full mb-1 xs:mb-1.5 sm:mb-2">
                     🔥 ПОПУЛЯРНЫЙ
                   </div>
                 )}
 
-                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <div className="flex items-center justify-between mb-1.5 xs:mb-2 sm:mb-3">
                   <div>
-                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100">
+                    <h3 className="text-sm xs:text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100">
                       {plan.name}
                     </h3>
-                    <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
+                    <p className="text-[10px] xs:text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
                       {plan.duration}
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-100">
+                    <div className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-100">
                       {plan.priceRub} ₽
                     </div>
-                    <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">
+                    <div className="text-[10px] xs:text-xs sm:text-sm text-gray-600 dark:text-slate-400">
                       {(() => {
                         const days = plan.id === 'week' ? 7 : plan.id === 'month' ? 30 : 365;
                         return `${(plan.priceRub / days).toFixed(0)} ₽/день`;
@@ -463,11 +463,11 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   </div>
                 </div>
 
-                <ul className="grid grid-cols-2 gap-1 sm:gap-1.5 mb-3 sm:mb-4">
+                <ul className="grid grid-cols-2 gap-1 xs:gap-1 sm:gap-1.5 mb-2 xs:mb-2.5 sm:mb-3 md:mb-4">
                   {plan.features.map((feature, index) => (
                     <li
                       key={index}
-                      className="text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100"
+                      className="text-[10px] xs:text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100 leading-tight xs:leading-normal"
                     >
                       {feature}
                     </li>
@@ -483,7 +483,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                     handlePurchase(plan);
                   }}
                   disabled={isProcessing && selectedPlan === plan.id}
-                  className="w-full py-2.5 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-2 xs:py-2.5 sm:py-3 md:py-4 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 xs:gap-2 min-h-[40px] xs:min-h-[44px]"
                 >
                   {/* Иконка замка (вне мини-аппа или когда не авторизован) */}
                   {(!inTelegram || !isAuthenticated) && (
@@ -513,7 +513,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         </div>
 
         {/* Информация о способах оплаты */}
-        <div className="p-3 sm:p-4 bg-gray-50 dark:bg-slate-800 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-slate-700">
+        <div className="p-4 sm:p-5 md:p-6 bg-gradient-to-br from-slate-50/90 via-gray-50/90 to-zinc-50/90 dark:from-slate-800/90 dark:to-slate-750/90 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-200/25 dark:border-slate-700/40 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
           <div className="flex items-center gap-2 mb-1.5">
             <svg
               xmlns="http://www.w3.org/2000/svg"
