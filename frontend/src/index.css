@@ -107,12 +107,12 @@
 
   /* Анимация букв при наведении на заголовок */
   .hover-letter-bounce {
-    transition: transform 0.3s ease, color 0.3s ease;
+    transition: transform 0.2s ease-out, color 0.2s ease-out;
     display: inline-block;
   }
 
   .group:hover .hover-letter-bounce {
-    animation: letterBounce 0.6s ease-in-out;
+    animation: letterBounce 0.8s ease-in-out;
   }
 
   @keyframes letterBounce {
@@ -120,13 +120,13 @@
       transform: translateY(0) scale(1);
     }
     50% {
-      transform: translateY(-8px) scale(1.05);
+      transform: translateY(-3px) scale(1.02);
       color: rgb(59 130 246); /* blue-500 */
     }
   }
 
   .dark .group:hover .hover-letter-bounce {
-    animation: letterBounceDark 0.6s ease-in-out;
+    animation: letterBounceDark 0.8s ease-in-out;
   }
 
   @keyframes letterBounceDark {
@@ -134,7 +134,7 @@
       transform: translateY(0) scale(1);
     }
     50% {
-      transform: translateY(-8px) scale(1.05);
+      transform: translateY(-3px) scale(1.02);
       color: rgb(96 165 250); /* blue-400 */
     }
   }
