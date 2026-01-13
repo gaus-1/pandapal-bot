@@ -137,6 +137,49 @@ def clean_ai_response(text: str) -> str:
     if not text:
         return text
 
+    # Удаляем дублирующиеся первые слова (например, "ЖивуЖиву" → "Живу")
+    # Проверяем первые 1-3 слова на дублирование
+    words = text.split()
+    if len(words) >= 2:
+        # Проверяем, не дублируется ли первое слово
+        first_word = words[0]
+        # Если первое слово длинное и похоже на дубликат (например, "ЖивуЖиву")
+        if (
+            len(first_word) >= 2
+            and len(words) > 1
+            and len(first_word) % 2 == 0
+            and len(first_word) >= 4
+        ):
+            half_len = len(first_word) // 2
+            first_half = first_word[:half_len]
+            second_half = first_word[half_len:]
+            # Если первая и вторая половины одинаковые - это дубликат
+            if first_half.lower() == second_half.lower():
+                text = first_half + " " + " ".join(words[1:])
+                words = text.split()
+
+        # Проверяем, не дублируется ли первое слово целиком в начале
+        if len(words) >= 2 and words[0].lower() == words[1].lower():
+            # Удаляем дубликат первого слова
+            text = " ".join([words[0]] + words[2:])
+            words = text.split()
+
+        # Проверяем дублирование первых 2-3 слов
+        if len(words) >= 4:
+            # Проверяем, не повторяются ли первые 2 слова
+            first_two = " ".join(words[:2]).lower()
+            next_two = " ".join(words[2:4]).lower()
+            if first_two == next_two:
+                text = " ".join(words[:2] + words[4:])
+                words = text.split()
+
+            # Проверяем, не повторяются ли первые 3 слова
+            if len(words) >= 6:
+                first_three = " ".join(words[:3]).lower()
+                next_three = " ".join(words[3:6]).lower()
+                if first_three == next_three:
+                    text = " ".join(words[:3] + words[6:])
+
     # Сначала удаляем дубликаты (более агрессивно, минимальная длина 20)
     text = remove_duplicate_text(text, min_length=20)
 
