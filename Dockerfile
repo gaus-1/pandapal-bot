@@ -11,9 +11,16 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     ffmpeg \
     curl \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    ca-certificates \
+    gnupg \
+    && mkdir -p /etc/apt/keyrings \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update \
     && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && node --version \
+    && npm --version
 
 # Установка Python зависимостей
 COPY requirements.txt .
@@ -23,7 +30,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Сборка frontend
-RUN cd frontend && npm ci && npm run build && cd ..
+RUN cd frontend && npm install && npm run build && cd ..
 
 # Переменные окружения для Python
 ENV PYTHONUNBUFFERED=1
