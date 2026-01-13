@@ -1983,12 +1983,18 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                     # КРИТИЧНО: Если найдена специфичная визуализация - используем её
                     if specific_visualization_image:
-                        visualization_image_base64 = viz_service.image_to_base64(
-                            specific_visualization_image
-                        )
-                        logger.info(
-                            f"📊 Stream: Использована специфичная визуализация для '{user_message[:50]}'"
-                        )
+                        try:
+                            visualization_image_base64 = viz_service.image_to_base64(
+                                specific_visualization_image
+                            )
+                            logger.info(
+                                f"📊 Stream: Использована специфичная визуализация для '{user_message[:50]}' (размер base64: {len(visualization_image_base64) if visualization_image_base64 else 0})"
+                            )
+                        except Exception as e:
+                            logger.error(
+                                f"❌ Stream: Ошибка конвертации специфичной визуализации в base64: {e}"
+                            )
+                            visualization_image_base64 = None
                         # #region agent log
                         try:
                             with open(debug_log_path, "a", encoding="utf-8") as f:
@@ -2280,11 +2286,15 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 json_lib_debug.dumps(
                                     {
                                         "timestamp": __import__("time").time() * 1000,
-                                        "location": "miniapp_endpoints.py:1715",
+                                        "location": "miniapp_endpoints.py:2279",
                                         "message": "Отправка изображения визуализации",
                                         "data": {
                                             "image_size": len(visualization_image_base64),
                                             "has_image": True,
+                                            "has_specific": bool(specific_visualization_image),
+                                            "multiplication_number": multiplication_number,
+                                            "general_table": general_table_request,
+                                            "general_graph": general_graph_request,
                                         },
                                         "sessionId": "debug-session",
                                         "runId": "image_send",
@@ -2303,7 +2313,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         ensure_ascii=False,
                     )
                     await response.write(f"event: image\ndata: {image_data}\n\n".encode())
-                    logger.info("📊 Stream: Изображение визуализации отправлено")
+                    logger.info(
+                        f"📊 Stream: Изображение визуализации отправлено (размер: {len(visualization_image_base64)}, специфичная: {bool(specific_visualization_image)})"
+                    )
                 else:
                     # #region agent log
                     try:
