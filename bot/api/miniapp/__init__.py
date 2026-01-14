@@ -13,6 +13,12 @@ Mini App API endpoints модуль.
 from aiohttp import web
 from loguru import logger
 
+from bot.api.miniapp.auth import (
+    miniapp_auth,
+    miniapp_get_user,
+    miniapp_update_user,
+)
+
 # Импортируем только те модули, которые точно работают
 from bot.api.miniapp.chat import miniapp_ai_chat
 from bot.api.miniapp.helpers import (
@@ -271,6 +277,10 @@ def setup_miniapp_routes(app: web.Application) -> None:
 
 
 __all__ = [
+    # Auth
+    "miniapp_auth",
+    "miniapp_get_user",
+    "miniapp_update_user",
     # Chat
     "miniapp_ai_chat",
     "miniapp_ai_chat_stream",

@@ -37,6 +37,7 @@ from bot.api.miniapp.helpers import (
     process_photo_message,
     send_achievements_event,
 )
+from bot.database import get_db
 
 # Экспортируем helper функции с префиксом _ для обратной совместимости
 _process_audio_message = process_audio_message
@@ -46,6 +47,8 @@ _send_achievements_event = send_achievements_event
 _extract_user_name_from_message = extract_user_name_from_message
 
 __all__ = [
+    # DB helper (для тестов и обратной совместимости)
+    "get_db",
     # Auth
     "miniapp_auth",
     "miniapp_get_user",

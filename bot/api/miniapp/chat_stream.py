@@ -450,12 +450,17 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             # Отправляем chunks через streaming
             full_response = ""
             try:
-                # КРИТИЧНО: Проверяем запрос ДО начала streaming, чтобы фильтровать chunks
+                # КРИТИЧНО: Используем IntentService для понимания ВСЕГО запроса
                 import re
 
+                from bot.services.miniapp_intent_service import get_intent_service
                 from bot.services.visualization_service import get_visualization_service
 
+                intent_service = get_intent_service()
                 viz_service = get_visualization_service()
+
+                # Парсим весь запрос пользователя
+                intent = intent_service.parse_intent(user_message)
 
                 # #region agent log
                 import json as json_lib_debug
@@ -975,8 +980,42 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 except (ValueError, IndexError):
                                     continue
 
-                    # Генерируем таблицу умножения (конкретное число или полную таблицу)
-                    if multiplication_number:
+                    # Генерируем таблицу умножения используя IntentService
+                    # Если intent определил несколько чисел - генерируем комбинированную картинку
+                    if intent.kind == "table" and intent.items:
+                        multiplication_numbers = [
+                            item
+                            for item in intent.items
+                            if isinstance(item, int) and 1 <= item <= 10
+                        ]
+                        if multiplication_numbers:
+                            if len(multiplication_numbers) > 1:
+                                # Несколько таблиц в одной картинке
+                                visualization_image = (
+                                    viz_service.generate_multiple_multiplication_tables(
+                                        multiplication_numbers
+                                    )
+                                )
+                                logger.info(
+                                    f"📊 Stream: Сгенерированы таблицы умножения на {multiplication_numbers}"
+                                )
+                            else:
+                                # Одна таблица
+                                visualization_image = (
+                                    viz_service.generate_multiplication_table_image(
+                                        multiplication_numbers[0]
+                                    )
+                                )
+                                logger.info(
+                                    f"📊 Stream: Сгенерирована таблица умножения на {multiplication_numbers[0]}"
+                                )
+
+                            if visualization_image:
+                                visualization_image_base64 = viz_service.image_to_base64(
+                                    visualization_image
+                                )
+                    # Старая логика для обратной совместимости (если intent не сработал)
+                    elif multiplication_number:
                         visualization_image = viz_service.generate_multiplication_table_image(
                             multiplication_number
                         )
@@ -1087,7 +1126,34 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             if graph_match:
                                 break
 
-                    if (general_graph_request or graph_match) and not visualization_image_base64:
+                    # Генерируем графики используя IntentService
+                    # Если intent определил несколько функций - генерируем комбинированную картинку
+                    if intent.kind in ("graph", "both") and intent.items:
+                        graph_expressions = [item for item in intent.items if isinstance(item, str)]
+                        if graph_expressions:
+                            if len(graph_expressions) > 1:
+                                # Несколько графиков в одной картинке
+                                visualization_image = viz_service.generate_multiple_function_graphs(
+                                    graph_expressions
+                                )
+                                logger.info(
+                                    f"📈 Stream: Сгенерированы графики функций: {graph_expressions}"
+                                )
+                            else:
+                                # Один график
+                                visualization_image = viz_service.generate_function_graph(
+                                    graph_expressions[0]
+                                )
+                                logger.info(
+                                    f"📈 Stream: Сгенерирован график функции: {graph_expressions[0]}"
+                                )
+
+                            if visualization_image:
+                                visualization_image_base64 = viz_service.image_to_base64(
+                                    visualization_image
+                                )
+                    # Старая логика для обратной совместимости
+                    elif (general_graph_request or graph_match) and not visualization_image_base64:
                         # Если это запрос на синусоиду/косинус/параболу и т.д. без конкретной формулы
                         logger.info(
                             f"🔍 Stream: Проверка типа графика: general_graph={general_graph_request}, "
@@ -1296,74 +1362,46 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         pass
                     # #endregion
 
-                    # КРИТИЧНО: Если есть визуализация - заменяем весь текст на короткий ответ
-                    # Не пытаемся удалять фрагменты - это ломает ответ!
-                    # Заменяем текст ЕСЛИ изображение сгенерировано ИЛИ был запрос на визуализацию
-                    if visualization_image_base64 and (
-                        multiplication_number or general_table_request
-                    ):
-                        # #region agent log
-                        logger.info(
-                            f"🔍 Stream: ДО замены (multiplication_number={multiplication_number}, general_table={general_table_request}): {full_response[:200]}"
+                    # КРИТИЧНО: Если есть визуализация - обрезаем ответ до 1-3 предложений
+                    # Оставляем осмысленное объяснение, но убираем воду и повторы
+                    if visualization_image_base64:
+                        # Удаляем упоминания про "систему автоматически" и подобное
+                        full_response = re.sub(
+                            r"(?:систем[аеы]?\s+)?автоматически\s+сгенериру[ею]т?\s+изображени[ея]?",
+                            "",
+                            full_response,
+                            flags=re.IGNORECASE,
                         )
-                        try:
-                            with open(debug_log_path, "a", encoding="utf-8") as f:
-                                f.write(
-                                    json_lib_debug.dumps(
-                                        {
-                                            "timestamp": __import__("time").time() * 1000,
-                                            "location": "miniapp_endpoints.py:1735",
-                                            "message": "Замена текста перед отправкой",
-                                            "data": {
-                                                "multiplication_number": multiplication_number,
-                                                "general_table": general_table_request,
-                                                "full_response_preview": full_response[:200],
-                                            },
-                                            "sessionId": "debug-session",
-                                            "runId": "text_replacement",
-                                            "hypothesisId": "A",
-                                        },
-                                        ensure_ascii=False,
-                                    )
-                                    + "\n"
-                                )
-                        except Exception:
-                            pass
-                        # #endregion
-
-                        # Просто заменяем весь ответ на короткий, если есть визуализация
-                        if multiplication_number:
-                            full_response = "Вот таблица умножения."
-                        else:
-                            full_response = "Вот полная таблица умножения."
-
-                        # #region agent log
-                        logger.info(
-                            f"✅ Stream: Текст заменен на короткий ответ (есть визуализация): {full_response}"
+                        full_response = re.sub(
+                            r"покажу\s+график.*?систем[аеы]?\s+автоматически",
+                            "Вот график",
+                            full_response,
+                            flags=re.IGNORECASE,
                         )
-                        try:
-                            with open(debug_log_path, "a", encoding="utf-8") as f:
-                                f.write(
-                                    json_lib_debug.dumps(
-                                        {
-                                            "timestamp": __import__("time").time() * 1000,
-                                            "location": "miniapp_endpoints.py:1753",
-                                            "message": "Текст заменен",
-                                            "data": {"new_response": full_response},
-                                            "sessionId": "debug-session",
-                                            "runId": "text_replacement",
-                                            "hypothesisId": "A",
-                                        },
-                                        ensure_ascii=False,
-                                    )
-                                    + "\n"
-                                )
-                        except Exception:
-                            pass
-                        # #endregion
-                    elif visualization_image_base64 and (general_graph_request or graph_match):
-                        # Для графиков тоже заменяем на короткий ответ
-                        full_response = "Вот график."
+
+                        # Если ответ слишком длинный (больше 3 предложений) - обрезаем до первых 3
+                        sentences = re.split(r"[.!?]+\s+", full_response.strip())
+                        if len(sentences) > 3:
+                            # Берем первые 3 осмысленных предложения
+                            meaningful_sentences = [
+                                s.strip()
+                                for s in sentences[:3]
+                                if s.strip()
+                                and len(s.strip()) > 10  # Игнорируем очень короткие фразы
+                            ]
+                            if meaningful_sentences:
+                                full_response = ". ".join(meaningful_sentences)
+                                if not full_response.endswith((".", "!", "?")):
+                                    full_response += "."
+                            else:
+                                # Если не нашли осмысленных - берем первые 3 любых
+                                full_response = ". ".join(sentences[:3])
+                                if not full_response.endswith((".", "!", "?")):
+                                    full_response += "."
+
+                        logger.info(
+                            f"✅ Stream: Текст обрезан до короткого объяснения (есть визуализация): {full_response[:100]}"
+                        )
                         # #region agent log
                         try:
                             with open(debug_log_path, "a", encoding="utf-8") as f:
