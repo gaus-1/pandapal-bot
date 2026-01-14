@@ -1359,7 +1359,13 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 try:
                     premium_service.increment_request_count(telegram_id)
                     history_service.add_message(telegram_id, user_message, "user")
-                    history_service.add_message(telegram_id, full_response_for_db, "ai")
+                    # Формируем image_url из base64 если есть визуализация
+                    image_url = None
+                    if visualization_image_base64:
+                        image_url = f"data:image/png;base64,{visualization_image_base64}"
+                    history_service.add_message(
+                        telegram_id, full_response_for_db, "ai", image_url=image_url
+                    )
 
                     # Если история была очищена и пользователь, возможно, назвал имя
                     if is_history_cleared and not user.first_name and not user.skip_name_asking:
@@ -1641,7 +1647,13 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         try:
                             premium_service.increment_request_count(telegram_id)
                             history_service.add_message(telegram_id, user_message, "user")
-                            history_service.add_message(telegram_id, cleaned_response, "ai")
+                            # Формируем image_url из base64 если есть визуализация
+                            image_url = None
+                            if visualization_image_base64:
+                                image_url = f"data:image/png;base64,{visualization_image_base64}"
+                            history_service.add_message(
+                                telegram_id, cleaned_response, "ai", image_url=image_url
+                            )
                             db.commit()
                             logger.info(
                                 f"✅ Stream: Fallback успешен, ответ сохранен для {telegram_id}"

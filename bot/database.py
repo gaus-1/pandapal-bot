@@ -620,8 +620,9 @@ def get_db() -> Generator[Session]:
         db.commit()  # Автоматический commit при успехе
     except Exception as e:
         db.rollback()  # Откат при ошибке
-        # Используем % для логирования чтобы избежать проблем с фигурными скобками в SQL
-        logger.error("❌ Database error: %s", str(e))
+        # Используем безопасное логирование чтобы избежать проблем с фигурными скобками в SQL
+        error_msg = str(e).replace("{", "{{").replace("}", "}}")
+        logger.error(f"❌ Database error: {error_msg}")
         raise
     finally:
         db.close()  # Всегда закрываем сессию

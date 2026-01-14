@@ -339,6 +339,9 @@ class ChatHistory(Base):
         index=True,  # Индекс для сортировки по дате
     )
 
+    # URL изображения визуализации (base64 data URL для графиков/таблиц)
+    image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     # Relationship
     user: Mapped["User"] = relationship("User", back_populates="messages")
 
