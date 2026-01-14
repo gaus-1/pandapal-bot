@@ -485,8 +485,8 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   disabled={isProcessing && selectedPlan === plan.id}
                   className="w-full py-2 xs:py-2.5 sm:py-3 md:py-4 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 xs:gap-2 min-h-[40px] xs:min-h-[44px]"
                 >
-                  {/* Иконка замка (вне мини-аппа или когда не авторизован) */}
-                  {(!inTelegram || !isAuthenticated) && (
+                  {/* Иконка замка только на сайте (в Mini App без замка) */}
+                  {!inTelegram && (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0"
