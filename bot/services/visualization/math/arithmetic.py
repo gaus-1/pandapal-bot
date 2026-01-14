@@ -238,12 +238,18 @@ class ArithmeticVisualization(BaseVisualizationService):
 
             fig.patch.set_facecolor("white")
 
-            # Нормализуем axes в список
-            if not isinstance(axes, list | tuple):
-                axes = [axes]
+            # Нормализуем axes в список (учитываем, что subplots возвращает np.ndarray)
+            import numpy as _np  # локальный импорт, чтобы не полз вверх по файлу
+
+            if isinstance(axes, _np.ndarray):
+                axes_list = axes.ravel().tolist()
+            elif isinstance(axes, list | tuple):
+                axes_list = list(axes)
+            else:
+                axes_list = [axes]
 
             for idx, number in enumerate(numbers):
-                ax = axes[idx]
+                ax = axes_list[idx]
                 ax.axis("off")
 
                 title = f"Таблица умножения на {number}"
