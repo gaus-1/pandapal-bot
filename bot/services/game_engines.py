@@ -4,7 +4,7 @@ Game Engines - чистая логика игр без зависимостей 
 """
 
 import random
-from typing import Dict, List, Literal, Optional, Tuple
+from typing import Literal
 
 PlayerType = Literal[1, 2]  # 1 - X, 2 - O
 
@@ -14,13 +14,13 @@ class TicTacToe:
 
     def __init__(self) -> None:
         """Инициализация игры крестики-нолики"""
-        self.board: List[List[Optional[int]]] = [[None for _ in range(3)] for _ in range(3)]
+        self.board: list[list[int | None]] = [[None for _ in range(3)] for _ in range(3)]
         self.current_player: PlayerType = 1  # 1 - X (пользователь), 2 - O (AI)
-        self.winner: Optional[PlayerType] = None
+        self.winner: PlayerType | None = None
         self.is_draw: bool = False
         self.moves_count: int = 0
 
-    def get_state(self) -> Dict:
+    def get_state(self) -> dict:
         """Возвращает состояние игры для фронтенда"""
         # Преобразуем в формат для фронтенда: список из 9 элементов
         flat_board = [self.board[i][j] for i in range(3) for j in range(3)]
@@ -82,16 +82,11 @@ class TicTacToe:
             return True
 
         # Проверка главной диагонали
-        if row == col:
-            if all(self.board[i][i] == player for i in range(3)):
-                return True
+        if row == col and all(self.board[i][i] == player for i in range(3)):
+            return True
 
         # Проверка побочной диагонали
-        if row + col == 2:
-            if all(self.board[i][2 - i] == player for i in range(3)):
-                return True
-
-        return False
+        return row + col == 2 and all(self.board[i][2 - i] == player for i in range(3))
 
     def reset(self):
         """Сбросить игру"""
@@ -104,10 +99,10 @@ class CheckersGame:
     def __init__(self) -> None:
         """Инициализация игры шашки"""
         # 0 - пусто, 1 - белые (пользователь), 2 - черные (AI), 3 - белая дамка, 4 - черная дамка
-        self.board: List[List[int]] = [[0 for _ in range(8)] for _ in range(8)]
+        self.board: list[list[int]] = [[0 for _ in range(8)] for _ in range(8)]
         self.current_player: int = 1  # 1 (белые/пользователь) начинает
-        self.winner: Optional[int] = None
-        self.must_capture_from: Optional[Tuple[int, int]] = (
+        self.winner: int | None = None
+        self.must_capture_from: tuple[int, int] | None = (
             None  # Координаты шашки, которая должна бить
         )
         self._init_board()
@@ -122,15 +117,15 @@ class CheckersGame:
                     elif row > 4:
                         self.board[row][col] = 1  # Белые (пользователь) внизу
 
-    def get_board_state(self) -> Dict:
+    def get_board_state(self) -> dict:
         """Возвращает состояние игры для фронтенда"""
         # Преобразуем в формат для фронтенда: 'user', 'ai', None, и информацию о дамках
         frontend_board = []
         kings_info = []
-        for row_idx, row in enumerate(self.board):
+        for row in self.board:
             frontend_row = []
             kings_row = []
-            for col_idx, cell in enumerate(row):
+            for cell in row:
                 if cell == 1 or cell == 3:
                     frontend_row.append("user")
                     kings_row.append(cell == 3)  # True если дамка
@@ -151,7 +146,7 @@ class CheckersGame:
             "must_capture": self.must_capture_from,
         }
 
-    def get_valid_moves(self, player: int) -> List[Dict]:
+    def get_valid_moves(self, player: int) -> list[dict]:
         """
         Возвращает все возможные ходы для игрока.
         Если есть обязательное взятие, возвращает только его.
@@ -194,7 +189,7 @@ class CheckersGame:
 
         return moves
 
-    def _get_piece_moves(self, r: int, c: int, piece: int) -> List[Dict]:
+    def _get_piece_moves(self, r: int, c: int, piece: int) -> list[dict]:
         """Получить все возможные ходы для шашки"""
         moves = []
         is_king = piece == 3 or piece == 4
@@ -326,14 +321,14 @@ class Game2048:
 
     def __init__(self) -> None:
         """Инициализация игры 2048"""
-        self.board: List[List[int]] = [[0] * 4 for _ in range(4)]
+        self.board: list[list[int]] = [[0] * 4 for _ in range(4)]
         self.score: int = 0
         self.game_over: bool = False
         self.won: bool = False
         self._add_new_tile()
         self._add_new_tile()
 
-    def get_state(self) -> Dict:
+    def get_state(self) -> dict:
         """Возвращает состояние игры"""
         return {
             "board": self.board,
@@ -364,13 +359,13 @@ class Game2048:
         elif direction == "right":
             self.board = [self._compress_and_merge(row[::-1])[::-1] for row in self.board]
         elif direction == "up":
-            transposed = list(zip(*self.board))
+            transposed = list(zip(*self.board, strict=False))
             processed = [self._compress_and_merge(list(col)) for col in transposed]
-            self.board = [list(col) for col in zip(*processed)]
+            self.board = [list(col) for col in zip(*processed, strict=False)]
         elif direction == "down":
-            transposed = list(zip(*self.board))
+            transposed = list(zip(*self.board, strict=False))
             processed = [self._compress_and_merge(list(col)[::-1])[::-1] for col in transposed]
-            self.board = [list(col) for col in zip(*processed)]
+            self.board = [list(col) for col in zip(*processed, strict=False)]
         else:
             return False
 
@@ -380,7 +375,7 @@ class Game2048:
             return True
         return False
 
-    def _compress_and_merge(self, row: List[int]) -> List[int]:
+    def _compress_and_merge(self, row: list[int]) -> list[int]:
         """Сжать и объединить строку"""
         # 1. Сдвиг влево (удаление нулей)
         new_row = [val for val in row if val != 0]
@@ -421,3 +416,151 @@ class Game2048:
                     return
 
         self.game_over = True
+
+
+class TetrisGame:
+    """Логика игры Tetris для Mini App.
+
+    Упрощённая реализация без сложных kick-правил, но с корректным падением фигур
+    и удалением заполненных линий.
+    """
+
+    width: int = 10
+    height: int = 20
+
+    # Фигуры заданы как список относительных координат (row, col)
+    _SHAPES = {
+        "I": [(0, -1), (0, 0), (0, 1), (0, 2)],
+        "O": [(0, 0), (0, 1), (1, 0), (1, 1)],
+        "T": [(0, -1), (0, 0), (0, 1), (1, 0)],
+        "L": [(0, -1), (0, 0), (0, 1), (1, -1)],
+        "J": [(0, -1), (0, 0), (0, 1), (1, 1)],
+        "S": [(0, 0), (0, 1), (1, -1), (1, 0)],
+        "Z": [(0, -1), (0, 0), (1, 0), (1, 1)],
+    }
+
+    def __init__(self) -> None:
+        self.board: list[list[int]] = [[0] * self.width for _ in range(self.height)]
+        self.score: int = 0
+        self.lines_cleared: int = 0
+        self.game_over: bool = False
+
+        self.current_shape: str | None = None
+        self.current_rotation: int = 0
+        self.current_row: int = 0
+        self.current_col: int = self.width // 2
+        self._spawn_new_piece()
+
+    def _spawn_new_piece(self) -> None:
+        """Создать новую фигуру сверху."""
+        import random as _rnd
+
+        self.current_shape = _rnd.choice(list(self._SHAPES.keys()))
+        self.current_rotation = 0
+        self.current_row = 0
+        self.current_col = self.width // 2
+
+        if not self._can_place(self.current_row, self.current_col, self.current_rotation):
+            self.game_over = True
+
+    def _get_blocks(self, row: int, col: int, rotation: int) -> list[tuple[int, int]]:
+        """Получить координаты блоков фигуры в абсолютных координатах."""
+        offsets = self._SHAPES[self.current_shape or "I"]
+
+        def _rotate(dr: int, dc: int, rot: int) -> tuple[int, int]:
+            # Поворот на 90 градусов по часовой стрелке rot раз
+            for _ in range(rot % 4):
+                dr, dc = -dc, dr
+            return dr, dc
+
+        blocks: list[tuple[int, int]] = []
+        for dr, dc in offsets:
+            r_off, c_off = _rotate(dr, dc, rotation)
+            blocks.append((row + r_off, col + c_off))
+        return blocks
+
+    def _can_place(self, row: int, col: int, rotation: int) -> bool:
+        """Проверить, можно ли разместить фигуру в указанной позиции."""
+        for r, c in self._get_blocks(row, col, rotation):
+            if r < 0 or r >= self.height or c < 0 or c >= self.width:
+                return False
+            if self.board[r][c] != 0:
+                return False
+        return True
+
+    def _lock_piece(self) -> None:
+        """Зафиксировать текущую фигуру на поле и очистить заполненные линии."""
+        for r, c in self._get_blocks(self.current_row, self.current_col, self.current_rotation):
+            if 0 <= r < self.height and 0 <= c < self.width:
+                self.board[r][c] = 1
+
+        # Очистка заполненных линий
+        new_board: list[list[int]] = []
+        cleared = 0
+        for row in self.board:
+            if all(cell != 0 for cell in row):
+                cleared += 1
+            else:
+                new_board.append(row)
+
+        for _ in range(cleared):
+            new_board.insert(0, [0] * self.width)
+
+        if cleared:
+            self.board = new_board
+            self.lines_cleared += cleared
+            # Простая система очков: 100 за линию
+            self.score += cleared * 100
+
+        self._spawn_new_piece()
+
+    def step(self, action: str) -> None:
+        """Сделать шаг игры.
+
+        Args:
+            action: 'left', 'right', 'down', 'rotate', 'tick'
+        """
+        if self.game_over or not self.current_shape:
+            return
+
+        new_row = self.current_row
+        new_col = self.current_col
+        new_rot = self.current_rotation
+
+        if action == "left":
+            new_col -= 1
+        elif action == "right":
+            new_col += 1
+        elif action in ("down", "tick"):
+            new_row += 1
+        elif action == "rotate":
+            new_rot = (new_rot + 1) % 4
+
+        if self._can_place(new_row, new_col, new_rot):
+            self.current_row, self.current_col, self.current_rotation = new_row, new_col, new_rot
+            if action in ("down", "tick") and not self._can_place(
+                self.current_row + 1, self.current_col, self.current_rotation
+            ):
+                # Следующий шаг вниз невозможен — фиксируем фигуру
+                self._lock_piece()
+        elif action in ("down", "tick"):
+            # Нельзя пойти вниз — фиксируем фигуру
+            self._lock_piece()
+
+    def get_state(self) -> dict:
+        """Вернуть состояние для фронтенда."""
+        # Копируем поле и накладываем текущую фигуру
+        preview = [row[:] for row in self.board]
+        if self.current_shape and not self.game_over:
+            for r, c in self._get_blocks(self.current_row, self.current_col, self.current_rotation):
+                if 0 <= r < self.height and 0 <= c < self.width:
+                    preview[r][c] = 2  # 2 = активная фигура
+
+        return {
+            "board": preview,
+            "score": self.score,
+            "lines_cleared": self.lines_cleared,
+            "game_over": self.game_over,
+            "width": self.width,
+            "height": self.height,
+        }

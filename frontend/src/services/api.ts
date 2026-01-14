@@ -427,6 +427,37 @@ export async function ticTacToeMove(sessionId: number, position: number): Promis
 }
 
 /**
+ * Сделать шаг в тетрисе
+ */
+export async function tetrisMove(
+  sessionId: number,
+  action: 'left' | 'right' | 'down' | 'rotate' | 'tick',
+): Promise<{
+  board: number[][];
+  score: number;
+  lines_cleared: number;
+  game_over: boolean;
+  width: number;
+  height: number;
+}> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/tetris/${sessionId}/move`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ action }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка хода');
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+/**
  * Получить валидные ходы в шашках
  */
 export async function getCheckersValidMoves(sessionId: number): Promise<Array<{
