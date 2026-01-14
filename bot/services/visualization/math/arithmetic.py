@@ -205,3 +205,88 @@ class ArithmeticVisualization(BaseVisualizationService):
             ["Объем", "кубический метр (м³)", "л, мл", "1 л = 1000 мл"],
         ]
         return self.generate_table(headers, rows, "Таблица единиц измерения")
+
+    def generate_multiple_multiplication_tables(self, numbers: list[int]) -> bytes | None:
+        """
+        Генерирует несколько таблиц умножения в одной картинке.
+
+        Args:
+            numbers: Список чисел для таблиц умножения (например, [7, 9])
+
+        Returns:
+            bytes: Изображение с несколькими таблицами или None при ошибке
+        """
+        if not MATPLOTLIB_AVAILABLE:
+            return None
+
+        if not numbers:
+            return None
+
+        # Ограничиваем количество таблиц (максимум 3 для читаемости)
+        numbers = sorted(set(numbers))[:3]
+
+        try:
+            # Вычисляем размер фигуры в зависимости от количества таблиц
+            num_tables = len(numbers)
+            if num_tables == 1:
+                fig, axes = plt.subplots(1, 1, figsize=(6, 8))
+                axes = [axes]
+            elif num_tables == 2:
+                fig, axes = plt.subplots(1, 2, figsize=(14, 8))
+            else:  # 3
+                fig, axes = plt.subplots(1, 3, figsize=(20, 8))
+
+            fig.patch.set_facecolor("white")
+
+            for idx, number in enumerate(numbers):
+                ax = axes[idx]
+                ax.axis("off")
+
+                title = f"Таблица умножения на {number}"
+                ax.text(
+                    0.5,
+                    0.95,
+                    title,
+                    ha="center",
+                    va="top",
+                    fontsize=14,
+                    fontweight="bold",
+                    transform=ax.transAxes,
+                )
+
+                # Генерируем таблицу
+                table_data = []
+                for i in range(1, 11):
+                    result = number * i
+                    table_data.append([f"{number} × {i} = {result}"])
+
+                # Создаем таблицу
+                table = ax.table(
+                    cellText=table_data, cellLoc="left", loc="center", bbox=[0, 0.1, 1, 0.8]
+                )
+                table.auto_set_font_size(False)
+                table.set_fontsize(10 if num_tables > 1 else 12)
+                table.scale(1, 2)
+
+                # Стилизация
+                for i in range(len(table_data)):
+                    cell = table[(i, 0)]
+                    cell.set_facecolor("#f0f8ff" if i % 2 == 0 else "white")
+                    cell.set_text_props(weight="normal")
+
+            plt.tight_layout()
+
+            # Сохраняем в bytes
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", dpi=100, bbox_inches="tight", facecolor="white")
+            buf.seek(0)
+            image_bytes = buf.read()
+            buf.close()
+            plt.close(fig)
+
+            logger.info(f"✅ Сгенерированы таблицы умножения на {numbers}")
+            return image_bytes
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка генерации нескольких таблиц умножения: {e}", exc_info=True)
+            return None

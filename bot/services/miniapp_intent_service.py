@@ -1,0 +1,330 @@
+"""
+Сервис для понимания намерений пользователя в Mini App.
+
+Парсит весь текст/аудио запроса, извлекает все слова, цифры, числа
+и определяет, что именно нужно визуализировать.
+"""
+
+import re
+from dataclasses import dataclass
+from typing import Literal
+
+from loguru import logger
+
+
+@dataclass
+class VisualizationIntent:
+    """
+    Намерение пользователя на визуализацию.
+
+    Attributes:
+        kind: Тип визуализации ("table" | "graph" | "both" | None)
+        subject: Предмет ("math" | "physics" | "chemistry" | ...)
+        items: Список элементов для визуализации (числа для таблиц, функции для графиков)
+        raw_text: Оригинальный текст запроса
+        needs_explanation: Нужно ли текстовое объяснение (True если "объясни", "расскажи")
+    """
+
+    kind: Literal["table", "graph", "both", None] = None
+    subject: str | None = None
+    items: list[int | str] = None
+    raw_text: str = ""
+    needs_explanation: bool = False
+
+    def __post_init__(self):
+        """Инициализация после создания."""
+        if self.items is None:
+            self.items = []
+
+
+class MiniappIntentService:
+    """
+    Сервис для понимания намерений пользователя.
+
+    Парсит весь текст запроса, извлекает все числа, слова, контекст.
+    """
+
+    # Паттерны для извлечения чисел
+    NUMBER_PATTERN = re.compile(r"\b(\d+)\b")
+    # Паттерны для таблиц умножения
+    MULTIPLICATION_PATTERNS = [
+        r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)",
+        r"табл[иы]ц[аеы]?\s*умножени[яе]\s+(\d+)",
+        r"умножени[яе]\s+на\s*(\d+)",
+        r"умнож[а-я]*\s+(\d+)",
+        r"(\d+)\s*[×x*]\s*(\d+)",  # "7×9" или "7 x 9"
+    ]
+    # Паттерны для графиков функций
+    GRAPH_PATTERNS = [
+        r"график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+        r"нарисуй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+        r"построй\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+        r"покажи\s+график\s+(?:функции\s+)?(?:y\s*=\s*)?([^,\n]+)",
+    ]
+    # Слова-соединители для множественных запросов
+    CONJUNCTIONS = ["и", "и", "а", "также", "плюс", "еще", "ещё"]
+    # Слова для запросов на объяснение
+    EXPLANATION_WORDS = ["объясни", "расскажи", "объясни", "опиши", "что такое", "как"]
+
+    def parse_intent(self, user_message: str) -> VisualizationIntent:
+        """
+        Парсит весь текст запроса и определяет намерение.
+
+        Args:
+            user_message: Полный текст запроса пользователя
+
+        Returns:
+            VisualizationIntent: Структурированное намерение
+        """
+        intent = VisualizationIntent(raw_text=user_message)
+        text_lower = user_message.lower()
+
+        # Проверяем, нужен ли текстовый ответ
+        intent.needs_explanation = any(word in text_lower for word in self.EXPLANATION_WORDS)
+
+        # Извлекаем ВСЕ числа из текста
+        all_numbers = [int(match.group(1)) for match in self.NUMBER_PATTERN.finditer(user_message)]
+        logger.info(f"🔍 Intent: Найдены числа в запросе: {all_numbers}")
+
+        # Проверяем запросы на таблицы умножения
+        multiplication_numbers = []
+        for pattern in self.MULTIPLICATION_PATTERNS:
+            matches = re.finditer(pattern, text_lower)
+            for match in matches:
+                # Извлекаем все группы (может быть несколько чисел)
+                groups = match.groups()
+                for group in groups:
+                    try:
+                        num = int(group)
+                        if 1 <= num <= 10:
+                            multiplication_numbers.append(num)
+                    except (ValueError, TypeError):
+                        continue
+
+        # Если нашли числа через паттерны умножения - используем их
+        if multiplication_numbers:
+            intent.kind = "table"
+            intent.subject = "math"
+            intent.items = list(set(multiplication_numbers))  # Убираем дубликаты
+            logger.info(
+                f"📊 Intent: Таблица умножения на числа: {intent.items} "
+                f"(извлечено из паттернов)"
+            )
+        # Если есть числа 1-10 и упоминание таблицы/умножения - тоже таблица
+        elif any(1 <= n <= 10 for n in all_numbers) and (
+            "таблица" in text_lower or "умножение" in text_lower
+        ):
+            intent.kind = "table"
+            intent.subject = "math"
+            # Берем только числа от 1 до 10
+            intent.items = sorted({n for n in all_numbers if 1 <= n <= 10})
+            logger.info(
+                f"📊 Intent: Таблица умножения на числа: {intent.items} "
+                f"(извлечено из всех чисел)"
+            )
+
+        # Проверяем запросы на графики
+        graph_functions = []
+        for pattern in self.GRAPH_PATTERNS:
+            matches = re.finditer(pattern, text_lower)
+            for match in matches:
+                if match.groups():
+                    expr = match.group(1).strip()
+                    if expr:
+                        graph_functions.append(expr)
+
+        # Проверяем стандартные функции по ключевым словам
+        if "синус" in text_lower or "синусоид" in text_lower or "sin" in text_lower:
+            graph_functions.append("sin(x)")
+        if "косинус" in text_lower or "cos" in text_lower:
+            graph_functions.append("cos(x)")
+        if "тангенс" in text_lower or "tan" in text_lower:
+            graph_functions.append("tan(x)")
+        if "парабол" in text_lower or "порабол" in text_lower:
+            graph_functions.append("x**2")
+        if "экспонент" in text_lower or "exp" in text_lower:
+            graph_functions.append("exp(x)")
+        if "логарифм" in text_lower or "log" in text_lower:
+            graph_functions.append("log(x)")
+
+        if graph_functions:
+            intent.kind = "graph" if intent.kind is None else "both"
+            intent.subject = "math" if intent.subject is None else intent.subject
+            # Убираем дубликаты, но сохраняем порядок
+            seen = set()
+            unique_functions = []
+            for func in graph_functions:
+                if func not in seen:
+                    seen.add(func)
+                    unique_functions.append(func)
+            intent.items = unique_functions
+            logger.info(f"📈 Intent: Графики функций: {intent.items}")
+
+        # Если нашли и таблицы и графики - это "both"
+        if multiplication_numbers and graph_functions:
+            intent.kind = "both"
+
+        # Определяем предмет по ключевым словам (если еще не определили)
+        # Расширенный список по всем предметам из школьной программы 1-9 классов
+        if intent.subject is None:
+            # Физика
+            if any(
+                word in text_lower
+                for word in [
+                    "физик",
+                    "закон",
+                    "ом",
+                    "движени",
+                    "скорост",
+                    "ускорен",
+                    "сила",
+                    "энерги",
+                    "ток",
+                    "напряжен",
+                    "колебан",
+                    "волн",
+                ]
+            ):
+                intent.subject = "physics"
+            # Химия
+            elif any(
+                word in text_lower
+                for word in [
+                    "хими",
+                    "растворим",
+                    "менделеев",
+                    "периодическ",
+                    "валентност",
+                    "реакц",
+                    "веществ",
+                    "элемент",
+                ]
+            ):
+                intent.subject = "chemistry"
+            # География
+            elif any(
+                word in text_lower
+                for word in [
+                    "географ",
+                    "климат",
+                    "страны",
+                    "материк",
+                    "океан",
+                    "рельеф",
+                    "природн",
+                    "зон",
+                ]
+            ):
+                intent.subject = "geography"
+            # Русский язык
+            elif any(
+                word in text_lower
+                for word in [
+                    "русск",
+                    "падеж",
+                    "спряжен",
+                    "склонен",
+                    "орфограф",
+                    "пунктуац",
+                    "морфем",
+                    "фонетик",
+                ]
+            ):
+                intent.subject = "russian"
+            # Английский язык
+            elif any(
+                word in text_lower
+                for word in ["английск", "англ", "времен", "глагол", "неправильн"]
+            ):
+                intent.subject = "english"
+            # Геометрия
+            elif any(
+                word in text_lower
+                for word in [
+                    "геометр",
+                    "площад",
+                    "объем",
+                    "треугольник",
+                    "четырехугольник",
+                    "окружност",
+                    "круг",
+                ]
+            ):
+                intent.subject = "geometry"
+            # Биология
+            elif any(
+                word in text_lower
+                for word in [
+                    "биолог",
+                    "клетк",
+                    "орган",
+                    "систем",
+                    "эволюц",
+                    "экологи",
+                ]
+            ):
+                intent.subject = "biology"
+            # История
+            elif any(
+                word in text_lower
+                for word in [
+                    "истори",
+                    "хронологи",
+                    "правител",
+                    "династи",
+                    "войн",
+                    "революц",
+                ]
+            ):
+                intent.subject = "history"
+            # Обществознание
+            elif any(
+                word in text_lower
+                for word in [
+                    "обществознан",
+                    "общество",
+                    "государств",
+                    "власт",
+                    "право",
+                    "экономик",
+                ]
+            ):
+                intent.subject = "social_studies"
+            # Информатика
+            elif any(
+                word in text_lower
+                for word in [
+                    "информатик",
+                    "программирован",
+                    "алгоритм",
+                    "систем",
+                    "счислен",
+                ]
+            ):
+                intent.subject = "computer_science"
+            else:
+                intent.subject = "math"  # По умолчанию математика
+
+        logger.info(
+            f"✅ Intent: kind={intent.kind}, subject={intent.subject}, "
+            f"items={intent.items}, needs_explanation={intent.needs_explanation}"
+        )
+
+        return intent
+
+
+# Singleton
+_intent_service_instance: MiniappIntentService | None = None
+
+
+def get_intent_service() -> MiniappIntentService:
+    """
+    Получить глобальный экземпляр MiniappIntentService.
+
+    Returns:
+        MiniappIntentService: Экземпляр сервиса
+    """
+    global _intent_service_instance
+    if _intent_service_instance is None:
+        _intent_service_instance = MiniappIntentService()
+    return _intent_service_instance
