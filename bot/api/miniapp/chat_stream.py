@@ -1143,9 +1143,57 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             if graph_match:
                                 break
 
-                    # Генерируем графики используя IntentService
-                    # Если intent определил несколько функций - генерируем комбинированную картинку
-                    if intent.kind in ("graph", "both") and intent.items:
+                    # Генерируем комбинированную визуализацию для смешанных запросов (таблица + график)
+                    if intent.kind == "both":
+                        # Извлекаем число для таблицы
+                        table_numbers_attr = getattr(intent, "table_numbers", [])
+                        table_num = None
+                        if table_numbers_attr:
+                            table_num = table_numbers_attr[0] if table_numbers_attr else None
+                        elif intent.items:
+                            table_num = next(
+                                (
+                                    item
+                                    for item in intent.items
+                                    if isinstance(item, int) and 1 <= item <= 10
+                                ),
+                                None,
+                            )
+                        elif multiplication_number:
+                            table_num = multiplication_number
+
+                        # Извлекаем выражение для графика
+                        graph_functions_attr = getattr(intent, "graph_functions", None)
+                        graph_expr = None
+                        if graph_functions_attr:
+                            graph_expr = graph_functions_attr[0] if graph_functions_attr else None
+                        elif intent.items:
+                            graph_expr = next(
+                                (item for item in intent.items if isinstance(item, str)),
+                                None,
+                            )
+
+                        # Генерируем комбинированную картинку
+                        if table_num and graph_expr:
+                            visualization_image = viz_service.generate_combined_table_and_graph(
+                                table_num, graph_expr
+                            )
+                            if visualization_image:
+                                visualization_image_base64 = viz_service.image_to_base64(
+                                    visualization_image
+                                )
+                                logger.info(
+                                    f"📊📈 Stream: Сгенерирована комбинированная визуализация: "
+                                    f"таблица на {table_num} + график {graph_expr}"
+                                )
+                        else:
+                            logger.warning(
+                                f"⚠️ Stream: Не удалось извлечь данные для комбинированной визуализации: "
+                                f"table_num={table_num}, graph_expr={graph_expr}"
+                            )
+
+                    # Генерируем графики используя IntentService (только для kind="graph")
+                    elif intent.kind == "graph" and intent.items:
                         graph_expressions = [item for item in intent.items if isinstance(item, str)]
                         if graph_expressions:
                             if len(graph_expressions) > 1:
@@ -1430,6 +1478,11 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     elif intent.kind == "both":
                         # Смешанный запрос: и таблица, и график.
                         # Полностью формируем собственное короткое пояснение, игнорируя текст модели.
+                        logger.info(
+                            f"🔍 Stream: Обработка kind='both', intent.items={intent.items}, "
+                            f"table_numbers={getattr(intent, 'table_numbers', None)}, "
+                            f"graph_functions={getattr(intent, 'graph_functions', None)}"
+                        )
                         table_numbers: list[int] = []
                         table_numbers_attr = getattr(intent, "table_numbers", [])
                         if table_numbers_attr:
@@ -1471,11 +1524,19 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     "Выбирай нужное число и тренируйся находить ответы по строкам и столбцам."
                                 )
 
-                        parts.append(
-                            f"Ниже {graph_description}: по горизонтали меняется число x, "
-                            "а по вертикали видно, как меняется значение функции. "
-                            "Посмотри, как кривая поднимается и опускается, и попробуй объяснить это своими словами."
-                        )
+                        # Описание графика (без "Ниже", так как график уже на картинке)
+                        if "sin" in graph_description.lower():
+                            parts.append(
+                                "На картинке также показан график синусоиды: "
+                                "по горизонтали меняется число x, а по вертикали видно, как меняется значение функции. "
+                                "Посмотри, как кривая поднимается и опускается, и попробуй объяснить это своими словами."
+                            )
+                        else:
+                            parts.append(
+                                f"На картинке также показан {graph_description}: "
+                                "по горизонтали меняется число x, а по вертикали видно, как меняется значение функции. "
+                                "Посмотри, как кривая поднимается и опускается, и попробуй объяснить это своими словами."
+                            )
 
                         full_response = " ".join(parts)
 

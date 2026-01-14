@@ -89,6 +89,12 @@ class VisualizationService(BaseVisualizationService):
         """Генерирует несколько таблиц умножения в одной картинке."""
         return self.arithmetic.generate_multiple_multiplication_tables(numbers)
 
+    def generate_combined_table_and_graph(
+        self, table_number: int, graph_expression: str
+    ) -> bytes | None:
+        """Генерирует комбинированную картинку: таблица умножения + график функции."""
+        return self.arithmetic.generate_combined_table_and_graph(table_number, graph_expression)
+
     def generate_multiple_function_graphs(self, expressions: list[str]) -> bytes | None:
         """Генерирует несколько графиков функций в одной картинке."""
         return super().generate_multiple_function_graphs(expressions)
