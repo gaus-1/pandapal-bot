@@ -1093,16 +1093,31 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             f"🔍 Stream: Проверка типа графика: general_graph={general_graph_request}, "
                             f"graph_match={bool(graph_match)}, user_msg='{user_message[:50]}'"
                         )
-                        if re.search(r"(?:синусоид|sin)", user_msg_lower) or (
-                            general_graph_request and not graph_match
-                        ):
+                        # ИСПРАВЛЕНО: Добавлен "синус" в паттерн для поиска слова "синуса"
+                        sin_match = re.search(r"(?:синусоид|sin|синус)", user_msg_lower)
+                        logger.info(
+                            f"🔍 Stream: Проверка синуса: sin_match={bool(sin_match)}, "
+                            f"general_graph={general_graph_request}, graph_match={bool(graph_match)}"
+                        )
+                        if sin_match or (general_graph_request and not graph_match):
                             # Генерируем стандартный график синуса (для общих запросов или явных запросов на синусоиду)
+                            logger.info("🔍 Stream: Вход в блок генерации графика синуса")
                             visualization_image = viz_service.generate_function_graph("sin(x)")
+                            logger.info(
+                                f"🔍 Stream: generate_function_graph вернул: {type(visualization_image)}, "
+                                f"size={len(visualization_image) if visualization_image else 0}"
+                            )
                             if visualization_image:
                                 visualization_image_base64 = viz_service.image_to_base64(
                                     visualization_image
                                 )
-                                logger.info("📈 Stream: Сгенерирован график синусоиды")
+                                logger.info(
+                                    f"📈 Stream: Сгенерирован график синусоиды, base64 size={len(visualization_image_base64)}"
+                                )
+                            else:
+                                logger.warning(
+                                    "⚠️ Stream: generate_function_graph вернул None для sin(x)"
+                                )
                                 # #region agent log
                                 try:
                                     with open(debug_log_path, "a", encoding="utf-8") as f:
@@ -1180,14 +1195,19 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             expression = (
                                 graph_match.group(1).strip() if graph_match.groups() else ""
                             )
-                            # Безопасные выражения для графиков (поддерживаем x^2, x**2)
+                            # Безопасные выражения для графиков (поддерживаем x^2, x**2, x², x³)
                             if expression:
-                                # Заменяем x^2 на x**2 для Python
-                                expression = expression.replace("^", "**")
+                                # ИСПРАВЛЕНО: Нормализуем выражение ПЕРЕД проверкой регулярным выражением
+                                # Заменяем ², ³, ^ на ** для Python
+                                expression = (
+                                    expression.replace("²", "**2")
+                                    .replace("³", "**3")
+                                    .replace("^", "**")
+                                )
+                                # Проверяем безопасность выражения (после нормализации)
                                 if re.match(r"^[x\s+\-*/().\d\s]+$", expression):
-                                    safe_expr = expression.replace("x", "x")
                                     visualization_image = viz_service.generate_function_graph(
-                                        safe_expr
+                                        expression
                                     )
                                     if visualization_image:
                                         visualization_image_base64 = viz_service.image_to_base64(
@@ -1196,6 +1216,14 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                         logger.info(
                                             f"📈 Stream: Сгенерирован график функции: {expression}"
                                         )
+                                    else:
+                                        logger.warning(
+                                            f"⚠️ Stream: Не удалось сгенерировать график для выражения: {expression}"
+                                        )
+                                else:
+                                    logger.warning(
+                                        f"⚠️ Stream: Выражение не прошло проверку безопасности: {expression}"
+                                    )
 
                 except Exception as e:
                     logger.debug(f"⚠️ Stream: Ошибка генерации визуализации: {e}")
