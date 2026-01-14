@@ -105,6 +105,9 @@ class MiniappIntentService:
                 intent.kind = "table"
                 intent.subject = "math"
                 intent.items = valid_numbers
+                # КРИТИЧЕСКИ ВАЖНО: сохраняем числа таблицы отдельно,
+                # чтобы не потерять их при добавлении графиков (mixed-кейс)
+                intent.table_numbers = valid_numbers
                 logger.info(
                     f"📊 Intent: Таблица умножения на числа: {intent.items} "
                     f"(извлечено из всех чисел в тексте)"
