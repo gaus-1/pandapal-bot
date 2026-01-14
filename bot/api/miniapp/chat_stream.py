@@ -15,6 +15,7 @@ from bot.services import ChatHistoryService, UserService
 from bot.services.ai_service_solid import get_ai_service
 from bot.services.miniapp_audio_service import MiniappAudioService
 from bot.services.miniapp_photo_service import MiniappPhotoService
+from bot.services.miniapp_visualization_service import MiniappVisualizationService
 from bot.services.yandex_ai_response_generator import clean_ai_response
 
 from .helpers import extract_user_name_from_message, send_achievements_event
@@ -215,348 +216,14 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     pass
                 # #endregion
 
-                # Преобразуем сообщение в нижний регистр ОДИН РАЗ для всех проверок
-                user_msg_lower = user_message.lower()
-
-                # Расширенные паттерны для таблиц умножения (конкретные числа)
-                multiplication_patterns = [
-                    r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)",
-                    r"табл[иы]ц[аеы]?\s*умножени[яе]\s+(\d+)",
-                    r"умножени[яе]\s+на\s*(\d+)",
-                    r"умнож[а-я]*\s+(\d+)",
-                ]
-
-                # Функция проверки контекста: есть ли в запросе специфичные слова
-                def has_specific_context(text: str) -> bool:
-                    """
-                    Проверяет, есть ли в запросе специфичные слова,
-                    указывающие на конкретный тип таблицы/графика.
-
-                    Args:
-                        text: Текст запроса в нижнем регистре
-
-                    Returns:
-                        True если есть специфичный контекст, False если общий запрос
-                    """
-                    specific_keywords = [
-                        # Таблицы по предметам
-                        r"глагол",
-                        r"падеж",
-                        r"алфавит",
-                        r"букв",
-                        r"звук",
-                        r"орфограф",
-                        r"пунктуац",
-                        r"морфемн",
-                        r"стил\s+реч",
-                        r"сопряжени[яе]",
-                        r"спряжени[яе]",
-                        r"времен[а]?\s+год",
-                        r"месяц",
-                        r"дн[ия]?\s+недел",
-                        r"часов[ые]?\s+пояс",
-                        r"страны?",
-                        r"хронологи",
-                        r"ветв[и]?\s+власт",
-                        r"систем[ы]?\s+счислени",
-                        r"природн[ые]?\s+зон",
-                        r"растворимост",
-                        r"валентност",
-                        r"менделеева",
-                        r"периодическая",
-                        r"констант",
-                        r"плотност",
-                        r"теплоемкост",
-                        r"сопротивлени",
-                        r"неправильн",
-                        r"времен[а]?\s+(?:английск|англ)",
-                        # Графики с контекстом
-                        r"график\s+(?:пути|путь|скорост|движени[яе])",
-                        r"график\s+(?:функци[яи]|y\s*=|x\s*\*\*|sin|cos|tan|log|sqrt)",
-                        r"график\s+(?:закон|ома|гука|парабол|линейн)",
-                        r"график\s+(?:температур|плавлени|кристаллизац)",
-                        r"график\s+(?:изотерм|изобар|изохор)",
-                        r"график\s+(?:переменн[ый]?\s+ток|ac\s+current)",
-                    ]
-                    return any(re.search(keyword, text) for keyword in specific_keywords)
-
-                # Общие паттерны для запросов на таблицы (без числа)
-                # ВАЖНО: Эти паттерны имеют ВЫСОКИЙ ПРИОРИТЕТ - срабатывают при явных запросах
-                general_table_patterns = [
-                    r"состав[ьи]\s+табл[иы]ц[аеы]?",
-                    r"пришли\s+табл[иы]ц[аеы]?",
-                    r"покажи\s+табл[иы]ц[аеы]?",
-                    r"сделай\s+табл[иы]ц[аеы]?",
-                    r"нарисуй\s+табл[иы]ц[аеы]?",
-                    r"построй\s+табл[иы]ц[аеы]?",
-                    r"выведи\s+табл[иы]ц[аеы]?",
-                    r"дай\s+табл[иы]ц[аеы]?",
-                    r"нужн[аы]?\s+табл[иы]ц[аеы]?",
-                    r"табл[иы]ц[аеы]?\s*(?:пришли|покажи|сделай|нарисуй|состав[ьи]|построй|дай)",
-                    r"покажи\s+умножени[яе]",
-                    r"табл[иы]ц[аеы]?\s*умножени[яе](?:\s+на\s+все)?",
-                    r"полную\s+табл[иы]ц[аеы]?\s*умножени[яе]",
-                    r"хочу\s+табл[иы]ц[аеы]?",
-                ]
-                # Расширенные паттерны для графиков
-                # ВАЖНО: Эти паттерны имеют ВЫСОКИЙ ПРИОРИТЕТ - срабатывают при явных запросах
-                general_graph_patterns = [
-                    r"состав[ьи]\s+график",
-                    r"пришли\s+график",
-                    r"покажи\s+график",
-                    r"сделай\s+график",
-                    r"нарисуй\s+график",
-                    r"построй\s+график",
-                    r"выведи\s+график",
-                    r"дай\s+график",
-                    r"нужен\s+график",
-                    r"хочу\s+график",
-                    r"график\s+(?:покажи|нарисуй|построй|сделай|выведи)",
-                ]
-
-                # КРИТИЧНО: Сначала проверяем специфичные таблицы через detect_visualization_request
-                # Это должно быть ДО проверки общих паттернов, чтобы не перехватывать специфичные запросы
-                specific_visualization_image = None
-                try:
-                    # #region agent log
-                    try:
-                        with open(debug_log_path, "a", encoding="utf-8") as f:
-                            f.write(
-                                json_lib_debug.dumps(
-                                    {
-                                        "timestamp": __import__("time").time() * 1000,
-                                        "location": "miniapp_endpoints.py:1611",
-                                        "message": "Вызов detect_visualization_request",
-                                        "data": {
-                                            "user_message": user_message,
-                                            "user_message_lower": user_msg_lower,
-                                        },
-                                        "sessionId": "debug-session",
-                                        "runId": "detection",
-                                        "hypothesisId": "A",
-                                    },
-                                    ensure_ascii=False,
-                                )
-                                + "\n"
-                            )
-                    except Exception:
-                        pass
-                    # #endregion
-                    specific_visualization_image = viz_service.detect_visualization_request(
-                        user_message
-                    )
-
-                    # Если IntentService определил несколько таблиц умножения, игнорируем одиночную
-                    # специфичную визуализацию и будем генерировать комбинированную картинку
-                    try:
-                        multiple_table_intent = (
-                            intent.kind == "table"
-                            and isinstance(intent.items, list)
-                            and len([n for n in intent.items if isinstance(n, int)]) > 1
-                        )
-                    except Exception:
-                        multiple_table_intent = False
-
-                    if multiple_table_intent and specific_visualization_image is not None:
-                        logger.info(
-                            f"🔄 Stream: Игнорируем специфичную визуализацию для множественных таблиц: {intent.items}"
-                        )
-                        specific_visualization_image = None
-                    # #region agent log
-                    try:
-                        with open(debug_log_path, "a", encoding="utf-8") as f:
-                            f.write(
-                                json_lib_debug.dumps(
-                                    {
-                                        "timestamp": __import__("time").time() * 1000,
-                                        "location": "miniapp_endpoints.py:1635",
-                                        "message": "Результат detect_visualization_request",
-                                        "data": {
-                                            "has_image": specific_visualization_image is not None,
-                                            "image_size": len(specific_visualization_image)
-                                            if specific_visualization_image
-                                            else 0,
-                                        },
-                                        "sessionId": "debug-session",
-                                        "runId": "detection",
-                                        "hypothesisId": "C",
-                                    },
-                                    ensure_ascii=False,
-                                )
-                                + "\n"
-                            )
-                    except Exception:
-                        pass
-                    # #endregion
-                    if specific_visualization_image:
-                        logger.info(
-                            f"📊 Детектирована специфичная визуализация: '{user_message[:50]}'"
-                        )
-                        # #region agent log
-                        try:
-                            with open(debug_log_path, "a", encoding="utf-8") as f:
-                                f.write(
-                                    json_lib_debug.dumps(
-                                        {
-                                            "timestamp": __import__("time").time() * 1000,
-                                            "location": "miniapp_endpoints.py:1607",
-                                            "message": "Специфичная визуализация найдена",
-                                            "data": {
-                                                "user_message": user_message[:50],
-                                                "image_size": len(specific_visualization_image),
-                                            },
-                                            "sessionId": "debug-session",
-                                            "runId": "detection",
-                                            "hypothesisId": "SPECIFIC",
-                                        },
-                                        ensure_ascii=False,
-                                    )
-                                    + "\n"
-                                )
-                        except Exception:
-                            pass
-                        # #endregion
-                except Exception as e:
-                    logger.warning(f"⚠️ Ошибка при детекции специфичной визуализации: {e}")
-
-                # Проверяем конкретные таблицы умножения (с числом) - только если специфичная визуализация не найдена
-                multiplication_number = None
-                if not specific_visualization_image:
-                    for pattern in multiplication_patterns:
-                        multiplication_match = re.search(pattern, user_msg_lower)
-                        if multiplication_match:
-                            try:
-                                multiplication_number = int(multiplication_match.group(1))
-                                if 1 <= multiplication_number <= 10:
-                                    # #region agent log
-                                    try:
-                                        with open(debug_log_path, "a", encoding="utf-8") as f:
-                                            f.write(
-                                                json_lib_debug.dumps(
-                                                    {
-                                                        "timestamp": __import__("time").time()
-                                                        * 1000,
-                                                        "location": "miniapp_endpoints.py:1638",
-                                                        "message": "Детектирована таблица умножения с числом",
-                                                        "data": {
-                                                            "number": multiplication_number,
-                                                            "pattern": pattern,
-                                                        },
-                                                        "sessionId": "debug-session",
-                                                        "runId": "detection",
-                                                        "hypothesisId": "A",
-                                                    },
-                                                    ensure_ascii=False,
-                                                )
-                                                + "\n"
-                                            )
-                                    except Exception:
-                                        pass
-                                    # #endregion
-                                    break
-                            except (ValueError, IndexError):
-                                continue
-
-                # Проверяем общие запросы на таблицы (без числа)
-                # ИЗМЕНЕНО: Убрана блокировка has_specific_context - явные запросы "покажи/нарисуй" имеют приоритет
-                # ВАЖНО: Только если специфичная визуализация не найдена и нет числа для умножения
-                general_table_request = None
-                has_context = has_specific_context(user_msg_lower)
-                # #region agent log
-                try:
-                    with open(debug_log_path, "a", encoding="utf-8") as f:
-                        f.write(
-                            json_lib_debug.dumps(
-                                {
-                                    "timestamp": __import__("time").time() * 1000,
-                                    "location": "miniapp_endpoints.py:1774",
-                                    "message": "Проверка контекста запроса",
-                                    "data": {
-                                        "user_message": user_message[:100],
-                                        "has_specific_context": has_context,
-                                        "has_specific_visualization": specific_visualization_image
-                                        is not None,
-                                        "multiplication_number": multiplication_number,
-                                    },
-                                    "sessionId": "debug-session",
-                                    "runId": "detection",
-                                    "hypothesisId": "D",
-                                },
-                                ensure_ascii=False,
-                            )
-                            + "\n"
-                        )
-                except Exception:
-                    pass
-                # #endregion
-                # ИЗМЕНЕНО: Убрана проверка has_context - явные запросы "покажи/нарисуй таблицу" должны срабатывать всегда
-                if not specific_visualization_image and not multiplication_number:
-                    for pattern in general_table_patterns:
-                        if re.search(pattern, user_msg_lower):
-                            general_table_request = True
-                            logger.info(
-                                f"📊 Детектирован общий запрос на таблицу: '{user_message[:50]}', pattern: {pattern}"
-                            )
-                            # #region agent log
-                            try:
-                                with open(debug_log_path, "a", encoding="utf-8") as f:
-                                    f.write(
-                                        json_lib_debug.dumps(
-                                            {
-                                                "timestamp": __import__("time").time() * 1000,
-                                                "location": "miniapp_endpoints.py:1676",
-                                                "message": "Детектирован общий запрос на таблицу",
-                                                "data": {
-                                                    "pattern": pattern,
-                                                    "user_message": user_message[:100],
-                                                },
-                                                "sessionId": "debug-session",
-                                                "runId": "detection",
-                                                "hypothesisId": "B",
-                                            },
-                                            ensure_ascii=False,
-                                        )
-                                        + "\n"
-                                    )
-                            except Exception:
-                                pass
-                            # #endregion
-                            break
-
-                # Проверяем общие запросы на графики
-                # ИЗМЕНЕНО: Убрана проверка has_specific_context - явные запросы "покажи/нарисуй график" должны срабатывать всегда
-                general_graph_request = None
-                for pattern in general_graph_patterns:
-                    if re.search(pattern, user_msg_lower):
-                        general_graph_request = True
-                        logger.info(
-                            f"📈 Детектирован общий запрос на график: '{user_message[:50]}', pattern: {pattern}"
-                        )
-                        # #region agent log
-                        try:
-                            with open(debug_log_path, "a", encoding="utf-8") as f:
-                                f.write(
-                                    json_lib_debug.dumps(
-                                        {
-                                            "timestamp": __import__("time").time() * 1000,
-                                            "location": "miniapp_endpoints.py:1591",
-                                            "message": "Детектирован общий запрос на график",
-                                            "data": {
-                                                "pattern": pattern,
-                                                "user_message": user_message[:100],
-                                            },
-                                            "sessionId": "debug-session",
-                                            "runId": "detection",
-                                            "hypothesisId": "C",
-                                        },
-                                        ensure_ascii=False,
-                                    )
-                                    + "\n"
-                                )
-                        except Exception:
-                            pass
-                        # #endregion
-                        break
+                # Детекция визуализаций через новый сервис
+                visualization_service = MiniappVisualizationService()
+                (
+                    specific_visualization_image,
+                    multiplication_number,
+                    general_table_request,
+                    general_graph_request,
+                ) = visualization_service.detect_visualization_request(user_message, intent)
 
                 # Если запрос на таблицу умножения или график - собираем весь ответ, не отправляем chunks с таблицей
                 will_have_visualization = (
@@ -691,6 +358,13 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         # #endregion
                     # Если не нашли в запросе, проверяем ответ AI
                     elif not multiplication_number:
+                        # Паттерны для поиска таблицы умножения в ответе AI
+                        multiplication_patterns = [
+                            r"табл[иы]ц[аеы]?\s*умножени[яе]\s*на\s*(\d+)",
+                            r"табл[иы]ц[аеы]?\s*умножени[яе]\s+(\d+)",
+                            r"умножени[яе]\s+на\s*(\d+)",
+                            r"умнож[а-я]*\s+(\d+)",
+                        ]
                         for pattern in multiplication_patterns:
                             multiplication_match = re.search(pattern, full_response.lower())
                             if multiplication_match:
@@ -844,6 +518,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол|порабол|парабола|порабола)",
                         ]
                         graph_match = None
+                        user_msg_lower = user_message.lower()
                         for pattern in graph_patterns:
                             graph_match = re.search(pattern, user_msg_lower)
                             if graph_match:
@@ -866,6 +541,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             r"(?:синусоид|sin|косинус|cos|тангенс|tan|экспонент|exp|логарифм|log|парабол|порабол|парабола|порабола)",
                         ]
                         graph_match = None
+                        user_msg_lower = user_message.lower()
                         for pattern in graph_patterns:
                             graph_match = re.search(pattern, user_msg_lower)
                             if graph_match:
@@ -948,6 +624,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     # Старая логика для обратной совместимости
                     elif (general_graph_request or graph_match) and not visualization_image_base64:
                         # Если это запрос на синусоиду/косинус/параболу и т.д. без конкретной формулы
+                        user_msg_lower = user_message.lower()
                         logger.info(
                             f"🔍 Stream: Проверка типа графика: general_graph={general_graph_request}, "
                             f"graph_match={bool(graph_match)}, user_msg='{user_message[:50]}'"
@@ -1324,30 +1001,30 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 if not full_response.endswith((".", "!", "?")):
                                     full_response += "."
 
-                    logger.info(
-                        f"✅ Stream: Текст обрезан до короткого объяснения (есть визуализация): {full_response[:100]}"
-                    )
-                    # #region agent log
-                    try:
-                        with open(debug_log_path, "a", encoding="utf-8") as f:
-                            f.write(
-                                json_lib_debug.dumps(
-                                    {
-                                        "timestamp": __import__("time").time() * 1000,
-                                        "location": "miniapp_endpoints.py:1762",
-                                        "message": "Текст заменен для визуализации",
-                                        "data": {"new_response": full_response},
-                                        "sessionId": "debug-session",
-                                        "runId": "text_replacement",
-                                        "hypothesisId": "C",
-                                    },
-                                    ensure_ascii=False,
+                        logger.info(
+                            f"✅ Stream: Текст обрезан до короткого объяснения (есть визуализация): {full_response[:100]}"
+                        )
+                        # #region agent log
+                        try:
+                            with open(debug_log_path, "a", encoding="utf-8") as f:
+                                f.write(
+                                    json_lib_debug.dumps(
+                                        {
+                                            "timestamp": __import__("time").time() * 1000,
+                                            "location": "miniapp_endpoints.py:1762",
+                                            "message": "Текст заменен для визуализации",
+                                            "data": {"new_response": full_response},
+                                            "sessionId": "debug-session",
+                                            "runId": "text_replacement",
+                                            "hypothesisId": "C",
+                                        },
+                                        ensure_ascii=False,
+                                    )
+                                    + "\n"
                                 )
-                                + "\n"
-                            )
-                    except Exception:
-                        pass
-                    # #endregion
+                        except Exception:
+                            pass
+                        # #endregion
 
                 # Ограничиваем размер полного ответа
                 MAX_RESPONSE_LENGTH = 4000
@@ -1579,10 +1256,15 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                         graph_match.group(1).strip() if graph_match.groups() else ""
                                     )
                                     if expression and re.match(r"^[x\s+\-*/().\d\s]+$", expression):
-                                        safe_expr = expression.replace("x", "x")
-                                    visualization_image = viz_service.generate_function_graph(
-                                        safe_expr
-                                    )
+                                        # Нормализуем выражение: заменяем ², ³, ^ на ** для Python
+                                        safe_expr = (
+                                            expression.replace("²", "**2")
+                                            .replace("³", "**3")
+                                            .replace("^", "**")
+                                        )
+                                        visualization_image = viz_service.generate_function_graph(
+                                            safe_expr
+                                        )
                                     if visualization_image:
                                         visualization_image_base64 = viz_service.image_to_base64(
                                             visualization_image
