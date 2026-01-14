@@ -67,9 +67,31 @@ PandaPal/
 │   │   │   └── __init__.py  # Регистрация router
 │   │   ├── start.py         # Команда /start
 │   │   └── ...              # Остальные handlers
-│   ├── services/           # Бизнес-логика (AI, платежи, игры)
-│   ├── api/                # HTTP endpoints для Mini App
-│   │   └── miniapp/        # Модульная структура API
+│   ├── services/           # Бизнес-логика (AI, платежи, игры, Mini App)
+│   │   ├── ai_service_solid.py          # Фасад над Yandex Cloud AI
+│   │   ├── yandex_cloud_service.py      # Низкоуровневый Yandex Cloud клиент
+│   │   ├── yandex_ai_response_generator.py  # Генерация AI ответов
+│   │   ├── miniapp_chat_context_service.py  # Контекст чата для Mini App
+│   │   ├── miniapp_intent_service.py        # Детекция intent'ов (таблицы, графики и т.п.)
+│   │   ├── miniapp_audio_service.py         # Обработка аудио из Mini App
+│   │   ├── miniapp_photo_service.py         # Обработка фото/домашки из Mini App
+│   │   ├── miniapp_visualization_service.py # Детектор визуализаций для Mini App
+│   │   ├── visualization_service.py         # Единая точка входа для визуализаций
+│   │   ├── visualization/                   # Генерация графиков/таблиц по предметам
+│   │   ├── games_service.py                 # Игры PandaPalGo (TicTacToe, Checkers, 2048, Tetris)
+│   │   ├── gamification_service.py          # Достижения, уровни, XP
+│   │   ├── premium_features_service.py      # Premium лимиты и доступ
+│   │   ├── payment_service.py               # YooKassa / Telegram Stars
+│   │   ├── history_service.py               # История чата (включая image_url)
+│   │   └── token_rotator.py                 # Ротация AI‑ключей
+│   ├── api/                # HTTP endpoints
+│   │   ├── miniapp/        # API для Telegram Mini App
+│   │   │   ├── chat_stream.py  # Streaming AI чат (SSE) + визуализации
+│   │   │   ├── other.py        # История чата, предметы, логирование
+│   │   │   └── __init__.py     # Регистрация Mini App маршрутов
+│   │   ├── games_endpoints.py  # API для игр
+│   │   ├── premium_endpoints.py# Премиум и платежи
+│   │   └── auth_endpoints.py   # Telegram Login / auth API
 │   ├── config/             # Настройки, промпты, паттерны модерации
 │   ├── security/           # Middleware, валидация, rate limiting
 │   ├── monitoring/         # Метрики, мониторинг
@@ -84,7 +106,7 @@ PandaPal/
 │   │   └── services/       # API клиенты
 │   └── public/             # Статические файлы
 ├── tests/                  # Тесты (unit, integration, e2e, security)
-├── alembic/                # Миграции БД
+├── alembic/                # Миграции БД (Alembic)
 ├── scripts/                # Утилиты
 └── web_server.py           # Entry point (aiohttp + aiogram webhook + frontend)
 ```
@@ -136,7 +158,8 @@ PandaPal/
 
 ### API Endpoints
 
-- `miniapp_endpoints.py` — AI chat с streaming (SSE), голос, изображения, история чата
+- `bot/api/miniapp/chat_stream.py` — Mini App AI chat с streaming (SSE), голос, изображения, визуализации
+- `bot/api/miniapp/other.py` — история чата, предметы, логирование Mini App
 - `premium_endpoints.py` — обработка платежей YooKassa, webhooks, сохранение карт
 - `games_endpoints.py` — API для игр (создание сессий, ходы, завершение)
 - `auth_endpoints.py` — Telegram Login Widget для сайта

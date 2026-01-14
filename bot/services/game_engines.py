@@ -561,6 +561,10 @@ class TetrisGame:
             "score": self.score,
             "lines_cleared": self.lines_cleared,
             "game_over": self.game_over,
+            "current_shape": self.current_shape,
+            "current_row": self.current_row,
+            "current_col": self.current_col,
+            "current_rotation": self.current_rotation,
             "width": self.width,
             "height": self.height,
         }

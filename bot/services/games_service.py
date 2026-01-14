@@ -1118,7 +1118,7 @@ class GamesService:
         if not session:
             raise ValueError(f"Game session {session_id} not found")
 
-        # Восстанавливаем игру
+        # Восстанавливаем игру из сохранённого состояния
         game = TetrisGame()
         if session.game_state and isinstance(session.game_state, dict):
             state = session.game_state
@@ -1129,6 +1129,13 @@ class GamesService:
             game.score = int(state.get("score", 0))
             game.lines_cleared = int(state.get("lines_cleared", 0))
             game.game_over = bool(state.get("game_over", False))
+            # Восстанавливаем текущую фигуру, если данные есть
+            current_shape = state.get("current_shape")
+            if isinstance(current_shape, str):
+                game.current_shape = current_shape
+            game.current_row = int(state.get("current_row", 0))
+            game.current_col = int(state.get("current_col", game.width // 2))
+            game.current_rotation = int(state.get("current_rotation", 0))
 
         # Делаем шаг
         game.step(action)
@@ -1142,6 +1149,10 @@ class GamesService:
                 "score": state["score"],
                 "lines_cleared": state["lines_cleared"],
                 "game_over": state["game_over"],
+                "current_shape": state.get("current_shape"),
+                "current_row": state.get("current_row"),
+                "current_col": state.get("current_col"),
+                "current_rotation": state.get("current_rotation"),
             },
             "loss" if state["game_over"] else "in_progress",
         )
