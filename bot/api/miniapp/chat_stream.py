@@ -1400,7 +1400,11 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     if intent.kind == "table":
                         # Формируем своё короткое объяснение для таблиц умножения
                         table_numbers = []
-                        if intent.items:
+                        # Сначала берем числа, которые IntentService сохранил явно
+                        table_numbers_attr = getattr(intent, "table_numbers", [])
+                        if table_numbers_attr:
+                            table_numbers = [n for n in table_numbers_attr if isinstance(n, int)]
+                        elif intent.items:
                             table_numbers = [n for n in intent.items if isinstance(n, int)]
                         elif multiplication_number:
                             table_numbers = [multiplication_number]
@@ -1427,15 +1431,24 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         # Смешанный запрос: и таблица, и график.
                         # Полностью формируем собственное короткое пояснение, игнорируя текст модели.
                         table_numbers: list[int] = []
-                        if intent.items:
+                        table_numbers_attr = getattr(intent, "table_numbers", [])
+                        if table_numbers_attr:
+                            table_numbers = [n for n in table_numbers_attr if isinstance(n, int)]
+                        elif intent.items:
                             table_numbers = [n for n in intent.items if isinstance(n, int)]
                         elif multiplication_number:
                             table_numbers = [multiplication_number]
 
-                        # Определяем краткое описание графика (берем первую функцию-строку из intent.items)
+                        # Определяем краткое описание графика (берем первую функцию-строку из graph_functions или intent.items)
                         graph_description = "график функции"
-                        if intent.items:
-                            first_item = intent.items[0]
+                        graph_functions_attr = getattr(intent, "graph_functions", None)
+                        source_funcs = (
+                            graph_functions_attr
+                            if graph_functions_attr
+                            else (intent.items if intent.items else [])
+                        )
+                        if source_funcs:
+                            first_item = source_funcs[0]
                             if isinstance(first_item, str):
                                 if "sin" in first_item:
                                     graph_description = "график синусоиды"
