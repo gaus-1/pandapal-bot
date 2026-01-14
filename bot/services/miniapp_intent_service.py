@@ -89,7 +89,7 @@ class MiniappIntentService:
         # Проверяем запросы на таблицы умножения
         # КРИТИЧНО: Сначала проверяем все числа из текста (приоритет для "3, 5 и 7"),
         # затем паттерны как fallback
-        multiplication_numbers = []
+        multiplication_numbers: list[int] = []
 
         # КРИТИЧНО: Если есть упоминание таблицы/умножения И числа 1-10 в тексте - используем ВСЕ числа
         # Это обрабатывает случаи "таблица на 7 и 9" или "таблица на 3, 5 и 7"
@@ -101,6 +101,7 @@ class MiniappIntentService:
             # Используем ВСЕ числа из текста (приоритет)
             valid_numbers = sorted({n for n in all_numbers if 1 <= n <= 10})
             if valid_numbers:
+                multiplication_numbers = valid_numbers
                 intent.kind = "table"
                 intent.subject = "math"
                 intent.items = valid_numbers
@@ -123,9 +124,13 @@ class MiniappIntentService:
                             continue
 
             if multiplication_numbers:
+                unique_numbers = sorted(set(multiplication_numbers))
+                multiplication_numbers = unique_numbers
                 intent.kind = "table"
                 intent.subject = "math"
-                intent.items = sorted(set(multiplication_numbers))
+                intent.items = unique_numbers
+                # Сохраняем числа таблицы отдельно, чтобы не потерять их при добавлении графиков
+                intent.table_numbers = unique_numbers
                 logger.info(
                     f"📊 Intent: Таблица умножения на числа: {intent.items} "
                     f"(извлечено из паттернов)"
@@ -202,6 +207,8 @@ class MiniappIntentService:
                     seen.add(func)
                     valid_functions.append(func)
             intent.items = valid_functions
+            # Сохраняем функции графиков отдельно, чтобы их было проще использовать в mixed-кейсе
+            intent.graph_functions = valid_functions
             logger.info(f"📈 Intent: Графики функций: {intent.items}")
 
         # Если нашли и таблицы и графики - это "both"
