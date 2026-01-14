@@ -284,10 +284,24 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 await response.write(b'event: error\ndata: {"error": "User not found"}\n\n')
                 return response
 
-            # Проверка Premium
-            from bot.services.premium_features_service import PremiumFeaturesService
+            # Готовим контекст чата через отдельный сервис (SRP)
+            from bot.services.miniapp_chat_context_service import MiniappChatContextService
 
-            premium_service = PremiumFeaturesService(db)
+            context_service = MiniappChatContextService(db)
+            context = context_service.prepare_context(
+                telegram_id=telegram_id,
+                user_message=user_message,
+                skip_premium_check=True,
+            )
+
+            # Разворачиваем контекст (берем только нужные объекты)
+            yandex_history = context["yandex_history"]
+            enhanced_system_prompt = context["system_prompt"]
+            is_history_cleared = context["is_history_cleared"]
+            premium_service = context["premium_service"]
+            history_service = context["history_service"]
+
+            # Проверка Premium (как и раньше, но через premium_service из контекста)
             can_request, limit_reason = premium_service.can_make_ai_request(
                 telegram_id, username=user.username
             )
@@ -301,99 +315,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 )
                 return response
 
-            # Загружаем историю
-            history_limit = 50 if premium_service.is_premium_active(telegram_id) else 10
-            history = history_service.get_formatted_history_for_ai(telegram_id, limit=history_limit)
-
-            # Проверяем, была ли очистка истории (история пустая)
-            is_history_cleared = len(history) == 0
-
-            # Подсчитываем количество сообщений пользователя с последнего обращения по имени
-            # Ищем последнее обращение по имени в истории (ищем в ответах AI)
-            user_message_count = 0
-            if user.first_name:
-                # Ищем последнее обращение по имени в ответах AI (ищем имя в тексте)
-                last_name_mention_index = -1
-                for i, msg in enumerate(history):
-                    if (
-                        msg.get("role") == "assistant"
-                        and user.first_name.lower() in msg.get("text", "").lower()
-                    ):
-                        last_name_mention_index = i
-                        break
-
-                # Считаем сообщения пользователя ПОСЛЕ последнего обращения по имени
-                if last_name_mention_index >= 0:
-                    # Есть обращение по имени - считаем сообщения после него
-                    user_message_count = sum(
-                        1
-                        for msg in history[last_name_mention_index + 1 :]
-                        if msg.get("role") == "user"
-                    )
-                else:
-                    # Нет обращения по имени - считаем все сообщения пользователя
-                    user_message_count = sum(1 for msg in history if msg.get("role") == "user")
-            else:
-                # Нет имени - считаем все сообщения пользователя
-                user_message_count = sum(1 for msg in history if msg.get("role") == "user")
-
-            # Определяем, является ли вопрос образовательным
-            educational_keywords = [
-                "математика",
-                "алгебра",
-                "геометрия",
-                "арифметика",
-                "русский",
-                "литература",
-                "сочинение",
-                "диктант",
-                "история",
-                "география",
-                "биология",
-                "физика",
-                "химия",
-                "английский",
-                "немецкий",
-                "французский",
-                "испанский",
-                "информатика",
-                "программирование",
-                "задача",
-                "решить",
-                "решение",
-                "пример",
-                "уравнение",
-                "урок",
-                "домашнее",
-                "задание",
-                "дз",
-                "контрольная",
-                "объясни",
-                "помоги",
-                "как решить",
-                "как сделать",
-                "сколько",
-                "вычисли",
-                "посчитай",
-                "найди",
-                "таблица",
-                "умножение",
-                "деление",
-                "сложение",
-                "вычитание",
-            ]
-
-            user_message_lower = user_message.lower()
-            is_educational = any(keyword in user_message_lower for keyword in educational_keywords)
-
-            # Обновляем счетчик непредметных вопросов
-            if is_educational:
-                # Если вопрос образовательный - сбрасываем счетчик
-                user.non_educational_questions_count = 0
-            else:
-                # Если непредметный - увеличиваем счетчик
-                user.non_educational_questions_count += 1
-
             # Отправляем событие начала генерации
             await response.write(b'event: status\ndata: {"status": "generating"}\n\n')
 
@@ -404,7 +325,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
             # Получаем веб-контекст
             from bot.config import settings
-            from bot.services.prompt_builder import get_prompt_builder
 
             relevant_materials = await response_generator.knowledge_service.get_helpful_content(
                 user_message, user.age
@@ -413,32 +333,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 relevant_materials
             )
 
-            # Используем PromptBuilder для формирования промпта
-            prompt_builder = get_prompt_builder()
-            enhanced_system_prompt = prompt_builder.build_system_prompt(
-                user_age=user.age,
-                user_name=user.first_name,
-                message_count_since_name=user_message_count,
-                is_history_cleared=is_history_cleared,
-                chat_history=history,
-                user_message=user_message,
-                non_educational_questions_count=user.non_educational_questions_count,
-                is_auto_greeting_sent=False,  # Определяется на фронтенде, здесь всегда False
-                is_educational=is_educational,
-            )
-
             # Добавляем веб-контекст к промпту, если он есть
             if web_context:
                 enhanced_system_prompt += f"\n\n📚 Дополнительная информация:\n{web_context}"
-
-            # Преобразуем историю в формат Yandex
-            yandex_history = []
-            if history:
-                for msg in history[-10:]:
-                    role = msg.get("role", "user")  # Используем роль напрямую
-                    text = msg.get("text", "").strip()
-                    if text:
-                        yandex_history.append({"role": role, "text": text})
 
             # Используем Pro модель для всех пользователей (YandexGPT 5 Pro Latest - стабильная версия)
             # Формат yandexgpt/latest - как в примере из Yandex Cloud Console
