@@ -1362,8 +1362,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         pass
                     # #endregion
 
-                    # КРИТИЧНО: Если есть визуализация - обрезаем ответ до 1-2 предложений
-                    # Оставляем осмысленное объяснение для ребенка, но убираем воду и повторы
+                    # КРИТИЧНО: Если есть визуализация - даем только короткое объяснение
+                    # Для таблиц умножения полностью игнорируем текст от модели и формируем своё пояснение
+                    # Для графиков - обрезаем ответ до 1-2 предложений без воды и дублей
                     if visualization_image_base64:
                         # Удаляем упоминания про "систему автоматически" и подобное
                         full_response = re.sub(
@@ -1379,56 +1380,62 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             flags=re.IGNORECASE,
                         )
 
-                        # КРИТИЧНО: Удаляем дублирование таблицы умножения текстом
-                        # Паттерны: "7×1=7", "7 × 1 = 7", "7*1=7", "7 1 = 7" и т.д.
-                        multiplication_duplicate_patterns = [
-                            r"\d+\s*[×x*]\s*\d+\s*=\s*\d+",  # "7×1=7" или "7 x 1 = 7"
-                            r"\d+\s+\d+\s*=\s*\d+",  # "7 1 = 7" (без символа умножения)
-                        ]
-                        for pattern in multiplication_duplicate_patterns:
-                            full_response = re.sub(pattern, "", full_response, flags=re.IGNORECASE)
+                        if intent.kind == "table":
+                            # Формируем своё короткое объяснение для таблиц умножения
+                            table_numbers = []
+                            if intent.items:
+                                table_numbers = [n for n in intent.items if isinstance(n, int)]
+                            elif multiplication_number:
+                                table_numbers = [multiplication_number]
 
-                        # Удаляем множественные пробелы и пустые строки
-                        full_response = re.sub(r"\s+", " ", full_response)
-                        full_response = re.sub(r"\n\s*\n", "\n", full_response)
-
-                        # Если ответ слишком длинный (больше 2 предложений) - обрезаем до первых 2
-                        sentences = re.split(r"[.!?]+\s+", full_response.strip())
-                        if len(sentences) > 2:
-                            # Берем первые 2 осмысленных предложения (для ребенка - коротко)
-                            meaningful_sentences = [
-                                s.strip()
-                                for s in sentences[:2]
-                                if s.strip()
-                                and len(s.strip()) > 10  # Игнорируем очень короткие фразы
-                                and not re.search(
-                                    r"\d+\s*[×x*]\s*\d+\s*=\s*\d+", s
-                                )  # Игнорируем предложения с примерами умножения
-                            ]
-                            if meaningful_sentences:
-                                full_response = ". ".join(meaningful_sentences)
-                                if not full_response.endswith((".", "!", "?")):
-                                    full_response += "."
+                            if table_numbers:
+                                if len(table_numbers) == 1:
+                                    n = table_numbers[0]
+                                    full_response = (
+                                        f"Это таблица умножения на {n}. "
+                                        "Используй её для быстрого счёта: чтобы узнать, чему равно "
+                                        f"{n}×5, найди строку с числом {n} и столбец с числом 5."
+                                    )
+                                else:
+                                    nums_str = ", ".join(str(n) for n in table_numbers)
+                                    full_response = (
+                                        f"Это таблицы умножения на {nums_str}. "
+                                        "Выбирай нужное число в заголовке и смотри строку и столбец, "
+                                        "чтобы быстро находить результат."
+                                    )
                             else:
-                                # Если не нашли осмысленных - берем первые 2 любых (без примеров)
-                                clean_sentences = [
+                                full_response = "Используй эту таблицу для быстрого счёта."
+                        else:
+                            # КРИТИЧНО: Удаляем дублирование таблицы умножения текстом (если модель всё же написала)
+                            multiplication_duplicate_patterns = [
+                                r"\d+\s*[×x*]\s*\d+\s*=\s*\d+",
+                                r"\d+\s+\d+\s*=\s*\d+",
+                            ]
+                            for pattern in multiplication_duplicate_patterns:
+                                full_response = re.sub(
+                                    pattern, "", full_response, flags=re.IGNORECASE
+                                )
+
+                            # Удаляем множественные пробелы и пустые строки
+                            full_response = re.sub(r"\s+", " ", full_response)
+                            full_response = re.sub(r"\n\s*\n", "\n", full_response)
+
+                            # Если ответ слишком длинный (больше 2 предложений) - обрезаем до первых 2
+                            sentences = re.split(r"[.!?]+\s+", full_response.strip())
+                            if len(sentences) > 2:
+                                meaningful_sentences = [
                                     s.strip()
                                     for s in sentences[:2]
-                                    if s.strip()
-                                    and not re.search(r"\d+\s*[×x*]\s*\d+\s*=\s*\d+", s)
+                                    if s.strip() and len(s.strip()) > 10
                                 ]
-                                if clean_sentences:
-                                    full_response = ". ".join(clean_sentences)
+                                if meaningful_sentences:
+                                    full_response = ". ".join(meaningful_sentences)
                                     if not full_response.endswith((".", "!", "?")):
                                         full_response += "."
                                 else:
-                                    # Если все предложения с примерами - заменяем на короткое объяснение
-                                    if intent.kind == "table":
-                                        full_response = "Используй эту таблицу для быстрого счёта."
-                                    elif intent.kind == "graph":
-                                        full_response = "Вот график."
-                                    else:
-                                        full_response = "Вот визуализация."
+                                    full_response = ". ".join(sentences[:2])
+                                    if not full_response.endswith((".", "!", "?")):
+                                        full_response += "."
 
                         logger.info(
                             f"✅ Stream: Текст обрезан до короткого объяснения (есть визуализация): {full_response[:100]}"
