@@ -11,14 +11,14 @@
 - Автоматическое управление размером истории
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from loguru import logger
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
 from bot.config import settings
-from bot.models import ChatHistory, User
+from bot.models import ChatHistory
 
 
 class ChatHistoryService:
@@ -39,7 +39,9 @@ class ChatHistoryService:
         self.db = db
         self.history_limit = settings.chat_history_limit  # Лимит сообщений для контекста
 
-    def add_message(self, telegram_id: int, message_text: str, message_type: str) -> ChatHistory:
+    def add_message(
+        self, telegram_id: int, message_text: str, message_type: str, image_url: str | None = None
+    ) -> ChatHistory:
         """
         Добавить сообщение в историю.
 
@@ -47,6 +49,7 @@ class ChatHistoryService:
             telegram_id: Telegram ID пользователя
             message_text: Текст сообщения
             message_type: Тип сообщения ('user', 'ai', 'system')
+            image_url: URL изображения визуализации (опционально)
 
         Returns:
             ChatHistory: Созданная запись
@@ -63,6 +66,7 @@ class ChatHistoryService:
             user_telegram_id=telegram_id,
             message_text=message_text,
             message_type=message_type,
+            image_url=image_url,
         )
 
         try:
@@ -84,7 +88,7 @@ class ChatHistoryService:
 
         return message
 
-    def get_recent_history(self, telegram_id: int, limit: int = None) -> List[ChatHistory]:
+    def get_recent_history(self, telegram_id: int, limit: int = None) -> list[ChatHistory]:
         """
         Получить последние N сообщений пользователя.
 
@@ -149,7 +153,7 @@ class ChatHistoryService:
 
     def get_formatted_history_for_ai(
         self, telegram_id: int, limit: int = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Получить историю в формате для YandexGPT API.
 
@@ -162,7 +166,7 @@ class ChatHistoryService:
         """
         messages = self.get_recent_history(telegram_id, limit=limit)
 
-        formatted: List[Dict[str, Any]] = []
+        formatted: list[dict[str, Any]] = []
         for msg in messages:
             # Конвертируем наш message_type в формат YandexGPT
             role = "user" if msg.message_type == "user" else "assistant"
