@@ -261,18 +261,25 @@ class BaseVisualizationService:
                 return self.generate_function_graph(expressions[0], x_range)
 
             # Для нескольких графиков создаем subplots
+            # Располагаем графики вертикально (один под другим), чтобы лучше читалось на мобильных
             if num_graphs == 2:
-                fig, axes = plt.subplots(1, 2, figsize=(18, 7))
+                fig, axes = plt.subplots(2, 1, figsize=(8, 10))
             else:  # 3
-                fig, axes = plt.subplots(1, 3, figsize=(24, 7))
+                fig, axes = plt.subplots(3, 1, figsize=(8, 14))
 
             fig.patch.set_facecolor("white")
+
+            # Приводим axes к списку
+            if not isinstance(axes, list | tuple):
+                axes_list = list(axes) if hasattr(axes, "ravel") else [axes]
+            else:
+                axes_list = list(axes)
 
             # Цвета для разных графиков
             colors = ["#4A90E2", "#E24A4A", "#4AE24A"]
 
             for idx, expression in enumerate(expressions):
-                ax = axes[idx] if num_graphs > 1 else axes
+                ax = axes_list[idx]
 
                 # Для логарифмических и sqrt функций используем только положительные значения
                 current_range = x_range
