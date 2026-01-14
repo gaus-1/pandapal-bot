@@ -150,6 +150,11 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       </div>
 
+      {/* Реакция панды – как в других играх: сверху над полем */}
+      <div className="px-4 mb-2 flex justify-center">
+        <PandaReaction mood={game_over ? 'sad' : 'happy'} className="pb-1" />
+      </div>
+
       <div className="px-4">
         <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100 mb-1">
           🧱 Тетрис
@@ -237,7 +242,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       </div>
 
-      <PandaReaction mood={game_over ? 'sad' : 'happy'} className="pb-2" />
+      {/* Нижняя часть без панды, только игровая зона и управление */}
     </div>
   );
 }
