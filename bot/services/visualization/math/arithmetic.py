@@ -301,3 +301,140 @@ class ArithmeticVisualization(BaseVisualizationService):
         except Exception as e:
             logger.error(f"❌ Ошибка генерации нескольких таблиц умножения: {e}", exc_info=True)
             return None
+
+    def generate_combined_table_and_graph(
+        self, table_number: int, graph_expression: str
+    ) -> bytes | None:
+        """
+        Генерирует комбинированную картинку: таблица умножения + график функции.
+
+        Args:
+            table_number: Число для таблицы умножения (1-10)
+            graph_expression: Выражение функции для графика (например, "sin(x)")
+
+        Returns:
+            bytes: Изображение с таблицей сверху и графиком снизу или None при ошибке
+        """
+        if not MATPLOTLIB_AVAILABLE:
+            return None
+
+        if not (1 <= table_number <= 10):
+            logger.warning(f"⚠️ Некорректное число для таблицы: {table_number}")
+            return None
+
+        try:
+            import numpy as np
+
+            # Создаем фигуру с двумя subplots: таблица сверху, график снизу
+            fig = plt.figure(figsize=(10, 12))
+            fig.patch.set_facecolor("white")
+
+            # Верхний subplot для таблицы
+            ax_table = plt.subplot(2, 1, 1)
+            ax_table.axis("off")
+
+            # Заголовок таблицы
+            ax_table.text(
+                0.5,
+                0.95,
+                f"Таблица умножения на {table_number}",
+                ha="center",
+                va="top",
+                fontsize=16,
+                fontweight="bold",
+                transform=ax_table.transAxes,
+            )
+
+            # Генерируем данные таблицы
+            table_data = []
+            for i in range(1, 11):
+                table_data.append([f"{table_number} × {i} = {table_number * i}"])
+
+            # Создаем таблицу
+            table = ax_table.table(
+                cellText=table_data,
+                cellLoc="center",
+                loc="center",
+                bbox=[0.2, 0.1, 0.6, 0.8],
+            )
+            table.auto_set_font_size(False)
+            table.set_fontsize(12)
+            table.scale(1, 2)
+
+            # Стилизация таблицы
+            for i in range(len(table_data)):
+                cell = table[(i, 0)]
+                cell.set_facecolor("#f0f8ff" if i % 2 == 0 else "white")
+                cell.set_text_props(weight="normal")
+
+            # Нижний subplot для графика
+            ax_graph = plt.subplot(2, 1, 2)
+
+            # Нормализуем выражение
+            normalized_expr = (
+                graph_expression.replace("²", "**2").replace("³", "**3").replace("^", "**")
+            )
+
+            # Генерируем данные для графика
+            x = np.linspace(-10, 10, 1000)
+            safe_globals = {
+                "x": x,
+                "sin": np.sin,
+                "cos": np.cos,
+                "tan": np.tan,
+                "exp": np.exp,
+                "log": np.log,
+                "log10": np.log10,
+                "log2": np.log2,
+                "ln": np.log,
+                "sqrt": np.sqrt,
+                "abs": np.abs,
+                "pi": np.pi,
+            }
+
+            try:
+                y = eval(normalized_expr, {"__builtins__": {}}, safe_globals)
+                mask = np.isfinite(y)
+                x = x[mask]
+                y = y[mask]
+            except Exception as e:
+                logger.warning(f"⚠️ Не удалось вычислить функцию: {graph_expression}, ошибка: {e}")
+                plt.close(fig)
+                return None
+
+            if len(x) == 0:
+                logger.warning(f"⚠️ Нет валидных точек для функции: {graph_expression}")
+                plt.close(fig)
+                return None
+
+            # Рисуем график
+            ax_graph.plot(x, y, linewidth=2.5, color="#4A90E2")
+            ax_graph.grid(True, alpha=0.3, linestyle="--")
+            ax_graph.set_xlabel("x", fontsize=13, fontweight="bold")
+            ax_graph.set_ylabel("y", fontsize=13, fontweight="bold")
+
+            # Формируем заголовок графика
+            display_expr = graph_expression.replace("**", "^").replace("*", "·")
+            graph_title = f"График функции: y = {display_expr}"
+            ax_graph.set_title(graph_title, fontsize=15, fontweight="bold", pad=15)
+            ax_graph.axhline(y=0, color="k", linewidth=0.8, linestyle="-")
+            ax_graph.axvline(x=0, color="k", linewidth=0.8, linestyle="-")
+
+            plt.tight_layout()
+
+            # Сохраняем в bytes
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", dpi=120, bbox_inches="tight", facecolor="white")
+            buf.seek(0)
+            image_bytes = buf.read()
+            buf.close()
+            plt.close(fig)
+
+            logger.info(
+                f"✅ Сгенерирована комбинированная визуализация: таблица на {table_number} + график {graph_expression}"
+            )
+            return image_bytes
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка генерации комбинированной визуализации: {e}", exc_info=True)
+            return None
