@@ -1379,154 +1379,93 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         pass
                     # #endregion
 
-                    # КРИТИЧНО: Если есть визуализация - даем только короткое объяснение
-                    # Для таблиц умножения полностью игнорируем текст от модели и формируем своё пояснение
-                    # Для графиков - обрезаем ответ до 1-2 предложений без воды и дублей
-                    if visualization_image_base64:
-                        # Удаляем упоминания про "систему автоматически" и подобное
-                        full_response = re.sub(
-                            r"(?:систем[аеы]?\s+)?автоматически\s+сгенериру[ею]т?\s+изображени[ея]?",
-                            "",
-                            full_response,
-                            flags=re.IGNORECASE,
-                        )
-                        full_response = re.sub(
-                            r"покажу\s+график.*?систем[аеы]?\s+автоматически",
-                            "Вот график",
-                            full_response,
-                            flags=re.IGNORECASE,
-                        )
+                # КРИТИЧНО: Если есть визуализация - даем только короткое объяснение
+                # Для таблиц умножения полностью игнорируем текст от модели и формируем своё пояснение
+                # Для графиков - обрезаем ответ до 1-2 предложений без воды и дублей
+                if visualization_image_base64:
+                    # Удаляем упоминания про "систему автоматически" и подобное
+                    full_response = re.sub(
+                        r"(?:систем[аеы]?\s+)?автоматически\s+сгенериру[ею]т?\s+изображени[ея]?",
+                        "",
+                        full_response,
+                        flags=re.IGNORECASE,
+                    )
+                    full_response = re.sub(
+                        r"покажу\s+график.*?систем[аеы]?\s+автоматически",
+                        "Вот график",
+                        full_response,
+                        flags=re.IGNORECASE,
+                    )
 
-                        if intent.kind == "table":
-                            # Формируем своё короткое объяснение для таблиц умножения
-                            table_numbers = []
-                            if intent.items:
-                                table_numbers = [n for n in intent.items if isinstance(n, int)]
-                            elif multiplication_number:
-                                table_numbers = [multiplication_number]
+                    if intent.kind == "table":
+                        # Формируем своё короткое объяснение для таблиц умножения
+                        table_numbers = []
+                        if intent.items:
+                            table_numbers = [n for n in intent.items if isinstance(n, int)]
+                        elif multiplication_number:
+                            table_numbers = [multiplication_number]
 
-                            if table_numbers:
-                                if len(table_numbers) == 1:
-                                    n = table_numbers[0]
-                                    full_response = (
-                                        f"Это таблица умножения на {n}. "
-                                        "Используй её для быстрого счёта: чтобы узнать, чему равно "
-                                        f"{n}×5, найди строку с числом {n} и столбец с числом 5."
-                                    )
-                                else:
-                                    nums_str = ", ".join(str(n) for n in table_numbers)
-                                    full_response = (
-                                        f"Это таблицы умножения на {nums_str}. "
-                                        "Выбирай нужное число в заголовке и смотри строку и столбец, "
-                                        "чтобы быстро находить результат."
-                                    )
+                        if table_numbers:
+                            if len(table_numbers) == 1:
+                                n = table_numbers[0]
+                                full_response = (
+                                    f"Это таблица умножения на {n}. "
+                                    "Используй её для быстрого счёта: чтобы узнать, чему равно "
+                                    f"{n}×5, найди строку с числом {n} и столбец с числом 5."
+                                )
                             else:
-                                full_response = "Используй эту таблицу для быстрого счёта."
-
-                        elif intent.kind == "both":
-                            # Смешанный запрос: и таблица, и график.
-                            # Полностью формируем собственное короткое пояснение, игнорируя текст модели.
-                            table_numbers: list[int] = []
-                            if intent.items:
-                                table_numbers = [n for n in intent.items if isinstance(n, int)]
-                            elif multiplication_number:
-                                table_numbers = [multiplication_number]
-
-                            # Определяем краткое описание графика (берем первую функцию-строку из intent.items)
-                            graph_description = "график функции"
-                            if intent.items:
-                                first_item = intent.items[0]
-                                if isinstance(first_item, str):
-                                    if "sin" in first_item:
-                                        graph_description = "график синусоиды"
-                                    else:
-                                        graph_description = f"график функции {first_item}"
-
-                            parts: list[str] = []
-
-                            if table_numbers:
-                                if len(table_numbers) == 1:
-                                    n = table_numbers[0]
-                                    parts.append(
-                                        f"Это таблица умножения на {n}. "
-                                        f"Сначала посмотри в ней примеры с числом {n}, чтобы вспомнить умножение."
-                                    )
-                                else:
-                                    nums_str = ", ".join(str(n) for n in table_numbers)
-                                    parts.append(
-                                        f"Это таблицы умножения на {nums_str}. "
-                                        "Выбирай нужное число и тренируйся находить ответы по строкам и столбцам."
-                                    )
-
-                            parts.append(
-                                f"Ниже {graph_description}: по горизонтали меняется число x, "
-                                "а по вертикали видно, как меняется значение функции. "
-                                "Посмотри, как кривая поднимается и опускается, и попробуй объяснить это своими словами."
-                            )
-
-                            full_response = " ".join(parts)
-
-                            # #region agent log
-                            try:
-                                with open(debug_log_path, "a", encoding="utf-8") as f:
-                                    f.write(
-                                        json_lib_debug.dumps(
-                                            {
-                                                "timestamp": __import__("time").time() * 1000,
-                                                "location": "miniapp_endpoints.py:visual-mixed",
-                                                "message": "Сформировано пояснение для смешанного запроса (таблица + график)",
-                                                "data": {
-                                                    "table_numbers": table_numbers,
-                                                    "intent_items": intent.items,
-                                                    "full_response": full_response[:200],
-                                                },
-                                                "sessionId": "debug-session",
-                                                "runId": "text_replacement",
-                                                "hypothesisId": "MIX",
-                                            },
-                                            ensure_ascii=False,
-                                        )
-                                        + "\n"
-                                    )
-                            except Exception:
-                                pass
-                            # #endregion
-
+                                nums_str = ", ".join(str(n) for n in table_numbers)
+                                full_response = (
+                                    f"Это таблицы умножения на {nums_str}. "
+                                    "Выбирай нужное число в заголовке и смотри строку и столбец, "
+                                    "чтобы быстро находить результат."
+                                )
                         else:
-                            # КРИТИЧНО: Удаляем дублирование таблицы умножения текстом (если модель всё же написала)
-                            multiplication_duplicate_patterns = [
-                                r"\d+\s*[×x*]\s*\d+\s*=\s*\d+",
-                                r"\d+\s+\d+\s*=\s*\d+",
-                            ]
-                            for pattern in multiplication_duplicate_patterns:
-                                full_response = re.sub(
-                                    pattern, "", full_response, flags=re.IGNORECASE
+                            full_response = "Используй эту таблицу для быстрого счёта."
+
+                    elif intent.kind == "both":
+                        # Смешанный запрос: и таблица, и график.
+                        # Полностью формируем собственное короткое пояснение, игнорируя текст модели.
+                        table_numbers: list[int] = []
+                        if intent.items:
+                            table_numbers = [n for n in intent.items if isinstance(n, int)]
+                        elif multiplication_number:
+                            table_numbers = [multiplication_number]
+
+                        # Определяем краткое описание графика (берем первую функцию-строку из intent.items)
+                        graph_description = "график функции"
+                        if intent.items:
+                            first_item = intent.items[0]
+                            if isinstance(first_item, str):
+                                if "sin" in first_item:
+                                    graph_description = "график синусоиды"
+                                else:
+                                    graph_description = f"график функции {first_item}"
+
+                        parts: list[str] = []
+
+                        if table_numbers:
+                            if len(table_numbers) == 1:
+                                n = table_numbers[0]
+                                parts.append(
+                                    f"Это таблица умножения на {n}. "
+                                    f"Сначала посмотри в ней примеры с числом {n}, чтобы вспомнить умножение."
+                                )
+                            else:
+                                nums_str = ", ".join(str(n) for n in table_numbers)
+                                parts.append(
+                                    f"Это таблицы умножения на {nums_str}. "
+                                    "Выбирай нужное число и тренируйся находить ответы по строкам и столбцам."
                                 )
 
-                            # Удаляем множественные пробелы и пустые строки
-                            full_response = re.sub(r"\s+", " ", full_response)
-                            full_response = re.sub(r"\n\s*\n", "\n", full_response)
-
-                            # Если ответ слишком длинный (больше 2 предложений) - обрезаем до первых 2
-                            sentences = re.split(r"[.!?]+\s+", full_response.strip())
-                            if len(sentences) > 2:
-                                meaningful_sentences = [
-                                    s.strip()
-                                    for s in sentences[:2]
-                                    if s.strip() and len(s.strip()) > 10
-                                ]
-                                if meaningful_sentences:
-                                    full_response = ". ".join(meaningful_sentences)
-                                    if not full_response.endswith((".", "!", "?")):
-                                        full_response += "."
-                                else:
-                                    full_response = ". ".join(sentences[:2])
-                                    if not full_response.endswith((".", "!", "?")):
-                                        full_response += "."
-
-                        logger.info(
-                            f"✅ Stream: Текст обрезан до короткого объяснения (есть визуализация): {full_response[:100]}"
+                        parts.append(
+                            f"Ниже {graph_description}: по горизонтали меняется число x, "
+                            "а по вертикали видно, как меняется значение функции. "
+                            "Посмотри, как кривая поднимается и опускается, и попробуй объяснить это своими словами."
                         )
+
+                        full_response = " ".join(parts)
+
                         # #region agent log
                         try:
                             with open(debug_log_path, "a", encoding="utf-8") as f:
@@ -1534,12 +1473,16 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     json_lib_debug.dumps(
                                         {
                                             "timestamp": __import__("time").time() * 1000,
-                                            "location": "miniapp_endpoints.py:1762",
-                                            "message": "Текст заменен для визуализации",
-                                            "data": {"new_response": full_response},
+                                            "location": "miniapp_endpoints.py:visual-mixed",
+                                            "message": "Сформировано пояснение для смешанного запроса (таблица + график)",
+                                            "data": {
+                                                "table_numbers": table_numbers,
+                                                "intent_items": intent.items,
+                                                "full_response": full_response[:200],
+                                            },
                                             "sessionId": "debug-session",
                                             "runId": "text_replacement",
-                                            "hypothesisId": "C",
+                                            "hypothesisId": "MIX",
                                         },
                                         ensure_ascii=False,
                                     )
@@ -1548,6 +1491,61 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         except Exception:
                             pass
                         # #endregion
+
+                    else:
+                        # КРИТИЧНО: Удаляем дублирование таблицы умножения текстом (если модель всё же написала)
+                        multiplication_duplicate_patterns = [
+                            r"\d+\s*[×x*]\s*\d+\s*=\s*\d+",
+                            r"\d+\s+\d+\s*=\s*\d+",
+                        ]
+                        for pattern in multiplication_duplicate_patterns:
+                            full_response = re.sub(pattern, "", full_response, flags=re.IGNORECASE)
+
+                        # Удаляем множественные пробелы и пустые строки
+                        full_response = re.sub(r"\s+", " ", full_response)
+                        full_response = re.sub(r"\n\s*\n", "\n", full_response)
+
+                        # Если ответ слишком длинный (больше 2 предложений) - обрезаем до первых 2
+                        sentences = re.split(r"[.!?]+\s+", full_response.strip())
+                        if len(sentences) > 2:
+                            meaningful_sentences = [
+                                s.strip()
+                                for s in sentences[:2]
+                                if s.strip() and len(s.strip()) > 10
+                            ]
+                            if meaningful_sentences:
+                                full_response = ". ".join(meaningful_sentences)
+                                if not full_response.endswith((".", "!", "?")):
+                                    full_response += "."
+                            else:
+                                full_response = ". ".join(sentences[:2])
+                                if not full_response.endswith((".", "!", "?")):
+                                    full_response += "."
+
+                    logger.info(
+                        f"✅ Stream: Текст обрезан до короткого объяснения (есть визуализация): {full_response[:100]}"
+                    )
+                    # #region agent log
+                    try:
+                        with open(debug_log_path, "a", encoding="utf-8") as f:
+                            f.write(
+                                json_lib_debug.dumps(
+                                    {
+                                        "timestamp": __import__("time").time() * 1000,
+                                        "location": "miniapp_endpoints.py:1762",
+                                        "message": "Текст заменен для визуализации",
+                                        "data": {"new_response": full_response},
+                                        "sessionId": "debug-session",
+                                        "runId": "text_replacement",
+                                        "hypothesisId": "C",
+                                    },
+                                    ensure_ascii=False,
+                                )
+                                + "\n"
+                            )
+                    except Exception:
+                        pass
+                    # #endregion
 
                 # Ограничиваем размер полного ответа
                 MAX_RESPONSE_LENGTH = 4000
