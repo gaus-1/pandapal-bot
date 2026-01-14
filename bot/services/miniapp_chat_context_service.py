@@ -27,13 +27,18 @@ class MiniappChatContextService:
         self.history_service = ChatHistoryService(db)
         self.premium_service = PremiumFeaturesService(db)
 
-    def prepare_context(self, telegram_id: int, user_message: str):
-        """
-        Подготавливает контекст для AI запроса.
+    def prepare_context(
+        self,
+        telegram_id: int,
+        user_message: str,
+        skip_premium_check: bool = False,
+    ):
+        """Подготавливает контекст для AI запроса.
 
         Args:
             telegram_id: ID пользователя в Telegram
             user_message: Сообщение пользователя
+            skip_premium_check: Пропускать ли проверку лимитов Premium
 
         Returns:
             dict: Контекст с историей, промптом, пользователем и т.д.
@@ -42,12 +47,13 @@ class MiniappChatContextService:
         if not user:
             raise ValueError(f"User {telegram_id} not found")
 
-        # Проверка Premium
-        can_request, limit_reason = self.premium_service.can_make_ai_request(
-            telegram_id, username=user.username
-        )
-        if not can_request:
-            raise ValueError(f"AI request blocked: {limit_reason}")
+        # Проверка Premium (может быть отключена снаружи)
+        if not skip_premium_check:
+            can_request, limit_reason = self.premium_service.can_make_ai_request(
+                telegram_id, username=user.username
+            )
+            if not can_request:
+                raise ValueError(f"AI request blocked: {limit_reason}")
 
         # Загружаем историю
         history_limit = 50 if self.premium_service.is_premium_active(telegram_id) else 10

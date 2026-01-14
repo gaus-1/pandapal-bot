@@ -99,7 +99,7 @@ async def create_game(request: web.Request) -> web.Response:
     Создать новую игровую сессию.
 
     POST /api/miniapp/games/create
-    Body: { "game_type": "tic_tac_toe" | "checkers" | "2048" }
+    Body: { "game_type": "tic_tac_toe" | "checkers" | "2048" | "tetris" }
     """
     try:
         data = await request.json()
@@ -118,7 +118,7 @@ async def create_game(request: web.Request) -> web.Response:
                 {"error": "Invalid request", "details": e.errors()}, status=400
             )
 
-        if validated.game_type not in ["tic_tac_toe", "checkers", "2048"]:
+        if validated.game_type not in ["tic_tac_toe", "checkers", "2048", "tetris"]:
             return web.json_response({"error": "Invalid game_type"}, status=400)
 
         initial_state = _initialize_game_state(validated.game_type)
