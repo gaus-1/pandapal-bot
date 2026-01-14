@@ -366,7 +366,7 @@ export function AIChat({ user }: AIChatProps) {
             >
               <div
                 className={`relative ${
-                  msg.role === 'ai' ? 'max-w-[92%] sm:max-w-[88%] md:max-w-[85%]' : 'max-w[85%] sm:max-w-[80%]'
+                  msg.role === 'ai' ? 'max-w-[85%] sm:max-w-[80%] md:max-w-[75%]' : 'max-w[85%] sm:max-w-[80%]'
                 }`}
               >
                 <div

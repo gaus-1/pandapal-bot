@@ -87,46 +87,47 @@ class MiniappIntentService:
         logger.info(f"🔍 Intent: Найдены числа в запросе: {all_numbers}")
 
         # Проверяем запросы на таблицы умножения
+        # КРИТИЧНО: Сначала проверяем все числа из текста (приоритет для "3, 5 и 7")
+        # Затем паттерны как fallback
         multiplication_numbers = []
-        for pattern in self.MULTIPLICATION_PATTERNS:
-            matches = re.finditer(pattern, text_lower)
-            for match in matches:
-                # Извлекаем все группы (может быть несколько чисел)
-                groups = match.groups()
-                for group in groups:
-                    try:
-                        num = int(group)
-                        if 1 <= num <= 10:
-                            multiplication_numbers.append(num)
-                    except (ValueError, TypeError):
-                        continue
 
         # КРИТИЧНО: Если есть упоминание таблицы/умножения И числа 1-10 в тексте - используем ВСЕ числа
         # Это обрабатывает случаи "таблица на 7 и 9" или "таблица на 3, 5 и 7"
         if ("таблица" in text_lower or "умножение" in text_lower) and any(
             1 <= n <= 10 for n in all_numbers
         ):
-            # Объединяем числа из паттернов и все числа из текста
-            valid_numbers = sorted(
-                {n for n in all_numbers if 1 <= n <= 10} | set(multiplication_numbers)
-            )
+            # Используем ВСЕ числа из текста (приоритет)
+            valid_numbers = sorted({n for n in all_numbers if 1 <= n <= 10})
             if valid_numbers:
                 intent.kind = "table"
                 intent.subject = "math"
                 intent.items = valid_numbers
                 logger.info(
                     f"📊 Intent: Таблица умножения на числа: {intent.items} "
-                    f"(извлечено из всех чисел и паттернов)"
+                    f"(извлечено из всех чисел в тексте)"
                 )
-        # Если нашли числа только через паттерны (без упоминания таблицы в тексте)
-        elif multiplication_numbers:
-            intent.kind = "table"
-            intent.subject = "math"
-            intent.items = sorted(set(multiplication_numbers))
-            logger.info(
-                f"📊 Intent: Таблица умножения на числа: {intent.items} "
-                f"(извлечено из паттернов)"
-            )
+        else:
+            # Fallback: проверяем паттерны (для случаев без явного упоминания "таблица")
+            for pattern in self.MULTIPLICATION_PATTERNS:
+                matches = re.finditer(pattern, text_lower)
+                for match in matches:
+                    groups = match.groups()
+                    for group in groups:
+                        try:
+                            num = int(group)
+                            if 1 <= num <= 10:
+                                multiplication_numbers.append(num)
+                        except (ValueError, TypeError):
+                            continue
+
+            if multiplication_numbers:
+                intent.kind = "table"
+                intent.subject = "math"
+                intent.items = sorted(set(multiplication_numbers))
+                logger.info(
+                    f"📊 Intent: Таблица умножения на числа: {intent.items} "
+                    f"(извлечено из паттернов)"
+                )
 
         # Проверяем запросы на графики
         graph_functions = []
