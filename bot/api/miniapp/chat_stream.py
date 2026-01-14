@@ -617,6 +617,23 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     specific_visualization_image = viz_service.detect_visualization_request(
                         user_message
                     )
+
+                    # Если IntentService определил несколько таблиц умножения, игнорируем одиночную
+                    # специфичную визуализацию и будем генерировать комбинированную картинку
+                    try:
+                        multiple_table_intent = (
+                            intent.kind == "table"
+                            and isinstance(intent.items, list)
+                            and len([n for n in intent.items if isinstance(n, int)]) > 1
+                        )
+                    except Exception:
+                        multiple_table_intent = False
+
+                    if multiple_table_intent and specific_visualization_image is not None:
+                        logger.info(
+                            f"🔄 Stream: Игнорируем специфичную визуализацию для множественных таблиц: {intent.items}"
+                        )
+                        specific_visualization_image = None
                     # #region agent log
                     try:
                         with open(debug_log_path, "a", encoding="utf-8") as f:

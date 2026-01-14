@@ -8,11 +8,6 @@
 
 [Сайт](https://pandapal.ru) • [Telegram Бот](https://t.me/PandaPalBot)
 
-**ПРОПРИЕТАРНОЕ ПРОГРАММНОЕ ОБЕСПЕЧЕНИЕ**
-
-Запрещено копирование, форк, использование без письменного разрешения.
-См. [LICENSE](LICENSE) и [.github/DISCLAIMER.md](.github/DISCLAIMER.md)
-
 </div>
 
 ## О проекте

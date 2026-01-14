@@ -228,15 +228,19 @@ class ArithmeticVisualization(BaseVisualizationService):
         try:
             # Вычисляем размер фигуры в зависимости от количества таблиц
             num_tables = len(numbers)
+            # Располагаем таблицы вертикально (одна под другой), чтобы лучше читалось на мобильных
             if num_tables == 1:
                 fig, axes = plt.subplots(1, 1, figsize=(6, 8))
-                axes = [axes]
             elif num_tables == 2:
-                fig, axes = plt.subplots(1, 2, figsize=(14, 8))
+                fig, axes = plt.subplots(2, 1, figsize=(6, 12))
             else:  # 3
-                fig, axes = plt.subplots(1, 3, figsize=(20, 8))
+                fig, axes = plt.subplots(3, 1, figsize=(6, 16))
 
             fig.patch.set_facecolor("white")
+
+            # Нормализуем axes в список
+            if not isinstance(axes, list | tuple):
+                axes = [axes]
 
             for idx, number in enumerate(numbers):
                 ax = axes[idx]
@@ -265,7 +269,8 @@ class ArithmeticVisualization(BaseVisualizationService):
                     cellText=table_data, cellLoc="left", loc="center", bbox=[0, 0.1, 1, 0.8]
                 )
                 table.auto_set_font_size(False)
-                table.set_fontsize(10 if num_tables > 1 else 12)
+                # Чуть увеличиваем шрифт, особенно для 2-3 таблиц
+                table.set_fontsize(12 if num_tables == 1 else 11)
                 table.scale(1, 2)
 
                 # Стилизация
