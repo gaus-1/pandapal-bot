@@ -2,7 +2,6 @@
 Endpoints для streaming AI чата через SSE.
 """
 
-import base64
 from contextlib import suppress
 
 import httpx
@@ -14,9 +13,8 @@ from bot.api.validators import AIChatRequest
 from bot.database import get_db
 from bot.services import ChatHistoryService, UserService
 from bot.services.ai_service_solid import get_ai_service
-from bot.services.speech_service import get_speech_service
-from bot.services.translate_service import get_translate_service
-from bot.services.vision_service import VisionService
+from bot.services.miniapp_audio_service import MiniappAudioService
+from bot.services.miniapp_photo_service import MiniappPhotoService
 from bot.services.yandex_ai_response_generator import clean_ai_response
 
 from .helpers import extract_user_name_from_message, send_achievements_event
@@ -85,187 +83,20 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
         # Обработка аудио (приоритетнее фото)
         if audio_base64:
-            try:
-                logger.info(f"🎤 Stream: Обработка голосового сообщения от {telegram_id}")
-
-                # Отправляем событие обработки аудио
-                await response.write(b'event: status\ndata: {"status": "transcribing"}\n\n')
-
-                # Убираем data:audio/...;base64, префикс
-                if "base64," in audio_base64:
-                    audio_base64 = audio_base64.split("base64,")[1]
-
-                MAX_AUDIO_BASE64_SIZE = 14 * 1024 * 1024  # 14MB
-                if len(audio_base64) > MAX_AUDIO_BASE64_SIZE:
-                    error_msg = 'event: error\ndata: {"error": "Аудио слишком большое"}\n\n'
-                    await response.write(error_msg.encode("utf-8"))
-                    return response
-
-                audio_bytes = base64.b64decode(audio_base64)
-
-                if len(audio_bytes) > 10 * 1024 * 1024:  # 10MB
-                    error_msg = 'event: error\ndata: {"error": "Аудио слишком большое"}\n\n'
-                    await response.write(error_msg.encode("utf-8"))
-                    return response
-
-                speech_service = get_speech_service()
-                transcribed_text = await speech_service.transcribe_voice(audio_bytes, language="ru")
-
-                if not transcribed_text or not transcribed_text.strip():
-                    error_msg = 'event: error\ndata: {"error": "Не удалось распознать речь"}\n\n'
-                    await response.write(error_msg.encode("utf-8"))
-                    return response
-
-                # Определяем язык и переводим если нужно
-                translate_service = get_translate_service()
-                detected_lang = await translate_service.detect_language(transcribed_text)
-
-                if (
-                    detected_lang
-                    and detected_lang != "ru"
-                    and detected_lang in translate_service.SUPPORTED_LANGUAGES
-                ):
-                    lang_name = translate_service.get_language_name(detected_lang)
-                    translated_text = await translate_service.translate_text(
-                        transcribed_text, target_language="ru", source_language=detected_lang
-                    )
-                    if translated_text:
-                        user_message = (
-                            f"🌍 Вижу, что ты сказал на {lang_name}!\n\n"
-                            f"📝 Оригинал: {transcribed_text}\n"
-                            f"🇷🇺 Перевод: {translated_text}\n\n"
-                            f"Объясни этот перевод и помоги понять грамматику простыми словами для ребенка."
-                        )
-                    else:
-                        user_message = transcribed_text
-                else:
-                    user_message = transcribed_text
-
-                logger.info(f"✅ Stream: Аудио распознано: {transcribed_text[:100]}")
-                await response.write(b'event: status\ndata: {"status": "transcribed"}\n\n')
-
-            except Exception as e:
-                logger.error(f"❌ Stream: Ошибка обработки аудио: {e}", exc_info=True)
-                await response.write(
-                    f'event: error\ndata: {{"error": "Ошибка обработки аудио: {str(e)}"}}\n\n'.encode()
-                )
+            audio_service = MiniappAudioService()
+            user_message = await audio_service.process_audio(audio_base64, telegram_id, response)
+            if user_message is None:
+                # Ошибка уже отправлена через response
                 return response
 
         # Обработка фото
         if photo_base64:
-            try:
-                logger.info(f"📷 Stream: Обработка фото от {telegram_id}")
-
-                # Отправляем событие обработки фото
-                await response.write(b'event: status\ndata: {"status": "analyzing_photo"}\n\n')
-
-                # Убираем data:image/...;base64, префикс
-                if "base64," in photo_base64:
-                    photo_base64 = photo_base64.split("base64,")[1]
-
-                photo_bytes = base64.b64decode(photo_base64)
-
-                with get_db() as db:
-                    user_service = UserService(db)
-                    user = user_service.get_user_by_telegram_id(telegram_id)
-
-                    if not user:
-                        await response.write(b'event: error\ndata: {"error": "User not found"}\n\n')
-                        return response
-
-                    vision_service = VisionService()
-                    vision_result = await vision_service.analyze_image(
-                        image_data=photo_bytes,
-                        user_message=message
-                        or "Проанализируй это фото с заданием и реши задачу полностью",
-                        user_age=user.age,
-                    )
-
-                    logger.info("✅ Stream: Фото проанализировано")
-                    await response.write(b'event: status\ndata: {"status": "photo_analyzed"}\n\n')
-
-                    # Проверяем, что анализ не является сообщением об ошибке
-                    is_error_message = vision_result.analysis and (
-                        "Не удалось проанализировать" in vision_result.analysis
-                        or "Временная проблема с AI сервисом" in vision_result.analysis
-                        or "Ошибка анализа" in vision_result.analysis
-                    )
-
-                    # КРИТИЧЕСКИ ВАЖНО: Если Vision API дал готовый ответ - сразу отправляем его!
-                    if (
-                        vision_result.analysis
-                        and vision_result.analysis.strip()
-                        and not is_error_message
-                    ):
-                        # Vision API уже решил задачу - отправляем ответ напрямую
-                        full_response = clean_ai_response(vision_result.analysis)
-
-                        # Отправляем ответ через streaming
-                        import json as json_lib
-
-                        chunk_data = json_lib.dumps({"chunk": full_response}, ensure_ascii=False)
-                        await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
-
-                        # Сохраняем в историю
-                        try:
-                            from bot.services.premium_features_service import PremiumFeaturesService
-
-                            premium_service = PremiumFeaturesService(db)
-                            history_service = ChatHistoryService(db)
-
-                            premium_service.increment_request_count(telegram_id)
-                            user_msg_text = message or "📷 Фото"
-                            history_service.add_message(telegram_id, user_msg_text, "user")
-                            history_service.add_message(telegram_id, full_response, "ai")
-
-                            # Геймификация
-                            unlocked_achievements = []
-                            try:
-                                from bot.services.gamification_service import GamificationService
-
-                                gamification_service = GamificationService(db)
-                                unlocked_achievements = gamification_service.process_message(
-                                    telegram_id, user_msg_text
-                                )
-                            except Exception as e:
-                                logger.error(f"❌ Stream: Ошибка геймификации: {e}", exc_info=True)
-
-                            db.commit()
-
-                            # Отправляем информацию о достижениях если есть
-                            if unlocked_achievements:
-                                await send_achievements_event(response, unlocked_achievements)
-                        except Exception as save_error:
-                            logger.error(
-                                f"❌ Stream: Ошибка сохранения: {save_error}", exc_info=True
-                            )
-                            db.rollback()
-
-                        # Отправляем событие завершения
-                        await response.write(b'event: done\ndata: {"status": "completed"}\n\n')
-                        logger.info(f"✅ Stream: Фото ответ отправлен напрямую для {telegram_id}")
-                        return response
-
-                    # Если Vision API вернул ошибку - отправляем ошибку пользователю
-                    if is_error_message:
-                        logger.error(
-                            f"❌ Stream: Vision API вернул ошибку для фото от {telegram_id}"
-                        )
-                        error_msg = 'event: error\ndata: {"error": "Временная проблема с AI сервисом. Попробуйте позже."}\n\n'
-                        await response.write(error_msg.encode("utf-8"))
-                        return response
-
-                    # Если Vision API не дал готовый ответ - используем распознанный текст
-                    if vision_result.recognized_text:
-                        user_message = f"На фото написано: {vision_result.recognized_text}\n\nПомоги решить эту задачу полностью."
-                    else:
-                        user_message = message or "Помоги мне разобраться с этой задачей"
-
-            except Exception as e:
-                logger.error(f"❌ Stream: Ошибка обработки фото: {e}", exc_info=True)
-                await response.write(
-                    f'event: error\ndata: {{"error": "Ошибка обработки фото: {str(e)}"}}\n\n'.encode()
-                )
+            photo_service = MiniappPhotoService()
+            user_message, is_completed = await photo_service.process_photo(
+                photo_base64, telegram_id, message, response
+            )
+            if is_completed:
+                # Ответ уже отправлен или ошибка отправлена через response
                 return response
 
         # Если нет ни фото ни аудио - должно быть текстовое сообщение
