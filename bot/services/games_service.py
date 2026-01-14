@@ -13,7 +13,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from bot.models import GameSession, GameStats
-from bot.services.game_engines import CheckersGame, Game2048, TicTacToe
+from bot.services.game_engines import CheckersGame, Game2048, TetrisGame, TicTacToe
 from bot.services.gamification_service import GamificationService
 
 
@@ -274,6 +274,7 @@ class GamesService:
         self.db = db
         self.tic_tac_toe_ai = TicTacToeAI(difficulty="medium")
         self.checkers_ai = CheckersAI()
+        self.tetris_engine = TetrisGame()
 
     def create_game_session(
         self, telegram_id: int, game_type: str, initial_state: dict | None = None
@@ -1104,3 +1105,50 @@ class GamesService:
             "game_over": False,
             "won": state["won"],
         }
+
+    def tetris_move(self, session_id: int, action: str) -> dict:
+        """
+        Сделать шаг в тетрисе.
+
+        Args:
+            session_id: ID сессии
+            action: 'left', 'right', 'down', 'rotate', 'tick'
+        """
+        session = self.db.get(GameSession, session_id)
+        if not session:
+            raise ValueError(f"Game session {session_id} not found")
+
+        # Восстанавливаем игру
+        game = TetrisGame()
+        if session.game_state and isinstance(session.game_state, dict):
+            state = session.game_state
+            board = state.get("board")
+            if isinstance(board, list) and len(board) == game.height:
+                # Копируем поле
+                game.board = [list(row) for row in board]
+            game.score = int(state.get("score", 0))
+            game.lines_cleared = int(state.get("lines_cleared", 0))
+            game.game_over = bool(state.get("game_over", False))
+
+        # Делаем шаг
+        game.step(action)
+        state = game.get_state()
+
+        # Обновляем сессию
+        self.update_game_session(
+            session_id,
+            {
+                "board": state["board"],
+                "score": state["score"],
+                "lines_cleared": state["lines_cleared"],
+                "game_over": state["game_over"],
+            },
+            "loss" if state["game_over"] else "in_progress",
+        )
+
+        if state["game_over"]:
+            # В тетрисе считаем поражением окончание игры, учитываем счёт
+            self.finish_game_session(session_id, "loss", state["score"])
+            self.db.commit()
+
+        return state

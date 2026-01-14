@@ -38,6 +38,12 @@ class Game2048MoveRequest(BaseModel):  # noqa: D101
     direction: str  # 'up', 'down', 'left', 'right'
 
 
+class TetrisMoveRequest(BaseModel):  # noqa: D101
+    """Request для шага в тетрисе"""
+
+    action: str  # 'left', 'right', 'down', 'rotate', 'tick'
+
+
 def _initialize_game_state(game_type: str) -> dict:
     """
     Инициализация начального состояния игры.
@@ -77,6 +83,13 @@ def _initialize_game_state(game_type: str) -> dict:
             "won": state["won"],
             "game_over": state["game_over"],
         }
+
+    elif game_type == "tetris":
+        from bot.services.game_engines import TetrisGame
+
+        game = TetrisGame()
+        state = game.get_state()
+        return state
 
     return {}
 
@@ -263,6 +276,42 @@ async def game_2048_move(request: web.Request) -> web.Response:
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
+async def tetris_move(request: web.Request) -> web.Response:
+    """
+    Сделать шаг в тетрисе.
+
+    POST /api/miniapp/games/tetris/{session_id}/move
+    Body: { "action": "left" | "right" | "down" | "rotate" | "tick" }
+    """
+    try:
+        session_id = int(request.match_info["session_id"])
+        data = await request.json()
+
+        try:
+            validated = TetrisMoveRequest(**data)
+        except ValidationError as e:
+            return web.json_response(
+                {"error": "Invalid request", "details": e.errors()}, status=400
+            )
+
+        if validated.action not in ["left", "right", "down", "rotate", "tick"]:
+            return web.json_response({"error": "Invalid action"}, status=400)
+
+        with get_db() as db:
+            games_service = GamesService(db)
+            state = games_service.tetris_move(session_id, validated.action)
+            db.commit()
+
+        return web.json_response({"success": True, **state})
+
+    except ValueError as e:
+        logger.warning(f"⚠️ Invalid move: {e}")
+        return web.json_response({"error": str(e)}, status=400)
+    except Exception as e:
+        logger.error(f"❌ Ошибка хода в тетрисе: {e}", exc_info=True)
+        return web.json_response({"error": "Internal server error"}, status=500)
+
+
 async def get_game_stats(request: web.Request) -> web.Response:
     """
     Получить статистику игр пользователя.
@@ -349,6 +398,7 @@ def setup_games_routes(app: web.Application) -> None:
         "/api/miniapp/games/checkers/{session_id}/valid-moves", get_checkers_valid_moves
     )
     app.router.add_post("/api/miniapp/games/2048/{session_id}/move", game_2048_move)
+    app.router.add_post("/api/miniapp/games/tetris/{session_id}/move", tetris_move)
     app.router.add_get("/api/miniapp/games/{telegram_id}/stats", get_game_stats)
     app.router.add_get("/api/miniapp/games/session/{session_id}", get_game_session)
 

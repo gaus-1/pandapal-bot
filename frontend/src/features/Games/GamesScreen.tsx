@@ -10,12 +10,13 @@ import { useAppStore } from '../../store/appStore';
 import { TicTacToe } from './TicTacToe';
 import { Checkers } from './Checkers';
 import { Game2048 } from './Game2048';
+import { Tetris } from './Tetris';
 
 interface GamesScreenProps {
   user: UserProfile;
 }
 
-type GameType = 'tic_tac_toe' | 'checkers' | '2048' | null;
+type GameType = 'tic_tac_toe' | 'checkers' | '2048' | 'tetris' | null;
 
 const GAMES = [
   {
@@ -38,6 +39,13 @@ const GAMES = [
     icon: '🔢',
     description: 'Объединяй числа и достигни 2048!',
     color: 'from-blue-200 to-blue-100',
+  },
+  {
+    id: 'tetris',
+    name: 'Тетрис',
+    icon: '🧱',
+    description: 'Классический тетрис: заполняй линии и набирай очки!',
+    color: 'from-purple-200 to-indigo-100',
   },
 ] as const;
 
@@ -119,6 +127,14 @@ export function GamesScreen({ user }: GamesScreenProps) {
         )}
         {selectedGame === '2048' && (
           <Game2048
+            sessionId={sessionId}
+            user={user}
+            onBack={handleBack}
+            onGameEnd={handleGameEnd}
+          />
+        )}
+        {selectedGame === 'tetris' && (
+          <Tetris
             sessionId={sessionId}
             user={user}
             onBack={handleBack}
