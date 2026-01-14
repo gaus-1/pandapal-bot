@@ -167,6 +167,9 @@ class BaseVisualizationService:
             }
 
             try:
+                # Нормализуем выражение: поддержка степеней через символы ² и ³ и ^
+                expression = expression.replace("²", "**2").replace("³", "**3").replace("^", "**")
+
                 # Заменяем np.func на func для безопасности
                 replacements_np = [
                     ("np.sqrt(", "sqrt("),
@@ -227,6 +230,152 @@ class BaseVisualizationService:
 
         except Exception as e:
             logger.error(f"❌ Ошибка генерации графика: {e}", exc_info=True)
+            return None
+
+    def generate_multiple_function_graphs(
+        self, expressions: list[str], x_range: tuple = (-10, 10)
+    ) -> bytes | None:
+        """
+        Генерирует несколько графиков функций в одной картинке.
+
+        Args:
+            expressions: Список выражений функций (например, ["sin(x)", "cos(x)"])
+            x_range: Диапазон значений x (min, max)
+
+        Returns:
+            bytes: Изображение с несколькими графиками или None при ошибке
+        """
+        if not MATPLOTLIB_AVAILABLE:
+            return None
+
+        if not expressions:
+            return None
+
+        # Ограничиваем количество графиков (максимум 3 для читаемости)
+        expressions = expressions[:3]
+
+        try:
+            num_graphs = len(expressions)
+            if num_graphs == 1:
+                # Если один график - используем обычный метод
+                return self.generate_function_graph(expressions[0], x_range)
+
+            # Для нескольких графиков создаем subplots
+            if num_graphs == 2:
+                fig, axes = plt.subplots(1, 2, figsize=(18, 7))
+            else:  # 3
+                fig, axes = plt.subplots(1, 3, figsize=(24, 7))
+
+            fig.patch.set_facecolor("white")
+
+            # Цвета для разных графиков
+            colors = ["#4A90E2", "#E24A4A", "#4AE24A"]
+
+            for idx, expression in enumerate(expressions):
+                ax = axes[idx] if num_graphs > 1 else axes
+
+                # Для логарифмических и sqrt функций используем только положительные значения
+                current_range = x_range
+                if (
+                    "log" in expression.lower()
+                    or "ln" in expression.lower()
+                    or "sqrt" in expression.lower()
+                ):
+                    current_range = (0.01, 10)
+
+                x = np.linspace(current_range[0], current_range[1], 1000)
+
+                safe_globals = {
+                    "x": x,
+                    "sin": np.sin,
+                    "cos": np.cos,
+                    "tan": np.tan,
+                    "exp": np.exp,
+                    "log": np.log,
+                    "log10": np.log10,
+                    "log2": np.log2,
+                    "ln": np.log,
+                    "sqrt": np.sqrt,
+                    "abs": np.abs,
+                    "pi": np.pi,
+                }
+
+                try:
+                    # Нормализуем выражение
+                    normalized_expr = (
+                        expression.replace("²", "**2").replace("³", "**3").replace("^", "**")
+                    )
+
+                    replacements_np = [
+                        ("np.sqrt(", "sqrt("),
+                        ("np.log10(", "log10("),
+                        ("np.log2(", "log2("),
+                        ("np.log(", "log("),
+                        ("np.sin(", "sin("),
+                        ("np.cos(", "cos("),
+                        ("np.tan(", "tan("),
+                        ("np.exp(", "exp("),
+                        ("np.abs(", "abs("),
+                    ]
+                    for old, new in replacements_np:
+                        normalized_expr = normalized_expr.replace(old, new)
+
+                    y = eval(normalized_expr, {"__builtins__": {}}, safe_globals)
+                    mask = np.isfinite(y)
+                    x_plot = x[mask]
+                    y_plot = y[mask]
+
+                    if len(x_plot) > 0:
+                        ax.plot(x_plot, y_plot, linewidth=2.5, color=colors[idx % len(colors)])
+                        ax.grid(True, alpha=0.3, linestyle="--")
+                        ax.set_xlabel("x", fontsize=11, fontweight="bold")
+                        ax.set_ylabel("y", fontsize=11, fontweight="bold")
+
+                        display_expr = normalized_expr.replace("**", "^").replace("*", "·")
+                        ax.set_title(f"y = {display_expr}", fontsize=12, fontweight="bold", pad=10)
+                        ax.axhline(y=0, color="k", linewidth=0.8, linestyle="-")
+                        ax.axvline(x=0, color="k", linewidth=0.8, linestyle="-")
+                    else:
+                        logger.warning(f"⚠️ Нет валидных точек для функции: {expression}")
+                        ax.text(
+                            0.5,
+                            0.5,
+                            f"Не удалось построить\ny = {expression}",
+                            ha="center",
+                            va="center",
+                            transform=ax.transAxes,
+                            fontsize=10,
+                        )
+                        ax.axis("off")
+
+                except Exception as e:
+                    logger.warning(f"⚠️ Ошибка вычисления функции {expression}: {e}")
+                    ax.text(
+                        0.5,
+                        0.5,
+                        f"Ошибка:\n{expression}",
+                        ha="center",
+                        va="center",
+                        transform=ax.transAxes,
+                        fontsize=10,
+                    )
+                    ax.axis("off")
+
+            plt.tight_layout()
+
+            # Сохраняем в bytes
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", dpi=120, bbox_inches="tight", facecolor="white")
+            buf.seek(0)
+            image_bytes = buf.read()
+            buf.close()
+            plt.close(fig)
+
+            logger.info(f"✅ Сгенерированы графики функций: {expressions}")
+            return image_bytes
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка генерации нескольких графиков: {e}", exc_info=True)
             return None
 
     def generate_bar_chart(self, data: dict[str, float], title: str = "Диаграмма") -> bytes | None:

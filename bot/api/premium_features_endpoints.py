@@ -152,3 +152,26 @@ async def miniapp_get_premium_features_status(request: web.Request) -> web.Respo
     except Exception as e:
         logger.error(f"❌ Ошибка получения статуса функций: {e}", exc_info=True)
         return web.json_response({"error": "Internal server error"}, status=500)
+
+
+async def miniapp_get_support_queue_status(request: web.Request) -> web.Response:
+    """
+    Получить информацию о позиции пользователя в очереди поддержки.
+
+    GET /api/miniapp/premium/support-queue/{telegram_id}
+    """
+    try:
+        telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+
+        with get_db() as db:
+            support_service = PrioritySupportService(db)
+            queue_info = support_service.get_queue_info(telegram_id)
+
+            return web.json_response({"success": True, "queue": queue_info})
+
+    except ValueError as e:
+        logger.warning(f"⚠️ Invalid telegram_id: {e}")
+        return web.json_response({"error": str(e)}, status=400)
+    except Exception as e:
+        logger.error(f"❌ Ошибка получения очереди поддержки: {e}", exc_info=True)
+        return web.json_response({"error": "Internal server error"}, status=500)
