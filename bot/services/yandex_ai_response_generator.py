@@ -17,6 +17,53 @@ from bot.services.prompt_builder import get_prompt_builder
 from bot.services.yandex_cloud_service import get_yandex_cloud_service
 
 
+def add_random_engagement_question(response: str) -> str:
+    """
+    Добавляет случайный вопрос для вовлечения в конец ответа.
+
+    Args:
+        response: Исходный ответ AI
+
+    Returns:
+        str: Ответ с добавленным случайным вопросом
+    """
+    # Варианты вопросов для вовлечения
+    engagement_questions = [
+        "Понятно? Могу объяснить подробнее?",
+        "Объяснить подробнее?",
+        "Спроси меня ещё что-нибудь, мне нравится с тобой общаться!",
+        "Хочешь, объясню подробнее...",
+        "Есть вопросы посложнее?",
+    ]
+
+    # Проверяем, нет ли уже вопроса в конце ответа
+    response_lower = response.lower().strip()
+    question_indicators = [
+        "понятно",
+        "объяснить",
+        "спроси",
+        "есть вопросы",
+        "хочешь",
+        "рассказать",
+        "подробнее",
+        "что-нибудь",
+    ]
+
+    # Если в конце уже есть вопрос - не добавляем новый
+    last_sentence = response_lower.split(".")[-1].split("!")[-1].split("?")[-1].strip()
+    if any(indicator in last_sentence for indicator in question_indicators):
+        return response
+
+    # Добавляем случайный вопрос
+    random_question = random.choice(engagement_questions)
+
+    # Добавляем вопрос с правильным форматированием
+    if response.strip().endswith(".") or response.strip().endswith("!"):
+        return f"{response.strip()}\n\n{random_question}"
+    else:
+        return f"{response.strip()}\n\n{random_question}"
+
+
 def remove_duplicate_text(text: str, min_length: int = 20) -> str:
     """
     Удаляет повторяющиеся фрагменты текста (дубликаты).
@@ -435,7 +482,9 @@ class YandexAIResponseGenerator:
             if response:
                 # Очищаем ответ от запрещенных символов и LaTeX
                 cleaned_response = clean_ai_response(response.strip())
-                return cleaned_response
+                # Добавляем случайный вопрос для вовлечения
+                final_response = add_random_engagement_question(cleaned_response)
+                return final_response
             else:
                 return "Извините, не смог сгенерировать ответ. Попробуйте переформулировать вопрос."
 
