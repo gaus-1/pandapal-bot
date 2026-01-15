@@ -254,6 +254,10 @@ class VisualizationService(BaseVisualizationService):
         """Генерирует таблицу природных зон."""
         return self.geography.generate_natural_zones_table()
 
+    def generate_country_map(self, country_name: str) -> bytes | None:
+        """Генерирует схематичную карту страны."""
+        return self.geography.generate_country_map(country_name)
+
     # Делегируем методы истории
     def generate_history_timeline_table(self) -> bytes | None:
         """Генерирует хронологическую таблицу."""
