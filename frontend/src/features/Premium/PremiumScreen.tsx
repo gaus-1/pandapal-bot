@@ -9,7 +9,6 @@ import { TelegramLoginButton } from '../../components/Auth/TelegramLoginButton';
 import { useAppStore, type WebUser } from '../../store/appStore';
 import type { UserProfile } from '../../services/api';
 import { removeSavedPaymentMethod } from '../../services/api';
-import { SITE_CONFIG } from '../../config/constants';
 
 interface PremiumScreenProps {
   user: UserProfile | null;
@@ -477,7 +476,8 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                 <button
                   onClick={() => {
                     if (!inTelegram) {
-                      window.open(SITE_CONFIG.botUrl, '_blank', 'noopener,noreferrer');
+                      // Открываем мини-апп напрямую
+                      window.open('https://t.me/PandaPalBot?startapp=premium', '_blank', 'noopener,noreferrer');
                       return;
                     }
                     handlePurchase(plan);
@@ -505,7 +505,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                     ? 'Обработка...'
                     : !inTelegram
                     ? 'Открыть в мини-апп для оплаты'
-                    : `Купить Premium за ${plan.priceRub} ₽`}
+                    : `Premium за ${plan.priceRub} ₽`}
                 </button>
               </div>
             );
