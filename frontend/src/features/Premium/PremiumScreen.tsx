@@ -475,13 +475,45 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
                 <button
                   onClick={() => {
+                    // #region agent log
+                    fetch('http://127.0.0.1:7242/ingest/005e465c-a595-4db7-af49-bbe215d88a8b', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        location: 'PremiumScreen.tsx:477',
+                        message: 'Premium button clicked',
+                        data: { planId: plan.id, inTelegram, hasCurrentUser: !!currentUser, isAuthenticated },
+                        timestamp: Date.now(),
+                        sessionId: 'debug-session',
+                        runId: 'initial',
+                        hypothesisId: 'A'
+                      })
+                    }).catch(() => {});
+                    // #endregion
+
                     if (!inTelegram) {
-                      // КРИТИЧЕСКИ ВАЖНО: Используем window.location.href для надежного открытия
-                      // Это работает лучше всего на мобильных устройствах
-                      const miniAppUrl = 'https://t.me/PandaPalBot?startapp=premium';
+                      // КРИТИЧЕСКИ ВАЖНО: Используем правильный deep link для бота
+                      // start= используется для обычных ботов, startapp= для Mini Apps
+                      const botUrl = `https://t.me/PandaPalBot?start=premium_${plan.id}`;
+
+                      // #region agent log
+                      fetch('http://127.0.0.1:7242/ingest/005e465c-a595-4db7-af49-bbe215d88a8b', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          location: 'PremiumScreen.tsx:485',
+                          message: 'Redirecting to bot',
+                          data: { botUrl, planId: plan.id },
+                          timestamp: Date.now(),
+                          sessionId: 'debug-session',
+                          runId: 'initial',
+                          hypothesisId: 'A'
+                        })
+                      }).catch(() => {});
+                      // #endregion
 
                       // Прямой переход - самый надежный способ на мобильных
-                      window.location.href = miniAppUrl;
+                      window.location.href = botUrl;
                       return;
                     }
                     handlePurchase(plan);

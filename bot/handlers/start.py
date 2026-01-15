@@ -14,12 +14,11 @@
 """
 
 from datetime import datetime
-from typing import Dict
 
-from aiogram import F, Router
+from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from loguru import logger
 
 from bot.database import get_db
@@ -43,6 +42,7 @@ async def cmd_start(message: Message, state: FSMContext):
     2. Защита от дублирования команд (антиспам с таймаутом 2 секунды)
     3. Персонализированное приветственное сообщение
     4. Отображение главного меню с основными функциями бота
+    5. Обработка deep links для Premium (start=premium_*)
 
     Args:
         message (Message): Объект сообщения от Telegram с данными пользователя.
@@ -57,12 +57,97 @@ async def cmd_start(message: Message, state: FSMContext):
     first_name = message.from_user.first_name
     last_name = message.from_user.last_name
 
-    logger.info(f"/start от пользователя {telegram_id} ({first_name})")
+    # Получаем параметр start (deep link)
+    start_param = None
+    if message.text and len(message.text.split()) > 1:
+        start_param = message.text.split()[1]
+
+    logger.info(f"/start от пользователя {telegram_id} ({first_name}), start_param={start_param}")
+
+    # Обработка deep link для Premium
+    if start_param and start_param.startswith("premium_"):
+        # #region agent log
+        import json
+        from time import time
+
+        try:
+            log_path = r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log"
+            payload = {
+                "sessionId": "debug-session",
+                "runId": "initial",
+                "hypothesisId": "B",
+                "location": "start.py:67",
+                "message": "Premium deep link detected",
+                "data": {"telegram_id": telegram_id, "start_param": start_param},
+                "timestamp": int(time() * 1000),
+            }
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
+        # #endregion
+
+        # Парсим план из параметра (premium_week, premium_month, premium_year)
+        plan_id = start_param.replace("premium_", "")
+        if plan_id in ["week", "month", "year"]:
+            logger.info(f"💎 Открываем Premium для user={telegram_id}, plan={plan_id}")
+
+            # Регистрируем пользователя если нужно
+            with get_db() as db:
+                user_service = UserService(db)
+                user_service.get_or_create_user(
+                    telegram_id=telegram_id,
+                    username=username,
+                    first_name=first_name,
+                    last_name=last_name,
+                )
+
+            # Открываем Mini App с Premium экраном
+            from aiogram.types import WebAppInfo
+
+            from bot.config import settings
+
+            await message.answer(
+                text=f"💎 Открываю Premium подписку для тебя, {first_name}!",
+                reply_markup=InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(
+                                text="🚀 Открыть Premium",
+                                web_app=WebAppInfo(url=f"{settings.frontend_url}#premium"),
+                            )
+                        ]
+                    ]
+                ),
+            )
+            await state.clear()
+            return
+
+    # #region agent log
+    import json
+    from time import time
+
+    try:
+        log_path = r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log"
+        payload = {
+            "sessionId": "debug-session",
+            "runId": "initial",
+            "hypothesisId": "B",
+            "location": "start.py:105",
+            "message": "Regular start command",
+            "data": {"telegram_id": telegram_id, "start_param": start_param},
+            "timestamp": int(time() * 1000),
+        }
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+    # #endregion
 
     # Защита от дублирования - проверяем время последнего сообщения
     # Используем модульный уровень для хранения временных меток
     if not hasattr(cmd_start, "_last_message_times"):
-        cmd_start._last_message_times: Dict[int, datetime] = {}  # type: ignore[attr-defined]
+        cmd_start._last_message_times: dict[int, datetime] = {}  # type: ignore[attr-defined]
 
     current_time = datetime.now()
     last_message_time = cmd_start._last_message_times  # type: ignore[attr-defined]
