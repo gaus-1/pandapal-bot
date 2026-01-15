@@ -251,13 +251,13 @@ class GeographyVisualization(BaseVisualizationService):
         base_url = "https://static-maps.yandex.ru/v1"
 
         # Параметры запроса для Yandex Maps Static API
-        # Оптимизированные параметры для качественного отображения в Telegram
+        # Согласно документации: https://yandex.ru/maps-api/docs/static-api/request.html
         params = {
-            "apikey": settings.yandex_maps_api_key,  # Исправлено: apikey вместо key
-            "ll": f"{lon},{lat}",  # Долгота, широта (центр карты)
-            "z": str(zoom),  # Уровень масштабирования (1-17)
-            "size": "650,450",  # Размер изображения (максимум для Yandex Maps Static API)
-            "l": "map",  # Тип карты: map (схема), sat (спутник), skl (схема+спутник), trf (пробки)
+            "apikey": settings.yandex_maps_api_key,  # Обязательный параметр
+            "ll": f"{lon},{lat}",  # Центр карты: долгота, широта
+            "z": str(zoom),  # Уровень масштабирования (0-21)
+            "size": "650,450",  # Размер изображения (максимум: 650x450)
+            "lang": "ru_RU",  # Локализация: русский язык
             "pt": f"{lon},{lat},pm2rdm",  # Метка: красная точка среднего размера
         }
 
