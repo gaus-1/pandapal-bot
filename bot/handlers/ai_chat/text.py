@@ -307,6 +307,21 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
             # Определяем Premium статус пользователя
             is_premium = premium_service.is_premium_active(telegram_id)
 
+            # Проверяем, было ли отправлено автоматическое приветствие
+            # Если история содержит сообщение от AI с приветствием - считаем что приветствие было отправлено
+            is_auto_greeting_sent = False
+            if history:
+                for msg in history:
+                    if msg.get("role") == "assistant":
+                        msg_text = msg.get("text", "").lower()
+                        if (
+                            "привет" in msg_text
+                            or "начнем" in msg_text
+                            or "чем могу помочь" in msg_text
+                        ):
+                            is_auto_greeting_sent = True
+                            break
+
             # Получаем AI сервис (SOLID фасад)
             ai_service = get_ai_service()
 
@@ -811,8 +826,7 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 if visualization_type == "multiplication_table":
                     enhanced_user_message = (
                         f"{user_message}\n\n"
-                        f"[ТАБЛИЦА УМНОЖЕНИЯ УЖЕ ПОКАЗАНА. "
-                        f"Дай КОРОТКОЕ (2-3 предложения) пояснение ТОЛЬКО про таблицу умножения: "
+                        f"[Дай КОРОТКОЕ (2-3 предложения) пояснение ТОЛЬКО про таблицу умножения: "
                         f"как её использовать, для чего она нужна, простой пример. "
                         f"НЕ упоминай графики, параболы или другие темы. "
                         f"Отвечай ТОЛЬКО на вопрос пользователя про таблицу умножения.]"
@@ -820,8 +834,7 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 elif visualization_type == "graph":
                     enhanced_user_message = (
                         f"{user_message}\n\n"
-                        f"[ГРАФИК УЖЕ ПОКАЗАН. "
-                        f"Дай КОРОТКОЕ (2-3 предложения) пояснение ТОЛЬКО про этот график: "
+                        f"[Дай КОРОТКОЕ (2-3 предложения) пояснение ТОЛЬКО про этот график: "
                         f"что он показывает, основные свойства. "
                         f"НЕ упоминай таблицы умножения или другие темы. "
                         f"Отвечай ТОЛЬКО на вопрос пользователя про график.]"
@@ -849,8 +862,7 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                     diagram_name = diagram_names.get(visualization_type, "визуализацию")
                     enhanced_user_message = (
                         f"{user_message}\n\n"
-                        f"[{diagram_name.upper()} УЖЕ ПОКАЗАНА. "
-                        f"Дай ПОДРОБНОЕ пояснение (3-5 предложений): что она показывает, "
+                        f"[Дай ПОДРОБНОЕ пояснение (3-5 предложений): что показывает {diagram_name}, "
                         f"как её читать и использовать, основные особенности. "
                         f"НЕ дублируй визуализацию текстом! "
                         f"В конце ответа спроси один из вариантов: 'Понятно? Могу объяснить подробнее.', 'Объяснить подробнее?', 'Хочешь, объясню подробнее...', 'Есть вопросы посложнее?' или похоже.]"
@@ -858,8 +870,7 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 elif visualization_type == "map":
                     enhanced_user_message = (
                         f"{user_message}\n\n"
-                        f"[КАРТА УЖЕ ПОКАЗАНА. "
-                        f"Дай ПОДРОБНОЕ пояснение (3-5 предложений): что показывает карта, "
+                        f"[Дай ПОДРОБНОЕ пояснение (3-5 предложений): что показывает карта, "
                         f"где находится объект, основные географические особенности. "
                         f"НЕ дублируй карту текстом! "
                         f"В конце ответа спроси один из вариантов: 'Понятно? Могу объяснить подробнее?', 'Объяснить подробнее?', 'Хочешь, объясню подробнее...', 'Есть вопросы посложнее?' или похоже.]"
@@ -867,8 +878,7 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 else:
                     enhanced_user_message = (
                         f"{user_message}\n\n"
-                        f"[ВИЗУАЛИЗАЦИЯ УЖЕ ПОКАЗАНА. "
-                        f"Дай ПОДРОБНОЕ пояснение (3-5 предложений) ТОЛЬКО по теме запроса пользователя. "
+                        f"[Дай ПОДРОБНОЕ пояснение (3-5 предложений) ТОЛЬКО по теме запроса пользователя. "
                         f"НЕ упоминай другие темы, которые не были в запросе. "
                         f"В конце ответа спроси один из вариантов: 'Понятно? Могу объяснить подробнее?', 'Объяснить подробнее?', 'Хочешь, объясню подробнее...', 'Есть вопросы посложнее?' или похоже.]"
                     )
@@ -883,6 +893,7 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 skip_name_asking=user.skip_name_asking,
                 non_educational_questions_count=user.non_educational_questions_count,
                 is_premium=is_premium,
+                is_auto_greeting_sent=is_auto_greeting_sent,
             )
 
             # Промодерируем ответ AI на безопасность
