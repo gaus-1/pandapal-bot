@@ -407,25 +407,12 @@ export function AIChat({ user }: AIChatProps) {
               className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/50 dark:bg-slate-800/50 p-2 animate-logo-bounce"
               key={`logo-${messages.length}-${showWelcome ? 'welcome' : 'chat'}`}
               style={{
-                animation: 'logoBounce 2s ease-in-out infinite',
-                WebkitAnimation: 'logoBounce 2s ease-in-out infinite',
+                // Только стили для аппаратного ускорения, анимация через CSS класс
                 willChange: 'transform',
                 transform: 'translateZ(0)',
                 WebkitTransform: 'translateZ(0)',
                 backfaceVisibility: 'hidden',
                 WebkitBackfaceVisibility: 'hidden',
-                animationName: 'logoBounce',
-                WebkitAnimationName: 'logoBounce',
-                animationDuration: '2s',
-                WebkitAnimationDuration: '2s',
-                animationTimingFunction: 'ease-in-out',
-                WebkitAnimationTimingFunction: 'ease-in-out',
-                animationIterationCount: 'infinite',
-                WebkitAnimationIterationCount: 'infinite',
-                animationFillMode: 'both',
-                WebkitAnimationFillMode: 'both',
-                animationPlayState: 'running',
-                WebkitAnimationPlayState: 'running',
               }}
             />
             <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>
