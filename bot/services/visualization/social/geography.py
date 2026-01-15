@@ -256,7 +256,7 @@ class GeographyVisualization(BaseVisualizationService):
             "apikey": settings.yandex_maps_api_key,  # Исправлено: apikey вместо key
             "ll": f"{lon},{lat}",  # Долгота, широта (центр карты)
             "z": str(zoom),  # Уровень масштабирования (1-17)
-            "size": "800,600",  # Размер изображения (оптимально для Telegram)
+            "size": "650,450",  # Размер изображения (максимум для Yandex Maps Static API)
             "l": "map",  # Тип карты: map (схема), sat (спутник), skl (схема+спутник), trf (пробки)
             "pt": f"{lon},{lat},pm2rdm",  # Метка: красная точка среднего размера
         }
