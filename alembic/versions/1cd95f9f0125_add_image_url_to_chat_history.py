@@ -19,7 +19,15 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column('chat_history', sa.Column('image_url', sa.Text(), nullable=True))
+    # Безопасное добавление поля image_url - проверяем наличие перед добавлением
+    from sqlalchemy import inspect
+
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    columns = {col["name"] for col in inspector.get_columns("chat_history")}
+
+    if "image_url" not in columns:
+        op.add_column('chat_history', sa.Column('image_url', sa.Text(), nullable=True))
 
 
 def downgrade() -> None:
