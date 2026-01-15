@@ -353,6 +353,14 @@ export function AIChat({ user }: AIChatProps) {
                 willChange: 'transform',
                 transform: 'translateZ(0)',
                 backfaceVisibility: 'hidden',
+                WebkitTransform: 'translateZ(0)',
+                WebkitBackfaceVisibility: 'hidden',
+                WebkitAnimation: 'logoBounce 2s ease-in-out infinite',
+                animationName: 'logoBounce',
+                animationDuration: '2s',
+                animationTimingFunction: 'ease-in-out',
+                animationIterationCount: 'infinite',
+                animationFillMode: 'both',
               }}
             />
             <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>
