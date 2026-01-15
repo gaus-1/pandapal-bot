@@ -284,24 +284,78 @@ export class TelegramService {
 
   /**
    * Показать всплывающее сообщение
+   * С поддержкой fallback для старых версий Telegram Web App
    */
   showAlert(message: string): Promise<void> {
     return new Promise((resolve) => {
-      this.webApp.showAlert(message, () => resolve());
+      try {
+        // Проверяем версию Telegram Web App
+        const version = parseFloat(this.webApp.version || '0');
+
+        // showAlert доступен с версии 6.0, но может использовать showPopup внутри
+        // Для версий < 6.1 используем fallback на нативный alert
+        if (version < 6.1 && typeof this.webApp.showAlert === 'function') {
+          // Пробуем использовать showAlert, но ловим ошибку если не поддерживается
+          try {
+            this.webApp.showAlert(message, () => resolve());
+          } catch {
+            // Fallback на нативный alert для старых версий
+            console.warn('Telegram showAlert не поддерживается, используем fallback');
+            alert(message);
+            resolve();
+          }
+        } else {
+          // Для новых версий используем стандартный метод
+          this.webApp.showAlert(message, () => resolve());
+        }
+      } catch (error) {
+        // Если произошла ошибка, используем fallback
+        console.warn('Ошибка при показе alert через Telegram API:', error);
+        alert(message);
+        resolve();
+      }
     });
   }
 
   /**
    * Показать подтверждение
+   * С поддержкой fallback для старых версий Telegram Web App
    */
   showConfirm(message: string): Promise<boolean> {
     return new Promise((resolve) => {
-      this.webApp.showConfirm(message, (confirmed) => resolve(confirmed));
+      try {
+        // Проверяем версию Telegram Web App
+        const version = parseFloat(this.webApp.version || '0');
+
+        // showConfirm доступен с версии 6.0, но может использовать showPopup внутри
+        // Для версий < 6.1 используем fallback на нативный confirm
+        if (version < 6.1 && typeof this.webApp.showConfirm === 'function') {
+          // Пробуем использовать showConfirm, но ловим ошибку если не поддерживается
+          try {
+            this.webApp.showConfirm(message, (confirmed) => resolve(confirmed));
+          } catch {
+            // Fallback на нативный confirm для старых версий
+            console.warn('Telegram showConfirm не поддерживается, используем fallback');
+            const confirmed = confirm(message);
+            resolve(confirmed);
+          }
+        } else {
+          // Для новых версий используем стандартный метод
+          this.webApp.showConfirm(message, (confirmed) => resolve(confirmed));
+        }
+      } catch (error) {
+        // Если произошла ошибка, используем fallback
+        console.warn('Ошибка при показе confirm через Telegram API:', error);
+        const confirmed = confirm(message);
+        resolve(confirmed);
+      }
     });
   }
 
   /**
    * Показать всплывающее меню
+   * С поддержкой fallback для старых версий Telegram Web App
+   * ВАЖНО: showPopup доступен только с версии 6.1+
    */
   showPopup(params: {
     title?: string;
@@ -313,10 +367,37 @@ export class TelegramService {
     }>;
   }): Promise<string> {
     return new Promise((resolve) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      this.webApp.showPopup(params as any, (buttonId: string | undefined) =>
-        resolve(buttonId || ""),
-      );
+      try {
+        // Проверяем версию Telegram Web App
+        const version = parseFloat(this.webApp.version || '0');
+
+        // showPopup доступен только с версии 6.1+
+        if (version < 6.1) {
+          console.warn('showPopup не поддерживается в версии', version, ', используем fallback');
+          // Fallback: показываем сообщение через alert и возвращаем пустую строку
+          alert(params.message);
+          resolve("");
+          return;
+        }
+
+        // Для версий 6.1+ используем стандартный метод
+        if (typeof this.webApp.showPopup === 'function') {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          this.webApp.showPopup(params as any, (buttonId: string | undefined) =>
+            resolve(buttonId || ""),
+          );
+        } else {
+          // Если метод не существует, используем fallback
+          console.warn('showPopup не доступен, используем fallback');
+          alert(params.message);
+          resolve("");
+        }
+      } catch (error) {
+        // Если произошла ошибка, используем fallback
+        console.warn('Ошибка при показе popup через Telegram API:', error);
+        alert(params.message);
+        resolve("");
+      }
     });
   }
 
