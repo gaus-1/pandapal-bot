@@ -21,12 +21,17 @@ def add_random_engagement_question(response: str) -> str:
     """
     Добавляет случайный вопрос для вовлечения в конец ответа.
 
+    КРИТИЧЕСКИ ВАЖНО: Вопрос ВСЕГДА должен быть отделен пустой строкой от основного текста.
+
     Args:
         response: Исходный ответ AI
 
     Returns:
-        str: Ответ с добавленным случайным вопросом
+        str: Ответ с добавленным случайным вопросом (отделенным пустой строкой)
     """
+    if not response or not response.strip():
+        return response
+
     # Варианты вопросов для вовлечения
     engagement_questions = [
         "Понятно? Могу объяснить подробнее?",
@@ -36,32 +41,43 @@ def add_random_engagement_question(response: str) -> str:
         "Есть вопросы посложнее?",
     ]
 
-    # Проверяем, нет ли уже вопроса в конце ответа
+    # Проверяем, нет ли уже вопроса в конце ответа (более строгая проверка)
     response_lower = response.lower().strip()
     question_indicators = [
-        "понятно",
-        "объяснить",
-        "спроси",
+        "понятно?",
+        "объяснить подробнее",
+        "спроси меня",
         "есть вопросы",
-        "хочешь",
-        "рассказать",
-        "подробнее",
-        "что-нибудь",
+        "хочешь, объясню",
+        "рассказать подробнее",
+        "подробнее?",
     ]
 
-    # Если в конце уже есть вопрос - не добавляем новый
-    last_sentence = response_lower.split(".")[-1].split("!")[-1].split("?")[-1].strip()
-    if any(indicator in last_sentence for indicator in question_indicators):
+    # Проверяем последние 100 символов на наличие вопроса
+    last_part = response_lower[-100:] if len(response_lower) > 100 else response_lower
+    if any(indicator in last_part for indicator in question_indicators):
+        # Если вопрос уже есть, просто убеждаемся что он отделен пустой строкой
+        response_stripped = response.strip()
+        if not response_stripped.endswith("\n\n") and "\n\n" not in response_stripped[-50:]:
+            # Добавляем пустую строку перед последним предложением если её нет
+            lines = response_stripped.split("\n")
+            if len(lines) > 1 and lines[-1].strip():
+                # Если последняя строка не пустая, добавляем пустую строку
+                return "\n".join(lines[:-1]) + "\n\n" + lines[-1]
         return response
 
     # Добавляем случайный вопрос
     random_question = random.choice(engagement_questions)
 
-    # Добавляем вопрос с правильным форматированием
-    if response.strip().endswith(".") or response.strip().endswith("!"):
-        return f"{response.strip()}\n\n{random_question}"
-    else:
-        return f"{response.strip()}\n\n{random_question}"
+    # ВСЕГДА отделяем вопрос пустой строкой от основного текста
+    response_stripped = response.strip()
+
+    # Убираем лишние переносы строк в конце
+    while response_stripped.endswith("\n"):
+        response_stripped = response_stripped.rstrip("\n")
+
+    # Добавляем вопрос с пустой строкой перед ним
+    return f"{response_stripped}\n\n{random_question}"
 
 
 def remove_duplicate_text(text: str, min_length: int = 20) -> str:
