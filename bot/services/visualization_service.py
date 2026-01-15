@@ -64,7 +64,7 @@ class VisualizationService(BaseVisualizationService):
 
         logger.info("✅ VisualizationService инициализирован (модульная архитектура)")
 
-    def detect_visualization_request(self, text: str) -> bytes | None:
+    def detect_visualization_request(self, text: str) -> tuple[bytes | None, str | None]:
         """
         Детектирует запрос на визуализацию и генерирует изображение.
 
@@ -72,7 +72,7 @@ class VisualizationService(BaseVisualizationService):
             text: Текст сообщения для анализа
 
         Returns:
-            bytes: Изображение визуализации или None
+            tuple: (Изображение визуализации или None, Тип визуализации или None)
         """
         return self.detector.detect(text)
 

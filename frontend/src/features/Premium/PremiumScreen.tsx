@@ -476,19 +476,12 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                 <button
                   onClick={() => {
                     // #region agent log
-                    fetch('http://127.0.0.1:7242/ingest/005e465c-a595-4db7-af49-bbe215d88a8b', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        location: 'PremiumScreen.tsx:477',
-                        message: 'Premium button clicked',
-                        data: { planId: plan.id, inTelegram, hasCurrentUser: !!currentUser, isAuthenticated },
-                        timestamp: Date.now(),
-                        sessionId: 'debug-session',
-                        runId: 'initial',
-                        hypothesisId: 'A'
-                      })
-                    }).catch(() => {});
+                    console.log('Premium button clicked', {
+                      planId: plan.id,
+                      inTelegram,
+                      hasCurrentUser: !!currentUser,
+                      isAuthenticated,
+                    });
                     // #endregion
 
                     if (!inTelegram) {
@@ -497,19 +490,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                       const botUrl = `https://t.me/PandaPalBot?start=premium_${plan.id}`;
 
                       // #region agent log
-                      fetch('http://127.0.0.1:7242/ingest/005e465c-a595-4db7-af49-bbe215d88a8b', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          location: 'PremiumScreen.tsx:485',
-                          message: 'Redirecting to bot',
-                          data: { botUrl, planId: plan.id },
-                          timestamp: Date.now(),
-                          sessionId: 'debug-session',
-                          runId: 'initial',
-                          hypothesisId: 'A'
-                        })
-                      }).catch(() => {});
+                      console.log('Redirecting to bot', { botUrl, planId: plan.id });
                       // #endregion
 
                       // Прямой переход - самый надежный способ на мобильных
