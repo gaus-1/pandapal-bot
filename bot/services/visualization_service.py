@@ -278,6 +278,73 @@ class VisualizationService(BaseVisualizationService):
         """Генерирует таблицу времен года."""
         return self.world_around.generate_seasons_months_table()
 
+    # Делегируем методы генерации диаграмм из базового класса
+    def generate_line_chart(
+        self,
+        x_data: list[float],
+        y_data: list[float],
+        title: str = "Линейный график",
+        x_label: str = "X",
+        y_label: str = "Y",
+    ) -> bytes | None:
+        """Генерирует линейный график для данных."""
+        return super().generate_line_chart(x_data, y_data, title, x_label, y_label)
+
+    def generate_histogram(
+        self,
+        data: list[float],
+        bins: int = 10,
+        title: str = "Гистограмма",
+        x_label: str = "Значение",
+        y_label: str = "Частота",
+    ) -> bytes | None:
+        """Генерирует гистограмму распределения данных."""
+        return super().generate_histogram(data, bins, title, x_label, y_label)
+
+    def generate_scatter_plot(
+        self,
+        x_data: list[float],
+        y_data: list[float],
+        title: str = "Диаграмма рассеяния",
+        x_label: str = "X",
+        y_label: str = "Y",
+    ) -> bytes | None:
+        """Генерирует диаграмму рассеяния (точечную диаграмму)."""
+        return super().generate_scatter_plot(x_data, y_data, title, x_label, y_label)
+
+    def generate_box_plot(
+        self,
+        data: list[list[float]] | dict[str, list[float]],
+        title: str = "Ящик с усами",
+        y_label: str = "Значение",
+    ) -> bytes | None:
+        """Генерирует ящик с усами (box plot) для визуализации распределения данных."""
+        return super().generate_box_plot(data, title, y_label)
+
+    def generate_bubble_chart(
+        self,
+        x_data: list[float],
+        y_data: list[float],
+        sizes: list[float],
+        labels: list[str] | None = None,
+        title: str = "Пузырьковая диаграмма",
+        x_label: str = "X",
+        y_label: str = "Y",
+    ) -> bytes | None:
+        """Генерирует пузырьковую диаграмму (bubble chart)."""
+        return super().generate_bubble_chart(x_data, y_data, sizes, labels, title, x_label, y_label)
+
+    def generate_heatmap(
+        self,
+        data: list[list[float]] | dict[str, dict[str, float]],
+        row_labels: list[str] | None = None,
+        col_labels: list[str] | None = None,
+        title: str = "Тепловая карта",
+        cmap: str = "YlOrRd",
+    ) -> bytes | None:
+        """Генерирует тепловую карту (heatmap)."""
+        return super().generate_heatmap(data, row_labels, col_labels, title, cmap)
+
 
 # Singleton pattern для глобального доступа
 _viz_service_instance: VisualizationService | None = None

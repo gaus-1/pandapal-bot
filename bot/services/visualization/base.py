@@ -495,6 +495,421 @@ class BaseVisualizationService:
             logger.error(f"❌ Ошибка генерации круговой диаграммы: {e}", exc_info=True)
             return None
 
+    def generate_line_chart(
+        self,
+        x_data: list[float],
+        y_data: list[float],
+        title: str = "Линейный график",
+        x_label: str = "X",
+        y_label: str = "Y",
+    ) -> bytes | None:
+        """
+        Генерирует линейный график для данных.
+
+        Args:
+            x_data: Список значений по оси X
+            y_data: Список значений по оси Y
+            title: Заголовок графика
+            x_label: Подпись оси X
+            y_label: Подпись оси Y
+
+        Returns:
+            bytes: Изображение графика в формате PNG или None при ошибке
+        """
+        if not MATPLOTLIB_AVAILABLE:
+            return None
+
+        try:
+            if len(x_data) != len(y_data):
+                logger.warning("⚠️ Длины массивов x_data и y_data не совпадают")
+                return None
+
+            fig, ax = plt.subplots(figsize=(10, 6))
+            fig.patch.set_facecolor("white")
+
+            ax.plot(x_data, y_data, marker="o", linewidth=2, color="#4A90E2", markersize=6)
+            ax.set_title(title, fontsize=14, fontweight="bold")
+            ax.set_xlabel(x_label, fontsize=12)
+            ax.set_ylabel(y_label, fontsize=12)
+            ax.grid(True, alpha=0.3, linestyle="--")
+
+            plt.tight_layout()
+
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", dpi=100, bbox_inches="tight", facecolor="white")
+            buf.seek(0)
+            image_bytes = buf.read()
+            buf.close()
+            plt.close(fig)
+
+            logger.info(f"✅ Сгенерирован линейный график: {title}")
+            return image_bytes
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка генерации линейного графика: {e}", exc_info=True)
+            return None
+
+    def generate_histogram(
+        self,
+        data: list[float],
+        bins: int = 10,
+        title: str = "Гистограмма",
+        x_label: str = "Значение",
+        y_label: str = "Частота",
+    ) -> bytes | None:
+        """
+        Генерирует гистограмму распределения данных.
+
+        Args:
+            data: Список числовых значений
+            bins: Количество интервалов (по умолчанию 10)
+            title: Заголовок гистограммы
+            x_label: Подпись оси X
+            y_label: Подпись оси Y
+
+        Returns:
+            bytes: Изображение гистограммы в формате PNG или None при ошибке
+        """
+        if not MATPLOTLIB_AVAILABLE:
+            return None
+
+        try:
+            fig, ax = plt.subplots(figsize=(10, 6))
+            fig.patch.set_facecolor("white")
+
+            ax.hist(data, bins=bins, color="#4A90E2", alpha=0.7, edgecolor="black", linewidth=1.2)
+            ax.set_title(title, fontsize=14, fontweight="bold")
+            ax.set_xlabel(x_label, fontsize=12)
+            ax.set_ylabel(y_label, fontsize=12)
+            ax.grid(True, alpha=0.3, axis="y", linestyle="--")
+
+            plt.tight_layout()
+
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", dpi=100, bbox_inches="tight", facecolor="white")
+            buf.seek(0)
+            image_bytes = buf.read()
+            buf.close()
+            plt.close(fig)
+
+            logger.info(f"✅ Сгенерирована гистограмма: {title}")
+            return image_bytes
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка генерации гистограммы: {e}", exc_info=True)
+            return None
+
+    def generate_scatter_plot(
+        self,
+        x_data: list[float],
+        y_data: list[float],
+        title: str = "Диаграмма рассеяния",
+        x_label: str = "X",
+        y_label: str = "Y",
+    ) -> bytes | None:
+        """
+        Генерирует диаграмму рассеяния (точечную диаграмму).
+
+        Args:
+            x_data: Список значений по оси X
+            y_data: Список значений по оси Y
+            title: Заголовок диаграммы
+            x_label: Подпись оси X
+            y_label: Подпись оси Y
+
+        Returns:
+            bytes: Изображение диаграммы в формате PNG или None при ошибке
+        """
+        if not MATPLOTLIB_AVAILABLE:
+            return None
+
+        try:
+            if len(x_data) != len(y_data):
+                logger.warning("⚠️ Длины массивов x_data и y_data не совпадают")
+                return None
+
+            fig, ax = plt.subplots(figsize=(10, 6))
+            fig.patch.set_facecolor("white")
+
+            ax.scatter(
+                x_data, y_data, color="#4A90E2", alpha=0.6, s=50, edgecolors="black", linewidth=0.5
+            )
+            ax.set_title(title, fontsize=14, fontweight="bold")
+            ax.set_xlabel(x_label, fontsize=12)
+            ax.set_ylabel(y_label, fontsize=12)
+            ax.grid(True, alpha=0.3, linestyle="--")
+
+            plt.tight_layout()
+
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", dpi=100, bbox_inches="tight", facecolor="white")
+            buf.seek(0)
+            image_bytes = buf.read()
+            buf.close()
+            plt.close(fig)
+
+            logger.info(f"✅ Сгенерирована диаграмма рассеяния: {title}")
+            return image_bytes
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка генерации диаграммы рассеяния: {e}", exc_info=True)
+            return None
+
+    def generate_box_plot(
+        self,
+        data: list[list[float]] | dict[str, list[float]],
+        title: str = "Ящик с усами",
+        y_label: str = "Значение",
+    ) -> bytes | None:
+        """
+        Генерирует ящик с усами (box plot) для визуализации распределения данных.
+
+        Args:
+            data: Список списков данных или словарь {название: список значений}
+            title: Заголовок диаграммы
+            y_label: Подпись оси Y
+
+        Returns:
+            bytes: Изображение диаграммы в формате PNG или None при ошибке
+        """
+        if not MATPLOTLIB_AVAILABLE:
+            return None
+
+        try:
+            fig, ax = plt.subplots(figsize=(10, 6))
+            fig.patch.set_facecolor("white")
+
+            # Обрабатываем разные форматы входных данных
+            if isinstance(data, dict):
+                labels = list(data.keys())
+                data_list = list(data.values())
+            else:
+                labels = [f"Группа {i+1}" for i in range(len(data))]
+                data_list = data
+
+            bp = ax.boxplot(data_list, labels=labels, patch_artist=True)
+
+            # Стилизация ящиков
+            for patch in bp["boxes"]:
+                patch.set_facecolor("#4A90E2")
+                patch.set_alpha(0.7)
+                patch.set_edgecolor("black")
+                patch.set_linewidth(1.2)
+
+            # Стилизация медианы
+            for median in bp["medians"]:
+                median.set_color("red")
+                median.set_linewidth(2)
+
+            ax.set_title(title, fontsize=14, fontweight="bold")
+            ax.set_ylabel(y_label, fontsize=12)
+            ax.grid(True, alpha=0.3, axis="y", linestyle="--")
+
+            plt.xticks(rotation=45, ha="right")
+            plt.tight_layout()
+
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", dpi=100, bbox_inches="tight", facecolor="white")
+            buf.seek(0)
+            image_bytes = buf.read()
+            buf.close()
+            plt.close(fig)
+
+            logger.info(f"✅ Сгенерирован ящик с усами: {title}")
+            return image_bytes
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка генерации ящика с усами: {e}", exc_info=True)
+            return None
+
+    def generate_bubble_chart(
+        self,
+        x_data: list[float],
+        y_data: list[float],
+        sizes: list[float],
+        labels: list[str] | None = None,
+        title: str = "Пузырьковая диаграмма",
+        x_label: str = "X",
+        y_label: str = "Y",
+    ) -> bytes | None:
+        """
+        Генерирует пузырьковую диаграмму (bubble chart).
+
+        Args:
+            x_data: Список значений по оси X
+            y_data: Список значений по оси Y
+            sizes: Список размеров пузырьков
+            labels: Список подписей для точек (опционально)
+            title: Заголовок диаграммы
+            x_label: Подпись оси X
+            y_label: Подпись оси Y
+
+        Returns:
+            bytes: Изображение диаграммы в формате PNG или None при ошибке
+        """
+        if not MATPLOTLIB_AVAILABLE:
+            return None
+
+        try:
+            if len(x_data) != len(y_data) or len(x_data) != len(sizes):
+                logger.warning("⚠️ Длины массивов x_data, y_data и sizes не совпадают")
+                return None
+
+            # Нормализуем размеры для лучшей визуализации
+            sizes_normalized = np.array(sizes)
+            if sizes_normalized.max() > 0:
+                sizes_normalized = (sizes_normalized / sizes_normalized.max()) * 1000
+
+            fig, ax = plt.subplots(figsize=(10, 6))
+            fig.patch.set_facecolor("white")
+
+            ax.scatter(
+                x_data,
+                y_data,
+                s=sizes_normalized,
+                alpha=0.6,
+                c=range(len(x_data)),
+                cmap="viridis",
+                edgecolors="black",
+                linewidth=1,
+            )
+
+            # Добавляем подписи, если указаны
+            if labels:
+                for i, label in enumerate(labels):
+                    ax.annotate(
+                        label,
+                        (x_data[i], y_data[i]),
+                        xytext=(5, 5),
+                        textcoords="offset points",
+                        fontsize=9,
+                    )
+
+            ax.set_title(title, fontsize=14, fontweight="bold")
+            ax.set_xlabel(x_label, fontsize=12)
+            ax.set_ylabel(y_label, fontsize=12)
+            ax.grid(True, alpha=0.3, linestyle="--")
+
+            plt.tight_layout()
+
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", dpi=100, bbox_inches="tight", facecolor="white")
+            buf.seek(0)
+            image_bytes = buf.read()
+            buf.close()
+            plt.close(fig)
+
+            logger.info(f"✅ Сгенерирована пузырьковая диаграмма: {title}")
+            return image_bytes
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка генерации пузырьковой диаграммы: {e}", exc_info=True)
+            return None
+
+    def generate_heatmap(
+        self,
+        data: list[list[float]] | dict[str, dict[str, float]],
+        row_labels: list[str] | None = None,
+        col_labels: list[str] | None = None,
+        title: str = "Тепловая карта",
+        cmap: str = "YlOrRd",
+    ) -> bytes | None:
+        """
+        Генерирует тепловую карту (heatmap).
+
+        Args:
+            data: Матрица данных (список списков) или словарь словарей
+            row_labels: Подписи строк (опционально)
+            col_labels: Подписи столбцов (опционально)
+            title: Заголовок карты
+            cmap: Цветовая схема (по умолчанию 'YlOrRd')
+
+        Returns:
+            bytes: Изображение тепловой карты в формате PNG или None при ошибке
+        """
+        if not MATPLOTLIB_AVAILABLE:
+            return None
+
+        try:
+            # Преобразуем словарь в матрицу, если нужно
+            if isinstance(data, dict):
+                if not row_labels:
+                    row_labels = list(data.keys())
+                if not col_labels:
+                    # Собираем все уникальные ключи из вложенных словарей
+                    col_labels = sorted(
+                        {
+                            key
+                            for subdict in data.values()
+                            if isinstance(subdict, dict)
+                            for key in subdict
+                        }
+                    )
+
+                # Создаем матрицу
+                matrix = []
+                for row_key in row_labels:
+                    row = []
+                    for col_key in col_labels:
+                        value = data.get(row_key, {}).get(col_key, 0.0)
+                        row.append(float(value))
+                    matrix.append(row)
+                data_matrix = np.array(matrix)
+            else:
+                data_matrix = np.array(data)
+                if not row_labels:
+                    row_labels = [f"Строка {i+1}" for i in range(len(data_matrix))]
+                if not col_labels:
+                    col_labels = [f"Столбец {i+1}" for i in range(len(data_matrix[0]))]
+
+            fig, ax = plt.subplots(
+                figsize=(max(10, len(col_labels) * 1.2), max(8, len(row_labels) * 0.8))
+            )
+            fig.patch.set_facecolor("white")
+
+            im = ax.imshow(data_matrix, cmap=cmap, aspect="auto")
+
+            # Устанавливаем подписи
+            ax.set_xticks(np.arange(len(col_labels)))
+            ax.set_yticks(np.arange(len(row_labels)))
+            ax.set_xticklabels(col_labels)
+            ax.set_yticklabels(row_labels)
+
+            # Поворачиваем подписи для лучшей читаемости
+            plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+
+            # Добавляем значения в ячейки
+            for i in range(len(row_labels)):
+                for j in range(len(col_labels)):
+                    ax.text(
+                        j,
+                        i,
+                        f"{data_matrix[i, j]:.1f}",
+                        ha="center",
+                        va="center",
+                        color="black" if data_matrix[i, j] < data_matrix.max() * 0.5 else "white",
+                        fontweight="bold",
+                    )
+
+            ax.set_title(title, fontsize=14, fontweight="bold", pad=15)
+            fig.colorbar(im, ax=ax)
+
+            plt.tight_layout()
+
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", dpi=100, bbox_inches="tight", facecolor="white")
+            buf.seek(0)
+            image_bytes = buf.read()
+            buf.close()
+            plt.close(fig)
+
+            logger.info(f"✅ Сгенерирована тепловая карта: {title}")
+            return image_bytes
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка генерации тепловой карты: {e}", exc_info=True)
+            return None
+
     def image_to_base64(self, image_bytes: bytes) -> str:
         """
         Конвертирует изображение в base64 строку.
