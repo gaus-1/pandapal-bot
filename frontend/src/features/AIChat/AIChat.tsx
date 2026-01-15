@@ -42,6 +42,7 @@ export function AIChat({ user }: AIChatProps) {
   const [showWelcome, setShowWelcome] = useState(false);
   const [hasShownWelcomeMessage, setHasShownWelcomeMessage] = useState(false);
   const queryClient = useQueryClient();
+  const logoRef = useRef<HTMLImageElement | null>(null);
 
   // Сохраняем выбранное случайное сообщение для генерации
   const randomMessageRef = useRef<string | null>(null);
@@ -175,6 +176,26 @@ export function AIChat({ user }: AIChatProps) {
       }
     }
   }, [messages.length, isLoadingHistory, showWelcome]);
+
+  // Принудительно перезапускаем анимацию логотипа при очистке чата или изменении messages.length
+  useEffect(() => {
+    if (showWelcome && messages.length === 0 && logoRef.current) {
+      const img = logoRef.current;
+      // Сбрасываем анимацию
+      img.style.animation = 'none';
+      img.style.webkitAnimation = 'none';
+      // Принудительный reflow
+      void img.offsetWidth;
+      // Включаем анимацию заново
+      img.style.animation = 'logoBounce 2s ease-in-out infinite';
+      img.style.webkitAnimation = 'logoBounce 2s ease-in-out infinite';
+      img.style.willChange = 'transform';
+      img.style.transform = 'translateZ(0)';
+      img.style.webkitTransform = 'translateZ(0)';
+      img.style.backfaceVisibility = 'hidden';
+      img.style.webkitBackfaceVisibility = 'hidden';
+    }
+  }, [showWelcome, messages.length]);
 
   // Автоматическое приветствие от панды через 5 секунд после показа приветствия
   useEffect(() => {
@@ -341,6 +362,7 @@ export function AIChat({ user }: AIChatProps) {
         ) : showWelcome && messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-full py-8 animate-fade-in">
             <img
+              ref={logoRef}
               src="/logo.png"
               alt="PandaPal"
               width={120}
@@ -350,17 +372,29 @@ export function AIChat({ user }: AIChatProps) {
               key={`logo-${messages.length}`}
               style={{
                 animation: 'logoBounce 2s ease-in-out infinite',
+                WebkitAnimation: 'logoBounce 2s ease-in-out infinite',
                 willChange: 'transform',
                 transform: 'translateZ(0)',
-                backfaceVisibility: 'hidden',
                 WebkitTransform: 'translateZ(0)',
+                backfaceVisibility: 'hidden',
                 WebkitBackfaceVisibility: 'hidden',
-                WebkitAnimation: 'logoBounce 2s ease-in-out infinite',
-                animationName: 'logoBounce',
-                animationDuration: '2s',
-                animationTimingFunction: 'ease-in-out',
-                animationIterationCount: 'infinite',
-                animationFillMode: 'both',
+              }}
+              onLoad={(e) => {
+                // Принудительно перезапускаем анимацию после загрузки изображения
+                const img = e.target as HTMLImageElement;
+                // Сбрасываем анимацию
+                img.style.animation = 'none';
+                img.style.webkitAnimation = 'none';
+                // Принудительный reflow
+                void img.offsetWidth;
+                // Включаем анимацию заново
+                img.style.animation = 'logoBounce 2s ease-in-out infinite';
+                img.style.webkitAnimation = 'logoBounce 2s ease-in-out infinite';
+                img.style.willChange = 'transform';
+                img.style.transform = 'translateZ(0)';
+                img.style.webkitTransform = 'translateZ(0)';
+                img.style.backfaceVisibility = 'hidden';
+                img.style.webkitBackfaceVisibility = 'hidden';
               }}
             />
             <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>

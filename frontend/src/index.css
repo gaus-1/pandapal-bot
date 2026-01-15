@@ -106,10 +106,26 @@
       backface-visibility: hidden !important;
       -webkit-backface-visibility: hidden !important;
       animationName: logoBounce !important;
+      -webkit-animation-name: logoBounce !important;
       animationDuration: 2s !important;
+      -webkit-animation-duration: 2s !important;
       animationTimingFunction: ease-in-out !important;
+      -webkit-animation-timing-function: ease-in-out !important;
       animationIterationCount: infinite !important;
+      -webkit-animation-iteration-count: infinite !important;
       animationFillMode: both !important;
+      -webkit-animation-fill-mode: both !important;
+      /* Принудительное включение анимации на мобильных */
+      animation-play-state: running !important;
+      -webkit-animation-play-state: running !important;
+    }
+  }
+
+  /* Дополнительная гарантия для всех мобильных устройств */
+  @media (max-width: 1024px) {
+    .animate-logo-bounce {
+      animation: logoBounce 2s ease-in-out infinite !important;
+      -webkit-animation: logoBounce 2s ease-in-out infinite !important;
     }
   }
 
