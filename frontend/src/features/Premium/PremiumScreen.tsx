@@ -477,7 +477,29 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   onClick={() => {
                     if (!inTelegram) {
                       // Открываем мини-апп напрямую
-                      window.open('https://t.me/PandaPalBot?startapp=premium', '_blank', 'noopener,noreferrer');
+                      const httpsUrl = 'https://t.me/PandaPalBot?startapp=premium';
+
+                      // Пробуем открыть через tg:// (для мобильных с установленным Telegram)
+                      const tgUrl = 'tg://resolve?domain=PandaPalBot&startapp=premium';
+
+                      // Создаем скрытую ссылку для лучшей совместимости
+                      try {
+                        const link = document.createElement('a');
+                        link.href = tgUrl;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        // Fallback на https:// если tg:// не сработал (через 300ms)
+                        setTimeout(() => {
+                          window.open(httpsUrl, '_blank', 'noopener,noreferrer');
+                        }, 300);
+                      } catch {
+                        // Если ошибка - открываем https:// напрямую
+                        window.open(httpsUrl, '_blank', 'noopener,noreferrer');
+                      }
                       return;
                     }
                     handlePurchase(plan);
@@ -503,8 +525,6 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   )}
                   {isProcessing && selectedPlan === plan.id
                     ? 'Обработка...'
-                    : !inTelegram
-                    ? 'Открыть в мини-апп для оплаты'
                     : `Premium за ${plan.priceRub} ₽`}
                 </button>
               </div>
