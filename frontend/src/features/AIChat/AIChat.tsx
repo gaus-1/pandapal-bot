@@ -181,19 +181,39 @@ export function AIChat({ user }: AIChatProps) {
   useEffect(() => {
     if (showWelcome && messages.length === 0 && logoRef.current) {
       const img = logoRef.current;
-      // Сбрасываем анимацию
-      img.style.animation = 'none';
-      img.style.webkitAnimation = 'none';
-      // Принудительный reflow
-      void img.offsetWidth;
-      // Включаем анимацию заново
-      img.style.animation = 'logoBounce 2s ease-in-out infinite';
-      img.style.webkitAnimation = 'logoBounce 2s ease-in-out infinite';
-      img.style.willChange = 'transform';
-      img.style.transform = 'translateZ(0)';
-      img.style.webkitTransform = 'translateZ(0)';
-      img.style.backfaceVisibility = 'hidden';
-      img.style.webkitBackfaceVisibility = 'hidden';
+
+      // Используем двойной requestAnimationFrame для гарантированного применения
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // Сбрасываем анимацию полностью
+          img.style.animation = 'none';
+          img.style.webkitAnimation = 'none';
+
+          // Принудительный reflow для применения изменений
+          void img.offsetWidth;
+
+          // Включаем анимацию заново
+          img.style.animation = 'logoBounce 2s ease-in-out infinite';
+          img.style.webkitAnimation = 'logoBounce 2s ease-in-out infinite';
+          img.style.animationName = 'logoBounce';
+          img.style.webkitAnimationName = 'logoBounce';
+          img.style.animationDuration = '2s';
+          img.style.webkitAnimationDuration = '2s';
+          img.style.animationTimingFunction = 'ease-in-out';
+          img.style.webkitAnimationTimingFunction = 'ease-in-out';
+          img.style.animationIterationCount = 'infinite';
+          img.style.webkitAnimationIterationCount = 'infinite';
+          img.style.animationFillMode = 'both';
+          img.style.webkitAnimationFillMode = 'both';
+          img.style.animationPlayState = 'running';
+          img.style.webkitAnimationPlayState = 'running';
+          img.style.willChange = 'transform';
+          img.style.transform = 'translateZ(0)';
+          img.style.webkitTransform = 'translateZ(0)';
+          img.style.backfaceVisibility = 'hidden';
+          img.style.webkitBackfaceVisibility = 'hidden';
+        });
+      });
     }
   }, [showWelcome, messages.length]);
 
@@ -368,8 +388,8 @@ export function AIChat({ user }: AIChatProps) {
               width={120}
               height={120}
               loading="eager"
-              className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl animate-logo-bounce bg-white/50 dark:bg-slate-800/50 p-2"
-              key={`logo-${messages.length}`}
+              className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/50 dark:bg-slate-800/50 p-2"
+              key={`logo-${messages.length}-${showWelcome ? 'welcome' : 'chat'}`}
               style={{
                 animation: 'logoBounce 2s ease-in-out infinite',
                 WebkitAnimation: 'logoBounce 2s ease-in-out infinite',
@@ -388,6 +408,8 @@ export function AIChat({ user }: AIChatProps) {
                 WebkitAnimationIterationCount: 'infinite',
                 animationFillMode: 'both',
                 WebkitAnimationFillMode: 'both',
+                animationPlayState: 'running',
+                WebkitAnimationPlayState: 'running',
               }}
             />
             <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>
