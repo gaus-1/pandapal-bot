@@ -415,9 +415,9 @@ class YandexAIResponseGenerator:
             if web_context:
                 enhanced_system_prompt += f"\n\n📚 Дополнительная информация:\n{web_context}"
 
-            # Используем Pro модель для всех пользователей (YandexGPT 5 Pro Latest - стабильная версия)
-            # Формат yandexgpt/latest - как в примере из Yandex Cloud Console
-            model_name = "yandexgpt/latest"
+            # Используем Pro модель для всех пользователей (YandexGPT Pro Latest - стабильная версия)
+            # Формат yandexgpt-pro/latest - Pro версия YandexGPT
+            model_name = settings.yandex_gpt_model
             temperature = settings.ai_temperature  # Основной параметр для всех пользователей
             max_tokens = settings.ai_max_tokens  # Основной параметр для всех пользователей
 

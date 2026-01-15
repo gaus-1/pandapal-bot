@@ -79,7 +79,7 @@ class Settings(BaseSettings):
 
     yandex_gpt_model: str = Field(
         default="yandexgpt/latest",
-        description="Модель YandexGPT (всегда yandexgpt/latest для всех пользователей - стабильная Latest версия)",
+        description="Модель YandexGPT Pro (yandexgpt/latest - это YandexGPT Pro 5, yandexgpt/rc - Pro 5.1)",
         validation_alias=AliasChoices("YANDEX_GPT_MODEL", "yandex_gpt_model"),
     )
 
