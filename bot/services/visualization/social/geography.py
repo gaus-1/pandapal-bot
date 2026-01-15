@@ -224,21 +224,67 @@ class GeographyVisualization(BaseVisualizationService):
 
         settings = Settings()
         if not settings.yandex_maps_api_key:
+            # #region agent log
+            with open(
+                r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8"
+            ) as f:
+                import json
+
+                f.write(
+                    json.dumps(
+                        {
+                            "sessionId": "debug-session",
+                            "runId": "run1",
+                            "hypothesisId": "A",
+                            "location": "geography.py:_get_yandex_map",
+                            "message": "API key missing",
+                            "data": {"has_key": False},
+                            "timestamp": int(__import__("time").time() * 1000),
+                        }
+                    )
+                    + "\n"
+                )
+            # #endregion
             return None
 
-        # URL для Yandex Maps Static API
-        base_url = "https://static-maps.yandex.ru/1.x/"
+        # URL для Yandex Maps Static API (обновлено на v1 согласно документации 2026)
+        base_url = "https://static-maps.yandex.ru/v1"
 
         # Параметры запроса для Yandex Maps Static API
         # Оптимизированные параметры для качественного отображения в Telegram
         params = {
+            "apikey": settings.yandex_maps_api_key,  # Исправлено: apikey вместо key
             "ll": f"{lon},{lat}",  # Долгота, широта (центр карты)
             "z": str(zoom),  # Уровень масштабирования (1-17)
             "size": "800,600",  # Размер изображения (оптимально для Telegram)
             "l": "map",  # Тип карты: map (схема), sat (спутник), skl (схема+спутник), trf (пробки)
             "pt": f"{lon},{lat},pm2rdm",  # Метка: красная точка среднего размера
-            "key": settings.yandex_maps_api_key,
         }
+
+        # #region agent log
+        with open(r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8") as f:
+            import json
+
+            f.write(
+                json.dumps(
+                    {
+                        "sessionId": "debug-session",
+                        "runId": "run1",
+                        "hypothesisId": "A",
+                        "location": "geography.py:_get_yandex_map",
+                        "message": "Request params",
+                        "data": {
+                            "url": base_url,
+                            "has_apikey": bool(params.get("apikey")),
+                            "ll": params.get("ll"),
+                            "z": params.get("z"),
+                        },
+                        "timestamp": int(__import__("time").time() * 1000),
+                    }
+                )
+                + "\n"
+            )
+        # #endregion
 
         try:
             # Заголовки для корректной работы с API
@@ -250,6 +296,32 @@ class GeographyVisualization(BaseVisualizationService):
             response = requests.get(
                 base_url, params=params, headers=headers, timeout=15, stream=True
             )
+
+            # #region agent log
+            with open(
+                r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8"
+            ) as f:
+                import json
+
+                f.write(
+                    json.dumps(
+                        {
+                            "sessionId": "debug-session",
+                            "runId": "run1",
+                            "hypothesisId": "A",
+                            "location": "geography.py:_get_yandex_map",
+                            "message": "Response received",
+                            "data": {
+                                "status_code": response.status_code,
+                                "content_type": response.headers.get("Content-Type"),
+                                "content_length": len(response.content) if response.content else 0,
+                            },
+                            "timestamp": int(__import__("time").time() * 1000),
+                        }
+                    )
+                    + "\n"
+                )
+            # #endregion
 
             if response.status_code == 200:
                 # Проверяем, что получили изображение
