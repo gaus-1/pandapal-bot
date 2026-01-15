@@ -67,24 +67,7 @@ async def cmd_start(message: Message, state: FSMContext):
     # Обработка deep link для Premium
     if start_param and start_param.startswith("premium_"):
         # #region agent log
-        import json
-        from time import time
-
-        try:
-            log_path = r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log"
-            payload = {
-                "sessionId": "debug-session",
-                "runId": "initial",
-                "hypothesisId": "B",
-                "location": "start.py:67",
-                "message": "Premium deep link detected",
-                "data": {"telegram_id": telegram_id, "start_param": start_param},
-                "timestamp": int(time() * 1000),
-            }
-            with open(log_path, "a", encoding="utf-8") as f:
-                f.write(json.dumps(payload, ensure_ascii=False) + "\n")
-        except Exception:
-            pass
+        logger.debug(f"Premium deep link detected: user={telegram_id}, param={start_param}")
         # #endregion
 
         # Парсим план из параметра (premium_week, premium_month, premium_year)
@@ -124,24 +107,7 @@ async def cmd_start(message: Message, state: FSMContext):
             return
 
     # #region agent log
-    import json
-    from time import time
-
-    try:
-        log_path = r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log"
-        payload = {
-            "sessionId": "debug-session",
-            "runId": "initial",
-            "hypothesisId": "B",
-            "location": "start.py:105",
-            "message": "Regular start command",
-            "data": {"telegram_id": telegram_id, "start_param": start_param},
-            "timestamp": int(time() * 1000),
-        }
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
-    except Exception:
-        pass
+    logger.debug(f"Regular start command: user={telegram_id}, param={start_param}")
     # #endregion
 
     # Защита от дублирования - проверяем время последнего сообщения
