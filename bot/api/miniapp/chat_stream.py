@@ -1022,16 +1022,23 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                             explanation = diagram_explanations.get(visualization_type)
                             if explanation:
-                                # Добавляем уточнение "понятно ли?"
-                                full_response = (
-                                    f"{explanation}\n\nПонятно? Могу объяснить подробнее?"
+                                # Добавляем случайное уточнение "понятно ли?"
+                                from bot.services.yandex_ai_response_generator import (
+                                    add_random_engagement_question,
                                 )
+
+                                full_response = add_random_engagement_question(explanation)
                                 logger.info(
                                     f"📝 Stream: Сформировано подробное пояснение для типа {visualization_type}"
                                 )
                             else:
                                 # Если тип неизвестен - используем общее пояснение
-                                full_response = "Это визуализация данных. Изучи её внимательно и попробуй объяснить, что она показывает.\n\nПонятно? Могу объяснить подробнее?"
+                                from bot.services.yandex_ai_response_generator import (
+                                    add_random_engagement_question,
+                                )
+
+                                base_text = "Это визуализация данных. Изучи её внимательно и попробуй объяснить, что она показывает."
+                                full_response = add_random_engagement_question(base_text)
                         else:
                             # КРИТИЧНО: Удаляем дублирование таблицы умножения текстом (если модель всё же написала)
                             multiplication_duplicate_patterns = [
