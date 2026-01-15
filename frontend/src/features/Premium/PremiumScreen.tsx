@@ -476,24 +476,12 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                 <button
                   onClick={() => {
                     if (!inTelegram) {
-                      // Открываем мини-апп через универсальный URL
+                      // КРИТИЧЕСКИ ВАЖНО: Используем window.location.href для надежного открытия
+                      // Это работает лучше всего на мобильных устройствах
                       const miniAppUrl = 'https://t.me/PandaPalBot?startapp=premium';
 
-                      // Пробуем несколько методов для максимальной совместимости
-                      // 1. Сначала пробуем через window.open (работает на большинстве устройств)
-                      const opened = window.open(miniAppUrl, '_blank', 'noopener,noreferrer');
-
-                      // 2. Если window.open заблокирован (popup blocker), используем window.location
-                      if (!opened || opened.closed || typeof opened.closed === 'undefined') {
-                        // Fallback: создаем временную ссылку и кликаем по ней
-                        const link = document.createElement('a');
-                        link.href = miniAppUrl;
-                        link.target = '_blank';
-                        link.rel = 'noopener noreferrer';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }
+                      // Прямой переход - самый надежный способ на мобильных
+                      window.location.href = miniAppUrl;
                       return;
                     }
                     handlePurchase(plan);
