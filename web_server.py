@@ -305,131 +305,14 @@ class PandaPalBotServer:
             setup_func_name: Имя функции для установки (например, 'setup_miniapp_routes')
             route_name: Название роута для логирования (например, 'Mini App API')
         """
-        # #region agent log
-        import json
-
-        log_data = {
-            "sessionId": "debug-session",
-            "runId": "run1",
-            "hypothesisId": "A",
-            "location": "web_server.py:308",
-            "message": "Начало регистрации API роута",
-            "data": {
-                "module_path": module_path,
-                "setup_func_name": setup_func_name,
-                "route_name": route_name,
-            },
-            "timestamp": __import__("time").time() * 1000,
-        }
-        with open(r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8") as f:
-            f.write(json.dumps(log_data) + "\n")
-        # #endregion
         try:
-            # #region agent log
-            log_data = {
-                "sessionId": "debug-session",
-                "runId": "run1",
-                "hypothesisId": "A",
-                "location": "web_server.py:310",
-                "message": "Попытка импорта модуля",
-                "data": {"module_path": module_path},
-                "timestamp": __import__("time").time() * 1000,
-            }
-            with open(
-                r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8"
-            ) as f:
-                f.write(json.dumps(log_data) + "\n")
-            # #endregion
             module = __import__(module_path, fromlist=[setup_func_name])
-            # #region agent log
-            log_data = {
-                "sessionId": "debug-session",
-                "runId": "run1",
-                "hypothesisId": "A",
-                "location": "web_server.py:312",
-                "message": "Модуль импортирован успешно",
-                "data": {"module_path": module_path, "module_type": str(type(module))},
-                "timestamp": __import__("time").time() * 1000,
-            }
-            with open(
-                r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8"
-            ) as f:
-                f.write(json.dumps(log_data) + "\n")
-            # #endregion
             setup_func = getattr(module, setup_func_name)
-            # #region agent log
-            log_data = {
-                "sessionId": "debug-session",
-                "runId": "run1",
-                "hypothesisId": "A",
-                "location": "web_server.py:314",
-                "message": "Функция setup получена",
-                "data": {"setup_func_name": setup_func_name, "func_type": str(type(setup_func))},
-                "timestamp": __import__("time").time() * 1000,
-            }
-            with open(
-                r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8"
-            ) as f:
-                f.write(json.dumps(log_data) + "\n")
-            # #endregion
             setup_func(self.app)
-            # #region agent log
-            log_data = {
-                "sessionId": "debug-session",
-                "runId": "run1",
-                "hypothesisId": "A",
-                "location": "web_server.py:316",
-                "message": "Setup функция вызвана успешно",
-                "data": {"route_name": route_name},
-                "timestamp": __import__("time").time() * 1000,
-            }
-            with open(
-                r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8"
-            ) as f:
-                f.write(json.dumps(log_data) + "\n")
-            # #endregion
             logger.info(f"✅ {route_name} routes зарегистрированы")
         except ImportError as e:
-            # #region agent log
-            log_data = {
-                "sessionId": "debug-session",
-                "runId": "run1",
-                "hypothesisId": "A",
-                "location": "web_server.py:318",
-                "message": "Ошибка импорта",
-                "data": {
-                    "module_path": module_path,
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                },
-                "timestamp": __import__("time").time() * 1000,
-            }
-            with open(
-                r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8"
-            ) as f:
-                f.write(json.dumps(log_data) + "\n")
-            # #endregion
             logger.warning(f"⚠️ Не удалось загрузить {route_name}: {e}")
         except Exception as e:
-            # #region agent log
-            log_data = {
-                "sessionId": "debug-session",
-                "runId": "run1",
-                "hypothesisId": "A",
-                "location": "web_server.py:320",
-                "message": "Неожиданная ошибка при регистрации роута",
-                "data": {
-                    "module_path": module_path,
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                },
-                "timestamp": __import__("time").time() * 1000,
-            }
-            with open(
-                r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8"
-            ) as f:
-                f.write(json.dumps(log_data) + "\n")
-            # #endregion
             logger.error(f"❌ Неожиданная ошибка при регистрации {route_name}: {e}", exc_info=True)
 
     def _setup_api_routes(self) -> None:
