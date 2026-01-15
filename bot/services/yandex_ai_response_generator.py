@@ -53,9 +53,11 @@ def add_random_engagement_question(response: str) -> str:
         "подробнее?",
     ]
 
-    # Проверяем последние 100 символов на наличие вопроса
-    last_part = response_lower[-100:] if len(response_lower) > 100 else response_lower
-    if any(indicator in last_part for indicator in question_indicators):
+    # Проверяем последние 150 символов на наличие вопроса (более широкая проверка)
+    last_part = response_lower[-150:] if len(response_lower) > 150 else response_lower
+    has_existing_question = any(indicator in last_part for indicator in question_indicators)
+
+    if has_existing_question:
         # Если вопрос уже есть, просто убеждаемся что он отделен пустой строкой
         response_stripped = response.strip()
         if not response_stripped.endswith("\n\n") and "\n\n" not in response_stripped[-50:]:
@@ -569,7 +571,9 @@ class YandexAIResponseGenerator:
 
             result = "\n".join(response_parts)
             # Финальная очистка всего ответа
-            return clean_ai_response(result)
+            cleaned_result = clean_ai_response(result)
+            # Добавляем случайный вопрос для вовлечения
+            return add_random_engagement_question(cleaned_result)
 
         except Exception as e:
             logger.error(f"❌ Ошибка анализа изображения (Yandex): {e}")
