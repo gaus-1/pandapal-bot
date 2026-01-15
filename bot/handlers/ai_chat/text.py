@@ -751,9 +751,65 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 # Если непредметный - увеличиваем счетчик
                 user.non_educational_questions_count += 1
 
+            # КРИТИЧЕСКИ ВАЖНО: Сначала проверяем визуализацию, потом генерируем ответ
+            # Это нужно, чтобы AI знал, что будет визуализация, и мог сгенерировать релевантное пояснение
+            visualization_image = None
+            visualization_type = None
+            try:
+                from bot.services.visualization_service import get_visualization_service
+
+                viz_service = get_visualization_service()
+                # Используем универсальный метод детекции
+                visualization_image = viz_service.detect_visualization_request(user_message)
+
+                # Определяем тип визуализации для контекста AI
+                if visualization_image:
+                    user_message_lower = user_message.lower()
+                    if "табл" in user_message_lower and "умнож" in user_message_lower:
+                        visualization_type = "multiplication_table"
+                    elif "график" in user_message_lower:
+                        visualization_type = "graph"
+                    elif "табл" in user_message_lower:
+                        visualization_type = "table"
+                    else:
+                        visualization_type = "visualization"
+
+            except Exception as e:
+                logger.debug(f"⚠️ Ошибка генерации визуализации: {e}")
+
             # Генерируем ответ с учётом контекста, возраста и класса
+            # Если есть визуализация, добавляем информацию об этом в запрос
+            enhanced_user_message = user_message
+            if visualization_image and visualization_type:
+                # Добавляем контекст о визуализации, чтобы AI сгенерировал релевантное пояснение
+                if visualization_type == "multiplication_table":
+                    enhanced_user_message = (
+                        f"{user_message}\n\n"
+                        f"[СИСТЕМА УЖЕ СГЕНЕРИРОВАЛА ТАБЛИЦУ УМНОЖЕНИЯ. "
+                        f"Дай КОРОТКОЕ (2-3 предложения) пояснение ТОЛЬКО про таблицу умножения: "
+                        f"как её использовать, для чего она нужна, простой пример. "
+                        f"НЕ упоминай графики, параболы или другие темы. "
+                        f"Отвечай ТОЛЬКО на вопрос пользователя про таблицу умножения.]"
+                    )
+                elif visualization_type == "graph":
+                    enhanced_user_message = (
+                        f"{user_message}\n\n"
+                        f"[СИСТЕМА УЖЕ СГЕНЕРИРОВАЛА ГРАФИК. "
+                        f"Дай КОРОТКОЕ (2-3 предложения) пояснение ТОЛЬКО про этот график: "
+                        f"что он показывает, основные свойства. "
+                        f"НЕ упоминай таблицы умножения или другие темы. "
+                        f"Отвечай ТОЛЬКО на вопрос пользователя про график.]"
+                    )
+                else:
+                    enhanced_user_message = (
+                        f"{user_message}\n\n"
+                        f"[СИСТЕМА УЖЕ СГЕНЕРИРОВАЛА ВИЗУАЛИЗАЦИЮ. "
+                        f"Дай КОРОТКОЕ (2-3 предложения) пояснение ТОЛЬКО по теме запроса пользователя. "
+                        f"НЕ упоминай другие темы, которые не были в запросе.]"
+                    )
+
             ai_response = await ai_service.generate_response(
-                user_message=user_message,
+                user_message=enhanced_user_message,
                 chat_history=history,
                 user_age=user.age,
                 user_name=user.first_name,
@@ -766,18 +822,6 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
 
             # Промодерируем ответ AI на безопасность
             ai_response = moderation_service.sanitize_ai_response(ai_response)
-
-            # Проверяем, нужна ли визуализация (таблица умножения, графики)
-            visualization_image = None
-            try:
-                from bot.services.visualization_service import get_visualization_service
-
-                viz_service = get_visualization_service()
-                # Используем универсальный метод детекции
-                visualization_image = viz_service.detect_visualization_request(user_message)
-
-            except Exception as e:
-                logger.debug(f"⚠️ Ошибка генерации визуализации: {e}")
 
             # Увеличиваем счетчик запросов (независимо от истории)
             premium_service.increment_request_count(telegram_id)
