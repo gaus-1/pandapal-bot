@@ -26,7 +26,7 @@ class ArithmeticVisualization(BaseVisualizationService):
 
     def generate_full_multiplication_table(self) -> bytes | None:
         """
-        Генерирует полную таблицу умножения (1-10).
+        Генерирует полную таблицу умножения (1-10) в двух частях для лучшей читаемости.
 
         Returns:
             bytes: Изображение в формате PNG или None при ошибке
@@ -35,52 +35,92 @@ class ArithmeticVisualization(BaseVisualizationService):
             return None
 
         try:
-            fig, ax = plt.subplots(figsize=(12, 14))
+            # Создаем фигуру с двумя подграфиками (вертикально)
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12))
             fig.patch.set_facecolor("white")
-            ax.axis("off")
 
-            title = "Таблица умножения"
-            ax.text(
+            # Общий заголовок
+            fig.suptitle("Таблица умножения", fontsize=18, fontweight="bold", y=0.98)
+
+            # Первая таблица: 1-5
+            ax1.axis("off")
+            ax1.text(
                 0.5,
-                0.98,
-                title,
+                0.95,
+                "От 1 до 5",
                 ha="center",
                 va="top",
-                fontsize=18,
+                fontsize=14,
                 fontweight="bold",
-                transform=ax.transAxes,
+                transform=ax1.transAxes,
             )
 
-            # Генерируем полную таблицу (10x10)
-            table_data = []
-            for i in range(1, 11):
+            table_data_1 = []
+            for i in range(1, 6):
                 row = []
                 for j in range(1, 11):
                     row.append(f"{i}×{j}={i*j}")
-                table_data.append(row)
+                table_data_1.append(row)
 
-            # Создаем таблицу
-            table = ax.table(
-                cellText=table_data,
+            table1 = ax1.table(
+                cellText=table_data_1,
                 cellLoc="center",
                 loc="center",
-                bbox=[0, 0.05, 1, 0.9],
+                bbox=[0, 0.1, 1, 0.8],
             )
-            table.auto_set_font_size(False)
-            table.set_fontsize(9)
-            table.scale(1, 1.5)
+            table1.auto_set_font_size(False)
+            table1.set_fontsize(10)
+            table1.scale(1, 1.8)
 
-            # Стилизация - чередующиеся цвета
-            for i in range(10):
+            for i in range(5):
                 for j in range(10):
-                    cell = table[(i, j)]
+                    cell = table1[(i, j)]
                     if (i + j) % 2 == 0:
                         cell.set_facecolor("#f0f8ff")
                     else:
                         cell.set_facecolor("white")
                     cell.set_text_props(weight="normal")
 
-            plt.tight_layout()
+            # Вторая таблица: 6-10
+            ax2.axis("off")
+            ax2.text(
+                0.5,
+                0.95,
+                "От 6 до 10",
+                ha="center",
+                va="top",
+                fontsize=14,
+                fontweight="bold",
+                transform=ax2.transAxes,
+            )
+
+            table_data_2 = []
+            for i in range(6, 11):
+                row = []
+                for j in range(1, 11):
+                    row.append(f"{i}×{j}={i*j}")
+                table_data_2.append(row)
+
+            table2 = ax2.table(
+                cellText=table_data_2,
+                cellLoc="center",
+                loc="center",
+                bbox=[0, 0.1, 1, 0.8],
+            )
+            table2.auto_set_font_size(False)
+            table2.set_fontsize(10)
+            table2.scale(1, 1.8)
+
+            for i in range(5):
+                for j in range(10):
+                    cell = table2[(i, j)]
+                    if (i + j) % 2 == 0:
+                        cell.set_facecolor("#f0f8ff")
+                    else:
+                        cell.set_facecolor("white")
+                    cell.set_text_props(weight="normal")
+
+            plt.tight_layout(rect=[0, 0, 1, 0.97])
 
             # Сохраняем в bytes
             buf = io.BytesIO()
@@ -90,7 +130,7 @@ class ArithmeticVisualization(BaseVisualizationService):
             buf.close()
             plt.close(fig)
 
-            logger.info("✅ Сгенерирована полная таблица умножения")
+            logger.info("✅ Сгенерирована полная таблица умножения (оптимизированная)")
             return image_bytes
 
         except Exception as e:

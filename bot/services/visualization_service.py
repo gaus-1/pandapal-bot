@@ -165,6 +165,10 @@ class VisualizationService(BaseVisualizationService):
         """Генерирует таблицу тригонометрических функций."""
         return self.geometry.generate_trigonometry_table()
 
+    def generate_median_diagram(self) -> bytes | None:
+        """Генерирует схему треугольника с медианами."""
+        return self.geometry.generate_median_diagram()
+
     # Делегируем методы русского языка
     def generate_russian_alphabet_table(self) -> bytes | None:
         """Генерирует таблицу русского алфавита."""
