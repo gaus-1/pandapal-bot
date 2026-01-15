@@ -65,14 +65,15 @@ export const Header: React.FC = React.memo(() => {
           {/* Навигация */}
           <nav className="hidden sm:flex items-center gap-2">
             <a
-              href="/premium"
-              onClick={(e) => {
-                e.preventDefault();
-                window.history.pushState(null, '', '/premium');
-                window.dispatchEvent(new Event('popstate'));
+              href="https://t.me/PandaPalBot?startapp=premium"
+              onClick={() => {
                 trackButtonClick('header_premium');
+                // Ссылка напрямую откроет мини-апп если Telegram установлен
+                // Иначе откроет страницу бота в браузере
               }}
               className="nav-link-header"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               Premium
             </a>
