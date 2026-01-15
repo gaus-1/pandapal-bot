@@ -133,52 +133,67 @@ def clean_ai_response(text: str) -> str:
     Очищает ответ AI от LaTeX, сложных математических символов и повторяющихся фрагментов.
     Сохраняет сравнения (>, <) и знаки препинания.
     Исправляет форматирование таблицы умножения.
+    Удаляет дублирующиеся первые слова более агрессивно.
     """
     if not text:
         return text
 
-    # Удаляем дублирующиеся первые слова (например, "ЖивуЖиву" → "Живу")
-    # Проверяем первые 1-3 слова на дублирование
+    # УЛУЧШЕННАЯ ПРОВЕРКА: Удаляем дублирующиеся первые слова
+    # Проверяем первые 1-5 слов на дублирование
     words = text.split()
     if len(words) >= 2:
-        # Проверяем, не дублируется ли первое слово
-        first_word = words[0]
-        # Если первое слово длинное и похоже на дубликат (например, "ЖивуЖиву")
-        if (
-            len(first_word) >= 2
-            and len(words) > 1
-            and len(first_word) % 2 == 0
-            and len(first_word) >= 4
-        ):
-            half_len = len(first_word) // 2
-            first_half = first_word[:half_len]
-            second_half = first_word[half_len:]
-            # Если первая и вторая половины одинаковые - это дубликат
-            if first_half.lower() == second_half.lower():
-                text = first_half + " " + " ".join(words[1:])
+        # Шаг 1: Проверяем, не дублируется ли первое слово целиком
+        first_word = words[0].strip()
+        # Убираем знаки препинания для сравнения
+        first_word_clean = re.sub(r"[^\w]", "", first_word.lower())
+
+        # Проверяем, не дублируется ли первое слово в составе (например, "ЖивуЖиву")
+        if len(first_word_clean) >= 4 and len(first_word_clean) % 2 == 0:
+            half_len = len(first_word_clean) // 2
+            first_half = first_word_clean[:half_len]
+            second_half = first_word_clean[half_len:]
+            if first_half == second_half:
+                # Удаляем дубликат внутри слова
+                text = first_word[:half_len] + " " + " ".join(words[1:])
                 words = text.split()
 
-        # Проверяем, не дублируется ли первое слово целиком в начале
-        if len(words) >= 2 and words[0].lower() == words[1].lower():
-            # Удаляем дубликат первого слова
-            text = " ".join([words[0]] + words[2:])
-            words = text.split()
-
-        # Проверяем дублирование первых 2-3 слов
-        if len(words) >= 4:
-            # Проверяем, не повторяются ли первые 2 слова
-            first_two = " ".join(words[:2]).lower()
-            next_two = " ".join(words[2:4]).lower()
-            if first_two == next_two:
-                text = " ".join(words[:2] + words[4:])
+        # Шаг 2: Проверяем, не дублируется ли первое слово целиком во втором слове
+        if len(words) >= 2:
+            second_word_clean = re.sub(r"[^\w]", "", words[1].lower())
+            if first_word_clean == second_word_clean:
+                # Удаляем дубликат второго слова
+                text = " ".join([words[0]] + words[2:])
                 words = text.split()
 
-            # Проверяем, не повторяются ли первые 3 слова
-            if len(words) >= 6:
-                first_three = " ".join(words[:3]).lower()
-                next_three = " ".join(words[3:6]).lower()
-                if first_three == next_three:
-                    text = " ".join(words[:3] + words[6:])
+        # Шаг 3: Проверяем дублирование первых 2-5 слов (более агрессивно)
+        for word_count in range(5, 1, -1):  # От 5 до 2 слов
+            if len(words) >= word_count * 2:
+                first_block = " ".join(words[:word_count]).lower()
+                # Убираем знаки препинания для сравнения
+                first_block_clean = re.sub(r"[^\w\s]", "", first_block)
+                next_block_clean = re.sub(
+                    r"[^\w\s]", "", " ".join(words[word_count : word_count * 2]).lower()
+                )
+
+                if first_block_clean == next_block_clean:
+                    # Удаляем дубликат блока
+                    text = " ".join(words[:word_count] + words[word_count * 2 :])
+                    words = text.split()
+                    break
+
+        # Шаг 4: Проверяем повторение первого слова в разных формах
+        # Например: "Живу" → "Живу, живу" или "живу Живу"
+        if len(words) >= 2:
+            first_word_lower = words[0].lower().strip()
+            second_word_lower = words[1].lower().strip()
+            # Убираем знаки препинания
+            first_clean = re.sub(r"[^\w]", "", first_word_lower)
+            second_clean = re.sub(r"[^\w]", "", second_word_lower)
+
+            if first_clean == second_clean and first_clean:
+                # Удаляем дубликат
+                text = " ".join([words[0]] + words[2:])
+                words = text.split()
 
     # Сначала удаляем дубликаты (более агрессивно, минимальная длина 20)
     text = remove_duplicate_text(text, min_length=20)
@@ -483,9 +498,13 @@ class YandexAIResponseGenerator:
                 )
 
             if analysis_result.get("analysis"):
-                response_parts.append(f"🎓 <b>Разбор задания:</b>\n{analysis_result['analysis']}")
+                # Очищаем ответ от дубликатов и форматируем
+                cleaned_analysis = clean_ai_response(analysis_result["analysis"])
+                response_parts.append(f"🎓 <b>Разбор задания:</b>\n{cleaned_analysis}")
 
-            return "\n".join(response_parts)
+            result = "\n".join(response_parts)
+            # Финальная очистка всего ответа
+            return clean_ai_response(result)
 
         except Exception as e:
             logger.error(f"❌ Ошибка анализа изображения (Yandex): {e}")
