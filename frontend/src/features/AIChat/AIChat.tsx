@@ -378,23 +378,16 @@ export function AIChat({ user }: AIChatProps) {
                 WebkitTransform: 'translateZ(0)',
                 backfaceVisibility: 'hidden',
                 WebkitBackfaceVisibility: 'hidden',
-              }}
-              onLoad={(e) => {
-                // Принудительно перезапускаем анимацию после загрузки изображения
-                const img = e.target as HTMLImageElement;
-                // Сбрасываем анимацию
-                img.style.animation = 'none';
-                img.style.webkitAnimation = 'none';
-                // Принудительный reflow
-                void img.offsetWidth;
-                // Включаем анимацию заново
-                img.style.animation = 'logoBounce 2s ease-in-out infinite';
-                img.style.webkitAnimation = 'logoBounce 2s ease-in-out infinite';
-                img.style.willChange = 'transform';
-                img.style.transform = 'translateZ(0)';
-                img.style.webkitTransform = 'translateZ(0)';
-                img.style.backfaceVisibility = 'hidden';
-                img.style.webkitBackfaceVisibility = 'hidden';
+                animationName: 'logoBounce',
+                WebkitAnimationName: 'logoBounce',
+                animationDuration: '2s',
+                WebkitAnimationDuration: '2s',
+                animationTimingFunction: 'ease-in-out',
+                WebkitAnimationTimingFunction: 'ease-in-out',
+                animationIterationCount: 'infinite',
+                WebkitAnimationIterationCount: 'infinite',
+                animationFillMode: 'both',
+                WebkitAnimationFillMode: 'both',
               }}
             />
             <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>
