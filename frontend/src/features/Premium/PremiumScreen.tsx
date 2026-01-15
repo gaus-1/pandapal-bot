@@ -5,8 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { telegram } from '../../services/telegram';
-import { TelegramLoginButton } from '../../components/Auth/TelegramLoginButton';
-import { useAppStore, type WebUser } from '../../store/appStore';
+import { useAppStore } from '../../store/appStore';
 import type { UserProfile } from '../../services/api';
 import { removeSavedPaymentMethod } from '../../services/api';
 
@@ -263,10 +262,6 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
     }
   };
 
-  const handleAuthSuccess = (user: WebUser) => {
-    console.log('✅ Авторизация успешна:', user);
-  };
-
   const handleLogout = async () => {
     await logout();
   };
@@ -275,23 +270,6 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
     <div className="w-full h-full bg-gradient-to-br from-rose-50/40 via-purple-50/40 to-sky-50/40 dark:from-slate-900 dark:via-slate-800 dark:to-slate-800 overflow-y-auto backdrop-blur-sm">
       <div className="max-w-4xl mx-auto px-3 xs:px-4 sm:px-6 md:px-8 py-2 xs:py-3 sm:py-4 md:py-6 pb-16 xs:pb-20 sm:pb-24">
 
-        {/* Telegram Login Widget (только для веб-сайта) */}
-        {!inTelegram && !isAuthenticated && (
-          <div className="mb-6 p-6 bg-gradient-to-br from-blue-50/80 via-cyan-50/80 to-sky-50/80 dark:from-blue-950/30 dark:via-cyan-950/30 dark:to-sky-950/30 rounded-[2rem] border border-blue-200/30 dark:border-blue-800/25 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
-            <h2 className="text-xl font-display font-bold text-gray-900 dark:text-slate-100 mb-3 text-center">
-              🔐 Войдите через Telegram
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-slate-400 mb-4 text-center">
-              Для оплаты Premium необходимо авторизоваться через Telegram
-            </p>
-            <div className="flex justify-center">
-              <TelegramLoginButton
-                onAuth={handleAuthSuccess}
-                buttonSize="large"
-              />
-            </div>
-          </div>
-        )}
 
         {/* Информация о пользователе (для веб-сайта) */}
         {!inTelegram && isAuthenticated && webUser && (
@@ -473,37 +451,24 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   ))}
                 </ul>
 
-                <button
-                  onClick={() => {
-                    // #region agent log
-                    console.log('Premium button clicked', {
-                      planId: plan.id,
-                      inTelegram,
-                      hasCurrentUser: !!currentUser,
-                      isAuthenticated,
-                    });
-                    // #endregion
-
-                    if (!inTelegram) {
-                      // КРИТИЧЕСКИ ВАЖНО: Используем правильный deep link для бота
-                      // start= используется для обычных ботов, startapp= для Mini Apps
-                      const botUrl = `https://t.me/PandaPalBot?start=premium_${plan.id}`;
-
-                      // #region agent log
-                      console.log('Redirecting to bot', { botUrl, planId: plan.id });
-                      // #endregion
-
-                      // Прямой переход - самый надежный способ на мобильных
-                      window.location.href = botUrl;
-                      return;
-                    }
-                    handlePurchase(plan);
-                  }}
-                  disabled={isProcessing && selectedPlan === plan.id}
-                  className="w-full py-2 xs:py-2.5 sm:py-3 md:py-4 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 xs:gap-2 min-h-[40px] xs:min-h-[44px]"
-                >
-                  {/* Иконка замка только на сайте (в Mini App без замка) */}
-                  {!inTelegram && (
+                {inTelegram ? (
+                  <button
+                    onClick={() => handlePurchase(plan)}
+                    disabled={isProcessing && selectedPlan === plan.id}
+                    className="w-full py-2 xs:py-2.5 sm:py-3 md:py-4 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 xs:gap-2 min-h-[40px] xs:min-h-[44px]"
+                  >
+                    {isProcessing && selectedPlan === plan.id
+                      ? 'Обработка...'
+                      : `Premium за ${plan.priceRub} ₽`}
+                  </button>
+                ) : (
+                  <a
+                    href={`https://t.me/PandaPalBot?start=premium_${plan.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2 xs:py-2.5 sm:py-3 md:py-4 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 hover:shadow-xl flex items-center justify-center gap-1.5 xs:gap-2 min-h-[40px] xs:min-h-[44px]"
+                  >
+                    {/* Иконка замка только на сайте (в Mini App без замка) */}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0"
@@ -517,11 +482,9 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
-                  )}
-                  {isProcessing && selectedPlan === plan.id
-                    ? 'Обработка...'
-                    : `Premium за ${plan.priceRub} ₽`}
-                </button>
+                    Premium за {plan.priceRub} ₽
+                  </a>
+                )}
               </div>
             );
           })}
@@ -553,34 +516,6 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
             <span>• Автоматический чек</span>
             <span>• Мгновенная активация</span>
           </div>
-          {!inTelegram && !isAuthenticated && (
-            <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-200 dark:border-slate-700">
-              <p className="text-xs sm:text-sm text-gray-700 dark:text-slate-300 font-medium mb-1 flex items-center gap-1.5">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-4 h-4 text-gray-700 dark:text-slate-300"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                Для оплаты Premium необходимо войти:
-              </p>
-              <ul className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 space-y-0.5 sm:space-y-1 ml-4 list-disc">
-                <li>Через Telegram мини-приложение (откройте PandaPal в Telegram)</li>
-                <li>Или через Telegram бота @pandapal_bot</li>
-                <li>Или войдите на сайте через Telegram Login Widget выше</li>
-              </ul>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mt-1.5 sm:mt-2 italic">
-                💡 Оплата доступна только через Telegram
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>

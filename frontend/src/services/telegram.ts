@@ -439,8 +439,10 @@ export class TelegramService {
       typeof (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram !== "undefined" &&
       typeof (window as Window & { Telegram?: { WebApp?: unknown } }).Telegram?.WebApp !== "undefined";
 
-    // Если есть initData ИЛИ точно в Telegram по user agent ИЛИ есть tgaddr ИЛИ есть WebApp
-    return hasInitData || isTelegramUserAgent || hasTgaddr || hasTelegramWebApp;
+    // КРИТИЧНО: Строгая проверка - только если есть initData (основной критерий)
+    // ИЛИ точно в Telegram по user agent ИЛИ есть tgaddr
+    // НЕ используем hasTelegramWebApp как основной критерий, т.к. объект может существовать вне Telegram
+    return hasInitData || (isTelegramUserAgent && hasTelegramWebApp) || hasTgaddr;
   }
 
   /**

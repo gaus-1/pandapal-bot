@@ -343,19 +343,12 @@ export function AIChat({ user }: AIChatProps) {
     try {
       await navigator.clipboard.writeText(content);
       haptic.light();
-      // Используем только telegram.showPopup, без дополнительных уведомлений
-      // Убираем браузерные уведомления - используем только Telegram popup
-      telegram.showPopup({
-        message: 'Скопировано!',
-        buttons: [{ type: 'ok', text: 'OK' }],
-      });
+      // Используем showAlert вместо showPopup для совместимости с версией 6.0
+      await telegram.showAlert('Скопировано!');
     } catch (error) {
       console.error('Ошибка копирования:', error);
-      // При ошибке показываем только Telegram popup, без браузерных уведомлений
-      telegram.showPopup({
-        message: 'Не удалось скопировать',
-        buttons: [{ type: 'ok', text: 'OK' }],
-      });
+      // При ошибке показываем alert
+      await telegram.showAlert('Не удалось скопировать');
     }
   };
 
