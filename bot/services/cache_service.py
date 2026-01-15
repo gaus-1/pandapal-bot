@@ -235,6 +235,7 @@ class CacheService:
                 return
 
             # Инициализируем Redis клиент
+            # Подключение произойдет при первом использовании (lazy connection)
             self._redis_client = aioredis.from_url(
                 redis_url,
                 encoding="utf-8",
@@ -245,24 +246,31 @@ class CacheService:
                 health_check_interval=30,
             )
 
-            # Проверяем подключение асинхронно
-            asyncio.create_task(self._test_redis_connection())
+            logger.info("✅ Redis клиент создан (подключение произойдет при первом запросе)")
 
         except Exception as e:
-            logger.error(f"❌ Ошибка подключения к Redis: {e}")
+            logger.error(f"❌ Ошибка создания Redis клиента: {e}")
             self._redis_client = None
 
-    async def _test_redis_connection(self):
-        """Тестирование подключения к Redis"""
+    async def _ensure_redis_connection(self):
+        """Проверка и установка подключения к Redis (ленивая инициализация)"""
+        if not self._redis_client:
+            return False
+
+        # Если уже проверили и подключение работает - возвращаем True
+        if self._use_redis:
+            return True
+
+        # Проверяем подключение
         try:
-            if self._redis_client:
-                await self._redis_client.ping()
-                self._use_redis = True
-                logger.info("✅ Redis подключен успешно")
+            await self._redis_client.ping()
+            self._use_redis = True
+            logger.debug("✅ Redis подключен успешно")
+            return True
         except Exception as e:
-            logger.error(f"❌ Redis недоступен: {e}")
+            logger.warning(f"⚠️ Redis недоступен: {e}, используем in-memory кэш")
             self._use_redis = False
-            self._redis_client = None
+            return False
 
     async def get(self, key: str) -> Any | None:
         """
@@ -275,6 +283,10 @@ class CacheService:
             Значение или None если не найдено
         """
         try:
+            # Ленивая проверка подключения к Redis
+            if self._redis_client and not self._use_redis:
+                await self._ensure_redis_connection()
+
             if self._use_redis and self._redis_client:
                 value = await self._redis_client.get(key)
                 if value:
@@ -306,6 +318,10 @@ class CacheService:
             if ttl is None:
                 ttl = self.config.default_ttl
 
+            # Ленивая проверка подключения к Redis
+            if self._redis_client and not self._use_redis:
+                await self._ensure_redis_connection()
+
             if self._use_redis and self._redis_client:
                 if serialize:
                     value = json.dumps(value, ensure_ascii=False, default=str)
@@ -331,6 +347,10 @@ class CacheService:
             True если успешно удалено
         """
         try:
+            # Ленивая проверка подключения к Redis
+            if self._redis_client and not self._use_redis:
+                await self._ensure_redis_connection()
+
             if self._use_redis and self._redis_client:
                 result = await self._redis_client.delete(key)
                 return bool(result and result > 0)
@@ -353,6 +373,10 @@ class CacheService:
             True если ключ существует
         """
         try:
+            # Ленивая проверка подключения к Redis
+            if self._redis_client and not self._use_redis:
+                await self._ensure_redis_connection()
+
             if self._use_redis and self._redis_client:
                 result = await self._redis_client.exists(key)
                 return bool(result and result > 0)
@@ -375,6 +399,10 @@ class CacheService:
             True если успешно очищено
         """
         try:
+            # Ленивая проверка подключения к Redis
+            if self._redis_client and not self._use_redis:
+                await self._ensure_redis_connection()
+
             if self._use_redis and self._redis_client:
                 if pattern == "*":
                     await self._redis_client.flushdb()
