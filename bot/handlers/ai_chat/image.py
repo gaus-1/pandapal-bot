@@ -115,7 +115,7 @@ async def handle_image(message: Message, state: FSMContext):  # noqa: ARG001
 
                 viz_service = get_visualization_service()
                 # Используем универсальный метод детекции для ответа AI
-                visualization_image = viz_service.detect_visualization_request(ai_response)
+                visualization_image, _ = viz_service.detect_visualization_request(ai_response)
             except Exception as e:
                 logger.debug(f"⚠️ Ошибка генерации визуализации для фото: {e}")
 
