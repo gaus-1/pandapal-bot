@@ -24,7 +24,7 @@ class MiniappVisualizationService:
 
     def detect_visualization_request(
         self, user_message: str, intent: VisualizationIntent
-    ) -> tuple[bytes | None, int | None, bool, bool]:
+    ) -> tuple[bytes | None, int | None, bool, bool, str | None]:
         """
         Детектирует запрос на визуализацию.
 
@@ -33,7 +33,7 @@ class MiniappVisualizationService:
             intent: Результат парсинга IntentService
 
         Returns:
-            tuple: (specific_visualization_image, multiplication_number, general_table_request, general_graph_request)
+            tuple: (specific_visualization_image, multiplication_number, general_table_request, general_graph_request, visualization_type)
         """
         user_msg_lower = user_message.lower()
 
@@ -190,6 +190,7 @@ class MiniappVisualizationService:
             multiplication_number,
             general_table_request,
             general_graph_request,
+            visualization_type,  # Тип визуализации для пояснений
         )
 
     def generate_visualization(

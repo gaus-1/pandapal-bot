@@ -97,6 +97,22 @@ async def handle_image(message: Message, state: FSMContext):  # noqa: ARG001
                 user_age=user.age,
             )
 
+            # Проверяем ответ AI на запрещенные темы (дополнительная проверка)
+            from bot.services.moderation_service import ContentModerationService
+
+            moderation_service = ContentModerationService()
+            is_safe_response, reason = moderation_service.is_safe_content(ai_response)
+
+            if not is_safe_response:
+                # Вежливо переводим на учебу, не упоминая запрещенную тему
+                await processing_msg.edit_text(
+                    "🚫 Это изображение не подходит для учебы. "
+                    "Попробуй отправить фото с задачей или вопросом по школьным предметам! "
+                    "Я помогу с математикой, русским, историей, географией и другими предметами! 🐼📚"
+                )
+                log_user_activity(message.from_user.id, "image_blocked_ai_response", False, reason)
+                return
+
             # Сохраняем в историю (синхронный метод, без await)
             history_service.add_message(
                 telegram_id=message.from_user.id,
@@ -108,14 +124,23 @@ async def handle_image(message: Message, state: FSMContext):  # noqa: ARG001
                 telegram_id=message.from_user.id, message_text=ai_response, message_type="ai"
             )
 
-            # Проверяем, нужна ли визуализация в ответе AI
+            # Проверяем, нужна ли визуализация в ответе AI (из caption или из ответа)
             visualization_image = None
+            visualization_type = None
             try:
                 from bot.services.visualization_service import get_visualization_service
 
                 viz_service = get_visualization_service()
-                # Используем универсальный метод детекции для ответа AI
-                visualization_image, _ = viz_service.detect_visualization_request(ai_response)
+                # Проверяем caption (если есть) - там может быть запрос на визуализацию
+                if caption:
+                    visualization_image, visualization_type = (
+                        viz_service.detect_visualization_request(caption)
+                    )
+                # Если в caption не найдено, проверяем ответ AI
+                if not visualization_image:
+                    visualization_image, visualization_type = (
+                        viz_service.detect_visualization_request(ai_response)
+                    )
             except Exception as e:
                 logger.debug(f"⚠️ Ошибка генерации визуализации для фото: {e}")
 
@@ -125,6 +150,7 @@ async def handle_image(message: Message, state: FSMContext):  # noqa: ARG001
 
                 photo = BufferedInputFile(visualization_image, filename="visualization.png")
                 await processing_msg.delete()
+                # Отправляем визуализацию с подробным описанием
                 await message.answer_photo(
                     photo=photo,
                     caption=ai_response[:1024],  # Telegram ограничение на caption

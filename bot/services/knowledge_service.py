@@ -3,12 +3,16 @@
 
 Этот модуль объединяет веб-парсинг образовательных сайтов с AI для
 предоставления более точных и актуальных ответов по школьным предметам.
+Теперь с поддержкой Wikipedia API для получения проверенных данных.
 """
 
+import re
 from datetime import datetime, timedelta
 
+import httpx
 from loguru import logger
 
+from bot.services.cache_service import cache_service
 from bot.services.web_scraper import EducationalContent, WebScraperService
 
 
@@ -26,6 +30,25 @@ class KnowledgeService:
         self.last_update: datetime | None = None
         self.update_interval = timedelta(days=7)  # Обновляем раз в неделю
         self.auto_update_enabled = False  # Отключено для быстрых ответов
+
+        # Wikipedia API (БЕЗ ключа - открытый API)
+        self.wikipedia_url = "https://ru.wikipedia.org/w/api.php"
+        self.wikipedia_timeout = httpx.Timeout(10.0, connect=5.0)
+
+        # Запрещенные темы для детей (фильтрация контента)
+        self.forbidden_topics = {
+            "война",
+            "убийство",
+            "смерть",
+            "насилие",
+            "оружие",
+            "наркотики",
+            "алкоголь",
+            "курение",
+            "самоубийство",
+            "терроризм",
+            "экстремизм",
+        }
 
         logger.info("📚 KnowledgeService инициализирован (авто-обновление: ВЫКЛ)")
 
@@ -334,6 +357,219 @@ class KnowledgeService:
         )
 
         return formatted_content
+
+    async def get_wikipedia_summary(
+        self, topic: str, user_age: int | None = None, max_length: int = 500
+    ) -> str | None:
+        """
+        Получить краткое описание темы из проверенного источника.
+        БЕЗ ключа - открытый API, работает из России.
+
+        Args:
+            topic: Название темы для поиска.
+            user_age: Возраст пользователя для адаптации контента.
+            max_length: Максимальная длина ответа (символов).
+
+        Returns:
+            str: Краткое описание темы или None при ошибке.
+        """
+        if not topic or not topic.strip():
+            return None
+
+        # Нормализуем тему для кэша
+        topic_normalized = topic.strip().lower()
+        cache_key = f"wikipedia:{topic_normalized}:{user_age or 'all'}"
+
+        # Проверяем кэш (TTL: 24 часа для стабильных данных)
+        cached = await cache_service.get(cache_key)
+        if cached:
+            logger.debug(f"📚 Кэш попадание для темы: {topic}")
+            return cached
+
+        try:
+            # Запрос к Wikipedia API (БЕЗ ключа)
+            params = {
+                "action": "query",
+                "prop": "extracts",
+                "exintro": "1",  # Только вступление (краткое описание)
+                "explaintext": "1",  # Только текст, без HTML
+                "titles": topic,
+                "format": "json",
+            }
+
+            async with httpx.AsyncClient(timeout=self.wikipedia_timeout) as client:
+                response = await client.get(self.wikipedia_url, params=params)
+                response.raise_for_status()
+                data = response.json()
+
+            # Извлекаем текст из ответа
+            pages = data.get("query", {}).get("pages", {})
+            if not pages:
+                logger.debug(f"📚 Страница не найдена для '{topic}'")
+                return None
+
+            page = list(pages.values())[0]
+
+            # Проверяем, что страница существует (не disambiguation)
+            if page.get("missing") or page.get("invalid"):
+                logger.debug(f"📚 Страница отсутствует или невалидна для '{topic}'")
+                return None
+
+            extract = page.get("extract", "").strip()
+
+            if not extract:
+                logger.debug(f"📚 Пустой контент для '{topic}'")
+                return None
+
+            # Фильтруем запрещенный контент для детей
+            if self._contains_forbidden_content(extract):
+                logger.warning(f"⚠️ Запрещенный контент обнаружен для '{topic}'")
+                return None
+
+            # Адаптируем контент для детей
+            extract = self._adapt_content_for_children(extract, user_age)
+
+            # Ограничиваем длину
+            if len(extract) > max_length:
+                # Обрезаем по последнему предложению
+                sentences = re.split(r"([.!?]\s+)", extract[: max_length + 100])
+                extract = "".join(sentences[:-2]) if len(sentences) > 2 else extract[:max_length]
+                extract = extract.strip() + "..."
+
+            # Кэшируем на 24 часа
+            await cache_service.set(cache_key, extract, ttl=86400)
+
+            logger.debug(
+                f"✅ Получены данные для '{topic}' ({len(extract)} символов, возраст: {user_age or 'all'})"
+            )
+            return extract
+
+        except httpx.TimeoutException:
+            logger.warning(f"⚠️ Таймаут при получении данных для '{topic}'")
+            return None
+        except httpx.HTTPStatusError as e:
+            logger.warning(f"⚠️ HTTP ошибка {e.response.status_code} для '{topic}'")
+            return None
+        except Exception as e:
+            logger.error(f"❌ Ошибка получения данных для '{topic}': {e}")
+            return None
+
+    def _contains_forbidden_content(self, text: str) -> bool:
+        """
+        Проверить, содержит ли текст запрещенный контент для детей.
+
+        Args:
+            text: Текст для проверки.
+
+        Returns:
+            bool: True если содержит запрещенный контент.
+        """
+        text_lower = text.lower()
+        return any(topic in text_lower for topic in self.forbidden_topics)
+
+    def _adapt_content_for_children(self, text: str, user_age: int | None = None) -> str:
+        """
+        Адаптировать контент для детей: упрощение, удаление сложных терминов.
+
+        Args:
+            text: Исходный текст.
+            user_age: Возраст пользователя.
+
+        Returns:
+            str: Адаптированный текст.
+        """
+        # Удаляем технические пометки из текста
+        text = re.sub(r"\[примечание \d+\]", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\[источник не указан \d+ дней?\]", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\[когда\?\]", "", text, flags=re.IGNORECASE)
+
+        # Упрощаем сложные конструкции для младших классов
+        if user_age and user_age <= 10:
+            # Заменяем сложные слова на более простые
+            replacements = {
+                r"\bосуществляется\b": "происходит",
+                r"\bявляется\b": "это",
+                r"\bпредставляет собой\b": "это",
+                r"\bхарактеризуется\b": "отличается",
+                r"\bосуществлять\b": "делать",
+            }
+            for pattern, replacement in replacements.items():
+                text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+
+        # Удаляем лишние пробелы
+        text = re.sub(r"\s+", " ", text)
+        text = text.strip()
+
+        return text
+
+    def _extract_topic_from_question(self, question: str) -> str | None:
+        """
+        Извлечь тему из вопроса пользователя для поиска проверенных данных.
+
+        Args:
+            question: Вопрос пользователя.
+
+        Returns:
+            str: Извлеченная тема или None.
+        """
+        question_lower = question.lower().strip()
+
+        # Паттерны для извлечения темы
+        patterns = [
+            r"что такое\s+(.+?)(?:\?|\.|$)",
+            r"кто такой\s+(.+?)(?:\?|\.|$)",
+            r"кто такая\s+(.+?)(?:\?|\.|$)",
+            r"расскажи про\s+(.+?)(?:\?|\.|$)",
+            r"расскажи о\s+(.+?)(?:\?|\.|$)",
+            r"объясни\s+(.+?)(?:\?|\.|$)",
+            r"что значит\s+(.+?)(?:\?|\.|$)",
+            r"что означает\s+(.+?)(?:\?|\.|$)",
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, question_lower)
+            if match:
+                topic = match.group(1).strip()
+                # Убираем лишние слова
+                topic = re.sub(r"\s+(это|такое|такой|такая)\s*$", "", topic, flags=re.IGNORECASE)
+                if len(topic) > 2 and len(topic) < 100:  # Разумные границы
+                    return topic
+
+        # Если паттерны не сработали, берем первые слова вопроса
+        words = question.split()
+        if len(words) >= 2:
+            # Берем первые 2-4 слова
+            topic = " ".join(words[: min(4, len(words))])
+            # Убираем вопросительные слова
+            topic = re.sub(
+                r"^(что|кто|как|где|когда|почему|зачем)\s+", "", topic, flags=re.IGNORECASE
+            )
+            if len(topic) > 2 and len(topic) < 100:
+                return topic
+
+        return None
+
+    async def get_wikipedia_context_for_question(
+        self, question: str, user_age: int | None = None
+    ) -> str | None:
+        """
+        Получить проверенный контекст для вопроса пользователя.
+
+        Args:
+            question: Вопрос пользователя.
+            user_age: Возраст пользователя.
+
+        Returns:
+            str: Проверенный контекст или None.
+        """
+        # Извлекаем тему из вопроса
+        topic = self._extract_topic_from_question(question)
+        if not topic:
+            return None
+
+        # Получаем проверенные данные
+        verified_data = await self.get_wikipedia_summary(topic, user_age, max_length=400)
+        return verified_data
 
 
 # Глобальный экземпляр сервиса
