@@ -19,34 +19,15 @@ from bot.services.gamification_service import GamificationService
 
 def _debug_log(
     *,
-    hypothesis_id: str,
-    location: str,
-    message: str,
-    data: dict | None = None,
-    run_id: str = "initial",
+    hypothesis_id: str,  # noqa: ARG001
+    location: str,  # noqa: ARG001
+    message: str,  # noqa: ARG001
+    data: dict | None = None,  # noqa: ARG001
+    run_id: str = "initial",  # noqa: ARG001
 ) -> None:
     """Записать отладочное сообщение в NDJSON-файл debug.log."""
-    # region agent log
-    try:
-        import json
-        from time import time
-
-        log_path = r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log"
-        payload = {
-            "sessionId": "debug-session",
-            "runId": run_id,
-            "hypothesisId": hypothesis_id,
-            "location": location,
-            "message": message,
-            "data": data or {},
-            "timestamp": int(time() * 1000),
-        }
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
-    except Exception:
-        # Логи не должны ломать основной поток
-        return
-    # endregion
+    # Логирование отключено для production
+    return
 
 
 class TicTacToeAI:

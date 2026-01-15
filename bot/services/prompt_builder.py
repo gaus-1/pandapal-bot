@@ -165,32 +165,6 @@ class PromptBuilder:
                         ai_greeted = True
                         break
 
-        # #region agent log
-        with open(r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8") as f:
-            import json
-
-            f.write(
-                json.dumps(
-                    {
-                        "sessionId": "debug-session",
-                        "runId": "run1",
-                        "hypothesisId": "B",
-                        "location": "prompt_builder.py:_get_greeting_context",
-                        "message": "Greeting check",
-                        "data": {
-                            "is_auto_greeting_sent": is_auto_greeting_sent,
-                            "ai_greeted": ai_greeted,
-                            "is_history_cleared": is_history_cleared,
-                            "history_length": len(chat_history) if chat_history else 0,
-                            "user_message": user_message[:50],
-                        },
-                        "timestamp": int(__import__("time").time() * 1000),
-                    }
-                )
-                + "\n"
-            )
-        # #endregion
-
         # Пользователь прощается - ТОЛЬКО если это явное прощание, не вопрос
         farewell_keywords = [
             "пока",
@@ -235,27 +209,6 @@ class PromptBuilder:
             and user_greeted
             and (not chat_history or len(chat_history) == 0)
         ):
-            # #region agent log
-            with open(
-                r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8"
-            ) as f:
-                import json
-
-                f.write(
-                    json.dumps(
-                        {
-                            "sessionId": "debug-session",
-                            "runId": "run1",
-                            "hypothesisId": "B",
-                            "location": "prompt_builder.py:_get_greeting_context",
-                            "message": "Special case triggered",
-                            "data": {"action": "ask_name_or_subject"},
-                            "timestamp": int(__import__("time").time() * 1000),
-                        }
-                    )
-                    + "\n"
-                )
-            # #endregion
             return (
                 "ВНИМАНИЕ: История была очищена, ты уже поздоровалась, и пользователь тоже поздоровался. "
                 "НЕ пиши 'Привет' снова! Вместо этого спроси: 'Как тебя зовут?' или "

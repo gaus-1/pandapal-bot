@@ -363,38 +363,6 @@ class MiniappIntentService:
             f"items={intent.items}, needs_explanation={intent.needs_explanation}"
         )
 
-        # #region agent log
-        try:
-            import json as _json_debug
-            import time as _time_debug
-
-            debug_log_path = r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log"
-            with open(debug_log_path, "a", encoding="utf-8") as f:
-                f.write(
-                    _json_debug.dumps(
-                        {
-                            "sessionId": "debug-session",
-                            "runId": "intent",
-                            "hypothesisId": "A",
-                            "location": "miniapp_intent_service.py:parse_intent",
-                            "message": "Результат разбора намерения",
-                            "data": {
-                                "raw_text": user_message[:200],
-                                "kind": intent.kind,
-                                "subject": intent.subject,
-                                "items": intent.items,
-                                "needs_explanation": intent.needs_explanation,
-                            },
-                            "timestamp": _time_debug.time() * 1000,
-                        },
-                        ensure_ascii=False,
-                    )
-                    + "\n"
-                )
-        except Exception:
-            pass
-        # #endregion
-
         return intent
 
 
