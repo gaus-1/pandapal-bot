@@ -146,17 +146,9 @@ export const CallToAction: React.FC = React.memo(() => {
             <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-slate-100 mb-2">
               Premium
             </h3>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 leading-relaxed mb-3">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
               Расширенные возможности и приоритетная поддержка!
             </p>
-            <a
-              href="https://t.me/PandaPalBot?startapp=premium"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-amber-500 dark:from-yellow-500 dark:to-amber-600 text-white font-semibold text-sm rounded-lg shadow-md hover:shadow-lg dark:hover:shadow-xl transform hover:scale-105 active:scale-100 transition-all duration-300"
-            >
-              💎 Premium
-            </a>
           </div>
         </div>
       </div>
