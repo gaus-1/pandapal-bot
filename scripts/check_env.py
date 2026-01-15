@@ -27,6 +27,7 @@ OPTIONAL_VARS = {
     "FRONTEND_URL": "URL фронтенда",
     "LOG_LEVEL": "DEBUG/INFO/WARNING/ERROR",
     "ENVIRONMENT": "development/test/production",
+    "YANDEX_MAPS_API_KEY": "API ключ Yandex Maps Static API (для карт стран)",
 }
 
 # Переменные для проверки значений

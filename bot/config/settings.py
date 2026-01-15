@@ -83,6 +83,13 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("YANDEX_GPT_MODEL", "yandex_gpt_model"),
     )
 
+    # ============ YANDEX MAPS ============
+    yandex_maps_api_key: str | None = Field(
+        default=None,
+        description="API ключ для Yandex Maps Static API (для генерации карт стран)",
+        validation_alias=AliasChoices("YANDEX_MAPS_API_KEY", "yandex_maps_api_key"),
+    )
+
     # ============ AI SETTINGS ============
     ai_temperature: float = Field(
         default=0.4,
