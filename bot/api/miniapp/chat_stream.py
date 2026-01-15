@@ -2,6 +2,7 @@
 Endpoints для streaming AI чата через SSE.
 """
 
+import json
 from contextlib import suppress
 
 import httpx
@@ -145,6 +146,38 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 await response.write(
                     f'event: error\ndata: {{"error": "{limit_reason}", "error_code": "RATE_LIMIT_EXCEEDED"}}\n\n'.encode()
                 )
+                return response
+
+            # Проверка на провокационные вопросы о запрещенных темах
+            from bot.monitoring import log_user_activity
+            from bot.services.moderation_service import ContentModerationService
+
+            moderation_service = ContentModerationService()
+            if moderation_service.is_provocative_question(user_message):
+                logger.warning(
+                    f"🚫 Stream: Провокационный вопрос от {telegram_id}: {user_message[:50]}..."
+                )
+                log_user_activity(
+                    telegram_id, "provocative_question", False, "question_about_forbidden_topics"
+                )
+
+                # Вежливо перенаправляем на учебу
+                safe_response = (
+                    "Я помогаю с учебой и школьными предметами! 📚\n\n"
+                    "Могу помочь с:\n"
+                    "• Математикой (задачи, примеры, формулы)\n"
+                    "• Русским языком (правила, орфография, грамматика)\n"
+                    "• Историей (даты, события, эпохи)\n"
+                    "• Географией (страны, карты, природные зоны)\n"
+                    "• Физикой, химией, биологией\n"
+                    "• Литературой и иностранными языками\n\n"
+                    "Задай вопрос по любому школьному предмету! 🐼"
+                )
+                await send_achievements_event(response, telegram_id, "message_sent")
+                await response.write(
+                    f'event: message\ndata: {{"text": {json.dumps(safe_response, ensure_ascii=False)}}}\n\n'.encode()
+                )
+                await response.write(b"event: done\ndata: {}\n\n")
                 return response
 
             # Отправляем событие начала генерации
