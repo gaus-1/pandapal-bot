@@ -476,29 +476,23 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                 <button
                   onClick={() => {
                     if (!inTelegram) {
-                      // Открываем мини-апп напрямую
-                      const httpsUrl = 'https://t.me/PandaPalBot?startapp=premium';
+                      // Открываем мини-апп через универсальный URL
+                      const miniAppUrl = 'https://t.me/PandaPalBot?startapp=premium';
 
-                      // Пробуем открыть через tg:// (для мобильных с установленным Telegram)
-                      const tgUrl = 'tg://resolve?domain=PandaPalBot&startapp=premium';
+                      // Пробуем несколько методов для максимальной совместимости
+                      // 1. Сначала пробуем через window.open (работает на большинстве устройств)
+                      const opened = window.open(miniAppUrl, '_blank', 'noopener,noreferrer');
 
-                      // Создаем скрытую ссылку для лучшей совместимости
-                      try {
+                      // 2. Если window.open заблокирован (popup blocker), используем window.location
+                      if (!opened || opened.closed || typeof opened.closed === 'undefined') {
+                        // Fallback: создаем временную ссылку и кликаем по ней
                         const link = document.createElement('a');
-                        link.href = tgUrl;
+                        link.href = miniAppUrl;
                         link.target = '_blank';
                         link.rel = 'noopener noreferrer';
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
-
-                        // Fallback на https:// если tg:// не сработал (через 300ms)
-                        setTimeout(() => {
-                          window.open(httpsUrl, '_blank', 'noopener,noreferrer');
-                        }, 300);
-                      } catch {
-                        // Если ошибка - открываем https:// напрямую
-                        window.open(httpsUrl, '_blank', 'noopener,noreferrer');
                       }
                       return;
                     }
