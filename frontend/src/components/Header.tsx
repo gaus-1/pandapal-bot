@@ -38,6 +38,12 @@ export const Header: React.FC = React.memo(() => {
             loading="eager"
             width="48"
             height="48"
+            style={{
+              animation: 'logoBounce 2s ease-in-out infinite',
+              willChange: 'transform',
+              transform: 'translateZ(0)',
+              backfaceVisibility: 'hidden',
+            }}
             onError={(e) => {
               // Fallback если логотип не загрузится
               const target = e.target as HTMLImageElement;
@@ -45,6 +51,7 @@ export const Header: React.FC = React.memo(() => {
               const emoji = document.createElement('div');
               emoji.textContent = '🐼';
               emoji.className = 'text-3xl sm:text-4xl animate-logo-bounce';
+              emoji.style.cssText = 'animation: logoBounce 2s ease-in-out infinite; will-change: transform; transform: translateZ(0); backface-visibility: hidden;';
               target.parentElement?.appendChild(emoji);
             }}
           />

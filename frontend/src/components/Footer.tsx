@@ -37,6 +37,12 @@ export const Footer: React.FC = React.memo(() => {
           loading="lazy"
           width="40"
           height="40"
+          style={{
+            animation: 'logoBounce 2s ease-in-out infinite',
+            willChange: 'transform',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+          }}
           onError={(e) => {
             // Fallback если логотип не загрузится
             const target = e.target as HTMLImageElement;
@@ -44,6 +50,7 @@ export const Footer: React.FC = React.memo(() => {
             const emoji = document.createElement('div');
             emoji.textContent = '🐼';
             emoji.className = 'text-3xl animate-logo-bounce';
+            emoji.style.cssText = 'animation: logoBounce 2s ease-in-out infinite; will-change: transform; transform: translateZ(0); backface-visibility: hidden;';
             target.parentElement?.appendChild(emoji);
           }}
         />

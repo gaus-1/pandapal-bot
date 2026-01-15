@@ -90,13 +90,18 @@
   /* Bounce анимация для логотипа - работает на всех устройствах */
   .animate-logo-bounce {
     animation: logoBounce 2s ease-in-out infinite;
+    will-change: transform;
+    transform: translateZ(0); /* Принудительное аппаратное ускорение */
+    backface-visibility: hidden; /* Оптимизация для мобильных */
   }
 
   /* Гарантируем работу анимации на мобильных устройствах */
   @media (max-width: 640px) {
     .animate-logo-bounce {
-      animation: logoBounce 2s ease-in-out infinite;
+      animation: logoBounce 2s ease-in-out infinite !important;
       will-change: transform;
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
   }
 
@@ -374,10 +379,18 @@
   .animate-fade-in-delay,
   .animate-fade-in-delay-2,
   .animate-fade-in-delay-3,
-  .animate-logo-bounce,
   .animate-text-reveal {
     animation: none !important;
     opacity: 1 !important;
+  }
+
+  /* КРИТИЧЕСКИ ВАЖНО: логотип панды ДОЛЖЕН двигаться всегда, даже при prefers-reduced-motion */
+  /* Это часть брендинга и пользовательского опыта */
+  .animate-logo-bounce {
+    animation: logoBounce 2s ease-in-out infinite !important;
+    will-change: transform !important;
+    transform: translateZ(0) !important;
+    backface-visibility: hidden !important;
   }
 }
 
