@@ -537,32 +537,6 @@ class YandexAIResponseGenerator:
             # Если история очищена, считаем что приветствие было отправлено через /start
             is_auto_greeting_sent = is_history_cleared
 
-            # #region agent log
-            with open(
-                r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8"
-            ) as f:
-                import json
-
-                f.write(
-                    json.dumps(
-                        {
-                            "sessionId": "debug-session",
-                            "runId": "run1",
-                            "hypothesisId": "B",
-                            "location": "yandex_ai_response_generator.py:generate_response",
-                            "message": "Building prompt",
-                            "data": {
-                                "is_history_cleared": is_history_cleared,
-                                "is_auto_greeting_sent": is_auto_greeting_sent,
-                                "history_length": len(chat_history) if chat_history else 0,
-                            },
-                            "timestamp": int(__import__("time").time() * 1000),
-                        }
-                    )
-                    + "\n"
-                )
-            # #endregion
-
             enhanced_system_prompt = prompt_builder.build_system_prompt(
                 user_message=user_message,
                 user_name=user_name,

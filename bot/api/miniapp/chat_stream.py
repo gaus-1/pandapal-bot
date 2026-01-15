@@ -224,31 +224,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 # Парсим весь запрос пользователя
                 intent = intent_service.parse_intent(user_message)
 
-                # #region agent log
-                import json as json_lib_debug
-
-                debug_log_path = r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log"
-                try:
-                    with open(debug_log_path, "a", encoding="utf-8") as f:
-                        f.write(
-                            json_lib_debug.dumps(
-                                {
-                                    "timestamp": __import__("time").time() * 1000,
-                                    "location": "miniapp_endpoints.py:1545",
-                                    "message": "Детекция визуализации - начало",
-                                    "data": {"user_message": user_message[:100]},
-                                    "sessionId": "debug-session",
-                                    "runId": "detection",
-                                    "hypothesisId": "A",
-                                },
-                                ensure_ascii=False,
-                            )
-                            + "\n"
-                        )
-                except Exception:
-                    pass
-                # #endregion
-
                 # Детекция визуализаций через новый сервис
                 visualization_service = MiniappVisualizationService()
                 (
@@ -290,14 +265,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         multiplication_text_pattern_no_symbol = re.compile(
                             r"\d+\s+\d+\s*=\s*\d+", re.IGNORECASE
                         )
-                        # #region agent log
-                        if multiplication_text_pattern.search(
-                            cleaned_chunk
-                        ) or multiplication_text_pattern_no_symbol.search(cleaned_chunk):
-                            logger.debug(
-                                f"🚫 Stream: Chunk отфильтрован (содержит таблицу): {cleaned_chunk[:50]}"
-                            )
-                        # #endregion
                         if not multiplication_text_pattern.search(
                             cleaned_chunk
                         ) and not multiplication_text_pattern_no_symbol.search(cleaned_chunk):
@@ -322,36 +289,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 # multiplication_number уже определен выше, если не был - проверяем в ответе AI
                 visualization_image_base64 = None
                 try:
-                    # #region agent log
-                    try:
-                        with open(debug_log_path, "a", encoding="utf-8") as f:
-                            f.write(
-                                json_lib_debug.dumps(
-                                    {
-                                        "timestamp": __import__("time").time() * 1000,
-                                        "location": "miniapp_endpoints.py:1820",
-                                        "message": "Начало генерации визуализации",
-                                        "data": {
-                                            "has_specific_visualization": bool(
-                                                specific_visualization_image
-                                            ),
-                                            "multiplication_number": multiplication_number,
-                                            "general_table_request": general_table_request,
-                                            "general_graph_request": general_graph_request,
-                                            "full_response_length": len(full_response),
-                                        },
-                                        "sessionId": "debug-session",
-                                        "runId": "generation",
-                                        "hypothesisId": "A",
-                                    },
-                                    ensure_ascii=False,
-                                )
-                                + "\n"
-                            )
-                    except Exception:
-                        pass
-                    # #endregion
-
                     # КРИТИЧНО: Если найдена специфичная визуализация - используем её
                     if specific_visualization_image:
                         try:
@@ -366,30 +303,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 f"❌ Stream: Ошибка конвертации специфичной визуализации в base64: {e}"
                             )
                             visualization_image_base64 = None
-                        # #region agent log
-                        try:
-                            with open(debug_log_path, "a", encoding="utf-8") as f:
-                                f.write(
-                                    json_lib_debug.dumps(
-                                        {
-                                            "timestamp": __import__("time").time() * 1000,
-                                            "location": "miniapp_endpoints.py:1850",
-                                            "message": "Специфичная визуализация использована",
-                                            "data": {
-                                                "user_message": user_message[:50],
-                                                "image_size": len(visualization_image_base64),
-                                            },
-                                            "sessionId": "debug-session",
-                                            "runId": "generation",
-                                            "hypothesisId": "SPECIFIC",
-                                        },
-                                        ensure_ascii=False,
-                                    )
-                                    + "\n"
-                                )
-                        except Exception:
-                            pass
-                        # #endregion
                     # Если не нашли в запросе, проверяем ответ AI
                     elif not multiplication_number:
                         # Паттерны для поиска таблицы умножения в ответе AI
@@ -405,30 +318,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 try:
                                     multiplication_number = int(multiplication_match.group(1))
                                     if 1 <= multiplication_number <= 10:
-                                        # #region agent log
-                                        try:
-                                            with open(debug_log_path, "a", encoding="utf-8") as f:
-                                                f.write(
-                                                    json_lib_debug.dumps(
-                                                        {
-                                                            "timestamp": __import__("time").time()
-                                                            * 1000,
-                                                            "location": "miniapp_endpoints.py:1636",
-                                                            "message": "Найдено число в ответе AI",
-                                                            "data": {
-                                                                "number": multiplication_number
-                                                            },
-                                                            "sessionId": "debug-session",
-                                                            "runId": "generation",
-                                                            "hypothesisId": "A",
-                                                        },
-                                                        ensure_ascii=False,
-                                                    )
-                                                    + "\n"
-                                                )
-                                        except Exception:
-                                            pass
-                                        # #endregion
                                         break
                                 except (ValueError, IndexError):
                                     continue
@@ -479,30 +368,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             logger.info(
                                 f"📊 Stream: Сгенерирована таблица умножения на {multiplication_number}"
                             )
-                            # #region agent log
-                            try:
-                                with open(debug_log_path, "a", encoding="utf-8") as f:
-                                    f.write(
-                                        json_lib_debug.dumps(
-                                            {
-                                                "timestamp": __import__("time").time() * 1000,
-                                                "location": "miniapp_endpoints.py:1654",
-                                                "message": "Таблица умножения сгенерирована",
-                                                "data": {
-                                                    "number": multiplication_number,
-                                                    "image_size": len(visualization_image_base64),
-                                                },
-                                                "sessionId": "debug-session",
-                                                "runId": "generation",
-                                                "hypothesisId": "A",
-                                            },
-                                            ensure_ascii=False,
-                                        )
-                                        + "\n"
-                                    )
-                            except Exception:
-                                pass
-                            # #endregion
                     # ВАЖНО: Генерируем общую таблицу только если нет специфичной визуализации
                     elif (
                         general_table_request
@@ -517,29 +382,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 visualization_image
                             )
                             logger.info("📊 Stream: Сгенерирована полная таблица умножения")
-                            # #region agent log
-                            try:
-                                with open(debug_log_path, "a", encoding="utf-8") as f:
-                                    f.write(
-                                        json_lib_debug.dumps(
-                                            {
-                                                "timestamp": __import__("time").time() * 1000,
-                                                "location": "miniapp_endpoints.py:1672",
-                                                "message": "Полная таблица умножения сгенерирована",
-                                                "data": {
-                                                    "image_size": len(visualization_image_base64)
-                                                },
-                                                "sessionId": "debug-session",
-                                                "runId": "generation",
-                                                "hypothesisId": "B",
-                                            },
-                                            ensure_ascii=False,
-                                        )
-                                        + "\n"
-                                    )
-                            except Exception:
-                                pass
-                            # #endregion
 
                     # Определяем, нужен ли график функции (расширенный паттерн)
                     if general_graph_request and not visualization_image_base64:
@@ -688,32 +530,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 logger.warning(
                                     "⚠️ Stream: generate_function_graph вернул None для sin(x)"
                                 )
-                                # #region agent log
-                                try:
-                                    with open(debug_log_path, "a", encoding="utf-8") as f:
-                                        f.write(
-                                            json_lib_debug.dumps(
-                                                {
-                                                    "timestamp": __import__("time").time() * 1000,
-                                                    "location": "miniapp_endpoints.py:1699",
-                                                    "message": "График синусоиды сгенерирован",
-                                                    "data": {
-                                                        "is_general_request": general_graph_request,
-                                                        "image_size": len(
-                                                            visualization_image_base64
-                                                        ),
-                                                    },
-                                                    "sessionId": "debug-session",
-                                                    "runId": "generation",
-                                                    "hypothesisId": "C",
-                                                },
-                                                ensure_ascii=False,
-                                            )
-                                            + "\n"
-                                        )
-                                except Exception:
-                                    pass
-                                # #endregion
                         elif re.search(r"(?:косинус|cos)", user_msg_lower):
                             visualization_image = viz_service.generate_function_graph("cos(x)")
                             if visualization_image:
@@ -736,31 +552,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     visualization_image
                                 )
                                 logger.info("📈 Stream: Сгенерирован график параболы")
-                                # #region agent log
-                                try:
-                                    with open(debug_log_path, "a", encoding="utf-8") as f:
-                                        f.write(
-                                            json_lib_debug.dumps(
-                                                {
-                                                    "timestamp": __import__("time").time() * 1000,
-                                                    "location": "miniapp_endpoints.py:1989",
-                                                    "message": "График параболы сгенерирован",
-                                                    "data": {
-                                                        "image_size": len(
-                                                            visualization_image_base64
-                                                        )
-                                                    },
-                                                    "sessionId": "debug-session",
-                                                    "runId": "generation",
-                                                    "hypothesisId": "C",
-                                                },
-                                                ensure_ascii=False,
-                                            )
-                                            + "\n"
-                                        )
-                                except Exception:
-                                    pass
-                                # #endregion
                         else:
                             expression = (
                                 graph_match.group(1).strip() if graph_match.groups() else ""
@@ -802,35 +593,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 if visualization_image_base64:
                     import json as json_lib
 
-                    # #region agent log
-                    try:
-                        with open(debug_log_path, "a", encoding="utf-8") as f:
-                            f.write(
-                                json_lib_debug.dumps(
-                                    {
-                                        "timestamp": __import__("time").time() * 1000,
-                                        "location": "miniapp_endpoints.py:2279",
-                                        "message": "Отправка изображения визуализации",
-                                        "data": {
-                                            "image_size": len(visualization_image_base64),
-                                            "has_image": True,
-                                            "has_specific": bool(specific_visualization_image),
-                                            "multiplication_number": multiplication_number,
-                                            "general_table": general_table_request,
-                                            "general_graph": general_graph_request,
-                                        },
-                                        "sessionId": "debug-session",
-                                        "runId": "image_send",
-                                        "hypothesisId": "D",
-                                    },
-                                    ensure_ascii=False,
-                                )
-                                + "\n"
-                            )
-                    except Exception:
-                        pass
-                    # #endregion
-
                     image_data = json_lib.dumps(
                         {"image": visualization_image_base64, "type": "visualization"},
                         ensure_ascii=False,
@@ -839,32 +601,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     logger.info(
                         f"📊 Stream: Изображение визуализации отправлено (размер: {len(visualization_image_base64)}, специфичная: {bool(specific_visualization_image)})"
                     )
-                else:
-                    # #region agent log
-                    try:
-                        with open(debug_log_path, "a", encoding="utf-8") as f:
-                            f.write(
-                                json_lib_debug.dumps(
-                                    {
-                                        "timestamp": __import__("time").time() * 1000,
-                                        "location": "miniapp_endpoints.py:1732",
-                                        "message": "Изображение НЕ отправлено - не сгенерировано",
-                                        "data": {
-                                            "multiplication_number": multiplication_number,
-                                            "general_table": general_table_request,
-                                            "general_graph": general_graph_request,
-                                        },
-                                        "sessionId": "debug-session",
-                                        "runId": "image_send",
-                                        "hypothesisId": "D",
-                                    },
-                                    ensure_ascii=False,
-                                )
-                                + "\n"
-                            )
-                    except Exception:
-                        pass
-                    # #endregion
 
                 # КРИТИЧНО: Если есть визуализация - даем только короткое объяснение
                 # Для таблиц умножения полностью игнорируем текст от модели и формируем своё пояснение
@@ -976,32 +712,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                         full_response = " ".join(parts)
 
-                        # #region agent log
-                        try:
-                            with open(debug_log_path, "a", encoding="utf-8") as f:
-                                f.write(
-                                    json_lib_debug.dumps(
-                                        {
-                                            "timestamp": __import__("time").time() * 1000,
-                                            "location": "miniapp_endpoints.py:visual-mixed",
-                                            "message": "Сформировано пояснение для смешанного запроса (таблица + график)",
-                                            "data": {
-                                                "table_numbers": table_numbers,
-                                                "intent_items": intent.items,
-                                                "full_response": full_response[:200],
-                                            },
-                                            "sessionId": "debug-session",
-                                            "runId": "text_replacement",
-                                            "hypothesisId": "MIX",
-                                        },
-                                        ensure_ascii=False,
-                                    )
-                                    + "\n"
-                                )
-                        except Exception:
-                            pass
-                        # #endregion
-
                     else:
                         # Определяем тип визуализации из детектора или intent
                         if visualization_type:
@@ -1107,27 +817,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         logger.info(
                             f"✅ Stream: Текст обрезан до короткого объяснения (есть визуализация): {full_response[:100]}"
                         )
-                        # #region agent log
-                        try:
-                            with open(debug_log_path, "a", encoding="utf-8") as f:
-                                f.write(
-                                    json_lib_debug.dumps(
-                                        {
-                                            "timestamp": __import__("time").time() * 1000,
-                                            "location": "miniapp_endpoints.py:1762",
-                                            "message": "Текст заменен для визуализации",
-                                            "data": {"new_response": full_response},
-                                            "sessionId": "debug-session",
-                                            "runId": "text_replacement",
-                                            "hypothesisId": "C",
-                                        },
-                                        ensure_ascii=False,
-                                    )
-                                    + "\n"
-                                )
-                        except Exception:
-                            pass
-                        # #endregion
 
                 # Ограничиваем размер полного ответа
                 MAX_RESPONSE_LENGTH = 4000
@@ -1393,20 +1082,16 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             # Если есть визуализация - заменяем весь текст на короткий ответ
                             # Не пытаемся удалять фрагменты - это ломает ответ!
                             if multiplication_number_fallback:
-                                # #region agent log
                                 logger.info(
                                     f"🔍 Stream: Fallback ДО замены (multiplication_number={multiplication_number_fallback}): {cleaned_response[:200]}"
                                 )
-                                # #endregion
 
                                 # Просто заменяем весь ответ на короткий, если есть визуализация
                                 cleaned_response = "Вот таблица умножения."
 
-                                # #region agent log
                                 logger.info(
                                     f"✅ Stream: Fallback - текст заменен на короткий ответ (есть визуализация): {cleaned_response}"
                                 )
-                                # #endregion
 
                             # Удаляем упоминания про "систему автоматически" и подобное
                             patterns_to_remove = [
