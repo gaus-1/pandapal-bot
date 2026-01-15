@@ -1109,6 +1109,7 @@ class GamesService:
                 game.board = [list(row) for row in board]
             game.score = int(state.get("score", 0))
             game.lines_cleared = int(state.get("lines_cleared", 0))
+            game.level = int(state.get("level", 1))  # УЛУЧШЕНО: Восстанавливаем уровень
             game.game_over = bool(state.get("game_over", False))
             # Восстанавливаем текущую фигуру, если данные есть
             current_shape = state.get("current_shape")
@@ -1117,23 +1118,35 @@ class GamesService:
             game.current_row = int(state.get("current_row", 0))
             game.current_col = int(state.get("current_col", game.width // 2))
             game.current_rotation = int(state.get("current_rotation", 0))
+            # УЛУЧШЕНО: Восстанавливаем Bag of 7 (если сохранен)
+            saved_bag = state.get("bag")
+            if isinstance(saved_bag, list) and saved_bag:
+                game._bag = saved_bag
+            else:
+                # Если bag не сохранен - создаем новый (для обратной совместимости)
+                game._refill_bag()
 
         # Делаем шаг
         game.step(action)
         state = game.get_state()
 
         # Обновляем сессию
+        # УЛУЧШЕНО: Сохраняем width, height, level и bag для корректной работы
         self.update_game_session(
             session_id,
             {
                 "board": state["board"],
                 "score": state["score"],
                 "lines_cleared": state["lines_cleared"],
+                "level": state.get("level", 1),  # УЛУЧШЕНО: Сохраняем уровень
                 "game_over": state["game_over"],
+                "width": state.get("width", game.width),
+                "height": state.get("height", game.height),
                 "current_shape": state.get("current_shape"),
                 "current_row": state.get("current_row"),
                 "current_col": state.get("current_col"),
                 "current_rotation": state.get("current_rotation"),
+                "bag": game._bag,  # УЛУЧШЕНО: Сохраняем Bag of 7
             },
             "loss" if state["game_over"] else "in_progress",
         )

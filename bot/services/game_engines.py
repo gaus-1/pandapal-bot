@@ -421,8 +421,8 @@ class Game2048:
 class TetrisGame:
     """Логика игры Tetris для Mini App.
 
-    Упрощённая реализация без сложных kick-правил, но с корректным падением фигур
-    и удалением заполненных линий.
+    Реализация с Bag of 7 для справедливого спавна, Wall Kicks для вращения,
+    улучшенной системой очков и корректной очисткой линий.
     """
 
     width: int = 10
@@ -443,23 +443,40 @@ class TetrisGame:
         self.board: list[list[int]] = [[0] * self.width for _ in range(self.height)]
         self.score: int = 0
         self.lines_cleared: int = 0
+        self.level: int = 1  # УЛУЧШЕНО: Добавлен уровень
         self.game_over: bool = False
 
         self.current_shape: str | None = None
         self.current_rotation: int = 0
         self.current_row: int = 0
         self.current_col: int = self.width // 2
-        self._spawn_new_piece()
 
-    def _spawn_new_piece(self) -> None:
-        """Создать новую фигуру сверху."""
+        # УЛУЧШЕНО: Bag of 7 для справедливого спавна фигур
         import random as _rnd
 
-        self.current_shape = _rnd.choice(list(self._SHAPES.keys()))
+        self._rnd = _rnd
+        self._bag: list[str] = []
+        self._refill_bag()
+
+        self._spawn_new_piece()
+
+    def _refill_bag(self) -> None:
+        """Заполнить мешок всеми 7 фигурами в случайном порядке (Bag of 7)."""
+        self._bag = list(self._SHAPES.keys())
+        self._rnd.shuffle(self._bag)
+
+    def _spawn_new_piece(self) -> None:
+        """Создать новую фигуру сверху (Bag of 7 алгоритм)."""
+        # УЛУЧШЕНО: Используем Bag of 7 для справедливого спавна
+        if not self._bag:
+            self._refill_bag()
+
+        self.current_shape = self._bag.pop()
         self.current_rotation = 0
         self.current_row = 0
         self.current_col = self.width // 2
 
+        # УЛУЧШЕНО: Проверка Game Over при спавне (как в примере)
         if not self._can_place(self.current_row, self.current_col, self.current_rotation):
             self.game_over = True
 
@@ -480,11 +497,22 @@ class TetrisGame:
         return blocks
 
     def _can_place(self, row: int, col: int, rotation: int) -> bool:
-        """Проверить, можно ли разместить фигуру в указанной позиции."""
+        """Проверить, можно ли разместить фигуру в указанной позиции.
+
+        Проверяет:
+        1. Границы по X (выход за пределы ширины)
+        2. Границы по Y (выход за пределы высоты или достижение дна)
+        3. Занятость ячеек (пересечение с уже заполненными блоками)
+        """
         for r, c in self._get_blocks(row, col, rotation):
-            if r < 0 or r >= self.height or c < 0 or c >= self.width:
+            # Проверка границ по X
+            if c < 0 or c >= self.width:
                 return False
-            if self.board[r][c] != 0:
+            # Проверка границ по Y (достижение дна или выход за пределы)
+            if r >= self.height:
+                return False
+            # Проверка занятости (только для валидных координат)
+            if r >= 0 and self.board[r][c] != 0:
                 return False
         return True
 
@@ -494,23 +522,38 @@ class TetrisGame:
             if 0 <= r < self.height and 0 <= c < self.width:
                 self.board[r][c] = 1
 
-        # Очистка заполненных линий
+        # УЛУЧШЕНО: Очистка заполненных линий снизу вверх (как в примере)
         new_board: list[list[int]] = []
         cleared = 0
-        for row in self.board:
+        # Проходим снизу вверх (от строки height-1 до 0)
+        for row_idx in range(self.height - 1, -1, -1):
+            row = self.board[row_idx]
             if all(cell != 0 for cell in row):
+                # Строка полностью заполнена - удаляем её
                 cleared += 1
             else:
-                new_board.append(row)
+                # Строка не полная - сохраняем её
+                new_board.insert(0, row)
 
+        # Добавляем пустые строки сверху
         for _ in range(cleared):
             new_board.insert(0, [0] * self.width)
 
         if cleared:
             self.board = new_board
             self.lines_cleared += cleared
-            # Простая система очков: 100 за линию
-            self.score += cleared * 100
+
+            # УЛУЧШЕНО: Улучшенная система очков с множителями
+            # 1 линия = 100, 2 линии = 300, 3 линии = 500, 4 линии = 800
+            score_multipliers = {1: 100, 2: 300, 3: 500, 4: 800}
+            base_score = score_multipliers.get(cleared, cleared * 100)
+            # Умножаем на уровень для дополнительного бонуса
+            self.score += base_score * self.level
+
+            # УЛУЧШЕНО: Повышение уровня каждые 10 очищенных линий
+            new_level = (self.lines_cleared // 10) + 1
+            if new_level > self.level:
+                self.level = new_level
 
         self._spawn_new_piece()
 
@@ -535,6 +578,25 @@ class TetrisGame:
             new_row += 1
         elif action == "rotate":
             new_rot = (new_rot + 1) % 4
+            # УЛУЧШЕНО: Wall Kicks - пытаемся сдвинуть фигуру при вращении
+            if not self._can_place(new_row, new_col, new_rot):
+                # Пробуем сдвинуть влево, вправо, вниз
+                kick_offsets = [
+                    (0, -1),  # Влево
+                    (0, 1),  # Вправо
+                    (1, 0),  # Вниз
+                    (-1, 0),  # Вверх (редко, но может помочь)
+                ]
+                kicked = False
+                for dr, dc in kick_offsets:
+                    if self._can_place(new_row + dr, new_col + dc, new_rot):
+                        new_row += dr
+                        new_col += dc
+                        kicked = True
+                        break
+                if not kicked:
+                    # Вращение невозможно - отменяем
+                    new_rot = self.current_rotation
 
         if self._can_place(new_row, new_col, new_rot):
             self.current_row, self.current_col, self.current_rotation = new_row, new_col, new_rot
@@ -560,6 +622,7 @@ class TetrisGame:
             "board": preview,
             "score": self.score,
             "lines_cleared": self.lines_cleared,
+            "level": self.level,  # УЛУЧШЕНО: Добавлен уровень в состояние
             "game_over": self.game_over,
             "current_shape": self.current_shape,
             "current_row": self.current_row,
