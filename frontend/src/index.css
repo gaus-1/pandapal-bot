@@ -260,6 +260,18 @@
   }
 }
 
+/* КРИТИЧЕСКИ ВАЖНО: Дополнительные keyframes для мобильных устройств */
+@-webkit-keyframes logoBounce {
+  0%, 100% {
+    -webkit-transform: translateY(0) translateZ(0);
+    transform: translateY(0) translateZ(0);
+  }
+  50% {
+    -webkit-transform: translateY(-10px) translateZ(0);
+    transform: translateY(-10px) translateZ(0);
+  }
+}
+
 @keyframes textReveal {
   from {
     opacity: 0;

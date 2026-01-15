@@ -182,36 +182,52 @@ export function AIChat({ user }: AIChatProps) {
     if (showWelcome && messages.length === 0 && logoRef.current) {
       const img = logoRef.current;
 
-      // Используем двойной requestAnimationFrame для гарантированного применения
+      // КРИТИЧЕСКИ ВАЖНО для мобильных: используем тройной requestAnimationFrame
+      // и принудительно применяем все стили через CSS класс, а не inline
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          // Сбрасываем анимацию полностью
-          img.style.animation = 'none';
-          img.style.webkitAnimation = 'none';
+          requestAnimationFrame(() => {
+            // Удаляем все inline стили анимации, чтобы CSS класс работал
+            img.style.animation = '';
+            img.style.webkitAnimation = '';
+            img.style.animationName = '';
+            img.style.webkitAnimationName = '';
+            img.style.animationDuration = '';
+            img.style.webkitAnimationDuration = '';
+            img.style.animationTimingFunction = '';
+            img.style.webkitAnimationTimingFunction = '';
+            img.style.animationIterationCount = '';
+            img.style.webkitAnimationIterationCount = '';
+            img.style.animationFillMode = '';
+            img.style.webkitAnimationFillMode = '';
+            img.style.animationPlayState = '';
+            img.style.webkitAnimationPlayState = '';
 
-          // Принудительный reflow для применения изменений
-          void img.offsetWidth;
+            // Принудительный reflow
+            void img.offsetWidth;
 
-          // Включаем анимацию заново
-          img.style.animation = 'logoBounce 2s ease-in-out infinite';
-          img.style.webkitAnimation = 'logoBounce 2s ease-in-out infinite';
-          img.style.animationName = 'logoBounce';
-          img.style.webkitAnimationName = 'logoBounce';
-          img.style.animationDuration = '2s';
-          img.style.webkitAnimationDuration = '2s';
-          img.style.animationTimingFunction = 'ease-in-out';
-          img.style.webkitAnimationTimingFunction = 'ease-in-out';
-          img.style.animationIterationCount = 'infinite';
-          img.style.webkitAnimationIterationCount = 'infinite';
-          img.style.animationFillMode = 'both';
-          img.style.webkitAnimationFillMode = 'both';
-          img.style.animationPlayState = 'running';
-          img.style.webkitAnimationPlayState = 'running';
-          img.style.willChange = 'transform';
-          img.style.transform = 'translateZ(0)';
-          img.style.webkitTransform = 'translateZ(0)';
-          img.style.backfaceVisibility = 'hidden';
-          img.style.webkitBackfaceVisibility = 'hidden';
+            // Применяем только необходимые inline стили для аппаратного ускорения
+            img.style.willChange = 'transform';
+            img.style.transform = 'translateZ(0)';
+            img.style.webkitTransform = 'translateZ(0)';
+            img.style.backfaceVisibility = 'hidden';
+            img.style.webkitBackfaceVisibility = 'hidden';
+
+            // Принудительно включаем CSS класс (если его нет)
+            if (!img.classList.contains('animate-logo-bounce')) {
+              img.classList.add('animate-logo-bounce');
+            }
+
+            // Еще один reflow для применения CSS класса
+            void img.offsetWidth;
+
+            // Принудительно перезапускаем через CSS
+            img.style.animation = 'none';
+            img.style.webkitAnimation = 'none';
+            void img.offsetWidth;
+            img.style.animation = '';
+            img.style.webkitAnimation = '';
+          });
         });
       });
     }
