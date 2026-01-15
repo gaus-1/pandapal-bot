@@ -388,7 +388,7 @@ export function AIChat({ user }: AIChatProps) {
               width={120}
               height={120}
               loading="eager"
-              className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/50 dark:bg-slate-800/50 p-2"
+              className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/50 dark:bg-slate-800/50 p-2 animate-logo-bounce"
               key={`logo-${messages.length}-${showWelcome ? 'welcome' : 'chat'}`}
               style={{
                 animation: 'logoBounce 2s ease-in-out infinite',
