@@ -473,11 +473,15 @@ class TetrisGame:
 
         self.current_shape = self._bag.pop()
         self.current_rotation = 0
-        self.current_row = 0
+        # КРИТИЧНО: Спавним фигуру выше верхней границы (row = -1 или -2)
+        # чтобы она "выпадала" сверху, а не появлялась сразу на поле
+        # Некоторые фигуры (например, I) могут иметь блоки выше, поэтому используем -2
+        self.current_row = -2
         self.current_col = self.width // 2
 
         # УЛУЧШЕНО: Проверка Game Over при спавне (как в примере)
-        if not self._can_place(self.current_row, self.current_col, self.current_rotation):
+        # Проверяем, можно ли разместить фигуру хотя бы на верхней границе (row = 0)
+        if not self._can_place(0, self.current_col, self.current_rotation):
             self.game_over = True
 
     def _get_blocks(self, row: int, col: int, rotation: int) -> list[tuple[int, int]]:
@@ -615,6 +619,10 @@ class TetrisGame:
         preview = [row[:] for row in self.board]
         if self.current_shape and not self.game_over:
             for r, c in self._get_blocks(self.current_row, self.current_col, self.current_rotation):
+                # КРИТИЧНО: Разрешаем отображать фигуру даже если она выше поля (r < 0)
+                # Это нужно для плавного появления фигуры сверху
+                if r < 0:
+                    continue  # Фигура еще не видна (выше поля)
                 if 0 <= r < self.height and 0 <= c < self.width:
                     preview[r][c] = 2  # 2 = активная фигура
 
