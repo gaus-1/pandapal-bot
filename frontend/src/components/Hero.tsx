@@ -67,7 +67,7 @@ export const Hero: React.FC = React.memo(() => {
 
         {/* Описание продукта */}
         <p className="mt-4 sm:mt-6 text-sm sm:text-base md:text-lg text-gray-700 dark:text-slate-200 max-w-2xl mx-auto animate-fade-in-delay">
-          Адаптивное, игровое, безопасное обучение и общение детей 1–9 классов
+          Адаптивное, игровое, безопасное обучение и общение для детей 1–9 классов
         </p>
 
         {/* CTA кнопки */}

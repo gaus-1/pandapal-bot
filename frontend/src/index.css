@@ -99,9 +99,17 @@
   @media (max-width: 640px) {
     .animate-logo-bounce {
       animation: logoBounce 2s ease-in-out infinite !important;
-      will-change: transform;
-      transform: translateZ(0);
-      backface-visibility: hidden;
+      -webkit-animation: logoBounce 2s ease-in-out infinite !important;
+      will-change: transform !important;
+      transform: translateZ(0) !important;
+      -webkit-transform: translateZ(0) !important;
+      backface-visibility: hidden !important;
+      -webkit-backface-visibility: hidden !important;
+      animationName: logoBounce !important;
+      animationDuration: 2s !important;
+      animationTimingFunction: ease-in-out !important;
+      animationIterationCount: infinite !important;
+      animationFillMode: both !important;
     }
   }
 
@@ -227,10 +235,12 @@
 
 @keyframes logoBounce {
   0%, 100% {
-    transform: translateY(0);
+    transform: translateY(0) translateZ(0);
+    -webkit-transform: translateY(0) translateZ(0);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-10px) translateZ(0);
+    -webkit-transform: translateY(-10px) translateZ(0);
   }
 }
 
