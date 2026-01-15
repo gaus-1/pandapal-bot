@@ -134,6 +134,135 @@ class VisualizationDetector:
             logger.debug("🔍 Запрос на объяснение без визуализации - пропускаем генерацию")
             return None, None
 
+        # КРИТИЧНО: Сначала проверяем универсальные типы диаграмм (если есть запрос визуализации)
+        # Это должно быть ДО проверки контекстных паттернов, чтобы не блокировать детекцию
+        if has_visualization_request:
+            # 39. Универсальные типы диаграмм (столбчатая, круговая, линейная, гистограмма, рассеяния)
+            # Детектируем запросы на создание диаграмм с явным указанием типа
+            diagram_type_patterns = {
+                "столбчат": ("bar", self.viz_service.generate_bar_chart),
+                "столбчатая": ("bar", self.viz_service.generate_bar_chart),
+                "столбчатую": ("bar", self.viz_service.generate_bar_chart),
+                "круговая": ("pie", self.viz_service.generate_pie_chart),
+                "круговую": ("pie", self.viz_service.generate_pie_chart),
+                "кругов": ("pie", self.viz_service.generate_pie_chart),
+                "круговой": ("pie", self.viz_service.generate_pie_chart),
+                "линейн": ("line", self.viz_service.generate_line_chart),
+                "линейный график": ("line", self.viz_service.generate_line_chart),
+                "линейную": ("line", self.viz_service.generate_line_chart),
+                "линейного": ("line", self.viz_service.generate_line_chart),
+                "гистограмм": ("histogram", self.viz_service.generate_histogram),
+                "гистограмму": ("histogram", self.viz_service.generate_histogram),
+                "гистограммы": ("histogram", self.viz_service.generate_histogram),
+                "рассеяни": ("scatter", self.viz_service.generate_scatter_plot),
+                "рассеяния": ("scatter", self.viz_service.generate_scatter_plot),
+                "точечн": ("scatter", self.viz_service.generate_scatter_plot),
+                "точечную": ("scatter", self.viz_service.generate_scatter_plot),
+                "ящик с усами": ("box", self.viz_service.generate_box_plot),
+                "ящик": ("box", self.viz_service.generate_box_plot),
+                "box plot": ("box", self.viz_service.generate_box_plot),
+                "пузырьков": ("bubble", self.viz_service.generate_bubble_chart),
+                "пузырьковую": ("bubble", self.viz_service.generate_bubble_chart),
+                "теплов": ("heatmap", self.viz_service.generate_heatmap),
+                "тепловую": ("heatmap", self.viz_service.generate_heatmap),
+                "heatmap": ("heatmap", self.viz_service.generate_heatmap),
+            }
+
+            for keyword, (diagram_type, generator_func) in diagram_type_patterns.items():
+                if keyword in text_lower:
+                    # Пытаемся извлечь данные из запроса
+                    # Если данных нет - создаем примерную диаграмму с демонстрационными данными
+                    try:
+                        if diagram_type == "bar":
+                            # Пример: столбчатая диаграмма с данными о предпочтениях
+                            demo_data = {
+                                "Яблоки": 25,
+                                "Бананы": 18,
+                                "Апельсины": 22,
+                                "Груши": 15,
+                                "Виноград": 20,
+                            }
+                            image = generator_func(demo_data, "Пример столбчатой диаграммы")
+                        elif diagram_type == "pie":
+                            # Пример: круговая диаграмма с долями
+                            demo_data = {
+                                "Математика": 30,
+                                "Русский": 25,
+                                "Английский": 20,
+                                "Физика": 15,
+                                "Химия": 10,
+                            }
+                            image = generator_func(demo_data, "Пример круговой диаграммы")
+                        elif diagram_type == "line":
+                            # Пример: линейный график изменения температуры
+                            x_data = list(range(1, 13))  # Месяцы
+                            y_data = [-5, -3, 2, 10, 18, 22, 24, 23, 16, 8, 2, -2]  # Температура
+                            image = generator_func(
+                                x_data,
+                                y_data,
+                                "Пример линейного графика",
+                                "Месяц",
+                                "Температура (°C)",
+                            )
+                        elif diagram_type == "histogram":
+                            # Пример: гистограмма распределения оценок
+                            demo_data = [3, 4, 4, 5, 5, 5, 4, 3, 5, 4, 5, 4, 3, 5, 4, 5, 5, 4, 3, 4]
+                            image = generator_func(
+                                demo_data, 5, "Пример гистограммы", "Оценка", "Количество"
+                            )
+                        elif diagram_type == "scatter":
+                            # Пример: диаграмма рассеяния роста и веса
+                            x_data = [150, 155, 160, 165, 170, 175, 180, 185, 190]
+                            y_data = [45, 50, 55, 60, 65, 70, 75, 80, 85]
+                            image = generator_func(
+                                x_data,
+                                y_data,
+                                "Пример диаграммы рассеяния",
+                                "Рост (см)",
+                                "Вес (кг)",
+                            )
+                        elif diagram_type == "box":
+                            # Пример: ящик с усами для сравнения результатов
+                            demo_data = {
+                                "Группа A": [65, 70, 72, 75, 78, 80, 82, 85, 88, 90],
+                                "Группа B": [60, 65, 68, 70, 72, 75, 78, 80, 82, 85],
+                                "Группа C": [70, 75, 78, 80, 82, 85, 88, 90, 92, 95],
+                            }
+                            image = generator_func(demo_data, "Пример ящика с усами", "Оценка")
+                        elif diagram_type == "bubble":
+                            # Пример: пузырьковая диаграмма стран (население, ВВП, площадь)
+                            x_data = [1.4, 1.3, 0.3, 0.2, 0.1]  # Население (млрд)
+                            y_data = [14, 4, 3, 2, 1]  # ВВП (трлн $)
+                            sizes = [9.6, 3.3, 0.9, 0.8, 0.5]  # Площадь (млн км²)
+                            labels = ["Китай", "Индия", "США", "Индонезия", "Пакистан"]
+                            image = generator_func(
+                                x_data,
+                                y_data,
+                                sizes,
+                                labels,
+                                "Пример пузырьковой диаграммы",
+                                "Население (млрд)",
+                                "ВВП (трлн $)",
+                            )
+                        elif diagram_type == "heatmap":
+                            # Пример: тепловая карта посещаемости по дням и часам
+                            demo_data = {
+                                "Понедельник": {"9:00": 45, "12:00": 60, "15:00": 50, "18:00": 40},
+                                "Вторник": {"9:00": 50, "12:00": 65, "15:00": 55, "18:00": 45},
+                                "Среда": {"9:00": 48, "12:00": 70, "15:00": 58, "18:00": 42},
+                                "Четверг": {"9:00": 52, "12:00": 68, "15:00": 60, "18:00": 48},
+                                "Пятница": {"9:00": 40, "12:00": 55, "15:00": 45, "18:00": 35},
+                            }
+                            image = generator_func(demo_data, title="Пример тепловой карты")
+
+                        if image:
+                            logger.info(f"📊 Детектирован запрос на {diagram_type} диаграмму")
+                            return image, diagram_type
+
+                    except Exception as e:
+                        logger.warning(f"⚠️ Ошибка генерации {diagram_type} диаграммы: {e}")
+                        continue
+
         # Если нет явного запроса визуализации, проверяем контекстные паттерны
         # (только для специфичных случаев, где визуализация очевидна)
         if not has_visualization_request:
@@ -177,7 +306,7 @@ class VisualizationDetector:
                 image = self.viz_service.generate_russian_verb_conjugation_table()
                 if image:
                     logger.info("📊 Детектирована таблица спряжения/сопряжения глаголов")
-                                    return image, "graph"
+                    return image, "table"
 
         # 2. Алгебра: степени 2 и 10
         if "степен" in text_lower and (
@@ -186,7 +315,7 @@ class VisualizationDetector:
             image = self.viz_service.generate_powers_of_2_and_10_table()
             if image:
                 logger.info("📊 Детектирована таблица степеней чисел 2 и 10")
-                                    return image, "graph"
+                return image, "table"
 
         # 3. Простые числа
         if (
@@ -197,7 +326,7 @@ class VisualizationDetector:
             image = self.viz_service.generate_prime_numbers_table()
             if image:
                 logger.info("📊 Детектирована таблица простых чисел")
-                                    return image, "graph"
+                return image, "table"
 
         # 4. Формулы сокращенного умножения
         if re.search(
@@ -207,14 +336,14 @@ class VisualizationDetector:
             image = self.viz_service.generate_abbreviated_multiplication_formulas_table()
             if image:
                 logger.info("📊 Детектирована таблица формул сокращенного умножения")
-                                    return image, "graph"
+                return image, "table"
 
         # 5. Свойства степеней
         if re.search(r"(?:табл[иы]ц[аеы]?\s+)?(?:свойств[а]?\s+степен)", text_lower):
             image = self.viz_service.generate_power_properties_table()
             if image:
                 logger.info("📊 Детектирована таблица свойств степеней")
-                                    return image, "graph"
+                return image, "table"
 
         # 6. Свойства квадратного корня
         if re.search(
@@ -223,21 +352,21 @@ class VisualizationDetector:
             image = self.viz_service.generate_square_root_properties_table()
             if image:
                 logger.info("📊 Детектирована таблица свойств квадратного корня")
-                                    return image, "graph"
+                return image, "table"
 
         # 7. Стандартный вид числа
         if "стандартн" in text_lower and "вид" in text_lower:
             image = self.viz_service.generate_standard_form_table()
             if image:
                 logger.info("📊 Детектирована таблица стандартного вида числа")
-                                    return image, "graph"
+                return image, "table"
 
         # 8. Квадраты и кубы (до таблицы умножения)
         if ("квадрат" in text_lower and "куб" in text_lower) and "умнож" not in text_lower:
             image = self.viz_service.generate_squares_and_cubes_table()
             if image:
                 logger.info("📊 Детектирована таблица квадратов и кубов")
-                                    return image, "graph"
+                return image, "table"
 
         # 9. Полная таблица умножения (без числа)
         # ВАЖНО: Проверяем только если есть явное упоминание "умножения"
@@ -256,7 +385,7 @@ class VisualizationDetector:
             image = self.viz_service.generate_full_multiplication_table()
             if image:
                 logger.info("📊 Детектирована полная таблица умножения")
-                                    return image, "graph"
+                return image, "table"
 
         # 10. Дополнительные паттерны для полной таблицы
         full_table_patterns = [
@@ -270,7 +399,7 @@ class VisualizationDetector:
                 image = self.viz_service.generate_full_multiplication_table()
                 if image:
                     logger.info("📊 Детектирована полная таблица умножения")
-                                    return image, "graph"
+                return image, "table"
 
         # 11. Таблица умножения на конкретное число
         multiplication_patterns = [
@@ -288,7 +417,7 @@ class VisualizationDetector:
                         image = self.viz_service.generate_multiplication_table_image(number)
                         if image:
                             logger.info(f"📊 Детектирована таблица умножения на {number}")
-                                    return image, "graph"
+                            return image, "table"
                 except (ValueError, IndexError):
                     continue
 
@@ -303,7 +432,7 @@ class VisualizationDetector:
                 image = self.viz_service.generate_chemistry_solubility_table()
                 if image:
                     logger.info("📊 Детектирована таблица растворимости")
-                                    return image, "graph"
+                return image, "table"
 
         # 13. Химия: валентность
         valence_patterns = [
@@ -319,7 +448,7 @@ class VisualizationDetector:
                 image = self.viz_service.generate_chemistry_valence_table()
                 if image:
                     logger.info("📊 Детектирована таблица валентности")
-                                    return image, "graph"
+                return image, "table"
 
         # 14. Физика: константы
         constants_patterns = [
@@ -332,7 +461,7 @@ class VisualizationDetector:
                 image = self.viz_service.generate_physics_constants_table()
                 if image:
                     logger.info("📊 Детектирована таблица физических констант")
-                                    return image, "graph"
+                return image, "table"
 
         # 15. Английский: времена
         english_tenses_patterns = [
@@ -345,84 +474,84 @@ class VisualizationDetector:
                 image = self.viz_service.generate_english_tenses_table()
                 if image:
                     logger.info("📊 Детектирована таблица времен английского")
-                                    return image, "graph"
+                return image, "table"
 
         # 16. Английский: неправильные глаголы
         if "неправильн" in text_lower and "глагол" in text_lower:
             image = self.viz_service.generate_english_irregular_verbs_table()
             if image:
                 logger.info("📊 Детектирована таблица неправильных глаголов")
-                                    return image, "graph"
+                return image, "table"
 
         # 17. Математика: сложение
         if re.search(r"табл[иы]ц[аеы]?\s+сложени[яе]", text_lower):
             image = self.viz_service.generate_addition_table()
             if image:
                 logger.info("📊 Детектирована таблица сложения")
-                                    return image, "graph"
+                return image, "table"
 
         # 18. Математика: вычитание
         if re.search(r"табл[иы]ц[аеы]?\s+вычитани[яе]", text_lower):
             image = self.viz_service.generate_subtraction_table()
             if image:
                 logger.info("📊 Детектирована таблица вычитания")
-                                    return image, "graph"
+                return image, "table"
 
         # 19. Математика: деление
         if re.search(r"табл[иы]ц[аеы]?\s+делени[яе]", text_lower):
             image = self.viz_service.generate_division_table()
             if image:
                 logger.info("📊 Детектирована таблица деления")
-                                    return image, "graph"
+                return image, "table"
 
         # 20. Единицы измерения
         if re.search(r"(?:табл[иы]ц[аеы]?\s+)?единиц[ы]?\s+измерени[яе]", text_lower):
             image = self.viz_service.generate_units_table()
             if image:
                 logger.info("📊 Детектирована таблица единиц измерения")
-                                    return image, "graph"
+                return image, "table"
 
         # 21. Русский: алфавит
         if re.search(r"(?:табл[иы]ц[аеы]?\s+)?(?:букв|алфавит|звук)", text_lower):
             image = self.viz_service.generate_russian_alphabet_table()
             if image:
                 logger.info("📊 Детектирована таблица букв и звуков")
-                                    return image, "graph"
+                return image, "table"
 
         # 22. Русский: падежи
         if re.search(r"(?:табл[иы]ц[аеы]?\s+)?(?:падеж|склонени)", text_lower):
             image = self.viz_service.generate_russian_cases_table()
             if image:
                 logger.info("📊 Детектирована таблица падежей")
-                                    return image, "graph"
+                return image, "table"
 
         # 23. Русский: орфография
         if re.search(r"(?:табл[иы]ц[аеы]?\s+)?(?:орфограф|правописан)", text_lower):
             image = self.viz_service.generate_russian_orthography_table()
             if image:
                 logger.info("📊 Детектирована таблица орфографии")
-                                    return image, "graph"
+                return image, "table"
 
         # 24. Русский: пунктуация
         if re.search(r"(?:табл[иы]ц[аеы]?\s+)?(?:пунктуац|знак[и]?\s+препинан)", text_lower):
             image = self.viz_service.generate_russian_punctuation_table()
             if image:
                 logger.info("📊 Детектирована таблица пунктуации")
-                                    return image, "graph"
+                return image, "table"
 
         # 25. Русский: морфемный разбор
         if re.search(r"(?:табл[иы]ц[аеы]?\s+)?(?:морфемн|разбор\s+слов)", text_lower):
             image = self.viz_service.generate_russian_word_analysis_table()
             if image:
                 logger.info("📊 Детектирована таблица морфемного разбора")
-                                    return image, "graph"
+                return image, "table"
 
         # 26. Русский: стили речи
         if "стил" in text_lower and "реч" in text_lower:
             image = self.viz_service.generate_russian_speech_styles_table()
             if image:
                 logger.info("📊 Детектирована таблица стилей речи")
-                                    return image, "graph"
+                return image, "table"
 
         # 27. Окружающий мир: времена года
         if re.search(
@@ -431,28 +560,28 @@ class VisualizationDetector:
             image = self.viz_service.generate_seasons_months_table()
             if image:
                 logger.info("📊 Детектирована таблица времен года")
-                                    return image, "graph"
+                return image, "table"
 
         # 28. География: природные зоны
         if re.search(r"природн[ые]?\s+зон", text_lower):
             image = self.viz_service.generate_natural_zones_table()
             if image:
                 logger.info("📊 Детектирована таблица природных зон")
-                                    return image, "graph"
+                return image, "table"
 
         # 29. География: часовые пояса
         if re.search(r"часов[ые]?\s+пояс", text_lower):
             image = self.viz_service.generate_time_zones_table()
             if image:
                 logger.info("📊 Детектирована таблица часовых поясов")
-                                    return image, "graph"
+                return image, "table"
 
         # 30. География: страны
         if re.search(r"(?:табл[иы]ц[аеы]?\s+)?(?:крупнейш|страны?\s+мир)", text_lower):
             image = self.viz_service.generate_countries_table()
             if image:
                 logger.info("📊 Детектирована таблица стран")
-                                    return image, "graph"
+                return image, "table"
 
         # 31. География: карты стран
         # Детектируем запросы на карты: "покажи карту", "где находится", "карта страны"
@@ -481,27 +610,27 @@ class VisualizationDetector:
                     image = self.viz_service.generate_country_map(country_name)
                     if image:
                         logger.info(f"🗺️ Детектирована карта для страны: {country_name}")
-                                    return image, "graph"
+                        return image, "map"
                 else:
                     # Если страна не указана, но есть запрос на карту - показываем карту мира
                     image = self.viz_service.generate_country_map("мир")
                     if image:
                         logger.info("🗺️ Детектирована карта мира")
-                                    return image, "graph"
+                        return image, "map"
 
         # 31. История: хронология
         if re.search(r"(?:табл[иы]ц[аеы]?\s+)?(?:хронологи|истори[яи]?\s+росси)", text_lower):
             image = self.viz_service.generate_history_timeline_table()
             if image:
                 logger.info("📊 Детектирована хронологическая таблица")
-                                    return image, "graph"
+                return image, "table"
 
         # 32. Обществознание: ветви власти
         if re.search(r"ветв[и]?\s+власт", text_lower):
             image = self.viz_service.generate_government_branches_table()
             if image:
                 logger.info("📊 Детектирована таблица ветвей власти")
-                                    return image, "graph"
+                return image, "table"
 
         # 33. Информатика: системы счисления
         if re.search(
@@ -510,7 +639,7 @@ class VisualizationDetector:
             image = self.viz_service.generate_number_systems_table()
             if image:
                 logger.info("📊 Детектирована таблица систем счисления")
-                                    return image, "graph"
+                return image, "table"
 
         # 34. Химия: периодическая таблица Менделеева
         mendeleev_patterns = [
@@ -525,7 +654,7 @@ class VisualizationDetector:
                 image = self.viz_service.generate_periodic_table_simple()
                 if image:
                     logger.info("📊 Детектирована периодическая таблица Менделеева")
-                                    return image, "graph"
+                return image, "table"
 
         # 35. Физика: графики движения
         if re.search(r"график\s+(?:пути|путь)\s+от\s+времен", text_lower):
@@ -593,122 +722,16 @@ class VisualizationDetector:
                         image = self.viz_service.generate_function_graph("x^2")
                         if image:
                             logger.info("📈 Детектирован график параболы")
-                                    return image, "graph"
+                            return image, "graph"
                     elif "синус" in text_lower or "синусоид" in text_lower:
                         image = self.viz_service.generate_function_graph("sin(x)")
                         if image:
                             logger.info("📈 Детектирован график синуса")
-                                    return image, "graph"
+                            return image, "graph"
                     elif "косинус" in text_lower:
                         image = self.viz_service.generate_function_graph("cos(x)")
                         if image:
                             logger.info("📈 Детектирован график косинуса")
-                                    return image, "graph"
+                            return image, "graph"
 
-        # 39. Универсальные типы диаграмм (столбчатая, круговая, линейная, гистограмма, рассеяния)
-        # Детектируем запросы на создание диаграмм с явным указанием типа
-        diagram_type_patterns = {
-            "столбчат": ("bar", self.viz_service.generate_bar_chart),
-            "столбчатая": ("bar", self.viz_service.generate_bar_chart),
-            "круговая": ("pie", self.viz_service.generate_pie_chart),
-            "кругов": ("pie", self.viz_service.generate_pie_chart),
-            "линейн": ("line", self.viz_service.generate_line_chart),
-            "линейный график": ("line", self.viz_service.generate_line_chart),
-            "гистограмм": ("histogram", self.viz_service.generate_histogram),
-            "рассеяни": ("scatter", self.viz_service.generate_scatter_plot),
-            "точечн": ("scatter", self.viz_service.generate_scatter_plot),
-            "ящик с усами": ("box", self.viz_service.generate_box_plot),
-            "box plot": ("box", self.viz_service.generate_box_plot),
-            "пузырьков": ("bubble", self.viz_service.generate_bubble_chart),
-            "теплов": ("heatmap", self.viz_service.generate_heatmap),
-            "heatmap": ("heatmap", self.viz_service.generate_heatmap),
-        }
-
-        for keyword, (diagram_type, generator_func) in diagram_type_patterns.items():
-            if keyword in text_lower:
-                # Пытаемся извлечь данные из запроса
-                # Если данных нет - создаем примерную диаграмму с демонстрационными данными
-                try:
-                    if diagram_type == "bar":
-                        # Пример: столбчатая диаграмма с данными о предпочтениях
-                        demo_data = {
-                            "Яблоки": 25,
-                            "Бананы": 18,
-                            "Апельсины": 22,
-                            "Груши": 15,
-                            "Виноград": 20,
-                        }
-                        image = generator_func(demo_data, "Пример столбчатой диаграммы")
-                    elif diagram_type == "pie":
-                        # Пример: круговая диаграмма с долями
-                        demo_data = {
-                            "Математика": 30,
-                            "Русский": 25,
-                            "Английский": 20,
-                            "Физика": 15,
-                            "Химия": 10,
-                        }
-                        image = generator_func(demo_data, "Пример круговой диаграммы")
-                    elif diagram_type == "line":
-                        # Пример: линейный график изменения температуры
-                        x_data = list(range(1, 13))  # Месяцы
-                        y_data = [-5, -3, 2, 10, 18, 22, 24, 23, 16, 8, 2, -2]  # Температура
-                        image = generator_func(
-                            x_data, y_data, "Пример линейного графика", "Месяц", "Температура (°C)"
-                        )
-                    elif diagram_type == "histogram":
-                        # Пример: гистограмма распределения оценок
-                        demo_data = [3, 4, 4, 5, 5, 5, 4, 3, 5, 4, 5, 4, 3, 5, 4, 5, 5, 4, 3, 4]
-                        image = generator_func(
-                            demo_data, 5, "Пример гистограммы", "Оценка", "Количество"
-                        )
-                    elif diagram_type == "scatter":
-                        # Пример: диаграмма рассеяния роста и веса
-                        x_data = [150, 155, 160, 165, 170, 175, 180, 185, 190]
-                        y_data = [45, 50, 55, 60, 65, 70, 75, 80, 85]
-                        image = generator_func(
-                            x_data, y_data, "Пример диаграммы рассеяния", "Рост (см)", "Вес (кг)"
-                        )
-                    elif diagram_type == "box":
-                        # Пример: ящик с усами для сравнения результатов
-                        demo_data = {
-                            "Группа A": [65, 70, 72, 75, 78, 80, 82, 85, 88, 90],
-                            "Группа B": [60, 65, 68, 70, 72, 75, 78, 80, 82, 85],
-                            "Группа C": [70, 75, 78, 80, 82, 85, 88, 90, 92, 95],
-                        }
-                        image = generator_func(demo_data, "Пример ящика с усами", "Оценка")
-                    elif diagram_type == "bubble":
-                        # Пример: пузырьковая диаграмма стран (население, ВВП, площадь)
-                        x_data = [1.4, 1.3, 0.3, 0.2, 0.1]  # Население (млрд)
-                        y_data = [14, 4, 3, 2, 1]  # ВВП (трлн $)
-                        sizes = [9.6, 3.3, 0.9, 0.8, 0.5]  # Площадь (млн км²)
-                        labels = ["Китай", "Индия", "США", "Индонезия", "Пакистан"]
-                        image = generator_func(
-                            x_data,
-                            y_data,
-                            sizes,
-                            labels,
-                            "Пример пузырьковой диаграммы",
-                            "Население (млрд)",
-                            "ВВП (трлн $)",
-                        )
-                    elif diagram_type == "heatmap":
-                        # Пример: тепловая карта посещаемости по дням и часам
-                        demo_data = {
-                            "Понедельник": {"9:00": 45, "12:00": 60, "15:00": 50, "18:00": 40},
-                            "Вторник": {"9:00": 50, "12:00": 65, "15:00": 55, "18:00": 45},
-                            "Среда": {"9:00": 48, "12:00": 70, "15:00": 58, "18:00": 42},
-                            "Четверг": {"9:00": 52, "12:00": 68, "15:00": 60, "18:00": 48},
-                            "Пятница": {"9:00": 40, "12:00": 55, "15:00": 45, "18:00": 35},
-                        }
-                        image = generator_func(demo_data, title="Пример тепловой карты")
-
-                    if image:
-                        logger.info(f"📊 Детектирован запрос на {diagram_type} диаграмму")
-                                    return image, "graph"
-
-                except Exception as e:
-                    logger.warning(f"⚠️ Ошибка генерации {diagram_type} диаграммы: {e}")
-                    continue
-
-        return None
+        return None, None

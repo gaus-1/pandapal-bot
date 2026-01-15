@@ -123,9 +123,10 @@ class MiniappVisualizationService:
 
         # Проверяем специфичные таблицы через detect_visualization_request
         specific_visualization_image = None
+        visualization_type = None
         try:
-            specific_visualization_image = self.viz_service.detect_visualization_request(
-                user_message
+            specific_visualization_image, visualization_type = (
+                self.viz_service.detect_visualization_request(user_message)
             )
 
             # Если IntentService определил несколько таблиц умножения, игнорируем одиночную

@@ -760,10 +760,14 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
 
                 viz_service = get_visualization_service()
                 # Используем универсальный метод детекции
-                visualization_image = viz_service.detect_visualization_request(user_message)
+                visualization_image, visualization_type = viz_service.detect_visualization_request(
+                    user_message
+                )
 
                 # Определяем тип визуализации для контекста AI
-                if visualization_image:
+                # Используем тип из детектора, если он есть, иначе определяем по контексту
+                if visualization_image and not visualization_type:
+                    # Если детектор не вернул тип, определяем по контексту
                     user_message_lower = user_message.lower()
                     if "табл" in user_message_lower and "умнож" in user_message_lower:
                         visualization_type = "multiplication_table"
@@ -799,6 +803,33 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                         f"что он показывает, основные свойства. "
                         f"НЕ упоминай таблицы умножения или другие темы. "
                         f"Отвечай ТОЛЬКО на вопрос пользователя про график.]"
+                    )
+                elif visualization_type in (
+                    "bar",
+                    "pie",
+                    "line",
+                    "histogram",
+                    "scatter",
+                    "box",
+                    "bubble",
+                    "heatmap",
+                ):
+                    diagram_names = {
+                        "bar": "столбчатую диаграмму",
+                        "pie": "круговую диаграмму",
+                        "line": "линейный график",
+                        "histogram": "гистограмму",
+                        "scatter": "диаграмму рассеяния",
+                        "box": "ящик с усами",
+                        "bubble": "пузырьковую диаграмму",
+                        "heatmap": "тепловую карту",
+                    }
+                    diagram_name = diagram_names.get(visualization_type, "визуализацию")
+                    enhanced_user_message = (
+                        f"{user_message}\n\n"
+                        f"[СИСТЕМА УЖЕ СГЕНЕРИРОВАЛА {diagram_name.upper()}. "
+                        f"Дай КОРОТКОЕ (2-3 предложения) пояснение: что она показывает, "
+                        f"как её читать и использовать. НЕ дублируй визуализацию текстом!]"
                     )
                 else:
                     enhanced_user_message = (
