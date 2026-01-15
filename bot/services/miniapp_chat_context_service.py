@@ -64,6 +64,45 @@ class MiniappChatContextService:
         # Проверяем, была ли очистка истории
         is_history_cleared = len(history) == 0
 
+        # Проверяем, было ли отправлено автоматическое приветствие
+        # Если история содержит только одно сообщение от AI с приветствием - считаем что приветствие было отправлено
+        is_auto_greeting_sent = False
+        if len(history) == 1:
+            first_msg = history[0]
+            if first_msg.get("role") == "assistant":
+                msg_text = first_msg.get("text", "").lower()
+                if "привет" in msg_text or "начнем" in msg_text:
+                    is_auto_greeting_sent = True
+        elif is_history_cleared:
+            # Если история пустая, но была очищена - приветствие могло быть отправлено через miniapp_add_greeting
+            # Проверяем через последнее сообщение в истории (может быть добавлено после очистки)
+            is_auto_greeting_sent = False  # Будет определено ниже при проверке истории
+
+        # #region agent log
+        with open(r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8") as f:
+            import json
+
+            f.write(
+                json.dumps(
+                    {
+                        "sessionId": "debug-session",
+                        "runId": "run1",
+                        "hypothesisId": "B",
+                        "location": "miniapp_chat_context_service.py:prepare_context",
+                        "message": "Context preparation",
+                        "data": {
+                            "is_history_cleared": is_history_cleared,
+                            "is_auto_greeting_sent": is_auto_greeting_sent,
+                            "history_length": len(history),
+                            "user_message": user_message[:50],
+                        },
+                        "timestamp": int(__import__("time").time() * 1000),
+                    }
+                )
+                + "\n"
+            )
+        # #endregion
+
         # Подсчитываем количество сообщений пользователя с последнего обращения по имени
         user_message_count = 0
         if user.first_name:
@@ -154,7 +193,7 @@ class MiniappChatContextService:
             chat_history=history,
             user_message=user_message,
             non_educational_questions_count=user.non_educational_questions_count,
-            is_auto_greeting_sent=False,
+            is_auto_greeting_sent=is_auto_greeting_sent,
             is_educational=is_educational,
         )
 
