@@ -402,6 +402,57 @@ class YandexAIResponseGenerator:
 
         logger.info("✅ Yandex AI Response Generator инициализирован")
 
+    def _should_use_wikipedia(self, user_message: str) -> bool:
+        """
+        Определить, нужно ли использовать проверенные данные для этого вопроса.
+
+        Args:
+            user_message: Сообщение пользователя.
+
+        Returns:
+            bool: True если стоит использовать проверенные данные.
+        """
+        message_lower = user_message.lower().strip()
+
+        # Паттерны вопросов, для которых проверенные данные будут полезны
+        verified_data_patterns = [
+            r"что такое",
+            r"кто такой",
+            r"кто такая",
+            r"расскажи про",
+            r"расскажи о",
+            r"объясни",
+            r"что значит",
+            r"что означает",
+            r"когда",
+            r"где находится",
+            r"как работает",
+            r"что такое",
+        ]
+
+        # Проверяем наличие паттернов
+        for pattern in verified_data_patterns:
+            if re.search(pattern, message_lower):
+                return True
+
+        # Исключаем вопросы, для которых проверенные данные не нужны
+        exclude_patterns = [
+            r"реши",
+            r"посчитай",
+            r"вычисли",
+            r"найди",
+            r"сколько будет",
+            r"как решить",
+            r"помоги с",
+            r"проверь",
+        ]
+
+        for pattern in exclude_patterns:
+            if re.search(pattern, message_lower):
+                return False
+
+        return False
+
     async def generate_response(
         self,
         user_message: str,
@@ -454,6 +505,23 @@ class YandexAIResponseGenerator:
             )
             web_context = self.knowledge_service.format_knowledge_for_ai(relevant_materials)
 
+            # Получение проверенных данных для ответа
+            verified_context = None
+            if self._should_use_wikipedia(user_message):
+                try:
+                    verified_context = (
+                        await self.knowledge_service.get_wikipedia_context_for_question(
+                            user_message, user_age
+                        )
+                    )
+                    if verified_context:
+                        logger.debug(
+                            f"📚 Проверенные данные получены для вопроса: {user_message[:50]}..."
+                        )
+                except Exception as e:
+                    logger.warning(f"⚠️ Ошибка получения проверенных данных: {e}")
+                    # Продолжаем без дополнительного контекста
+
             # Преобразуем историю в формат Yandex Cloud
             yandex_history = []
             if chat_history:
@@ -476,9 +544,20 @@ class YandexAIResponseGenerator:
                 is_auto_greeting_sent=False,  # Для обычных запросов всегда False
             )
 
-            # Добавляем веб-контекст к промпту, если он есть
+            # Добавляем контекст к промпту (проверенные данные имеют приоритет)
+            additional_context = ""
+            if verified_context:
+                additional_context += f"\n\n📖 ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ:\n{verified_context}\n\n"
+                additional_context += "Используй эту информацию для точного и достоверного ответа. "
+                additional_context += (
+                    "Адаптируй объяснение для возраста пользователя, но сохраняй точность фактов."
+                )
+
             if web_context:
-                enhanced_system_prompt += f"\n\n📚 Дополнительная информация:\n{web_context}"
+                additional_context += f"\n\n📚 Дополнительная информация из образовательных источников:\n{web_context}"
+
+            if additional_context:
+                enhanced_system_prompt += additional_context
 
             # Используем Pro модель для всех пользователей (YandexGPT Pro Latest - стабильная версия)
             # Формат yandexgpt-pro/latest - Pro версия YandexGPT
