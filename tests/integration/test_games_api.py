@@ -221,6 +221,62 @@ class TestGamesAPI(AioHTTPTestCase):
         assert "score" in move_data
 
     @unittest_run_loop
+    async def test_tetris_create_and_move(self):
+        """Создание и ход в тетрисе"""
+        # Создаем игру
+        create_resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/{self.test_telegram_id}/create",
+            json={"game_type": "tetris"},
+        )
+        assert create_resp.status == 200
+        create_data = await create_resp.json()
+        assert create_data["success"] is True
+        session_id = create_data["session_id"]
+
+        # Проверяем начальное состояние
+        game_state = create_data["game_state"]
+        assert "board" in game_state
+        assert "score" in game_state
+        assert "level" in game_state
+        assert game_state["level"] == 1
+        assert game_state["score"] == 0
+        assert game_state["game_over"] is False
+        assert "width" in game_state
+        assert "height" in game_state
+
+        # Делаем несколько ходов
+        move_resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/tetris/{session_id}/move",
+            json={"action": "down"},
+        )
+        assert move_resp.status == 200
+        move_data = await move_resp.json()
+        assert move_data["success"] is True
+        assert "board" in move_data
+        assert "score" in move_data
+        assert "level" in move_data
+
+        # Проверяем, что фигура сдвинулась
+        move_resp2 = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/tetris/{session_id}/move",
+            json={"action": "right"},
+        )
+        assert move_resp2.status == 200
+
+        # Проверяем вращение
+        rotate_resp = await self.client.request(
+            "POST",
+            f"/api/miniapp/games/tetris/{session_id}/move",
+            json={"action": "rotate"},
+        )
+        assert rotate_resp.status == 200
+        rotate_data = await rotate_resp.json()
+        assert rotate_data["success"] is True
+
+    @unittest_run_loop
     async def test_get_game_session(self):
         """Получение состояния игровой сессии"""
         # Создаем игру
