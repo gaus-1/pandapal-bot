@@ -888,6 +888,14 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
             # Промодерируем ответ AI на безопасность
             ai_response = moderation_service.sanitize_ai_response(ai_response)
 
+            # Добавляем вовлекающий вопрос после визуализаций
+            if visualization_image and visualization_type:
+                from bot.services.yandex_ai_response_generator import (
+                    add_random_engagement_question,
+                )
+
+                ai_response = add_random_engagement_question(ai_response)
+
             # Увеличиваем счетчик запросов (независимо от истории)
             premium_service.increment_request_count(telegram_id)
 
