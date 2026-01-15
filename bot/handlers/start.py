@@ -66,9 +66,7 @@ async def cmd_start(message: Message, state: FSMContext):
 
     # Обработка deep link для Premium
     if start_param and start_param.startswith("premium_"):
-        # #region agent log
         logger.debug(f"Premium deep link detected: user={telegram_id}, param={start_param}")
-        # #endregion
 
         # Парсим план из параметра (premium_week, premium_month, premium_year)
         plan_id = start_param.replace("premium_", "")
@@ -106,9 +104,7 @@ async def cmd_start(message: Message, state: FSMContext):
             await state.clear()
             return
 
-    # #region agent log
     logger.debug(f"Regular start command: user={telegram_id}, param={start_param}")
-    # #endregion
 
     # Защита от дублирования - проверяем время последнего сообщения
     # Используем модульный уровень для хранения временных меток
