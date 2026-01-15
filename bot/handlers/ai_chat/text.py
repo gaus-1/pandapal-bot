@@ -238,33 +238,6 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
             # Проверяем, была ли очистка истории (история пустая)
             is_history_cleared = len(history) == 0
 
-            # #region agent log
-            with open(
-                r"c:\Users\Vyacheslav\PandaPal\.cursor\debug.log", "a", encoding="utf-8"
-            ) as f:
-                import json
-
-                f.write(
-                    json.dumps(
-                        {
-                            "sessionId": "debug-session",
-                            "runId": "run1",
-                            "hypothesisId": "B",
-                            "location": "text.py:handle_ai_message",
-                            "message": "History check",
-                            "data": {
-                                "is_history_cleared": is_history_cleared,
-                                "history_length": len(history),
-                                "user_message": user_message[:50],
-                                "user_first_name": user.first_name,
-                            },
-                            "timestamp": int(__import__("time").time() * 1000),
-                        }
-                    )
-                    + "\n"
-                )
-            # #endregion
-
             # Подсчитываем количество сообщений пользователя с последнего обращения по имени
             # Ищем последнее обращение по имени в истории (ищем в ответах AI)
             user_message_count = 0
