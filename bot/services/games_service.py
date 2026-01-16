@@ -1115,9 +1115,31 @@ class GamesService:
             current_shape = state.get("current_shape")
             if isinstance(current_shape, str):
                 game.current_shape = current_shape
-            game.current_row = int(state.get("current_row", 0))
-            game.current_col = int(state.get("current_col", game.width // 2))
-            game.current_rotation = int(state.get("current_rotation", 0))
+                # КРИТИЧНО: Восстанавливаем row, но если он >= 0 и фигура не может быть размещена - спавним новую
+                saved_row = state.get("current_row")
+                if saved_row is not None and int(saved_row) < 0:
+                    # Если row < 0 (фигура выше поля) - восстанавливаем нормально
+                    game.current_row = int(saved_row)
+                    game.current_col = int(state.get("current_col", game.width // 2))
+                    game.current_rotation = int(state.get("current_rotation", 0))
+                elif saved_row is not None and int(saved_row) >= 0:
+                    # Если row >= 0 (фигура уже на поле) - проверяем валидность
+                    game.current_row = int(saved_row)
+                    game.current_col = int(state.get("current_col", game.width // 2))
+                    game.current_rotation = int(state.get("current_rotation", 0))
+                    # Проверяем, можно ли разместить фигуру в восстановленной позиции
+                    if not game._can_place(
+                        game.current_row, game.current_col, game.current_rotation
+                    ):
+                        # Если нельзя - спавним новую фигуру
+                        game._spawn_new_piece()
+                else:
+                    # Если row не сохранен - спавним новую фигуру
+                    game._spawn_new_piece()
+            else:
+                # КРИТИЧНО: Если фигура не сохранена - спавним новую
+                # Это может произойти при первом запуске или если фигура была зафиксирована
+                game._spawn_new_piece()
             # УЛУЧШЕНО: Восстанавливаем Bag of 7 (если сохранен)
             saved_bag = state.get("bag")
             if isinstance(saved_bag, list) and saved_bag:
