@@ -105,9 +105,9 @@
       -webkit-transform: translateZ(0) !important;
       backface-visibility: hidden !important;
       -webkit-backface-visibility: hidden !important;
-      animationName: logoBounce !important;
+      animation-name: logoBounce !important;
       -webkit-animation-name: logoBounce !important;
-      animationDuration: 2s !important;
+      animation-duration: 2s !important;
       -webkit-animation-duration: 2s !important;
       animationTimingFunction: ease-in-out !important;
       -webkit-animation-timing-function: ease-in-out !important;
