@@ -177,59 +177,27 @@ export function AIChat({ user }: AIChatProps) {
     }
   }, [messages.length, isLoadingHistory, showWelcome]);
 
-  // Принудительно перезапускаем анимацию логотипа при очистке чата или изменении messages.length
+  // УЛУЧШЕНО: Упрощенная анимация логотипа - работает как на сайте
+  // Используем тот же подход, что и в Header/Footer - простой CSS класс с inline стилями для аппаратного ускорения
   useEffect(() => {
     if (showWelcome && messages.length === 0 && logoRef.current) {
       const img = logoRef.current;
 
-      // КРИТИЧЕСКИ ВАЖНО для мобильных: используем тройной requestAnimationFrame
-      // и принудительно применяем все стили через CSS класс, а не inline
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            // Удаляем все inline стили анимации, чтобы CSS класс работал
-            img.style.animation = '';
-            img.style.webkitAnimation = '';
-            img.style.animationName = '';
-            img.style.webkitAnimationName = '';
-            img.style.animationDuration = '';
-            img.style.webkitAnimationDuration = '';
-            img.style.animationTimingFunction = '';
-            img.style.webkitAnimationTimingFunction = '';
-            img.style.animationIterationCount = '';
-            img.style.webkitAnimationIterationCount = '';
-            img.style.animationFillMode = '';
-            img.style.webkitAnimationFillMode = '';
-            img.style.animationPlayState = '';
-            img.style.webkitAnimationPlayState = '';
+      // Применяем те же стили, что и на сайте (Header.tsx, Footer.tsx)
+      img.style.animation = 'logoBounce 2s ease-in-out infinite';
+      img.style.willChange = 'transform';
+      img.style.transform = 'translateZ(0)';
+      img.style.backfaceVisibility = 'hidden';
 
-            // Принудительный reflow
-            void img.offsetWidth;
+      // WebKit префиксы для мобильных
+      img.style.webkitAnimation = 'logoBounce 2s ease-in-out infinite';
+      img.style.webkitTransform = 'translateZ(0)';
+      img.style.webkitBackfaceVisibility = 'hidden';
 
-            // Применяем только необходимые inline стили для аппаратного ускорения
-            img.style.willChange = 'transform';
-            img.style.transform = 'translateZ(0)';
-            img.style.webkitTransform = 'translateZ(0)';
-            img.style.backfaceVisibility = 'hidden';
-            img.style.webkitBackfaceVisibility = 'hidden';
-
-            // Принудительно включаем CSS класс (если его нет)
-            if (!img.classList.contains('animate-logo-bounce')) {
-              img.classList.add('animate-logo-bounce');
-            }
-
-            // Еще один reflow для применения CSS класса
-            void img.offsetWidth;
-
-            // Принудительно перезапускаем через CSS
-            img.style.animation = 'none';
-            img.style.webkitAnimation = 'none';
-            void img.offsetWidth;
-            img.style.animation = '';
-            img.style.webkitAnimation = '';
-          });
-        });
-      });
+      // Добавляем CSS класс для дополнительной поддержки
+      if (!img.classList.contains('animate-logo-bounce')) {
+        img.classList.add('animate-logo-bounce');
+      }
     }
   }, [showWelcome, messages.length]);
 
@@ -397,16 +365,17 @@ export function AIChat({ user }: AIChatProps) {
               width={120}
               height={120}
               loading="eager"
-              className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/50 dark:bg-slate-800/50 p-2 animate-logo-bounce"
+              className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/50 dark:bg-slate-800/50 p-2 animate-logo-bounce object-cover"
               key={`logo-${messages.length}-${showWelcome ? 'welcome' : 'chat'}`}
               style={{
-                // Только стили для аппаратного ускорения, анимация через CSS класс
+                animation: 'logoBounce 2s ease-in-out infinite',
                 willChange: 'transform',
                 transform: 'translateZ(0)',
-                WebkitTransform: 'translateZ(0)',
                 backfaceVisibility: 'hidden',
+                WebkitAnimation: 'logoBounce 2s ease-in-out infinite',
+                WebkitTransform: 'translateZ(0)',
                 WebkitBackfaceVisibility: 'hidden',
-              }}
+              } as React.CSSProperties}
             />
             <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>
             <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 text-center max-w-md mx-auto px-4 animate-fade-in delay-300">

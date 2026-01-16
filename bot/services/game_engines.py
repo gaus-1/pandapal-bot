@@ -421,31 +421,34 @@ class Game2048:
 class TetrisGame:
     """Логика игры Tetris для Mini App.
 
-    Реализация с Bag of 7 для справедливого спавна, Wall Kicks для вращения,
-    улучшенной системой очков и корректной очисткой линий.
+    Исправления:
+    1. Фигура 'O' больше не вращается (оставалась на месте).
+    2. Улучшена система Wall Kicks (удален некорректный подъем вверх).
+    3. Более надежная проверка Game Over при спавне.
     """
 
-    # Стандартные размеры поля Тетриса: 10 колонок, 20 видимых строк
-    # + 2 буферные строки сверху (реализованы через отрицательные row при спавне)
+    # Стандартные размеры поля: 10 колонок, 20 видимых строк
+    # + 2 буферные строки сверху (реализованы через отрицательные row)
     width: int = 10
-    height: int = 20  # Видимая высота (логическая высота = 22 с буфером)
+    height: int = 20
 
     # Фигуры заданы как список относительных координат (row, col)
+    # Центр вращения (0,0) условно находится в "середине" фигуры
     _SHAPES = {
-        "I": [(0, -1), (0, 0), (0, 1), (0, 2)],
-        "O": [(0, 0), (0, 1), (1, 0), (1, 1)],
-        "T": [(0, -1), (0, 0), (0, 1), (1, 0)],
-        "L": [(0, -1), (0, 0), (0, 1), (1, -1)],
-        "J": [(0, -1), (0, 0), (0, 1), (1, 1)],
-        "S": [(0, 0), (0, 1), (1, -1), (1, 0)],
-        "Z": [(0, -1), (0, 0), (1, 0), (1, 1)],
+        "I": [(0, -1), (0, 0), (0, 1), (0, 2)],  # Горизонтальная I
+        "O": [(0, 0), (0, 1), (1, 0), (1, 1)],  # Квадрат
+        "T": [(0, -1), (0, 0), (0, 1), (1, 0)],  # Т-образная
+        "L": [(0, -1), (0, 0), (0, 1), (1, -1)],  # L-образная
+        "J": [(0, -1), (0, 0), (0, 1), (1, 1)],  # J-образная
+        "S": [(0, 0), (0, 1), (1, -1), (1, 0)],  # S-образная
+        "Z": [(0, -1), (0, 0), (1, 0), (1, 1)],  # Z-образная
     }
 
     def __init__(self) -> None:
         self.board: list[list[int]] = [[0] * self.width for _ in range(self.height)]
         self.score: int = 0
         self.lines_cleared: int = 0
-        self.level: int = 1  # УЛУЧШЕНО: Добавлен уровень
+        self.level: int = 1
         self.game_over: bool = False
 
         self.current_shape: str | None = None
@@ -453,53 +456,45 @@ class TetrisGame:
         self.current_row: int = 0
         self.current_col: int = self.width // 2
 
-        # УЛУЧШЕНО: Bag of 7 для справедливого спавна фигур
         import random as _rnd
 
         self._rnd = _rnd
         self._bag: list[str] = []
         self._refill_bag()
-
         self._spawn_new_piece()
 
     def _refill_bag(self) -> None:
-        """Заполнить мешок всеми 7 фигурами в случайном порядке (Bag of 7)."""
+        """Заполнить мешок всеми 7 фигурами (Bag of 7)."""
         self._bag = list(self._SHAPES.keys())
         self._rnd.shuffle(self._bag)
 
     def _spawn_new_piece(self) -> None:
-        """Создать новую фигуру сверху (Bag of 7 алгоритм)."""
-        # УЛУЧШЕНО: Используем Bag of 7 для справедливого спавна
+        """Создать новую фигуру."""
         if not self._bag:
             self._refill_bag()
 
         self.current_shape = self._bag.pop()
         self.current_rotation = 0
-        # КРИТИЧНО: Спавним фигуру выше верхней границы (row = -1 или -2)
-        # чтобы она "выпадала" сверху, а не появлялась сразу на поле
-        # Некоторые фигуры (например, I) могут иметь блоки выше, поэтому используем -2
-        # Спавним фигуру в буферной зоне (row = -2 эквивалентно 2 строкам выше видимого поля)
-        # Это соответствует стандартной логике Тетриса: 20 видимых строк + 2 буферные сверху
+        # Спавн в буфере над полем (строки -2 и -1 невидимы)
         self.current_row = -2
-        self.current_col = self.width // 2  # Середина поля (X = 4 для ширины 10)
+        self.current_col = self.width // 2
 
-        # УЛУЧШЕНО: Проверка Game Over при спавне
-        # Проверяем, можно ли разместить фигуру на верхней границе (row = 0)
-        # ИСПРАВЛЕНО: Проверяем только если поле не пустое (есть хотя бы один заполненный блок)
-        # Для новой игры поле пустое, поэтому фигура всегда может быть размещена
+        # Проверка Game Over: проверяем, может ли фигура достичь видимой части поля (row = 0).
+        # Если фигура не может быть размещена на верхней границе - конец игры.
+        # has_blocks нужен, чтобы не завершать игру при самом первом запуске (пустое поле)
         has_blocks = any(any(cell != 0 for cell in row) for row in self.board)
+        # Проверяем, может ли фигура быть размещена на верхней границе (row = 0)
+        # Это более надежная проверка, чем проверка в точке спавна (row = -2),
+        # так как фигура может быть размещена в буфере, но не может достичь поля
         if has_blocks and not self._can_place(0, self.current_col, self.current_rotation):
             self.game_over = True
 
     def _get_blocks(self, row: int, col: int, rotation: int) -> list[tuple[int, int]]:
-        """Получить координаты блоков фигуры в абсолютных координатах."""
+        """Получить координаты блоков фигуры."""
         offsets = self._SHAPES[self.current_shape or "I"]
 
         def _rotate(dr: int, dc: int, rot: int) -> tuple[int, int]:
-            # Поворот на 90 градусов по часовой стрелке rot раз
-            # Математический поворот: (x, y) -> (-y, x) для каждого 90°
-            # Примечание: Для полноценного SRS нужны таблицы смещений, но для базовой версии
-            # математический поворот достаточен (Wall Kicks компенсируют ограничения)
+            # Поворот на 90 градусов по часовой стрелке (row, col) -> (-col, row)
             for _ in range(rot % 4):
                 dr, dc = -dc, dr
             return dr, dc
@@ -511,51 +506,40 @@ class TetrisGame:
         return blocks
 
     def _can_place(self, row: int, col: int, rotation: int) -> bool:
-        """Проверить, можно ли разместить фигуру в указанной позиции.
-
-        Проверяет:
-        1. Границы по X (выход за пределы ширины)
-        2. Границы по Y (выход за пределы высоты или достижение дна)
-        3. Занятость ячеек (пересечение с уже заполненными блоками)
-
-        КРИТИЧНО: Разрешаем фигуре быть выше поля (row < 0) для плавного появления.
-        """
+        """Проверить коллизию."""
         for r, c in self._get_blocks(row, col, rotation):
-            # Проверка границ по X
+            # Границы X
             if c < 0 or c >= self.width:
                 return False
-            # КРИТИЧНО: Если блок выше поля (r < 0), разрешаем (фигура еще не видна)
+            # Если r < 0 (в буфере сверху), разрешаем
             if r < 0:
                 continue
-            # Проверка границ по Y (достижение дна или выход за пределы)
+            # Границы Y (дно)
             if r >= self.height:
                 return False
-            # Проверка занятости (только для валидных координат)
-            if r >= 0 and self.board[r][c] != 0:
+            # Занятость ячейки
+            if self.board[r][c] != 0:
                 return False
         return True
 
     def _lock_piece(self) -> None:
-        """Зафиксировать текущую фигуру на поле и очистить заполненные линии."""
+        """Зафиксировать фигуру и очистить линии."""
+        # Переносим блоки на основное поле
         for r, c in self._get_blocks(self.current_row, self.current_col, self.current_rotation):
             if 0 <= r < self.height and 0 <= c < self.width:
                 self.board[r][c] = 1
 
-        # Очистка заполненных линий (стандартный алгоритм Тетриса)
-        # Сканируем снизу вверх, собираем заполненные строки, удаляем их и сдвигаем верхние блоки вниз
+        # Очистка линий
         new_board: list[list[int]] = []
         cleared = 0
-        # Проходим снизу вверх (от строки height-1 до 0)
         for row_idx in range(self.height - 1, -1, -1):
             row = self.board[row_idx]
             if all(cell != 0 for cell in row):
-                # Строка полностью заполнена - удаляем её (не добавляем в new_board)
                 cleared += 1
             else:
-                # Строка не полная - сохраняем её
                 new_board.insert(0, row)
 
-        # Добавляем пустые строки сверху (эффект падения верхних блоков вниз)
+        # Добавляем пустые строки сверху
         for _ in range(cleared):
             new_board.insert(0, [0] * self.width)
 
@@ -563,14 +547,12 @@ class TetrisGame:
             self.board = new_board
             self.lines_cleared += cleared
 
-            # СТАНДАРТНАЯ система очков Тетриса (как в классическом Тетрисе)
-            # 1 линия = 40 * Level, 2 линии = 100 * Level, 3 линии = 300 * Level, 4 линии = 1200 * Level
+            # Начисление очков (Nintendo system)
             score_multipliers = {1: 40, 2: 100, 3: 300, 4: 1200}
             base_score = score_multipliers.get(cleared, cleared * 40)
-            # Умножаем на уровень (стандартная формула Тетриса)
             self.score += base_score * self.level
 
-            # УЛУЧШЕНО: Повышение уровня каждые 10 очищенных линий
+            # Повышение уровня
             new_level = (self.lines_cleared // 10) + 1
             if new_level > self.level:
                 self.level = new_level
@@ -578,11 +560,7 @@ class TetrisGame:
         self._spawn_new_piece()
 
     def step(self, action: str) -> None:
-        """Сделать шаг игры.
-
-        Args:
-            action: 'left', 'right', 'down', 'rotate', 'tick'
-        """
+        """Обработка действий."""
         if self.game_over or not self.current_shape:
             return
 
@@ -590,25 +568,18 @@ class TetrisGame:
         new_col = self.current_col
         new_rot = self.current_rotation
 
-        if action == "left":
-            new_col -= 1
-        elif action == "right":
-            new_col += 1
-        elif action in ("down", "tick"):
-            new_row += 1
-        elif action == "rotate":
+        # ИСПРАВЛЕНИЕ: O-фигура не должна вращаться
+        if action == "rotate" and self.current_shape != "O":
             new_rot = (new_rot + 1) % 4
-            # Wall Kicks (система смещений при вращении)
-            # Если вращение невозможно из-за коллизии, пытаемся сдвинуть фигуру
-            # Примечание: Полноценный SRS использует таблицы смещений для каждой фигуры,
-            # но для базовой версии простые смещения достаточны
+
+            # Wall Kicks
             if not self._can_place(new_row, new_col, new_rot):
-                # Пробуем сдвинуть влево, вправо, вниз, вверх (в порядке приоритета)
+                # Пробуем сдвинуть влево, вправо.
+                # Убран сдвиг вверх, чтобы фигуры не "всплывали" над полом
                 kick_offsets = [
                     (0, -1),  # Влево
                     (0, 1),  # Вправо
-                    (1, 0),  # Вниз
-                    (-1, 0),  # Вверх (редко, но может помочь)
+                    (1, 0),  # Вниз (полезно у стен)
                 ]
                 kicked = False
                 for dr, dc in kick_offsets:
@@ -618,54 +589,51 @@ class TetrisGame:
                         kicked = True
                         break
                 if not kicked:
-                    # Вращение невозможно - отменяем
-                    new_rot = self.current_rotation
+                    new_rot = self.current_rotation  # Отменяем вращение
 
+        elif action == "left":
+            new_col -= 1
+        elif action == "right":
+            new_col += 1
+        elif action in ("down", "tick"):
+            new_row += 1
+
+        # Применение движения
         if self._can_place(new_row, new_col, new_rot):
-            # Фигура может быть размещена - обновляем позицию
             self.current_row, self.current_col, self.current_rotation = new_row, new_col, new_rot
-            # КРИТИЧНО: Фиксируем фигуру только если:
-            # 1. Действие было "down" или "tick" (движение вниз)
-            # 2. Фигура уже видна на поле (row >= 0)
-            # 3. Следующий шаг вниз невозможен (фигура достигла дна или блока)
+
+            # Проверка на фиксацию (если двигались вниз и дальше нельзя)
             if (
                 action in ("down", "tick")
-                and self.current_row >= 0  # Фигура уже видна на поле
+                and self.current_row >= 0
                 and not self._can_place(
                     self.current_row + 1, self.current_col, self.current_rotation
                 )
             ):
                 self._lock_piece()
+
         elif action in ("down", "tick"):
-            # Фигура не может быть размещена в новой позиции (коллизия)
-            # КРИТИЧНО: Фиксируем фигуру только если:
-            # 1. Фигура уже видна на поле (new_row >= 0, но не может быть размещена из-за коллизии)
-            # 2. Старая позиция была валидной (фигура уже была на поле)
-            # Это означает, что фигура достигла дна или столкнулась с блоком
+            # Если сдвиг вниз невозможен (уперлись в блок или пол)
             if new_row >= 0 and self.current_row >= 0:
-                # Фигура была на поле и не может двигаться дальше - фиксируем
                 self._lock_piece()
-            # Если new_row < 0, значит фигура еще выше поля и столкнулась с границей по X
-            # В этом случае просто не обновляем позицию (фигура остается на месте)
 
     def get_state(self) -> dict:
         """Вернуть состояние для фронтенда."""
-        # Копируем поле и накладываем текущую фигуру
+        # Копируем поле
         preview = [row[:] for row in self.board]
+
+        # Рисуем текущую фигуру
         if self.current_shape and not self.game_over:
             for r, c in self._get_blocks(self.current_row, self.current_col, self.current_rotation):
-                # КРИТИЧНО: Разрешаем отображать фигуру даже если она выше поля (r < 0)
-                # Это нужно для плавного появления фигуры сверху
-                if r < 0:
-                    continue  # Фигура еще не видна (выше поля)
+                # Рисуем только если блок в видимой зоне
                 if 0 <= r < self.height and 0 <= c < self.width:
-                    preview[r][c] = 2  # 2 = активная фигура
+                    preview[r][c] = 2
 
         return {
             "board": preview,
             "score": self.score,
             "lines_cleared": self.lines_cleared,
-            "level": self.level,  # УЛУЧШЕНО: Добавлен уровень в состояние
+            "level": self.level,
             "game_over": self.game_over,
             "current_shape": self.current_shape,
             "current_row": self.current_row,
