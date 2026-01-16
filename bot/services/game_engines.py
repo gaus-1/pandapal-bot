@@ -604,14 +604,21 @@ class TetrisGame:
 
         if self._can_place(new_row, new_col, new_rot):
             self.current_row, self.current_col, self.current_rotation = new_row, new_col, new_rot
-            if action in ("down", "tick") and not self._can_place(
-                self.current_row + 1, self.current_col, self.current_rotation
+            # Следующий шаг вниз невозможен — фиксируем фигуру
+            # КРИТИЧНО: Не фиксируем фигуру, если она еще выше поля (row < 0)
+            if (
+                action in ("down", "tick")
+                and not self._can_place(
+                    self.current_row + 1, self.current_col, self.current_rotation
+                )
+                and self.current_row >= 0
             ):
-                # Следующий шаг вниз невозможен — фиксируем фигуру
                 self._lock_piece()
         elif action in ("down", "tick"):
             # Нельзя пойти вниз — фиксируем фигуру
-            self._lock_piece()
+            # КРИТИЧНО: Не фиксируем фигуру, если она еще выше поля (row < 0)
+            if new_row >= 0:
+                self._lock_piece()
 
     def get_state(self) -> dict:
         """Вернуть состояние для фронтенда."""
