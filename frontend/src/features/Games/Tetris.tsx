@@ -60,13 +60,14 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
 
       // Если есть сохраненное состояние - используем его
       if (board && Array.isArray(board) && board.length > 0) {
-        const safeState: TetrisState = {
+        const safeState: TetrisState & { current_shape?: string } = {
           board: normalizeBoard(board),
           score: Number(gameState?.score ?? 0),
           lines_cleared: Number(gameState?.lines_cleared ?? 0),
           game_over: Boolean(gameState?.game_over),
           width: (gameState?.width as number) ?? board[0]?.length ?? 10,
           height: (gameState?.height as number) ?? board.length ?? 20,
+          current_shape: gameState?.current_shape as string | undefined,
         };
         setState(safeState);
       } else {
@@ -95,7 +96,9 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
   };
 
   const handleAction = async (action: 'left' | 'right' | 'down' | 'rotate' | 'tick') => {
-    if (isLoading || state?.game_over) return;
+    if (isLoading || state?.game_over) {
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -103,13 +106,14 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
     try {
       telegram.hapticFeedback('light');
       const newState = await tetrisMove(sessionId, action);
-      const safeNewState: TetrisState = {
+      const safeNewState: TetrisState & { current_shape?: string } = {
         board: normalizeBoard(newState.board),
         score: newState.score,
         lines_cleared: newState.lines_cleared,
         game_over: newState.game_over,
         width: newState.width,
         height: newState.height,
+        current_shape: (newState as { current_shape?: string }).current_shape,
       };
       setState(safeNewState);
 
@@ -141,8 +145,12 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
 
   const { board, score, lines_cleared: lines, game_over } = state;
 
-  // Определяем, началась ли игра (есть ли активность)
-  const isGameStarted = score > 0 || lines > 0;
+  // Определяем, началась ли игра (есть ли активность или фигура видна на поле)
+  // Проверяем наличие фигуры в состоянии игры (даже если она еще не видна на поле)
+  const gameState = state ? (state as unknown as { current_shape?: string }) : null;
+  const hasCurrentShape = gameState?.current_shape != null;
+  const hasActivePiece = board.some((row) => row.some((cell) => cell === 2));
+  const isGameStarted = score > 0 || lines > 0 || hasActivePiece || hasCurrentShape;
   // Определяем начальное состояние (игра только создана, но еще не началась)
   const isReady = !game_over && !isGameStarted;
 
@@ -194,7 +202,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col items-center justify-start px-4 pb-20 sm:pb-4">
+      <div className="flex-1 flex flex-col items-center justify-start px-4 pb-32 sm:pb-4">
         <div className="flex gap-3 w-full max-w-lg">
           {/* Игровое поле */}
           <div className="flex-1 flex justify-center">
@@ -228,38 +236,66 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
 
         {/* Кнопки управления - фиксированные внизу для мобильных */}
-        <div className="fixed bottom-0 left-0 right-0 sm:relative sm:bottom-auto sm:left-auto sm:right-auto mt-4 w-full max-w-lg bg-white dark:bg-slate-900 sm:bg-transparent border-t border-gray-200 dark:border-slate-700 sm:border-t-0 pt-3 pb-safe sm:pt-0 sm:pb-0 px-4">
+        <div className="fixed bottom-0 left-0 right-0 sm:relative sm:bottom-auto sm:left-auto sm:right-auto mt-4 w-full max-w-lg bg-white dark:bg-slate-900 sm:bg-transparent border-t border-gray-200 dark:border-slate-700 sm:border-t-0 pt-3 pb-safe sm:pt-0 sm:pb-0 px-4 z-50 shadow-lg sm:shadow-none">
           <div className="flex justify-between gap-2 mb-2">
             <button
               type="button"
-              onClick={() => handleAction('left')}
+              onClick={() => {
+                if (isReady) {
+                  // При первом нажатии запускаем игру через tick
+                  handleAction('tick');
+                } else {
+                  handleAction('left');
+                }
+              }}
               disabled={isLoading || game_over}
-              className="flex-1 py-3 sm:py-2 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm sm:text-sm text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation"
+              className="flex-1 py-3 sm:py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm sm:text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md"
             >
               ← Влево
             </button>
             <button
               type="button"
-              onClick={() => handleAction('rotate')}
+              onClick={() => {
+                if (isReady) {
+                  // При первом нажатии запускаем игру через tick
+                  handleAction('tick');
+                } else {
+                  handleAction('rotate');
+                }
+              }}
               disabled={isLoading || game_over}
-              className="flex-1 py-3 sm:py-2 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm sm:text-sm text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation"
+              className="flex-1 py-3 sm:py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm sm:text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md"
             >
               ⟳ Повернуть
             </button>
             <button
               type="button"
-              onClick={() => handleAction('right')}
+              onClick={() => {
+                if (isReady) {
+                  // При первом нажатии запускаем игру через tick
+                  handleAction('tick');
+                } else {
+                  handleAction('right');
+                }
+              }}
               disabled={isLoading || game_over}
-              className="flex-1 py-3 sm:py-2 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm sm:text-sm text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation"
+              className="flex-1 py-3 sm:py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm sm:text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md"
             >
               Вправо →
             </button>
           </div>
           <button
             type="button"
-            onClick={() => handleAction('down')}
+            onClick={() => {
+              if (isReady) {
+                // При первом нажатии запускаем игру через tick
+                handleAction('tick');
+              } else {
+                handleAction('down');
+              }
+            }}
             disabled={isLoading || game_over}
-            className="w-full py-3 sm:py-2 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-sm sm:text-sm font-semibold text-white shadow-md touch-manipulation"
+            className="w-full py-3 sm:py-2 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-sm sm:text-sm font-semibold text-white shadow-lg touch-manipulation"
           >
             ↓ Быстрее
           </button>
