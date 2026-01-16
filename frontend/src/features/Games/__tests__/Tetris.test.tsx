@@ -1,18 +1,19 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import { Tetris } from '../Tetris';
 
 // Лёгкий smoke-тест на монтирование и базовые кнопки
 
-jest.mock('../../../services/telegram', () => ({
+vi.mock('../../../services/telegram', () => ({
   telegram: {
-    hapticFeedback: jest.fn(),
-    notifyError: jest.fn(),
-    notifyWarning: jest.fn(),
+    hapticFeedback: vi.fn(),
+    notifyError: vi.fn(),
+    notifyWarning: vi.fn(),
   },
 }));
 
-jest.mock('../../../services/api', () => ({
-  getGameSession: jest.fn().mockResolvedValue({
+vi.mock('../../../services/api', () => ({
+  getGameSession: vi.fn().mockResolvedValue({
     game_state: {
       board: Array.from({ length: 20 }, () => Array(10).fill(0)),
       score: 0,
@@ -22,7 +23,7 @@ jest.mock('../../../services/api', () => ({
       height: 20,
     },
   }),
-  tetrisMove: jest.fn().mockResolvedValue({
+  tetrisMove: vi.fn().mockResolvedValue({
     board: Array.from({ length: 20 }, () => Array(10).fill(0)),
     score: 0,
     lines_cleared: 0,
@@ -44,8 +45,8 @@ describe('Tetris', () => {
       <Tetris
         sessionId={123}
         user={mockUser}
-        onBack={jest.fn()}
-        onGameEnd={jest.fn()}
+        onBack={vi.fn()}
+        onGameEnd={vi.fn()}
       />,
     );
 

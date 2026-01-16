@@ -57,7 +57,9 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
       const session = await getGameSession(sessionId);
       const gameState = session.game_state as Record<string, unknown> | undefined;
       const board = gameState?.board as number[][] | undefined;
-      if (board && Array.isArray(board)) {
+
+      // Если есть сохраненное состояние - используем его
+      if (board && Array.isArray(board) && board.length > 0) {
         const safeState: TetrisState = {
           board: normalizeBoard(board),
           score: Number(gameState?.score ?? 0),
@@ -68,17 +70,23 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         };
         setState(safeState);
       } else {
-        // fallback для первого запуска
-        const fresh = await tetrisMove(sessionId, 'tick');
-        const safeFresh: TetrisState = {
-          board: normalizeBoard(fresh.board),
-          score: fresh.score,
-          lines_cleared: fresh.lines_cleared,
-          game_over: fresh.game_over,
-          width: fresh.width,
-          height: fresh.height,
+        // Если состояние отсутствует - создаем пустое поле для новой игры
+        // НЕ вызываем tick, чтобы не завершить игру сразу
+        const defaultHeight = 20;
+        const defaultWidth = 10;
+        const emptyBoard: TetrisCell[][] = Array(defaultHeight)
+          .fill(null)
+          .map(() => Array(defaultWidth).fill(0) as TetrisCell[]);
+
+        const safeState: TetrisState = {
+          board: emptyBoard,
+          score: 0,
+          lines_cleared: 0,
+          game_over: false,
+          width: defaultWidth,
+          height: defaultHeight,
         };
-        setState(safeFresh);
+        setState(safeState);
       }
     } catch (err) {
       console.error('Ошибка загрузки состояния тетриса:', err);
@@ -133,6 +141,11 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
 
   const { board, score, lines_cleared: lines, game_over } = state;
 
+  // Определяем, началась ли игра (есть ли активность)
+  const isGameStarted = score > 0 || lines > 0;
+  // Определяем начальное состояние (игра только создана, но еще не началась)
+  const isReady = !game_over && !isGameStarted;
+
   return (
     <div className="w-full h-full flex flex-col bg-white dark:bg-slate-900">
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
@@ -150,18 +163,29 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       </div>
 
-      {/* Реакция панды – как в других играх: сверху над полем */}
-      <div className="px-4 mb-2 flex justify-center">
-        <PandaReaction mood={game_over ? 'sad' : 'happy'} className="pb-1" />
-      </div>
+      {/* Реакция панды – показываем только когда игра началась или закончена */}
+      {!isReady && (
+        <div className="px-4 mb-2 flex justify-center">
+          <PandaReaction mood={game_over ? 'sad' : 'happy'} className="pb-1" />
+        </div>
+      )}
 
       <div className="px-4">
         <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100 mb-1">
           🧱 Тетрис
         </h1>
-        <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-3">
-          Заполняй линии и зарабатывай очки! Следи, чтобы фигуры не достигли верха.
-        </p>
+        {isReady ? (
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-3">
+            <p className="mb-2">Заполняй линии и зарабатывай очки! Следи, чтобы фигуры не достигли верха.</p>
+            <p className="font-semibold text-blue-600 dark:text-blue-400">
+              Нажми любую кнопку управления, чтобы начать игру! 🎮
+            </p>
+          </div>
+        ) : (
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-3">
+            Заполняй линии и зарабатывай очки! Следи, чтобы фигуры не достигли верха.
+          </p>
+        )}
       </div>
 
       {error && (

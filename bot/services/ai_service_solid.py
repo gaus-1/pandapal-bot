@@ -64,6 +64,7 @@ class YandexAIService:
         skip_name_asking: bool = False,
         non_educational_questions_count: int = 0,
         is_premium: bool = False,
+        is_auto_greeting_sent: bool = False,
     ) -> str:
         """
         Генерация ответа через YandexGPT.
@@ -78,6 +79,7 @@ class YandexAIService:
             skip_name_asking: Пропустить запрос имени
             non_educational_questions_count: Количество непредметных вопросов подряд
             is_premium: Premium статус пользователя (определяет модель: Pro для Premium, Lite для обычных)
+            is_auto_greeting_sent: Флаг, что автоматическое приветствие уже было отправлено
 
         Returns:
             str: Ответ от AI
@@ -92,6 +94,7 @@ class YandexAIService:
             skip_name_asking,
             non_educational_questions_count,
             is_premium,
+            is_auto_greeting_sent,
         )
 
     def get_model_info(self) -> dict[str, str]:
