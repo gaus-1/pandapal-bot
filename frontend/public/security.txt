@@ -1,0 +1,8 @@
+Contact: mailto:79516625803@ya.ru
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: ru, en
+Canonical: https://pandapal.ru/.well-known/security.txt
+
+# PandaPal Security Policy
+# Для сообщения об уязвимостях безопасности используйте указанный email
+# Подробная политика: https://github.com/gaus-1/pandapal-bot/blob/main/SECURITY.md

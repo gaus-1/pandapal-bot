@@ -10,17 +10,14 @@ Security middleware для aiohttp приложения.
 OWASP Top 10 2021 compliance.
 """
 
-import asyncio
 import time
 import uuid
 from collections import defaultdict
-from typing import Dict, Optional, Set, Tuple
 from urllib.parse import urlparse
 
 from aiohttp import web
 from loguru import logger
 
-from bot.config import settings
 from bot.security.audit_logger import SecurityEventSeverity, SecurityEventType, log_security_event
 
 
@@ -42,9 +39,9 @@ class RateLimiter:
         self.max_requests = max_requests
         self.window_seconds = window_seconds
         # Храним временные метки запросов по IP
-        self._requests: Dict[str, list] = defaultdict(list)
+        self._requests: dict[str, list] = defaultdict(list)
         # Блокированные IP (временная блокировка)
-        self._blocked: Dict[str, float] = {}
+        self._blocked: dict[str, float] = {}
         # Время блокировки в секундах
         self._block_duration = 300  # 5 минут
 
@@ -59,7 +56,7 @@ class RateLimiter:
         for ip in expired:
             del self._blocked[ip]
 
-    def is_allowed(self, ip: str) -> Tuple[bool, Optional[str]]:
+    def is_allowed(self, ip: str) -> tuple[bool, str | None]:
         """
         Проверить, разрешен ли запрос.
 
@@ -110,7 +107,7 @@ _rate_limiter_ai = RateLimiter(
 )  # 100 req/min для AI (было 30, только для бесплатных)
 
 
-def get_rate_limiter(path: str) -> Optional[RateLimiter]:
+def get_rate_limiter(path: str) -> RateLimiter | None:
     """
     Получить подходящий rate limiter для пути.
 
@@ -129,7 +126,7 @@ def get_rate_limiter(path: str) -> Optional[RateLimiter]:
 
 
 # Разрешенные origins для CSRF protection
-ALLOWED_ORIGINS: Set[str] = {
+ALLOWED_ORIGINS: set[str] = {
     "https://pandapal.ru",
     "https://web.telegram.org",
     "https://telegram.org",
@@ -138,7 +135,7 @@ ALLOWED_ORIGINS: Set[str] = {
 }
 
 # Разрешенные referers
-ALLOWED_REFERERS: Set[str] = {
+ALLOWED_REFERERS: set[str] = {
     "https://pandapal.ru",
     "https://web.telegram.org",
     "https://telegram.org",
@@ -147,7 +144,7 @@ ALLOWED_REFERERS: Set[str] = {
 }
 
 
-def validate_origin(request: web.Request) -> Tuple[bool, Optional[str]]:
+def validate_origin(request: web.Request) -> tuple[bool, str | None]:
     """
     Проверить Origin/Referer для CSRF protection.
 
@@ -206,10 +203,8 @@ def validate_origin(request: web.Request) -> Tuple[bool, Optional[str]]:
         origin_netloc = f"{parsed.scheme}://{netloc}"
         if origin_netloc not in ALLOWED_ORIGINS:
             # Для Mini App endpoints более мягкая проверка
-            if request.path.startswith("/api/miniapp/"):
-                # Разрешаем, если это похоже на Telegram домен
-                if "telegram" in netloc.lower():
-                    return True, None
+            if request.path.startswith("/api/miniapp/") and "telegram" in netloc.lower():
+                return True, None
             return False, f"Invalid Origin: {origin_netloc}"
 
     # Проверяем Referer (нормализуем - убираем порт если стандартный)
@@ -225,16 +220,14 @@ def validate_origin(request: web.Request) -> Tuple[bool, Optional[str]]:
         referer_netloc = f"{parsed.scheme}://{netloc}"
         if referer_netloc not in ALLOWED_REFERERS:
             # Для Mini App endpoints более мягкая проверка
-            if request.path.startswith("/api/miniapp/"):
-                # Разрешаем, если это похоже на Telegram домен
-                if "telegram" in netloc.lower():
-                    return True, None
+            if request.path.startswith("/api/miniapp/") and "telegram" in netloc.lower():
+                return True, None
             return False, f"Invalid Referer: {referer_netloc}"
 
     return True, None
 
 
-async def security_middleware(app: web.Application, handler):
+async def security_middleware(_app: web.Application, handler):
     """
     Главный security middleware.
 
@@ -368,7 +361,6 @@ async def security_middleware(app: web.Application, handler):
 
         # CSRF protection (только для API endpoints)
         if request.path.startswith("/api/"):
-
             valid, reason = validate_origin(request)
             if not valid:
                 origin = request.headers.get("Origin", "N/A")
@@ -413,7 +405,13 @@ async def security_middleware(app: web.Application, handler):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
         # HSTS только для HTTPS
-        if request.scheme == "https":
+        # Проверяем scheme напрямую или через X-Forwarded-Proto (для Railway/Cloudflare прокси)
+        is_https = (
+            request.scheme == "https"
+            or request.headers.get("X-Forwarded-Proto", "").lower() == "https"
+            or request.headers.get("X-Forwarded-Ssl", "").lower() == "on"
+        )
+        if is_https:
             response.headers["Strict-Transport-Security"] = (
                 "max-age=31536000; includeSubDomains; preload"
             )

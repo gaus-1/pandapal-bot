@@ -479,9 +479,12 @@ class TetrisGame:
         self.current_row = -2
         self.current_col = self.width // 2
 
-        # УЛУЧШЕНО: Проверка Game Over при спавне (как в примере)
-        # Проверяем, можно ли разместить фигуру хотя бы на верхней границе (row = 0)
-        if not self._can_place(0, self.current_col, self.current_rotation):
+        # УЛУЧШЕНО: Проверка Game Over при спавне
+        # Проверяем, можно ли разместить фигуру на верхней границе (row = 0)
+        # ИСПРАВЛЕНО: Проверяем только если поле не пустое (есть хотя бы один заполненный блок)
+        # Для новой игры поле пустое, поэтому фигура всегда может быть размещена
+        has_blocks = any(any(cell != 0 for cell in row) for row in self.board)
+        if has_blocks and not self._can_place(0, self.current_col, self.current_rotation):
             self.game_over = True
 
     def _get_blocks(self, row: int, col: int, rotation: int) -> list[tuple[int, int]]:
