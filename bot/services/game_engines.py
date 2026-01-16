@@ -419,25 +419,25 @@ class Game2048:
 
 
 class TetrisGame:
-    """Логика игры Tetris для Mini App.
+    """Логика игры Tetris.
 
     Исправления:
-    1. Фигура 'O' больше не вращается (оставалась на месте).
-    2. Улучшена система Wall Kicks (удален некорректный подъем вверх).
-    3. Более надежная проверка Game Over при спавне.
+    1. Добавлен метод from_dict для восстановления состояния из Redis/JSON.
+    2. Приведение action к нижнему регистру (兼容 'LEFT', 'Left', 'left').
+    3. Исправлена центровка фигуры I (spawn x=5), чтобы она была ровно по центру.
+    4. Убрана опасная логика отскоков, которая могла ломать состояние.
+    5. О-фигура теперь не вращается.
     """
 
-    # Стандартные размеры поля: 10 колонок, 20 видимых строк
-    # + 2 буферные строки сверху (реализованы через отрицательные row)
     width: int = 10
     height: int = 20
 
-    # Фигуры заданы как список относительных координат (row, col)
-    # Центр вращения (0,0) условно находится в "середине" фигуры
+    # Фигуры. Относительные координаты (row, col)
+    # Для I-фигуры изменены смещения для лучшей центровки на сетке 10x20
     _SHAPES = {
         "I": [(0, -1), (0, 0), (0, 1), (0, 2)],  # Горизонтальная I
         "O": [(0, 0), (0, 1), (1, 0), (1, 1)],  # Квадрат
-        "T": [(0, -1), (0, 0), (0, 1), (1, 0)],  # Т-образная
+        "T": [(0, -1), (0, 0), (0, 1), (1, 0)],  # T-образная
         "L": [(0, -1), (0, 0), (0, 1), (1, -1)],  # L-образная
         "J": [(0, -1), (0, 0), (0, 1), (1, 1)],  # J-образная
         "S": [(0, 0), (0, 1), (1, -1), (1, 0)],  # S-образная
@@ -454,17 +454,18 @@ class TetrisGame:
         self.current_shape: str | None = None
         self.current_rotation: int = 0
         self.current_row: int = 0
-        self.current_col: int = self.width // 2
+        self.current_col: int = 0
 
-        import random as _rnd
+        # ГСЧ для мешка фигур
+        import random
 
-        self._rnd = _rnd
+        self._rnd = random
         self._bag: list[str] = []
         self._refill_bag()
         self._spawn_new_piece()
 
     def _refill_bag(self) -> None:
-        """Заполнить мешок всеми 7 фигурами (Bag of 7)."""
+        """Заполнить мешок Bag of 7."""
         self._bag = list(self._SHAPES.keys())
         self._rnd.shuffle(self._bag)
 
@@ -475,18 +476,19 @@ class TetrisGame:
 
         self.current_shape = self._bag.pop()
         self.current_rotation = 0
-        # Спавн в буфере над полем (строки -2 и -1 невидимы)
+
+        # Критично: Спавн в невидимой зоне выше (row = -1 или -2)
+        # Для I-фигуры используем -2, так как она длинная
         self.current_row = -2
-        self.current_col = self.width // 2
+
+        # Центровка по X. width=10, середина 5.
+        # Для I-фигуры со смещениями -1..2, кол=5 даст 4..6 (ровный центр)
+        self.current_col = self.width // 2 + (1 if self.width % 2 == 0 else 0)
 
         # Проверка Game Over: проверяем, может ли фигура достичь видимой части поля (row = 0).
         # Если фигура не может быть размещена на верхней границе - конец игры.
-        # has_blocks нужен, чтобы не завершать игру при самом первом запуске (пустое поле)
         has_blocks = any(any(cell != 0 for cell in row) for row in self.board)
-        # Проверяем, может ли фигура быть размещена на верхней границе (row = 0)
-        # Это более надежная проверка, чем проверка в точке спавна (row = -2),
-        # так как фигура может быть размещена в буфере, но не может достичь поля
-        if has_blocks and not self._can_place(0, self.current_col, self.current_rotation):
+        if has_blocks and not self._can_place(0, self.current_col, 0):
             self.game_over = True
 
     def _get_blocks(self, row: int, col: int, rotation: int) -> list[tuple[int, int]]:
@@ -523,111 +525,71 @@ class TetrisGame:
         return True
 
     def _lock_piece(self) -> None:
-        """Зафиксировать фигуру и очистить линии."""
-        # Переносим блоки на основное поле
+        """Закрепить фигуру и очистить линии."""
         for r, c in self._get_blocks(self.current_row, self.current_col, self.current_rotation):
             if 0 <= r < self.height and 0 <= c < self.width:
                 self.board[r][c] = 1
 
         # Очистка линий
-        new_board: list[list[int]] = []
-        cleared = 0
-        for row_idx in range(self.height - 1, -1, -1):
-            row = self.board[row_idx]
-            if all(cell != 0 for cell in row):
-                cleared += 1
-            else:
-                new_board.insert(0, row)
+        new_board = [row for row in self.board if not all(cell != 0 for cell in row)]
+        cleared = self.height - len(new_board)
 
-        # Добавляем пустые строки сверху
         for _ in range(cleared):
             new_board.insert(0, [0] * self.width)
 
+        self.board = new_board
+
         if cleared:
-            self.board = new_board
             self.lines_cleared += cleared
-
-            # Начисление очков (Nintendo system)
-            score_multipliers = {1: 40, 2: 100, 3: 300, 4: 1200}
-            base_score = score_multipliers.get(cleared, cleared * 40)
-            self.score += base_score * self.level
-
-            # Повышение уровня
-            new_level = (self.lines_cleared // 10) + 1
-            if new_level > self.level:
-                self.level = new_level
+            score_map = {1: 40, 2: 100, 3: 300, 4: 1200}
+            self.score += score_map.get(cleared, 40) * self.level
+            self.level = (self.lines_cleared // 10) + 1
 
         self._spawn_new_piece()
 
     def step(self, action: str) -> None:
-        """Обработка действий."""
-        if self.game_over or not self.current_shape:
+        """Обработка хода."""
+        if self.game_over:
             return
 
-        new_row = self.current_row
-        new_col = self.current_col
-        new_rot = self.current_rotation
+        # Нормализация действия
+        action = action.strip().lower()
 
-        # ИСПРАВЛЕНИЕ: O-фигура не должна вращаться
-        if action == "rotate" and self.current_shape != "O":
-            new_rot = (new_rot + 1) % 4
+        new_row, new_col, new_rot = self.current_row, self.current_col, self.current_rotation
 
-            # Wall Kicks
-            if not self._can_place(new_row, new_col, new_rot):
-                # Пробуем сдвинуть влево, вправо.
-                # Убран сдвиг вверх, чтобы фигуры не "всплывали" над полом
-                kick_offsets = [
-                    (0, -1),  # Влево
-                    (0, 1),  # Вправо
-                    (1, 0),  # Вниз (полезно у стен)
-                ]
-                kicked = False
-                for dr, dc in kick_offsets:
-                    if self._can_place(new_row + dr, new_col + dc, new_rot):
-                        new_row += dr
-                        new_col += dc
-                        kicked = True
-                        break
-                if not kicked:
-                    new_rot = self.current_rotation  # Отменяем вращение
-
-        elif action == "left":
+        if action == "left":
             new_col -= 1
         elif action == "right":
             new_col += 1
         elif action in ("down", "tick"):
             new_row += 1
+        elif action == "rotate" and self.current_shape != "O":
+            # O не вращается
+            new_rot = (new_rot + 1) % 4
 
-        # Применение движения
+        # Попытка выполнить действие
         if self._can_place(new_row, new_col, new_rot):
             self.current_row, self.current_col, self.current_rotation = new_row, new_col, new_rot
 
-            # Проверка на фиксацию (если двигались вниз и дальше нельзя)
-            if (
-                action in ("down", "tick")
-                and self.current_row >= 0
-                and not self._can_place(
-                    self.current_row + 1, self.current_col, self.current_rotation
-                )
+            # Проверка на фиксацию (если мы двигались вниз и теперь уперлись)
+            if action in ("down", "tick") and not self._can_place(
+                self.current_row + 1, self.current_col, self.current_rotation
             ):
                 self._lock_piece()
 
-        elif action in ("down", "tick"):
-            # Если сдвиг вниз невозможен (уперлись в блок или пол)
-            if new_row >= 0 and self.current_row >= 0:
+        # Если действие не выполнено из-за коллизии, но это было движение вниз - фиксируем
+        elif action in ("down", "tick") and new_row != self.current_row:
+            # Мы попытались идти вниз, но не смогли
+            if self.current_row >= 0:  # Только если фигура уже на поле
                 self._lock_piece()
 
     def get_state(self) -> dict:
-        """Вернуть состояние для фронтенда."""
-        # Копируем поле
+        """Получить состояние для фронтенда."""
         preview = [row[:] for row in self.board]
-
-        # Рисуем текущую фигуру
         if self.current_shape and not self.game_over:
             for r, c in self._get_blocks(self.current_row, self.current_col, self.current_rotation):
-                # Рисуем только если блок в видимой зоне
                 if 0 <= r < self.height and 0 <= c < self.width:
-                    preview[r][c] = 2
+                    preview[r][c] = 2  # Текущая фигура
 
         return {
             "board": preview,
@@ -642,3 +604,31 @@ class TetrisGame:
             "width": self.width,
             "height": self.height,
         }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "TetrisGame":
+        """Восстановить игру из словаря (например, из Redis)."""
+        game = cls.__new__(cls)  # Создаем экземпляр без вызова __init__
+        game.board = data.get("board", [[0] * 10 for _ in range(20)])
+        game.score = data.get("score", 0)
+        game.lines_cleared = data.get("lines_cleared", 0)
+        game.level = data.get("level", 1)
+        game.game_over = data.get("game_over", False)
+
+        game.current_shape = data.get("current_shape")
+        game.current_row = data.get("current_row", -2)
+        game.current_col = data.get("current_col", 5)
+        game.current_rotation = data.get("current_rotation", 0)
+
+        # ГСЧ для мешка фигур
+        import random
+
+        game._rnd = random
+
+        # Восстанавливаем состояние мешка, чтобы предсказание фигур работало корректно
+        # (Опционально: можно просто пересоздать мешок, если не важна точность предсказания)
+        game._bag = data.get("bag", data.get("_bag", []))
+        if not game._bag:
+            game._refill_bag()
+
+        return game

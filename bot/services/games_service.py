@@ -1099,81 +1099,24 @@ class GamesService:
         if not session:
             raise ValueError(f"Game session {session_id} not found")
 
-        # Восстанавливаем игру из сохранённого состояния
-        game = TetrisGame()
+        # Восстанавливаем игру из сохранённого состояния используя from_dict
         if session.game_state and isinstance(session.game_state, dict):
-            state = session.game_state
-            board = state.get("board")
-            if isinstance(board, list) and len(board) == game.height:
-                # Копируем поле
-                game.board = [list(row) for row in board]
-            game.score = int(state.get("score", 0))
-            game.lines_cleared = int(state.get("lines_cleared", 0))
-            game.level = int(state.get("level", 1))  # УЛУЧШЕНО: Восстанавливаем уровень
-            game.game_over = bool(state.get("game_over", False))
-            # КРИТИЧНО: Если игра уже завершена - не восстанавливаем фигуру
-            if game.game_over:
-                game.current_shape = None
-            # Восстанавливаем текущую фигуру, если данные есть
-            # КРИТИЧНО: Если игра уже завершена - не восстанавливаем фигуру
-            if not game.game_over:
-                current_shape = state.get("current_shape")
-                if isinstance(current_shape, str):
-                    game.current_shape = current_shape
-                    # КРИТИЧНО: Восстанавливаем row, но если он >= 0 и фигура не может быть размещена - спавним новую
-                    saved_row = state.get("current_row")
-                    if saved_row is not None:
-                        saved_row_int = int(saved_row)
-                        if saved_row_int < 0:
-                            # Если row < 0 (фигура выше поля) - восстанавливаем нормально
-                            game.current_row = saved_row_int
-                            game.current_col = int(state.get("current_col", game.width // 2))
-                            game.current_rotation = int(state.get("current_rotation", 0))
-                        elif saved_row_int >= 0:
-                            # Если row >= 0 (фигура уже на поле) - проверяем валидность
-                            game.current_row = saved_row_int
-                            game.current_col = int(state.get("current_col", game.width // 2))
-                            game.current_rotation = int(state.get("current_rotation", 0))
-                            # Проверяем, можно ли разместить фигуру в восстановленной позиции
-                            if not game._can_place(
-                                game.current_row, game.current_col, game.current_rotation
-                            ):
-                                # Если нельзя - спавним новую фигуру
-                                game._spawn_new_piece()
-                        else:
-                            # Если row невалиден - спавним новую фигуру
-                            game._spawn_new_piece()
-                    else:
-                        # Если row не сохранен - спавним новую фигуру
-                        game._spawn_new_piece()
-                else:
-                    # КРИТИЧНО: Если фигура не сохранена - спавним новую
-                    # Это может произойти при первом запуске или если фигура была зафиксирована
-                    game._spawn_new_piece()
-            else:
-                # Игра завершена - фигура не нужна
-                game.current_shape = None
-            # УЛУЧШЕНО: Восстанавливаем Bag of 7 (если сохранен)
-            saved_bag = state.get("bag")
-            if isinstance(saved_bag, list) and saved_bag:
-                game._bag = saved_bag
-            else:
-                # Если bag не сохранен - создаем новый (для обратной совместимости)
-                game._refill_bag()
+            game = TetrisGame.from_dict(session.game_state)
+        else:
+            game = TetrisGame()
 
         # Делаем шаг
         game.step(action)
         state = game.get_state()
 
         # Обновляем сессию
-        # УЛУЧШЕНО: Сохраняем width, height, level и bag для корректной работы
         self.update_game_session(
             session_id,
             {
                 "board": state["board"],
                 "score": state["score"],
                 "lines_cleared": state["lines_cleared"],
-                "level": state.get("level", 1),  # УЛУЧШЕНО: Сохраняем уровень
+                "level": state.get("level", 1),
                 "game_over": state["game_over"],
                 "width": state.get("width", game.width),
                 "height": state.get("height", game.height),
@@ -1181,7 +1124,7 @@ class GamesService:
                 "current_row": state.get("current_row"),
                 "current_col": state.get("current_col"),
                 "current_rotation": state.get("current_rotation"),
-                "bag": game._bag,  # УЛУЧШЕНО: Сохраняем Bag of 7
+                "bag": game._bag,
             },
             "loss" if state["game_over"] else "in_progress",
         )
