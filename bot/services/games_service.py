@@ -1111,35 +1111,48 @@ class GamesService:
             game.lines_cleared = int(state.get("lines_cleared", 0))
             game.level = int(state.get("level", 1))  # УЛУЧШЕНО: Восстанавливаем уровень
             game.game_over = bool(state.get("game_over", False))
+            # КРИТИЧНО: Если игра уже завершена - не восстанавливаем фигуру
+            if game.game_over:
+                game.current_shape = None
             # Восстанавливаем текущую фигуру, если данные есть
-            current_shape = state.get("current_shape")
-            if isinstance(current_shape, str):
-                game.current_shape = current_shape
-                # КРИТИЧНО: Восстанавливаем row, но если он >= 0 и фигура не может быть размещена - спавним новую
-                saved_row = state.get("current_row")
-                if saved_row is not None and int(saved_row) < 0:
-                    # Если row < 0 (фигура выше поля) - восстанавливаем нормально
-                    game.current_row = int(saved_row)
-                    game.current_col = int(state.get("current_col", game.width // 2))
-                    game.current_rotation = int(state.get("current_rotation", 0))
-                elif saved_row is not None and int(saved_row) >= 0:
-                    # Если row >= 0 (фигура уже на поле) - проверяем валидность
-                    game.current_row = int(saved_row)
-                    game.current_col = int(state.get("current_col", game.width // 2))
-                    game.current_rotation = int(state.get("current_rotation", 0))
-                    # Проверяем, можно ли разместить фигуру в восстановленной позиции
-                    if not game._can_place(
-                        game.current_row, game.current_col, game.current_rotation
-                    ):
-                        # Если нельзя - спавним новую фигуру
+            # КРИТИЧНО: Если игра уже завершена - не восстанавливаем фигуру
+            if not game.game_over:
+                current_shape = state.get("current_shape")
+                if isinstance(current_shape, str):
+                    game.current_shape = current_shape
+                    # КРИТИЧНО: Восстанавливаем row, но если он >= 0 и фигура не может быть размещена - спавним новую
+                    saved_row = state.get("current_row")
+                    if saved_row is not None:
+                        saved_row_int = int(saved_row)
+                        if saved_row_int < 0:
+                            # Если row < 0 (фигура выше поля) - восстанавливаем нормально
+                            game.current_row = saved_row_int
+                            game.current_col = int(state.get("current_col", game.width // 2))
+                            game.current_rotation = int(state.get("current_rotation", 0))
+                        elif saved_row_int >= 0:
+                            # Если row >= 0 (фигура уже на поле) - проверяем валидность
+                            game.current_row = saved_row_int
+                            game.current_col = int(state.get("current_col", game.width // 2))
+                            game.current_rotation = int(state.get("current_rotation", 0))
+                            # Проверяем, можно ли разместить фигуру в восстановленной позиции
+                            if not game._can_place(
+                                game.current_row, game.current_col, game.current_rotation
+                            ):
+                                # Если нельзя - спавним новую фигуру
+                                game._spawn_new_piece()
+                        else:
+                            # Если row невалиден - спавним новую фигуру
+                            game._spawn_new_piece()
+                    else:
+                        # Если row не сохранен - спавним новую фигуру
                         game._spawn_new_piece()
                 else:
-                    # Если row не сохранен - спавним новую фигуру
+                    # КРИТИЧНО: Если фигура не сохранена - спавним новую
+                    # Это может произойти при первом запуске или если фигура была зафиксирована
                     game._spawn_new_piece()
             else:
-                # КРИТИЧНО: Если фигура не сохранена - спавним новую
-                # Это может произойти при первом запуске или если фигура была зафиксирована
-                game._spawn_new_piece()
+                # Игра завершена - фигура не нужна
+                game.current_shape = None
             # УЛУЧШЕНО: Восстанавливаем Bag of 7 (если сохранен)
             saved_bag = state.get("bag")
             if isinstance(saved_bag, list) and saved_bag:
