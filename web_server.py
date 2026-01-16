@@ -355,6 +355,7 @@ class PandaPalBotServer:
                 "favicon.ico",  # Favicon для Яндекс (создается из logo.png)
                 "robots.txt",
                 "sitemap.xml",
+                "security.txt",  # Security.txt для ответственного раскрытия уязвимостей
                 "panda-happy.png",  # Веселая панда для игр
                 "panda-sad.png",  # Грустная панда для игр
                 "yandex_3f9e35f6d79cfb2f.html",  # Яндекс.Вебмастер верификация
@@ -484,14 +485,28 @@ class PandaPalBotServer:
                         f"📦 JS файлы: {', '.join(js_files[:5])}{'...' if len(js_files) > 5 else ''}"
                     )
 
+            # Security.txt по стандартному пути /.well-known/security.txt
+            security_txt_path = frontend_dist / "security.txt"
+            if security_txt_path.exists():
+
+                async def serve_security_txt(_request: web.Request) -> web.Response:
+                    """Раздача security.txt по стандартному пути."""
+                    return web.FileResponse(
+                        security_txt_path,
+                        headers={"Content-Type": "text/plain; charset=utf-8"},
+                    )
+
+                self.app.router.add_get("/.well-known/security.txt", serve_security_txt)
+                logger.info("✅ Security.txt зарегистрирован по пути /.well-known/security.txt")
+
             # Главная страница
             self.app.router.add_get("/", lambda _: web.FileResponse(frontend_dist / "index.html"))
 
             # SPA Fallback - все неизвестные роуты возвращают index.html
-            # НО исключаем /api, /assets, /webhook, /health
+            # НО исключаем /api, /assets, /webhook, /health, /.well-known
             async def spa_fallback(request: web.Request) -> web.Response:
                 path = request.path
-                # Исключаем API, assets, webhook, health из SPA fallback
+                # Исключаем API, assets, webhook, health, .well-known из SPA fallback
                 # Проверяем ТОЧНО, чтобы не перехватывать assets
                 if (
                     path.startswith("/api/")
@@ -500,6 +515,7 @@ class PandaPalBotServer:
                     or path.startswith("/webhook/")
                     or path == "/health"
                     or path.startswith("/health/")
+                    or path.startswith("/.well-known/")
                 ):
                     # Логируем 404 для assets для отладки
                     if path.startswith("/assets/"):
