@@ -99,7 +99,8 @@ def _initialize_game_state(game_type: str) -> dict:
             "width": state.get("width", game.width),
             "height": state.get("height", game.height),
             "current_shape": state.get("current_shape"),
-            "current_row": state.get("current_row", 0),
+            # КРИТИЧНО: Сохраняем реальный current_row (может быть -2 для спавна выше поля)
+            "current_row": state.get("current_row"),
             "current_col": state.get("current_col", game.width // 2),
             "current_rotation": state.get("current_rotation", 0),
             "bag": game._bag,  # УЛУЧШЕНО: Сохраняем Bag of 7
