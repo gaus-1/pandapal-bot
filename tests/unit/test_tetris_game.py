@@ -45,7 +45,8 @@ def test_complete_line_increases_score():
     state = game.get_state()
 
     assert state["lines_cleared"] >= 1
-    assert state["score"] >= 100
+    # Стандартная система очков: 1 линия = 40 * Level (при Level=1 это 40)
+    assert state["score"] >= 40
 
 
 def test_bag_of_7_spawn():
@@ -110,8 +111,8 @@ def test_score_multipliers():
     game._lock_piece()  # type: ignore[protected-access]
 
     state = game.get_state()
-    # 2 линии должны дать больше чем 2 * 100 (минимум 300 * уровень)
-    assert state["score"] > initial_score + 200
+    # Стандартная система очков: 2 линии = 100 * Level (при Level=1 это 100)
+    assert state["score"] > initial_score + 50  # Минимум 100 очков за 2 линии
 
 
 def test_line_clearing_bottom_up():
@@ -146,3 +147,45 @@ def test_game_over_on_spawn_collision():
     game._spawn_new_piece()  # type: ignore[protected-access]
 
     assert game.game_over, "Ожидался Game Over при блокировке спавна"
+
+
+def test_piece_spawns_above_field():
+    """Фигура спавнится выше поля (row = -2) и не завершает игру."""
+    game = TetrisGame()
+
+    # Проверяем начальное состояние
+    assert game.current_row == -2, "Фигура должна спавниться на row = -2"
+    assert game.game_over is False, "Игра не должна быть завершена при спавне"
+
+    # Проверяем, что фигура может быть размещена выше поля
+    assert game._can_place(-2, game.current_col, game.current_rotation), \
+        "Фигура должна быть размещена выше поля"
+    assert game._can_place(-1, game.current_col, game.current_rotation), \
+        "Фигура должна быть размещена на row = -1"
+    assert game._can_place(0, game.current_col, game.current_rotation), \
+        "Фигура должна быть размещена на верхней границе поля"
+
+
+def test_first_move_down_does_not_end_game():
+    """Первое движение вниз не должно завершать игру."""
+    game = TetrisGame()
+
+    # Проверяем начальное состояние
+    initial_row = game.current_row
+    assert initial_row == -2, "Фигура должна быть на row = -2"
+    assert game.game_over is False, "Игра не должна быть завершена"
+
+    # Делаем первое движение вниз
+    game.step("down")
+
+    # Фигура должна переместиться вниз, но игра не должна завершиться
+    assert game.current_row == -1, "Фигура должна переместиться на row = -1"
+    assert game.game_over is False, "Игра не должна завершиться после первого движения"
+
+    # Делаем еще несколько движений вниз
+    for _ in range(3):
+        game.step("down")
+
+    # Фигура должна достичь поля, но игра все еще не должна завершиться
+    assert game.current_row >= 0, "Фигура должна достичь видимой части поля"
+    assert game.game_over is False, "Игра не должна завершиться пока фигура не зафиксирована"

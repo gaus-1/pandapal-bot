@@ -194,8 +194,8 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col items-center justify-start px-4 pb-4">
-        <div className="flex gap-3 w-full max-w-md">
+      <div className="flex-1 flex flex-col items-center justify-start px-4 pb-20 sm:pb-4">
+        <div className="flex gap-3 w-full max-w-lg">
           {/* Игровое поле */}
           <div className="flex-1 flex justify-center">
             <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner">
@@ -204,7 +204,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
                   row.map((cell, colIndex) => (
                     <div
                       key={`${rowIndex}-${colIndex}`}
-                      className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 ${CELL_COLORS[cell]}`}
+                      className={`w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 ${CELL_COLORS[cell]}`}
                     />
                   )),
                 )}
@@ -227,14 +227,14 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
           </div>
         </div>
 
-        {/* Кнопки управления */}
-        <div className="mt-4 w-full max-w-md">
-          <div className="flex justify-between gap-2">
+        {/* Кнопки управления - фиксированные внизу для мобильных */}
+        <div className="fixed bottom-0 left-0 right-0 sm:relative sm:bottom-auto sm:left-auto sm:right-auto mt-4 w-full max-w-lg bg-white dark:bg-slate-900 sm:bg-transparent border-t border-gray-200 dark:border-slate-700 sm:border-t-0 pt-3 pb-safe sm:pt-0 sm:pb-0 px-4">
+          <div className="flex justify-between gap-2 mb-2">
             <button
               type="button"
               onClick={() => handleAction('left')}
               disabled={isLoading || game_over}
-              className="flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-xs sm:text-sm text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700"
+              className="flex-1 py-3 sm:py-2 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm sm:text-sm text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation"
             >
               ← Влево
             </button>
@@ -242,7 +242,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
               type="button"
               onClick={() => handleAction('rotate')}
               disabled={isLoading || game_over}
-              className="flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-xs sm:text-sm text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700"
+              className="flex-1 py-3 sm:py-2 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm sm:text-sm text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation"
             >
               ⟳ Повернуть
             </button>
@@ -250,7 +250,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
               type="button"
               onClick={() => handleAction('right')}
               disabled={isLoading || game_over}
-              className="flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-xs sm:text-sm text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700"
+              className="flex-1 py-3 sm:py-2 rounded-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-sm sm:text-sm text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation"
             >
               Вправо →
             </button>
@@ -259,7 +259,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
             type="button"
             onClick={() => handleAction('down')}
             disabled={isLoading || game_over}
-            className="mt-2 w-full py-2 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-xs sm:text-sm font-semibold text-white shadow-md"
+            className="w-full py-3 sm:py-2 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-sm sm:text-sm font-semibold text-white shadow-md touch-manipulation"
           >
             ↓ Быстрее
           </button>
