@@ -13,65 +13,71 @@ export function ChatBackground() {
       {/* Градиентный фон в стиле Telegram - очень легкий */}
       <div className="absolute inset-0 bg-gradient-to-b from-blue-50/50 via-white to-pink-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" />
 
-      {/* SVG паттерн с doodles - профессиональный стиль Telegram */}
+      {/* SVG паттерн с doodles - профессиональный стиль Telegram, но более заметный */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none"
-        style={{ opacity: 0.08 }}
+        style={{ opacity: 0.12 }}
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          <pattern id="doodlePattern" x="0" y="0" width="120" height="160" patternUnits="userSpaceOnUse">
-            {/* Панда - маленькая и тонкая */}
-            <g transform="translate(20, 30)" opacity="0.6">
-              <circle cx="0" cy="0" r="8" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
-              <circle cx="-4" cy="-3" r="2" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
-              <circle cx="4" cy="-3" r="2" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
-              <ellipse cx="0" cy="3" rx="3" ry="2" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
+          <pattern id="doodlePattern" x="0" y="0" width="140" height="180" patternUnits="userSpaceOnUse">
+            {/* Панда - крупнее и заметнее */}
+            <g transform="translate(25, 35)" opacity="0.7">
+              <circle cx="0" cy="0" r="12" fill="none" stroke="#94a3b8" strokeWidth="2" />
+              <circle cx="-5" cy="-4" r="2.5" fill="none" stroke="#94a3b8" strokeWidth="2" />
+              <circle cx="5" cy="-4" r="2.5" fill="none" stroke="#94a3b8" strokeWidth="2" />
+              <ellipse cx="0" cy="4" rx="4" ry="3" fill="none" stroke="#94a3b8" strokeWidth="2" />
             </g>
 
-            {/* Книга - тонкая линия */}
-            <g transform="translate(60, 60)" opacity="0.5">
-              <rect x="-8" y="-6" width="16" height="12" fill="none" stroke="#94a3b8" strokeWidth="1.2" />
-              <line x1="0" y1="-6" x2="0" y2="6" stroke="#94a3b8" strokeWidth="1.2" />
+            {/* Книга - крупнее */}
+            <g transform="translate(70, 70)" opacity="0.6">
+              <rect x="-10" y="-8" width="20" height="16" fill="none" stroke="#94a3b8" strokeWidth="1.8" />
+              <line x1="0" y1="-8" x2="0" y2="8" stroke="#94a3b8" strokeWidth="1.8" />
             </g>
 
-            {/* Карандаш - тонкий */}
-            <g transform="translate(90, 40)" opacity="0.5">
-              <rect x="-3" y="-8" width="6" height="16" fill="none" stroke="#94a3b8" strokeWidth="1.2" />
-              <polygon points="-3,-8 0,-11 3,-8" fill="none" stroke="#94a3b8" strokeWidth="1.2" />
+            {/* Карандаш - крупнее */}
+            <g transform="translate(105, 50)" opacity="0.6">
+              <rect x="-4" y="-10" width="8" height="20" fill="none" stroke="#94a3b8" strokeWidth="1.8" />
+              <polygon points="-4,-10 0,-14 4,-10" fill="none" stroke="#94a3b8" strokeWidth="1.8" />
             </g>
 
-            {/* Звезда - тонкая */}
-            <g transform="translate(30, 100)" opacity="0.5">
-              <path d="M0,-8 L2,-2 L8,-2 L3,2 L5,8 L0,5 L-5,8 L-3,2 L-8,-2 L-2,-2 Z" fill="none" stroke="#94a3b8" strokeWidth="1.2" />
+            {/* Звезда - крупнее */}
+            <g transform="translate(35, 110)" opacity="0.6">
+              <path d="M0,-10 L2.5,-2.5 L10,-2.5 L4,3 L6,10 L0,6 L-6,10 L-4,3 L-10,-2.5 L-2.5,-2.5 Z" fill="none" stroke="#94a3b8" strokeWidth="1.8" />
             </g>
 
-            {/* Глобус - тонкий контур */}
-            <g transform="translate(80, 110)" opacity="0.5">
-              <circle cx="0" cy="0" r="10" fill="none" stroke="#94a3b8" strokeWidth="1.2" />
-              <ellipse cx="0" cy="0" rx="10" ry="5" fill="none" stroke="#94a3b8" strokeWidth="1" />
-              <line x1="-10" y1="0" x2="10" y2="0" stroke="#94a3b8" strokeWidth="1" />
+            {/* Глобус - крупнее */}
+            <g transform="translate(90, 120)" opacity="0.6">
+              <circle cx="0" cy="0" r="12" fill="none" stroke="#94a3b8" strokeWidth="1.8" />
+              <ellipse cx="0" cy="0" rx="12" ry="6" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
+              <line x1="-12" y1="0" x2="12" y2="0" stroke="#94a3b8" strokeWidth="1.5" />
             </g>
 
-            {/* Формула (x²) - тонкий текст */}
-            <g transform="translate(20, 140)" opacity="0.6">
-              <text x="0" y="0" fontSize="14" fill="#94a3b8" fontFamily="serif" textAnchor="middle" dominantBaseline="middle">x²</text>
+            {/* Формула (x²) - крупнее */}
+            <g transform="translate(25, 150)" opacity="0.7">
+              <text x="0" y="0" fontSize="18" fill="#94a3b8" fontFamily="serif" textAnchor="middle" dominantBaseline="middle" fontWeight="500">x²</text>
             </g>
 
-            {/* Карандаш (второй) */}
-            <g transform="translate(90, 150)" opacity="0.5">
-              <rect x="-3" y="-8" width="6" height="16" fill="none" stroke="#94a3b8" strokeWidth="1.2" />
-              <polygon points="-3,-8 0,-11 3,-8" fill="none" stroke="#94a3b8" strokeWidth="1.2" />
+            {/* Карандаш (второй) - крупнее */}
+            <g transform="translate(100, 160)" opacity="0.6">
+              <rect x="-4" y="-10" width="8" height="20" fill="none" stroke="#94a3b8" strokeWidth="1.8" />
+              <polygon points="-4,-10 0,-14 4,-10" fill="none" stroke="#94a3b8" strokeWidth="1.8" />
             </g>
 
-            {/* Звезда (вторая) */}
-            <g transform="translate(40, 180)" opacity="0.5">
-              <path d="M0,-7 L1.5,-1.5 L7,-1.5 L2.5,2 L4,7 L0,5 L-4,7 L-2.5,2 L-7,-1.5 L-1.5,-1.5 Z" fill="none" stroke="#94a3b8" strokeWidth="1.2" />
+            {/* Звезда (вторая) - крупнее */}
+            <g transform="translate(50, 190)" opacity="0.6">
+              <path d="M0,-9 L2,-2 L9,-2 L3.5,2.5 L5.5,9 L0,6 L-5.5,9 L-3.5,2.5 L-9,-2 L-2,-2 Z" fill="none" stroke="#94a3b8" strokeWidth="1.8" />
             </g>
 
-            {/* Формула (π) */}
-            <g transform="translate(70, 200)" opacity="0.6">
-              <text x="0" y="0" fontSize="16" fill="#94a3b8" fontFamily="serif" textAnchor="middle" dominantBaseline="middle">π</text>
+            {/* Формула (π) - крупнее */}
+            <g transform="translate(80, 210)" opacity="0.7">
+              <text x="0" y="0" fontSize="20" fill="#94a3b8" fontFamily="serif" textAnchor="middle" dominantBaseline="middle" fontWeight="500">π</text>
+            </g>
+
+            {/* Книга (вторая) - для разнообразия */}
+            <g transform="translate(120, 100)" opacity="0.6">
+              <rect x="-10" y="-8" width="20" height="16" fill="none" stroke="#94a3b8" strokeWidth="1.8" />
+              <line x1="0" y1="-8" x2="0" y2="8" stroke="#94a3b8" strokeWidth="1.8" />
             </g>
           </pattern>
         </defs>
