@@ -61,7 +61,6 @@ describe('PremiumScreen', () => {
       expect(screen.getByText('PandaPal Premium')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Неделя')).toBeInTheDocument();
     expect(screen.getByText('Месяц')).toBeInTheDocument();
     expect(screen.getByText('Год')).toBeInTheDocument();
   });
@@ -70,7 +69,6 @@ describe('PremiumScreen', () => {
     render(<PremiumScreen user={mockUser} />, { wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText('99 ₽')).toBeInTheDocument();
       expect(screen.getByText('399 ₽')).toBeInTheDocument();
       expect(screen.getByText('2990 ₽')).toBeInTheDocument();
     });
@@ -82,10 +80,10 @@ describe('PremiumScreen', () => {
     render(<PremiumScreen user={mockUser} />, { wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText(/Купить Premium за 99 ₽/)).toBeInTheDocument();
+      expect(screen.getByText(/Купить Premium за 399 ₽/)).toBeInTheDocument();
     });
 
-    const buyButton = screen.getByText(/Купить Premium за 99 ₽/);
+    const buyButton = screen.getByText(/Купить Premium за 399 ₽/);
     await user.click(buyButton);
 
     await waitFor(() => {
@@ -96,7 +94,7 @@ describe('PremiumScreen', () => {
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
           }),
-          body: expect.stringContaining('"plan_id":"week"'),
+          body: expect.stringContaining('"plan_id":"month"'),
         })
       );
     });
@@ -108,10 +106,10 @@ describe('PremiumScreen', () => {
     render(<PremiumScreen user={mockUser} />, { wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText(/Купить Premium за 99 ₽/)).toBeInTheDocument();
+      expect(screen.getByText(/Купить Premium за 399 ₽/)).toBeInTheDocument();
     });
 
-    const buyButton = screen.getByText(/Купить Premium за 99 ₽/);
+    const buyButton = screen.getByText(/Купить Premium за 399 ₽/);
     await user.click(buyButton);
 
     await waitFor(() => {
@@ -132,10 +130,10 @@ describe('PremiumScreen', () => {
     render(<PremiumScreen user={mockUser} />, { wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText(/Купить Premium за 99 ₽/)).toBeInTheDocument();
+      expect(screen.getByText(/Купить Premium за 399 ₽/)).toBeInTheDocument();
     });
 
-    const buyButton = screen.getByText(/Купить Premium за 99 ₽/);
+    const buyButton = screen.getByText(/Купить Premium за 399 ₽/);
     await user.click(buyButton);
 
     await waitFor(() => {
@@ -178,10 +176,10 @@ describe('PremiumScreen', () => {
     render(<PremiumScreen user={mockUser} />, { wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText(/Купить Premium за 99 ₽/)).toBeInTheDocument();
+      expect(screen.getByText(/Купить Premium за 399 ₽/)).toBeInTheDocument();
     });
 
-    const buyButton = screen.getByText(/Купить Premium за 99 ₽/);
+    const buyButton = screen.getByText(/Купить Premium за 399 ₽/);
     await user.click(buyButton);
 
     // Кнопка должна показывать "Обработка..."

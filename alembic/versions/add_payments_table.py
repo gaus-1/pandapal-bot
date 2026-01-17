@@ -50,7 +50,7 @@ def upgrade() -> None:
             sa.String(length=20),
             nullable=False,
         ),  # 'stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other'
-        sa.Column("plan_id", sa.String(length=20), nullable=False),  # 'week', 'month', 'year'
+        sa.Column("plan_id", sa.String(length=20), nullable=False),  # 'month', 'year'
         sa.Column("amount", sa.Float(), nullable=False),  # Сумма платежа
         sa.Column("currency", sa.String(length=10), nullable=False, server_default="RUB"),
         sa.Column(
@@ -136,7 +136,7 @@ def upgrade() -> None:
     op.create_check_constraint(
         "ck_payments_plan_id",
         "payments",
-        "plan_id IN ('week', 'month', 'year')",
+        "plan_id IN ('month', 'year')",
     )
     op.create_check_constraint(
         "ck_payments_status",

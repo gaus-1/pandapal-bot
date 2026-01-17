@@ -586,7 +586,7 @@ export async function getGameSession(sessionId: number): Promise<GameSession> {
  */
 export async function createPremiumPayment(
   telegramId: number,
-  planId: 'week' | 'month' | 'year',
+  planId: 'month' | 'year',
   userEmail?: string,
   userPhone?: string
 ): Promise<{

@@ -1,5 +1,5 @@
 -- Активация Premium подписки для пользователя 963126718 (Вячеслав)
--- Платёж: 30ecc421-000f-5001-8000-1fbb0ea447b2 (99₽, СБП)
+-- Платёж: 30ecc421-000f-5001-8000-1fbb0ea447b2 (399₽, СБП)
 
 -- Проверяем существующие активные подписки
 SELECT id, user_telegram_id, plan_id, expires_at, is_active
@@ -11,7 +11,7 @@ UPDATE subscriptions
 SET is_active = false
 WHERE user_telegram_id = 963126718 AND is_active = true;
 
--- Создаём новую подписку на неделю
+-- Создаём новую подписку на месяц
 INSERT INTO subscriptions (
     user_telegram_id,
     plan_id,
@@ -23,9 +23,9 @@ INSERT INTO subscriptions (
     payment_id
 ) VALUES (
     963126718,                                    -- Твой Telegram ID
-    'week',                                       -- План: неделя
+    'month',                                      -- План: месяц
     NOW(),                                        -- Начало: сейчас
-    NOW() + INTERVAL '7 days',                    -- Окончание: через 7 дней
+    NOW() + INTERVAL '30 days',                   -- Окончание: через 30 дней
     true,                                         -- Активна
     '30ecc421-000f-5001-8000-1fbb0ea447b2',      -- ID платежа
     'yookassa_sbp',                              -- Способ: СБП

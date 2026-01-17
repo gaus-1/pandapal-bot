@@ -382,7 +382,7 @@ def _apply_premium_migration() -> bool:
                                 REFERENCES users(telegram_id)
                                 ON DELETE CASCADE,
                             CONSTRAINT ck_subscriptions_plan_id
-                                CHECK (plan_id IN ('week', 'month', 'year'))
+                                CHECK (plan_id IN ('month', 'year'))
                         )
                         """
                     )
@@ -518,7 +518,7 @@ def _apply_payments_table_migration() -> None:
                         CONSTRAINT ck_payments_payment_method
                             CHECK (payment_method IN ('stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other')),
                         CONSTRAINT ck_payments_plan_id
-                            CHECK (plan_id IN ('week', 'month', 'year')),
+                            CHECK (plan_id IN ('month', 'year')),
                         CONSTRAINT ck_payments_status
                             CHECK (status IN ('pending', 'succeeded', 'cancelled', 'failed'))
                     )

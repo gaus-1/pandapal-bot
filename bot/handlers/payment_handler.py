@@ -6,8 +6,9 @@
 - SuccessfulPayment: успешная оплата и активация подписки
 """
 
+import asyncio
+import random
 import re
-from datetime import datetime
 
 from aiogram import Router
 from aiogram.types import Message, PreCheckoutQuery, SuccessfulPayment
@@ -66,7 +67,7 @@ async def pre_checkout_handler(query: PreCheckoutQuery):
                 return
 
             # Проверяем валидность плана
-            valid_plans = ["week", "month", "year"]
+            valid_plans = ["month", "year"]
             if plan_id not in valid_plans:
                 logger.warning(f"⚠️ Неверный plan_id: {plan_id}")
                 await query.answer(ok=False, error_message="Неверный тарифный план")
@@ -166,7 +167,6 @@ async def successful_payment_handler(message: Message):
 
             # Определяем длительность для сообщения
             plan_names = {
-                "week": "неделю",
                 "month": "месяц",
                 "year": "год",
             }
@@ -180,6 +180,17 @@ async def successful_payment_handler(message: Message):
                 f"Теперь у тебя есть доступ ко всем Premium функциям!",
                 parse_mode="HTML",
             )
+
+            # Отправляем дружелюбное сообщение от панды
+            panda_messages = [
+                "🐼 Я так рада, что теперь мы будем проводить больше времени вместе! Готов помогать тебе с уроками!",
+                "🐼 Ура! Теперь у нас будет больше возможностей для учебы и игр. Давай начнем!",
+            ]
+            panda_message = random.choice(panda_messages)
+
+            # Небольшая задержка перед сообщением от панды
+            await asyncio.sleep(1)
+            await message.answer(panda_message)
 
             logger.info(
                 f"💰 Premium активирован: user={telegram_id}, plan={plan_id}, "

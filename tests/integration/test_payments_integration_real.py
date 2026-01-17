@@ -83,7 +83,7 @@ class TestPaymentsIntegrationReal:
                 "amount": {"value": "99.00", "currency": "RUB"},
                 "metadata": {
                     "telegram_id": "777888999",
-                    "plan_id": "week",
+                    "plan_id": "month",
                 },
                 "paid": True,
                 "payment_method": {"type": "bank_card"},
@@ -117,7 +117,7 @@ class TestPaymentsIntegrationReal:
             # Проверяем подписку
             subscription = subscription_service.get_active_subscription(777888999)
             assert subscription is not None
-            assert subscription.plan_id == "week"
+            assert subscription.plan_id == "month"
 
     @pytest.mark.asyncio
     async def test_subscription_service_operations(self, real_db_session, test_user):
@@ -192,7 +192,7 @@ class TestPaymentsIntegrationReal:
                     "amount": {"value": "99.00", "currency": "RUB"},
                     "metadata": {
                         "telegram_id": str(telegram_id),
-                        "plan_id": "week",
+                        "plan_id": "month",
                     },
                     "paid": True,
                     "payment_method": {"type": yookassa_method},

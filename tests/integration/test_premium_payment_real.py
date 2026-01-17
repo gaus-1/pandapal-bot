@@ -278,21 +278,21 @@ class TestPremiumPaymentReal:
         # Активируем подписку
         subscription = subscription_service.activate_subscription(
             telegram_id=999888777,
-            plan_id="week",
+            plan_id="month",
             transaction_id="test_tx_456",
-            invoice_payload="premium_week_999888777",
+            invoice_payload="premium_month_999888777",
         )
 
         real_db_session.commit()
 
         # Проверяем что подписка создана
         assert subscription is not None
-        assert subscription.plan_id == "week"
+        assert subscription.plan_id == "month"
         assert subscription.is_active is True
         assert subscription.transaction_id == "test_tx_456"
 
-        # Проверяем срок действия (7 дней)
-        expected_expires = datetime.now(timezone.utc) + timedelta(days=7)
+        # Проверяем срок действия (30 дней)
+        expected_expires = datetime.now(timezone.utc) + timedelta(days=30)
         # Убеждаемся что expires_at timezone-aware
         expires_at_aware = subscription.expires_at
         if expires_at_aware.tzinfo is None:
@@ -329,9 +329,9 @@ class TestPremiumPaymentReal:
         """Проверка что подписка истекает правильно"""
         subscription_service = SubscriptionService(real_db_session)
 
-        # Активируем подписку на неделю
+        # Активируем подписку на месяц
         subscription = subscription_service.activate_subscription(
-            telegram_id=999888777, plan_id="week", transaction_id="test_tx_expire"
+            telegram_id=999888777, plan_id="month", transaction_id="test_tx_expire"
         )
         real_db_session.commit()
 
@@ -380,9 +380,9 @@ class TestPremiumPaymentReal:
         """Проверка что несколько подписок продлевают premium"""
         subscription_service = SubscriptionService(real_db_session)
 
-        # Активируем первую подписку на неделю
+        # Активируем первую подписку на месяц
         sub1 = subscription_service.activate_subscription(
-            telegram_id=999888777, plan_id="week", transaction_id="tx1"
+            telegram_id=999888777, plan_id="month", transaction_id="tx1"
         )
         real_db_session.commit()
 
@@ -419,7 +419,7 @@ class TestPremiumPaymentReal:
 
         # Создаём несколько подписок
         subscription_service.activate_subscription(
-            telegram_id=999888777, plan_id="week", transaction_id="tx1"
+            telegram_id=999888777, plan_id="month", transaction_id="tx1"
         )
         subscription_service.activate_subscription(
             telegram_id=999888777, plan_id="month", transaction_id="tx2"
