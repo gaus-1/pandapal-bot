@@ -12,97 +12,65 @@ export function ChatBackground() {
       {/* Градиентный фон в стиле Telegram - более насыщенный и заметный */}
       <div className="absolute inset-0 bg-gradient-to-b from-blue-100 via-white to-pink-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" />
 
-      {/* SVG паттерн с doodles - более заметный */}
+      {/* SVG паттерн с doodles - повторяющийся паттерн для видимости */}
       <svg
-        className="absolute inset-0 w-full h-full opacity-[0.15] dark:opacity-[0.12]"
+        className="absolute inset-0 w-full h-full opacity-[0.25] dark:opacity-[0.2]"
         xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 400 600"
-        preserveAspectRatio="xMidYMid slice"
+        viewBox="0 0 200 300"
+        preserveAspectRatio="none"
       >
-        {/* Панда */}
-        <g transform="translate(50, 80)">
-          <circle cx="0" cy="0" r="8" fill="currentColor" className="text-blue-500" />
-          <circle cx="-4" cy="-2" r="2" fill="currentColor" className="text-blue-600" />
-          <circle cx="4" cy="-2" r="2" fill="currentColor" className="text-blue-600" />
-          <ellipse cx="0" cy="2" rx="3" ry="2" fill="currentColor" className="text-blue-500" />
-        </g>
+        <defs>
+          <pattern id="doodlePattern" x="0" y="0" width="200" height="300" patternUnits="userSpaceOnUse">
+            {/* Панда */}
+            <g transform="translate(30, 50)">
+              <circle cx="0" cy="0" r="10" fill="#3b82f6" opacity="0.3" />
+              <circle cx="-5" cy="-3" r="2.5" fill="#2563eb" opacity="0.4" />
+              <circle cx="5" cy="-3" r="2.5" fill="#2563eb" opacity="0.4" />
+              <ellipse cx="0" cy="3" rx="4" ry="2.5" fill="#3b82f6" opacity="0.3" />
+            </g>
 
-        {/* Книга */}
-        <g transform="translate(120, 150)">
-          <rect x="-6" y="-4" width="12" height="8" fill="none" stroke="currentColor" strokeWidth="1" className="text-blue-400" />
-          <line x1="0" y1="-4" x2="0" y2="4" stroke="currentColor" strokeWidth="1" className="text-blue-400" />
-        </g>
+            {/* Книга */}
+            <g transform="translate(80, 100)">
+              <rect x="-8" y="-6" width="16" height="12" fill="none" stroke="#60a5fa" strokeWidth="1.5" opacity="0.4" />
+              <line x1="0" y1="-6" x2="0" y2="6" stroke="#60a5fa" strokeWidth="1.5" opacity="0.4" />
+            </g>
 
-        {/* Карандаш */}
-        <g transform="translate(200, 100)">
-          <rect x="-3" y="-8" width="6" height="16" fill="currentColor" className="text-cyan-400" />
-          <polygon points="-3,-8 0,-12 3,-8" fill="currentColor" className="text-cyan-500" />
-        </g>
+            {/* Карандаш */}
+            <g transform="translate(140, 70)">
+              <rect x="-4" y="-10" width="8" height="20" fill="#22d3ee" opacity="0.35" />
+              <polygon points="-4,-10 0,-14 4,-10" fill="#06b6d4" opacity="0.4" />
+            </g>
 
-        {/* Звезда */}
-        <g transform="translate(280, 180)">
-          <path d="M0,-6 L1.5,-1.5 L6,-1.5 L2.5,1.5 L4,6 L0,3.5 L-4,6 L-2.5,1.5 L-6,-1.5 L-1.5,-1.5 Z" fill="currentColor" className="text-yellow-400" />
-        </g>
+            {/* Звезда */}
+            <g transform="translate(170, 120)">
+              <path d="M0,-8 L2,-2 L8,-2 L3,2 L5,8 L0,5 L-5,8 L-3,2 L-8,-2 L-2,-2 Z" fill="#fbbf24" opacity="0.35" />
+            </g>
 
-        {/* Глобус */}
-        <g transform="translate(350, 120)">
-          <circle cx="0" cy="0" r="10" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-green-400" />
-          <ellipse cx="0" cy="0" rx="10" ry="5" fill="none" stroke="currentColor" strokeWidth="1" className="text-green-400" />
-          <line x1="-10" y1="0" x2="10" y2="0" stroke="currentColor" strokeWidth="1" className="text-green-400" />
-        </g>
+            {/* Глобус */}
+            <g transform="translate(50, 180)">
+              <circle cx="0" cy="0" r="12" fill="none" stroke="#34d399" strokeWidth="2" opacity="0.4" />
+              <ellipse cx="0" cy="0" rx="12" ry="6" fill="none" stroke="#34d399" strokeWidth="1.5" opacity="0.4" />
+              <line x1="-12" y1="0" x2="12" y2="0" stroke="#34d399" strokeWidth="1.5" opacity="0.4" />
+            </g>
 
-        {/* Формула (x²) */}
-        <g transform="translate(80, 250)" className="text-purple-400">
-          <text x="0" y="0" fontSize="12" fill="currentColor" fontFamily="serif">x²</text>
-        </g>
+            {/* Формула (x²) */}
+            <g transform="translate(120, 200)">
+              <text x="0" y="0" fontSize="16" fill="#a855f7" opacity="0.4" fontFamily="serif" textAnchor="middle" dominantBaseline="middle">x²</text>
+            </g>
 
-        {/* Лупа */}
-        <g transform="translate(180, 280)">
-          <circle cx="0" cy="0" r="8" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-blue-400" />
-          <line x1="5" y1="5" x2="10" y2="10" stroke="currentColor" strokeWidth="2" className="text-blue-400" />
-        </g>
+            {/* Карандаш (второй) */}
+            <g transform="translate(60, 250)">
+              <rect x="-3" y="-8" width="6" height="16" fill="#fbbf24" opacity="0.35" />
+              <polygon points="-3,-8 0,-12 3,-8" fill="#f59e0b" opacity="0.4" />
+            </g>
 
-        {/* Сердечко */}
-        <g transform="translate(250, 220)">
-          <path d="M0,-3 C-2,-5 -5,-5 -5,-2 C-5,0 -2,3 0,5 C2,3 5,0 5,-2 C5,-5 2,-5 0,-3 Z" fill="currentColor" className="text-pink-400" />
-        </g>
-
-        {/* Книга (вторая) */}
-        <g transform="translate(320, 300)">
-          <rect x="-5" y="-3" width="10" height="6" fill="none" stroke="currentColor" strokeWidth="1" className="text-cyan-400" />
-          <line x1="0" y1="-3" x2="0" y2="3" stroke="currentColor" strokeWidth="1" className="text-cyan-400" />
-        </g>
-
-        {/* Карандаш (второй) */}
-        <g transform="translate(100, 380)">
-          <rect x="-2" y="-6" width="4" height="12" fill="currentColor" className="text-yellow-400" />
-          <polygon points="-2,-6 0,-9 2,-6" fill="currentColor" className="text-yellow-500" />
-        </g>
-
-        {/* Звезда (вторая) */}
-        <g transform="translate(220, 400)">
-          <path d="M0,-5 L1.2,-1.2 L5,-1.2 L2,1.2 L3.2,5 L0,3 L-3.2,5 L-2,1.2 L-5,-1.2 L-1.2,-1.2 Z" fill="currentColor" className="text-pink-400" />
-        </g>
-
-        {/* Панда (вторая) */}
-        <g transform="translate(300, 450)">
-          <circle cx="0" cy="0" r="7" fill="currentColor" className="text-blue-500" />
-          <circle cx="-3" cy="-2" r="1.5" fill="currentColor" className="text-blue-600" />
-          <circle cx="3" cy="-2" r="1.5" fill="currentColor" className="text-blue-600" />
-          <ellipse cx="0" cy="2" rx="2.5" ry="1.5" fill="currentColor" className="text-blue-500" />
-        </g>
-
-        {/* Глобус (второй) */}
-        <g transform="translate(150, 500)">
-          <circle cx="0" cy="0" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-green-400" />
-          <ellipse cx="0" cy="0" rx="9" ry="4.5" fill="none" stroke="currentColor" strokeWidth="1" className="text-green-400" />
-          <line x1="-9" y1="0" x2="9" y2="0" stroke="currentColor" strokeWidth="1" className="text-green-400" />
-        </g>
-
-        {/* Формула (π) */}
-        <g transform="translate(280, 550)" className="text-purple-400">
-          <text x="0" y="0" fontSize="14" fill="currentColor" fontFamily="serif">π</text>
-        </g>
+            {/* Звезда (вторая) */}
+            <g transform="translate(150, 270)">
+              <path d="M0,-7 L1.5,-1.5 L7,-1.5 L2.5,2 L4,7 L0,4 L-4,7 L-2.5,2 L-7,-1.5 L-1.5,-1.5 Z" fill="#f472b6" opacity="0.35" />
+            </g>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#doodlePattern)" />
       </svg>
     </div>
   );
