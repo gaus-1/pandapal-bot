@@ -523,6 +523,8 @@ class TetrisGame:
 
     def _lock_piece(self) -> None:
         """Закрепить фигуру и очистить линии."""
+        # КРИТИЧНО: Блокируем только блоки, которые находятся в пределах доски
+        # Блоки ниже доски (r >= height) игнорируем - они уже за пределами
         for r, c in self._get_blocks(self.current_row, self.current_col, self.current_rotation):
             if 0 <= r < self.height and 0 <= c < self.width:
                 self.board[r][c] = 1
@@ -586,19 +588,19 @@ class TetrisGame:
             # Проверка на фиксацию (если мы двигались вниз и теперь уперлись)
             # КРИТИЧНО: Блокируем фигуру если она не может двигаться вниз
             # Не блокируем только на row=0 (она только что спавнилась)
-            if (
-                action in ("down", "tick")
-                and self.current_row > 0
-                and not self._can_place(
+            if action in ("down", "tick") and self.current_row > 0:
+                # Проверяем, может ли фигура двигаться еще на один шаг вниз
+                # Если хотя бы один блок фигуры будет ниже дна (r >= height) или столкнется с блоком - блокируем
+                can_move_down = self._can_place(
                     self.current_row + 1, self.current_col, self.current_rotation
                 )
-            ):
-                self._lock_piece()
+                if not can_move_down:
+                    self._lock_piece()
 
         # Если действие не выполнено из-за коллизии (низ доски или блоки), но это было движение вниз - фиксируем
         # КРИТИЧНО: Блокируем фигуру если она не может двигаться вниз из-за дна или блоков
         # Не блокируем только на row=0 (она только что спавнилась)
-        elif action in ("down", "tick") and new_row != self.current_row:
+        elif action in ("down", "tick"):
             # Мы попытались идти вниз, но не смогли (столкновение с дном или блоками)
             # Блокируем если фигура уже на поле (row > 0)
             if self.current_row > 0:
