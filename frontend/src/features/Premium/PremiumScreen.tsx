@@ -444,7 +444,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   <button
                     onClick={() => handlePurchase(plan)}
                     disabled={isProcessing && selectedPlan === plan.id}
-                    className="w-full py-2 xs:py-2.5 sm:py-3 md:py-4 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 xs:gap-2 min-h-[40px] xs:min-h-[44px]"
+                    className="w-full py-2 xs:py-2.5 sm:py-3 md:py-4 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 xs:gap-2 min-h-[44px] sm:min-h-[48px] touch-manipulation"
                   >
                     {isProcessing && selectedPlan === plan.id
                       ? 'Обработка...'
