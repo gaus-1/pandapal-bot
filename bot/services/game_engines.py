@@ -629,15 +629,25 @@ class TetrisGame:
     def from_dict(cls, data: dict) -> "TetrisGame":
         """Восстановить игру из словаря (например, из Redis)."""
         game = cls.__new__(cls)  # Создаем экземпляр без вызова __init__
-        game.board = data.get("board", [[0] * 10 for _ in range(20)])
-        game.score = data.get("score", 0)
-        game.lines_cleared = data.get("lines_cleared", 0)
+        loaded_board = data.get("board", [[0] * 10 for _ in range(20)])
+        loaded_score = data.get("score", 0)
+        loaded_lines = data.get("lines_cleared", 0)
+
+        # КРИТИЧНО: Если доска заполнена блоками, но счет 0 и линии 0 - это ошибка состояния
+        # Сбрасываем доску на пустую для корректного старта игры
+        has_blocks = any(any(cell != 0 for cell in row) for row in loaded_board)
+        if has_blocks and loaded_score == 0 and loaded_lines == 0:
+            # Сброс доски - это первый запуск или поврежденное состояние
+            game.board = [[0] * 10 for _ in range(20)]
+        else:
+            game.board = loaded_board
+
+        game.score = loaded_score
+        game.lines_cleared = loaded_lines
         game.level = data.get("level", 1)
 
         # КРИТИЧНО: Фильтруем ложные game_over при счете 0
         loaded_game_over = data.get("game_over", False)
-        loaded_score = data.get("score", 0)
-        loaded_lines = data.get("lines_cleared", 0)
         # Если game_over=true, но счет 0 и линии 0 - это ошибка, сбрасываем флаг
         # ИГНОРИРУЕМ game_over при первом запуске (пустая доска, счет 0)
         game.game_over = loaded_game_over and (loaded_score > 0 or loaded_lines > 0)
