@@ -13,3 +13,5 @@ export { Section } from './Section';
 export { Footer } from './Footer';
 export { DarkModeToggle } from './DarkModeToggle';
 export { CallToAction } from './CallToAction';
+export { ChatBackground } from './ChatBackground';
+export { DateSeparator } from './DateSeparator';
