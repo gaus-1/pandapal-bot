@@ -1,6 +1,6 @@
 /**
- * Компонент фона чата с doodles в стиле PandaPal
- * Сдержанный образовательный стиль с низкой opacity
+ * Компонент фона чата с doodles в стиле Telegram + PandaPal
+ * Градиентный фон как в Telegram, но с образовательными doodles
  */
 
 export function ChatBackground() {
@@ -9,12 +9,12 @@ export function ChatBackground() {
       className="absolute inset-0 pointer-events-none overflow-hidden z-0"
       aria-hidden="true"
     >
-      {/* Градиентный фон */}
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-50/60 via-white/85 to-pink-50/60 dark:from-slate-900/85 dark:via-slate-900/92 dark:to-slate-800/85" />
+      {/* Градиентный фон в стиле Telegram - более насыщенный и заметный */}
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-100/95 via-white to-pink-100/95 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" />
 
-      {/* SVG паттерн с doodles */}
+      {/* SVG паттерн с doodles - более заметный */}
       <svg
-        className="absolute inset-0 w-full h-full opacity-[0.12] dark:opacity-[0.08]"
+        className="absolute inset-0 w-full h-full opacity-[0.15] dark:opacity-[0.12]"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 400 600"
         preserveAspectRatio="xMidYMid slice"
