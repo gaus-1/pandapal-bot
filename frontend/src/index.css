@@ -44,14 +44,23 @@
     -moz-padding-start: 0 !important;
   }
 
-  ul li::before, ol li::before {
-    display: none !important;
-    content: none !important;
-  }
-
+  ul li::before, ol li::before,
   ul li::marker, ol li::marker {
     display: none !important;
     content: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Дополнительная защита для всех браузеров */
+  * ul, * ol {
+    list-style: none !important;
+    list-style-type: none !important;
+  }
+
+  * ul li, * ol li {
+    list-style: none !important;
+    list-style-type: none !important;
+    list-style-image: none !important;
   }
 
   /* Заголовки используют Poppins */
