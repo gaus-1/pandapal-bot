@@ -487,8 +487,8 @@ class TetrisGame:
 
         # Проверка Game Over: проверяем, может ли фигура достичь видимой части поля (row = 0).
         # Если фигура не может быть размещена на верхней границе - конец игры.
-        has_blocks = any(any(cell != 0 for cell in row) for row in self.board)
-        if has_blocks and not self._can_place(0, self.current_col, 0):
+        # УБРАНА проверка has_blocks - она вызывала ложный game_over на пустой доске
+        if not self._can_place(0, self.current_col, 0):
             self.game_over = True
 
     def _get_blocks(self, row: int, col: int, rotation: int) -> list[tuple[int, int]]:
@@ -626,6 +626,7 @@ class TetrisGame:
         loaded_score = data.get("score", 0)
         loaded_lines = data.get("lines_cleared", 0)
         # Если game_over=true, но счет 0 и линии 0 - это ошибка, сбрасываем флаг
+        # ИГНОРИРУЕМ game_over при первом запуске (пустая доска, счет 0)
         game.game_over = loaded_game_over and (loaded_score > 0 or loaded_lines > 0)
 
         game.current_shape = data.get("current_shape")
@@ -643,5 +644,9 @@ class TetrisGame:
         game._bag = data.get("bag", data.get("_bag", []))
         if not game._bag:
             game._refill_bag()
+
+        # КРИТИЧНО: Если current_shape None - спавним новую фигуру
+        if not game.current_shape:
+            game._spawn_new_piece()
 
         return game
