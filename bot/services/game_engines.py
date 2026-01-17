@@ -543,6 +543,10 @@ class TetrisGame:
             self.level = (self.lines_cleared // 10) + 1
 
         self._spawn_new_piece()
+        # Проверка Game Over: только после спавна новой фигуры на заполненной доске
+        # Если фигура не может быть размещена на row=0 - конец игры
+        if not self._can_place(self.current_row, self.current_col, self.current_rotation):
+            self.game_over = True
 
     def step(self, action: str) -> None:
         """Обработка хода."""
