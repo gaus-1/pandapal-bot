@@ -10,7 +10,7 @@ export function ChatBackground() {
       aria-hidden="true"
     >
       {/* Градиентный фон */}
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-50/70 via-white/90 to-pink-50/70 dark:from-slate-900/90 dark:via-slate-900/95 dark:to-slate-800/90" />
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-50/60 via-white/85 to-pink-50/60 dark:from-slate-900/85 dark:via-slate-900/92 dark:to-slate-800/85" />
 
       {/* SVG паттерн с doodles */}
       <svg

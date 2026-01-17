@@ -382,7 +382,7 @@ export function AIChat({ user }: AIChatProps) {
       </div>
 
       {/* Сообщения */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-4" role="log">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-4 relative z-[1]" role="log">
         {isLoadingHistory ? (
           <div className="text-center py-8"><div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 dark:border-blue-400"></div></div>
         ) : showWelcome && messages.length === 0 ? (
