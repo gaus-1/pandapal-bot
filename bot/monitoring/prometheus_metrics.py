@@ -23,13 +23,13 @@ import threading
 import time
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Dict, Optional
+from typing import Any
 
 from loguru import logger
 
 # Глобальный словарь для хранения метрик (thread-safe)
 _metrics_lock = threading.Lock()
-_metrics_data: Dict[str, Any] = {}
+_metrics_data: dict[str, Any] = {}
 
 
 @dataclass
@@ -51,7 +51,7 @@ class PrometheusMetrics:
     не нарушая работу основных компонентов.
     """
 
-    def __init__(self, config: Optional[MetricConfig] = None):
+    def __init__(self, config: MetricConfig | None = None):
         """
         Инициализация системы метрик.
 
@@ -95,7 +95,7 @@ class PrometheusMetrics:
             )
 
     def increment_counter(
-        self, metric_name: str, labels: Optional[Dict[str, str]] = None, value: int = 1
+        self, metric_name: str, labels: dict[str, str] | None = None, value: int = 1
     ):
         """
         Увеличить счетчик метрики.
@@ -121,7 +121,7 @@ class PrometheusMetrics:
                     _metrics_data[metric_name] += value
 
     def record_histogram(
-        self, metric_name: str, value: float, labels: Optional[Dict[str, str]] = None
+        self, metric_name: str, value: float, labels: dict[str, str] | None = None
     ):
         """
         Записать значение в гистограмму.
@@ -145,7 +145,7 @@ class PrometheusMetrics:
                     # Удаляем старые записи
                     _metrics_data[metric_name] = _metrics_data[metric_name][-500:]
 
-    def set_gauge(self, metric_name: str, value: float, labels: Optional[Dict[str, str]] = None):
+    def set_gauge(self, metric_name: str, value: float, labels: dict[str, str] | None = None):
         """
         Установить значение gauge метрики.
 
@@ -167,7 +167,7 @@ class PrometheusMetrics:
                 else:
                     _metrics_data[metric_name] = value
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """
         Получить все метрики в формате Prometheus.
 
@@ -201,7 +201,7 @@ class PrometheusMetrics:
 
         # Счетчики
         for metric_name, value in metrics.items():
-            if isinstance(value, (int, float)) and not isinstance(value, dict):
+            if isinstance(value, int | float) and not isinstance(value, dict):
                 prom_name = f"pandapal_{metric_name}"
                 output.append(f"{prom_name} {value}")
             elif isinstance(value, list) and metric_name.endswith("_seconds"):
@@ -225,7 +225,7 @@ class PrometheusMetrics:
 
 
 # Глобальный экземпляр метрик
-_metrics_instance: Optional[PrometheusMetrics] = None
+_metrics_instance: PrometheusMetrics | None = None
 
 
 def get_metrics() -> PrometheusMetrics:
@@ -239,7 +239,9 @@ def get_metrics() -> PrometheusMetrics:
 
     if _metrics_instance is None:
         # Проверяем переменную окружения для включения/отключения
-        enabled = os.getenv("PROMETHEUS_METRICS_ENABLED", "false").lower() == "true"
+        # Включаем Prometheus по умолчанию, если переменная не установлена явно в "false"
+        prometheus_env = os.getenv("PROMETHEUS_METRICS_ENABLED", "true")
+        enabled = prometheus_env.lower() not in ("false", "0", "no", "off")
 
         config = MetricConfig(
             enabled=enabled,

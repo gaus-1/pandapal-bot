@@ -11,9 +11,8 @@ API endpoint для метрик Prometheus.
 """
 
 import asyncio
-from typing import Any, Dict, Optional
 
-from aiohttp import ClientSession, web
+from aiohttp import web
 from aiohttp.web import Request, Response
 from loguru import logger
 
@@ -47,7 +46,7 @@ class MetricsEndpoint:
         else:
             logger.info("📊 API endpoint для метрик отключен")
 
-    async def get_system_metrics(self, request: Request) -> Response:
+    async def get_system_metrics(self, _request: Request) -> Response:
         """
         GET /api/v1/analytics/metrics
 
@@ -78,7 +77,7 @@ class MetricsEndpoint:
                 status=500,
             )
 
-    async def get_prometheus_metrics(self, request: Request) -> Response:
+    async def get_prometheus_metrics(self, _request: Request) -> Response:
         """
         GET /metrics
 
@@ -102,7 +101,7 @@ class MetricsEndpoint:
                 text=f"# Ошибка экспорта метрик: {e}\n", content_type="text/plain", status=500
             )
 
-    async def get_json_metrics(self, request: Request) -> Response:
+    async def get_json_metrics(self, _request: Request) -> Response:
         """
         GET /api/v1/metrics/json
 
@@ -124,7 +123,7 @@ class MetricsEndpoint:
                 {"error": "Ошибка экспорта метрик", "details": str(e)}, status=500
             )
 
-    async def health_check(self, request: Request) -> Response:
+    async def health_check(self, _request: Request) -> Response:
         """
         GET /api/v1/health
 
@@ -308,5 +307,7 @@ async def example_integration():
 if __name__ != "__main__":
     import os
 
-    if os.getenv("PROMETHEUS_METRICS_ENABLED", "false").lower() == "true":
+    # Включаем Prometheus по умолчанию
+    prometheus_env = os.getenv("PROMETHEUS_METRICS_ENABLED", "true")
+    if prometheus_env.lower() not in ("false", "0", "no", "off"):
         logger.info("📊 API endpoint для метрик готов к работе")

@@ -597,6 +597,11 @@ class PandaPalBotServer:
 
     async def startup(self) -> None:
         """Запуск сервера - инициализация всех компонентов."""
+        # Проверка Redis подключения
+        await self._check_redis_connection()
+
+        # Проверка Prometheus метрик
+        self._check_prometheus_status()
         try:
             logger.info("🚀 Запуск PandaPal Bot Server...")
 

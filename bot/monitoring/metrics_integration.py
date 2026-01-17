@@ -13,16 +13,16 @@
 
 import time
 from functools import wraps
-from typing import Any, Dict, Optional
+from typing import Any
 
 from loguru import logger
 
 try:
-    from .prometheus_metrics import track_ai_request  # noqa: F401
-    from .prometheus_metrics import track_game_session  # noqa: F401
-    from .prometheus_metrics import track_user_activity  # noqa: F401
     from .prometheus_metrics import (
         get_metrics,
+        track_ai_request,  # noqa: F401
+        track_game_session,  # noqa: F401
+        track_user_activity,  # noqa: F401
     )
 
     METRICS_AVAILABLE = True
@@ -209,7 +209,7 @@ class MetricsIntegration:
 
         return wrapper
 
-    def get_system_metrics(self) -> Dict[str, Any]:
+    def get_system_metrics(self) -> dict[str, Any]:
         """
         Получить системные метрики для API.
 
@@ -262,7 +262,7 @@ class MetricsIntegration:
 
 
 # Глобальный экземпляр интеграции
-_integration_instance: Optional[MetricsIntegration] = None
+_integration_instance: MetricsIntegration | None = None
 
 
 def get_metrics_integration() -> MetricsIntegration:
@@ -314,7 +314,7 @@ def safe_track_game_activity(func):
 
 
 # Утилиты для экспорта метрик
-def get_system_metrics_for_api() -> Dict[str, Any]:
+def get_system_metrics_for_api() -> dict[str, Any]:
     """
     Получить метрики системы для API endpoint.
 
@@ -386,5 +386,7 @@ if __name__ != "__main__":
     # Инициализируем только если переменная окружения установлена
     import os
 
-    if os.getenv("PROMETHEUS_METRICS_ENABLED", "false").lower() == "true":
+    # Включаем Prometheus по умолчанию
+    prometheus_env = os.getenv("PROMETHEUS_METRICS_ENABLED", "true")
+    if prometheus_env.lower() not in ("false", "0", "no", "off"):
         initialize_metrics_integration()
