@@ -76,6 +76,14 @@ class PandaPalBotServer:
         self.settings = settings
         self._shutdown_in_progress = False
 
+        # Создаем приложение сразу для раннего healthcheck
+        try:
+            self._setup_app_base()
+            self._setup_health_endpoints()
+            logger.info("✅ Базовое приложение создано для healthcheck")
+        except Exception as e:
+            logger.error(f"❌ Ошибка создания базового приложения: {e}", exc_info=True)
+
     async def init_bot(self) -> None:
         """
         Инициализация Bot и Dispatcher.
@@ -792,6 +800,7 @@ class PandaPalBotServer:
             await self.site.start()
 
             logger.info(f"✅ Сервер запущен на порту {port}")
+            logger.info(f"✅ Healthcheck доступен: http://{host}:{port}/health")
             logger.info("📡 Ожидание обновлений от Telegram...")
 
             # Запускаем keep-alive пинг в фоне (для Railway Free)
