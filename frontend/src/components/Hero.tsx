@@ -14,7 +14,7 @@ import { trackButtonClick } from '../utils/analytics';
  */
 export const Hero: React.FC = React.memo(() => {
   return (
-    <section className="pt-16 sm:pt-20 md:pt-24 pb-12 sm:pb-16 md:pb-20 text-center">
+    <section className="pt-12 sm:pt-16 md:pt-20 pb-12 sm:pb-16 md:pb-20 text-center">
       {/* Schema.org для SEO */}
       <script type="application/ld+json">
         {JSON.stringify({
@@ -39,39 +39,19 @@ export const Hero: React.FC = React.memo(() => {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
         {/* Основной заголовок (H1 для SEO) */}
-        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight animate-fade-in text-gray-900 dark:text-slate-50 group cursor-default">
-          <span className="inline-block">
-            {'Безопасный AI-друг'.split('').map((char, index) => (
-              <span
-                key={index}
-                className="inline-block hover-letter-bounce"
-                style={{ animationDelay: `${index * 0.02}s` }}
-              >
-                {char === ' ' ? '\u00A0' : char}
-              </span>
-            ))}
-          </span>
+        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-gray-900 dark:text-slate-50">
+          Безопасный AI-друг
           <br />
-          <span className="inline-block">
-            {'для твоего ребенка'.split('').map((char, index) => (
-              <span
-                key={index + 20}
-                className="inline-block hover-letter-bounce"
-                style={{ animationDelay: `${(index + 20) * 0.02}s` }}
-              >
-                {char === ' ' ? '\u00A0' : char}
-              </span>
-            ))}
-          </span>
+          для твоего ребенка
         </h1>
 
         {/* Описание продукта */}
-        <p className="mt-3 sm:mt-4 md:mt-5 text-sm sm:text-base md:text-lg text-gray-700 dark:text-slate-200 max-w-2xl mx-auto animate-fade-in-delay">
+        <p className="mt-3 sm:mt-4 md:mt-5 text-sm sm:text-base md:text-lg text-gray-700 dark:text-slate-200 max-w-2xl mx-auto">
           Адаптивное, игровое, безопасное обучение и общение для детей 1–9 классов
         </p>
 
         {/* CTA кнопки */}
-        <div className="mt-5 sm:mt-6 md:mt-7 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center animate-fade-in-delay-2">
+        <div className="mt-5 sm:mt-6 md:mt-7 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center">
         {/* Основная CTA */}
         <a
           href={SITE_CONFIG.botUrl}

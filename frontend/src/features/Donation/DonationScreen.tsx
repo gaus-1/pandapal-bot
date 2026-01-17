@@ -201,15 +201,8 @@ export function DonationScreen({ user }: DonationScreenProps) {
 
         {/* Информация о способе оплаты */}
         <div className="p-4 sm:p-5 md:p-6 bg-gradient-to-br from-sky-50/80 via-blue-50/80 to-indigo-50/80 dark:from-sky-950/30 dark:via-blue-950/30 dark:to-indigo-950/30 rounded-[1.5rem] sm:rounded-[2rem] border border-sky-200/25 dark:border-sky-800/20 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
-          <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-            <span className="text-base sm:text-lg md:text-xl">⭐</span>
-            <h3 className="text-xs sm:text-sm md:text-base font-display font-semibold text-gray-900 dark:text-slate-100">
-              Telegram Stars
-            </h3>
-          </div>
-          <div className="space-y-0.5 sm:space-y-1 text-xs sm:text-sm text-gray-600 dark:text-slate-400">
-            <div>• Оплата из баланса Telegram</div>
-            <div>• Безопасная оплата</div>
+          <div className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400 text-center">
+            Безопасная оплата из Telegram
           </div>
         </div>
       </div>
