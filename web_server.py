@@ -557,6 +557,57 @@ class PandaPalBotServer:
         webhook_handler.register(self.app, path=webhook_path)
         logger.info(f"📡 Webhook handler зарегистрирован на пути: {webhook_path}")
 
+    async def _check_redis_connection(self) -> None:
+        """Проверка подключения к Redis и логирование статуса."""
+        try:
+            from bot.services.cache_service import cache_service
+
+            # Пытаемся подключиться к Redis
+            if cache_service._redis_client:
+                try:
+                    await cache_service._ensure_redis_connection()
+                    if cache_service._use_redis:
+                        stats = await cache_service.get_stats()
+                        logger.info(
+                            f"✅ Redis подключен: {stats.get('type', 'unknown')}, "
+                            f"connected={stats.get('connected', False)}"
+                        )
+                    else:
+                        logger.warning(
+                            "⚠️ Redis URL указан, но подключение не установлено (используется in-memory кэш)"
+                        )
+                except Exception as e:
+                    logger.warning(f"⚠️ Ошибка проверки Redis: {e}")
+            else:
+                redis_url = getattr(self.settings, "redis_url", "")
+                if redis_url:
+                    logger.warning(f"⚠️ Redis URL указан, но клиент не создан: {redis_url[:50]}...")
+                else:
+                    logger.info("📋 Redis URL не указан, используется in-memory кэш")
+        except Exception as e:
+            logger.error(f"❌ Ошибка проверки Redis: {e}")
+
+    def _check_prometheus_status(self) -> None:
+        """Проверка статуса Prometheus метрик."""
+        try:
+            import os
+
+            prometheus_enabled = os.getenv("PROMETHEUS_METRICS_ENABLED", "true").lower() not in (
+                "false",
+                "0",
+                "no",
+                "off",
+            )
+
+            if prometheus_enabled:
+                logger.info("📊 Prometheus метрики включены")
+            else:
+                logger.info(
+                    "📊 Prometheus метрики отключены (установите PROMETHEUS_METRICS_ENABLED=true для включения)"
+                )
+        except Exception as e:
+            logger.warning(f"⚠️ Ошибка проверки Prometheus: {e}")
+
     def create_app(self) -> web.Application:
         """
         Создание aiohttp приложения.
@@ -573,11 +624,11 @@ class PandaPalBotServer:
             # Создание базового приложения
             self._setup_app_base()
 
+            # Настройка health check endpoints ПЕРВЫМИ (для Railway healthcheck)
+            self._setup_health_endpoints()
+
             # Настройка middleware
             self._setup_middleware()
-
-            # Настройка health check endpoints
-            self._setup_health_endpoints()
 
             # Настройка API маршрутов
             self._setup_api_routes()
