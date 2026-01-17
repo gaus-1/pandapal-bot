@@ -52,6 +52,24 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
     loadGameState();
   }, [sessionId]);
 
+  // КРИТИЧНО: После загрузки состояния запускаем первый тик для создания фигуры
+  useEffect(() => {
+    if (state && !state.game_over && handleAction) {
+      // Если доска пустая (чистый старт) или нет активной фигуры - делаем первый тик
+      const hasActivePiece = state.board.some((row) => row.some((cell) => cell === 2));
+      const isEmpty = state.board.every((row) => row.every((cell) => cell === 0));
+
+      if (isEmpty || !hasActivePiece) {
+        // Небольшая задержка чтобы state установился
+        const timer = setTimeout(() => {
+          handleAction('tick');
+        }, 200);
+        return () => clearTimeout(timer);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.board, state?.game_over]);
+
   const normalizeBoard = (rawBoard: number[][]): TetrisCell[][] => {
     if (!rawBoard || !Array.isArray(rawBoard)) return [];
     return rawBoard.map((row) =>
@@ -195,9 +213,8 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
 
   const { board, score, lines_cleared: lines, game_over } = state;
 
-  const hasActivePiece = board.some((row) => row.some((cell) => cell === 2));
-  const isGameActive = score > 0 || lines > 0 || hasActivePiece;
-  const isReady = !game_over && !isGameActive;
+  // УБИРАЕМ isReady - не показываем счастливую панду при старте
+  // Игра всегда активна если не game_over
 
   return (
     <div className="w-full h-full flex flex-col bg-white dark:bg-slate-900">
@@ -216,9 +233,9 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       </div>
 
-      {!isReady && (
+      {!game_over && (
         <div className="px-4 mb-2 flex justify-center">
-          <PandaReaction mood={game_over ? 'sad' : 'happy'} className="pb-1" />
+          <PandaReaction mood="happy" className="pb-1" />
         </div>
       )}
 
@@ -226,18 +243,9 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:bg-slate-100 mb-1">
           🧱 Тетрис
         </h1>
-        {isReady ? (
-          <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-3">
-            <p className="mb-2">Заполняй линии и зарабатывай очки!</p>
-            <p className="font-semibold text-blue-600 dark:text-blue-400">
-              Игра начинается... 🎮
-            </p>
-          </div>
-        ) : (
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-3">
-            Заполняй линии и зарабатывай очки!
-          </p>
-        )}
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-3">
+          Заполняй линии и зарабатывай очки!
+        </p>
       </div>
 
       {error && (
