@@ -26,7 +26,6 @@ class SubscriptionService:
 
     # Тарифные планы (дни доступа)
     PLANS = {
-        "week": 7,
         "month": 30,
         "year": 365,
     }
@@ -116,7 +115,7 @@ class SubscriptionService:
 
         Args:
             telegram_id: Telegram ID пользователя
-            plan_id: Тип плана ('week', 'month', 'year')
+            plan_id: Тип плана ('month', 'year')
             transaction_id: ID транзакции от Telegram (для Stars)
             invoice_payload: Payload из invoice (для Stars)
             payment_method: Способ оплаты ('stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other')

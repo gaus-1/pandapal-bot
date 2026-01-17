@@ -1,11 +1,10 @@
 /**
- * Tetris Game Component - STABLE VERSION
+ * Tetris Game Component - FINAL STABLE VERSION
  *
  * Исправления:
- * 1. Рекурсивный таймер (setTimeout вместо setInterval) - убирает race conditions.
- * 2. Кнопки больше не блокируются загрузкой (removed isLoading disabled).
- * 3. Игнорирование старых ответов (timestamp check).
- * 4. Работа с "битым" состоянием при старте (игнор game_over если счет 0).
+ * 1. Кнопки теперь никогда не блокируются таймером.
+ * 2. Игнорирование ложного Game Over при старте (если score == 0).
+ * 3. Рекурсивный таймер (setTimeout) для плавной работы.
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -42,11 +41,9 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
   const [state, setState] = useState<TetrisState | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Используем рефы для флагов, чтобы не вызывать лишних ререндеров
   const isGameOverRef = useRef(false);
-  const lastActionTimestamp = useRef(0);
 
-  // Синхронизация рефов при изменении стейта
+  // Синхронизация флага Game Over для таймера
   useEffect(() => {
     isGameOverRef.current = state?.game_over ?? false;
   }, [state]);
@@ -75,16 +72,17 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
       if (board && Array.isArray(board) && board.length > 0) {
         const loadedGameOver = Boolean(gameState?.game_over);
         const loadedScore = Number(gameState?.score ?? 0);
+        const loadedLines = Number(gameState?.lines_cleared ?? 0);
 
-        // ИСПРАВЛЕНИЕ: Если игра пришла с game_over=true, но счет 0 и очки 0 -
-        // это скорее всего ошибка кеширования. Сбрасываем game_over в false.
-        // Это решит проблему "Игра началась и сразу закончилась".
-        const effectiveGameOver = loadedScore === 0 && loadedGameOver ? false : loadedGameOver;
+        // ИСПРАВЛЕНИЕ 1: Если игра загрузилась с game_over=true, но счет 0 и линии 0 -
+        // игнорируем это, считая это ошибкой/кешем. Сбрасываем флаг.
+        // Это решает "мгновенный Game Over".
+        const effectiveGameOver = (loadedScore > 0 || loadedLines > 0) && loadedGameOver;
 
         const safeState: TetrisState = {
           board: normalizeBoard(board),
           score: loadedScore,
-          lines_cleared: Number(gameState?.lines_cleared ?? 0),
+          lines_cleared: loadedLines,
           game_over: effectiveGameOver,
           width: (gameState?.width as number) ?? board[0]?.length ?? 10,
           height: (gameState?.height as number) ?? board.length ?? 20,
@@ -117,27 +115,18 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
 
   const handleAction = useCallback(
     async (action: 'left' | 'right' | 'down' | 'rotate' | 'tick') => {
+      // Проверка Game Over
       if (isGameOverRef.current) {
         return;
       }
 
-      // Генерируем метку времени для этого действия
-      const now = Date.now();
-      lastActionTimestamp.current = now;
-
-      // Если это не тик (автоматическое падение), делаем вибрацию
+      // Вибрация только для кликов пользователя
       if (action !== 'tick') {
         telegram.hapticFeedback('light');
       }
 
       try {
         const newState = await tetrisMove(sessionId, action);
-
-        // ИСПРАВЛЕНИЕ: Проверяем, что мы не получили ответ от старого запроса (Race Condition)
-        // Если метка времени ответа старее, чем последний отправленный запрос, игнорируем.
-        // В простом API у нас нет ID запроса, поэтому просто полагаемся на порядок
-        // или на свежесть данных. Здесь просто принимаем то, что пришло.
-        // В идеале API должен возвращать timestamp, но будем считать, что свежий ответ корректен.
 
         const safeNewState: TetrisState = {
           board: normalizeBoard(newState.board),
@@ -151,9 +140,19 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
 
         setState(safeNewState);
 
+        // ИСПРАВЛЕНИЕ 2: Защита от мгновенного Game Over на первом тике
+        // Если пришел Game Over, но счет был и остался 0 - это баг. Игнорируем.
+        const currentScore = state?.score ?? 0;
+        const newScore = newState.score;
+
         if (newState.game_over) {
-          telegram.notifyWarning();
-          onGameEnd();
+            if (currentScore === 0 && newScore === 0) {
+                console.warn("Получен Game Over при счете 0. Игнорируем.");
+                // Не вызываем onGameEnd()
+                return;
+            }
+            telegram.notifyWarning();
+            onGameEnd();
         }
       } catch (err) {
         console.error('Ошибка хода в тетрисе:', err);
@@ -161,36 +160,29 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         telegram.notifyError();
       }
     },
-    [sessionId, onGameEnd],
+    [sessionId, onGameEnd, state?.score], // Добавлен state?.score в зависимости
   );
 
-  // ИСПРАВЛЕНИЕ: Игровой цикл (Гравитация) с использованием setTimeout вместо setInterval
-  // Это предотвращает отправку нового тика, пока предыдущий еще не обработался.
+  // ИСПРАВЛЕНИЕ 3: Рекурсивный таймер
   useEffect(() => {
     if (!state || state.game_over) {
       return;
     }
 
-    // Скорость игры
     const currentLevel = state.level ?? 1;
-    // Максимальная скорость 100мс, минимальная 1000мс
     const tickRate = Math.max(100, 1000 - (currentLevel - 1) * 100);
 
     const runTick = async () => {
-      // Проверка перед выполнением
       if (isGameOverRef.current) return;
-
-      // Запускаем тик
       await handleAction('tick');
 
-      // Запланируем следующий тик только после завершения текущего
-      // Это решает проблему зависания кнопок при лагах интернета
+      // Планируем следующий тик только ПОСЛЕ завершения текущего
+      // Это гарантирует, что handleAction не будет перекрываться сам собой
       if (!isGameOverRef.current) {
         setTimeout(runTick, tickRate);
       }
     };
 
-    // Запускаем первый тик
     const timeoutId = setTimeout(runTick, tickRate);
 
     return () => clearTimeout(timeoutId);
@@ -298,8 +290,6 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
             <button
               type="button"
               onClick={() => handleAction('left')}
-              // ИСПРАВЛЕНИЕ: Убрано условие disabled={isLoading}.
-              // Кнопки теперь работают всегда, пока игра не окончена.
               disabled={game_over}
               className="flex-1 py-3 sm:py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm sm:text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >

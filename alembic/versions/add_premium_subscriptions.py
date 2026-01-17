@@ -60,7 +60,7 @@ def upgrade() -> None:
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
-        sa.CheckConstraint("plan_id IN ('week', 'month', 'year')", name="ck_subscriptions_plan_id"),
+        sa.CheckConstraint("plan_id IN ('month', 'year')", name="ck_subscriptions_plan_id"),
     )
 
     # Создаем индексы

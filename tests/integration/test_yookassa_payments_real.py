@@ -78,7 +78,7 @@ class TestYooKassaPaymentsReal:
         # Создаём реальный платеж
         payment_data = payment_service.create_payment(
             telegram_id=999000111,
-            plan_id="week",
+            plan_id="month",
             user_email="test@pandapal.ru",
         )
 
@@ -86,7 +86,7 @@ class TestYooKassaPaymentsReal:
         assert payment_data is not None
         assert "payment_id" in payment_data
         assert "confirmation_url" in payment_data
-        assert payment_data["amount"]["value"] == 99.0
+        assert payment_data["amount"]["value"] == 399.0
         assert payment_data["amount"]["currency"] == "RUB"
 
     @pytest.mark.asyncio
@@ -95,7 +95,6 @@ class TestYooKassaPaymentsReal:
         payment_service = PaymentService()
 
         plans = {
-            "week": 99.0,
             "month": 399.0,
             "year": 2990.0,
         }
@@ -127,10 +126,10 @@ class TestYooKassaPaymentsReal:
             "object": {
                 "id": "test_payment_123",
                 "status": "succeeded",
-                "amount": {"value": "99.00", "currency": "RUB"},
+                "amount": {"value": "399.00", "currency": "RUB"},
                 "metadata": {
                     "telegram_id": "999000111",
-                    "plan_id": "week",
+                    "plan_id": "month",
                 },
                 "paid": True,
                 "payment_method": {"type": "bank_card"},
@@ -185,10 +184,10 @@ class TestYooKassaPaymentsReal:
             "object": {
                 "id": "test_payment_invalid",
                 "status": "succeeded",
-                "amount": {"value": "99.00", "currency": "RUB"},
+                "amount": {"value": "399.00", "currency": "RUB"},
                 "metadata": {
                     "telegram_id": "999000111",
-                    "plan_id": "week",
+                    "plan_id": "month",
                 },
                 "paid": True,
                 "payment_method": {"type": "bank_card"},
@@ -333,10 +332,10 @@ class TestYooKassaPaymentsReal:
                 "object": {
                     "id": f"payment_{yookassa_method}",
                     "status": "succeeded",
-                    "amount": {"value": "99.00", "currency": "RUB"},
+                    "amount": {"value": "399.00", "currency": "RUB"},
                     "metadata": {
                         "telegram_id": str(user_id),
-                        "plan_id": "week",
+                        "plan_id": "month",
                     },
                     "paid": True,
                     "payment_method": {"type": yookassa_method},
@@ -396,10 +395,10 @@ class TestYooKassaPaymentsReal:
             "object": {
                 "id": "payment_idempotent",
                 "status": "succeeded",
-                "amount": {"value": "99.00", "currency": "RUB"},
+                "amount": {"value": "399.00", "currency": "RUB"},
                 "metadata": {
                     "telegram_id": "999000111",
-                    "plan_id": "week",
+                    "plan_id": "month",
                 },
                 "paid": True,
                 "payment_method": {"type": "bank_card"},
@@ -468,7 +467,7 @@ class TestYooKassaPaymentsReal:
         # Создаём платеж с email для чека
         payment_data = payment_service.create_payment(
             telegram_id=999000111,
-            plan_id="week",
+            plan_id="month",
             user_email="test@pandapal.ru",
         )
 
@@ -513,7 +512,7 @@ class TestYooKassaPaymentsReal:
 
         payment_request_data = {
             "telegram_id": 999000111,
-            "plan_id": "week",
+            "plan_id": "month",
             "user_email": "test@pandapal.ru",
         }
 
@@ -536,7 +535,7 @@ class TestYooKassaPaymentsReal:
                     "payment_id": "test_payment_db_123",
                     "status": "pending",
                     "confirmation_url": "https://yookassa.ru/checkout/payments/test",
-                    "amount": {"value": 99.0, "currency": "RUB"},
+                    "amount": {"value": 399.0, "currency": "RUB"},
                 }
 
                 response = await create_yookassa_payment(request)
@@ -552,8 +551,8 @@ class TestYooKassaPaymentsReal:
                 )
                 assert payment_record is not None
                 assert payment_record.user_telegram_id == 999000111
-                assert payment_record.plan_id == "week"
-                assert payment_record.amount == 99.0
+                assert payment_record.plan_id == "month"
+                assert payment_record.amount == 399.0
                 assert payment_record.status == "pending"
                 assert payment_record.payment_method == "yookassa_card"
 
@@ -566,8 +565,8 @@ class TestYooKassaPaymentsReal:
         payment_record = PaymentModel(
             payment_id="test_status_tracking",
             user_telegram_id=999000111,
-            plan_id="week",
-            amount=99.0,
+            plan_id="month",
+            amount=399.0,
             currency="RUB",
             status="pending",
             payment_method="yookassa_card",
@@ -603,7 +602,7 @@ class TestYooKassaPaymentsReal:
             asyncio.to_thread(
                 payment_service.create_payment,
                 telegram_id=999000111,
-                plan_id="week",
+                plan_id="month",
                 user_email="test@pandapal.ru",
             )
             for i in range(3)

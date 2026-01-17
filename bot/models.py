@@ -682,7 +682,7 @@ class Subscription(Base):
     Attributes:
         id: Уникальный идентификатор подписки.
         user_telegram_id: ID пользователя в Telegram.
-        plan_id: Тип плана ('week', 'month', 'year').
+        plan_id: Тип плана ('month', 'year').
         starts_at: Дата начала подписки.
         expires_at: Дата окончания подписки.
         is_active: Статус активности подписки.
@@ -739,7 +739,7 @@ class Subscription(Base):
         Index("idx_subscriptions_user_active", "user_telegram_id", "is_active"),
         Index("idx_subscriptions_expires", "expires_at"),
         Index("idx_subscriptions_payment_id", "payment_id"),
-        CheckConstraint("plan_id IN ('week', 'month', 'year')", name="ck_subscriptions_plan_id"),
+        CheckConstraint("plan_id IN ('month', 'year')", name="ck_subscriptions_plan_id"),
         CheckConstraint(
             "payment_method IS NULL OR payment_method IN ('stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other')",
             name="ck_subscriptions_payment_method",
@@ -781,7 +781,7 @@ class Payment(Base):
         user_telegram_id: ID пользователя в Telegram.
         subscription_id: ID подписки (если платеж успешен и создана подписка).
         payment_method: Способ оплаты ('stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other').
-        plan_id: Тип плана ('week', 'month', 'year').
+        plan_id: Тип плана ('month', 'year').
         amount: Сумма платежа.
         currency: Валюта платежа (RUB, XTR для Stars).
         status: Статус платежа ('pending', 'succeeded', 'cancelled', 'failed').
@@ -817,7 +817,7 @@ class Payment(Base):
         String(20), nullable=False
     )  # 'stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other'
 
-    plan_id: Mapped[str] = mapped_column(String(20), nullable=False)  # 'week', 'month', 'year'
+    plan_id: Mapped[str] = mapped_column(String(20), nullable=False)  # 'month', 'year'
 
     amount: Mapped[float] = mapped_column(Float, nullable=False)
     currency: Mapped[str] = mapped_column(String(10), nullable=False, default="RUB")
@@ -860,7 +860,7 @@ class Payment(Base):
             "payment_method IN ('stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other')",
             name="ck_payments_payment_method",
         ),
-        CheckConstraint("plan_id IN ('week', 'month', 'year')", name="ck_payments_plan_id"),
+        CheckConstraint("plan_id IN ('month', 'year')", name="ck_payments_plan_id"),
         CheckConstraint(
             "status IN ('pending', 'succeeded', 'cancelled', 'failed')",
             name="ck_payments_status",

@@ -23,18 +23,18 @@ from bot.database import get_db
 from bot.models import Subscription
 
 
-def activate_premium(telegram_id: int, plan: str = "week", payment_id: str = None):
+def activate_premium(telegram_id: int, plan: str = "month", payment_id: str = None):
     """
     Активирует Premium подписку для пользователя.
 
     Args:
         telegram_id: ID пользователя в Telegram
-        plan: Тип подписки (week, month, year)
+        plan: Тип подписки (month, year)
         payment_id: ID платежа YooKassa (опционально)
     """
 
     # Определяем длительность подписки
-    duration_map = {"week": 7, "month": 30, "year": 365}
+    duration_map = {"month": 30, "year": 365}
 
     if plan not in duration_map:
         print(f"❌ Неизвестный план: {plan}")
@@ -98,11 +98,11 @@ def activate_premium(telegram_id: int, plan: str = "week", payment_id: str = Non
 if __name__ == "__main__":
     # Для Вячеслава
     telegram_id = 963126718
-    plan = "week"
+    plan = "month"
     payment_id = "30ecc421-000f-5001-8000-1fbb0ea447b2"
 
     print(f"🚀 Активация Premium для пользователя {telegram_id}")
-    print(f"   План: {plan} (7 дней)")
+    print(f"   План: {plan} (30 дней)")
     print(f"   Платёж: {payment_id}")
     print()
 

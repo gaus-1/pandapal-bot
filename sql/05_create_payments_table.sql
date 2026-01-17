@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS payments (
     user_telegram_id BIGINT NOT NULL,
     subscription_id INTEGER,  -- Связь с подпиской (если платеж успешен)
     payment_method VARCHAR(20) NOT NULL,  -- 'stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other'
-    plan_id VARCHAR(20) NOT NULL,  -- 'week', 'month', 'year'
+    plan_id VARCHAR(20) NOT NULL,  -- 'month', 'year'
     amount FLOAT NOT NULL,  -- Сумма платежа
     currency VARCHAR(10) NOT NULL DEFAULT 'RUB',
     status VARCHAR(20) NOT NULL DEFAULT 'pending',  -- 'pending', 'succeeded', 'cancelled', 'failed'
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS payments (
     CONSTRAINT ck_payments_payment_method
         CHECK (payment_method IN ('stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other')),
     CONSTRAINT ck_payments_plan_id
-        CHECK (plan_id IN ('week', 'month', 'year')),
+        CHECK (plan_id IN ('month', 'year')),
     CONSTRAINT ck_payments_status
         CHECK (status IN ('pending', 'succeeded', 'cancelled', 'failed'))
 );

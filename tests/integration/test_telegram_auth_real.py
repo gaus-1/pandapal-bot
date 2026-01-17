@@ -300,8 +300,8 @@ class TestTelegramAuthReal:
         # Создаём платеж с этим telegram_id
         payment_request_data = {
             "telegram_id": 999111555,
-            "plan_id": "week",
-            "amount": 99.0,
+            "plan_id": "month",
+            "amount": 399.0,
         }
 
         class MockRequest:

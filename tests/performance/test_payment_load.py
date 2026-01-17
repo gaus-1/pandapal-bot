@@ -84,8 +84,8 @@ class TelegramAuthLoadTest(HttpUser):
         """
         payment_data = {
             "telegram_id": self.telegram_id,
-            "plan_id": random.choice(["week", "month", "year"]),
-            "amount": random.choice([99.0, 249.0, 1999.0]),
+            "plan_id": random.choice(["month", "year"]),
+            "amount": random.choice([399.0, 2990.0]),
         }
 
         with self.client.post(
@@ -145,7 +145,7 @@ class YooKassaWebhookLoadTest(HttpUser):
         """
         self.payment_counter += 1
         telegram_id = random.randint(100000000, 999999999)
-        plan_id = random.choice(["week", "month", "year"])
+        plan_id = random.choice(["month", "year"])
 
         webhook_data = {
             "type": "notification",
@@ -248,8 +248,8 @@ class MixedPaymentLoadTest(HttpUser):
         if not self.is_authenticated:
             self.authenticate()
 
-        plan_id = random.choice(["week", "month", "year"])
-        amounts = {"week": 99.0, "month": 249.0, "year": 1999.0}
+        plan_id = random.choice(["month", "year"])
+        amounts = {"month": 399.0, "year": 2990.0}
 
         # Создаём платеж
         payment_data = {
@@ -291,8 +291,8 @@ class StressTestPayments(HttpUser):
 
         payment_data = {
             "telegram_id": self.telegram_id,
-            "plan_id": "week",
-            "amount": 99.0,
+            "plan_id": "month",
+            "amount": 399.0,
         }
 
         with self.client.post(

@@ -106,7 +106,11 @@ async def miniapp_add_greeting(request: web.Request) -> web.Response:
 
         # Если сообщение не указано, выбираем случайное
         if not greeting_message:
-            greetings = ["Привет, начнем?", "Привет! Чем могу помочь?"]
+            greetings = [
+                "Привет, начнем?",
+                "Привет, спроси меня что угодно по любому предмету",
+                "Привет! Я готов помочь тебе",
+            ]
             greeting_message = random.choice(greetings)
 
         with get_db() as db:

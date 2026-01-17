@@ -2,6 +2,8 @@
 Premium endpoints - Обработка платежей через ЮKassa
 """
 
+import asyncio
+import random
 import uuid
 from datetime import UTC
 
@@ -132,7 +134,6 @@ async def handle_successful_payment(request: web.Request) -> web.Response:
 
                 # Определяем длительность для сообщения
                 plan_names = {
-                    "week": "неделю",
                     "month": "месяц",
                     "year": "год",
                 }
@@ -148,6 +149,18 @@ async def handle_successful_payment(request: web.Request) -> web.Response:
                     ),
                     parse_mode="HTML",
                 )
+
+                # Отправляем дружелюбное сообщение от панды
+                panda_messages = [
+                    "🐼 Я так рада, что теперь мы будем проводить больше времени вместе! Готов помогать тебе с уроками!",
+                    "🐼 Ура! Теперь у нас будет больше возможностей для учебы и игр. Давай начнем!",
+                ]
+                panda_message = random.choice(panda_messages)
+
+                # Небольшая задержка перед сообщением от панды
+                await asyncio.sleep(1)
+                await bot.send_message(chat_id=telegram_id, text=panda_message)
+
                 await bot.session.close()
                 logger.info(f"✅ Уведомление отправлено пользователю {telegram_id}")
             except Exception as e:
@@ -527,7 +540,6 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
 
                     # Определяем длительность для сообщения
                     plan_names = {
-                        "week": "неделю",
                         "month": "месяц",
                         "year": "год",
                     }
@@ -543,6 +555,18 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
                         ),
                         parse_mode="HTML",
                     )
+
+                    # Отправляем дружелюбное сообщение от панды
+                    panda_messages = [
+                        "🐼 Я так рада, что теперь мы будем проводить больше времени вместе! Готов помогать тебе с уроками!",
+                        "🐼 Ура! Теперь у нас будет больше возможностей для учебы и игр. Давай начнем!",
+                    ]
+                    panda_message = random.choice(panda_messages)
+
+                    # Небольшая задержка перед сообщением от панды
+                    await asyncio.sleep(1)
+                    await bot.send_message(chat_id=telegram_id, text=panda_message)
+
                     await bot.session.close()
                     logger.info(f"✅ Уведомление отправлено пользователю {telegram_id}")
                 except Exception as e:
