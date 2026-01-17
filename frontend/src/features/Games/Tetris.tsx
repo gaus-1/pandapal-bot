@@ -1,10 +1,10 @@
 /**
- * Tetris Game Component - FINAL STABLE VERSION
+ * Tetris Game Component - STABLE VERSION
  *
  * Исправления:
- * 1. Кнопки теперь никогда не блокируются таймером.
- * 2. Игнорирование ложного Game Over при старте (если score == 0).
- * 3. Рекурсивный таймер (setTimeout) для плавной работы.
+ * 1. Фильтрация ложных game_over при счете 0 (backend + frontend).
+ * 2. Использование setInterval для стабильного игрового цикла.
+ * 3. Правильная обработка состояния при загрузке из БД.
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -128,35 +128,29 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
       try {
         const newState = await tetrisMove(sessionId, action);
 
+        // КРИТИЧЕСКИ ВАЖНО: Фильтруем ложные game_over при счете 0
+        const newScore = newState.score ?? 0;
+        const newLines = newState.lines_cleared ?? 0;
+
+        // Если game_over=true, но счет 0 и линии 0 - это ошибка, сбрасываем флаг
+        const isValidGameOver = newState.game_over && (newScore > 0 || newLines > 0);
+
         const safeNewState: TetrisState = {
           board: normalizeBoard(newState.board),
-          score: newState.score,
-          lines_cleared: newState.lines_cleared,
-          game_over: newState.game_over,
+          score: newScore,
+          lines_cleared: newLines,
+          game_over: isValidGameOver,
           width: newState.width,
           height: newState.height,
           level: (newState as { level?: number }).level ?? 1,
         };
 
-        // ИСПРАВЛЕНИЕ 2: Защита от мгновенного Game Over на первом тике
-        // Если пришел Game Over, но счет был и остался 0 - это баг. Игнорируем.
-        const currentScore = state?.score ?? 0;
-        const newScore = newState.score;
-
-        if (newState.game_over && currentScore === 0 && newScore === 0) {
-            console.warn("Получен Game Over при счете 0. Игнорируем и сбрасываем флаг.");
-            // Игнорируем game_over: устанавливаем его в false
-            safeNewState.game_over = false;
-            setState(safeNewState);
-            return; // Не вызываем onGameEnd()
-        }
-
-        // Обновляем состояние только если game_over корректен
         setState(safeNewState);
 
-        if (newState.game_over) {
-            telegram.notifyWarning();
-            onGameEnd();
+        // Вызываем onGameEnd только если game_over валиден
+        if (isValidGameOver) {
+          telegram.notifyWarning();
+          onGameEnd();
         }
       } catch (err) {
         console.error('Ошибка хода в тетрисе:', err);
@@ -164,32 +158,26 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         telegram.notifyError();
       }
     },
-    [sessionId, onGameEnd, state?.score], // Добавлен state?.score в зависимости
+    [sessionId, onGameEnd, state?.score],
   );
 
-  // ИСПРАВЛЕНИЕ 3: Рекурсивный таймер
+  // Игровой цикл (гравитация) - используем setInterval для стабильности
   useEffect(() => {
     if (!state || state.game_over) {
       return;
     }
 
     const currentLevel = state.level ?? 1;
-    const tickRate = Math.max(100, 1000 - (currentLevel - 1) * 100);
+    const tickRate = Math.max(300, 1000 - (currentLevel - 1) * 100);
 
-    const runTick = async () => {
-      if (isGameOverRef.current) return;
-      await handleAction('tick');
-
-      // Планируем следующий тик только ПОСЛЕ завершения текущего
-      // Это гарантирует, что handleAction не будет перекрываться сам собой
+    const intervalId = setInterval(() => {
+      // Проверяем флаг перед каждым тиком
       if (!isGameOverRef.current) {
-        setTimeout(runTick, tickRate);
+        handleAction('tick');
       }
-    };
+    }, tickRate);
 
-    const timeoutId = setTimeout(runTick, tickRate);
-
-    return () => clearTimeout(timeoutId);
+    return () => clearInterval(intervalId);
   }, [state, handleAction]);
 
   const handleBackClick = () => {
