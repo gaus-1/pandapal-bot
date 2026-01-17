@@ -6,15 +6,15 @@
 export function ChatBackground() {
   return (
     <div
-      className="absolute inset-0 pointer-events-none overflow-hidden"
+      className="absolute inset-0 pointer-events-none overflow-hidden z-0"
       aria-hidden="true"
     >
       {/* Градиентный фон */}
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-50/80 via-white to-pink-50/80 dark:from-slate-900/95 dark:via-slate-900/98 dark:to-slate-800/95" />
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-50/70 via-white/90 to-pink-50/70 dark:from-slate-900/90 dark:via-slate-900/95 dark:to-slate-800/90" />
 
       {/* SVG паттерн с doodles */}
       <svg
-        className="absolute inset-0 w-full h-full opacity-[0.06] dark:opacity-[0.04]"
+        className="absolute inset-0 w-full h-full opacity-[0.12] dark:opacity-[0.08]"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 400 600"
         preserveAspectRatio="xMidYMid slice"

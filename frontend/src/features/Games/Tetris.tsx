@@ -105,7 +105,12 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
     };
   }, [loadState, handleAction]);
 
-  // Игровой цикл
+  // Игровой цикл - используем useRef для handleAction чтобы избежать перезапуска
+  const handleActionRef = useRef(handleAction);
+  useEffect(() => {
+    handleActionRef.current = handleAction;
+  }, [handleAction]);
+
   useEffect(() => {
     if (!state || state.game_over) {
       if (intervalRef.current) {
@@ -116,7 +121,8 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
     }
 
     const level = state.level ?? 1;
-    const speed = Math.max(500, 1000 - (level - 1) * 100);
+    // Увеличиваем минимальную скорость для стабильности (1500ms для level=1)
+    const speed = Math.max(800, 1500 - (level - 1) * 100);
 
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -124,7 +130,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
 
     intervalRef.current = window.setInterval(() => {
       if (mountedRef.current && state && !state.game_over) {
-        handleAction('tick');
+        handleActionRef.current('tick');
       }
     }, speed);
 
@@ -134,7 +140,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         intervalRef.current = null;
       }
     };
-  }, [state, handleAction]);
+  }, [state?.level, state?.game_over]); // Зависимости только от level и game_over, не от всего state
 
   if (!state) {
     return (
@@ -189,7 +195,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
       )}
 
       {/* Game Board */}
-      <div className="flex-1 flex flex-col items-center justify-start px-4 pb-40 sm:pb-4">
+      <div className="flex-1 flex flex-col items-center justify-start px-4 pb-48 sm:pb-4">
         <div className="flex gap-3 w-full max-w-lg">
           <div className="flex-1 flex justify-center">
             <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner">
@@ -227,7 +233,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
 
         {/* Controls */}
-        <div className="fixed bottom-0 left-0 right-0 sm:relative sm:bottom-auto sm:left-auto sm:right-auto mt-4 w-full max-w-lg bg-white dark:bg-slate-900 sm:bg-transparent border-t border-gray-200 dark:border-slate-700 sm:border-t-0 pt-3 pb-4 sm:pt-0 sm:pb-0 px-4 z-50 shadow-lg sm:shadow-none" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+        <div className="fixed bottom-0 left-0 right-0 sm:relative sm:bottom-auto sm:left-auto sm:right-auto mt-4 w-full max-w-lg bg-white dark:bg-slate-900 sm:bg-transparent border-t border-gray-200 dark:border-slate-700 sm:border-t-0 pt-3 px-4 z-50 shadow-lg sm:shadow-none" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
           <div className="flex justify-between gap-2 mb-2">
             <button
               type="button"
