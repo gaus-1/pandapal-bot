@@ -340,12 +340,12 @@ export function AIChat({ user }: AIChatProps) {
             <MiniAppThemeToggle />
             <button
               onClick={handleClearChat}
-              className="flex-shrink-0 w-9 h-9 rounded-lg bg-white/20 dark:bg-slate-700/80 hover:bg-white/30 dark:hover:bg-slate-600 active:bg-white/40 dark:active:bg-slate-500 active:scale-95 transition-all flex items-center justify-center border border-white/30 dark:border-slate-600 shadow-sm"
+              className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-white/20 dark:bg-slate-700/80 hover:bg-white/30 dark:hover:bg-slate-600 active:bg-white/40 dark:active:bg-slate-500 active:scale-95 transition-all flex items-center justify-center border border-white/30 dark:border-slate-600 shadow-sm touch-manipulation"
               aria-label="Очистить чат"
             >
               <span className="text-base text-white dark:text-slate-200">🗑️</span>
             </button>
-            <button onClick={() => { useAppStore.getState().setCurrentScreen('emergency'); haptic.medium(); }} className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-red-500/90 dark:bg-red-600/90 hover:bg-red-600/90 dark:hover:bg-red-700/90 active:scale-95 transition-all flex items-center justify-center shadow-sm">
+            <button onClick={() => { useAppStore.getState().setCurrentScreen('emergency'); haptic.medium(); }} className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-red-500/90 dark:bg-red-600/90 hover:bg-red-600/90 dark:hover:bg-red-700/90 active:scale-95 transition-all flex items-center justify-center shadow-sm touch-manipulation">
               <span className="text-lg sm:text-xl">🚨</span>
             </button>
           </div>
@@ -395,7 +395,7 @@ export function AIChat({ user }: AIChatProps) {
             >
               <div
                 className={`relative ${
-                  msg.role === 'ai' ? 'max-w-[85%] sm:max-w-[80%] md:max-w-[75%]' : 'max-w[85%] sm:max-w-[80%]'
+                  msg.role === 'ai' ? 'max-w-[85%] sm:max-w-[80%] md:max-w-[75%]' : 'max-w-[85%] sm:max-w-[80%]'
                 }`}
               >
                 <div
