@@ -27,7 +27,7 @@ export const CallToAction: React.FC = React.memo(() => {
         <div className="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-16 mb-12">
           {/* QR-код */}
           <div className="flex flex-col items-center">
-            <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-xl dark:shadow-2xl border-2 border-gray-100 dark:border-slate-700 dark:border-slate-600/50 relative min-w-[220px] min-h-[220px] flex items-center justify-center">
+            <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-xl dark:shadow-2xl border-2 border-gray-100 dark:border-slate-700 dark:border-slate-600/50 relative w-[220px] h-[220px] sm:w-[240px] sm:h-[240px] md:w-[260px] md:h-[260px] flex items-center justify-center">
               {qrError ? (
                 <div className="flex flex-col items-center justify-center p-4 text-center">
                   <div className="text-4xl mb-2">📱</div>
@@ -48,7 +48,7 @@ export const CallToAction: React.FC = React.memo(() => {
                   <img
                     src={qrUrl}
                     alt="QR-код для перехода в Telegram бота"
-                    className={`w-48 h-48 sm:w-52 sm:h-52 transition-opacity duration-300 ${
+                    className={`w-full h-full max-w-[200px] max-h-[200px] sm:max-w-[220px] sm:max-h-[220px] md:max-w-[240px] md:max-h-[240px] object-contain transition-opacity duration-300 ${
                       qrLoaded ? 'opacity-100' : 'opacity-0'
                     }`}
                     loading="lazy"
