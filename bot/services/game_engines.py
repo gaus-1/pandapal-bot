@@ -613,7 +613,13 @@ class TetrisGame:
         game.score = data.get("score", 0)
         game.lines_cleared = data.get("lines_cleared", 0)
         game.level = data.get("level", 1)
-        game.game_over = data.get("game_over", False)
+
+        # КРИТИЧНО: Фильтруем ложные game_over при счете 0
+        loaded_game_over = data.get("game_over", False)
+        loaded_score = data.get("score", 0)
+        loaded_lines = data.get("lines_cleared", 0)
+        # Если game_over=true, но счет 0 и линии 0 - это ошибка, сбрасываем флаг
+        game.game_over = loaded_game_over and (loaded_score > 0 or loaded_lines > 0)
 
         game.current_shape = data.get("current_shape")
         game.current_row = data.get("current_row", -2)
