@@ -419,7 +419,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   {plan.features.map((feature, index) => (
                     <li
                       key={index}
-                      className="text-[10px] xs:text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100 leading-tight xs:leading-normal m-0 p-0 line-clamp-2"
+                      className="text-[10px] xs:text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100 leading-tight xs:leading-normal m-0 p-0"
                     >
                       {feature.trim()}
                     </li>
