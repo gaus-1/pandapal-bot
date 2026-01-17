@@ -1,10 +1,6 @@
 /**
- * Tetris Game Component - STABLE VERSION
- *
- * Исправления:
- * 1. Фильтрация ложных game_over при счете 0 (backend + frontend).
- * 2. Использование setInterval для стабильного игрового цикла.
- * 3. Правильная обработка состояния при загрузке из БД.
+ * Tetris Game Component - REWRITTEN FROM SCRATCH
+ * Простая, рабочая реализация по лучшим практикам React
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -40,20 +36,9 @@ const CELL_COLORS: Record<TetrisCell, string> = {
 export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
   const [state, setState] = useState<TetrisState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const gameIntervalRef = useRef<number | null>(null);
 
-  const isGameOverRef = useRef(false);
-
-  // Синхронизация флага Game Over для таймера
-  useEffect(() => {
-    isGameOverRef.current = state?.game_over ?? false;
-  }, [state]);
-
-  useEffect(() => {
-    loadGameState();
-  }, [sessionId]);
-
-  const isInitialLoadRef = useRef(true);
-
+  // Нормализация доски
   const normalizeBoard = (rawBoard: number[][]): TetrisCell[][] => {
     if (!rawBoard || !Array.isArray(rawBoard)) return [];
     return rawBoard.map((row) =>
@@ -65,7 +50,8 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
     );
   };
 
-  const loadGameState = async () => {
+  // Загрузка состояния игры
+  const loadGameState = useCallback(async () => {
     try {
       const session = await getGameSession(sessionId);
       const gameState = session.game_state as Record<string, unknown> | undefined;
@@ -76,12 +62,10 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         const loadedScore = Number(gameState?.score ?? 0);
         const loadedLines = Number(gameState?.lines_cleared ?? 0);
 
-        // ИСПРАВЛЕНИЕ 1: Если игра загрузилась с game_over=true, но счет 0 и линии 0 -
-        // игнорируем это, считая это ошибкой/кешем. Сбрасываем флаг.
-        // Это решает "мгновенный Game Over".
+        // Фильтруем ложные game_over при счете 0
         const effectiveGameOver = (loadedScore > 0 || loadedLines > 0) && loadedGameOver;
 
-        const safeState: TetrisState = {
+        setState({
           board: normalizeBoard(board),
           score: loadedScore,
           lines_cleared: loadedLines,
@@ -89,23 +73,20 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
           width: (gameState?.width as number) ?? board[0]?.length ?? 10,
           height: (gameState?.height as number) ?? board.length ?? 20,
           level: Number(gameState?.level ?? 1),
-        };
-        setState(safeState);
+        });
       } else {
-        // Если состояния нет (чистый старт)
-        const defaultHeight = 20;
-        const defaultWidth = 10;
-        const emptyBoard: TetrisCell[][] = Array(defaultHeight)
+        // Чистый старт - создаем пустую доску
+        const emptyBoard: TetrisCell[][] = Array(20)
           .fill(null)
-          .map(() => Array(defaultWidth).fill(0) as TetrisCell[]);
+          .map(() => Array(10).fill(0) as TetrisCell[]);
 
         setState({
           board: emptyBoard,
           score: 0,
           lines_cleared: 0,
           game_over: false,
-          width: defaultWidth,
-          height: defaultHeight,
+          width: 10,
+          height: 20,
           level: 1,
         });
       }
@@ -113,16 +94,15 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
       console.error('Ошибка загрузки состояния тетриса:', err);
       setError('Не удалось загрузить игру');
     }
-  };
+  }, [sessionId]);
 
+  // Обработчик действий (движение, поворот, тик)
   const handleAction = useCallback(
     async (action: 'left' | 'right' | 'down' | 'rotate' | 'tick') => {
-      // Проверка Game Over
-      if (isGameOverRef.current) {
+      if (state?.game_over) {
         return;
       }
 
-      // Вибрация только для кликов пользователя
       if (action !== 'tick') {
         telegram.hapticFeedback('light');
       }
@@ -130,14 +110,11 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
       try {
         const newState = await tetrisMove(sessionId, action);
 
-        // КРИТИЧЕСКИ ВАЖНО: Фильтруем ложные game_over при счете 0
         const newScore = newState.score ?? 0;
         const newLines = newState.lines_cleared ?? 0;
-
-        // Если game_over=true, но счет 0 и линии 0 - это ошибка, сбрасываем флаг
         const isValidGameOver = newState.game_over && (newScore > 0 || newLines > 0);
 
-        const safeNewState: TetrisState = {
+        setState({
           board: normalizeBoard(newState.board),
           score: newScore,
           lines_cleared: newLines,
@@ -145,11 +122,8 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
           width: newState.width,
           height: newState.height,
           level: (newState as { level?: number }).level ?? 1,
-        };
+        });
 
-        setState(safeNewState);
-
-        // Вызываем onGameEnd только если game_over валиден
         if (isValidGameOver) {
           telegram.notifyWarning();
           onGameEnd();
@@ -160,48 +134,71 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         telegram.notifyError();
       }
     },
-    [sessionId, onGameEnd, state?.score],
+    [sessionId, onGameEnd, state?.game_over],
   );
 
-  // КРИТИЧНО: После загрузки состояния запускаем первый тик для создания фигуры
+  // Инициализация: загрузка состояния
   useEffect(() => {
-    if (state && !state.game_over && handleAction && isInitialLoadRef.current) {
-      // Если доска пустая (чистый старт) или нет активной фигуры - делаем первый тик
-      const hasActivePiece = state.board.some((row) => row.some((cell) => cell === 2));
-      const isEmpty = state.board.every((row) => row.every((cell) => cell === 0));
+    loadGameState();
+  }, [loadGameState]);
 
-      if (isEmpty || !hasActivePiece) {
-        isInitialLoadRef.current = false;
-        // Небольшая задержка чтобы state установился
-        const timer = setTimeout(() => {
-          handleAction('tick');
-        }, 300);
-        return () => clearTimeout(timer);
-      } else {
-        isInitialLoadRef.current = false;
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state?.board, state?.game_over, handleAction]);
-
-  // Игровой цикл (гравитация) - используем setInterval для стабильности
+  // Игровой цикл (гравитация) - используем useRef для handleAction
+  const handleActionRef = useRef(handleAction);
   useEffect(() => {
-    if (!state || state.game_over) {
+    handleActionRef.current = handleAction;
+  }, [handleAction]);
+
+  // Игровой цикл и первый тик
+  useEffect(() => {
+    if (!state) {
       return;
     }
 
-    const currentLevel = state.level ?? 1;
-    const tickRate = Math.max(300, 1000 - (currentLevel - 1) * 100);
-
-    const intervalId = setInterval(() => {
-      // Проверяем флаг перед каждым тиком
-      if (!isGameOverRef.current) {
-        handleAction('tick');
+    // Если game_over - останавливаем цикл
+    if (state.game_over) {
+      if (gameIntervalRef.current) {
+        clearInterval(gameIntervalRef.current);
+        gameIntervalRef.current = null;
       }
+      return;
+    }
+
+    // Проверяем, есть ли активная фигура
+    const hasActivePiece = state.board.some((row) => row.some((cell) => cell === 2));
+    const isEmpty = state.board.every((row) => row.every((cell) => cell === 0));
+
+    // Если доска пустая - делаем первый тик для создания фигуры
+    if (isEmpty && !hasActivePiece) {
+      handleActionRef.current('tick');
+      return;
+    }
+
+    // Если нет активной фигуры, но доска не пустая - ждем следующего тика
+    if (!hasActivePiece) {
+      return;
+    }
+
+    // Запускаем игровой цикл
+    const currentLevel = state.level ?? 1;
+    const tickRate = Math.max(500, 1000 - (currentLevel - 1) * 100);
+
+    // Очищаем предыдущий интервал
+    if (gameIntervalRef.current) {
+      clearInterval(gameIntervalRef.current);
+    }
+
+    // Игровой цикл - используем ref для handleAction чтобы избежать зависимостей
+    gameIntervalRef.current = window.setInterval(() => {
+      handleActionRef.current('tick');
     }, tickRate);
 
-    return () => clearInterval(intervalId);
-  }, [state, handleAction]);
+    return () => {
+      if (gameIntervalRef.current) {
+        clearInterval(gameIntervalRef.current);
+        gameIntervalRef.current = null;
+      }
+    };
+  }, [state]);
 
   const handleBackClick = () => {
     telegram.hapticFeedback('light');
@@ -217,9 +214,6 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
   }
 
   const { board, score, lines_cleared: lines, game_over } = state;
-
-  // УБИРАЕМ isReady - не показываем счастливую панду при старте
-  // Игра всегда активна если не game_over
 
   return (
     <div className="w-full h-full flex flex-col bg-white dark:bg-slate-900">
@@ -263,7 +257,10 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         <div className="flex gap-3 w-full max-w-lg">
           <div className="flex-1 flex justify-center">
             <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner">
-              <div className="grid gap-[1px]" style={{ gridTemplateColumns: `repeat(${board[0].length}, minmax(0, 1fr))` }}>
+              <div
+                className="grid gap-[1px]"
+                style={{ gridTemplateColumns: `repeat(${board[0]?.length ?? 10}, minmax(0, 1fr))` }}
+              >
                 {board.map((row, rowIndex) =>
                   row.map((cell, colIndex) => (
                     <div
@@ -296,7 +293,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
               type="button"
               onClick={() => handleAction('left')}
               disabled={game_over}
-              className="flex-1 py-3 sm:py-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm sm:text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[48px]"
+              className="flex-1 py-3 sm:py-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[48px]"
             >
               ← Влево
             </button>
@@ -304,7 +301,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
               type="button"
               onClick={() => handleAction('rotate')}
               disabled={game_over}
-              className="flex-1 py-3 sm:py-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm sm:text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[48px]"
+              className="flex-1 py-3 sm:py-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[48px]"
             >
               ⟳ Повернуть
             </button>
@@ -312,7 +309,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
               type="button"
               onClick={() => handleAction('right')}
               disabled={game_over}
-              className="flex-1 py-3 sm:py-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm sm:text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[48px]"
+              className="flex-1 py-3 sm:py-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[48px]"
             >
               Вправо →
             </button>
@@ -321,7 +318,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
             type="button"
             onClick={() => handleAction('down')}
             disabled={game_over}
-            className="w-full py-3 sm:py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-sm sm:text-sm font-semibold text-white shadow-lg touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[48px]"
+            className="w-full py-3 sm:py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-sm font-semibold text-white shadow-lg touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[48px]"
           >
             ↓ Быстрее
           </button>
