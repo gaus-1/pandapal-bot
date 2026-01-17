@@ -580,8 +580,13 @@ class TetrisGame:
             self.current_row, self.current_col, self.current_rotation = new_row, new_col, new_rot
 
             # Проверка на фиксацию (если мы двигались вниз и теперь уперлись)
-            if action in ("down", "tick") and not self._can_place(
-                self.current_row + 1, self.current_col, self.current_rotation
+            # КРИТИЧНО: Не блокируем фигуру на row=0 (она только что спавнилась)
+            if (
+                action in ("down", "tick")
+                and self.current_row > 0
+                and not self._can_place(
+                    self.current_row + 1, self.current_col, self.current_rotation
+                )
             ):
                 self._lock_piece()
 
