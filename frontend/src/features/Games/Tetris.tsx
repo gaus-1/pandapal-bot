@@ -138,19 +138,23 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
           level: (newState as { level?: number }).level ?? 1,
         };
 
-        setState(safeNewState);
-
         // ИСПРАВЛЕНИЕ 2: Защита от мгновенного Game Over на первом тике
         // Если пришел Game Over, но счет был и остался 0 - это баг. Игнорируем.
         const currentScore = state?.score ?? 0;
         const newScore = newState.score;
 
+        if (newState.game_over && currentScore === 0 && newScore === 0) {
+            console.warn("Получен Game Over при счете 0. Игнорируем и сбрасываем флаг.");
+            // Игнорируем game_over: устанавливаем его в false
+            safeNewState.game_over = false;
+            setState(safeNewState);
+            return; // Не вызываем onGameEnd()
+        }
+
+        // Обновляем состояние только если game_over корректен
+        setState(safeNewState);
+
         if (newState.game_over) {
-            if (currentScore === 0 && newScore === 0) {
-                console.warn("Получен Game Over при счете 0. Игнорируем.");
-                // Не вызываем onGameEnd()
-                return;
-            }
             telegram.notifyWarning();
             onGameEnd();
         }
@@ -291,7 +295,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
               type="button"
               onClick={() => handleAction('left')}
               disabled={game_over}
-              className="flex-1 py-3 sm:py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm sm:text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-3 sm:py-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm sm:text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[48px]"
             >
               ← Влево
             </button>
@@ -299,7 +303,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
               type="button"
               onClick={() => handleAction('rotate')}
               disabled={game_over}
-              className="flex-1 py-3 sm:py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm sm:text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-3 sm:py-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm sm:text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[48px]"
             >
               ⟳ Повернуть
             </button>
@@ -307,7 +311,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
               type="button"
               onClick={() => handleAction('right')}
               disabled={game_over}
-              className="flex-1 py-3 sm:py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm sm:text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-3 sm:py-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-sm sm:text-sm font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[48px]"
             >
               Вправо →
             </button>
@@ -316,7 +320,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
             type="button"
             onClick={() => handleAction('down')}
             disabled={game_over}
-            className="w-full py-3 sm:py-2 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-sm sm:text-sm font-semibold text-white shadow-lg touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 sm:py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-sm sm:text-sm font-semibold text-white shadow-lg touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[48px]"
           >
             ↓ Быстрее
           </button>
