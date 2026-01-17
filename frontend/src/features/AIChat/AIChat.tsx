@@ -7,15 +7,17 @@
  * - useScrollManagement - управление скроллом
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { telegram } from '../../services/telegram';
-import { useChat } from '../../hooks/useChat';
+import { useChat, type ChatMessage } from '../../hooks/useChat';
 import { useAppStore } from '../../store/appStore';
 import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import { usePhotoUpload } from '../../hooks/usePhotoUpload';
 import { useScrollManagement } from '../../hooks/useScrollManagement';
 import { haptic } from '../../utils/hapticFeedback';
 import { MiniAppThemeToggle } from '../../components/MiniAppThemeToggle';
+import { ChatBackground } from '../../components/ChatBackground';
+import { DateSeparator } from '../../components/DateSeparator';
 import { addGreetingMessage } from '../../services/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../lib/queryClient';
@@ -325,9 +327,36 @@ export function AIChat({ user }: AIChatProps) {
     haptic.light();
   };
 
+  // Группировка сообщений по датам для отсечек
+  const groupedMessages = useMemo(() => {
+    if (!messages.length) return [];
+
+    const grouped: Array<ChatMessage | { type: 'date'; date: Date }> = [];
+    let lastDate: Date | null = null;
+
+    for (const msg of messages) {
+      const msgDate = new Date(msg.timestamp);
+      msgDate.setHours(0, 0, 0, 0);
+
+      if (!lastDate || lastDate.getTime() !== msgDate.getTime()) {
+        grouped.push({ type: 'date', date: msgDate });
+        lastDate = msgDate;
+      }
+
+      grouped.push(msg);
+    }
+
+    return grouped;
+  }, [messages]);
+
   // Dark theme: full implementation v2
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-blue-50 via-white to-pink-50 dark:from-slate-900 dark:to-slate-800">
+    <div className="flex flex-col h-full relative overflow-hidden">
+      {/* Фон с doodles */}
+      <ChatBackground />
+
+      {/* Основной контент */}
+      <div className="flex flex-col h-full relative z-10">
       {/* Заголовок */}
       <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-slate-800 dark:to-slate-900 shadow-sm p-1.5 sm:p-2 border-b border-blue-500/30 dark:border-slate-700">
         <div className="flex items-center gap-1.5 sm:gap-2">
@@ -353,11 +382,11 @@ export function AIChat({ user }: AIChatProps) {
       </div>
 
       {/* Сообщения */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-5 space-y-4" role="log">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-4" role="log">
         {isLoadingHistory ? (
-          <div className="text-center py-8"><div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--tg-theme-button-color)]"></div></div>
+          <div className="text-center py-8"><div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 dark:border-blue-400"></div></div>
         ) : showWelcome && messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-full py-8 animate-fade-in">
+          <div className="flex flex-col items-center justify-center min-h-full py-8 animate-fade-in relative z-10">
             <img
               ref={logoRef}
               src="/logo.png"
@@ -365,7 +394,7 @@ export function AIChat({ user }: AIChatProps) {
               width={120}
               height={120}
               loading="eager"
-              className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/50 dark:bg-slate-800/50 p-2 animate-logo-bounce object-cover"
+              className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-2 animate-logo-bounce object-cover"
               key={`logo-${messages.length}-${showWelcome ? 'welcome' : 'chat'}`}
               style={{
                 animation: 'logoBounce 2s ease-in-out infinite',
@@ -384,75 +413,94 @@ export function AIChat({ user }: AIChatProps) {
           </div>
         ) : messages.length === 0 ? (
           <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--tg-theme-button-color)]"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 dark:border-blue-400"></div>
           </div>
         ) : (
-          messages.map((msg, index) => (
-            <div
-              key={index}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group`}
-              role="article"
-            >
+          groupedMessages.map((item) => {
+            // Отсечка даты
+            if ('type' in item && item.type === 'date') {
+              return <DateSeparator key={`date-${item.date.getTime()}`} date={item.date} />;
+            }
+
+            // Сообщение
+            const msg = item as ChatMessage;
+            const msgIndex = messages.indexOf(msg);
+
+            return (
               <div
-                className={`relative ${
-                  msg.role === 'ai' ? 'max-w-[85%] sm:max-w-[80%] md:max-w-[75%]' : 'max-w-[85%] sm:max-w-[80%]'
-                }`}
+                key={`msg-${msgIndex}`}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group`}
+                role="article"
               >
                 <div
-                  className={`rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-md ${
-                    msg.role === 'user'
-                      ? 'bg-gradient-to-br from-blue-300/90 to-cyan-300/90 dark:from-blue-600/80 dark:to-cyan-600/80 text-gray-800 dark:text-white border border-blue-200/50 dark:border-blue-500/40'
-                      : 'bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 border border-gray-200 dark:border-slate-600'
+                  className={`relative ${
+                    msg.role === 'ai' ? 'max-w-[85%] sm:max-w-[80%] md:max-w-[75%]' : 'max-w-[85%] sm:max-w-[80%]'
                   }`}
                 >
-                  {msg.imageUrl && msg.role === 'ai' && (
-                    <img
-                      src={msg.imageUrl}
-                      alt="Визуализация"
-                      className="w-full rounded-lg mb-2 shadow-sm"
-                    />
-                  )}
-                  <MessageContent content={msg.content} role={msg.role} />
-                  <time
-                    className={`text-[10px] sm:text-xs mt-1.5 sm:mt-2 font-medium block ${
-                      msg.role === 'user' ? 'text-gray-600 dark:text-gray-700' : 'text-gray-500 dark:text-gray-400'
+                  <div
+                    className={`rounded-2xl sm:rounded-3xl px-3.5 py-2.5 sm:px-4 sm:py-3 shadow-lg backdrop-blur-sm transition-all ${
+                      msg.role === 'user'
+                        ? 'bg-gradient-to-br from-blue-500/95 to-cyan-500/95 dark:from-blue-600/95 dark:to-cyan-600/95 text-white border border-blue-400/30 dark:border-blue-500/30'
+                        : 'bg-white/95 dark:bg-slate-800/95 text-gray-900 dark:text-slate-100 border border-gray-200/50 dark:border-slate-700/50'
                     }`}
                   >
-                    {new Date(msg.timestamp).toLocaleTimeString('ru-RU', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </time>
-                </div>
-                {/* Кнопки действий */}
-                <div className="absolute -bottom-6 left-0 flex gap-0.5 sm:gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => handleCopyMessage(msg.content)}
-                    className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs bg-gray-200/90 dark:bg-slate-700/90 rounded-md hover:bg-gray-300 dark:hover:bg-slate-600 active:bg-gray-400 dark:active:bg-slate-500 transition-colors shadow-sm"
-                    title="Копировать сообщение"
-                  >
-                    📋
-                  </button>
-                  {msg.role === 'ai' && (
+                    {msg.imageUrl && msg.role === 'ai' && (
+                      <img
+                        src={msg.imageUrl}
+                        alt="Визуализация"
+                        className="w-full rounded-xl mb-2 shadow-md"
+                      />
+                    )}
+                    <MessageContent content={msg.content} role={msg.role} />
+                    <div className="flex items-center justify-end mt-1.5 sm:mt-2 gap-1.5">
+                      <time
+                        className={`text-[10px] sm:text-xs font-medium ${
+                          msg.role === 'user'
+                            ? 'text-blue-100/80 dark:text-blue-200/80'
+                            : 'text-gray-500 dark:text-slate-400'
+                        }`}
+                      >
+                        {new Date(msg.timestamp).toLocaleTimeString('ru-RU', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </time>
+                    </div>
+                  </div>
+                  {/* Кнопки действий */}
+                  <div className="absolute -bottom-6 left-0 flex gap-0.5 sm:gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => handleReplyToMessage(index)}
-                      className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs bg-gray-200/90 dark:bg-slate-700/90 rounded-md hover:bg-gray-300 dark:hover:bg-slate-600 active:bg-gray-400 dark:active:bg-slate-500 transition-colors shadow-sm"
-                      title="Ответить"
+                      onClick={() => handleCopyMessage(msg.content)}
+                      className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs bg-white/90 dark:bg-slate-700/90 rounded-md hover:bg-gray-100 dark:hover:bg-slate-600 active:bg-gray-200 dark:active:bg-slate-500 transition-colors shadow-sm border border-gray-200 dark:border-slate-600"
+                      title="Копировать сообщение"
                     >
-                      ↩️
+                      📋
                     </button>
-                  )}
+                    {msg.role === 'ai' && (
+                      <button
+                        onClick={() => handleReplyToMessage(msgIndex)}
+                        className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs bg-white/90 dark:bg-slate-700/90 rounded-md hover:bg-gray-100 dark:hover:bg-slate-600 active:bg-gray-200 dark:active:bg-slate-500 transition-colors shadow-sm border border-gray-200 dark:border-slate-600"
+                        title="Ответить"
+                      >
+                        ↩️
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
         {isSending && (
           <div className="flex justify-start">
-            <div className="bg-white dark:bg-slate-800 rounded-3xl px-5 py-3 shadow-lg border border-gray-200 dark:border-slate-700">
+            <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-3xl px-5 py-3 shadow-lg border border-gray-200/50 dark:border-slate-700/50">
               <div className="flex items-center gap-2">
-                <div className="flex gap-1"><span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></span><span className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce delay-100"></span><span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-200"></span></div>
-                <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-bounce"></span>
+                  <span className="w-2 h-2 bg-cyan-500 dark:bg-cyan-400 rounded-full animate-bounce delay-100"></span>
+                  <span className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-bounce delay-200"></span>
+                </div>
+                <span className="text-sm text-gray-700 dark:text-slate-300 font-medium">
                   {getStatusMessage()}
                 </span>
               </div>
@@ -472,7 +520,7 @@ export function AIChat({ user }: AIChatProps) {
 
       {/* Индикатор ответа */}
       {replyToMessage !== null && messages[replyToMessage] && (
-        <div className="flex-shrink-0 bg-blue-50 dark:bg-slate-800 border-t border-blue-500/30 dark:border-slate-700 px-4 py-2 flex items-center justify-between">
+        <div className="flex-shrink-0 bg-blue-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-t border-blue-500/30 dark:border-slate-700 px-4 py-2 flex items-center justify-between relative z-10">
           <div className="flex-1 min-w-0">
             <p className="text-xs text-blue-500 dark:text-blue-400 font-semibold">Ответ на:</p>
             <p className="text-sm text-gray-700 dark:text-gray-300 truncate">{messages[replyToMessage].content.slice(0, 50)}...</p>
@@ -482,7 +530,7 @@ export function AIChat({ user }: AIChatProps) {
       )}
 
       {/* Поле ввода */}
-      <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 p-1.5 sm:p-2 shadow-md">
+      <div className="flex-shrink-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-t border-gray-200/50 dark:border-slate-700/50 p-1.5 sm:p-2 shadow-lg relative z-10">
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
         <div className="flex items-center gap-1 sm:gap-1.5">
           <button onClick={handlePhotoClick} disabled={isSending || isRecording} className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-md transition-all active:scale-95 shadow-sm self-center">
@@ -506,6 +554,7 @@ export function AIChat({ user }: AIChatProps) {
           )}
         </div>
       </div>
+      </div>
     </div>
   );
 }
@@ -518,7 +567,7 @@ interface MessageContentProps {
 function MessageContent({ content, role }: MessageContentProps) {
   if (role !== 'ai') {
     return (
-      <p className="whitespace-pre-wrap break-words font-medium text-xs sm:text-sm leading-relaxed">
+      <p className="whitespace-pre-wrap break-words font-medium text-xs sm:text-sm leading-relaxed text-white dark:text-white">
         {content}
       </p>
     );
@@ -536,12 +585,12 @@ function MessageContent({ content, role }: MessageContentProps) {
   return (
     <div className="space-y-2 sm:space-y-3">
       {summary && (
-        <p className="whitespace-pre-wrap break-words font-semibold text-xs sm:text-sm leading-relaxed">
+        <p className="whitespace-pre-wrap break-words font-semibold text-xs sm:text-sm leading-relaxed text-gray-900 dark:text-slate-100">
           {summary}
         </p>
       )}
       {steps.length > 0 && (
-        <ol className="list-decimal list-inside space-y-1 text-xs sm:text-sm leading-relaxed pl-2">
+        <ol className="list-decimal list-inside space-y-1 text-xs sm:text-sm leading-relaxed pl-2 text-gray-900 dark:text-slate-100">
           {steps.map((step, index) => (
             <li key={index} className="whitespace-pre-wrap break-words mb-1">
               {stripLeadingNumber(step)}
@@ -554,7 +603,7 @@ function MessageContent({ content, role }: MessageContentProps) {
           paragraph.trim() && (
             <div
               key={index}
-              className="whitespace-pre-wrap break-words text-[11px] sm:text-xs leading-relaxed"
+              className="whitespace-pre-wrap break-words text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100"
             >
               {/* Обработка задач с структурированным форматированием */}
               {paragraph.includes('**Задача') || paragraph.includes('**Условие:') || paragraph.includes('**Решение:') || paragraph.includes('**Ответ:') || paragraph.includes('**Проверка:') ? (
@@ -595,7 +644,7 @@ function MessageContent({ content, role }: MessageContentProps) {
                                       const stepMatch = step.match(/^(\d+\.)\s+(.+)/);
                                       if (stepMatch) {
                                         return (
-                                          <li key={stepIndex} className="text-[11px] sm:text-xs leading-relaxed">
+                                          <li key={stepIndex} className="text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
                                             {stepMatch[2]}
                                           </li>
                                         );
@@ -626,7 +675,7 @@ function MessageContent({ content, role }: MessageContentProps) {
                   })}
                 </div>
               ) : (
-                <p className="text-[11px] sm:text-xs leading-relaxed opacity-90">
+                <p className="text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
                   {paragraph.trim()}
                 </p>
               )}
