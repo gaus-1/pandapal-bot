@@ -552,6 +552,13 @@ class TetrisGame:
         if self.game_over:
             return
 
+        # КРИТИЧНО: Если нет фигуры - создаем новую
+        if not self.current_shape:
+            self._spawn_new_piece()
+            # Если после спавна game_over - выходим
+            if self.game_over:
+                return
+
         # Нормализация действия
         action = action.strip().lower()
 
