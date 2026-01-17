@@ -356,7 +356,7 @@ export function AIChat({ user }: AIChatProps) {
       <ChatBackground />
 
       {/* Основной контент */}
-      <div className="flex flex-col h-full relative z-10">
+      <div className="flex flex-col h-full relative z-[1]">
       {/* Заголовок */}
       <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-slate-800 dark:to-slate-900 shadow-sm p-1.5 sm:p-2 border-b border-blue-500/30 dark:border-slate-700">
         <div className="flex items-center gap-1.5 sm:gap-2">

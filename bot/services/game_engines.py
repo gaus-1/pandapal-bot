@@ -544,8 +544,12 @@ class TetrisGame:
 
         self._spawn_new_piece()
         # Проверка Game Over: только после спавна новой фигуры на заполненной доске
-        # Если фигура не может быть размещена на row=0 - конец игры
-        if not self._can_place(self.current_row, self.current_col, self.current_rotation):
+        # Проверяем, может ли фигура быть размещена на row=0 (верхняя граница)
+        # Только если доска заполнена в верхних рядах (0-1)
+        has_blocks_in_top = any(any(cell != 0 for cell in row) for row in self.board[:2])
+        if has_blocks_in_top and not self._can_place(
+            self.current_row, self.current_col, self.current_rotation
+        ):
             self.game_over = True
 
     def step(self, action: str) -> None:
@@ -580,10 +584,11 @@ class TetrisGame:
             self.current_row, self.current_col, self.current_rotation = new_row, new_col, new_rot
 
             # Проверка на фиксацию (если мы двигались вниз и теперь уперлись)
-            # КРИТИЧНО: Не блокируем фигуру на row=0 (она только что спавнилась)
+            # КРИТИЧНО: Не блокируем фигуру на row <= 1 (она только что спавнилась или только начала падать)
+            # Блокируем только если фигура на row >= 2 и не может двигаться вниз
             if (
                 action in ("down", "tick")
-                and self.current_row > 0
+                and self.current_row >= 2
                 and not self._can_place(
                     self.current_row + 1, self.current_col, self.current_rotation
                 )
