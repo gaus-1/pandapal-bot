@@ -19,16 +19,23 @@ export function DateSeparator({ date }: DateSeparatorProps) {
 
   let label: string;
 
-  if (messageDate.getTime() === today.getTime()) {
+  const todayTime = today.getTime();
+  const yesterdayTime = yesterday.getTime();
+  const messageTime = messageDate.getTime();
+
+  if (messageTime === todayTime) {
     label = 'Сегодня';
-  } else if (messageDate.getTime() === yesterday.getTime()) {
+  } else if (messageTime === yesterdayTime) {
     label = 'Вчера';
   } else {
     // Форматируем дату: "15 января"
-    label = messageDate.toLocaleDateString('ru-RU', {
+    // Используем правильную локализацию с учетом часового пояса
+    const dateStr = messageDate.toLocaleDateString('ru-RU', {
       day: 'numeric',
       month: 'long',
+      timeZone: 'Europe/Moscow', // Явно указываем часовой пояс
     });
+    label = dateStr.charAt(0).toUpperCase() + dateStr.slice(1); // Первая буква заглавная
   }
 
   return (
