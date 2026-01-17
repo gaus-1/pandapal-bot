@@ -415,12 +415,11 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   </div>
                 </div>
 
-                <ul className="grid grid-cols-2 gap-1 xs:gap-1 sm:gap-1.5 mb-3 xs:mb-3.5 sm:mb-4 md:mb-5">
+                <ul className="grid grid-cols-2 gap-1 xs:gap-1 sm:gap-1.5 mb-3 xs:mb-3.5 sm:mb-4 md:mb-5 list-none m-0 p-0">
                   {plan.features.map((feature, index) => (
                     <li
                       key={index}
-                      className="text-[10px] xs:text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100 leading-tight xs:leading-tight sm:leading-tight m-0 p-0 line-height-[1.2]"
-                      style={{ lineHeight: '1.2', margin: 0, padding: 0 }}
+                      className="text-[10px] xs:text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100 leading-tight m-0 p-0"
                     >
                       {feature.trim()}
                     </li>
