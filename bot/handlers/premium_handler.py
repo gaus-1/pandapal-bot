@@ -89,7 +89,6 @@ async def cmd_premium(message: Message):
             days_left = (subscription.expires_at - now).days
 
             plan_names = {
-                "week": "Неделя",
                 "month": "Месяц",
                 "year": "Год",
             }
@@ -293,7 +292,6 @@ async def cancel_remove_card_callback(callback: CallbackQuery):
             days_left = (subscription.expires_at - now).days
 
             plan_names = {
-                "week": "Неделя",
                 "month": "Месяц",
                 "year": "Год",
             }

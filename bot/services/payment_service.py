@@ -30,7 +30,6 @@ class PaymentService:
 
     # Тарифные планы (цена в рублях)
     PLANS = {
-        "week": {"name": "Premium на неделю", "price": 99.00, "days": 7},
         "month": {"name": "Premium на месяц", "price": 399.00, "days": 30},
         "year": {"name": "Premium на год", "price": 2990.00, "days": 365},
     }
@@ -146,7 +145,7 @@ class PaymentService:
 
         Args:
             telegram_id: Telegram ID пользователя
-            plan_id: ID тарифного плана ('week', 'month', 'year')
+            plan_id: ID тарифного плана ('month', 'year')
             user_email: Email пользователя (для чека)
             user_phone: Телефон пользователя (для чека)
 

@@ -68,9 +68,9 @@ async def cmd_start(message: Message, state: FSMContext):
     if start_param and start_param.startswith("premium_"):
         logger.debug(f"Premium deep link detected: user={telegram_id}, param={start_param}")
 
-        # Парсим план из параметра (premium_week, premium_month, premium_year)
+        # Парсим план из параметра (premium_month, premium_year)
         plan_id = start_param.replace("premium_", "")
-        if plan_id in ["week", "month", "year"]:
+        if plan_id in ["month", "year"]:
             logger.info(f"💎 Открываем Premium для user={telegram_id}, plan={plan_id}")
 
             # Регистрируем пользователя если нужно

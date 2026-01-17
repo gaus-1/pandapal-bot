@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
         REFERENCES users(telegram_id)
         ON DELETE CASCADE,
     CONSTRAINT ck_subscriptions_plan_id
-        CHECK (plan_id IN ('week', 'month', 'year'))
+        CHECK (plan_id IN ('month', 'year'))
 );
 
 -- Создаем индексы
@@ -33,4 +33,4 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_expires
 -- Комментарии для документации
 COMMENT ON COLUMN users.premium_until IS 'Дата окончания Premium подписки';
 COMMENT ON TABLE subscriptions IS 'Таблица Premium подписок пользователей';
-COMMENT ON COLUMN subscriptions.plan_id IS 'Тип плана: week, month, year';
+COMMENT ON COLUMN subscriptions.plan_id IS 'Тип плана: month, year';

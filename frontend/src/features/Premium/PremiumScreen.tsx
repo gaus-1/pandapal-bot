@@ -24,17 +24,6 @@ interface PremiumPlan {
 
 const PREMIUM_PLANS: PremiumPlan[] = [
   {
-    id: 'week',
-    name: 'Неделя',
-    priceRub: 99,
-    duration: '7 дней',
-    features: [
-      '✨ Неограниченные AI запросы',
-      '📚 Доступ ко всем предметам',
-      '📊 Детальная аналитика',
-    ],
-  },
-  {
     id: 'month',
     name: 'Месяц',
     priceRub: 399,
@@ -222,7 +211,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
           await telegram.showAlert(
             `❌ Ошибка: ${errorMessage}\n\n` +
             `Если вы пытаетесь купить подписку на месяц или год, ` +
-            `автоплатежи еще не активированы. Попробуйте план на неделю.`
+            `автоплатежи еще не активированы.`
           );
         } else {
           alert(`Ошибка: ${errorMessage}`);
@@ -433,7 +422,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                     </div>
                     <div className="text-[10px] xs:text-xs sm:text-sm text-gray-600 dark:text-slate-400">
                       {(() => {
-                        const days = plan.id === 'week' ? 7 : plan.id === 'month' ? 30 : 365;
+                        const days = plan.id === 'month' ? 30 : 365;
                         return `${(plan.priceRub / days).toFixed(0)} ₽/день`;
                       })()}
                     </div>

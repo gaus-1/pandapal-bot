@@ -79,8 +79,8 @@ class TestPaymentResilience:
             with pytest.raises(Exception):  # Ожидаем ошибку
                 await payment_service.create_payment(
                     telegram_id=888999000,
-                    amount=99.0,
-                    plan_id="week",
+                    amount=399.0,
+                    plan_id="month",
                     description="Test",
                     customer_email="test@pandapal.ru",
                 )
@@ -101,7 +101,7 @@ class TestPaymentResilience:
         # Активируем подписку
         subscription_service.activate_subscription(
             telegram_id=888999000,
-            plan_id="week",
+            plan_id="month",
             transaction_id="test_tx_resilience",
         )
         real_db_session.commit()
@@ -126,10 +126,10 @@ class TestPaymentResilience:
             "object": {
                 "id": "payment_duplicate_test",
                 "status": "succeeded",
-                "amount": {"value": "99.00", "currency": "RUB"},
+                "amount": {"value": "399.00", "currency": "RUB"},
                 "metadata": {
                     "telegram_id": "888999000",
-                    "plan_id": "week",
+                    "plan_id": "month",
                 },
                 "paid": True,
                 "payment_method": {"type": "bank_card"},
@@ -178,8 +178,8 @@ class TestPaymentResilience:
         tasks = [
             payment_service.create_payment(
                 telegram_id=888999000,
-                amount=99.0,
-                plan_id="week",
+                amount=399.0,
+                plan_id="month",
                 description=f"Concurrent {i}",
                 customer_email="test@pandapal.ru",
             )
@@ -210,7 +210,7 @@ class TestPaymentResilience:
             "object": {
                 "id": "payment_incomplete",
                 "status": "succeeded",
-                "amount": {"value": "99.00", "currency": "RUB"},
+                "amount": {"value": "399.00", "currency": "RUB"},
                 # metadata отсутствует
                 "paid": True,
             },
@@ -260,7 +260,7 @@ class TestPaymentResilience:
             with pytest.raises(Exception):
                 subscription_service.activate_subscription(
                     telegram_id=888999000,
-                    plan_id="week",
+                    plan_id="month",
                     transaction_id="rollback_test",
                 )
 
@@ -292,7 +292,7 @@ class TestPaymentResilience:
             # Создаём истекшую подписку
             expired_sub = Subscription(
                 user_telegram_id=telegram_id,
-                plan_id="week",
+                plan_id="month",
                 starts_at=datetime.now(timezone.utc) - timedelta(days=14),
                 expires_at=datetime.now(timezone.utc) - timedelta(days=7),
                 is_active=True,
@@ -333,10 +333,10 @@ class TestPaymentResilience:
                 "object": {
                     "id": payment_id,
                     "status": "succeeded",
-                    "amount": {"value": "99.00", "currency": "RUB"},
+                    "amount": {"value": "399.00", "currency": "RUB"},
                     "metadata": {
                         "telegram_id": str(telegram_id),
-                        "plan_id": "week",
+                        "plan_id": "month",
                     },
                     "paid": True,
                     "payment_method": {"type": "bank_card"},
@@ -392,8 +392,8 @@ class TestPaymentResilience:
             with pytest.raises(Exception):
                 await payment_service.create_payment(
                     telegram_id=888999000,
-                    amount=99.0,
-                    plan_id="week",
+                    amount=399.0,
+                    plan_id="month",
                     description="Test recovery",
                     customer_email="test@pandapal.ru",
                 )
@@ -402,7 +402,7 @@ class TestPaymentResilience:
         payment_data = await payment_service.create_payment(
             telegram_id=888999000,
             amount=99.0,
-            plan_id="week",
+            plan_id="month",
             description="Test recovery",
             customer_email="test@pandapal.ru",
         )
@@ -424,8 +424,8 @@ class TestPaymentResilience:
             "object": {
                 "id": "payment_malformed",
                 "status": "succeeded",
-                "amount": {"value": "99.00", "currency": "RUB"},
-                "metadata": {"telegram_id": "888999000", "plan_id": "week"},
+                "amount": {"value": "399.00", "currency": "RUB"},
+                "metadata": {"telegram_id": "888999000", "plan_id": "month"},
                 "paid": True,
                 "payment_method": {"type": "bank_card"},
             },
@@ -484,8 +484,8 @@ class TestPaymentResilience:
             try:
                 payment_data = await payment_service.create_payment(
                     telegram_id=telegram_id,
-                    amount=99.0,
-                    plan_id="week",
+                    amount=399.0,
+                    plan_id="month",
                     description=f"Stress test {i}",
                     customer_email="stress@pandapal.ru",
                 )

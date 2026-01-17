@@ -22,7 +22,7 @@ class PremiumFeaturesService:
 
     # Лимиты для разных тарифов
     FREE_AI_REQUESTS_PER_DAY = 30  # 30 запросов в день для бесплатных
-    MONTH_PLAN_AI_REQUESTS_PER_DAY = 500  # 500 запросов в день для месячного плана (99₽)
+    MONTH_PLAN_AI_REQUESTS_PER_DAY = 500  # 500 запросов в день для месячного плана (399₽)
     # Годовая подписка - без ограничений (неограниченные запросы)
     FREE_SUBJECTS_LIMIT = 3  # Только 3 предмета для бесплатных
     FREE_ANALYTICS_BASIC = True  # Базовая аналитика доступна всем
@@ -83,7 +83,7 @@ class PremiumFeaturesService:
             telegram_id: Telegram ID пользователя
 
         Returns:
-            Optional[str]: Тип плана ('week', 'month', 'year') или None
+            Optional[str]: Тип плана ('month', 'year') или None
         """
         subscription = self.subscription_service.get_active_subscription(telegram_id)
         return subscription.plan_id if subscription else None
@@ -96,7 +96,7 @@ class PremiumFeaturesService:
 
         Лимиты по тарифам:
         - Бесплатные: 30 запросов в день
-        - Месячный план (99₽): 500 запросов в день
+        - Месячный план (399₽): 500 запросов в день
         - Годовая подписка: без ограничений
         - Админы: без ограничений
 
@@ -146,7 +146,7 @@ class PremiumFeaturesService:
 
         # Определяем лимит в зависимости от плана
         if plan == "month":
-            # Месячный план (99₽) - 500 запросов в день
+            # Месячный план (399₽) - 500 запросов в день
             daily_limit = self.MONTH_PLAN_AI_REQUESTS_PER_DAY
             if today_requests >= daily_limit:
                 return (
