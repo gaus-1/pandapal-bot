@@ -485,8 +485,12 @@ class TetrisGame:
         # Для I-фигуры со смещениями -1..2, кол=5 даст 4..6 (ровный центр)
         self.current_col = self.width // 2 + (1 if self.width % 2 == 0 else 0)
 
-        # Проверка Game Over: если фигура не может быть размещена на верхней границе - конец игры
-        if not self._can_place(self.current_row, self.current_col, self.current_rotation):
+        # Проверка Game Over: только если доска уже частично заполнена (верхние ряды заняты)
+        # На пустой доске фигура всегда может быть размещена на row=0
+        has_blocks_in_top_rows = any(any(cell != 0 for cell in row) for row in self.board[:3])
+        if has_blocks_in_top_rows and not self._can_place(
+            self.current_row, self.current_col, self.current_rotation
+        ):
             self.game_over = True
 
     def _get_blocks(self, row: int, col: int, rotation: int) -> list[tuple[int, int]]:
