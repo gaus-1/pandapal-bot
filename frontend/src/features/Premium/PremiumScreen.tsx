@@ -415,11 +415,11 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   </div>
                 </div>
 
-                <ul className="grid grid-cols-2 gap-1 xs:gap-1 sm:gap-1.5 mb-2 xs:mb-2.5 sm:mb-3 md:mb-4">
+                <ul className="grid grid-cols-2 gap-1 xs:gap-1 sm:gap-1.5 mb-3 xs:mb-3.5 sm:mb-4 md:mb-5">
                   {plan.features.map((feature, index) => (
                     <li
                       key={index}
-                      className="text-[10px] xs:text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100 leading-tight xs:leading-normal m-0 p-0"
+                      className="text-[10px] xs:text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100 leading-tight xs:leading-normal m-0 p-0 line-clamp-2"
                     >
                       {feature.trim()}
                     </li>
@@ -430,7 +430,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   <button
                     onClick={() => handlePurchase(plan)}
                     disabled={isProcessing && selectedPlan === plan.id}
-                    className="w-full py-2 xs:py-2.5 sm:py-3 md:py-4 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 xs:gap-2 min-h-[44px] sm:min-h-[48px] touch-manipulation"
+                    className="w-full mt-2 xs:mt-2.5 sm:mt-3 py-2 xs:py-2.5 sm:py-3 md:py-4 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 xs:gap-2 min-h-[44px] sm:min-h-[48px] touch-manipulation"
                   >
                     {isProcessing && selectedPlan === plan.id
                       ? 'Обработка...'
@@ -441,7 +441,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                     href={`https://t.me/PandaPalBot?start=premium_${plan.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-2 xs:py-2.5 sm:py-3 md:py-4 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 hover:shadow-xl flex items-center justify-center gap-1.5 xs:gap-2 min-h-[40px] xs:min-h-[44px]"
+                    className="w-full mt-2 xs:mt-2.5 sm:mt-3 py-2 xs:py-2.5 sm:py-3 md:py-4 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 hover:shadow-xl flex items-center justify-center gap-1.5 xs:gap-2 min-h-[40px] xs:min-h-[44px]"
                   >
                     {/* Иконка замка только на сайте (в Mini App без замка) */}
                     <svg
