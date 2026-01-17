@@ -801,6 +801,22 @@ class PandaPalBotServer:
 
             logger.info(f"✅ Сервер запущен на порту {port}")
             logger.info(f"✅ Healthcheck доступен: http://{host}:{port}/health")
+
+            # Проверяем, что healthcheck действительно работает
+            try:
+                import aiohttp
+
+                async with (
+                    aiohttp.ClientSession() as session,
+                    session.get(f"http://localhost:{port}/health", timeout=2) as resp,
+                ):
+                    if resp.status == 200:
+                        logger.info("✅ Healthcheck проверен локально - работает!")
+                    else:
+                        logger.warning(f"⚠️ Healthcheck вернул статус {resp.status}")
+            except Exception as e:
+                logger.warning(f"⚠️ Не удалось проверить healthcheck локально: {e}")
+
             logger.info("📡 Ожидание обновлений от Telegram...")
 
             # Запускаем keep-alive пинг в фоне (для Railway Free)
