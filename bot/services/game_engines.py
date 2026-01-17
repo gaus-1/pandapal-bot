@@ -477,18 +477,16 @@ class TetrisGame:
         self.current_shape = self._bag.pop()
         self.current_rotation = 0
 
-        # Критично: Спавн в невидимой зоне выше (row = -1 или -2)
-        # Для I-фигуры используем -2, так как она длинная
-        self.current_row = -2
+        # КРИТИЧНО: Спавним фигуру сразу в видимой части (row = 0), чтобы она была видна!
+        # Предыдущий подход (row = -2) не работал, так как get_state() отображает только r >= 0
+        self.current_row = 0
 
         # Центровка по X. width=10, середина 5.
         # Для I-фигуры со смещениями -1..2, кол=5 даст 4..6 (ровный центр)
         self.current_col = self.width // 2 + (1 if self.width % 2 == 0 else 0)
 
-        # Проверка Game Over: проверяем, может ли фигура достичь видимой части поля (row = 0).
-        # Если фигура не может быть размещена на верхней границе - конец игры.
-        # УБРАНА проверка has_blocks - она вызывала ложный game_over на пустой доске
-        if not self._can_place(0, self.current_col, 0):
+        # Проверка Game Over: если фигура не может быть размещена на верхней границе - конец игры
+        if not self._can_place(self.current_row, self.current_col, self.current_rotation):
             self.game_over = True
 
     def _get_blocks(self, row: int, col: int, rotation: int) -> list[tuple[int, int]]:
@@ -630,7 +628,8 @@ class TetrisGame:
         game.game_over = loaded_game_over and (loaded_score > 0 or loaded_lines > 0)
 
         game.current_shape = data.get("current_shape")
-        game.current_row = data.get("current_row", -2)
+        # КРИТИЧНО: Используем 0 вместо -2 для видимости фигуры
+        game.current_row = data.get("current_row", 0)
         game.current_col = data.get("current_col", 5)
         game.current_rotation = data.get("current_rotation", 0)
 
