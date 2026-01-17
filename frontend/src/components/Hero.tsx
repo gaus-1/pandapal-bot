@@ -40,9 +40,7 @@ export const Hero: React.FC = React.memo(() => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
         {/* Основной заголовок (H1 для SEO) */}
         <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-gray-900 dark:text-slate-50">
-          Безопасный AI-друг
-          <br />
-          для твоего ребенка
+          Безопасный и полезный AI - друг для детей
         </h1>
 
         {/* Описание продукта */}
