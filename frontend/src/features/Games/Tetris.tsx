@@ -52,23 +52,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
     loadGameState();
   }, [sessionId]);
 
-  // КРИТИЧНО: После загрузки состояния запускаем первый тик для создания фигуры
-  useEffect(() => {
-    if (state && !state.game_over && handleAction) {
-      // Если доска пустая (чистый старт) или нет активной фигуры - делаем первый тик
-      const hasActivePiece = state.board.some((row) => row.some((cell) => cell === 2));
-      const isEmpty = state.board.every((row) => row.every((cell) => cell === 0));
-
-      if (isEmpty || !hasActivePiece) {
-        // Небольшая задержка чтобы state установился
-        const timer = setTimeout(() => {
-          handleAction('tick');
-        }, 200);
-        return () => clearTimeout(timer);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state?.board, state?.game_over]);
+  const isInitialLoadRef = useRef(true);
 
   const normalizeBoard = (rawBoard: number[][]): TetrisCell[][] => {
     if (!rawBoard || !Array.isArray(rawBoard)) return [];
@@ -178,6 +162,27 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
     },
     [sessionId, onGameEnd, state?.score],
   );
+
+  // КРИТИЧНО: После загрузки состояния запускаем первый тик для создания фигуры
+  useEffect(() => {
+    if (state && !state.game_over && handleAction && isInitialLoadRef.current) {
+      // Если доска пустая (чистый старт) или нет активной фигуры - делаем первый тик
+      const hasActivePiece = state.board.some((row) => row.some((cell) => cell === 2));
+      const isEmpty = state.board.every((row) => row.every((cell) => cell === 0));
+
+      if (isEmpty || !hasActivePiece) {
+        isInitialLoadRef.current = false;
+        // Небольшая задержка чтобы state установился
+        const timer = setTimeout(() => {
+          handleAction('tick');
+        }, 300);
+        return () => clearTimeout(timer);
+      } else {
+        isInitialLoadRef.current = false;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.board, state?.game_over, handleAction]);
 
   // Игровой цикл (гравитация) - используем setInterval для стабильности
   useEffect(() => {
