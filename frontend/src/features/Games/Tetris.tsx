@@ -36,11 +36,18 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
       const gameState = session.game_state as Record<string, unknown>;
       const board = (gameState?.board as number[][]) || [];
 
+      // КРИТИЧНО: Фильтруем ложные game_over при счете 0 (первый запуск)
+      const loadedScore = Number(gameState?.score ?? 0);
+      const loadedLines = Number(gameState?.lines_cleared ?? 0);
+      const loadedGameOver = Boolean(gameState?.game_over);
+      // Игнорируем game_over если счет 0 и линии 0 (это первый запуск)
+      const effectiveGameOver = loadedGameOver && (loadedScore > 0 || loadedLines > 0);
+
       setState({
         board: board.length > 0 ? board : Array(20).fill(null).map(() => Array(10).fill(0)),
-        score: Number(gameState?.score ?? 0),
-        lines_cleared: Number(gameState?.lines_cleared ?? 0),
-        game_over: false,
+        score: loadedScore,
+        lines_cleared: loadedLines,
+        game_over: effectiveGameOver,
         level: Number(gameState?.level ?? 1),
       });
     } catch (err) {
@@ -59,11 +66,18 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
 
         if (!mountedRef.current) return;
 
+        // КРИТИЧНО: Фильтруем ложные game_over при счете 0 (первый запуск)
+        const loadedScore = result.score ?? 0;
+        const loadedLines = result.lines_cleared ?? 0;
+        const loadedGameOver = result.game_over || false;
+        // Игнорируем game_over если счет 0 и линии 0 (это первый запуск)
+        const effectiveGameOver = loadedGameOver && (loadedScore > 0 || loadedLines > 0);
+
         const newState: TetrisState = {
           board: result.board || Array(20).fill(null).map(() => Array(10).fill(0)),
-          score: result.score ?? 0,
-          lines_cleared: result.lines_cleared ?? 0,
-          game_over: result.game_over || false,
+          score: loadedScore,
+          lines_cleared: loadedLines,
+          game_over: effectiveGameOver,
           level: (result as { level?: number }).level ?? 1,
         };
 
