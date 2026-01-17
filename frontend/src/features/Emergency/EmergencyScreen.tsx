@@ -161,7 +161,7 @@ export function EmergencyScreen() {
             {/* Кнопка звонка */}
             <button
               onClick={() => handleCall(emergency.number, emergency.title)}
-              className={`w-full py-3 sm:py-4 md:py-5 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold text-white transition-all ${emergency.color} hover:opacity-90 active:scale-95`}
+              className={`w-full py-3 sm:py-4 md:py-5 rounded-xl sm:rounded-2xl text-sm sm:text-base md:text-lg font-bold text-white transition-all ${emergency.color} hover:opacity-90 active:scale-95 min-h-[44px] sm:min-h-[48px] touch-manipulation`}
               aria-label={`Позвонить в ${emergency.title}: ${emergency.number}`}
             >
               <span aria-hidden="true">📞</span> Позвонить: {emergency.number}

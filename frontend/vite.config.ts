@@ -33,6 +33,13 @@ export default defineConfig({
     },
     sourcemap: false,
     minify: 'esbuild',
+    // Оптимизация размера бандла
+    chunkSizeWarningLimit: 1000,
+    // Включаем сжатие
+    reportCompressedSize: true,
+    // Оптимизация для production
+    cssCodeSplit: true,
+    cssMinify: true,
   },
   server: {
     host: true,

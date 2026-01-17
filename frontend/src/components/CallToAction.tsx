@@ -90,7 +90,7 @@ export const CallToAction: React.FC = React.memo(() => {
               href={SITE_CONFIG.botUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 px-10 py-5 bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 dark:from-blue-600 dark:via-blue-700 dark:to-cyan-600 hover:from-blue-600 hover:via-blue-700 hover:to-cyan-600 dark:hover:from-blue-700 dark:hover:via-blue-800 dark:hover:to-cyan-700 text-white font-bold text-lg rounded-2xl shadow-xl dark:shadow-2xl hover:shadow-2xl dark:hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform hover:scale-105 active:scale-100 transition-all duration-300"
+              className="inline-flex items-center justify-center gap-3 px-10 py-5 bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 dark:from-blue-600 dark:via-blue-700 dark:to-cyan-600 hover:from-blue-600 hover:via-blue-700 hover:to-cyan-600 dark:hover:from-blue-700 dark:hover:via-blue-800 dark:hover:to-cyan-700 text-white font-bold text-lg rounded-2xl shadow-xl dark:shadow-2xl hover:shadow-2xl dark:hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform hover:scale-105 active:scale-100 transition-all duration-300 min-h-[44px] sm:min-h-[48px] touch-manipulation"
             >
               <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.643-.204-.657-.643.136-.953l11.566-4.458c.538-.196 1.006.128.832.941z"/>
@@ -101,7 +101,7 @@ export const CallToAction: React.FC = React.memo(() => {
               href={`${SITE_CONFIG.botUrl}?startapp=games`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 dark:from-purple-600 dark:via-pink-600 dark:to-orange-600 hover:opacity-90 text-white font-semibold text-base rounded-xl shadow-lg dark:shadow-xl hover:shadow-xl transform hover:scale-105 active:scale-100 transition-all duration-300"
+              className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 dark:from-purple-600 dark:via-pink-600 dark:to-orange-600 hover:opacity-90 text-white font-semibold text-base rounded-xl shadow-lg dark:shadow-xl hover:shadow-xl transform hover:scale-105 active:scale-100 transition-all duration-300 min-h-[44px] sm:min-h-[48px] touch-manipulation"
             >
               🎮 PandaPalGo
             </a>
