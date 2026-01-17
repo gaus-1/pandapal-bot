@@ -198,15 +198,15 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
 
       {/* Game Board - оптимизирован под размер экрана, шире */}
       <div className="flex-1 flex items-center justify-center px-3 min-h-0 overflow-hidden">
-        <div className="flex gap-2 w-full max-w-2xl">
-          <div className="flex-1 flex justify-center min-w-0">
-            <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner max-w-full">
+        <div className="flex gap-3 w-full max-w-3xl">
+          <div className="flex-1 flex justify-center">
+            <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1.5 shadow-inner">
               <div className="grid gap-[2px]" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, minmax(0, 1fr))` }}>
                 {board.map((row, rowIndex) =>
                   row.map((cell, colIndex) => (
                     <div
                       key={`${rowIndex}-${colIndex}`}
-                      className={`w-4 h-4 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5 md:w-6 md:h-6 ${
+                      className={`w-5 h-5 xs:w-5.5 xs:h-5.5 sm:w-6 sm:h-6 md:w-7 md:h-7 ${
                         cell === 0
                           ? 'bg-slate-100 dark:bg-slate-800'
                           : cell === 2
