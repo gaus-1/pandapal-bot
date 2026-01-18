@@ -6,7 +6,6 @@ from bot.config.settings import Settings
 from bot.services.visualization.base import BaseVisualizationService
 
 try:
-    import matplotlib.pyplot as plt
     import requests
 
     MATPLOTLIB_AVAILABLE = True
@@ -487,93 +486,4 @@ class GeographyVisualization(BaseVisualizationService):
             logger.error(
                 f"❌ Неожиданная ошибка запроса к Yandex Maps Static API: {e}", exc_info=True
             )
-            return None
-
-        # Старый код генерации схематичных карт больше не используется
-        # (заменен на Yandex Maps Static API)
-        # Оставлен для обратной совместимости, но не вызывается
-        return None
-
-    def _generate_world_map(self, country_name: str) -> bytes | None:
-        """Генерирует общую карту мира с указанием региона страны."""
-        if not MATPLOTLIB_AVAILABLE:
-            return None
-
-        try:
-            import io
-
-            fig, ax = plt.subplots(figsize=(14, 8))
-            fig.patch.set_facecolor("white")
-
-            # Рисуем схематичную карту мира
-            ax.set_xlim(-180, 180)
-            ax.set_ylim(-90, 90)
-            ax.set_aspect("equal")
-            ax.axis("off")
-
-            # Континенты
-            continents = [
-                ("Азия", (60, 10), (140, 50), "#E8F5E9", "#4CAF50"),
-                ("Европа", (-10, 35), (40, 70), "#E3F2FD", "#2196F3"),
-                ("Сев. Америка", (-130, 25), (-50, 70), "#FFF3E0", "#FF9800"),
-                ("Юж. Америка", (-80, -55), (-35, 12), "#F3E5F5", "#9C27B0"),
-                ("Африка", (-20, -35), (50, 35), "#FFF9C4", "#FBC02D"),
-                ("Австралия", (110, -45), (155, -10), "#E1BEE7", "#7B1FA2"),
-            ]
-
-            for name, (x1, y1), (x2, y2), facecolor, edgecolor in continents:
-                rect = plt.Rectangle(
-                    (x1, y1),
-                    (x2 - x1),
-                    (y2 - y1),
-                    facecolor=facecolor,
-                    edgecolor=edgecolor,
-                    linewidth=2,
-                )
-                ax.add_patch(rect)
-                ax.text(
-                    (x1 + x2) / 2,
-                    (y1 + y2) / 2,
-                    name,
-                    ha="center",
-                    va="center",
-                    fontsize=11,
-                    bbox={"boxstyle": "round,pad=0.3", "facecolor": "white", "alpha": 0.7},
-                )
-
-            # Заголовок
-            ax.text(
-                0.5,
-                0.95,
-                f"Карта мира: {country_name}",
-                transform=ax.transAxes,
-                ha="center",
-                fontsize=16,
-                fontweight="bold",
-            )
-
-            ax.text(
-                0.5,
-                0.05,
-                "Схематичная карта мира",
-                transform=ax.transAxes,
-                ha="center",
-                fontsize=12,
-                style="italic",
-                color="gray",
-            )
-
-            plt.tight_layout()
-
-            buf = io.BytesIO()
-            plt.savefig(buf, format="png", dpi=100, bbox_inches="tight", facecolor="white")
-            buf.seek(0)
-            plt.close(fig)
-
-            return buf.read()
-
-        except Exception as e:
-            from loguru import logger
-
-            logger.error(f"❌ Ошибка генерации карты мира: {e}")
             return None
