@@ -149,19 +149,15 @@ def test_game_over_on_spawn_collision():
     assert game.game_over, "Ожидался Game Over при блокировке спавна"
 
 
-def test_piece_spawns_above_field():
-    """Фигура спавнится выше поля (row = -2) и не завершает игру."""
+def test_piece_spawns_at_top():
+    """Фигура спавнится на верхней границе поля (row = 0) и не завершает игру."""
     game = TetrisGame()
 
     # Проверяем начальное состояние
-    assert game.current_row == -2, "Фигура должна спавниться на row = -2"
+    assert game.current_row == 0, "Фигура должна спавниться на row = 0"
     assert game.game_over is False, "Игра не должна быть завершена при спавне"
 
-    # Проверяем, что фигура может быть размещена выше поля
-    assert game._can_place(-2, game.current_col, game.current_rotation), \
-        "Фигура должна быть размещена выше поля"
-    assert game._can_place(-1, game.current_col, game.current_rotation), \
-        "Фигура должна быть размещена на row = -1"
+    # Проверяем, что фигура может быть размещена на верхней границе
     assert game._can_place(0, game.current_col, game.current_rotation), \
         "Фигура должна быть размещена на верхней границе поля"
 
@@ -172,20 +168,20 @@ def test_first_move_down_does_not_end_game():
 
     # Проверяем начальное состояние
     initial_row = game.current_row
-    assert initial_row == -2, "Фигура должна быть на row = -2"
+    assert initial_row == 0, "Фигура должна быть на row = 0"
     assert game.game_over is False, "Игра не должна быть завершена"
 
     # Делаем первое движение вниз
     game.step("down")
 
     # Фигура должна переместиться вниз, но игра не должна завершиться
-    assert game.current_row == -1, "Фигура должна переместиться на row = -1"
+    assert game.current_row == 1, "Фигура должна переместиться на row = 1"
     assert game.game_over is False, "Игра не должна завершиться после первого движения"
 
     # Делаем еще несколько движений вниз
     for _ in range(3):
         game.step("down")
 
-    # Фигура должна достичь поля, но игра все еще не должна завершиться
-    assert game.current_row >= 0, "Фигура должна достичь видимой части поля"
+    # Фигура должна переместиться дальше вниз, но игра все еще не должна завершиться
+    assert game.current_row > 1, "Фигура должна переместиться дальше вниз"
     assert game.game_over is False, "Игра не должна завершиться пока фигура не зафиксирована"
