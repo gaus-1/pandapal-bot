@@ -208,7 +208,7 @@ class TestComprehensivePandaResponses:
             viz_image, viz_type_detected = viz_service.detect_visualization_request(question)
 
             if viz_image is None:
-                print(f"⚠️ {viz_type}: визуализация не сгенерирована (может быть не реализовано)")
+                print(f"[WARNING] {viz_type}: визуализация не сгенерирована (может быть не реализовано)")
                 results[viz_type] = {"generated": False}
                 continue
 
