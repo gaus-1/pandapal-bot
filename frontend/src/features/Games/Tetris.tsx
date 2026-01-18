@@ -196,24 +196,23 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       )}
 
-      {/* Game Board - оптимизирован под размер экрана, шире */}
+      {/* Game Board - оптимизирован под размер экрана */}
       <div className="flex-1 flex items-center justify-center px-2 sm:px-3 min-h-0 overflow-hidden">
-        <div className="flex gap-2 sm:gap-3 w-full">
+        <div className="flex gap-2 w-full max-w-2xl">
           <div className="flex-1 flex justify-center min-w-0">
-            <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1.5 sm:p-2 shadow-inner w-full max-w-full">
+            <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner">
               <div className="grid" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, minmax(0, 1fr))`, gap: 0 }}>
                 {board.map((row, rowIndex) =>
                   row.map((cell, colIndex) => (
                     <div
                       key={`${rowIndex}-${colIndex}`}
-                      className={`w-full h-full ${
+                      className={`w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-4.5 sm:h-4.5 ${
                         cell === 0
                           ? 'bg-slate-100 dark:bg-slate-800'
                           : cell === 2
                             ? 'bg-emerald-400 dark:bg-emerald-500'
                             : 'bg-blue-400 dark:bg-blue-500'
                       }`}
-                      style={{ aspectRatio: '1' }}
                     />
                   )),
                 )}
@@ -221,7 +220,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
             </div>
           </div>
 
-          <div className="w-16 flex flex-col text-xs text-gray-700 dark:text-slate-200 flex-shrink-0">
+          <div className="w-14 flex flex-col text-xs text-gray-700 dark:text-slate-200 flex-shrink-0">
             <div className="mb-1 p-1.5 rounded bg-blue-50 dark:bg-slate-800 border border-blue-200 dark:border-slate-700">
               <div className="font-semibold mb-0.5 text-[10px]">Линии</div>
               <div className="text-sm">{lines}</div>
