@@ -334,7 +334,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               <button
                 onClick={() => handleMove("up")}
                 disabled={isLoading}
-                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[22px] min-w-[22px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
+                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
                 aria-label="Вверх"
                 style={{
                   filter: 'contrast(1.3) brightness(1.15)'
@@ -348,7 +348,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               <button
                 onClick={() => handleMove("left")}
                 disabled={isLoading}
-                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[22px] min-w-[22px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
+                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
                 aria-label="Влево"
                 style={{
                   filter: 'contrast(1.3) brightness(1.15)'
@@ -362,7 +362,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               <button
                 onClick={() => handleMove("right")}
                 disabled={isLoading}
-                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[22px] min-w-[22px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
+                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
                 aria-label="Вправо"
                 style={{
                   filter: 'contrast(1.3) brightness(1.15)'
@@ -376,7 +376,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               <button
                 onClick={() => handleMove("down")}
                 disabled={isLoading}
-                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[22px] min-w-[22px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
+                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
                 aria-label="Вниз"
                 style={{
                   filter: 'contrast(1.3) brightness(1.15)'

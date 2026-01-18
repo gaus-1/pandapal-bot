@@ -72,6 +72,35 @@ async def handle_image(message: Message, state: FSMContext):  # noqa: ARG001
                 await processing_msg.edit_text("❌ Сначала зарегистрируйся командой /start")
                 return
 
+            # КРИТИЧНО: Проверка Premium для неограниченных запросов
+            from bot.services.premium_features_service import PremiumFeaturesService
+
+            premium_service = PremiumFeaturesService(db)
+            can_request, limit_reason = premium_service.can_make_ai_request(
+                message.from_user.id, username=message.from_user.username
+            )
+
+            if not can_request:
+                logger.warning(
+                    f"🚫 AI запрос (изображение) заблокирован для user={message.from_user.id}: {limit_reason}"
+                )
+                from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+                keyboard = InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(
+                                text="💎 Узнать о Premium", callback_data="premium:info"
+                            )
+                        ]
+                    ]
+                )
+
+                await processing_msg.edit_text(
+                    limit_reason, reply_markup=keyboard, parse_mode="HTML"
+                )
+                return
+
             # Получаем сервисы
             ai_service = get_ai_service()
             history_service = ChatHistoryService(db)
@@ -112,6 +141,9 @@ async def handle_image(message: Message, state: FSMContext):  # noqa: ARG001
                 )
                 log_user_activity(message.from_user.id, "image_blocked_ai_response", False, reason)
                 return
+
+            # Увеличиваем счетчик запросов (независимо от истории)
+            premium_service.increment_request_count(message.from_user.id)
 
             # Сохраняем в историю (синхронный метод, без await)
             history_service.add_message(

@@ -415,7 +415,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   </div>
                 </div>
 
-                <ul className="grid grid-cols-2 gap-1 xs:gap-1 sm:gap-1.5 mb-3 xs:mb-3.5 sm:mb-4 md:mb-5 list-none m-0 p-0">
+                <ul className="grid grid-cols-2 gap-x-1 xs:gap-x-1 sm:gap-x-1.5 gap-y-0 mb-3 xs:mb-3.5 sm:mb-4 md:mb-5 list-none m-0 p-0">
                   {plan.features.map((feature, index) => (
                     <li
                       key={index}
