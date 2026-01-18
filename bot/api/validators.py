@@ -1,5 +1,4 @@
-"""
-Валидаторы для API endpoints.
+"""Валидаторы для API endpoints.
 
 Использует Pydantic для валидации входных данных.
 Защита от injection атак через строгую типизацию.
@@ -62,6 +61,28 @@ class AIChatRequest(BaseModel):
             raise ValueError(
                 "At least one of message, photo_base64, or audio_base64 must be provided"
             )
+
+
+class HomeworkCheckRequest(BaseModel):
+    """Валидация запроса на проверку домашнего задания."""
+
+    telegram_id: int = Field(..., ge=1, description="Telegram ID пользователя")
+    photo_base64: str = Field(..., max_length=15 * 1024 * 1024, description="Base64 фото ДЗ")
+    subject: str | None = Field(
+        None, max_length=100, description="Предмет (математика, русский и т.д.)"
+    )
+    topic: str | None = Field(None, max_length=255, description="Тема задания")
+    message: str | None = Field(
+        None, max_length=1000, description="Дополнительный вопрос/комментарий"
+    )
+
+    @field_validator("telegram_id")
+    @classmethod
+    def validate_telegram_id(cls, v: int) -> int:
+        """Валидация Telegram ID."""
+        if v <= 0:
+            raise ValueError("telegram_id must be positive")
+        return v
 
 
 class AuthRequest(BaseModel):

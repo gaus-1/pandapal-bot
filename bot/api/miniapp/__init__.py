@@ -28,6 +28,11 @@ from bot.api.miniapp.helpers import (
     process_photo_message,
     send_achievements_event,
 )
+from bot.api.miniapp.homework import (
+    miniapp_check_homework,
+    miniapp_get_homework_history,
+    miniapp_get_homework_statistics,
+)
 from bot.api.miniapp.other import (
     miniapp_add_greeting,
     miniapp_clear_chat_history,
@@ -125,6 +130,13 @@ def setup_miniapp_routes(app: web.Application) -> None:
     )
     app.router.add_get(
         "/api/miniapp/premium/features/{telegram_id}", miniapp_get_premium_features_status
+    )
+
+    # Проверка домашних заданий
+    app.router.add_post("/api/miniapp/homework/check", miniapp_check_homework)
+    app.router.add_get("/api/miniapp/homework/history/{telegram_id}", miniapp_get_homework_history)
+    app.router.add_get(
+        "/api/miniapp/homework/statistics/{telegram_id}", miniapp_get_homework_statistics
     )
 
     # Логирование с фронтенда
