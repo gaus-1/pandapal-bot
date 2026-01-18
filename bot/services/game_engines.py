@@ -593,10 +593,12 @@ class TetrisGame:
                 if self.current_row >= self.height:
                     self._lock_piece()
                     return
+                # КРИТИЧНО: Проверяем все блоки фигуры - если хотя бы один блок выходит за дно или столкнулся
                 # Проверяем, может ли фигура двигаться еще на один шаг вниз
-                if not self._can_place(
+                can_move_further = self._can_place(
                     self.current_row + 1, self.current_col, self.current_rotation
-                ):
+                )
+                if not can_move_further:
                     self._lock_piece()
                     return  # Выходим сразу после блокировки
 
