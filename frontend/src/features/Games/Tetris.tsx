@@ -196,23 +196,29 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       )}
 
-      {/* Game Board - уже, без пробелов между блоками */}
+      {/* Game Board - уменьшенные блоки, уже окно */}
       <div className="flex-1 flex items-center justify-center px-2 sm:px-3 min-h-0 overflow-hidden">
-        <div className="w-full max-w-xl">
-          <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner mx-auto">
-            <div className="grid" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`, gap: 0 }}>
+        <div className="w-full max-w-sm">
+          <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-0.5 shadow-inner mx-auto">
+            <div className="grid" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`, gap: '1px' }}>
               {board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (
                   <div
                     key={`${rowIndex}-${colIndex}`}
-                    className={`w-full h-full aspect-square ${
-                      cell === 0
-                        ? 'bg-slate-100 dark:bg-slate-800'
-                        : cell === 2
-                          ? 'bg-emerald-400 dark:bg-emerald-500'
-                          : 'bg-blue-400 dark:bg-blue-500'
-                    }`}
-                  />
+                    className={`w-full`}
+                    style={{ aspectRatio: '1', paddingTop: '0' }}
+                  >
+                    <div
+                      className={`w-full h-full ${
+                        cell === 0
+                          ? 'bg-slate-100 dark:bg-slate-800'
+                          : cell === 2
+                            ? 'bg-emerald-400 dark:bg-emerald-500'
+                            : 'bg-blue-400 dark:bg-blue-500'
+                      }`}
+                      style={{ minHeight: '12px', minWidth: '12px' }}
+                    />
+                  </div>
                 )),
               )}
             </div>
@@ -220,42 +226,44 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       </div>
 
-      {/* Controls - внизу, видимые, компактные */}
-      <div className="flex-shrink-0 pt-2 px-3 pb-2 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
-        <div className="flex justify-between gap-1.5 mb-1.5">
+      {/* Controls - выровнены по размеру окна игры */}
+      <div className="flex-shrink-0 pt-2 pb-2 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
+        <div className="max-w-sm mx-auto px-3">
+          <div className="flex gap-1.5 mb-1.5">
+            <button
+              type="button"
+              onClick={() => handleAction('left')}
+              disabled={game_over}
+              className="flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-xs font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
+            >
+              ← Влево
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAction('rotate')}
+              disabled={game_over}
+              className="flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-xs font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
+            >
+              ⟳ Повернуть
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAction('right')}
+              disabled={game_over}
+              className="flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-xs font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
+            >
+              Вправо →
+            </button>
+          </div>
           <button
             type="button"
-            onClick={() => handleAction('left')}
+            onClick={() => handleAction('down')}
             disabled={game_over}
-            className="flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-xs font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
+            className="w-full py-2 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-xs font-semibold text-white shadow-lg touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
           >
-            ← Влево
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAction('rotate')}
-            disabled={game_over}
-            className="flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-xs font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
-          >
-            ⟳ Повернуть
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAction('right')}
-            disabled={game_over}
-            className="flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-xs font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
-          >
-            Вправо →
+            ↓ Быстрее
           </button>
         </div>
-        <button
-          type="button"
-          onClick={() => handleAction('down')}
-          disabled={game_over}
-          className="w-full py-2 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-xs font-semibold text-white shadow-lg touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
-        >
-          ↓ Быстрее
-        </button>
       </div>
     </div>
   );

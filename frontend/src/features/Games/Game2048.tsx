@@ -41,6 +41,9 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
   }, [sessionId]);
 
   const loadGameState = async () => {
+    // Оптимизация: не загружаем состояние если игра закончена
+    if (gameOver) return;
+
     try {
       const session = await getGameSession(sessionId);
       const gameState = session.game_state as {
