@@ -200,18 +200,19 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
       <div className="flex-1 flex items-center justify-center px-2 sm:px-3 min-h-0 overflow-hidden">
         <div className="w-full max-w-2xl">
           <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner mx-auto">
-            <div className="grid" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, minmax(0, 1fr))`, gap: 0 }}>
+            <div className="grid" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`, gap: 0 }}>
               {board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (
                   <div
                     key={`${rowIndex}-${colIndex}`}
-                    className={`w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 ${
+                    className={`w-full h-full aspect-square ${
                       cell === 0
                         ? 'bg-slate-100 dark:bg-slate-800'
                         : cell === 2
                           ? 'bg-emerald-400 dark:bg-emerald-500'
                           : 'bg-blue-400 dark:bg-blue-500'
                     }`}
+                    style={{ maxWidth: '20px', maxHeight: '20px' }}
                   />
                 )),
               )}
