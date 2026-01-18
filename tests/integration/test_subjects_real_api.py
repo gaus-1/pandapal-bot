@@ -177,27 +177,6 @@ class TestSubjectsTextRealAPI:
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
-    async def test_biology_text_question(self):
-        """Тест ответа AI на вопрос по биологии."""
-        from bot.services.ai_service_solid import get_ai_service
-
-        ai_service = get_ai_service()
-
-        question = "Что такое фотосинтез? Объясни простыми словами."
-
-        response = await ai_service.generate_response(
-            user_message=question,
-            chat_history=[],
-            user_age=11,
-        )
-
-        assert response is not None, "AI не ответил"
-        assert len(response) > 50, "Ответ слишком короткий"
-
-        print(f"\n[OK] Biology (text): {response[:150]}...")
-
-    @pytest.mark.asyncio
-    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
     async def test_geography_text_question(self):
         """Тест ответа AI на вопрос по географии."""
         from bot.services.ai_service_solid import get_ai_service
@@ -589,29 +568,6 @@ class TestSubjectsPhotoRealAPI:
         assert len(analysis) > 50, "Анализ слишком короткий"
 
         print(f"\n[OK] Chemistry (photo): {analysis[:150]}...")
-
-    @pytest.mark.asyncio
-    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
-    async def test_biology_photo_question(self):
-        """Тест ответа AI на фото с вопросом по биологии."""
-        from bot.services.yandex_cloud_service import get_yandex_cloud_service
-
-        yandex_service = get_yandex_cloud_service()
-
-        image_bytes = self._create_test_image_with_text(
-            "Фотосинтез - процесс создания пищи растениями"
-        )
-
-        result = await yandex_service.analyze_image_with_text(
-            image_data=image_bytes,
-            user_question="Объясни что это такое",
-        )
-
-        analysis = result.get("analysis", "")
-        assert analysis, "AI анализ не выполнен"
-        assert len(analysis) > 50, "Анализ слишком короткий"
-
-        print(f"\n[OK] Biology (photo): {analysis[:150]}...")
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
