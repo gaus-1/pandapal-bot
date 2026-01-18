@@ -1,7 +1,131 @@
 /**
  * Компонент фона чата с doodles в стиле Telegram
- * Профессиональная реализация: тонкие, едва заметные doodles как в Telegram
+ * Хаотичное расположение всех элементов (не паттерн)
  */
+
+// Фиксированные хаотичные позиции для всех элементов (чтобы не менялись при рендере)
+const CHAOTIC_POSITIONS = [
+  // Панды (8 штук)
+  { x: 45, y: 32, type: 'panda' },
+  { x: 120, y: 78, type: 'panda' },
+  { x: 85, y: 145, type: 'panda' },
+  { x: 200, y: 95, type: 'panda' },
+  { x: 280, y: 165, type: 'panda' },
+  { x: 350, y: 45, type: 'panda' },
+  { x: 420, y: 125, type: 'panda' },
+  { x: 180, y: 210, type: 'panda' },
+  // Книги (6 штук)
+  { x: 75, y: 58, type: 'book' },
+  { x: 150, y: 112, type: 'book' },
+  { x: 250, y: 68, type: 'book' },
+  { x: 320, y: 188, type: 'book' },
+  { x: 95, y: 178, type: 'book' },
+  { x: 380, y: 95, type: 'book' },
+  // Карандаши (6 штук)
+  { x: 110, y: 25, type: 'pencil' },
+  { x: 195, y: 142, type: 'pencil' },
+  { x: 265, y: 88, type: 'pencil' },
+  { x: 340, y: 155, type: 'pencil' },
+  { x: 55, y: 128, type: 'pencil' },
+  { x: 400, y: 72, type: 'pencil' },
+  // Звезды (6 штук)
+  { x: 30, y: 85, type: 'star' },
+  { x: 160, y: 48, type: 'star' },
+  { x: 230, y: 135, type: 'star' },
+  { x: 310, y: 75, type: 'star' },
+  { x: 140, y: 195, type: 'star' },
+  { x: 365, y: 138, type: 'star' },
+  // Глобусы (4 штуки)
+  { x: 100, y: 98, type: 'globe' },
+  { x: 220, y: 175, type: 'globe' },
+  { x: 300, y: 118, type: 'globe' },
+  { x: 170, y: 65, type: 'globe' },
+  // Формулы x² (4 штуки)
+  { x: 65, y: 155, type: 'x2' },
+  { x: 240, y: 42, type: 'x2' },
+  { x: 330, y: 202, type: 'x2' },
+  { x: 390, y: 165, type: 'x2' },
+  // Формулы π (4 штуки)
+  { x: 125, y: 88, type: 'pi' },
+  { x: 275, y: 152, type: 'pi' },
+  { x: 355, y: 58, type: 'pi' },
+  { x: 210, y: 128, type: 'pi' },
+];
+
+interface DoodleElementProps {
+  x: number;
+  y: number;
+  type: string;
+  isDark: boolean;
+}
+
+function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
+  const color = isDark ? '#cbd5e1' : '#64748b';
+  const opacity = isDark ? 0.5 : 0.4;
+
+  switch (type) {
+    case 'panda':
+      return (
+        <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+          <circle cx="0" cy="0" r="8" fill="none" stroke={color} strokeWidth="1.2" />
+          <circle cx="-3" cy="-2.5" r="1.5" fill="none" stroke={color} strokeWidth="1.2" />
+          <circle cx="3" cy="-2.5" r="1.5" fill="none" stroke={color} strokeWidth="1.2" />
+          <ellipse cx="0" cy="2.5" rx="2.5" ry="2" fill="none" stroke={color} strokeWidth="1.2" />
+        </g>
+      );
+    case 'book':
+      return (
+        <g transform={`translate(${x}, ${y})`} opacity={opacity - 0.05}>
+          <rect x="-6" y="-5" width="12" height="10" fill="none" stroke={color} strokeWidth="1.1" />
+          <line x1="0" y1="-5" x2="0" y2="5" stroke={color} strokeWidth="1.1" />
+        </g>
+      );
+    case 'pencil':
+      return (
+        <g transform={`translate(${x}, ${y})`} opacity={opacity - 0.05}>
+          <rect x="-2.5" y="-7" width="5" height="14" fill="none" stroke={color} strokeWidth="1.1" />
+          <polygon points="-2.5,-7 0,-9 2.5,-7" fill="none" stroke={color} strokeWidth="1.1" />
+        </g>
+      );
+    case 'star':
+      return (
+        <g transform={`translate(${x}, ${y})`} opacity={opacity - 0.05}>
+          <path
+            d="M0,-6 L1.5,-1.5 L6,-1.5 L2.5,1.5 L4,6 L0,4 L-4,6 L-2.5,1.5 L-6,-1.5 L-1.5,-1.5 Z"
+            fill="none"
+            stroke={color}
+            strokeWidth="1.1"
+          />
+        </g>
+      );
+    case 'globe':
+      return (
+        <g transform={`translate(${x}, ${y})`} opacity={opacity - 0.05}>
+          <circle cx="0" cy="0" r="8" fill="none" stroke={color} strokeWidth="1.1" />
+          <ellipse cx="0" cy="0" rx="8" ry="4" fill="none" stroke={color} strokeWidth="1" />
+          <line x1="-8" y1="0" x2="8" y2="0" stroke={color} strokeWidth="1" />
+        </g>
+      );
+    case 'x2':
+      return (
+        <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+          <text x="0" y="0" fontSize="12" fill={color} fontFamily="serif" textAnchor="middle" dominantBaseline="middle">
+            x²
+          </text>
+        </g>
+      );
+    case 'pi':
+      return (
+        <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+          <text x="0" y="0" fontSize="14" fill={color} fontFamily="serif" textAnchor="middle" dominantBaseline="middle">
+            π
+          </text>
+        </g>
+      );
+    default:
+      return null;
+  }
+}
 
 export function ChatBackground() {
   return (
@@ -10,158 +134,29 @@ export function ChatBackground() {
       style={{ zIndex: 0 }}
       aria-hidden="true"
     >
-      {/* Градиентный фон в стиле Telegram - очень легкий */}
+      {/* Градиентный фон в стиле Telegram */}
       <div className="absolute inset-0 bg-gradient-to-b from-blue-50/50 via-white to-pink-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" />
 
-      {/* SVG паттерн с doodles - по логике Telegram: черный паттерн на прозрачном, накладывается с intensity */}
+      {/* SVG с хаотично расположенными doodles для светлой темы */}
       <svg
-        className="absolute inset-0 w-full h-full pointer-events-none"
+        className="absolute inset-0 w-full h-full pointer-events-none dark:hidden"
         style={{ opacity: 0.08 }}
         xmlns="http://www.w3.org/2000/svg"
       >
-        <defs>
-          {/* Паттерн для светлой темы - все элементы внутри границ 80x100 */}
-          <pattern id="doodlePatternLight" x="0" y="0" width="80" height="100" patternUnits="userSpaceOnUse">
-            {/* Панда - левый верхний угол */}
-            <g transform="translate(15, 20)" opacity="0.4">
-              <circle cx="0" cy="0" r="8" fill="none" stroke="#64748b" strokeWidth="1.2" />
-              <circle cx="-3" cy="-2.5" r="1.5" fill="none" stroke="#64748b" strokeWidth="1.2" />
-              <circle cx="3" cy="-2.5" r="1.5" fill="none" stroke="#64748b" strokeWidth="1.2" />
-              <ellipse cx="0" cy="2.5" rx="2.5" ry="2" fill="none" stroke="#64748b" strokeWidth="1.2" />
-            </g>
+        {CHAOTIC_POSITIONS.map((pos, index) => (
+          <DoodleElement key={index} x={pos.x} y={pos.y} type={pos.type} isDark={false} />
+        ))}
+      </svg>
 
-            {/* Книга - центр верх */}
-            <g transform="translate(40, 25)" opacity="0.35">
-              <rect x="-6" y="-5" width="12" height="10" fill="none" stroke="#64748b" strokeWidth="1.1" />
-              <line x1="0" y1="-5" x2="0" y2="5" stroke="#64748b" strokeWidth="1.1" />
-            </g>
-
-            {/* Карандаш - правый верх */}
-            <g transform="translate(65, 20)" opacity="0.35">
-              <rect x="-2.5" y="-7" width="5" height="14" fill="none" stroke="#64748b" strokeWidth="1.1" />
-              <polygon points="-2.5,-7 0,-9 2.5,-7" fill="none" stroke="#64748b" strokeWidth="1.1" />
-            </g>
-
-            {/* Звезда - левый центр */}
-            <g transform="translate(20, 50)" opacity="0.35">
-              <path d="M0,-6 L1.5,-1.5 L6,-1.5 L2.5,1.5 L4,6 L0,4 L-4,6 L-2.5,1.5 L-6,-1.5 L-1.5,-1.5 Z" fill="none" stroke="#64748b" strokeWidth="1.1" />
-            </g>
-
-            {/* Глобус - центр */}
-            <g transform="translate(50, 55)" opacity="0.35">
-              <circle cx="0" cy="0" r="8" fill="none" stroke="#64748b" strokeWidth="1.1" />
-              <ellipse cx="0" cy="0" rx="8" ry="4" fill="none" stroke="#64748b" strokeWidth="1" />
-              <line x1="-8" y1="0" x2="8" y2="0" stroke="#64748b" strokeWidth="1" />
-            </g>
-
-            {/* Формула (x²) - правый центр */}
-            <g transform="translate(65, 50)" opacity="0.4">
-              <text x="0" y="0" fontSize="12" fill="#64748b" fontFamily="serif" textAnchor="middle" dominantBaseline="middle">x²</text>
-            </g>
-
-            {/* Карандаш (второй) - левый низ */}
-            <g transform="translate(15, 75)" opacity="0.35">
-              <rect x="-2.5" y="-7" width="5" height="14" fill="none" stroke="#64748b" strokeWidth="1.1" />
-              <polygon points="-2.5,-7 0,-9 2.5,-7" fill="none" stroke="#64748b" strokeWidth="1.1" />
-            </g>
-
-            {/* Звезда (вторая) - центр низ */}
-            <g transform="translate(40, 80)" opacity="0.35">
-              <path d="M0,-6 L1.5,-1.5 L6,-1.5 L2.5,1.5 L4,6 L0,4 L-4,6 L-2.5,1.5 L-6,-1.5 L-1.5,-1.5 Z" fill="none" stroke="#64748b" strokeWidth="1.1" />
-            </g>
-
-            {/* Формула (π) - правый низ */}
-            <g transform="translate(65, 75)" opacity="0.4">
-              <text x="0" y="0" fontSize="14" fill="#64748b" fontFamily="serif" textAnchor="middle" dominantBaseline="middle">π</text>
-            </g>
-
-            {/* Книга (вторая) - центр */}
-            <g transform="translate(50, 30)" opacity="0.35">
-              <rect x="-6" y="-5" width="12" height="10" fill="none" stroke="#64748b" strokeWidth="1.1" />
-              <line x1="0" y1="-5" x2="0" y2="5" stroke="#64748b" strokeWidth="1.1" />
-            </g>
-
-            {/* Панда (вторая) - правый верх */}
-            <g transform="translate(65, 45)" opacity="0.4">
-              <circle cx="0" cy="0" r="7" fill="none" stroke="#64748b" strokeWidth="1.2" />
-              <circle cx="-3" cy="-2" r="1.3" fill="none" stroke="#64748b" strokeWidth="1.2" />
-              <circle cx="3" cy="-2" r="1.3" fill="none" stroke="#64748b" strokeWidth="1.2" />
-              <ellipse cx="0" cy="2" rx="2" ry="1.5" fill="none" stroke="#64748b" strokeWidth="1.2" />
-            </g>
-          </pattern>
-
-          {/* Паттерн для темной темы - более светлые цвета, та же структура */}
-          <pattern id="doodlePatternDark" x="0" y="0" width="80" height="100" patternUnits="userSpaceOnUse">
-            {/* Панда */}
-            <g transform="translate(15, 20)" opacity="0.5">
-              <circle cx="0" cy="0" r="8" fill="none" stroke="#cbd5e1" strokeWidth="1.2" />
-              <circle cx="-3" cy="-2.5" r="1.5" fill="none" stroke="#cbd5e1" strokeWidth="1.2" />
-              <circle cx="3" cy="-2.5" r="1.5" fill="none" stroke="#cbd5e1" strokeWidth="1.2" />
-              <ellipse cx="0" cy="2.5" rx="2.5" ry="2" fill="none" stroke="#cbd5e1" strokeWidth="1.2" />
-            </g>
-
-            {/* Книга */}
-            <g transform="translate(40, 25)" opacity="0.45">
-              <rect x="-6" y="-5" width="12" height="10" fill="none" stroke="#cbd5e1" strokeWidth="1.1" />
-              <line x1="0" y1="-5" x2="0" y2="5" stroke="#cbd5e1" strokeWidth="1.1" />
-            </g>
-
-            {/* Карандаш */}
-            <g transform="translate(65, 20)" opacity="0.45">
-              <rect x="-2.5" y="-7" width="5" height="14" fill="none" stroke="#cbd5e1" strokeWidth="1.1" />
-              <polygon points="-2.5,-7 0,-9 2.5,-7" fill="none" stroke="#cbd5e1" strokeWidth="1.1" />
-            </g>
-
-            {/* Звезда */}
-            <g transform="translate(20, 50)" opacity="0.45">
-              <path d="M0,-6 L1.5,-1.5 L6,-1.5 L2.5,1.5 L4,6 L0,4 L-4,6 L-2.5,1.5 L-6,-1.5 L-1.5,-1.5 Z" fill="none" stroke="#cbd5e1" strokeWidth="1.1" />
-            </g>
-
-            {/* Глобус */}
-            <g transform="translate(50, 55)" opacity="0.45">
-              <circle cx="0" cy="0" r="8" fill="none" stroke="#cbd5e1" strokeWidth="1.1" />
-              <ellipse cx="0" cy="0" rx="8" ry="4" fill="none" stroke="#cbd5e1" strokeWidth="1" />
-              <line x1="-8" y1="0" x2="8" y2="0" stroke="#cbd5e1" strokeWidth="1" />
-            </g>
-
-            {/* Формула (x²) */}
-            <g transform="translate(65, 50)" opacity="0.5">
-              <text x="0" y="0" fontSize="12" fill="#cbd5e1" fontFamily="serif" textAnchor="middle" dominantBaseline="middle">x²</text>
-            </g>
-
-            {/* Карандаш (второй) */}
-            <g transform="translate(15, 75)" opacity="0.45">
-              <rect x="-2.5" y="-7" width="5" height="14" fill="none" stroke="#cbd5e1" strokeWidth="1.1" />
-              <polygon points="-2.5,-7 0,-9 2.5,-7" fill="none" stroke="#cbd5e1" strokeWidth="1.1" />
-            </g>
-
-            {/* Звезда (вторая) */}
-            <g transform="translate(40, 80)" opacity="0.45">
-              <path d="M0,-6 L1.5,-1.5 L6,-1.5 L2.5,1.5 L4,6 L0,4 L-4,6 L-2.5,1.5 L-6,-1.5 L-1.5,-1.5 Z" fill="none" stroke="#cbd5e1" strokeWidth="1.1" />
-            </g>
-
-            {/* Формула (π) */}
-            <g transform="translate(65, 75)" opacity="0.5">
-              <text x="0" y="0" fontSize="14" fill="#cbd5e1" fontFamily="serif" textAnchor="middle" dominantBaseline="middle">π</text>
-            </g>
-
-            {/* Книга (вторая) */}
-            <g transform="translate(50, 30)" opacity="0.45">
-              <rect x="-6" y="-5" width="12" height="10" fill="none" stroke="#cbd5e1" strokeWidth="1.1" />
-              <line x1="0" y1="-5" x2="0" y2="5" stroke="#cbd5e1" strokeWidth="1.1" />
-            </g>
-
-            {/* Панда (вторая) */}
-            <g transform="translate(65, 45)" opacity="0.5">
-              <circle cx="0" cy="0" r="7" fill="none" stroke="#cbd5e1" strokeWidth="1.2" />
-              <circle cx="-3" cy="-2" r="1.3" fill="none" stroke="#cbd5e1" strokeWidth="1.2" />
-              <circle cx="3" cy="-2" r="1.3" fill="none" stroke="#cbd5e1" strokeWidth="1.2" />
-              <ellipse cx="0" cy="2" rx="2" ry="1.5" fill="none" stroke="#cbd5e1" strokeWidth="1.2" />
-            </g>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#doodlePatternLight)" className="dark:hidden" />
-        <rect width="100%" height="100%" fill="url(#doodlePatternDark)" className="hidden dark:block" />
+      {/* SVG с хаотично расположенными doodles для темной темы */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none hidden dark:block"
+        style={{ opacity: 0.08 }}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {CHAOTIC_POSITIONS.map((pos, index) => (
+          <DoodleElement key={index} x={pos.x} y={pos.y} type={pos.type} isDark={true} />
+        ))}
       </svg>
     </div>
   );
