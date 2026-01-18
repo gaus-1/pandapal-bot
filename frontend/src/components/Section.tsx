@@ -32,13 +32,27 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
           </h2>
 
           {/* Текст описания */}
-          <div className="text-xs xs:text-sm sm:text-base md:text-lg text-gray-700 dark:text-slate-200 max-w-3xl leading-relaxed mx-auto space-y-2.5 xs:space-y-2.5 sm:space-y-3 md:space-y-4">
+          <div className="text-xs xs:text-sm sm:text-base md:text-lg text-gray-700 dark:text-slate-200 max-w-3xl leading-relaxed mx-auto">
             {Array.isArray(section.description) ? (
-              <ul className="text-left space-y-2 xs:space-y-2 sm:space-y-2.5 md:space-y-3 list-none pl-0 m-0" style={{ listStyle: 'none', listStyleType: 'none', WebkitPaddingStart: 0, MozPaddingStart: 0, paddingLeft: 0, marginLeft: 0 }}>
+              <ul className="text-left space-y-2.5 xs:space-y-3 sm:space-y-3.5 md:space-y-4 list-none pl-0 m-0">
                 {section.description.map((item, index) => (
-                  <li key={index} className="flex items-start gap-2 xs:gap-2 sm:gap-2.5 md:gap-3 list-none" style={{ listStyle: 'none', listStyleType: 'none', marginLeft: 0, paddingLeft: 0, WebkitPaddingStart: 0, MozPaddingStart: 0 }}>
-                    <span className="text-blue-500 dark:text-blue-400 font-bold mt-0.5 xs:mt-0.5 sm:mt-0.5 md:mt-1 flex-shrink-0 text-base xs:text-base sm:text-lg md:text-xl">•</span>
-                    <span className="flex-1 leading-snug xs:leading-normal sm:leading-relaxed font-sans">{item}</span>
+                  <li
+                    key={index}
+                    className="flex items-baseline gap-2.5 xs:gap-3 sm:gap-3.5 md:gap-4 list-none"
+                  >
+                    <span
+                      className="text-blue-500 dark:text-blue-400 font-bold flex-shrink-0 leading-none"
+                      style={{
+                        fontSize: '0.75em',
+                        lineHeight: '1.6',
+                        verticalAlign: 'baseline'
+                      }}
+                    >
+                      •
+                    </span>
+                    <span className="flex-1 leading-relaxed font-sans text-left break-words">
+                      {item}
+                    </span>
                   </li>
                 ))}
               </ul>
