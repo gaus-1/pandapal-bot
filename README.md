@@ -6,6 +6,12 @@
 
 Образовательная платформа для школьников 1-9 классов с Telegram-ботом и веб-приложением. Помогает детям учиться по всем предметам с защитой от небезопасного контента.
 
+[![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
+[![React](https://img.shields.io/badge/React-19-61dafb?logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript)](https://www.typescriptlang.org/)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/gaus-1/pandapal-bot/main-ci-cd.yml?label=CI%2FCD)](https://github.com/gaus-1/pandapal-bot/actions)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
+
 [Сайт](https://pandapal.ru) • [Telegram Бот](https://t.me/PandaPalBot)
 
 </div>
@@ -13,6 +19,38 @@
 ## О проекте
 
 PandaPal — AI-ассистент для помощи в учебе. Бот работает 24/7 и помогает детям с домашними заданиями, объясняет сложные темы и поддерживает изучение иностранных языков.
+
+## Быстрый старт
+
+Для локальной разработки:
+
+```bash
+# Клонирование репозитория
+git clone https://github.com/gaus-1/pandapal-bot.git
+cd pandapal-bot
+
+# Установка зависимостей Python
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# Настройка окружения
+cp config/env.template .env
+# Заполните .env файл с вашими API ключами
+
+# Миграции БД
+alembic upgrade head
+
+# Запуск backend
+python web_server.py
+
+# В другом терминале - запуск frontend
+cd frontend
+npm install
+npm run dev
+```
+
+Полная документация по установке и настройке: см. [docs/](docs/)
 
 ### Ключевые возможности
 
@@ -275,8 +313,16 @@ PandaPal/
   - Рекомендации по повторению сложных тем
 - **Улучшенные AI промпты** — панда теперь периодически предлагает проверить домашнее задание
 
+## Лицензия
+
+Это проприетарное программное обеспечение. Все права защищены.
+
+Использование, копирование, распространение и модификация запрещены без письменного разрешения правообладателя.
+
+Подробности: см. [LICENSE](LICENSE)
+
 ## Контакты
 
 - Сайт: https://pandapal.ru
-- Бот: https://t.me/PandaPalBot
+- Telegram Бот: https://t.me/PandaPalBot
 - GitHub: https://github.com/gaus-1/pandapal-bot
