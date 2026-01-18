@@ -1,55 +1,61 @@
 /**
  * Компонент фона чата с doodles в стиле Telegram
- * Хаотичное расположение всех элементов (не паттерн)
+ * Doodles из предоставленных изображений
  */
 
-// Фиксированные хаотичные позиции для всех элементов (чтобы не менялись при рендере)
-const CHAOTIC_POSITIONS = [
-  // Панды (8 штук)
-  { x: 45, y: 32, type: 'panda' },
-  { x: 120, y: 78, type: 'panda' },
-  { x: 85, y: 145, type: 'panda' },
-  { x: 200, y: 95, type: 'panda' },
-  { x: 280, y: 165, type: 'panda' },
-  { x: 350, y: 45, type: 'panda' },
-  { x: 420, y: 125, type: 'panda' },
-  { x: 180, y: 210, type: 'panda' },
-  // Книги (6 штук)
-  { x: 75, y: 58, type: 'book' },
-  { x: 150, y: 112, type: 'book' },
-  { x: 250, y: 68, type: 'book' },
-  { x: 320, y: 188, type: 'book' },
-  { x: 95, y: 178, type: 'book' },
-  { x: 380, y: 95, type: 'book' },
-  // Карандаши (6 штук)
-  { x: 110, y: 25, type: 'pencil' },
-  { x: 195, y: 142, type: 'pencil' },
-  { x: 265, y: 88, type: 'pencil' },
-  { x: 340, y: 155, type: 'pencil' },
-  { x: 55, y: 128, type: 'pencil' },
-  { x: 400, y: 72, type: 'pencil' },
-  // Звезды (6 штук)
-  { x: 30, y: 85, type: 'star' },
-  { x: 160, y: 48, type: 'star' },
-  { x: 230, y: 135, type: 'star' },
-  { x: 310, y: 75, type: 'star' },
-  { x: 140, y: 195, type: 'star' },
-  { x: 365, y: 138, type: 'star' },
-  // Глобусы (4 штуки)
-  { x: 100, y: 98, type: 'globe' },
-  { x: 220, y: 175, type: 'globe' },
-  { x: 300, y: 118, type: 'globe' },
-  { x: 170, y: 65, type: 'globe' },
-  // Формулы x² (4 штуки)
-  { x: 65, y: 155, type: 'x2' },
-  { x: 240, y: 42, type: 'x2' },
-  { x: 330, y: 202, type: 'x2' },
-  { x: 390, y: 165, type: 'x2' },
-  // Формулы π (4 штуки)
-  { x: 125, y: 88, type: 'pi' },
-  { x: 275, y: 152, type: 'pi' },
-  { x: 355, y: 58, type: 'pi' },
-  { x: 210, y: 128, type: 'pi' },
+// Позиции для светлой темы (светлые doodles)
+const LIGHT_DOODLES = [
+  { x: 30, y: 25, type: 'pinkBlob' },
+  { x: 280, y: 45, type: 'brownBlob' },
+  { x: 120, y: 180, type: 'brownSteps' },
+  { x: 350, y: 200, type: 'brownCrown' },
+  { x: 180, y: 90, type: 'tealLoop' },
+  { x: 250, y: 35, type: 'tealWave' },
+  { x: 95, y: 140, type: 'tealSpring' },
+  { x: 320, y: 120, type: 'tealLeaf' },
+  { x: 60, y: 200, type: 'pinkDashes' },
+  { x: 380, y: 160, type: 'pinkDashes2' },
+  { x: 200, y: 25, type: 'whiteCircle' },
+  { x: 150, y: 210, type: 'whiteCircle2' },
+];
+
+// Позиции для темной темы (белые doodles)
+const DARK_DOODLES = [
+  { x: 45, y: 30, type: 'phone' },
+  { x: 120, y: 55, type: 'heart' },
+  { x: 200, y: 40, type: 'sadFace' },
+  { x: 280, y: 65, type: 'star' },
+  { x: 350, y: 50, type: 'wifi' },
+  { x: 420, y: 35, type: 'airplane' },
+  { x: 80, y: 100, type: 'lightbulb' },
+  { x: 160, y: 85, type: 'network' },
+  { x: 240, y: 95, type: 'atSymbol' },
+  { x: 320, y: 110, type: 'bubbleHeart' },
+  { x: 400, y: 100, type: 'happyFace' },
+  { x: 60, y: 140, type: 'cloudUp' },
+  { x: 140, y: 125, type: 'video' },
+  { x: 220, y: 135, type: 'bubbles' },
+  { x: 300, y: 150, type: 'chart' },
+  { x: 380, y: 140, type: 'laughFace' },
+  { x: 100, y: 175, type: 'location' },
+  { x: 180, y: 165, type: 'star2' },
+  { x: 260, y: 180, type: 'wifi2' },
+  { x: 340, y: 170, type: 'globe' },
+  { x: 420, y: 185, type: 'exclamation' },
+  { x: 50, y: 210, type: 'lock' },
+  { x: 130, y: 200, type: 'bubbleHeart2' },
+  { x: 210, y: 215, type: 'envelope' },
+  { x: 290, y: 205, type: 'bell' },
+  { x: 370, y: 220, type: 'bubbleFace' },
+  { x: 70, y: 240, type: 'cursor' },
+  { x: 150, y: 235, type: 'pencil' },
+  { x: 230, y: 250, type: 'lightning' },
+  { x: 310, y: 240, type: 'megaphone' },
+  { x: 390, y: 255, type: 'bubbles2' },
+  { x: 110, y: 280, type: 'sadBubble' },
+  { x: 190, y: 270, type: 'images' },
+  { x: 270, y: 285, type: 'magnifier' },
+  { x: 350, y: 275, type: 'camera' },
 ];
 
 interface DoodleElementProps {
@@ -60,70 +66,407 @@ interface DoodleElementProps {
 }
 
 function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
-  const color = isDark ? '#cbd5e1' : '#64748b';
-  const opacity = isDark ? 0.5 : 0.4;
+  if (isDark) {
+    const color = '#ffffff';
+    const opacity = 0.04; // Очень низкая opacity для темной темы
 
-  switch (type) {
-    case 'panda':
-      return (
-        <g transform={`translate(${x}, ${y})`} opacity={opacity}>
-          <circle cx="0" cy="0" r="8" fill="none" stroke={color} strokeWidth="1.2" />
-          <circle cx="-3" cy="-2.5" r="1.5" fill="none" stroke={color} strokeWidth="1.2" />
-          <circle cx="3" cy="-2.5" r="1.5" fill="none" stroke={color} strokeWidth="1.2" />
-          <ellipse cx="0" cy="2.5" rx="2.5" ry="2" fill="none" stroke={color} strokeWidth="1.2" />
-        </g>
-      );
-    case 'book':
-      return (
-        <g transform={`translate(${x}, ${y})`} opacity={opacity - 0.05}>
-          <rect x="-6" y="-5" width="12" height="10" fill="none" stroke={color} strokeWidth="1.1" />
-          <line x1="0" y1="-5" x2="0" y2="5" stroke={color} strokeWidth="1.1" />
-        </g>
-      );
-    case 'pencil':
-      return (
-        <g transform={`translate(${x}, ${y})`} opacity={opacity - 0.05}>
-          <rect x="-2.5" y="-7" width="5" height="14" fill="none" stroke={color} strokeWidth="1.1" />
-          <polygon points="-2.5,-7 0,-9 2.5,-7" fill="none" stroke={color} strokeWidth="1.1" />
-        </g>
-      );
-    case 'star':
-      return (
-        <g transform={`translate(${x}, ${y})`} opacity={opacity - 0.05}>
-          <path
-            d="M0,-6 L1.5,-1.5 L6,-1.5 L2.5,1.5 L4,6 L0,4 L-4,6 L-2.5,1.5 L-6,-1.5 L-1.5,-1.5 Z"
-            fill="none"
-            stroke={color}
-            strokeWidth="1.1"
-          />
-        </g>
-      );
-    case 'globe':
-      return (
-        <g transform={`translate(${x}, ${y})`} opacity={opacity - 0.05}>
-          <circle cx="0" cy="0" r="8" fill="none" stroke={color} strokeWidth="1.1" />
-          <ellipse cx="0" cy="0" rx="8" ry="4" fill="none" stroke={color} strokeWidth="1" />
-          <line x1="-8" y1="0" x2="8" y2="0" stroke={color} strokeWidth="1" />
-        </g>
-      );
-    case 'x2':
-      return (
-        <g transform={`translate(${x}, ${y})`} opacity={opacity}>
-          <text x="0" y="0" fontSize="12" fill={color} fontFamily="serif" textAnchor="middle" dominantBaseline="middle">
-            x²
-          </text>
-        </g>
-      );
-    case 'pi':
-      return (
-        <g transform={`translate(${x}, ${y})`} opacity={opacity}>
-          <text x="0" y="0" fontSize="14" fill={color} fontFamily="serif" textAnchor="middle" dominantBaseline="middle">
-            π
-          </text>
-        </g>
-      );
-    default:
-      return null;
+    switch (type) {
+      case 'phone':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <rect x="-8" y="-12" width="16" height="20" rx="2" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="0" cy="6" r="2" fill="none" stroke={color} strokeWidth="1" />
+            <line x1="-6" y1="-8" x2="6" y2="-8" stroke={color} strokeWidth="1" />
+            <line x1="-4" y1="-4" x2="4" y2="-4" stroke={color} strokeWidth="0.8" />
+            <line x1="-4" y1="0" x2="4" y2="0" stroke={color} strokeWidth="0.8" />
+          </g>
+        );
+      case 'heart':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path
+              d="M0,2 C0,-2 -4,-4 -6,-2 C-6,-4 -8,-6 -6,-8 C-4,-8 -2,-6 0,-4 C2,-6 4,-8 6,-8 C8,-6 6,-4 6,-2 C4,-4 0,-2 0,2 Z"
+              fill="none"
+              stroke={color}
+              strokeWidth="1"
+            />
+          </g>
+        );
+      case 'sadFace':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <circle cx="0" cy="0" r="10" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="-3" cy="-2" r="1.5" fill={color} />
+            <circle cx="3" cy="-2" r="1.5" fill={color} />
+            <path d="M-4,4 Q0,2 4,4" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="-2" cy="6" r="0.8" fill={color} />
+            <circle cx="2" cy="6" r="0.8" fill={color} />
+          </g>
+        );
+      case 'star':
+      case 'star2':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path
+              d="M0,-8 L2,-2 L8,-2 L3,1 L5,7 L0,4 L-5,7 L-3,1 L-8,-2 L-2,-2 Z"
+              fill="none"
+              stroke={color}
+              strokeWidth="1"
+            />
+          </g>
+        );
+      case 'wifi':
+      case 'wifi2':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path d="M0,-6 Q-4,-2 -4,2" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M0,-6 Q4,-2 4,2" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M0,-3 Q-2,-1 -2,1" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M0,-3 Q2,-1 2,1" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="0" cy="2" r="1" fill="none" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      case 'airplane':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path d="M-8,0 L0,-6 L8,0 L4,2 L0,0 L-4,2 Z" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M-6,1 Q-2,3 2,1" fill="none" stroke={color} strokeWidth="0.8" />
+          </g>
+        );
+      case 'lightbulb':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <circle cx="0" cy="-4" r="4" fill="none" stroke={color} strokeWidth="1" />
+            <rect x="-2" y="0" width="4" height="6" fill="none" stroke={color} strokeWidth="1" />
+            <line x1="-1" y1="-6" x2="1" y2="-6" stroke={color} strokeWidth="1" />
+            <path d="M-3,-2 Q-4,-3 -3,-4" fill="none" stroke={color} strokeWidth="0.8" />
+            <path d="M3,-2 Q4,-3 3,-4" fill="none" stroke={color} strokeWidth="0.8" />
+          </g>
+        );
+      case 'network':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <circle cx="-4" cy="0" r="2" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="0" cy="0" r="2" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="4" cy="0" r="2" fill="none" stroke={color} strokeWidth="1" />
+            <line x1="-2" y1="0" x2="2" y2="0" stroke={color} strokeWidth="1" />
+            <line x1="2" y1="0" x2="6" y2="0" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      case 'atSymbol':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <circle cx="0" cy="0" r="6" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M-2,-4 L2,-4 L2,4 L-2,4" fill="none" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      case 'bubbleHeart':
+      case 'bubbleHeart2':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path
+              d="M-6,-4 Q-8,-6 -6,-8 Q-4,-8 -2,-6 Q0,-8 2,-6 Q4,-8 6,-8 Q8,-6 6,-4 Q4,-2 0,2 Q-4,-2 -6,-4 Z"
+              fill="none"
+              stroke={color}
+              strokeWidth="1"
+            />
+            <path d="M0,-2 Q-2,-4 -2,-6 Q-2,-8 0,-8 Q2,-8 2,-6 Q2,-4 0,-2" fill="none" stroke={color} strokeWidth="0.8" />
+            <path d="M-4,0 Q-2,2 0,4 Q2,2 4,0" fill="none" stroke={color} strokeWidth="0.8" />
+          </g>
+        );
+      case 'happyFace':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <circle cx="0" cy="0" r="10" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="-3" cy="-2" r="1.5" fill={color} />
+            <circle cx="3" cy="-2" r="1.5" fill={color} />
+            <path d="M-4,4 Q0,8 4,4" fill="none" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      case 'cloudUp':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path d="M-6,-2 Q-8,0 -6,2 Q-4,4 0,4 Q4,4 6,2 Q8,0 6,-2" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M0,4 L0,8 M-2,6 L0,8 L2,6" fill="none" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      case 'video':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <rect x="-8" y="-6" width="16" height="12" fill="none" stroke={color} strokeWidth="1" />
+            <polygon points="-2,-3 2,0 -2,3" fill={color} />
+          </g>
+        );
+      case 'bubbles':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <ellipse cx="-4" cy="-2" rx="5" ry="4" fill="none" stroke={color} strokeWidth="1" />
+            <ellipse cx="4" cy="2" rx="5" ry="4" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="-4" cy="-2" r="1" fill={color} />
+            <circle cx="4" cy="2" r="1" fill={color} />
+          </g>
+        );
+      case 'chart':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <line x1="-6" y1="6" x2="6" y2="6" stroke={color} strokeWidth="1" />
+            <line x1="-6" y1="6" x2="-6" y2="-6" stroke={color} strokeWidth="1" />
+            <rect x="-5" y="2" width="2" height="4" fill="none" stroke={color} strokeWidth="1" />
+            <rect x="-2" y="-1" width="2" height="7" fill="none" stroke={color} strokeWidth="1" />
+            <rect x="1" y="-4" width="2" height="10" fill="none" stroke={color} strokeWidth="1" />
+            <rect x="4" y="0" width="2" height="6" fill="none" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      case 'laughFace':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <circle cx="0" cy="0" r="10" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M-3,-2 Q-3,-3 -2,-3" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M3,-2 Q3,-3 2,-3" fill="none" stroke={color} strokeWidth="1" />
+            <ellipse cx="0" cy="6" rx="4" ry="3" fill="none" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      case 'location':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path d="M0,-8 L-4,0 L0,4 L4,0 Z" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="0" cy="-2" r="2" fill="none" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      case 'globe':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <circle cx="0" cy="0" r="8" fill="none" stroke={color} strokeWidth="1" />
+            <ellipse cx="0" cy="0" rx="8" ry="4" fill="none" stroke={color} strokeWidth="1" />
+            <line x1="-8" y1="0" x2="8" y2="0" stroke={color} strokeWidth="1" />
+            <path d="M-6,-4 Q0,-2 6,-4" fill="none" stroke={color} strokeWidth="0.8" />
+            <path d="M-6,4 Q0,2 6,4" fill="none" stroke={color} strokeWidth="0.8" />
+          </g>
+        );
+      case 'exclamation':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <ellipse cx="0" cy="-2" rx="5" ry="4" fill="none" stroke={color} strokeWidth="1" />
+            <line x1="0" y1="2" x2="0" y2="6" stroke={color} strokeWidth="1.5" />
+            <circle cx="0" cy="8" r="1" fill={color} />
+          </g>
+        );
+      case 'lock':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <rect x="-4" y="0" width="8" height="10" rx="1" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M-6,-2 Q-6,-4 -4,-4 L4,-4 Q6,-4 6,-2" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="0" cy="5" r="1.5" fill="none" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      case 'envelope':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <rect x="-6" y="-4" width="12" height="8" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M-6,-4 L0,0 L6,-4" fill="none" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      case 'bell':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path d="M0,-6 Q-4,-6 -4,-2 L-4,4 Q-4,6 -2,6 L2,6 Q4,6 4,4 L4,-2 Q4,-6 0,-6" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M-2,6 L0,8 L2,6" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M-3,2 Q-2,4 0,4 Q2,4 3,2" fill="none" stroke={color} strokeWidth="0.8" />
+          </g>
+        );
+      case 'bubbleFace':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <ellipse cx="0" cy="-2" rx="6" ry="5" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="-2" cy="-4" r="1" fill={color} />
+            <circle cx="2" cy="-4" r="1" fill={color} />
+            <path d="M-2,0 Q0,2 2,0" fill="none" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      case 'cursor':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path d="M0,0 L8,-8 L6,-6 L12,-6 L12,0 L6,0 Z" fill="none" stroke={color} strokeWidth="1" />
+            <line x1="4" y1="-4" x2="8" y2="0" stroke={color} strokeWidth="0.8" />
+          </g>
+        );
+      case 'pencil':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <rect x="-2" y="-6" width="4" height="12" fill="none" stroke={color} strokeWidth="1" />
+            <polygon points="-2,-6 0,-8 2,-6" fill="none" stroke={color} strokeWidth="1" />
+            <line x1="0" y1="-6" x2="0" y2="6" stroke={color} strokeWidth="0.8" />
+          </g>
+        );
+      case 'lightning':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path d="M-2,-8 L2,-4 L-1,0 L3,8 L-1,4 L-4,0 Z" fill="none" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      case 'megaphone':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path d="M-6,-4 L-2,-6 L-2,6 L-6,4" fill="none" stroke={color} strokeWidth="1" />
+            <ellipse cx="0" cy="0" rx="6" ry="5" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M4,0 Q6,-2 8,-2 Q8,2 6,2 Q4,2 4,0" fill="none" stroke={color} strokeWidth="0.8" />
+          </g>
+        );
+      case 'bubbles2':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <ellipse cx="-3" cy="-1" rx="5" ry="4" fill="none" stroke={color} strokeWidth="1" />
+            <ellipse cx="3" cy="1" rx="5" ry="4" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="-2" cy="-2" r="1" fill={color} />
+            <circle cx="2" cy="0" r="1" fill={color} />
+            <circle cx="4" cy="2" r="1" fill={color} />
+          </g>
+        );
+      case 'sadBubble':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <ellipse cx="0" cy="-2" rx="6" ry="5" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="-2" cy="-4" r="1" fill={color} />
+            <circle cx="2" cy="-4" r="1" fill={color} />
+            <path d="M-2,0 Q0,-2 2,0" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="-1" cy="2" r="0.8" fill={color} />
+            <circle cx="1" cy="2" r="0.8" fill={color} />
+          </g>
+        );
+      case 'images':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <rect x="-6" y="-4" width="8" height="6" fill="none" stroke={color} strokeWidth="1" />
+            <rect x="-4" y="-2" width="8" height="6" fill="none" stroke={color} strokeWidth="1" />
+            <line x1="-2" y1="-4" x2="2" y2="-2" stroke={color} strokeWidth="0.8" />
+            <line x1="-2" y1="-2" x2="2" y2="0" stroke={color} strokeWidth="0.8" />
+          </g>
+        );
+      case 'magnifier':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <circle cx="0" cy="0" r="6" fill="none" stroke={color} strokeWidth="1" />
+            <line x1="4" y1="4" x2="10" y2="10" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      case 'camera':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <rect x="-6" y="-4" width="12" height="8" rx="1" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="0" cy="0" r="3" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="0" cy="0" r="1.5" fill={color} />
+            <rect x="4" y="-2" width="2" height="1.5" fill="none" stroke={color} strokeWidth="1" />
+          </g>
+        );
+      default:
+        return null;
+    }
+  } else {
+    // Светлая тема - светлые цвета
+    const pinkColor = '#f8b4cb';
+    const brownColor = '#d4a574';
+    const tealColor = '#2d7a7a';
+    const opacity = 0.3;
+
+    switch (type) {
+      case 'pinkBlob':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path
+              d="M-8,-4 Q-10,-6 -8,-8 Q-6,-10 -4,-8 Q-2,-10 0,-8 Q2,-10 4,-8 Q6,-10 8,-8 Q10,-6 8,-4 Q10,-2 8,0 Q10,2 8,4 Q6,6 4,4 Q2,6 0,4 Q-2,6 -4,4 Q-6,6 -8,4 Q-10,2 -8,0 Q-10,-2 -8,-4 Z"
+              fill={pinkColor}
+            />
+            <circle cx="-6" cy="-6" r="2" fill={tealColor} />
+          </g>
+        );
+      case 'brownBlob':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path
+              d="M-6,-5 Q-8,-7 -6,-9 Q-4,-11 -2,-9 Q0,-11 2,-9 Q4,-11 6,-9 Q8,-7 6,-5 Q8,-3 6,-1 Q8,1 6,3 Q4,5 2,3 Q0,5 -2,3 Q-4,5 -6,3 Q-8,1 -6,-1 Q-8,-3 -6,-5 Z"
+              fill={brownColor}
+            />
+          </g>
+        );
+      case 'brownSteps':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <rect x="-8" y="0" width="6" height="4" fill="none" stroke={brownColor} strokeWidth="1.2" />
+            <rect x="-4" y="-2" width="6" height="6" fill="none" stroke={brownColor} strokeWidth="1.2" />
+            <rect x="2" y="-4" width="6" height="8" fill="none" stroke={brownColor} strokeWidth="1.2" />
+          </g>
+        );
+      case 'brownCrown':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path
+              d="M-6,2 L-4,-4 L-2,0 L0,-6 L2,0 L4,-4 L6,2 L4,4 L-4,4 Z"
+              fill="none"
+              stroke={brownColor}
+              strokeWidth="1.2"
+            />
+          </g>
+        );
+      case 'tealLoop':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path
+              d="M-4,-6 Q-6,-4 -6,-2 Q-6,0 -4,2 Q-2,4 0,4 Q2,4 4,2 Q6,0 6,-2 Q6,-4 4,-6"
+              fill="none"
+              stroke={tealColor}
+              strokeWidth="1"
+            />
+          </g>
+        );
+      case 'tealWave':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path d="M-8,0 Q-4,-2 0,0 Q4,2 8,0" fill="none" stroke={tealColor} strokeWidth="1" />
+          </g>
+        );
+      case 'tealSpring':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path
+              d="M-6,4 Q-4,2 -2,4 Q0,2 2,4 Q4,2 6,4 Q4,6 2,4 Q0,6 -2,4 Q-4,6 -6,4"
+              fill="none"
+              stroke={tealColor}
+              strokeWidth="1"
+            />
+          </g>
+        );
+      case 'tealLeaf':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path
+              d="M0,-6 L-3,-2 L-2,2 L0,4 L2,2 L3,-2 Z"
+              fill="none"
+              stroke={tealColor}
+              strokeWidth="1"
+            />
+            <line x1="-1" y1="0" x2="1" y2="0" stroke={tealColor} strokeWidth="0.8" />
+            <line x1="-2" y1="-1" x2="2" y2="-1" stroke={tealColor} strokeWidth="0.8" />
+          </g>
+        );
+      case 'pinkDashes':
+      case 'pinkDashes2':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity}>
+            <path d="M-2,-4 Q0,-3 2,-4" fill="none" stroke={pinkColor} strokeWidth="1" />
+            <path d="M-2,-2 Q0,-1 2,-2" fill="none" stroke={pinkColor} strokeWidth="1" />
+            <path d="M-2,0 Q0,1 2,0" fill="none" stroke={pinkColor} strokeWidth="1" />
+          </g>
+        );
+      case 'whiteCircle':
+      case 'whiteCircle2':
+        return (
+          <g transform={`translate(${x}, ${y})`} opacity={opacity * 0.8}>
+            <circle cx="0" cy="0" r="3" fill="#ffffff" />
+          </g>
+        );
+      default:
+        return null;
+    }
   }
 }
 
@@ -137,24 +480,24 @@ export function ChatBackground() {
       {/* Градиентный фон в стиле Telegram */}
       <div className="absolute inset-0 bg-gradient-to-b from-blue-50/50 via-white to-pink-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" />
 
-      {/* SVG с хаотично расположенными doodles для светлой темы */}
+      {/* SVG с doodles для светлой темы */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none dark:hidden"
-        style={{ opacity: 0.08 }}
+        style={{ opacity: 0.12 }}
         xmlns="http://www.w3.org/2000/svg"
       >
-        {CHAOTIC_POSITIONS.map((pos, index) => (
+        {LIGHT_DOODLES.map((pos, index) => (
           <DoodleElement key={index} x={pos.x} y={pos.y} type={pos.type} isDark={false} />
         ))}
       </svg>
 
-      {/* SVG с хаотично расположенными doodles для темной темы */}
+      {/* SVG с doodles для темной темы - очень низкая opacity */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none hidden dark:block"
-        style={{ opacity: 0.08 }}
+        style={{ opacity: 0.03 }}
         xmlns="http://www.w3.org/2000/svg"
       >
-        {CHAOTIC_POSITIONS.map((pos, index) => (
+        {DARK_DOODLES.map((pos, index) => (
           <DoodleElement key={index} x={pos.x} y={pos.y} type={pos.type} isDark={true} />
         ))}
       </svg>
