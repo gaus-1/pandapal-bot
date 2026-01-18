@@ -197,9 +197,9 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
       )}
 
       {/* Game Board - уменьшенные блоки, уже окно, выровнено с кнопками, четкие границы */}
-      <div className="flex-1 flex items-start justify-center px-2 sm:px-3 min-h-0 overflow-hidden" style={{ paddingTop: '4px', paddingBottom: '0px' }}>
-        <div className="w-full max-w-sm">
-          <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-0.5 shadow-inner mx-auto">
+      <div className="flex-1 flex items-end justify-center px-2 sm:px-3 min-h-0 overflow-hidden" style={{ paddingTop: '4px', paddingBottom: '0px' }}>
+        <div className="w-full" style={{ maxWidth: '330px' }}>
+          <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-0.5 shadow-inner mx-auto mb-0">
             <div className="grid" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`, gap: '1px' }}>
               {board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (
@@ -228,7 +228,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
 
       {/* Controls - выровнены по размеру окна игры, верх совпадает с низом игрового окна */}
       <div className="flex-shrink-0 pt-0 pb-2 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
-        <div className="max-w-sm mx-auto px-3">
+        <div className="mx-auto px-3" style={{ maxWidth: '330px' }}>
           <div className="flex gap-1.5 mb-1.5">
             <button
               type="button"
