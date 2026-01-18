@@ -494,6 +494,8 @@ export function ChatBackground() {
         {LIGHT_DOODLES.map((pos, index) => (
           <DoodleElement key={index} x={pos.x} y={pos.y} type={pos.type} isDark={false} />
         ))}
+        {/* Тестовый элемент для проверки */}
+        <circle cx="50" cy="50" r="5" fill="#ff0000" opacity="0.3" />
       </svg>
 
       {/* SVG с doodles для темной темы */}
@@ -506,6 +508,8 @@ export function ChatBackground() {
         {DARK_DOODLES.map((pos, index) => (
           <DoodleElement key={index} x={pos.x} y={pos.y} type={pos.type} isDark={true} />
         ))}
+        {/* Тестовый элемент для проверки */}
+        <circle cx="50" cy="50" r="5" fill="#ffffff" opacity="0.5" />
       </svg>
     </div>
   );
