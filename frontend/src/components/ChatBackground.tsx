@@ -492,7 +492,7 @@ export function ChatBackground() {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          opacity: 0.15,
+          opacity: 0.25,
           pointerEvents: 'none',
         }}
       />
