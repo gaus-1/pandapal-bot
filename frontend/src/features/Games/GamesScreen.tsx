@@ -45,7 +45,7 @@ const GAMES = [
     name: 'Тетрис',
     icon: '🧱',
     description: 'Классический тетрис: заполняй линии и набирай очки!',
-    color: 'from-purple-200 to-indigo-100',
+    color: 'from-blue-200 to-blue-100',
   },
 ] as const;
 
