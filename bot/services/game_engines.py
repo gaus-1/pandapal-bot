@@ -591,9 +591,9 @@ class TetrisGame:
             if action in ("down", "tick") and self.current_row > 0:
                 # КРИТИЧНО: Проверяем все блоки фигуры - если хотя бы один блок на дне или выходит за границу
                 blocks = self._get_blocks(self.current_row, self.current_col, self.current_rotation)
-                max_block_row = max((r for r, c in blocks), default=-1)
-                # Если максимальный блок уже на дне (row >= height-1) или ниже
-                if max_block_row >= self.height - 1:
+                # Проверяем каждый блок - если хотя бы один на дне (row >= height) или не может двигаться дальше
+                has_block_at_bottom = any(r >= self.height for r, c in blocks)
+                if has_block_at_bottom:
                     self._lock_piece()
                     return
                 # Проверяем, может ли фигура двигаться еще на один шаг вниз
