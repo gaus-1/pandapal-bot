@@ -588,15 +588,19 @@ class TetrisGame:
             # КРИТИЧНО: Проверка блокировки ПОСЛЕ каждого движения вниз
             # Блокируем фигуру если она не может двигаться дальше вниз
             # Не блокируем только на row=0 (она только что спавнилась)
-            if (
-                action in ("down", "tick")
-                and self.current_row > 0
-                and not self._can_place(
+            if action in ("down", "tick") and self.current_row > 0:
+                # Проверяем все блоки фигуры - если хотя бы один на последнем ряду (height-1), блокируем
+                blocks = self._get_blocks(self.current_row, self.current_col, self.current_rotation)
+                max_row = max((r for r, c in blocks if r >= 0), default=-1)
+                if max_row >= self.height - 1:
+                    self._lock_piece()
+                    return
+                # Также проверяем через _can_place для случаев с коллизиями
+                if not self._can_place(
                     self.current_row + 1, self.current_col, self.current_rotation
-                )
-            ):
-                self._lock_piece()
-                return  # Выходим сразу после блокировки
+                ):
+                    self._lock_piece()
+                    return  # Выходим сразу после блокировки
 
         # Если движение вниз не удалось из-за коллизии - блокируем фигуру
         # КРИТИЧНО: Это происходит когда фигура уперлась в дно или блоки
@@ -608,6 +612,7 @@ class TetrisGame:
         """Получить состояние для фронтенда."""
         preview = [row[:] for row in self.board]
         if self.current_shape and not self.game_over:
+            # КРИТИЧНО: Отображаем только блоки в пределах доски (0 <= r < height)
             for r, c in self._get_blocks(self.current_row, self.current_col, self.current_rotation):
                 if 0 <= r < self.height and 0 <= c < self.width:
                     preview[r][c] = 2  # Текущая фигура
