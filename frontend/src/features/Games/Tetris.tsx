@@ -206,13 +206,14 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
                   row.map((cell, colIndex) => (
                     <div
                       key={`${rowIndex}-${colIndex}`}
-                      className={`w-5 h-5 xs:w-5.5 xs:h-5.5 sm:w-6 sm:h-6 md:w-7 md:h-7 ${
+                      className={`w-full h-full ${
                         cell === 0
                           ? 'bg-slate-100 dark:bg-slate-800'
                           : cell === 2
                             ? 'bg-emerald-400 dark:bg-emerald-500'
                             : 'bg-blue-400 dark:bg-blue-500'
                       }`}
+                      style={{ aspectRatio: '1' }}
                     />
                   )),
                 )}

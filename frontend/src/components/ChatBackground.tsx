@@ -72,17 +72,17 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
 
   if (isDark) {
     const color = '#ffffff';
-    const opacity = 0.05; // Немного увеличил для видимости
+    const opacity = 0.12; // Увеличено для видимости на темном фоне
 
       switch (type) {
       case 'phone':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <rect x="-8" y="-12" width="16" height="20" rx="2" fill="none" stroke={color} strokeWidth="1" />
-            <circle cx="0" cy="6" r="2" fill="none" stroke={color} strokeWidth="1" />
-            <line x1="-6" y1="-8" x2="6" y2="-8" stroke={color} strokeWidth="1" />
-            <line x1="-4" y1="-4" x2="4" y2="-4" stroke={color} strokeWidth="0.8" />
-            <line x1="-4" y1="0" x2="4" y2="0" stroke={color} strokeWidth="0.8" />
+            <rect x="-12" y="-18" width="24" height="30" rx="3" fill="none" stroke={color} strokeWidth="1.5" />
+            <circle cx="0" cy="9" r="3" fill="none" stroke={color} strokeWidth="1.5" />
+            <line x1="-9" y1="-12" x2="9" y2="-12" stroke={color} strokeWidth="1.5" />
+            <line x1="-6" y1="-6" x2="6" y2="-6" stroke={color} strokeWidth="1.2" />
+            <line x1="-6" y1="0" x2="6" y2="0" stroke={color} strokeWidth="1.2" />
           </g>
         );
       case 'heart':
@@ -99,12 +99,12 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
       case 'sadFace':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <circle cx="0" cy="0" r="10" fill="none" stroke={color} strokeWidth="1" />
-            <circle cx="-3" cy="-2" r="1.5" fill={color} />
-            <circle cx="3" cy="-2" r="1.5" fill={color} />
-            <path d="M-4,4 Q0,2 4,4" fill="none" stroke={color} strokeWidth="1" />
-            <circle cx="-2" cy="6" r="0.8" fill={color} />
-            <circle cx="2" cy="6" r="0.8" fill={color} />
+            <circle cx="0" cy="0" r="15" fill="none" stroke={color} strokeWidth="1.5" />
+            <circle cx="-4.5" cy="-3" r="2.5" fill={color} />
+            <circle cx="4.5" cy="-3" r="2.5" fill={color} />
+            <path d="M-6,6 Q0,3 6,6" fill="none" stroke={color} strokeWidth="1.5" />
+            <circle cx="-3" cy="9" r="1.2" fill={color} />
+            <circle cx="3" cy="9" r="1.2" fill={color} />
           </g>
         );
       case 'star':
@@ -112,10 +112,10 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
             <path
-              d="M0,-8 L2,-2 L8,-2 L3,1 L5,7 L0,4 L-5,7 L-3,1 L-8,-2 L-2,-2 Z"
+              d="M0,-12 L3,-3 L12,-3 L4.5,1.5 L7.5,10.5 L0,6 L-7.5,10.5 L-4.5,1.5 L-12,-3 L-3,-3 Z"
               fill="none"
               stroke={color}
-              strokeWidth="1"
+              strokeWidth="1.5"
             />
           </g>
         );
@@ -123,18 +123,18 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
       case 'wifi2':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <path d="M0,-6 Q-4,-2 -4,2" fill="none" stroke={color} strokeWidth="1" />
-            <path d="M0,-6 Q4,-2 4,2" fill="none" stroke={color} strokeWidth="1" />
-            <path d="M0,-3 Q-2,-1 -2,1" fill="none" stroke={color} strokeWidth="1" />
-            <path d="M0,-3 Q2,-1 2,1" fill="none" stroke={color} strokeWidth="1" />
-            <circle cx="0" cy="2" r="1" fill="none" stroke={color} strokeWidth="1" />
+            <path d="M0,-9 Q-6,-3 -6,3" fill="none" stroke={color} strokeWidth="1.5" />
+            <path d="M0,-9 Q6,-3 6,3" fill="none" stroke={color} strokeWidth="1.5" />
+            <path d="M0,-4.5 Q-3,-1.5 -3,1.5" fill="none" stroke={color} strokeWidth="1.5" />
+            <path d="M0,-4.5 Q3,-1.5 3,1.5" fill="none" stroke={color} strokeWidth="1.5" />
+            <circle cx="0" cy="3" r="1.5" fill="none" stroke={color} strokeWidth="1.5" />
           </g>
         );
       case 'airplane':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <path d="M-8,0 L0,-6 L8,0 L4,2 L0,0 L-4,2 Z" fill="none" stroke={color} strokeWidth="1" />
-            <path d="M-6,1 Q-2,3 2,1" fill="none" stroke={color} strokeWidth="0.8" />
+            <path d="M-12,0 L0,-9 L12,0 L6,3 L0,0 L-6,3 Z" fill="none" stroke={color} strokeWidth="1.5" />
+            <path d="M-9,1.5 Q-3,4.5 3,1.5" fill="none" stroke={color} strokeWidth="1.2" />
           </g>
         );
       case 'lightbulb':
@@ -150,18 +150,18 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
       case 'network':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <circle cx="-4" cy="0" r="2" fill="none" stroke={color} strokeWidth="1" />
-            <circle cx="0" cy="0" r="2" fill="none" stroke={color} strokeWidth="1" />
-            <circle cx="4" cy="0" r="2" fill="none" stroke={color} strokeWidth="1" />
-            <line x1="-2" y1="0" x2="2" y2="0" stroke={color} strokeWidth="1" />
-            <line x1="2" y1="0" x2="6" y2="0" stroke={color} strokeWidth="1" />
+            <circle cx="-6" cy="0" r="3" fill="none" stroke={color} strokeWidth="1.5" />
+            <circle cx="0" cy="0" r="3" fill="none" stroke={color} strokeWidth="1.5" />
+            <circle cx="6" cy="0" r="3" fill="none" stroke={color} strokeWidth="1.5" />
+            <line x1="-3" y1="0" x2="3" y2="0" stroke={color} strokeWidth="1.5" />
+            <line x1="3" y1="0" x2="9" y2="0" stroke={color} strokeWidth="1.5" />
           </g>
         );
       case 'atSymbol':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <circle cx="0" cy="0" r="6" fill="none" stroke={color} strokeWidth="1" />
-            <path d="M-2,-4 L2,-4 L2,4 L-2,4" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="0" cy="0" r="9" fill="none" stroke={color} strokeWidth="1.5" />
+            <path d="M-3,-6 L3,-6 L3,6 L-3,6" fill="none" stroke={color} strokeWidth="1.5" />
           </g>
         );
       case 'bubbleHeart':
@@ -181,10 +181,10 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
       case 'happyFace':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <circle cx="0" cy="0" r="10" fill="none" stroke={color} strokeWidth="1" />
-            <circle cx="-3" cy="-2" r="1.5" fill={color} />
-            <circle cx="3" cy="-2" r="1.5" fill={color} />
-            <path d="M-4,4 Q0,8 4,4" fill="none" stroke={color} strokeWidth="1" />
+            <circle cx="0" cy="0" r="15" fill="none" stroke={color} strokeWidth="1.5" />
+            <circle cx="-4.5" cy="-3" r="2.5" fill={color} />
+            <circle cx="4.5" cy="-3" r="2.5" fill={color} />
+            <path d="M-6,6 Q0,12 6,6" fill="none" stroke={color} strokeWidth="1.5" />
           </g>
         );
       case 'cloudUp':
@@ -502,7 +502,6 @@ export function ChatBackground() {
         className="absolute inset-0 w-full h-full pointer-events-none hidden dark:block"
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
-        style={{ opacity: 0.06 }}
         xmlns="http://www.w3.org/2000/svg"
       >
         {DARK_DOODLES.map((pos, index) => (
