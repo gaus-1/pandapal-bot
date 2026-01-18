@@ -72,7 +72,7 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
 
   if (isDark) {
     const color = '#ffffff';
-    const opacity = 0.12; // Увеличено для видимости на темном фоне
+    const opacity = 0.25; // Увеличено для видимости на темном фоне
 
       switch (type) {
       case 'phone':
@@ -370,7 +370,7 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
     const pinkColor = '#f8b4cb';
     const brownColor = '#d4a574';
     const tealColor = '#2d7a7a';
-    const opacity = 0.5; // Увеличено для видимости
+    const opacity = 0.7; // Увеличено для видимости
 
     switch (type) {
       case 'pinkBlob':
@@ -489,7 +489,6 @@ export function ChatBackground() {
         className="absolute inset-0 w-full h-full pointer-events-none dark:hidden"
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
-        style={{ opacity: 0.15 }}
         xmlns="http://www.w3.org/2000/svg"
       >
         {LIGHT_DOODLES.map((pos, index) => (
