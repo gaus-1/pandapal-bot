@@ -163,7 +163,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
     );
   }
 
-  const { board, score, lines_cleared: lines, game_over } = state;
+  const { board, score, game_over } = state;
 
   return (
     <div className="w-full h-full flex flex-col overflow-hidden bg-white dark:bg-slate-900">
@@ -196,41 +196,26 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       )}
 
-      {/* Game Board - оптимизирован под размер экрана */}
+      {/* Game Board - шире, без боковой панели */}
       <div className="flex-1 flex items-center justify-center px-2 sm:px-3 min-h-0 overflow-hidden">
-        <div className="flex gap-3 w-full max-w-xl">
-          <div className="flex-1 flex justify-center min-w-0">
-            <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner">
-              <div className="grid" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, minmax(0, 1fr))`, gap: 0 }}>
-                {board.map((row, rowIndex) =>
-                  row.map((cell, colIndex) => (
-                    <div
-                      key={`${rowIndex}-${colIndex}`}
-                      className={`w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 ${
-                        cell === 0
-                          ? 'bg-slate-100 dark:bg-slate-800'
-                          : cell === 2
-                            ? 'bg-emerald-400 dark:bg-emerald-500'
-                            : 'bg-blue-400 dark:bg-blue-500'
-                      }`}
-                    />
-                  )),
-                )}
-              </div>
+        <div className="w-full max-w-2xl">
+          <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner mx-auto">
+            <div className="grid" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, minmax(0, 1fr))`, gap: 0 }}>
+              {board.map((row, rowIndex) =>
+                row.map((cell, colIndex) => (
+                  <div
+                    key={`${rowIndex}-${colIndex}`}
+                    className={`w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 ${
+                      cell === 0
+                        ? 'bg-slate-100 dark:bg-slate-800'
+                        : cell === 2
+                          ? 'bg-emerald-400 dark:bg-emerald-500'
+                          : 'bg-blue-400 dark:bg-blue-500'
+                    }`}
+                  />
+                )),
+              )}
             </div>
-          </div>
-
-          <div className="w-20 sm:w-24 flex flex-col gap-2 text-xs text-gray-700 dark:text-slate-200 flex-shrink-0">
-            <div className="mb-1 p-1.5 rounded bg-blue-50 dark:bg-slate-800 border border-blue-200 dark:border-slate-700">
-              <div className="font-semibold mb-0.5 text-[10px]">Линии</div>
-              <div className="text-sm">{lines}</div>
-            </div>
-            {game_over && (
-              <div className="mt-1 p-1.5 rounded bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700">
-                <div className="font-semibold mb-0.5 text-[10px]">Конец</div>
-                <div className="text-[10px]">Игра окончена</div>
-              </div>
-            )}
           </div>
         </div>
       </div>
