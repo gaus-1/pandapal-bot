@@ -1,23 +1,8 @@
 /**
  * Компонент фона чата с doodles в стиле Telegram
- * Doodles из предоставленных изображений
+ * Светлая тема: мягкий пастельный градиент
+ * Темная тема: doodles
  */
-
-// Позиции для светлой темы (светлые doodles) - в процентах от ширины/высоты
-const LIGHT_DOODLES = [
-  { x: 8, y: 8, type: 'pinkBlob' },
-  { x: 75, y: 12, type: 'brownBlob' },
-  { x: 32, y: 45, type: 'brownSteps' },
-  { x: 92, y: 52, type: 'brownCrown' },
-  { x: 48, y: 22, type: 'tealLoop' },
-  { x: 66, y: 9, type: 'tealWave' },
-  { x: 25, y: 35, type: 'tealSpring' },
-  { x: 84, y: 30, type: 'tealLeaf' },
-  { x: 16, y: 50, type: 'pinkDashes' },
-  { x: 100, y: 40, type: 'pinkDashes2' },
-  { x: 53, y: 6, type: 'whiteCircle' },
-  { x: 40, y: 52, type: 'whiteCircle2' },
-];
 
 // Позиции для темной темы (белые doodles) - в процентах, равномерно распределены
 const DARK_DOODLES = [
@@ -365,113 +350,10 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
       default:
         return null;
     }
-  } else {
-    // Светлая тема - светлые цвета
-    const pinkColor = '#f8b4cb';
-    const brownColor = '#d4a574';
-    const tealColor = '#2d7a7a';
-    const opacity = 0.9; // Увеличено для видимости
-
-    switch (type) {
-      case 'pinkBlob':
-        return (
-          <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <path
-              d="M-12,-6 Q-15,-9 -12,-12 Q-9,-15 -6,-12 Q-3,-15 0,-12 Q3,-15 6,-12 Q9,-15 12,-12 Q15,-9 12,-6 Q15,-3 12,0 Q15,3 12,6 Q9,9 6,6 Q3,9 0,6 Q-3,9 -6,6 Q-9,9 -12,6 Q-15,3 -12,0 Q-15,-3 -12,-6 Z"
-              fill={pinkColor}
-            />
-            <circle cx="-9" cy="-9" r="3" fill={tealColor} />
-          </g>
-        );
-      case 'brownBlob':
-        return (
-          <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <path
-              d="M-6,-5 Q-8,-7 -6,-9 Q-4,-11 -2,-9 Q0,-11 2,-9 Q4,-11 6,-9 Q8,-7 6,-5 Q8,-3 6,-1 Q8,1 6,3 Q4,5 2,3 Q0,5 -2,3 Q-4,5 -6,3 Q-8,1 -6,-1 Q-8,-3 -6,-5 Z"
-              fill={brownColor}
-            />
-          </g>
-        );
-      case 'brownSteps':
-        return (
-          <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <rect x="-12" y="0" width="9" height="6" fill="none" stroke={brownColor} strokeWidth="1.8" />
-            <rect x="-6" y="-3" width="9" height="9" fill="none" stroke={brownColor} strokeWidth="1.8" />
-            <rect x="3" y="-6" width="9" height="12" fill="none" stroke={brownColor} strokeWidth="1.8" />
-          </g>
-        );
-      case 'brownCrown':
-        return (
-          <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <path
-              d="M-6,2 L-4,-4 L-2,0 L0,-6 L2,0 L4,-4 L6,2 L4,4 L-4,4 Z"
-              fill="none"
-              stroke={brownColor}
-              strokeWidth="1.2"
-            />
-          </g>
-        );
-      case 'tealLoop':
-        return (
-          <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <path
-              d="M-6,-9 Q-9,-6 -9,-3 Q-9,0 -6,3 Q-3,6 0,6 Q3,6 6,3 Q9,0 9,-3 Q9,-6 6,-9"
-              fill="none"
-              stroke={tealColor}
-              strokeWidth="1.5"
-            />
-          </g>
-        );
-      case 'tealWave':
-        return (
-          <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <path d="M-12,0 Q-6,-3 0,0 Q6,3 12,0" fill="none" stroke={tealColor} strokeWidth="1.5" />
-          </g>
-        );
-      case 'tealSpring':
-        return (
-          <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <path
-              d="M-6,4 Q-4,2 -2,4 Q0,2 2,4 Q4,2 6,4 Q4,6 2,4 Q0,6 -2,4 Q-4,6 -6,4"
-              fill="none"
-              stroke={tealColor}
-              strokeWidth="1"
-            />
-          </g>
-        );
-      case 'tealLeaf':
-        return (
-          <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <path
-              d="M0,-6 L-3,-2 L-2,2 L0,4 L2,2 L3,-2 Z"
-              fill="none"
-              stroke={tealColor}
-              strokeWidth="1"
-            />
-            <line x1="-1" y1="0" x2="1" y2="0" stroke={tealColor} strokeWidth="0.8" />
-            <line x1="-2" y1="-1" x2="2" y2="-1" stroke={tealColor} strokeWidth="0.8" />
-          </g>
-        );
-      case 'pinkDashes':
-      case 'pinkDashes2':
-        return (
-          <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <path d="M-2,-4 Q0,-3 2,-4" fill="none" stroke={pinkColor} strokeWidth="1" />
-            <path d="M-2,-2 Q0,-1 2,-2" fill="none" stroke={pinkColor} strokeWidth="1" />
-            <path d="M-2,0 Q0,1 2,0" fill="none" stroke={pinkColor} strokeWidth="1" />
-          </g>
-        );
-      case 'whiteCircle':
-      case 'whiteCircle2':
-        return (
-          <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity * 0.9}>
-            <circle cx="0" cy="0" r="4.5" fill="#ffffff" />
-          </g>
-        );
-      default:
-        return null;
-    }
   }
+
+  // Светлая тема больше не использует doodles
+  return null;
 }
 
 export function ChatBackground() {
@@ -481,34 +363,11 @@ export function ChatBackground() {
       style={{ zIndex: 0 }}
       aria-hidden="true"
     >
-      {/* Градиентный фон в стиле Telegram */}
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-50/50 via-white to-pink-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" />
+      {/* Мягкий пастельный фон для светлой темы */}
+      <div className="absolute inset-0 dark:hidden bg-gradient-to-br from-rose-50/40 via-pink-50/30 to-purple-50/40" />
 
-      {/* Фоновое изображение для светлой темы */}
-      <div
-        className="absolute inset-0 dark:hidden"
-        style={{
-          backgroundImage: 'url(/chat-background-light.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.25,
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* SVG с doodles для светлой темы (резерв, если изображение не загрузится) */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none dark:hidden"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{ opacity: 0.1 }}
-      >
-        {LIGHT_DOODLES.map((pos, index) => (
-          <DoodleElement key={index} x={pos.x} y={pos.y} type={pos.type} isDark={false} />
-        ))}
-      </svg>
+      {/* Градиентный фон для темной темы */}
+      <div className="absolute inset-0 hidden dark:block bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900" />
 
       {/* SVG с doodles для темной темы */}
       <svg
