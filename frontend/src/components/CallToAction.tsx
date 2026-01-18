@@ -105,9 +105,9 @@ export const CallToAction: React.FC = React.memo(() => {
             >
               🎮 PandaPalGo
             </a>
-            <div className="flex items-start gap-2 max-w-xs text-left">
-              <span className="text-2xl">💡</span>
-              <p className="text-sm text-gray-600 dark:text-slate-400">
+            <div className="flex items-baseline gap-2.5 xs:gap-3 sm:gap-3.5 max-w-xs text-left">
+              <span className="text-xl sm:text-2xl flex-shrink-0 leading-none">💡</span>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-slate-400 leading-relaxed break-words">
                 <span className="font-semibold text-yellow-600 dark:text-yellow-400">Совет:</span>
                 {' '}Если ты на телефоне — просто нажми кнопку выше!
               </p>
