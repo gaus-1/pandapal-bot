@@ -513,11 +513,11 @@ class TetrisGame:
             # Если r < 0 (в буфере сверху), разрешаем
             if r < 0:
                 continue
-            # Границы Y (дно)
+            # КРИТИЧНО: Границы Y (дно) - блокируем если любой блок достиг или превысил нижнюю границу
             if r >= self.height:
                 return False
-            # Занятость ячейки
-            if self.board[r][c] != 0:
+            # Занятость ячейки - проверяем только в пределах доски
+            if 0 <= r < self.height and self.board[r][c] != 0:
                 return False
         return True
 
@@ -597,11 +597,11 @@ class TetrisGame:
                     self._lock_piece()
                     return  # Выходим сразу после блокировки
 
-                # Дополнительная проверка: блокируем если любой блок уже на нижней границе
+                # Дополнительная проверка: блокируем если любой блок достиг или превысил нижнюю границу
                 # Это предотвращает выход блоков за границу при следующем tick
                 blocks = self._get_blocks(self.current_row, self.current_col, self.current_rotation)
-                max_row = max((r for r, c in blocks), default=-1)
-                # Блокируем если самый нижний блок на последнем ряду (height-1) или ниже
+                max_row = max((r for r, c in blocks if 0 <= r < self.height), default=-1)
+                # КРИТИЧНО: Блокируем если самый нижний блок на последнем ряду (height-1) или любой блок ниже
                 if max_row >= self.height - 1:
                     self._lock_piece()
                     return
