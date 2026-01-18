@@ -142,3 +142,64 @@ class VisionService:
         except Exception as e:
             logger.error(f"❌ Ошибка генерации образовательного ответа: {e}")
             return "😔 Извини, у меня возникли проблемы. Попробуй ещё раз!"
+
+    async def check_homework(
+        self,
+        image_data: bytes,
+        user_message: str | None = None,
+        user_age: int | None = None,  # noqa: ARG002
+    ) -> ImageAnalysisResult:
+        """
+        Проверить домашнее задание через Yandex Vision + YandexGPT с режимом проверки.
+
+        Args:
+            image_data: Данные изображения в байтах.
+            user_message: Вопрос пользователя об изображении.
+            user_age: Возраст пользователя для адаптации ответа.
+
+        Returns:
+            ImageAnalysisResult: Результат проверки ДЗ с анализом ошибок.
+        """
+        try:
+            logger.info("📝 Проверка домашнего задания через Yandex Vision...")
+
+            # Формируем специальный промпт для проверки ДЗ
+            homework_prompt = (
+                "Проверь это домашнее задание. Найди все ошибки, исправь их и объясни почему это неправильно. "
+                "Если решение правильное, похвали. Разбери задание пошагово с объяснениями. "
+                "Будь дружелюбным, но честным в оценке."
+            )
+
+            if user_message:
+                homework_prompt = f"{user_message}. {homework_prompt}"
+
+            # Анализируем через Yandex Cloud с промптом для проверки ДЗ
+            result = await self.yandex_service.analyze_image_with_text(
+                image_data=image_data, user_question=homework_prompt
+            )
+
+            # Формируем результат
+            recognized_text = result.get("recognized_text", "")
+            analysis = result.get("analysis", "")
+            has_text = result.get("has_text", False)
+
+            return ImageAnalysisResult(
+                recognized_text=recognized_text,
+                description=analysis,  # Описание = анализ от GPT с проверкой
+                analysis=analysis,
+                safety_level=SafetyLevel.SAFE,
+                has_text=has_text,
+            )
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка проверки ДЗ (Yandex): {e}", exc_info=True)
+            error_msg = f"Не удалось проверить домашнее задание: {str(e)}"
+            if "500" in str(e) or "Internal Server Error" in str(e):
+                error_msg = "Временная проблема с AI сервисом. Попробуйте позже."
+            return ImageAnalysisResult(
+                recognized_text="",
+                description="Ошибка проверки",
+                analysis=error_msg,
+                safety_level=SafetyLevel.UNKNOWN,
+                has_text=False,
+            )
