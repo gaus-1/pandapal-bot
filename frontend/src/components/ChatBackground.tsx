@@ -19,43 +19,43 @@ const LIGHT_DOODLES = [
   { x: 40, y: 52, type: 'whiteCircle2' },
 ];
 
-// Позиции для темной темы (белые doodles) - в процентах
+// Позиции для темной темы (белые doodles) - в процентах, равномерно распределены
 const DARK_DOODLES = [
-  { x: 12, y: 8, type: 'phone' },
-  { x: 32, y: 14, type: 'heart' },
-  { x: 53, y: 10, type: 'sadFace' },
-  { x: 74, y: 17, type: 'star' },
-  { x: 92, y: 13, type: 'wifi' },
-  { x: 15, y: 26, type: 'airplane' },
-  { x: 21, y: 25, type: 'lightbulb' },
-  { x: 42, y: 21, type: 'network' },
-  { x: 63, y: 24, type: 'atSymbol' },
-  { x: 84, y: 28, type: 'bubbleHeart' },
-  { x: 5, y: 26, type: 'happyFace' },
-  { x: 16, y: 35, type: 'cloudUp' },
-  { x: 37, y: 31, type: 'video' },
-  { x: 58, y: 34, type: 'bubbles' },
-  { x: 79, y: 38, type: 'chart' },
-  { x: 100, y: 36, type: 'laughFace' },
-  { x: 26, y: 44, type: 'location' },
-  { x: 47, y: 41, type: 'star2' },
-  { x: 68, y: 45, type: 'wifi2' },
-  { x: 89, y: 43, type: 'globe' },
-  { x: 10, y: 48, type: 'exclamation' },
-  { x: 13, y: 53, type: 'lock' },
-  { x: 34, y: 50, type: 'bubbleHeart2' },
-  { x: 55, y: 54, type: 'envelope' },
-  { x: 76, y: 51, type: 'bell' },
-  { x: 97, y: 55, type: 'bubbleFace' },
-  { x: 18, y: 60, type: 'cursor' },
-  { x: 39, y: 59, type: 'pencil' },
-  { x: 60, y: 63, type: 'lightning' },
-  { x: 81, y: 60, type: 'megaphone' },
-  { x: 2, y: 64, type: 'bubbles2' },
-  { x: 29, y: 70, type: 'sadBubble' },
-  { x: 50, y: 68, type: 'images' },
-  { x: 71, y: 71, type: 'magnifier' },
-  { x: 92, y: 69, type: 'camera' },
+  { x: 10, y: 8, type: 'phone' },
+  { x: 30, y: 12, type: 'heart' },
+  { x: 50, y: 10, type: 'sadFace' },
+  { x: 70, y: 15, type: 'star' },
+  { x: 90, y: 12, type: 'wifi' },
+  { x: 15, y: 25, type: 'airplane' },
+  { x: 35, y: 22, type: 'lightbulb' },
+  { x: 55, y: 20, type: 'network' },
+  { x: 75, y: 23, type: 'atSymbol' },
+  { x: 85, y: 27, type: 'bubbleHeart' },
+  { x: 5, y: 24, type: 'happyFace' },
+  { x: 20, y: 33, type: 'cloudUp' },
+  { x: 40, y: 30, type: 'video' },
+  { x: 60, y: 32, type: 'bubbles' },
+  { x: 80, y: 36, type: 'chart' },
+  { x: 95, y: 34, type: 'laughFace' },
+  { x: 25, y: 42, type: 'location' },
+  { x: 45, y: 40, type: 'star2' },
+  { x: 65, y: 43, type: 'wifi2' },
+  { x: 85, y: 41, type: 'globe' },
+  { x: 12, y: 46, type: 'exclamation' },
+  { x: 15, y: 51, type: 'lock' },
+  { x: 35, y: 48, type: 'bubbleHeart2' },
+  { x: 55, y: 52, type: 'envelope' },
+  { x: 75, y: 49, type: 'bell' },
+  { x: 92, y: 53, type: 'bubbleFace' },
+  { x: 18, y: 58, type: 'cursor' },
+  { x: 38, y: 57, type: 'pencil' },
+  { x: 58, y: 61, type: 'lightning' },
+  { x: 78, y: 58, type: 'megaphone' },
+  { x: 8, y: 62, type: 'bubbles2' },
+  { x: 28, y: 68, type: 'sadBubble' },
+  { x: 48, y: 66, type: 'images' },
+  { x: 68, y: 69, type: 'magnifier' },
+  { x: 88, y: 67, type: 'camera' },
 ];
 
 interface DoodleElementProps {
@@ -140,11 +140,11 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
       case 'lightbulb':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <circle cx="0" cy="-4" r="4" fill="none" stroke={color} strokeWidth="1" />
-            <rect x="-2" y="0" width="4" height="6" fill="none" stroke={color} strokeWidth="1" />
-            <line x1="-1" y1="-6" x2="1" y2="-6" stroke={color} strokeWidth="1" />
-            <path d="M-3,-2 Q-4,-3 -3,-4" fill="none" stroke={color} strokeWidth="0.8" />
-            <path d="M3,-2 Q4,-3 3,-4" fill="none" stroke={color} strokeWidth="0.8" />
+            <circle cx="0" cy="-6" r="6" fill="none" stroke={color} strokeWidth="1.5" />
+            <rect x="-3" y="0" width="6" height="9" fill="none" stroke={color} strokeWidth="1.5" />
+            <line x1="-1.5" y1="-9" x2="1.5" y2="-9" stroke={color} strokeWidth="1.5" />
+            <path d="M-4.5,-3 Q-6,-4.5 -4.5,-6" fill="none" stroke={color} strokeWidth="1.2" />
+            <path d="M4.5,-3 Q6,-4.5 4.5,-6" fill="none" stroke={color} strokeWidth="1.2" />
           </g>
         );
       case 'network':
@@ -370,17 +370,17 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
     const pinkColor = '#f8b4cb';
     const brownColor = '#d4a574';
     const tealColor = '#2d7a7a';
-    const opacity = 0.3;
+    const opacity = 0.5; // Увеличено для видимости
 
     switch (type) {
       case 'pinkBlob':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
             <path
-              d="M-8,-4 Q-10,-6 -8,-8 Q-6,-10 -4,-8 Q-2,-10 0,-8 Q2,-10 4,-8 Q6,-10 8,-8 Q10,-6 8,-4 Q10,-2 8,0 Q10,2 8,4 Q6,6 4,4 Q2,6 0,4 Q-2,6 -4,4 Q-6,6 -8,4 Q-10,2 -8,0 Q-10,-2 -8,-4 Z"
+              d="M-12,-6 Q-15,-9 -12,-12 Q-9,-15 -6,-12 Q-3,-15 0,-12 Q3,-15 6,-12 Q9,-15 12,-12 Q15,-9 12,-6 Q15,-3 12,0 Q15,3 12,6 Q9,9 6,6 Q3,9 0,6 Q-3,9 -6,6 Q-9,9 -12,6 Q-15,3 -12,0 Q-15,-3 -12,-6 Z"
               fill={pinkColor}
             />
-            <circle cx="-6" cy="-6" r="2" fill={tealColor} />
+            <circle cx="-9" cy="-9" r="3" fill={tealColor} />
           </g>
         );
       case 'brownBlob':
@@ -395,9 +395,9 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
       case 'brownSteps':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <rect x="-8" y="0" width="6" height="4" fill="none" stroke={brownColor} strokeWidth="1.2" />
-            <rect x="-4" y="-2" width="6" height="6" fill="none" stroke={brownColor} strokeWidth="1.2" />
-            <rect x="2" y="-4" width="6" height="8" fill="none" stroke={brownColor} strokeWidth="1.2" />
+            <rect x="-12" y="0" width="9" height="6" fill="none" stroke={brownColor} strokeWidth="1.8" />
+            <rect x="-6" y="-3" width="9" height="9" fill="none" stroke={brownColor} strokeWidth="1.8" />
+            <rect x="3" y="-6" width="9" height="12" fill="none" stroke={brownColor} strokeWidth="1.8" />
           </g>
         );
       case 'brownCrown':
@@ -415,17 +415,17 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
             <path
-              d="M-4,-6 Q-6,-4 -6,-2 Q-6,0 -4,2 Q-2,4 0,4 Q2,4 4,2 Q6,0 6,-2 Q6,-4 4,-6"
+              d="M-6,-9 Q-9,-6 -9,-3 Q-9,0 -6,3 Q-3,6 0,6 Q3,6 6,3 Q9,0 9,-3 Q9,-6 6,-9"
               fill="none"
               stroke={tealColor}
-              strokeWidth="1"
+              strokeWidth="1.5"
             />
           </g>
         );
       case 'tealWave':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <path d="M-8,0 Q-4,-2 0,0 Q4,2 8,0" fill="none" stroke={tealColor} strokeWidth="1" />
+            <path d="M-12,0 Q-6,-3 0,0 Q6,3 12,0" fill="none" stroke={tealColor} strokeWidth="1.5" />
           </g>
         );
       case 'tealSpring':
@@ -464,8 +464,8 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
       case 'whiteCircle':
       case 'whiteCircle2':
         return (
-          <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity * 0.8}>
-            <circle cx="0" cy="0" r="3" fill="#ffffff" />
+          <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity * 0.9}>
+            <circle cx="0" cy="0" r="4.5" fill="#ffffff" />
           </g>
         );
       default:
