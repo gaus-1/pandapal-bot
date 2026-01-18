@@ -72,7 +72,7 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
 
   if (isDark) {
     const color = '#ffffff';
-    const opacity = 0.25; // Увеличено для видимости на темном фоне
+    const opacity = 0.4; // Увеличено для видимости на темном фоне
 
       switch (type) {
       case 'phone':
@@ -112,10 +112,10 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
             <path
-              d="M0,-12 L3,-3 L12,-3 L4.5,1.5 L7.5,10.5 L0,6 L-7.5,10.5 L-4.5,1.5 L-12,-3 L-3,-3 Z"
+              d="M0,-18 L4.5,-4.5 L18,-4.5 L6.75,2.25 L11.25,15.75 L0,9 L-11.25,15.75 L-6.75,2.25 L-18,-4.5 L-4.5,-4.5 Z"
               fill="none"
               stroke={color}
-              strokeWidth="1.5"
+              strokeWidth="2.5"
             />
           </g>
         );
@@ -123,28 +123,28 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
       case 'wifi2':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <path d="M0,-9 Q-6,-3 -6,3" fill="none" stroke={color} strokeWidth="1.5" />
-            <path d="M0,-9 Q6,-3 6,3" fill="none" stroke={color} strokeWidth="1.5" />
-            <path d="M0,-4.5 Q-3,-1.5 -3,1.5" fill="none" stroke={color} strokeWidth="1.5" />
-            <path d="M0,-4.5 Q3,-1.5 3,1.5" fill="none" stroke={color} strokeWidth="1.5" />
-            <circle cx="0" cy="3" r="1.5" fill="none" stroke={color} strokeWidth="1.5" />
+            <path d="M0,-13.5 Q-9,-4.5 -9,4.5" fill="none" stroke={color} strokeWidth="2.5" />
+            <path d="M0,-13.5 Q9,-4.5 9,4.5" fill="none" stroke={color} strokeWidth="2.5" />
+            <path d="M0,-6.75 Q-4.5,-2.25 -4.5,2.25" fill="none" stroke={color} strokeWidth="2.5" />
+            <path d="M0,-6.75 Q4.5,-2.25 4.5,2.25" fill="none" stroke={color} strokeWidth="2.5" />
+            <circle cx="0" cy="4.5" r="2.5" fill="none" stroke={color} strokeWidth="2.5" />
           </g>
         );
       case 'airplane':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <path d="M-12,0 L0,-9 L12,0 L6,3 L0,0 L-6,3 Z" fill="none" stroke={color} strokeWidth="1.5" />
-            <path d="M-9,1.5 Q-3,4.5 3,1.5" fill="none" stroke={color} strokeWidth="1.2" />
+            <path d="M-18,0 L0,-13.5 L18,0 L9,4.5 L0,0 L-9,4.5 Z" fill="none" stroke={color} strokeWidth="2.5" />
+            <path d="M-13.5,2.25 Q-4.5,6.75 4.5,2.25" fill="none" stroke={color} strokeWidth="2" />
           </g>
         );
       case 'lightbulb':
         return (
           <g transform={`translate(${coordX}, ${coordY})`} opacity={opacity}>
-            <circle cx="0" cy="-6" r="6" fill="none" stroke={color} strokeWidth="1.5" />
-            <rect x="-3" y="0" width="6" height="9" fill="none" stroke={color} strokeWidth="1.5" />
-            <line x1="-1.5" y1="-9" x2="1.5" y2="-9" stroke={color} strokeWidth="1.5" />
-            <path d="M-4.5,-3 Q-6,-4.5 -4.5,-6" fill="none" stroke={color} strokeWidth="1.2" />
-            <path d="M4.5,-3 Q6,-4.5 4.5,-6" fill="none" stroke={color} strokeWidth="1.2" />
+            <circle cx="0" cy="-9" r="9" fill="none" stroke={color} strokeWidth="2.5" />
+            <rect x="-4.5" y="0" width="9" height="13.5" fill="none" stroke={color} strokeWidth="2.5" />
+            <line x1="-2.25" y1="-13.5" x2="2.25" y2="-13.5" stroke={color} strokeWidth="2.5" />
+            <path d="M-6.75,-4.5 Q-9,-6.75 -6.75,-9" fill="none" stroke={color} strokeWidth="2" />
+            <path d="M6.75,-4.5 Q9,-6.75 6.75,-9" fill="none" stroke={color} strokeWidth="2" />
           </g>
         );
       case 'network':
@@ -370,7 +370,7 @@ function DoodleElement({ x, y, type, isDark }: DoodleElementProps) {
     const pinkColor = '#f8b4cb';
     const brownColor = '#d4a574';
     const tealColor = '#2d7a7a';
-    const opacity = 0.7; // Увеличено для видимости
+    const opacity = 0.9; // Увеличено для видимости
 
     switch (type) {
       case 'pinkBlob':
@@ -494,8 +494,6 @@ export function ChatBackground() {
         {LIGHT_DOODLES.map((pos, index) => (
           <DoodleElement key={index} x={pos.x} y={pos.y} type={pos.type} isDark={false} />
         ))}
-        {/* Тестовый элемент для проверки */}
-        <circle cx="50" cy="50" r="5" fill="#ff0000" opacity="0.3" />
       </svg>
 
       {/* SVG с doodles для темной темы */}
@@ -508,8 +506,6 @@ export function ChatBackground() {
         {DARK_DOODLES.map((pos, index) => (
           <DoodleElement key={index} x={pos.x} y={pos.y} type={pos.type} isDark={true} />
         ))}
-        {/* Тестовый элемент для проверки */}
-        <circle cx="50" cy="50" r="5" fill="#ffffff" opacity="0.5" />
       </svg>
     </div>
   );
