@@ -588,14 +588,15 @@ class TetrisGame:
             # КРИТИЧНО: Проверка блокировки ПОСЛЕ каждого движения вниз
             # Блокируем фигуру если она не может двигаться дальше вниз
             # Не блокируем только на row=0 (она только что спавнилась)
-            if action in ("down", "tick") and self.current_row > 0:
-                # Проверяем все блоки фигуры - если хотя бы один на последнем ряду (height-1), блокируем
+            if action in ("down", "tick") and self.current_row >= 0:
+                # Проверяем все блоки фигуры
                 blocks = self._get_blocks(self.current_row, self.current_col, self.current_rotation)
-                max_row = max((r for r, c in blocks if r >= 0), default=-1)
+                max_row = max((r for r, c in blocks), default=-1)
+                # Если любой блок на последнем ряду (height-1) или ниже - блокируем
                 if max_row >= self.height - 1:
                     self._lock_piece()
                     return
-                # Также проверяем через _can_place для случаев с коллизиями
+                # Также проверяем через _can_place для случаев с коллизиями с другими блоками
                 if not self._can_place(
                     self.current_row + 1, self.current_col, self.current_rotation
                 ):
