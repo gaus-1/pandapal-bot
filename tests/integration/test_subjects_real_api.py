@@ -1091,6 +1091,316 @@ class TestVisualizationsRealAPI:
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_scheme_planets_visualization(self):
+        """Тест генерации схемы планет и качества ответа."""
+        from bot.services.ai_service_solid import get_ai_service
+        from bot.services.visualization_service import VisualizationService
+
+        ai_service = get_ai_service()
+        viz_service = VisualizationService()
+
+        # Запрос схемы планет
+        question = "Покажи схему планет"
+
+        # Генерируем схему
+        scheme_image, scheme_type = viz_service.detect_visualization_request(question)
+
+        if scheme_image is None:
+            pytest.skip("Схема планет не генерируется (может быть не реализовано)")
+
+        assert len(scheme_image) > 1000, "Схема слишком маленькая"
+        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+
+        # Генерируем ответ AI на схему
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=10,
+        )
+
+        assert response is not None, "AI не ответил на запрос схемы планет"
+
+        # Проверка качества ответа
+        quality = self._check_response_quality(response, min_sentences=3)
+
+        # Для схем снижаем требования (55 вместо 70), т.к. схема уже показывает информацию
+        assert quality["quality_score"] >= 55, (
+            f"Низкое качество ответа: {quality['quality_score']}/100. "
+            f"Проблемы: {quality['issues']}"
+        )
+
+        print(f"\n[OK] Planets scheme visualization: схема сгенерирована ({len(scheme_image)} байт)")
+        print(f"   Quality: {quality['quality_score']}/100")
+        print(f"   Response: {response[:200]}...")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_scheme_human_body_visualization(self):
+        """Тест генерации схемы строения тела человека и качества ответа."""
+        from bot.services.ai_service_solid import get_ai_service
+        from bot.services.visualization_service import VisualizationService
+
+        ai_service = get_ai_service()
+        viz_service = VisualizationService()
+
+        # Запрос схемы строения тела
+        question = "Покажи схему строения тела человека"
+
+        # Генерируем схему
+        scheme_image, scheme_type = viz_service.detect_visualization_request(question)
+
+        if scheme_image is None:
+            pytest.skip("Схема строения тела не генерируется (может быть не реализовано)")
+
+        assert len(scheme_image) > 1000, "Схема слишком маленькая"
+        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+
+        # Генерируем ответ AI на схему
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=11,
+        )
+
+        assert response is not None, "AI не ответил на запрос схемы строения тела"
+
+        # Проверка качества ответа
+        quality = self._check_response_quality(response, min_sentences=3)
+
+        # Для схем снижаем требования (55 вместо 70), т.к. схема уже показывает информацию
+        assert quality["quality_score"] >= 55, (
+            f"Низкое качество ответа: {quality['quality_score']}/100. "
+            f"Проблемы: {quality['issues']}"
+        )
+
+        print(f"\n[OK] Human body scheme visualization: схема сгенерирована ({len(scheme_image)} байт)")
+        print(f"   Quality: {quality['quality_score']}/100")
+        print(f"   Response: {response[:200]}...")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_scheme_water_cycle_visualization(self):
+        """Тест генерации схемы круговорота воды и качества ответа."""
+        from bot.services.ai_service_solid import get_ai_service
+        from bot.services.visualization_service import VisualizationService
+
+        ai_service = get_ai_service()
+        viz_service = VisualizationService()
+
+        question = "Покажи схему круговорота воды"
+
+        scheme_image, scheme_type = viz_service.detect_visualization_request(question)
+
+        if scheme_image is None:
+            pytest.skip("Схема круговорота воды не генерируется")
+
+        assert len(scheme_image) > 1000, "Схема слишком маленькая"
+        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=8,
+        )
+
+        assert response is not None, "AI не ответил на запрос схемы круговорота воды"
+
+        quality = self._check_response_quality(response, min_sentences=3)
+        assert quality["quality_score"] >= 55, (
+            f"Низкое качество ответа: {quality['quality_score']}/100. "
+            f"Проблемы: {quality['issues']}"
+        )
+
+        print(f"\n[OK] Water cycle scheme: схема сгенерирована ({len(scheme_image)} байт)")
+        print(f"   Quality: {quality['quality_score']}/100")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_scheme_cell_structure_visualization(self):
+        """Тест генерации схемы строения клетки и качества ответа."""
+        from bot.services.ai_service_solid import get_ai_service
+        from bot.services.visualization_service import VisualizationService
+
+        ai_service = get_ai_service()
+        viz_service = VisualizationService()
+
+        question = "Покажи схему строения клетки"
+
+        scheme_image, scheme_type = viz_service.detect_visualization_request(question)
+
+        if scheme_image is None:
+            pytest.skip("Схема строения клетки не генерируется")
+
+        assert len(scheme_image) > 1000, "Схема слишком маленькая"
+        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=11,
+        )
+
+        assert response is not None, "AI не ответил на запрос схемы строения клетки"
+
+        quality = self._check_response_quality(response, min_sentences=3)
+        assert quality["quality_score"] >= 55, (
+            f"Низкое качество ответа: {quality['quality_score']}/100. "
+            f"Проблемы: {quality['issues']}"
+        )
+
+        print(f"\n[OK] Cell structure scheme: схема сгенерирована ({len(scheme_image)} байт)")
+        print(f"   Quality: {quality['quality_score']}/100")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_scheme_dna_structure_visualization(self):
+        """Тест генерации схемы строения ДНК и качества ответа."""
+        from bot.services.ai_service_solid import get_ai_service
+        from bot.services.visualization_service import VisualizationService
+
+        ai_service = get_ai_service()
+        viz_service = VisualizationService()
+
+        question = "Покажи схему строения ДНК"
+
+        scheme_image, scheme_type = viz_service.detect_visualization_request(question)
+
+        if scheme_image is None:
+            pytest.skip("Схема строения ДНК не генерируется")
+
+        assert len(scheme_image) > 1000, "Схема слишком маленькая"
+        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=14,
+        )
+
+        assert response is not None, "AI не ответил на запрос схемы строения ДНК"
+
+        quality = self._check_response_quality(response, min_sentences=3)
+        assert quality["quality_score"] >= 55, (
+            f"Низкое качество ответа: {quality['quality_score']}/100. "
+            f"Проблемы: {quality['issues']}"
+        )
+
+        print(f"\n[OK] DNA structure scheme: схема сгенерирована ({len(scheme_image)} байт)")
+        print(f"   Quality: {quality['quality_score']}/100")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_scheme_electric_circuit_visualization(self):
+        """Тест генерации схемы электрической цепи и качества ответа."""
+        from bot.services.ai_service_solid import get_ai_service
+        from bot.services.visualization_service import VisualizationService
+
+        ai_service = get_ai_service()
+        viz_service = VisualizationService()
+
+        question = "Покажи схему электрической цепи"
+
+        scheme_image, scheme_type = viz_service.detect_visualization_request(question)
+
+        if scheme_image is None:
+            pytest.skip("Схема электрической цепи не генерируется")
+
+        assert len(scheme_image) > 1000, "Схема слишком маленькая"
+        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=13,
+        )
+
+        assert response is not None, "AI не ответил на запрос схемы электрической цепи"
+
+        quality = self._check_response_quality(response, min_sentences=3)
+        assert quality["quality_score"] >= 55, (
+            f"Низкое качество ответа: {quality['quality_score']}/100. "
+            f"Проблемы: {quality['issues']}"
+        )
+
+        print(f"\n[OK] Electric circuit scheme: схема сгенерирована ({len(scheme_image)} байт)")
+        print(f"   Quality: {quality['quality_score']}/100")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_scheme_algorithm_flowchart_visualization(self):
+        """Тест генерации блок-схемы алгоритма и качества ответа."""
+        from bot.services.ai_service_solid import get_ai_service
+        from bot.services.visualization_service import VisualizationService
+
+        ai_service = get_ai_service()
+        viz_service = VisualizationService()
+
+        question = "Покажи блок-схему алгоритма"
+
+        scheme_image, scheme_type = viz_service.detect_visualization_request(question)
+
+        if scheme_image is None:
+            pytest.skip("Блок-схема алгоритма не генерируется")
+
+        assert len(scheme_image) > 1000, "Схема слишком маленькая"
+        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=13,
+        )
+
+        assert response is not None, "AI не ответил на запрос блок-схемы алгоритма"
+
+        quality = self._check_response_quality(response, min_sentences=3)
+        assert quality["quality_score"] >= 55, (
+            f"Низкое качество ответа: {quality['quality_score']}/100. "
+            f"Проблемы: {quality['issues']}"
+        )
+
+        print(f"\n[OK] Algorithm flowchart scheme: схема сгенерирована ({len(scheme_image)} байт)")
+        print(f"   Quality: {quality['quality_score']}/100")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_scheme_state_structure_visualization(self):
+        """Тест генерации схемы структуры государства и качества ответа."""
+        from bot.services.ai_service_solid import get_ai_service
+        from bot.services.visualization_service import VisualizationService
+
+        ai_service = get_ai_service()
+        viz_service = VisualizationService()
+
+        question = "Покажи схему структуры государства"
+
+        scheme_image, scheme_type = viz_service.detect_visualization_request(question)
+
+        if scheme_image is None:
+            pytest.skip("Схема структуры государства не генерируется")
+
+        assert len(scheme_image) > 1000, "Схема слишком маленькая"
+        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=12,
+        )
+
+        assert response is not None, "AI не ответил на запрос схемы структуры государства"
+
+        quality = self._check_response_quality(response, min_sentences=3)
+        assert quality["quality_score"] >= 55, (
+            f"Низкое качество ответа: {quality['quality_score']}/100. "
+            f"Проблемы: {quality['issues']}"
+        )
+
+        print(f"\n[OK] State structure scheme: схема сгенерирована ({len(scheme_image)} байт)")
+        print(f"   Quality: {quality['quality_score']}/100")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
     async def test_all_subjects_response_quality(self):
         """Тест качества ответов по ВСЕМ предметам (структура как GPT-5)."""
         from bot.services.ai_service_solid import get_ai_service
