@@ -196,8 +196,8 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       )}
 
-      {/* Game Board - уменьшенные блоки, уже окно */}
-      <div className="flex-1 flex items-center justify-center px-2 sm:px-3 min-h-0 overflow-hidden">
+      {/* Game Board - уменьшенные блоки, уже окно, выровнено с кнопками, четкие границы */}
+      <div className="flex-1 flex items-start justify-center px-2 sm:px-3 min-h-0 overflow-hidden" style={{ paddingTop: '4px', paddingBottom: '0px' }}>
         <div className="w-full max-w-sm">
           <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-0.5 shadow-inner mx-auto">
             <div className="grid" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`, gap: '1px' }}>
@@ -216,7 +216,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
                             ? 'bg-emerald-400 dark:bg-emerald-500'
                             : 'bg-blue-400 dark:bg-blue-500'
                       }`}
-                      style={{ minHeight: '12px', minWidth: '12px' }}
+                      style={{ minHeight: '10px', minWidth: '10px' }}
                     />
                   </div>
                 )),
@@ -226,8 +226,8 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       </div>
 
-      {/* Controls - выровнены по размеру окна игры */}
-      <div className="flex-shrink-0 pt-2 pb-2 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
+      {/* Controls - выровнены по размеру окна игры, верх совпадает с низом игрового окна */}
+      <div className="flex-shrink-0 pt-0 pb-2 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
         <div className="max-w-sm mx-auto px-3">
           <div className="flex gap-1.5 mb-1.5">
             <button
