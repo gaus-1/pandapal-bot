@@ -145,14 +145,23 @@ export function EmergencyScreen() {
               <p className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2 sm:mb-3">
                 Звони, если:
               </p>
-              <ul className="space-y-1 sm:space-y-2">
+              <ul className="space-y-2.5 xs:space-y-3 sm:space-y-3.5 md:space-y-4">
                 {emergency.when.map((reason, idx) => (
                   <li
                     key={idx}
-                    className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 flex items-start gap-2"
+                    className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 flex items-baseline gap-2.5 xs:gap-3 sm:gap-3.5 md:gap-4"
                   >
-                    <span className="text-blue-500 dark:text-blue-400 font-bold">•</span>
-                    {reason}
+                    <span
+                      className="text-blue-500 dark:text-blue-400 font-bold flex-shrink-0 leading-none"
+                      style={{
+                        fontSize: '0.75em',
+                        lineHeight: '1.6',
+                        verticalAlign: 'baseline'
+                      }}
+                    >
+                      •
+                    </span>
+                    <span className="flex-1 leading-relaxed break-words">{reason}</span>
                   </li>
                 ))}
               </ul>
