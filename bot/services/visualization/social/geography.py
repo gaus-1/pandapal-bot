@@ -420,19 +420,8 @@ class GeographyVisualization(BaseVisualizationService):
         # Административная карта показывает границы стран, регионов, городов, районов
         # Используем maptype=admin для административной карты с четкими границами
         params["maptype"] = "admin"  # Административная карта с границами
-        # Дополнительно добавляем стили для более заметных границ
-        if zoom >= 10:
-            # Для городов и районов: стили для выделения границ районов (красные, толстые)
-            params["style"] = (
-                "tags.any:admin|elements:geometry.outline|stylers.color:FF0000,"
-                "tags.any:admin|elements:geometry.outline|stylers.weight:2.5"
-            )
-        else:
-            # Для стран и континентов: стили для границ стран (синие, толстые)
-            params["style"] = (
-                "tags.any:admin|elements:geometry.outline|stylers.color:0000FF,"
-                "tags.any:admin|elements:geometry.outline|stylers.weight:3"
-            )
+        # НЕ добавляем style параметры - они вызывают ошибку при maptype=admin
+        # API автоматически показывает границы при maptype=admin
 
         try:
             # Заголовки для корректной работы с API
