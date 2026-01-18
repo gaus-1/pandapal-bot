@@ -32,7 +32,7 @@ class TestModerationAndYandexReal:
         ]
 
         for text in safe_texts:
-            is_safe, reason = service.is_safe_content(text, user_age=10)
+            is_safe, reason = service.is_safe_content(text)
             assert is_safe, f"Безопасный текст заблокирован: {text}, причина: {reason}"
 
     @pytest.mark.asyncio
@@ -47,7 +47,7 @@ class TestModerationAndYandexReal:
         ]
 
         for text in unsafe_texts:
-            is_safe, reason = service.is_safe_content(text, user_age=10)
+            is_safe, reason = service.is_safe_content(text)
             assert not is_safe, f"Небезопасный текст пропущен: {text}"
             assert reason is not None, "Должна быть указана причина блокировки"
 
@@ -64,7 +64,7 @@ class TestModerationAndYandexReal:
         ]
 
         for text in educational_texts:
-            is_safe, reason = service.is_safe_content(text, user_age=12)
+            is_safe, reason = service.is_safe_content(text)
             assert is_safe, f"Образовательный текст заблокирован: {text}, причина: {reason}"
 
     @pytest.mark.asyncio
@@ -75,8 +75,8 @@ class TestModerationAndYandexReal:
         # Для младших детей более строгая модерация
         text = "расскажи про отношения"
 
-        is_safe_young, _ = service.is_safe_content(text, user_age=7)
-        is_safe_older, _ = service.is_safe_content(text, user_age=15)
+        is_safe_young, _ = service.is_safe_content(text)
+        is_safe_older, _ = service.is_safe_content(text)
 
         # Для старших может быть допустимо то, что недопустимо для младших
         # (зависит от конкретных паттернов)
@@ -179,7 +179,7 @@ class TestModerationAndYandexReal:
         # Небезопасный контент
         unsafe_message = "как купить наркотики"
 
-        is_safe, reason = moderation_service.is_safe_content(unsafe_message, user_age=10)
+        is_safe, reason = moderation_service.is_safe_content(unsafe_message)
 
         # Должен быть заблокирован ДО отправки в AI
         assert not is_safe
@@ -194,7 +194,7 @@ class TestModerationAndYandexReal:
 
         safe_message = "Что такое фотосинтез?"
 
-        is_safe, reason = moderation_service.is_safe_content(safe_message, user_age=10)
+        is_safe, reason = moderation_service.is_safe_content(safe_message)
 
         # Должен пройти модерацию
         assert is_safe
@@ -216,7 +216,7 @@ class TestModerationAndYandexReal:
         ]
 
         for text in edge_cases:
-            is_safe, reason = service.is_safe_content(text, user_age=10)
+            is_safe, reason = service.is_safe_content(text)
             # Должна быть обработана без ошибок
             assert isinstance(is_safe, bool)
             assert reason is None or isinstance(reason, str)
