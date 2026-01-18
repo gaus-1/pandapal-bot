@@ -8,10 +8,8 @@ from bot.services.visualization.base import BaseVisualizationService
 try:
     import requests
 
-    MATPLOTLIB_AVAILABLE = True
     REQUESTS_AVAILABLE = True
 except ImportError:
-    MATPLOTLIB_AVAILABLE = False
     REQUESTS_AVAILABLE = False
 
 
