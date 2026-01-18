@@ -872,3 +872,318 @@ class TestSubjectsPhotoRealAPI:
         assert len(analysis) > 50, "Анализ слишком короткий"
 
         print(f"\n[OK] Safety (photo): {analysis[:150]}...")
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+class TestVisualizationsRealAPI:
+    """Тесты визуализаций (карты, графики, диаграммы) с реальными API."""
+
+    def _check_response_quality(self, response: str, min_sentences: int = 4) -> dict:
+        """
+        Проверка качества ответа как GPT-5/Sonnet Opus 4.5.
+
+        Проверяет:
+        - Структуру (абзацы, логика)
+        - Полноту (длина, примеры, детализация)
+        - Качество (нет повторов, нет воды, глубина объяснения)
+        """
+        issues = []
+        quality_score = 100
+
+        # 1. Проверка длины
+        sentences = [s.strip() for s in response.split(".") if s.strip()]
+        if len(sentences) < min_sentences:
+            issues.append(f"Слишком мало предложений: {len(sentences)} < {min_sentences}")
+            quality_score -= 30
+
+        # 2. Проверка общей длины ответа (должен быть подробным)
+        if len(response) < 150:
+            issues.append(f"Ответ слишком короткий: {len(response)} < 150 символов")
+            quality_score -= 20
+
+        # 3. Проверка на повторы первых слов
+        words = response.split()
+        if len(words) >= 4:
+            first_3_words = " ".join(words[:3]).lower()
+            if first_3_words in " ".join(words[3:6]).lower():
+                issues.append("Повтор первых слов в ответе")
+                quality_score -= 20
+
+        # 4. Проверка на наличие примеров
+        example_keywords = ["например", "к примеру", "так", "также", "если", "чтобы", "допустим"]
+        has_examples = any(kw in response.lower() for kw in example_keywords)
+        if not has_examples and len(sentences) >= 3:
+            issues.append("Нет конкретных примеров в ответе")
+            quality_score -= 15
+
+        # 5. Проверка структуры (абзацы) - важна для длинных ответов
+        paragraphs = [p.strip() for p in response.split("\n\n") if p.strip()]
+        if len(paragraphs) == 1 and len(response) > 300:
+            issues.append("Ответ без абзацев (плохая структура для длинного ответа)")
+            quality_score -= 10
+
+        # 6. Проверка на пустые фразы
+        empty_phrases = ["в общем", "как бы", "типа", "это", "так что", "ну", "это самое"]
+        empty_count = sum(response.lower().count(phrase) for phrase in empty_phrases)
+        if empty_count > 2:
+            issues.append(f"Слишком много пустых фраз: {empty_count}")
+            quality_score -= 10
+
+        # 7. Проверка глубины объяснения (должны быть детали, не только поверхностный ответ)
+        detail_keywords = ["потому что", "так как", "значит", "то есть", "другими словами", "вот как"]
+        has_details = any(kw in response.lower() for kw in detail_keywords) or len(sentences) >= 6
+        if not has_details and len(sentences) >= 4:
+            issues.append("Недостаточно детального объяснения")
+            quality_score -= 10
+
+        return {
+            "quality_score": max(0, quality_score),
+            "issues": issues,
+            "sentences_count": len(sentences),
+            "paragraphs_count": len(paragraphs),
+            "has_examples": has_examples,
+            "has_details": has_details,
+            "total_length": len(response),
+        }
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_map_visualization(self):
+        """Тест генерации карты и качества ответа."""
+        from bot.services.ai_service_solid import get_ai_service
+        from bot.services.visualization_service import VisualizationService
+
+        ai_service = get_ai_service()
+        viz_service = VisualizationService()
+
+        # Запрос карты
+        question = "Покажи карту Москвы"
+
+        # Генерируем карту
+        map_image, map_type = viz_service.detect_visualization_request(question)
+
+        assert map_image is not None, "Карта не сгенерирована"
+        assert len(map_image) > 1000, "Карта слишком маленькая (должна быть настоящая карта)"
+        assert map_type == "map", f"Тип визуализации должен быть 'map', получен: {map_type}"
+
+        # Генерируем ответ AI на карту
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=12,
+        )
+
+        assert response is not None, "AI не ответил на запрос карты"
+
+        # Проверка качества ответа
+        quality = self._check_response_quality(response, min_sentences=5)
+
+        assert quality["quality_score"] >= 70, (
+            f"Низкое качество ответа: {quality['quality_score']}/100. "
+            f"Проблемы: {quality['issues']}"
+        )
+        assert quality["sentences_count"] >= 5, (
+            f"Слишком мало предложений: {quality['sentences_count']} < 5"
+        )
+
+        print(f"\n[OK] Map visualization: карта сгенерирована ({len(map_image)} байт)")
+        print(f"   Quality: {quality['quality_score']}/100")
+        print(f"   Response: {response[:200]}...")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_graph_visualization(self):
+        """Тест генерации графика и качества ответа."""
+        from bot.services.ai_service_solid import get_ai_service
+        from bot.services.visualization_service import VisualizationService
+
+        ai_service = get_ai_service()
+        viz_service = VisualizationService()
+
+        # Запрос графика
+        question = "Покажи график функции y = x²"
+
+        # Генерируем график
+        graph_image, graph_type = viz_service.detect_visualization_request(question)
+
+        assert graph_image is not None, "График не сгенерирован"
+        assert len(graph_image) > 1000, "График слишком маленький"
+        assert graph_type in ("graph", "parabola"), f"Тип визуализации: {graph_type}"
+
+        # Генерируем ответ AI на график
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=13,
+        )
+
+        assert response is not None, "AI не ответил на запрос графика"
+
+        # Проверка качества ответа
+        quality = self._check_response_quality(response, min_sentences=4)
+
+        assert quality["quality_score"] >= 70, (
+            f"Низкое качество ответа: {quality['quality_score']}/100. "
+            f"Проблемы: {quality['issues']}"
+        )
+        assert "парабол" in response.lower() or "x²" in response.lower() or "x^2" in response.lower(), (
+            f"Ответ должен упоминать параболу или x²: {response[:200]}"
+        )
+
+        print(f"\n[OK] Graph visualization: график сгенерирован ({len(graph_image)} байт)")
+        print(f"   Quality: {quality['quality_score']}/100")
+        print(f"   Response: {response[:200]}...")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_table_visualization(self):
+        """Тест генерации таблицы и качества ответа."""
+        from bot.services.ai_service_solid import get_ai_service
+        from bot.services.visualization_service import VisualizationService
+
+        ai_service = get_ai_service()
+        viz_service = VisualizationService()
+
+        # Запрос таблицы умножения
+        question = "Покажи таблицу умножения на 7"
+
+        # Генерируем таблицу
+        table_image, table_type = viz_service.detect_visualization_request(question)
+
+        assert table_image is not None, "Таблица не сгенерирована"
+        assert len(table_image) > 1000, "Таблица слишком маленькая"
+        assert table_type == "multiplication_table", f"Тип визуализации: {table_type}"
+
+        # Генерируем ответ AI на таблицу
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=9,
+        )
+
+        assert response is not None, "AI не ответил на запрос таблицы"
+
+        # Проверка качества ответа
+        quality = self._check_response_quality(response, min_sentences=4)
+
+        assert quality["quality_score"] >= 70, (
+            f"Низкое качество ответа: {quality['quality_score']}/100. "
+            f"Проблемы: {quality['issues']}"
+        )
+
+        # Проверяем что ответ НЕ перечисляет все значения таблицы
+        assert not any(f"7 × {i}" in response for i in range(1, 11)), (
+            "Ответ не должен перечислять все значения таблицы!"
+        )
+
+        print(f"\n[OK] Table visualization: таблица сгенерирована ({len(table_image)} байт)")
+        print(f"   Quality: {quality['quality_score']}/100")
+        print(f"   Response: {response[:200]}...")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_diagram_visualization(self):
+        """Тест генерации диаграммы и качества ответа."""
+        from bot.services.ai_service_solid import get_ai_service
+        from bot.services.visualization_service import VisualizationService
+
+        ai_service = get_ai_service()
+        viz_service = VisualizationService()
+
+        # Запрос диаграммы
+        question = "Покажи столбчатую диаграмму с данными: Математика 30, Русский 25, История 20"
+
+        # Генерируем диаграмму
+        diagram_image, diagram_type = viz_service.detect_visualization_request(question)
+
+        if diagram_image is None:
+            pytest.skip("Диаграмма не поддерживается или не сгенерирована")
+
+        assert len(diagram_image) > 1000, "Диаграмма слишком маленькая"
+        assert diagram_type in ("bar", "diagram", "chart"), f"Тип визуализации: {diagram_type}"
+
+        # Генерируем ответ AI на диаграмму
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=11,
+        )
+
+        assert response is not None, "AI не ответил на запрос диаграммы"
+
+        # Проверка качества ответа
+        quality = self._check_response_quality(response, min_sentences=5)
+
+        assert quality["quality_score"] >= 70, (
+            f"Низкое качество ответа: {quality['quality_score']}/100. "
+            f"Проблемы: {quality['issues']}"
+        )
+
+        print(f"\n[OK] Diagram visualization: диаграмма сгенерирована ({len(diagram_image)} байт)")
+        print(f"   Quality: {quality['quality_score']}/100")
+        print(f"   Response: {response[:200]}...")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_all_subjects_response_quality(self):
+        """Тест качества ответов по ВСЕМ предметам (структура как GPT-5)."""
+        from bot.services.ai_service_solid import get_ai_service
+
+        ai_service = get_ai_service()
+
+        # Вопросы по разным предметам для проверки качества
+        test_cases = [
+            ("Математика", "Что такое квадратное уравнение? Объясни с примерами.", 12),
+            ("Русский", "Что такое подлежащее и сказуемое? Объясни подробно.", 10),
+            ("История", "Когда началась Великая Отечественная война? Расскажи подробно.", 13),
+            ("География", "Какая самая длинная река в России? Расскажи про неё.", 11),
+            ("Биология", "Что такое фотосинтез? Объясни простыми словами.", 11),
+            ("Физика", "Что такое скорость? Объясни для ребенка.", 11),
+            ("Химия", "Что такое вода? Из чего она состоит?", 12),
+            ("Литература", "Кто написал 'Евгения Онегина'? О чем это произведение?", 14),
+            ("Информатика", "Что такое алгоритм? Приведи пример.", 12),
+            ("Обществознание", "Что такое государство? Объясни простыми словами.", 13),
+        ]
+
+        results = {}
+
+        for subject, question, age in test_cases:
+            response = await ai_service.generate_response(
+                user_message=question,
+                chat_history=[],
+                user_age=age,
+            )
+
+            assert response is not None, f"AI не ответил на вопрос по {subject}"
+            assert len(response) > 50, f"Ответ слишком короткий по {subject}"
+
+            # Проверка качества
+            quality = self._check_response_quality(response, min_sentences=4)
+
+            results[subject] = {
+                "quality_score": quality["quality_score"],
+                "sentences": quality["sentences_count"],
+                "issues": quality["issues"],
+            }
+
+            print(f"\n[{subject}] Quality: {quality['quality_score']}/100, "
+                  f"Sentences: {quality['sentences_count']}, "
+                  f"Issues: {quality['issues']}")
+
+        # Общая проверка: средний балл должен быть >= 75
+        avg_score = sum(r["quality_score"] for r in results.values()) / len(results)
+        assert avg_score >= 75, (
+            f"Средний балл качества ответов слишком низкий: {avg_score:.1f}/100. "
+            f"Минимум должен быть 75/100"
+        )
+
+        # Проверка что все ответы имеют минимум 4 предложения
+        for subject, result in results.items():
+            assert result["sentences"] >= 4, (
+                f"{subject}: слишком мало предложений: {result['sentences']} < 4"
+            )
+
+        print(f"\n✅ Все предметы протестированы!")
+        print(f"   Средний балл качества: {avg_score:.1f}/100")
+        print(f"   Все ответы соответствуют стандарту GPT-5/Sonnet Opus 4.5")

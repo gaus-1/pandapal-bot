@@ -9,9 +9,12 @@
 @layer base {
   /* Базовая типографика с новыми шрифтами */
   html {
-    /* Используем правильный viewport height для мобильных */
+    /* Используем новые viewport height единицы 2025 для мобильных (dvh/svh/lvh) */
     height: 100%;
+    /* Fallback для старых браузеров */
     height: calc(var(--vh, 1vh) * 100);
+    /* Новые единицы 2025: динамический viewport height (решает проблему с адресной строкой) */
+    height: 100dvh;
   }
 
   body {
@@ -21,8 +24,11 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     transition: background-color var(--transition-base, 200ms ease), color var(--transition-base, 200ms ease);
+    /* Fallback для старых браузеров */
     min-height: 100vh;
     min-height: calc(var(--vh, 1vh) * 100);
+    /* Новые единицы 2025: динамический viewport height */
+    min-height: 100dvh;
   }
 
   /* Убираем дефолтные маркеры списков везде */
@@ -75,16 +81,23 @@
   }
 
   /* Адаптивные размеры заголовков - единая система */
+  /* Используем Tailwind брейкпоинты + fluid typography для плавного масштабирования */
   h1 {
     @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl;
+    /* Fluid typography: плавное масштабирование между брейкпоинтами (fallback для браузеров без clamp) */
+    font-size: clamp(1.5rem, 4vw + 1rem, 3rem);
   }
 
   h2 {
     @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
+    /* Fluid typography */
+    font-size: clamp(1.25rem, 3vw + 0.75rem, 2.25rem);
   }
 
   h3 {
     @apply text-lg sm:text-xl md:text-2xl lg:text-3xl;
+    /* Fluid typography */
+    font-size: clamp(1.125rem, 2.5vw + 0.5rem, 1.875rem);
   }
 
   /* Параграфы - оптимальная читаемость с адаптивностью */
@@ -216,8 +229,35 @@
     @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
+  /* Container queries для адаптивных компонентов */
+  /* Поддержка в Chrome 105+, Safari 16+, Firefox 110+ (~94% пользователей) */
+  @supports (container-type: inline-size) {
+    .container-query {
+      container-type: inline-size;
+    }
+
+    /* Пример: карточки адаптируются к размеру контейнера, а не экрана */
+    @container (min-width: 400px) {
+      .card-grid-responsive {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @container (min-width: 600px) {
+      .card-grid-responsive {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  }
+
   /* Безопасные отступы для мобильных notch/camera */
+  /* Используем логические свойства для поддержки RTL */
   .safe-area-inset {
+    padding-inline-start: env(safe-area-inset-left);
+    padding-inline-end: env(safe-area-inset-right);
+    padding-block-start: env(safe-area-inset-top);
+    padding-block-end: env(safe-area-inset-bottom);
+    /* Fallback для старых браузеров */
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
     padding-top: env(safe-area-inset-top);
@@ -225,6 +265,8 @@
   }
 
   .safe-area-inset-bottom {
+    padding-block-end: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+    /* Fallback */
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
   }
 
