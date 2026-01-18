@@ -510,14 +510,6 @@ export function AIChat({ user }: AIChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Кнопки скролла */}
-      {showScrollButtons && (
-        <div className="absolute right-1 sm:right-1.5 bottom-24 flex flex-col gap-1.5 sm:gap-2">
-          <button onClick={scrollToTop} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-300/80 dark:bg-blue-600/80 text-gray-700 dark:text-white shadow-lg hover:bg-blue-400/80 dark:hover:bg-blue-500/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm text-sm sm:text-base">⬆️</button>
-          <button onClick={scrollToBottom} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-300/80 dark:bg-blue-600/80 text-gray-700 dark:text-white shadow-lg hover:bg-blue-400/80 dark:hover:bg-blue-500/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm text-sm sm:text-base">⬇️</button>
-        </div>
-      )}
-
       {/* Индикатор ответа */}
       {replyToMessage !== null && messages[replyToMessage] && (
         <div className="flex-shrink-0 bg-blue-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-t border-blue-500/30 dark:border-slate-700 px-4 py-2 flex items-center justify-between relative z-10">
@@ -554,6 +546,26 @@ export function AIChat({ user }: AIChatProps) {
           )}
         </div>
       </div>
+
+      {/* Кнопки скролла */}
+      {showScrollButtons && (
+        <div className="absolute right-1 sm:right-1.5 bottom-24 sm:bottom-28 flex flex-col gap-1.5 sm:gap-2 z-30 pointer-events-auto">
+          <button
+            onClick={scrollToTop}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-300/80 dark:bg-blue-600/80 text-gray-700 dark:text-white shadow-lg hover:bg-blue-400/80 dark:hover:bg-blue-500/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm text-sm sm:text-base pointer-events-auto touch-manipulation"
+            aria-label="Вверх"
+          >
+            ⬆️
+          </button>
+          <button
+            onClick={scrollToBottom}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-300/80 dark:bg-blue-600/80 text-gray-700 dark:text-white shadow-lg hover:bg-blue-400/80 dark:hover:bg-blue-500/80 active:scale-95 transition-all flex items-center justify-center backdrop-blur-sm text-sm sm:text-base pointer-events-auto touch-manipulation"
+            aria-label="Вниз"
+          >
+            ⬇️
+          </button>
+        </div>
+      )}
       </div>
     </div>
   );
