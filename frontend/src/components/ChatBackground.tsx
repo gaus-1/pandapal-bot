@@ -484,12 +484,26 @@ export function ChatBackground() {
       {/* Градиентный фон в стиле Telegram */}
       <div className="absolute inset-0 bg-gradient-to-b from-blue-50/50 via-white to-pink-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" />
 
-      {/* SVG с doodles для светлой темы */}
+      {/* Фоновое изображение для светлой темы */}
+      <div
+        className="absolute inset-0 dark:hidden"
+        style={{
+          backgroundImage: 'url(/chat-background-light.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.15,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* SVG с doodles для светлой темы (резерв, если изображение не загрузится) */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none dark:hidden"
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
         xmlns="http://www.w3.org/2000/svg"
+        style={{ opacity: 0.1 }}
       >
         {LIGHT_DOODLES.map((pos, index) => (
           <DoodleElement key={index} x={pos.x} y={pos.y} type={pos.type} isDark={false} />
