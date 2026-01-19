@@ -586,23 +586,16 @@ class TetrisGame:
             self.current_row, self.current_col, self.current_rotation = new_row, new_col, new_rot
 
             # КРИТИЧНО: Проверка блокировки ПОСЛЕ каждого движения вниз
-            # Блокируем фигуру если она не может двигаться дальше вниз
-            # Не блокируем только на row=0 (она только что спавнилась)
-            # Основная проверка: можем ли двигаться дальше вниз?
-            # Это самая надежная проверка - она учитывает и границы, и коллизии
-            if (
-                action in ("down", "tick")
-                and self.current_row >= 0
-                and not self._can_place(
-                    self.current_row + 1, self.current_col, self.current_rotation
-                )
+            # Если фигура не может двигаться дальше вниз - блокируем
+            if action in ("down", "tick") and not self._can_place(
+                self.current_row + 1, self.current_col, self.current_rotation
             ):
                 self._lock_piece()
                 return  # Выходим сразу после блокировки
 
         # Если движение вниз не удалось из-за коллизии - блокируем фигуру
         # КРИТИЧНО: Это происходит когда фигура уперлась в дно или блоки
-        elif action in ("down", "tick") and self.current_row > 0:
+        elif action in ("down", "tick"):
             # Мы попытались идти вниз, но не смогли - блокируем
             self._lock_piece()
 
