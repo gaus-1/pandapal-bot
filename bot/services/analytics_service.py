@@ -5,8 +5,7 @@
 Все метрики записываются в таблицу analytics_metrics для последующего анализа
 """
 
-from datetime import datetime
-from typing import Dict, List, Optional
+from datetime import UTC, datetime
 
 from loguru import logger
 from sqlalchemy.orm import Session
@@ -35,8 +34,8 @@ class AnalyticsService:
         metric_value: float,
         metric_type: str,
         period: str = "day",
-        user_telegram_id: Optional[int] = None,
-        tags: Optional[Dict] = None,
+        user_telegram_id: int | None = None,
+        tags: dict | None = None,
     ) -> AnalyticsMetric:
         """
         Записать метрику в базу данных
@@ -73,8 +72,8 @@ class AnalyticsService:
         self,
         metric_name: str,
         value: float,
-        user_telegram_id: Optional[int] = None,
-        category: Optional[str] = None,
+        user_telegram_id: int | None = None,
+        category: str | None = None,
     ) -> None:
         """
         Записать метрику безопасности
@@ -104,8 +103,8 @@ class AnalyticsService:
         self,
         metric_name: str,
         value: float,
-        user_telegram_id: Optional[int] = None,
-        subject: Optional[str] = None,
+        user_telegram_id: int | None = None,
+        subject: str | None = None,
     ) -> None:
         """
         Записать метрику образовательной эффективности
@@ -135,7 +134,7 @@ class AnalyticsService:
         self,
         metric_name: str,
         value: float,
-        tags: Optional[Dict] = None,
+        tags: dict | None = None,
     ) -> None:
         """
         Записать техническую метрику
@@ -155,7 +154,7 @@ class AnalyticsService:
         except Exception as e:
             logger.error(f"❌ Ошибка записи технической метрики: {e}")
 
-    def get_messages_per_day(self, telegram_id: int, days: int = 7) -> Dict:
+    def get_messages_per_day(self, telegram_id: int, days: int = 7) -> dict:
         """
         Получить статистику сообщений по дням (детальная аналитика для Premium).
 
@@ -166,13 +165,13 @@ class AnalyticsService:
         Returns:
             Dict: Статистика по дням
         """
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
         from sqlalchemy import func, select
 
         from bot.models import ChatHistory
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         start_date = now - timedelta(days=days)
 
         # Подсчет сообщений по дням
@@ -196,7 +195,7 @@ class AnalyticsService:
             "total_messages": sum(messages_per_day.values()),
         }
 
-    def get_most_active_subjects(self, telegram_id: int, limit: int = 5) -> List[Dict]:
+    def get_most_active_subjects(self, telegram_id: int, limit: int = 5) -> list[dict]:
         """
         Получить наиболее активные предметы (детальная аналитика для Premium).
 
@@ -246,7 +245,7 @@ class AnalyticsService:
 
         return [{"subject": subject, "message_count": count} for subject, count in sorted_subjects]
 
-    def get_learning_trends(self, telegram_id: int) -> Dict:
+    def get_learning_trends(self, telegram_id: int) -> dict:
         """
         Получить тренды обучения (детальная аналитика для Premium).
 
@@ -256,13 +255,13 @@ class AnalyticsService:
         Returns:
             Dict: Тренды обучения
         """
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
         from sqlalchemy import func, select
 
         from bot.models import ChatHistory
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         week_ago = now - timedelta(days=7)
         month_ago = now - timedelta(days=30)
 

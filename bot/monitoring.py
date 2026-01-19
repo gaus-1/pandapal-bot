@@ -23,14 +23,12 @@
 и могут быть экспортированы для анализа.
 """
 
-import asyncio
-import json
 import logging
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Any, Dict, Optional
+from typing import Any
 
 from aiohttp import web
 
@@ -57,9 +55,9 @@ class UserActivity:
     user_id: int
     action: str
     timestamp: datetime
-    duration_ms: Optional[float] = None
+    duration_ms: float | None = None
     success: bool = True
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class MonitoringService:
@@ -69,8 +67,8 @@ class MonitoringService:
         """Инициализация сервиса мониторинга."""
         self.metrics_history: list[Metrics] = []
         self.user_activities: list[UserActivity] = []
-        self.error_counts: Dict[str, int] = {}
-        self.performance_stats: Dict[str, Any] = {}
+        self.error_counts: dict[str, int] = {}
+        self.performance_stats: dict[str, Any] = {}
 
     def record_metrics(self, metrics: Metrics):
         """Записывает метрики производительности"""
@@ -98,7 +96,7 @@ class MonitoringService:
 
         logger.info(f"👤 Активность: {activity.user_id} - {activity.action}")
 
-    def get_performance_summary(self) -> Dict[str, Any]:
+    def get_performance_summary(self) -> dict[str, Any]:
         """Возвращает сводку по производительности"""
         if not self.metrics_history:
             return {"status": "no_data"}
@@ -121,7 +119,7 @@ class MonitoringService:
             "timestamp": datetime.now().isoformat(),
         }
 
-    def get_user_stats(self, hours: int = 24) -> Dict[str, Any]:
+    def get_user_stats(self, hours: int = 24) -> dict[str, Any]:
         """Возвращает статистику пользователей"""
         cutoff_time = datetime.now() - timedelta(hours=hours)
         recent_activities = [a for a in self.user_activities if a.timestamp > cutoff_time]
@@ -132,7 +130,7 @@ class MonitoringService:
         unique_users = len(set(a.user_id for a in recent_activities))
         success_rate = sum(1 for a in recent_activities if a.success) / len(recent_activities)
 
-        action_counts: Dict[str, int] = {}
+        action_counts: dict[str, int] = {}
         for activity in recent_activities:
             action_counts[activity.action] = action_counts.get(activity.action, 0) + 1
 
@@ -145,7 +143,7 @@ class MonitoringService:
             "timestamp": datetime.now().isoformat(),
         }
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Возвращает статус здоровья системы"""
         performance = self.get_performance_summary()
 

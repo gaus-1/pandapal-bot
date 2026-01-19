@@ -6,7 +6,6 @@
 """
 
 from datetime import datetime
-from typing import Optional
 
 from loguru import logger
 from sqlalchemy import select
@@ -38,9 +37,9 @@ class UserService(IUserService):
     def get_or_create_user(
         self,
         telegram_id: int,
-        username: Optional[str] = None,
-        first_name: Optional[str] = None,
-        last_name: Optional[str] = None,
+        username: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
     ) -> User:
         """
         Получить существующего пользователя или создать нового
@@ -123,10 +122,10 @@ class UserService(IUserService):
     def update_user_profile(
         self,
         telegram_id: int,
-        age: Optional[int] = None,
-        grade: Optional[int] = None,
-        user_type: Optional[str] = None,
-    ) -> Optional[User]:
+        age: int | None = None,
+        grade: int | None = None,
+        user_type: str | None = None,
+    ) -> User | None:
         """
         Обновить профиль пользователя
 
@@ -171,7 +170,7 @@ class UserService(IUserService):
 
         return user
 
-    def get_user_by_telegram_id(self, telegram_id: int) -> Optional[User]:
+    def get_user_by_telegram_id(self, telegram_id: int) -> User | None:
         """
         Получить пользователя по Telegram ID
 

@@ -8,7 +8,8 @@
 """
 
 from asyncio import Semaphore
-from typing import Any, AsyncIterator, Callable, TypeVar
+from collections.abc import AsyncIterator, Callable
+from typing import TypeVar
 
 from loguru import logger
 

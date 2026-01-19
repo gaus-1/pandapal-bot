@@ -23,8 +23,6 @@ Single Responsibility. Проверяет текстовые сообщения 
 - Interface Segregation: минимальный интерфейс IModerator
 """
 
-from typing import Tuple
-
 from loguru import logger
 
 from bot.config import FORBIDDEN_PATTERNS
@@ -40,7 +38,7 @@ class ContentModerator(IModerator):
     - единственная задача: модерация контента.
     """
 
-    def moderate(self, text: str) -> Tuple[bool, str]:
+    def moderate(self, text: str) -> tuple[bool, str]:
         """
         Проверка контента на безопасность.
 

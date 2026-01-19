@@ -5,8 +5,6 @@
 Поддерживает: английский, немецкий, французский, испанский.
 """
 
-from typing import List, Optional
-
 import httpx
 from loguru import logger
 
@@ -56,8 +54,8 @@ class TranslateService:
         self,
         text: str,
         target_language: str = "ru",
-        source_language: Optional[str] = None,
-    ) -> Optional[str]:
+        source_language: str | None = None,
+    ) -> str | None:
         """
         Переводит текст на целевой язык.
 
@@ -117,7 +115,7 @@ class TranslateService:
             logger.error(f"Ошибка перевода текста: {e}")
             return None
 
-    async def detect_language(self, text: str) -> Optional[str]:
+    async def detect_language(self, text: str) -> str | None:
         """
         Определяет язык текста.
 
@@ -160,7 +158,7 @@ class TranslateService:
 
     async def get_word_translations(
         self, word: str, from_lang: str = "en", to_lang: str = "ru"
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Получает перевод слова с примерами использования.
 
@@ -211,7 +209,7 @@ class TranslateService:
         else:
             return f"• Пример 1 с {word}\n• Пример 2 с {word}"
 
-    def get_supported_languages(self) -> List[str]:
+    def get_supported_languages(self) -> list[str]:
         """Возвращает список поддерживаемых языков."""
         return list(self.SUPPORTED_LANGUAGES.keys())
 
@@ -221,7 +219,7 @@ class TranslateService:
 
 
 # Singleton instance
-_translate_service: Optional[TranslateService] = None
+_translate_service: TranslateService | None = None
 
 
 def get_translate_service() -> TranslateService:

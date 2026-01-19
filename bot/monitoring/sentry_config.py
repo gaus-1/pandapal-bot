@@ -7,7 +7,6 @@
 
 import logging
 import os
-from typing import Optional
 
 try:
     import sentry_sdk
@@ -31,7 +30,7 @@ class SentryConfig:
 
     def __init__(self):
         """Инициализация конфигурации Sentry."""
-        self.dsn: Optional[str] = os.getenv("SENTRY_DSN")
+        self.dsn: str | None = os.getenv("SENTRY_DSN")
         self.environment: str = os.getenv("SENTRY_ENVIRONMENT", "development")
         self.enabled: bool = bool(self.dsn and SENTRY_AVAILABLE)
 
@@ -153,21 +152,21 @@ def is_sentry_enabled() -> bool:
 
 
 # Утилиты для быстрого использования
-def capture_error(exc: Exception, user_id: Optional[str] = None, **kwargs):
+def capture_error(exc: Exception, user_id: str | None = None, **kwargs):
     """Быстрый захват ошибки."""
     if user_id:
         sentry_config.set_user_context(user_id)
     sentry_config.capture_exception(exc, **kwargs)
 
 
-def capture_info(message: str, user_id: Optional[str] = None, **kwargs):
+def capture_info(message: str, user_id: str | None = None, **kwargs):
     """Быстрый захват информационного сообщения."""
     if user_id:
         sentry_config.set_user_context(user_id)
     sentry_config.capture_message(message, level="info", **kwargs)
 
 
-def capture_warning(message: str, user_id: Optional[str] = None, **kwargs):
+def capture_warning(message: str, user_id: str | None = None, **kwargs):
     """Быстрый захват предупреждения."""
     if user_id:
         sentry_config.set_user_context(user_id)

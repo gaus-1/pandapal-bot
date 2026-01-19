@@ -6,13 +6,10 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional
 
 from loguru import logger
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from bot.models import User
 from bot.services.premium_features_service import PremiumFeaturesService
 
 
@@ -57,7 +54,7 @@ class PrioritySupportService:
         self.db = db
         self.premium_service = PremiumFeaturesService(db)
         # В памяти очередь поддержки (в production можно использовать Redis)
-        self._support_queue: List[SupportRequest] = []
+        self._support_queue: list[SupportRequest] = []
 
     def get_support_priority(self, telegram_id: int) -> SupportPriority:
         """
@@ -115,7 +112,7 @@ class PrioritySupportService:
 
         return request
 
-    def get_next_support_request(self) -> Optional[SupportRequest]:
+    def get_next_support_request(self) -> SupportRequest | None:
         """
         Получить следующий запрос из очереди (с учетом приоритета).
 
@@ -134,7 +131,7 @@ class PrioritySupportService:
                 return i + 1
         return len(self._support_queue) + 1
 
-    def get_queue_info(self, telegram_id: int) -> Dict:
+    def get_queue_info(self, telegram_id: int) -> dict:
         """
         Получить информацию о позиции в очереди.
 

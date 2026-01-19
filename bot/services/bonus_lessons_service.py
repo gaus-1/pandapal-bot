@@ -4,9 +4,6 @@
 Предоставляет доступ к эксклюзивным бонусным урокам для VIP пользователей.
 """
 
-from typing import Dict, List, Optional
-
-from loguru import logger
 from sqlalchemy.orm import Session
 
 from bot.services.premium_features_service import PremiumFeaturesService
@@ -104,7 +101,7 @@ class BonusLessonsService:
         """
         return self.premium_service.can_access_bonus_lessons(telegram_id)
 
-    def get_available_lessons(self, telegram_id: int) -> List[Dict]:
+    def get_available_lessons(self, telegram_id: int) -> list[dict]:
         """
         Получить список доступных бонусных уроков.
 
@@ -129,7 +126,7 @@ class BonusLessonsService:
             for lesson in BONUS_LESSONS
         ]
 
-    def get_lesson_content(self, telegram_id: int, lesson_id: str) -> Optional[Dict]:
+    def get_lesson_content(self, telegram_id: int, lesson_id: str) -> dict | None:
         """
         Получить содержание урока.
 

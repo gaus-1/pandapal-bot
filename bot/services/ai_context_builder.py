@@ -6,8 +6,6 @@
 Следует принципу Single Responsibility - единственная задача: построение контекста.
 """
 
-from typing import Dict, List, Optional
-
 from bot.services.yandex_ai_response_generator import IContextBuilder
 
 
@@ -22,9 +20,9 @@ class ContextBuilder(IContextBuilder):
     def build(
         self,
         user_message: str,
-        chat_history: List[Dict] = None,
-        user_age: Optional[int] = None,
-        user_grade: Optional[int] = None,
+        chat_history: list[dict] = None,
+        user_age: int | None = None,
+        user_grade: int | None = None,
     ) -> str:
         """
         Построить контекст для генерации ответа AI.
@@ -58,7 +56,7 @@ class ContextBuilder(IContextBuilder):
 
         return "\n\n".join(context_parts)
 
-    def _get_age_context(self, user_age: int, user_grade: Optional[int] = None) -> str:
+    def _get_age_context(self, user_age: int, user_grade: int | None = None) -> str:
         """
         Получить контекст адаптации под возраст и класс пользователя.
 
@@ -181,7 +179,7 @@ class ContextBuilder(IContextBuilder):
 
         return grade_contexts.get(grade, grade_contexts[5])  # По умолчанию 5 класс
 
-    def _prepare_history_context(self, chat_history: List[Dict]) -> str:
+    def _prepare_history_context(self, chat_history: list[dict]) -> str:
         """
         Подготовить контекст из истории чата.
 

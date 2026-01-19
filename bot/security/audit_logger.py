@@ -12,7 +12,7 @@ OWASP A09:2021 - Security Logging and Monitoring Failures
 import json
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 from loguru import logger
 
@@ -146,8 +146,8 @@ class AuditLogger:
         event_type: SecurityEventType,
         severity: SecurityEventSeverity,
         message: str,
-        user_id: Optional[int] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        user_id: int | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Логирует событие безопасности.
@@ -209,7 +209,7 @@ class AuditLogger:
         )
 
     @staticmethod
-    def log_unauthorized_access(user_id: Optional[int], resource: str, action: str) -> None:
+    def log_unauthorized_access(user_id: int | None, resource: str, action: str) -> None:
         """
         Логирует попытку несанкционированного доступа.
 
@@ -255,7 +255,7 @@ class AuditLogger:
         )
 
     @staticmethod
-    def log_api_error(service: str, error_message: str, user_id: Optional[int] = None) -> None:
+    def log_api_error(service: str, error_message: str, user_id: int | None = None) -> None:
         """
         Логирует ошибку API.
 
@@ -281,8 +281,8 @@ def log_security_event(
     event_type: SecurityEventType,
     message: str,
     severity: SecurityEventSeverity = SecurityEventSeverity.WARNING,
-    user_id: Optional[int] = None,
-    metadata: Optional[Dict[str, Any]] = None,
+    user_id: int | None = None,
+    metadata: dict[str, Any] | None = None,
 ) -> None:
     """Быстрое логирование события безопасности."""
     AuditLogger.log_security_event(event_type, severity, message, user_id, metadata)
