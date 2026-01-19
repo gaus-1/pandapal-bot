@@ -218,6 +218,16 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
 
         result = "".join(unique_sentences)
 
+    # Шаг 7: Удаляем markdown форматирование для человекочитаемости
+    # Убираем заголовки ### ## #
+    result = re.sub(r"^#{1,6}\s+", "", result, flags=re.MULTILINE)
+    # Убираем жирный текст **text** и __text__
+    result = re.sub(r"\*\*(.+?)\*\*", r"\1", result)
+    result = re.sub(r"__(.+?)__", r"\1", result)
+    # Убираем курсив *text* и _text_ (только одиночные, не в словах)
+    result = re.sub(r"(?<!\w)\*(.+?)\*(?!\w)", r"\1", result)
+    result = re.sub(r"(?<!\w)_(.+?)_(?!\w)", r"\1", result)
+
     return result.strip() if result.strip() else text.strip()
 
 
