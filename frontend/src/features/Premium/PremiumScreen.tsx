@@ -48,9 +48,9 @@ const PREMIUM_PLANS: PremiumPlan[] = [
       '📚 Все предметы без ограничений',
       '🌍 Русский, английский, немецкий, французский, испанский',
       '🗺️ Карты стран и городов без ограничений',
+      '🏆 Эксклюзивные достижения',
       '📊 Дополнительные визуализации и графики',
       '🎮 Игры',
-      '🏆 Эксклюзивные достижения',
     ],
   },
 ];
@@ -379,11 +379,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
             return (
               <div
                 key={plan.id}
-                className={`relative p-3 xs:p-4 sm:p-5 md:p-6 rounded-[1.25rem] xs:rounded-[1.5rem] sm:rounded-[1.75rem] md:rounded-[2rem] transition-all ${
-                  plan.popular
-                    ? 'bg-gradient-to-br from-purple-50/85 via-pink-50/85 to-rose-50/85 dark:from-purple-950/35 dark:via-pink-950/35 dark:to-rose-950/35 border border-purple-200/30 dark:border-purple-800/25 shadow-[0_4px_16px_rgba(139,92,246,0.1)] dark:shadow-[0_4px_16px_rgba(139,92,246,0.2)]'
-                    : 'bg-gradient-to-br from-stone-50/90 via-amber-50/90 to-orange-50/90 dark:from-slate-800/90 dark:to-slate-750/90 border border-stone-200/25 dark:border-slate-700/40 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]'
-                }`}
+                className="relative p-3 xs:p-4 sm:p-5 md:p-6 rounded-[1.25rem] xs:rounded-[1.5rem] sm:rounded-[1.75rem] md:rounded-[2rem] transition-all bg-gradient-to-br from-purple-50/85 via-pink-50/85 to-rose-50/85 dark:from-purple-950/35 dark:via-pink-950/35 dark:to-rose-950/35 border border-purple-200/30 dark:border-purple-800/25 shadow-[0_4px_16px_rgba(139,92,246,0.1)] dark:shadow-[0_4px_16px_rgba(139,92,246,0.2)]"
               >
                 {plan.popular && (
                   <div className="inline-block px-2 xs:px-2.5 sm:px-3 py-0.5 xs:py-0.5 sm:py-1 bg-blue-500 text-white text-[10px] xs:text-xs sm:text-xs font-bold rounded-full mb-1 xs:mb-1.5 sm:mb-2">
@@ -413,11 +409,11 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   </div>
                 </div>
 
-                <ul className="grid grid-cols-2 gap-x-1 xs:gap-x-1 sm:gap-x-1.5 gap-y-1 xs:gap-y-1.5 mb-3 xs:mb-3.5 sm:mb-4 md:mb-5 list-none m-0 p-0">
+                <ul className="grid grid-cols-2 gap-x-1 xs:gap-x-1 sm:gap-x-1.5 gap-y-0 mb-3 xs:mb-3.5 sm:mb-4 md:mb-5 list-none m-0 p-0 items-start">
                   {plan.features.map((feature, index) => (
                     <li
                       key={index}
-                      className="text-[10px] xs:text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100 leading-snug m-0 p-0"
+                      className="text-[10px] xs:text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100 leading-tight m-0 p-0"
                     >
                       {feature.trim()}
                     </li>
