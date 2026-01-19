@@ -581,6 +581,17 @@ class TetrisGame:
             # O не вращается
             new_rot = (new_rot + 1) % 4
 
+        # КРИТИЧНО: Для движения вниз - проверяем ЗАРАНЕЕ, не выйдут ли блоки за дно
+        if action in ("down", "tick"):
+            # Проверяем, что ВСЕ блоки фигуры будут в пределах доски
+            blocks = self._get_blocks(new_row, new_col, new_rot)
+            max_row = max(r for r, _ in blocks)
+
+            # Если хотя бы один блок выходит за дно - блокируем СРАЗУ
+            if max_row >= self.height:
+                self._lock_piece()
+                return
+
         # Попытка выполнить действие
         if self._can_place(new_row, new_col, new_rot):
             self.current_row, self.current_col, self.current_rotation = new_row, new_col, new_rot
