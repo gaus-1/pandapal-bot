@@ -136,10 +136,6 @@ update_render_env.py
 *_backup.py
 *_old.py
 
-# Local explanations and notes
-EXPLANATION.txt
-NOTES.txt
-
 # Documentation with secrets
 *SECURITY*.md
 *DEPLOYMENT*.md
