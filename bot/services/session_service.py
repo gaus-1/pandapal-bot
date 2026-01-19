@@ -10,8 +10,7 @@
 
 import json
 import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Optional
+from datetime import UTC, datetime, timedelta
 
 from loguru import logger
 
@@ -86,9 +85,9 @@ class SessionService:
         """
         logger.info("🔄 Инициализация SessionService...")
 
-        self._redis_client: Optional[aioredis.Redis] = None
+        self._redis_client: aioredis.Redis | None = None
         self._use_redis = False
-        self._memory_sessions: Dict[str, SessionData] = {}
+        self._memory_sessions: dict[str, SessionData] = {}
 
         # Конфигурация
         self.session_ttl_days = SESSION_TTL_DAYS
@@ -162,9 +161,7 @@ class SessionService:
 
             self._use_redis = True
             logger.info("✅ Redis клиент создан (подключение произойдет при первом запросе)")
-            logger.info(
-                "📊 Сессии будут храниться в Redis с TTL={} дней".format(self.session_ttl_days)
-            )
+            logger.info(f"📊 Сессии будут храниться в Redis с TTL={self.session_ttl_days} дней")
 
         except Exception as e:
             logger.error(f"❌ Ошибка создания Redis клиента: {e}", exc_info=True)
@@ -187,9 +184,7 @@ class SessionService:
         session_token = secrets.token_urlsafe(32)
 
         # Создаём данные сессии
-        expires_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
-            days=self.session_ttl_days
-        )
+        expires_at = datetime.now(UTC).replace(tzinfo=None) + timedelta(days=self.session_ttl_days)
         session_data = SessionData(
             telegram_id=telegram_id, user_data=user_data, expires_at=expires_at
         )
@@ -206,7 +201,7 @@ class SessionService:
 
         return session_token
 
-    async def get_session(self, session_token: str) -> Optional[SessionData]:
+    async def get_session(self, session_token: str) -> SessionData | None:
         """
         Получить данные сессии по токену.
 
@@ -251,7 +246,7 @@ class SessionService:
             return False
 
         # Обновляем expires_at
-        session.expires_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
+        session.expires_at = datetime.now(UTC).replace(tzinfo=None) + timedelta(
             days=self.session_ttl_days
         )
 
@@ -264,7 +259,7 @@ class SessionService:
         logger.debug(f"🔄 Сессия {session_token[:10]}... продлена на {self.session_ttl_days} дней")
         return True
 
-    # ========== Redis методы ==========
+    # Redis методы
 
     async def _save_to_redis(self, token: str, session_data: SessionData):
         """Сохранить сессию в Redis."""
@@ -282,7 +277,7 @@ class SessionService:
             # Fallback на memory
             self._save_to_memory(token, session_data)
 
-    async def _get_from_redis(self, token: str) -> Optional[SessionData]:
+    async def _get_from_redis(self, token: str) -> SessionData | None:
         """Получить сессию из Redis."""
         try:
             key = f"{self.redis_key_prefix}{token}"
@@ -295,7 +290,7 @@ class SessionService:
             session = SessionData.from_dict(data)
 
             # Проверяем срок действия
-            if datetime.now(timezone.utc).replace(tzinfo=None) > session.expires_at:
+            if datetime.now(UTC).replace(tzinfo=None) > session.expires_at:
                 await self._delete_from_redis(token)
                 return None
 
@@ -316,7 +311,7 @@ class SessionService:
             logger.error(f"❌ Ошибка удаления сессии из Redis: {e}")
             return False
 
-    # ========== In-memory методы ==========
+    # In-memory методы
 
     def _save_to_memory(self, token: str, session_data: SessionData):
         """Сохранить сессию в память."""
@@ -326,7 +321,7 @@ class SessionService:
         # Очищаем старые сессии
         self._cleanup_memory()
 
-    def _get_from_memory(self, token: str) -> Optional[SessionData]:
+    def _get_from_memory(self, token: str) -> SessionData | None:
         """Получить сессию из памяти."""
         session = self._memory_sessions.get(token)
 
@@ -334,7 +329,7 @@ class SessionService:
             return None
 
         # Проверяем срок действия
-        if datetime.now(timezone.utc).replace(tzinfo=None) > session.expires_at:
+        if datetime.now(UTC).replace(tzinfo=None) > session.expires_at:
             self._delete_from_memory(token)
             return None
 
@@ -349,7 +344,7 @@ class SessionService:
 
     def _cleanup_memory(self):
         """Очистка истекших сессий из памяти."""
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(UTC).replace(tzinfo=None)
         expired_tokens = [
             token for token, session in self._memory_sessions.items() if now > session.expires_at
         ]
@@ -360,7 +355,7 @@ class SessionService:
         if expired_tokens:
             logger.debug(f"🧹 Очищено {len(expired_tokens)} истёкших сессий из памяти")
 
-    # ========== Статистика ==========
+    # Статистика
 
     async def get_stats(self) -> dict:
         """Получить статистику по сессиям."""
@@ -395,7 +390,7 @@ class SessionService:
 
 
 # Глобальный экземпляр сервиса сессий
-_session_service: Optional[SessionService] = None
+_session_service: SessionService | None = None
 
 
 def get_session_service() -> SessionService:
