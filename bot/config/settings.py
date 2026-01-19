@@ -64,7 +64,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("SENTRY_DSN", "sentry_dsn"),
     )
 
-    # ============ AI / YANDEX CLOUD (ОСНОВНОЙ) ============
+    # AI / YANDEX CLOUD (ОСНОВНОЙ)
     yandex_cloud_api_key: str = Field(
         ...,
         description="Yandex Cloud API ключ для YandexGPT, SpeechKit, Vision",
@@ -90,7 +90,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("YANDEX_MAPS_API_KEY", "yandex_maps_api_key"),
     )
 
-    # ============ AI SETTINGS ============
+    # AI SETTINGS
     ai_temperature: float = Field(
         default=0.4,
         ge=0.0,
@@ -124,7 +124,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("AI_MAX_TOKENS_PRO", "ai_max_tokens_pro"),
     )
 
-    # ============ CONTENT MODERATION ============
+    # CONTENT MODERATION
     forbidden_topics: str = Field(
         default="политика,насилие,оружие,наркотики,кокаин,героин,марихуана,экстремизм,18+",
         description="Запрещённые темы (через запятую в .env)",
@@ -139,7 +139,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("CONTENT_FILTER_LEVEL", "content_filter_level"),
     )
 
-    # ============ RATE LIMITING ============
+    # RATE LIMITING
     ai_rate_limit_per_minute: int = Field(
         default=30,
         ge=1,
@@ -154,7 +154,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("DAILY_MESSAGE_LIMIT", "daily_message_limit"),
     )
 
-    # ============ MEMORY / HISTORY ============
+    # MEMORY / HISTORY
     chat_history_limit: int = Field(
         default=50,
         ge=1,
@@ -162,7 +162,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("CHAT_HISTORY_LIMIT", "chat_history_limit"),
     )
 
-    # ============ SECURITY ============
+    # SECURITY
     secret_key: str = Field(
         ...,
         min_length=16,
@@ -177,28 +177,28 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("FRONTEND_URL", "frontend_url"),
     )
 
-    # ============ WEBHOOK ============
+    # WEBHOOK
     webhook_domain: str = Field(
         default="pandapal-bot-production.up.railway.app",
         description="Домен для webhook (без https://). Railway URL",
         validation_alias=AliasChoices("WEBHOOK_DOMAIN", "webhook_domain"),
     )
 
-    # ============ LOGGING ============
+    # LOGGING
     log_level: str = Field(
         default="INFO",
         description="Уровень логирования (DEBUG, INFO, WARNING, ERROR)",
         validation_alias=AliasChoices("LOG_LEVEL", "log_level"),
     )
 
-    # ============ ENVIRONMENT ============
+    # ENVIRONMENT
     environment: str = Field(
         default="production",
         description="Окружение приложения (development, test, production)",
         validation_alias=AliasChoices("ENVIRONMENT", "environment"),
     )
 
-    # ============ YOOKASSA PAYMENTS ============
+    # YOOKASSA PAYMENTS
     yookassa_test_mode: bool = Field(
         default=False,
         description="Тестовый режим ЮKassa. True = тестовый магазин, False = продакшн",
@@ -272,7 +272,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("REDIS_URL", "redis_url"),
     )
 
-    # ============ ADMIN ============
+    # ADMIN
     admin_usernames: str = Field(
         default="SavinVE",
         description="Список username админов через запятую",

@@ -364,7 +364,7 @@ class PaymentService:
 
             # Обрабатываем только события, требующие активации подписки
             # payment.waiting_for_capture - не активируем подписку (платеж еще не завершен)
-            # payment.succeeded - активируем подписку ✅
+            # payment.succeeded - активируем подписку
             # payment.canceled - не активируем подписку (платеж отменен)
             # refund.succeeded - не активируем подписку (это возврат, не платеж)
             if event not in ("payment.succeeded",):

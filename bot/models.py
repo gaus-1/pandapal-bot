@@ -365,7 +365,7 @@ class ChatHistory(Base):
         return f"<ChatHistory(id={self.id}, type={self.message_type}, text='{preview}')>"
 
 
-# ============ МОДЕЛИ АНАЛИТИКИ ============
+# МОДЕЛИ АНАЛИТИКИ
 
 
 class AnalyticsMetric(Base):
@@ -899,7 +899,7 @@ class Payment(Base):
         }
 
 
-# ============ МОДЕЛИ ИГР ============
+# МОДЕЛИ ИГР
 
 
 class GameSession(Base):
