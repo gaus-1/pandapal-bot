@@ -170,7 +170,34 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
 
         result = "\n".join(final_lines)
 
-    # Шаг 5: Финальная проверка - удаляем повторяющиеся предложения
+    # Шаг 5: Удаляем повторяющиеся абзацы (более агрессивно)
+    paragraphs = [p.strip() for p in result.split("\n\n") if p.strip()]
+    if len(paragraphs) >= 2:
+        seen_paragraphs = set()
+        unique_paragraphs = []
+
+        for paragraph in paragraphs:
+            normalized_para = re.sub(r"\s+", " ", paragraph.lower().strip())
+            # Проверяем на похожесть (более 70% совпадения слов)
+            is_duplicate = False
+            for seen_para in seen_paragraphs:
+                # Сравниваем слова
+                words_new = set(normalized_para.split())
+                words_seen = set(seen_para.split())
+                if len(words_new) > 0 and len(words_seen) > 0:
+                    common_words = words_new & words_seen
+                    similarity = len(common_words) / max(len(words_new), len(words_seen))
+                    if similarity > 0.7:  # Больше 70% похожи
+                        is_duplicate = True
+                        break
+
+            if not is_duplicate:
+                seen_paragraphs.add(normalized_para)
+                unique_paragraphs.append(paragraph)
+
+        result = "\n\n".join(unique_paragraphs)
+
+    # Шаг 6: Финальная проверка - удаляем повторяющиеся предложения
     sentences = re.split(r"([.!?]\s+)", result)
     if len(sentences) >= 4:
         seen_sentences = set()
