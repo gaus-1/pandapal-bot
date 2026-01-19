@@ -196,10 +196,10 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       )}
 
-      {/* Game Board - уменьшенные блоки, уже окно, выровнено с кнопками, четкие границы */}
-      <div className="flex-1 flex items-end justify-center px-2 sm:px-3 min-h-0 overflow-hidden" style={{ paddingTop: '8px', paddingBottom: '0px' }}>
+      {/* Game Board - видны все границы, блоки не обрезаются */}
+      <div className="flex-1 flex items-center justify-center px-2 sm:px-3 py-2 min-h-0">
         <div className="w-full" style={{ maxWidth: '330px' }}>
-          <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-0.5 shadow-inner mx-auto mb-0 overflow-hidden">
+          <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner mx-auto mb-2">
             <div className="grid" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`, gap: '1px' }}>
               {board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (
