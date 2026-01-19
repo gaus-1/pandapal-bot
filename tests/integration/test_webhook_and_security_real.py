@@ -42,7 +42,7 @@ class TestWebhookAndSecurityReal:
         os.close(db_fd)
         os.unlink(db_path)
 
-    # ========== Security Middleware ==========
+    # Security Middleware
 
     @pytest.mark.asyncio
     async def test_security_headers(self):
@@ -115,7 +115,7 @@ class TestWebhookAndSecurityReal:
         # В зависимости от настроек rate limiter
         assert isinstance(rate_limited, list)
 
-    # ========== Webhook Processing ==========
+    # Webhook Processing
 
     @pytest.mark.asyncio
     async def test_webhook_telegram_update(self, real_db_session):
@@ -193,7 +193,7 @@ class TestWebhookAndSecurityReal:
                 # Должен обработать webhook
                 assert response.status in [200, 204]
 
-    # ========== Error Handling ==========
+    # Error Handling
 
     @pytest.mark.asyncio
     async def test_webhook_invalid_json(self):
@@ -229,7 +229,7 @@ class TestWebhookAndSecurityReal:
         # Должна быть ошибка или игнорирование
         assert response.status in [200, 400, 401, 403]
 
-    # ========== Security Validation ==========
+    # Security Validation
 
     @pytest.mark.asyncio
     async def test_telegram_webhook_validation(self):
