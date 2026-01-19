@@ -179,7 +179,7 @@ def validate_limit(limit_str: str | None, default: int = 50, max_limit: int = 10
         return default
 
 
-# ============ RESPONSE MODELS (Явные контракты данных) ============
+# RESPONSE MODELS (Явные контракты данных)
 
 
 class DetailedAnalyticsResponse(BaseModel):

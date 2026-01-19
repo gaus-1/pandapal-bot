@@ -489,7 +489,7 @@ class GamesService:
 
         return list(self.db.scalars(stmt).all())
 
-    # ============ ЛОГИКА ИГР ============
+    # ЛОГИКА ИГР
 
     async def tic_tac_toe_make_move(self, session_id: int, position: int) -> dict:
         """
