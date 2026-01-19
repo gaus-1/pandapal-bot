@@ -3,6 +3,7 @@ Endpoints для streaming AI чата через SSE.
 """
 
 import json
+import re
 from contextlib import suppress
 
 import httpx
@@ -20,6 +21,35 @@ from bot.services.miniapp_visualization_service import MiniappVisualizationServi
 from bot.services.yandex_ai_response_generator import clean_ai_response
 
 from .helpers import extract_user_name_from_message, send_achievements_event
+
+
+def _format_visualization_explanation(text: str) -> str:
+    """
+    Делает первое короткое резюме визуализации жирным (1–2 предложения),
+    остальной текст оставляет обычным.
+    """
+    text = (text or "").strip()
+    if not text:
+        return text
+
+    # Делим по предложениям
+    sentences = re.split(r"[.!?]+\s+", text)
+    meaningful = [s.strip() for s in sentences if s and s.strip()]
+    if not meaningful:
+        return text
+
+    summary = " ".join(meaningful[:2])
+    rest = " ".join(meaningful[2:])
+
+    # Если в первой части уже есть явное выделение, не добавляем ещё одно
+    if summary.lstrip().startswith(("**", "__", "<b>", "<strong>")):
+        summary_formatted = summary
+    else:
+        summary_formatted = f"**{summary}**"
+
+    if rest:
+        return f"{summary_formatted} {rest}"
+    return summary_formatted
 
 
 async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
@@ -667,17 +697,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 # Для таблиц умножения полностью игнорируем текст от модели и формируем своё пояснение
                 # Для графиков - обрезаем ответ до 1-2 предложений без воды и дублей
                 if visualization_image_base64:
-                    # Удаляем упоминания про "систему автоматически" и подобное
-                    patterns_to_remove = [
-                        r"(?:систем[аеы]?\s+)?автоматически\s+сгенериру[ею]т?\s+(?:изображени[ея]?|диаграмм[аеыу]?|график[и]?|таблиц[аеыу]?|карт[аеыу]?)",
-                        r"систем[аеы]?\s+сгенериру[ею]т?\s+(?:изображени[ея]?|диаграмм[аеыу]?|график[и]?|таблиц[аеыу]?|карт[аеыу]?)\s+автоматически",
-                        r"покажу\s+(?:график|диаграмм[аеыу]?|таблиц[аеыу]?|карт[аеыу]?).*?систем[аеы]?\s+автоматически",
-                        r"систем[аеы]?\s+уже\s+сгенерировал[аи]?\s+(?:изображени[ея]?|диаграмм[аеыу]?|график[и]?|таблиц[аеыу]?|карт[аеыу]?)",
-                        r"систем[аеы]?\s+автоматически\s+добавит",
-                    ]
-                    for pattern in patterns_to_remove:
-                        full_response = re.sub(pattern, "", full_response, flags=re.IGNORECASE)
-
                     if intent.kind == "table":
                         # Формируем своё короткое объяснение для таблиц умножения
                         # УЛУЧШЕНО: Добавлены эмодзи и более увлекательные описания
@@ -1023,6 +1042,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     if not full_response.endswith((".", "!", "?")):
                                         full_response += "."
 
+                        # Делаем первые 1–2 предложения кратким жирным резюме
+                        full_response = _format_visualization_explanation(full_response)
+
                         logger.info(
                             f"✅ Stream: Текст обрезан до короткого объяснения (есть визуализация): {full_response[:100]}"
                         )
@@ -1302,18 +1324,11 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     f"✅ Stream: Fallback - текст заменен на короткий ответ (есть визуализация): {cleaned_response}"
                                 )
 
-                            # Удаляем упоминания про "систему автоматически" и подобное
-                            patterns_to_remove = [
-                                r"(?:систем[аеы]?\s+)?автоматически\s+сгенериру[ею]т?\s+(?:изображени[ея]?|диаграмм[аеыу]?|график[и]?|таблиц[аеыу]?|карт[аеыу]?)",
-                                r"систем[аеы]?\s+сгенериру[ею]т?\s+(?:изображени[ея]?|диаграмм[аеыу]?|график[и]?|таблиц[аеыу]?|карт[аеыу]?)\s+автоматически",
-                                r"покажу\s+(?:график|диаграмм[аеыу]?|таблиц[аеыу]?|карт[аеыу]?).*?систем[аеы]?\s+автоматически",
-                                r"систем[аеы]?\s+уже\s+сгенерировал[аи]?\s+(?:изображени[ея]?|диаграмм[аеыу]?|график[и]?|таблиц[аеыу]?|карт[аеыу]?)",
-                                r"систем[аеы]?\s+автоматически\s+добавит",
-                            ]
-                            for pattern in patterns_to_remove:
-                                cleaned_response = re.sub(
-                                    pattern, "", cleaned_response, flags=re.IGNORECASE
-                                )
+                            # Дополнительная очистка уже выполняется в clean_ai_response,
+                            # здесь не дублируем специальные паттерны.
+
+                            # Делаем первые 1–2 предложения кратким жирным резюме
+                            cleaned_response = _format_visualization_explanation(cleaned_response)
 
                         # Отправляем полный ответ как один chunk
                         import json as json_lib
