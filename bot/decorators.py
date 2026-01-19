@@ -4,10 +4,10 @@
 
 """
 
-import asyncio
 import functools
 import time
-from typing import Any, Callable, Dict, List, Optional, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from loguru import logger
 from tenacity import (
@@ -162,7 +162,7 @@ def validate_input(**validators):
     return decorator
 
 
-def cache_result(ttl: Optional[int] = None):
+def cache_result(ttl: int | None = None):
     """
     Декоратор для кэширования результатов
     Реализует паттерн Cache-Aside
@@ -172,8 +172,8 @@ def cache_result(ttl: Optional[int] = None):
     """
 
     def decorator(func: F) -> F:
-        cache: Dict[str, Any] = {}
-        cache_times: Dict[str, float] = {}
+        cache: dict[str, Any] = {}
+        cache_times: dict[str, float] = {}
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):  # type: ignore
@@ -215,7 +215,7 @@ def rate_limit(calls_per_minute: int = 60):
     """
 
     def decorator(func: F) -> F:
-        call_times: List[float] = []
+        call_times: list[float] = []
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):  # type: ignore
@@ -312,7 +312,7 @@ def memoize(func: F) -> F:
     Returns:
         F: Мемоизированная функция
     """
-    cache: Dict[str, Any] = {}
+    cache: dict[str, Any] = {}
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):  # type: ignore

@@ -11,7 +11,7 @@ OWASP A08:2021 - Software and Data Integrity Failures
 
 import hashlib
 import json
-from typing import Any, Dict, Optional
+from typing import Any
 
 from loguru import logger
 
@@ -62,7 +62,7 @@ class IntegrityChecker:
         return actual_checksum == expected_checksum
 
     @staticmethod
-    def safe_json_loads(json_string: str, max_size: int = 1024 * 1024) -> Optional[Dict[str, Any]]:
+    def safe_json_loads(json_string: str, max_size: int = 1024 * 1024) -> dict[str, Any] | None:
         """
         Безопасная десериализация JSON.
 
@@ -101,7 +101,7 @@ class IntegrityChecker:
             return None
 
     @staticmethod
-    def validate_telegram_data(data: Dict[str, Any]) -> bool:
+    def validate_telegram_data(data: dict[str, Any]) -> bool:
         """
         Валидация данных от Telegram API.
 
@@ -261,7 +261,7 @@ def verify_data_integrity(data: str, checksum: str) -> bool:
     return IntegrityChecker.verify_checksum(data, checksum)
 
 
-def safe_deserialize_json(json_string: str) -> Optional[Dict[str, Any]]:
+def safe_deserialize_json(json_string: str) -> dict[str, Any] | None:
     """Быстрая безопасная десериализация JSON."""
     return IntegrityChecker.safe_json_loads(json_string)
 

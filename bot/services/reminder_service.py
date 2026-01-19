@@ -5,12 +5,10 @@
 """
 
 from datetime import datetime, timedelta
-from typing import List
 
 from aiogram import Bot
 from loguru import logger
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
 from bot.database import get_db
 from bot.models import User
@@ -34,7 +32,7 @@ class ReminderService:
     ]
 
     @staticmethod
-    def get_inactive_users() -> List[User]:
+    def get_inactive_users() -> list[User]:
         """
         Получает список пользователей, неактивных последние 7 дней.
 

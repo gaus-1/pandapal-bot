@@ -8,16 +8,13 @@
 """
 
 import asyncio
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from bot.config import settings
-from bot.models import Payment as PaymentModel
-from bot.models import Subscription, User
+from bot.models import Subscription
 from bot.services.payment_service import PaymentService
 from bot.services.subscription_service import SubscriptionService
 
@@ -52,7 +49,7 @@ class RecurringPaymentService:
         Returns:
             dict: Статистика обработки
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         tomorrow = now + timedelta(days=1)
 
         # Находим активные подписки, которые истекают завтра
@@ -123,7 +120,6 @@ class RecurringPaymentService:
 
             from yookassa import Payment as YooKassaPayment
 
-            plan = self.subscription_service.PLANS[subscription.plan_id]
             plan_price = PaymentService.PLANS[subscription.plan_id]["price"]
 
             # Создаем новый платеж используя сохраненный метод оплаты

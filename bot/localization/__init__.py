@@ -6,9 +6,8 @@
 """
 
 import json
-import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from loguru import logger
 
@@ -28,7 +27,7 @@ class LocalizationManager:
             locale_dir: Путь к директории с файлами переводов
         """
         self.locale_dir = Path(locale_dir)
-        self.translations: Dict[str, Dict[str, Any]] = {}
+        self.translations: dict[str, dict[str, Any]] = {}
         self.current_language = "ru"  # По умолчанию русский
         self.fallback_language = "en"  # Fallback на английский
 
@@ -43,7 +42,7 @@ class LocalizationManager:
         for locale_file in self.locale_dir.glob("*.json"):
             language = locale_file.stem
             try:
-                with open(locale_file, "r", encoding="utf-8") as f:
+                with open(locale_file, encoding="utf-8") as f:
                     self.translations[language] = json.load(f)
             except Exception as e:
                 logger.error(f"❌ Ошибка загрузки переводов для {language}: {e}")
@@ -172,7 +171,7 @@ class LocalizationManager:
             logger.error(f"❌ Ошибка перевода ключа {key}: {e}")
             return f"[{key}]"
 
-    def _get_nested_value(self, key: str, language: str) -> Optional[str]:
+    def _get_nested_value(self, key: str, language: str) -> str | None:
         """
         Получение вложенного значения по ключу.
 
@@ -238,7 +237,7 @@ class LocalizationManager:
 
 
 # Глобальный экземпляр менеджера локализации
-_localization_manager: Optional[LocalizationManager] = None
+_localization_manager: LocalizationManager | None = None
 
 
 def get_localization_manager() -> LocalizationManager:

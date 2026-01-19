@@ -6,13 +6,11 @@
 """
 
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
 
-from loguru import logger
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from bot.models import ChatHistory, User, UserProgress
+from bot.models import ChatHistory, User
 
 
 class PersonalTutorService:
@@ -31,7 +29,7 @@ class PersonalTutorService:
         """
         self.db = db
 
-    def get_learning_plan(self, telegram_id: int) -> Dict:
+    def get_learning_plan(self, telegram_id: int) -> dict:
         """
         Получить персональный план обучения.
 
@@ -69,7 +67,7 @@ class PersonalTutorService:
             "created_at": datetime.utcnow().isoformat(),
         }
 
-    def _analyze_user_activity(self, telegram_id: int) -> Dict:
+    def _analyze_user_activity(self, telegram_id: int) -> dict:
         """Анализ активности пользователя."""
         # Подсчет сообщений за последние 7 дней
         week_ago = datetime.utcnow() - timedelta(days=7)
@@ -128,7 +126,7 @@ class PersonalTutorService:
             "subject_activity": subject_activity,
         }
 
-    def _identify_weak_subjects(self, telegram_id: int) -> List[str]:
+    def _identify_weak_subjects(self, telegram_id: int) -> list[str]:
         """Определение слабых предметов."""
         # Анализируем вопросы по предметам
         activity = self._analyze_user_activity(telegram_id)
@@ -143,8 +141,8 @@ class PersonalTutorService:
         return weak_subjects
 
     def _generate_recommendations(
-        self, activity: Dict, weak_subjects: List[str], user: User
-    ) -> List[Dict]:
+        self, activity: dict, weak_subjects: list[str], user: User
+    ) -> list[dict]:
         """Генерация рекомендаций."""
         recommendations = []
 
@@ -193,7 +191,7 @@ class PersonalTutorService:
 
         return recommendations
 
-    def _generate_weekly_goals(self, activity: Dict, user: User) -> List[Dict]:
+    def _generate_weekly_goals(self, activity: dict, user: User) -> list[dict]:
         """Генерация недельных целей."""
         goals = []
 

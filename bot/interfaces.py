@@ -5,7 +5,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from bot.models import ChatHistory, User
 
@@ -20,9 +20,9 @@ class IUserService(ABC):
     def get_or_create_user(
         self,
         telegram_id: int,
-        username: Optional[str] = None,
-        first_name: Optional[str] = None,
-        last_name: Optional[str] = None,
+        username: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
     ) -> User:
         """Получить или создать пользователя"""
         pass
@@ -38,7 +38,7 @@ class IUserService(ABC):
         pass
 
     @abstractmethod
-    def get_user_by_telegram_id(self, telegram_id: int) -> Optional[User]:
+    def get_user_by_telegram_id(self, telegram_id: int) -> User | None:
         """Получить пользователя по Telegram ID"""
         pass
 
@@ -50,7 +50,7 @@ class IModerationService(ABC):
     """
 
     @abstractmethod
-    def is_safe_content(self, text: str) -> Tuple[bool, Optional[str]]:
+    def is_safe_content(self, text: str) -> tuple[bool, str | None]:
         """
         Проверка безопасности контента
 
@@ -85,9 +85,9 @@ class IAIService(ABC):
     async def generate_response(
         self,
         user_message: str,
-        chat_history: List[Dict[str, str]],
-        user_age: Optional[int] = None,
-        user_grade: Optional[int] = None,  # noqa: ARG002
+        chat_history: list[dict[str, str]],
+        user_age: int | None = None,
+        user_grade: int | None = None,  # noqa: ARG002
     ) -> str:
         """Генерация ответа ИИ"""
         pass
@@ -98,7 +98,7 @@ class IAIService(ABC):
         pass
 
     @abstractmethod
-    def get_model_info(self) -> Dict[str, Any]:
+    def get_model_info(self) -> dict[str, Any]:
         """Получение информации о модели"""
         pass
 
@@ -122,12 +122,12 @@ class IChatHistoryService(ABC):
     @abstractmethod
     def get_formatted_history_for_ai(
         self, telegram_id: int, limit: int = 50
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Получить форматированную историю для ИИ"""
         pass
 
     @abstractmethod
-    def get_recent_messages(self, telegram_id: int, limit: int = 10) -> List[ChatHistory]:
+    def get_recent_messages(self, telegram_id: int, limit: int = 10) -> list[ChatHistory]:
         """Получить последние сообщения"""
         pass
 
@@ -208,6 +208,6 @@ class ILoggerService(ABC):
         pass
 
     @abstractmethod
-    def log_security_event(self, event_type: str, details: Dict[str, Any]) -> None:
+    def log_security_event(self, event_type: str, details: dict[str, Any]) -> None:
         """Логирование событий безопасности"""
         pass
