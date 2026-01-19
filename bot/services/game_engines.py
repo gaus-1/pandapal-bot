@@ -566,6 +566,14 @@ class TetrisGame:
             if self.game_over:
                 return
 
+        # КРИТИЧНО: Проверяем, что текущая фигура не выходит за границы
+        # Это может случиться после загрузки из Redis или ошибки
+        current_blocks = self._get_blocks(self.current_row, self.current_col, self.current_rotation)
+        if any(r >= self.height for r, _ in current_blocks):
+            # Фигура УЖЕ за границами - блокируем немедленно
+            self._lock_piece()
+            return
+
         # Нормализация действия
         action = action.strip().lower()
 
@@ -614,10 +622,14 @@ class TetrisGame:
         """Получить состояние для фронтенда."""
         preview = [row[:] for row in self.board]
         if self.current_shape and not self.game_over:
-            # КРИТИЧНО: Отображаем только блоки в пределах доски (0 <= r < height)
-            for r, c in self._get_blocks(self.current_row, self.current_col, self.current_rotation):
-                if 0 <= r < self.height and 0 <= c < self.width:
-                    preview[r][c] = 2  # Текущая фигура
+            # КРИТИЧНО: Проверяем, что фигура не выходит за границы
+            blocks = self._get_blocks(self.current_row, self.current_col, self.current_rotation)
+            # Если хотя бы один блок за границами - НЕ отображаем фигуру
+            if not any(r >= self.height for r, _ in blocks):
+                # Отображаем только блоки в пределах доски (0 <= r < height)
+                for r, c in blocks:
+                    if 0 <= r < self.height and 0 <= c < self.width:
+                        preview[r][c] = 2  # Текущая фигура
 
         return {
             "board": preview,
