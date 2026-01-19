@@ -198,21 +198,20 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
 
       {/* Game Board - фиксированные границы, блоки не выходят */}
       <div className="flex-1 flex items-center justify-center px-2 sm:px-3 py-2 min-h-0 overflow-hidden">
-        <div className="w-full h-full flex items-center justify-center" style={{ maxWidth: '330px' }}>
-          <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner w-full overflow-hidden" style={{ aspectRatio: '0.5', maxHeight: '100%' }}>
-            <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`, gap: '1px' }}>
+        <div className="w-full h-full flex items-center justify-center" style={{ maxWidth: '330px', maxHeight: '100%' }}>
+          <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner" style={{ width: '100%', aspectRatio: '0.5', maxHeight: '100%' }}>
+            <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`, gridTemplateRows: `repeat(${board.length || 20}, 1fr)`, gap: '1px' }}>
               {board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (
                   <div
                     key={`${rowIndex}-${colIndex}`}
-                    className={`w-full h-full ${
+                    className={`${
                       cell === 0
                         ? 'bg-slate-100 dark:bg-slate-800'
                         : cell === 2
                           ? 'bg-emerald-400 dark:bg-emerald-500'
                           : 'bg-blue-400 dark:bg-blue-500'
                     }`}
-                    style={{ minHeight: '4px', minWidth: '4px' }}
                   />
                 )),
               )}
