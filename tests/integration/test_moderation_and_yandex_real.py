@@ -17,7 +17,7 @@ from bot.services.yandex_cloud_service import YandexCloudService
 class TestModerationAndYandexReal:
     """Реальные тесты модерации и Yandex Cloud"""
 
-    # ========== ContentModerationService ==========
+    # ContentModerationService
 
     @pytest.mark.asyncio
     async def test_moderation_safe_content(self):
@@ -83,7 +83,7 @@ class TestModerationAndYandexReal:
         assert isinstance(is_safe_young, bool)
         assert isinstance(is_safe_older, bool)
 
-    # ========== YandexCloudService (РЕАЛЬНЫЕ API - ТРАТИТ ДЕНЬГИ!) ==========
+    # YandexCloudService (РЕАЛЬНЫЕ API - ТРАТИТ ДЕНЬГИ!)
 
     @pytest.mark.real_api
     @pytest.mark.asyncio
@@ -169,7 +169,7 @@ class TestModerationAndYandexReal:
             # Если API недоступен - это нормально
             pytest.skip(f"Yandex SpeechKit API недоступен: {e}")
 
-    # ========== Интеграция модерации с AI ==========
+    # Интеграция модерации с AI
 
     @pytest.mark.asyncio
     async def test_moderation_before_ai(self):

@@ -90,7 +90,7 @@ class TestAllServicesReal:
         real_db_session.commit()
         return test_user
 
-    # ========== PremiumFeaturesService ==========
+    # PremiumFeaturesService
 
     @pytest.mark.asyncio
     async def test_premium_features_service_free_user(self, real_db_session, test_user):
@@ -131,7 +131,7 @@ class TestAllServicesReal:
         assert service.has_bonus_lessons(111222333)  # VIP имеет доступ
         assert service.has_vip_status(111222333)  # VIP статус
 
-    # ========== PersonalTutorService ==========
+    # PersonalTutorService
 
     @pytest.mark.asyncio
     async def test_personal_tutor_service_free_user(self, real_db_session, test_user):
@@ -152,7 +152,7 @@ class TestAllServicesReal:
         assert isinstance(plan["plan"], str)
         assert len(plan["plan"]) > 0
 
-    # ========== PrioritySupportService ==========
+    # PrioritySupportService
 
     @pytest.mark.asyncio
     async def test_priority_support_service_free_user(self, real_db_session, test_user):
@@ -187,7 +187,7 @@ class TestAllServicesReal:
         wait_time = service.estimate_wait_time(111222333)
         assert "5 минут" in wait_time or "менее" in wait_time
 
-    # ========== BonusLessonsService ==========
+    # BonusLessonsService
 
     @pytest.mark.asyncio
     async def test_bonus_lessons_service_free_user(self, real_db_session, test_user):
@@ -222,7 +222,7 @@ class TestAllServicesReal:
         assert "content" in lesson
         assert "icon" in lesson
 
-    # ========== AnalyticsService (расширенные методы) ==========
+    # AnalyticsService (расширенные методы)
 
     @pytest.mark.asyncio
     async def test_analytics_service_messages_per_day(self, real_db_session, premium_user):
@@ -305,7 +305,7 @@ class TestAllServicesReal:
         assert "average_per_day" in trends
         assert "trend" in trends  # "increasing", "decreasing", "stable"
 
-    # ========== GamificationService (premium achievements) ==========
+    # GamificationService (premium achievements)
 
     @pytest.mark.asyncio
     async def test_gamification_service_premium_achievements(self, real_db_session, premium_user):
