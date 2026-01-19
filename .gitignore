@@ -80,8 +80,6 @@ Thumbs.db
 **/.idea/
 
 # Local development configuration
-.*rules
-.*ignore
 **/.*rules
 **/.*ignore
 **/.c*/
