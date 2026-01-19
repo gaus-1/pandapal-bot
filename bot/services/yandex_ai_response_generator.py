@@ -14,6 +14,7 @@ from loguru import logger
 from bot.config import settings
 from bot.services.knowledge_service import get_knowledge_service
 from bot.services.prompt_builder import get_prompt_builder
+from bot.services.rag import ContextCompressor
 from bot.services.yandex_cloud_service import get_yandex_cloud_service
 
 
@@ -523,11 +524,22 @@ class YandexAIResponseGenerator:
                 ]
                 return random.choice(friendly_responses)
 
-            # Получение релевантных материалов из веб-источников
-            relevant_materials = await self.knowledge_service.get_helpful_content(
-                user_message, user_age
+            # Получение релевантных материалов через enhanced RAG search
+            relevant_materials = await self.knowledge_service.enhanced_search(
+                user_question=user_message,
+                user_age=user_age,
+                top_k=3,  # Топ-3 после reranking
             )
             web_context = self.knowledge_service.format_knowledge_for_ai(relevant_materials)
+
+            # Context compression для экономии токенов
+            if web_context:
+                compressor = ContextCompressor()
+                web_context = compressor.compress(
+                    context=web_context,
+                    question=user_message,
+                    max_sentences=7,  # Максимум 7 самых релевантных предложений
+                )
 
             # Получение проверенных данных для ответа
             verified_context = None
