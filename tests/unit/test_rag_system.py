@@ -445,7 +445,7 @@ def test_all_rag_components_importable():
 
 if __name__ == "__main__":
     # Запуск без pytest для быстрой проверки
-    print("=== RAG System Quick Test ===\n")
+    print("RAG System Quick Test\n")
 
     # QueryExpander
     print("1. QueryExpander:")
@@ -483,4 +483,4 @@ if __name__ == "__main__":
     print(f"   Original: {len(context)} chars")
     print(f"   Compressed: {len(compressed)} chars")
 
-    print("\n=== All RAG components working! ===")
+    print("\nAll RAG components working!")

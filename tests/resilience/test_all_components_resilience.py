@@ -53,7 +53,7 @@ class TestAllComponentsResilience:
         os.close(db_fd)
         os.unlink(db_path)
 
-    # ========== Database Resilience ==========
+    # Database Resilience
 
     @pytest.mark.asyncio
     async def test_database_connection_failure(self, real_db_session):
@@ -104,7 +104,7 @@ class TestAllComponentsResilience:
         # Проверяем что транзакция откатилась
         assert real_db_session.query(Base).count() == 0
 
-    # ========== External API Resilience (Yandex Cloud) ==========
+    # External API Resilience (Yandex Cloud)
 
     @pytest.mark.asyncio
     async def test_yandex_api_timeout(self):
@@ -157,7 +157,7 @@ class TestAllComponentsResilience:
             with pytest.raises((ValueError, Exception)):
                 await service.generate_text_response("Тест")
 
-    # ========== Payment Services Resilience ==========
+    # Payment Services Resilience
 
     @pytest.mark.asyncio
     async def test_yookassa_api_failure(self):
@@ -201,7 +201,7 @@ class TestAllComponentsResilience:
                 response = await create_donation_invoice(request)
                 assert response.status == 500
 
-    # ========== Rate Limiting Resilience ==========
+    # Rate Limiting Resilience
 
     @pytest.mark.asyncio
     async def test_rate_limiting_under_attack(self, real_db_session):
@@ -233,7 +233,7 @@ class TestAllComponentsResilience:
                 len(rate_limited) > 500
             ), f"Rate limiting не работает: {len(rate_limited)}/1000 ограничено"
 
-    # ========== Invalid Data Handling ==========
+    # Invalid Data Handling
 
     @pytest.mark.asyncio
     async def test_invalid_user_data(self, real_db_session):
@@ -286,7 +286,7 @@ class TestAllComponentsResilience:
             response = await miniapp_ai_chat(request)
             assert response.status in [400, 422], "Должна быть ошибка валидации"
 
-    # ========== Service Degradation ==========
+    # Service Degradation
 
     @pytest.mark.asyncio
     async def test_graceful_degradation_ai_service(self):
@@ -332,7 +332,7 @@ class TestAllComponentsResilience:
                 # Должна быть ошибка, но не краш
                 assert response.status in [500, 503]
 
-    # ========== Memory and Resource Leaks ==========
+    # Memory and Resource Leaks
 
     @pytest.mark.asyncio
     async def test_memory_leak_prevention(self, real_db_session):

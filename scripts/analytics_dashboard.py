@@ -36,7 +36,7 @@ def get_stats():
             print(f"🕐 Время: {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}")
             print("=" * 70)
 
-            # ========== ПОЛЬЗОВАТЕЛИ ==========
+            # ПОЛЬЗОВАТЕЛИ
             total_users = conn.execute(text("SELECT COUNT(*) FROM users")).scalar() or 0
             active_users = (
                 conn.execute(text("SELECT COUNT(*) FROM users WHERE is_active = true")).scalar()
@@ -120,13 +120,13 @@ def get_stats():
             print(f"   • От пользователей: {user_msgs:>6}")
             print(f"   • От AI:            {ai_msgs:>6}")
 
-            # ========== СРЕДНИЕ ПОКАЗАТЕЛИ ==========
+            # СРЕДНИЕ ПОКАЗАТЕЛИ
             if total_users > 0:
                 avg_messages_per_user = total_messages / total_users
                 print(f"\n📊 СРЕДНИЕ ПОКАЗАТЕЛИ:")
                 print(f"   Сообщений на пользователя: {avg_messages_per_user:.1f}")
 
-            # ========== ТОП АКТИВНЫХ ПОЛЬЗОВАТЕЛЕЙ ==========
+            # ТОП АКТИВНЫХ ПОЛЬЗОВАТЕЛЕЙ
             result = conn.execute(
                 text(
                     """
@@ -157,7 +157,7 @@ def get_stats():
 
                 print(f"{i:<4} {name:<20} {user_type:<10} {msg_count:<12} {last_msg}")
 
-            # ========== АКТИВНОСТЬ ПО ДНЯМ ==========
+            # АКТИВНОСТЬ ПО ДНЯМ
             result = conn.execute(
                 text(
                     """
@@ -189,7 +189,7 @@ def get_stats():
 
                 print(f"{date:<15} {messages:<12} {bar}")
 
-            # ========== АКТИВНОСТЬ ПО ЧАСАМ (сегодня) ==========
+            # АКТИВНОСТЬ ПО ЧАСАМ (сегодня)
             result = conn.execute(
                 text(
                     """

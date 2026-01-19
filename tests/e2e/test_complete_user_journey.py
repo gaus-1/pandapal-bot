@@ -80,11 +80,11 @@ class TestCompleteUserJourney:
         test_first_name = "Тестовый"
         test_last_name = "Путешественник"
 
-        # ========== ШАГ 1: ПОЛЬЗОВАТЕЛЬ ЗАХОДИТ НА САЙТ ==========
+        # ШАГ 1: ПОЛЬЗОВАТЕЛЬ ЗАХОДИТ НА САЙТ
         # (В реальности это проверяется через Playwright E2E тесты)
         # Здесь мы симулируем что пользователь уже на сайте и готов перейти в Mini App
 
-        # ========== ШАГ 2: ПЕРЕХОД В MINI APP И АУТЕНТИФИКАЦИЯ ==========
+        # ШАГ 2: ПЕРЕХОД В MINI APP И АУТЕНТИФИКАЦИЯ
         # Симулируем Telegram initData (в реальности это приходит от Telegram)
         # Для теста используем упрощённую валидацию
         mock_init_data = (
@@ -145,7 +145,7 @@ class TestCompleteUserJourney:
                 user_service.update_user_profile(telegram_id, age=10, grade=5, user_type="child")
                 real_db_session.commit()
 
-        # ========== ШАГ 3: ПОЛУЧЕНИЕ ПРОФИЛЯ ПОЛЬЗОВАТЕЛЯ (КЕШИРОВАНИЕ) ==========
+        # ШАГ 3: ПОЛУЧЕНИЕ ПРОФИЛЯ ПОЛЬЗОВАТЕЛЯ (КЕШИРОВАНИЕ)
         # Frontend делает запрос через TanStack Query (кешируется автоматически)
         user_request = make_mocked_request(
             "GET",
@@ -171,7 +171,7 @@ class TestCompleteUserJourney:
             assert user_data["user"]["age"] == 10
             assert user_data["user"]["grade"] == 5
 
-        # ========== ШАГ 4: ОБЩЕНИЕ С AI - ТЕКСТОВОЕ СООБЩЕНИЕ ==========
+        # ШАГ 4: ОБЩЕНИЕ С AI - ТЕКСТОВОЕ СООБЩЕНИЕ
         # РЕАЛЬНАЯ модерация, РЕАЛЬНАЯ БД, РЕАЛЬНАЯ геймификация
         # AI мокаем только если нет ключей
         text_message = "Привет! Расскажи про Python"
@@ -235,7 +235,7 @@ class TestCompleteUserJourney:
             if ai_patch:
                 ai_patch.stop()
 
-        # ========== ШАГ 5: ОБЩЕНИЕ С AI - ФОТО ==========
+        # ШАГ 5: ОБЩЕНИЕ С AI - ФОТО
         # РЕАЛЬНАЯ обработка фото если есть Vision API ключи
         photo_base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
         photo_chat_request = make_mocked_request(
@@ -294,7 +294,7 @@ class TestCompleteUserJourney:
             if ai_patch2:
                 ai_patch2.stop()
 
-        # ========== ШАГ 6: ОБЩЕНИЕ С AI - АУДИО ==========
+        # ШАГ 6: ОБЩЕНИЕ С AI - АУДИО
         # РЕАЛЬНАЯ транскрипция если есть SpeechKit ключи
         audio_base64 = "UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQAAAAA="
         audio_chat_request = make_mocked_request(
@@ -358,7 +358,7 @@ class TestCompleteUserJourney:
             if ai_patch3:
                 ai_patch3.stop()
 
-        # ========== ШАГ 7: ПРОВЕРКА ГЕЙМИФИКАЦИИ И ДОСТИЖЕНИЙ ==========
+        # ШАГ 7: ПРОВЕРКА ГЕЙМИФИКАЦИИ И ДОСТИЖЕНИЙ
         # Frontend запрашивает достижения (кешируется через TanStack Query)
         # РЕАЛЬНАЯ геймификация, РЕАЛЬНАЯ БД
         achievements_request = make_mocked_request(
@@ -391,7 +391,7 @@ class TestCompleteUserJourney:
             assert progress.level >= 1
             assert progress.achievements is not None
 
-        # ========== ШАГ 8: ПРОВЕРКА КЕШИРОВАНИЯ ==========
+        # ШАГ 8: ПРОВЕРКА КЕШИРОВАНИЯ
         # Frontend использует TanStack Query для кеширования
         # Повторный запрос профиля должен использовать кеш (на frontend)
         # Здесь мы проверяем что данные корректны в РЕАЛЬНОЙ БД
@@ -416,7 +416,7 @@ class TestCompleteUserJourney:
             user_data2 = json.loads(body.decode("utf-8")) if body else {}
             assert user_data2["user"]["telegram_id"] == telegram_id
 
-        # ========== ФИНАЛЬНАЯ ПРОВЕРКА: ВСЁ СОХРАНЕНО В РЕАЛЬНОЙ БД ==========
+        # ФИНАЛЬНАЯ ПРОВЕРКА: ВСЁ СОХРАНЕНО В РЕАЛЬНОЙ БД
         # Проверяем что все данные сохранены корректно
 
         # Пользователь
