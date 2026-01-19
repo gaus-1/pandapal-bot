@@ -220,15 +220,25 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             response_generator = ai_service.response_generator
             yandex_service = response_generator.yandex_service
 
-            # Получаем веб-контекст
+            # Получаем веб-контекст через enhanced RAG search
             from bot.config import settings
+            from bot.services.rag import ContextCompressor
 
-            relevant_materials = await response_generator.knowledge_service.get_helpful_content(
-                user_message, user.age
+            relevant_materials = await response_generator.knowledge_service.enhanced_search(
+                user_question=user_message,
+                user_age=user.age,
+                top_k=3,  # Топ-3 после reranking
             )
             web_context = response_generator.knowledge_service.format_knowledge_for_ai(
                 relevant_materials
             )
+
+            # Context compression для экономии токенов
+            if web_context:
+                compressor = ContextCompressor()
+                web_context = compressor.compress(
+                    context=web_context, question=user_message, max_sentences=7
+                )
 
             # Добавляем веб-контекст к промпту, если он есть
             if web_context:
