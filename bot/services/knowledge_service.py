@@ -13,6 +13,7 @@ import httpx
 from loguru import logger
 
 from bot.services.cache_service import cache_service
+from bot.services.rag import QueryExpander, ResultReranker, SemanticCache
 from bot.services.web_scraper import EducationalContent, WebScraperService
 
 
@@ -35,6 +36,11 @@ class KnowledgeService:
         self.wikipedia_url = "https://ru.wikipedia.org/w/api.php"
         self.wikipedia_timeout = httpx.Timeout(10.0, connect=5.0)
 
+        # RAG компоненты
+        self.query_expander = QueryExpander()
+        self.reranker = ResultReranker()
+        self.semantic_cache = SemanticCache(ttl_hours=24)
+
         # Запрещенные темы для детей (фильтрация контента)
         self.forbidden_topics = {
             "война",
@@ -50,7 +56,7 @@ class KnowledgeService:
             "экстремизм",
         }
 
-        logger.info("📚 KnowledgeService инициализирован (авто-обновление: ВЫКЛ)")
+        logger.info("📚 KnowledgeService инициализирован (RAG: ON, авто-обновление: ВЫКЛ)")
 
     async def get_knowledge_for_subject(
         self, subject: str, query: str = ""
@@ -82,6 +88,53 @@ class KnowledgeService:
             ]
 
         return subject_materials
+
+    async def enhanced_search(
+        self,
+        user_question: str,
+        user_age: int | None = None,
+        top_k: int = 3,
+    ) -> list[EducationalContent]:
+        """
+        Улучшенный поиск с RAG компонентами.
+
+        Args:
+            user_question: Вопрос пользователя
+            user_age: Возраст для адаптации
+            top_k: Количество результатов
+
+        Returns:
+            Топ-K переранжированных результатов
+        """
+        # 1. Проверяем semantic cache
+        cached_result = self.semantic_cache.get(user_question)
+        if cached_result:
+            logger.debug(f"📚 Semantic cache hit: {user_question[:50]}")
+            return cached_result
+
+        # 2. Query expansion
+        expanded_query = self.query_expander.expand(user_question)
+        logger.debug(f"📚 Expanded query: {expanded_query}")
+
+        # 3. Multi-query поиск
+        query_variations = self.query_expander.generate_variations(user_question)
+        all_results = []
+
+        for variation in query_variations:
+            results = await self.get_helpful_content(variation, user_age)
+            all_results.extend(results)
+
+        # 4. Дедупликация
+        unique_results = self._deduplicate_results(all_results)
+
+        # 5. Reranking
+        ranked_results = self.reranker.rerank(user_question, unique_results, user_age, top_k=top_k)
+
+        # 6. Сохраняем в semantic cache
+        if ranked_results:
+            self.semantic_cache.set(user_question, ranked_results)
+
+        return ranked_results
 
     async def get_helpful_content(
         self,
@@ -570,6 +623,24 @@ class KnowledgeService:
         # Получаем проверенные данные
         verified_data = await self.get_wikipedia_summary(topic, user_age, max_length=400)
         return verified_data
+
+    def _deduplicate_results(self, results: list) -> list:
+        """Удалить дубликаты из результатов."""
+        seen_urls = set()
+        unique = []
+
+        for result in results:
+            url = getattr(result, "source_url", "")
+            if url and url not in seen_urls:
+                seen_urls.add(url)
+                unique.append(result)
+            elif not url:
+                # Если нет URL, проверяем по title
+                title = getattr(result, "title", "")
+                if title and title not in [getattr(r, "title", "") for r in unique]:
+                    unique.append(result)
+
+        return unique
 
 
 # Глобальный экземпляр сервиса
