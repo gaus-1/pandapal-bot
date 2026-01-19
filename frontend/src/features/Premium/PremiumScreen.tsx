@@ -413,11 +413,11 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   </div>
                 </div>
 
-                <ul className="grid grid-cols-2 gap-x-1 xs:gap-x-1 sm:gap-x-1.5 gap-y-0 mb-3 xs:mb-3.5 sm:mb-4 md:mb-5 list-none m-0 p-0">
+                <ul className="grid grid-cols-2 gap-x-1 xs:gap-x-1 sm:gap-x-1.5 gap-y-1 xs:gap-y-1.5 mb-3 xs:mb-3.5 sm:mb-4 md:mb-5 list-none m-0 p-0">
                   {plan.features.map((feature, index) => (
                     <li
                       key={index}
-                      className="text-[10px] xs:text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100 leading-tight m-0 p-0"
+                      className="text-[10px] xs:text-xs sm:text-sm md:text-base text-gray-900 dark:text-slate-100 leading-snug m-0 p-0"
                     >
                       {feature.trim()}
                     </li>
@@ -483,7 +483,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
               Оплата только через Telegram
             </h3>
           </div>
-          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-2 sm:mb-3">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-2 sm:mb-3">
             <span>• Visa, Mastercard, МИР</span>
             <span>• СБП</span>
             <span>• Автоматический чек</span>
