@@ -228,6 +228,27 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
     result = re.sub(r"(?<!\w)\*(.+?)\*(?!\w)", r"\1", result)
     result = re.sub(r"(?<!\w)_(.+?)_(?!\w)", r"\1", result)
 
+    # Шаг 8: Финальная агрессивная дедупликация - удаляем точные повторы
+    # Разбиваем по всем возможным разделителям и удаляем последовательные дубликаты
+    final_chunks = re.split(r"(\n\n|\n|\.  |\.(?=\s+[А-ЯA-Z]))", result)
+    deduplicated_chunks = []
+    prev_chunk_normalized = None
+
+    for chunk in final_chunks:
+        if not chunk or chunk in ("\n", "\n\n", ".  "):
+            deduplicated_chunks.append(chunk)
+            continue
+
+        chunk_normalized = re.sub(r"\s+", " ", chunk.strip().lower())
+        # Пропускаем только если это ТОЧНЫЙ дубликат предыдущего
+        if chunk_normalized and chunk_normalized != prev_chunk_normalized:
+            deduplicated_chunks.append(chunk)
+            prev_chunk_normalized = chunk_normalized
+        elif not chunk_normalized:
+            deduplicated_chunks.append(chunk)
+
+    result = "".join(deduplicated_chunks)
+
     return result.strip() if result.strip() else text.strip()
 
 
