@@ -4,11 +4,11 @@
 
 """
 
-import asyncio
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Pattern, Tuple
+from re import Pattern
+from typing import Any
 
 from loguru import logger
 
@@ -45,11 +45,11 @@ class ModerationResult:
 
     is_safe: bool
     level: ModerationLevel
-    category: Optional[ContentCategory]
+    category: ContentCategory | None
     confidence: float
     reason: str
     suggested_action: str
-    alternative_response: Optional[str] = None
+    alternative_response: str | None = None
 
 
 class AdvancedModerationService:
@@ -76,7 +76,7 @@ class AdvancedModerationService:
 
         logger.info(f"🔒 Продвинутая модерация инициализирована (уровень: {self.filter_level})")
 
-    def _build_category_patterns(self) -> Dict[ContentCategory, List[Pattern]]:
+    def _build_category_patterns(self) -> dict[ContentCategory, list[Pattern]]:
         """Создает паттерны для разных категорий контента"""
         patterns = {}
 
@@ -178,7 +178,7 @@ class AdvancedModerationService:
 
         return patterns
 
-    def _build_educational_contexts(self) -> Dict[str, List[str]]:
+    def _build_educational_contexts(self) -> dict[str, list[str]]:
         """Создает контексты, где обычно допустим образовательный контент"""
         return {
             "biology": ["анатомия", "физиология", "репродукция", "генетика", "эволюция"],
@@ -189,7 +189,7 @@ class AdvancedModerationService:
             "physics": ["взрыв", "энергия", "сила", "давление", "температура"],
         }
 
-    def _build_intent_indicators(self) -> Dict[str, List[str]]:
+    def _build_intent_indicators(self) -> dict[str, list[str]]:
         """Создает индикаторы намерений пользователя"""
         return {
             "educational": [
@@ -207,7 +207,7 @@ class AdvancedModerationService:
             "dangerous": ["хочу", "планирую", "собираюсь", "буду", "решил"],
         }
 
-    def _build_synonyms(self) -> Dict[str, List[str]]:
+    def _build_synonyms(self) -> dict[str, list[str]]:
         """Создает синонимы и эвфемизмы для запрещенных слов"""
         return {
             "наркотики": ["травка", "зелье", "дурь", "химия", "вещество", "порошок"],
@@ -217,7 +217,7 @@ class AdvancedModerationService:
         }
 
     async def moderate_content(
-        self, content: str, user_context: Dict[str, Any] = None
+        self, content: str, user_context: dict[str, Any] = None
     ) -> ModerationResult:
         """
         Основной метод модерации контента
@@ -277,7 +277,7 @@ class AdvancedModerationService:
 
         return text.lower()
 
-    def _analyze_context(self, content: str, user_context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def _analyze_context(self, content: str, user_context: dict[str, Any] = None) -> dict[str, Any]:
         """Анализирует образовательный контекст"""
         context_score = 0
         detected_subjects = []
@@ -297,8 +297,8 @@ class AdvancedModerationService:
         }
 
     def _check_category(
-        self, content: str, category: ContentCategory, patterns: List[Pattern]
-    ) -> Optional[Dict]:
+        self, content: str, category: ContentCategory, patterns: list[Pattern]
+    ) -> dict | None:
         """Проверяет контент на конкретную категорию"""
         matches = []
 
@@ -318,7 +318,7 @@ class AdvancedModerationService:
 
         return None
 
-    def _analyze_intent(self, content: str) -> Dict[str, Any]:
+    def _analyze_intent(self, content: str) -> dict[str, Any]:
         """Анализирует намерения пользователя"""
         intent_scores = {}
 
@@ -344,10 +344,10 @@ class AdvancedModerationService:
 
     def _make_decision(
         self,
-        category_results: List[Dict],
-        intent_analysis: Dict,
-        context_analysis: Dict,
-        user_context: Dict[str, Any] = None,
+        category_results: list[dict],
+        intent_analysis: dict,
+        context_analysis: dict,
+        user_context: dict[str, Any] = None,
     ) -> ModerationResult:
         """Принимает финальное решение по модерации"""
         # Если нет категорий - безопасно
@@ -416,8 +416,8 @@ class AdvancedModerationService:
         return actions[level]
 
     def _get_alternative_response(
-        self, category: ContentCategory, context_analysis: Dict
-    ) -> Optional[str]:
+        self, category: ContentCategory, context_analysis: dict
+    ) -> str | None:
         """Возвращает альтернативный безопасный ответ"""
         alternatives = {
             ContentCategory.VIOLENCE: "Давайте поговорим о мирных способах решения конфликтов! 🤝",
@@ -450,7 +450,7 @@ class AdvancedModerationService:
                 f"Content: {content[:50]}..."
             )
 
-    async def get_moderation_stats(self) -> Dict[str, Any]:
+    async def get_moderation_stats(self) -> dict[str, Any]:
         """Возвращает статистику модерации"""
         # Здесь можно добавить сбор статистики из базы данных
         return {

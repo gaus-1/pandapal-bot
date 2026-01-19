@@ -8,9 +8,8 @@
 import asyncio
 import re
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
-from urllib.parse import urljoin, urlparse
+from datetime import datetime
+from urllib.parse import urljoin
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -38,7 +37,7 @@ class EducationalContent:
     difficulty: str
     source_url: str
     extracted_at: datetime
-    tags: List[str]
+    tags: list[str]
 
 
 @dataclass
@@ -57,7 +56,7 @@ class NewsItem:
     title: str
     content: str
     url: str
-    published_date: Optional[datetime]
+    published_date: datetime | None
     source: str
 
 
@@ -71,7 +70,7 @@ class WebScraperService:
 
     def __init__(self):
         """Инициализация сервиса парсинга."""
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.session: aiohttp.ClientSession | None = None
         self.user_agent = (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
             "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -130,7 +129,7 @@ class WebScraperService:
             await self.session.close()
             self.session = None
 
-    async def scrape_nsportal_tasks(self, limit: int = 50) -> List[EducationalContent]:
+    async def scrape_nsportal_tasks(self, limit: int = 50) -> list[EducationalContent]:
         """
         Парсить задачи с nsportal.ru.
 
@@ -161,7 +160,7 @@ class WebScraperService:
 
     async def _scrape_nsportal_subject(
         self, url: str, subject: str, limit: int
-    ) -> List[EducationalContent]:
+    ) -> list[EducationalContent]:
         """Парсить задачи по конкретному предмету с nsportal.ru."""
         tasks = []
 
@@ -191,9 +190,7 @@ class WebScraperService:
 
         return tasks
 
-    async def _extract_nsportal_material(
-        self, url: str, subject: str
-    ) -> Optional[EducationalContent]:
+    async def _extract_nsportal_material(self, url: str, subject: str) -> EducationalContent | None:
         """Извлечь материал с nsportal.ru."""
         try:
             async with self.session.get(url) as response:
@@ -232,7 +229,7 @@ class WebScraperService:
 
         return None
 
-    async def scrape_school203_content(self, limit: int = 30) -> List[EducationalContent]:
+    async def scrape_school203_content(self, limit: int = 30) -> list[EducationalContent]:
         """
         Парсить контент с school203.spb.ru.
 
@@ -262,7 +259,7 @@ class WebScraperService:
 
     async def _scrape_school203_section(
         self, url: str, section: str, limit: int
-    ) -> List[EducationalContent]:
+    ) -> list[EducationalContent]:
         """Парсить раздел school203.spb.ru."""
         materials = []
 
@@ -293,7 +290,7 @@ class WebScraperService:
 
     async def _extract_school203_material(
         self, article_elem, section: str
-    ) -> Optional[EducationalContent]:
+    ) -> EducationalContent | None:
         """Извлечь материал из статьи school203.spb.ru."""
         try:
             # Извлекаем заголовок
@@ -325,7 +322,7 @@ class WebScraperService:
 
         return None
 
-    async def scrape_news(self, days_back: int = 7) -> List[NewsItem]:
+    async def scrape_news(self, days_back: int = 7) -> list[NewsItem]:
         """
         Парсить новости с образовательных сайтов.
 
@@ -351,7 +348,7 @@ class WebScraperService:
 
         return news
 
-    async def _scrape_nsportal_news(self, days_back: int) -> List[NewsItem]:
+    async def _scrape_nsportal_news(self, days_back: int) -> list[NewsItem]:
         """Парсить новости с nsportal.ru."""
         news = []
 
@@ -381,7 +378,7 @@ class WebScraperService:
 
         return news
 
-    async def _scrape_school203_news(self, days_back: int) -> List[NewsItem]:
+    async def _scrape_school203_news(self, days_back: int) -> list[NewsItem]:
         """Парсить новости с school203.spb.ru."""
         news = []
 
@@ -412,7 +409,7 @@ class WebScraperService:
 
         return news
 
-    async def _extract_news_item(self, item_elem, source: str) -> Optional[NewsItem]:
+    async def _extract_news_item(self, item_elem, source: str) -> NewsItem | None:
         """Извлечь новость из элемента."""
         try:
             # Извлекаем заголовок
@@ -459,14 +456,14 @@ class WebScraperService:
 
         return None
 
-    async def get_educational_knowledge_base(self) -> Dict[str, List[EducationalContent]]:
+    async def get_educational_knowledge_base(self) -> dict[str, list[EducationalContent]]:
         """
         Получить базу знаний по всем предметам.
 
         Returns:
             Dict[str, List[EducationalContent]]: Словарь с материалами по предметам.
         """
-        knowledge_base: Dict[str, List[EducationalContent]] = {}
+        knowledge_base: dict[str, list[EducationalContent]] = {}
 
         try:
             # Собираем материалы с nsportal.ru

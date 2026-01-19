@@ -13,15 +13,13 @@
 """
 
 import asyncio
-import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any
 
 import psutil
 from loguru import logger
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
 
 from bot.database import get_db
 from bot.models import ChatHistory, User
@@ -121,7 +119,6 @@ class SimpleMonitor:
         """Проверка подключения к БД."""
         try:
             # Используем контекстный менеджер правильно
-            from contextlib import contextmanager
 
             # get_db() это @contextmanager, используем с with
             with get_db() as db:
@@ -191,7 +188,7 @@ class SimpleMonitor:
         else:
             return f"{minutes}м"
 
-    async def get_simple_analytics(self) -> Dict[str, Any]:
+    async def get_simple_analytics(self) -> dict[str, Any]:
         """Простая аналитика."""
         try:
             with get_db() as db:

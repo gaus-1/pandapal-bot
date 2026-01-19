@@ -7,8 +7,7 @@
 
 import hashlib
 import hmac
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 from loguru import logger
 
@@ -56,8 +55,8 @@ class TelegramAuthService:
         auth_date = auth_data.get("auth_date")
         if auth_date:
             try:
-                auth_datetime = datetime.fromtimestamp(int(auth_date), tz=timezone.utc)
-                if datetime.now(timezone.utc) - auth_datetime > timedelta(hours=24):
+                auth_datetime = datetime.fromtimestamp(int(auth_date), tz=UTC)
+                if datetime.now(UTC) - auth_datetime > timedelta(hours=24):
                     logger.warning("⚠️ Данные авторизации устарели (>24 часов)")
                     return False
             except (ValueError, OSError) as e:

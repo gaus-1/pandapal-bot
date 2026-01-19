@@ -11,8 +11,6 @@ OWASP A05:2021 - Security Misconfiguration
 - Permissions-Policy (контроль API браузера)
 """
 
-from typing import Dict
-
 
 class SecurityHeaders:
     """
@@ -23,7 +21,7 @@ class SecurityHeaders:
     """
 
     @staticmethod
-    def get_security_headers() -> Dict[str, str]:
+    def get_security_headers() -> dict[str, str]:
         """
         Возвращает полный набор заголовков безопасности.
 
@@ -103,7 +101,7 @@ class SecurityHeaders:
         )
 
     @staticmethod
-    def get_minimal_headers() -> Dict[str, str]:
+    def get_minimal_headers() -> dict[str, str]:
         """
         Возвращает минимальный набор заголовков для API.
 
@@ -118,7 +116,7 @@ class SecurityHeaders:
         }
 
     @staticmethod
-    def validate_headers(headers: Dict[str, str]) -> Dict[str, bool]:
+    def validate_headers(headers: dict[str, str]) -> dict[str, bool]:
         """
         Проверяет корректность заголовков безопасности.
 
@@ -143,18 +141,18 @@ class SecurityHeaders:
 
 
 # Утилиты для быстрого доступа
-def get_standard_security_headers() -> Dict[str, str]:
+def get_standard_security_headers() -> dict[str, str]:
     """Получить стандартные заголовки безопасности."""
     return SecurityHeaders.get_security_headers()
 
 
-def get_telegram_security_headers() -> Dict[str, str]:
+def get_telegram_security_headers() -> dict[str, str]:
     """Получить заголовки безопасности для Telegram WebApp."""
     headers = SecurityHeaders.get_security_headers()
     headers["Content-Security-Policy"] = SecurityHeaders.get_csp_for_telegram_webapp()
     return headers
 
 
-def get_api_security_headers() -> Dict[str, str]:
+def get_api_security_headers() -> dict[str, str]:
     """Получить минимальные заголовки безопасности для API."""
     return SecurityHeaders.get_minimal_headers()

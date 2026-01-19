@@ -10,8 +10,6 @@
 
 import asyncio
 import time
-from collections import defaultdict
-from typing import Optional
 
 from aiohttp import web
 from loguru import logger
@@ -53,7 +51,7 @@ class OverloadProtection:
 
         # Очередь запросов
         self._queue: asyncio.Queue = asyncio.Queue(maxsize=500)
-        self._queue_processor_task: Optional[asyncio.Task] = None
+        self._queue_processor_task: asyncio.Task | None = None
 
         # Статистика
         self._stats = {
@@ -137,7 +135,7 @@ class OverloadProtection:
 
             return response
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(f"❌ Timeout при обработке {request.path}")
             return web.json_response(
                 {"error": "Request timeout", "message": "Please try again"},

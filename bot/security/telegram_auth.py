@@ -8,7 +8,6 @@ OWASP: A02:2021 - Cryptographic Failures
 import hashlib
 import hmac
 import time
-from typing import Dict, Optional
 from urllib.parse import parse_qsl
 
 from loguru import logger
@@ -27,7 +26,7 @@ class TelegramWebAppAuth:
     """
 
     @staticmethod
-    def validate_init_data(init_data: str) -> Optional[Dict[str, str]]:
+    def validate_init_data(init_data: str) -> dict[str, str] | None:
         """
         Проверка подлинности initData от Telegram.
 
@@ -60,7 +59,7 @@ class TelegramWebAppAuth:
 
             # Вычисляем secret_key = HMAC-SHA256(bot_token, "WebAppData")
             secret_key = hmac.new(
-                key="WebAppData".encode("utf-8"),
+                key=b"WebAppData",
                 msg=settings.telegram_bot_token.encode("utf-8"),
                 digestmod=hashlib.sha256,
             ).digest()
@@ -98,7 +97,7 @@ class TelegramWebAppAuth:
             return None
 
     @staticmethod
-    def extract_user_data(validated_data: Dict[str, str]) -> Optional[Dict]:
+    def extract_user_data(validated_data: dict[str, str]) -> dict | None:
         """
         Извлечь данные пользователя из валидированного initData.
 

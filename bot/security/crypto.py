@@ -12,8 +12,6 @@ OWASP A02:2021 - Cryptographic Failures
 
 import base64
 import hashlib
-import os
-from typing import Optional
 
 from cryptography.fernet import Fernet
 from loguru import logger
@@ -29,7 +27,7 @@ class CryptoService:
     - Хеширование для целостности данных
     """
 
-    def __init__(self, secret_key: Optional[str] = None):
+    def __init__(self, secret_key: str | None = None):
         """
         Инициализация криптосервиса.
 
@@ -93,7 +91,7 @@ class CryptoService:
             logger.error(f"❌ Ошибка дешифрования: {e}")
             raise
 
-    def hash_data(self, data: str, salt: Optional[str] = None) -> str:
+    def hash_data(self, data: str, salt: str | None = None) -> str:
         """
         Создает хеш данных с солью для целостности.
 
@@ -109,7 +107,7 @@ class CryptoService:
 
         return hashlib.sha256(data.encode("utf-8")).hexdigest()
 
-    def verify_hash(self, data: str, hash_value: str, salt: Optional[str] = None) -> bool:
+    def verify_hash(self, data: str, hash_value: str, salt: str | None = None) -> bool:
         """
         Проверяет целостность данных по хешу.
 
@@ -158,13 +156,13 @@ class SecureStorage:
         """
         self.crypto = crypto_service
 
-    def encrypt_field(self, value: Optional[str]) -> Optional[str]:
+    def encrypt_field(self, value: str | None) -> str | None:
         """Шифрует поле перед сохранением в БД."""
         if not value:
             return None
         return self.crypto.encrypt(value)
 
-    def decrypt_field(self, encrypted_value: Optional[str]) -> Optional[str]:
+    def decrypt_field(self, encrypted_value: str | None) -> str | None:
         """Дешифрует поле при чтении из БД."""
         if not encrypted_value:
             return None
