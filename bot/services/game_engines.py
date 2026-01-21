@@ -514,6 +514,10 @@ class TetrisGame:
         # Для I-фигуры со смещениями -1..2, кол=5 даст 4..6 (ровный центр)
         self.current_col = self.width // 2 + (1 if self.width % 2 == 0 else 0)
 
+        logger.debug(
+            f"✨ Tetris spawn: {self.current_shape} на позиции ({self.current_row},{self.current_col})"
+        )
+
         # ПРОВЕРКА GAME OVER УБРАНА - фигура всегда может быть размещена на пустой доске
         # Game Over проверяется только при спавне новой фигуры после _lock_piece()
 
@@ -552,6 +556,10 @@ class TetrisGame:
 
     def _lock_piece(self) -> None:
         """Закрепить фигуру и очистить линии."""
+        logger.debug(
+            f"🔒 Tetris lock_piece: pos=({self.current_row},{self.current_col}), shape={self.current_shape}"
+        )
+
         # КРИТИЧНО: Блокируем только блоки, которые находятся в пределах доски
         # Блоки ниже доски (r >= height) или за боковыми границами игнорируем
         blocks_to_lock = []
@@ -598,10 +606,17 @@ class TetrisGame:
     def step(self, action: str) -> None:
         """Обработка хода."""
         if self.game_over:
+            logger.debug(f"🎮 Tetris step: игра окончена, action={action}")
             return
+
+        logger.debug(
+            f"🎮 Tetris step: action={action}, pos=({self.current_row},{self.current_col}), "
+            f"shape={self.current_shape}, rot={self.current_rotation}"
+        )
 
         # КРИТИЧНО: Если нет фигуры - создаем новую
         if not self.current_shape:
+            logger.debug("🎮 Tetris step: нет фигуры, создаем новую")
             self._spawn_new_piece()
             # Если после спавна game_over - выходим
             if self.game_over:

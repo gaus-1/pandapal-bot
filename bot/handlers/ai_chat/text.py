@@ -68,6 +68,13 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
 
     try:
         # Секретный запрос для особенного человека
+        # Debug: логируем что пришло
+        if "<" in user_message or ">" in user_message or "*" in user_message:
+            logger.debug(
+                f"🔍 Проверка секретного запроса: '{user_message}' (длина: {len(user_message.strip())})"
+            )
+            logger.debug(f"🔍 Байты: {user_message.strip().encode('utf-8')}")
+
         if user_message.strip() == "<>***<>":
             special_message = "Создано с любовью для Агаты ❤️❤️❤️"
             await message.answer(text=special_message)
