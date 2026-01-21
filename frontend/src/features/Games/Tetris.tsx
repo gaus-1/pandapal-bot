@@ -221,11 +221,11 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
                   // Определяем цвет клетки
                   let cellClass = 'bg-slate-100 dark:bg-slate-800'; // Пустая клетка
 
-                  if (cell === 1) {
-                    // Текущая фигура (падающая)
+                  if (cell === 2) {
+                    // Текущая фигура (падающая) - backend использует 2 для падающей
                     cellClass = 'bg-blue-500 dark:bg-blue-500';
-                  } else if (cell === 2) {
-                    // Зафиксированная фигура
+                  } else if (cell === 1) {
+                    // Зафиксированная фигура - backend использует 1 для зафиксированной
                     cellClass = 'bg-emerald-500 dark:bg-emerald-500';
                   }
 
