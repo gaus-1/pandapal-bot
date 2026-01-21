@@ -1,6 +1,5 @@
 /**
- * Tetris Game Component - FIXED VERSION
- * Исправлена проблема с выходом блоков за нижнюю границу окна
+ * Tetris Game Component - SIMPLE WORKING VERSION
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -28,7 +27,6 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
   const intervalRef = useRef<number | null>(null);
   const mountedRef = useRef(true);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [cellSize, setCellSize] = useState(0);
 
   // Загрузка состояния
   const loadState = useCallback(async () => {
@@ -155,36 +153,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         intervalRef.current = null;
       }
     };
-  }, [state?.level, state?.game_over]);
-
-  // Рассчитываем размер ячеек в зависимости от доступного пространства
-  useEffect(() => {
-    const calculateCellSize = () => {
-      if (!containerRef.current) return;
-
-      const containerWidth = containerRef.current.clientWidth;
-      const containerHeight = containerRef.current.clientHeight;
-
-      // Максимальная ширина - 10 ячеек (колонки)
-      const maxWidth = Math.floor((containerWidth - 32) / 10); // 32px для padding
-
-      // Максимальная высота - 20 ячеек (строки)
-      const maxHeight = Math.floor((containerHeight - 32) / 20);
-
-      // Берем минимальное значение для сохранения пропорций
-      const size = Math.min(maxWidth, maxHeight, 30); // Ограничиваем максимальный размер 30px
-
-      // Минимальный размер 8px для мобильных устройств
-      setCellSize(Math.max(8, size));
-    };
-
-    calculateCellSize();
-    window.addEventListener('resize', calculateCellSize);
-
-    return () => {
-      window.removeEventListener('resize', calculateCellSize);
-    };
-  }, []);
+  }, [state?.level, state?.game_over]); // Зависимости только от level и game_over, не от всего state
 
   if (!state) {
     return (
@@ -225,44 +194,47 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       )}
 
-      {/* Game Board - АДАПТИВНЫЙ РАЗМЕР с динамическим расчетом */}
+      {/* Game Board - АДАПТИВНЫЙ РАЗМЕР с фиксированным aspect ratio */}
       <div
         ref={containerRef}
         className="flex items-center justify-center px-2 sm:px-3 py-2 w-full flex-1 overflow-hidden min-h-0"
       >
-        <div
-          className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-4 shadow-inner mx-auto overflow-hidden"
-          style={{
-            width: `${cellSize * 10 + 8}px`, // 10 ячеек + gap
-            height: `${cellSize * 20 + 8}px`, // 20 ячеек + gap
-          }}
-        >
+        <div className="relative w-full max-w-[95vw] max-h-[65vh] mx-auto">
           <div
-            className="grid w-full h-full"
+            className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-3 shadow-inner mx-auto overflow-hidden"
             style={{
-              gridTemplateColumns: `repeat(10, ${cellSize}px)`,
-              gridTemplateRows: `repeat(20, ${cellSize}px)`,
-              gap: '1px',
+              // Фиксированный aspect ratio 0.5 (ширина:высота = 1:2 для 10x20 клеток)
+              aspectRatio: '0.5',
+              // Ширина занимает максимум 90% от доступной ширины или 50% от высоты
+              width: 'min(90vw, calc((100vh - 180px) * 0.5))',
+              maxHeight: 'calc(100vh - 180px)'
             }}
           >
-            {board.map((row, rowIndex) =>
-              row.map((cell, colIndex) => (
-                <div
-                  key={`${rowIndex}-${colIndex}`}
-                  className={`w-full h-full ${
-                    cell === 0
-                      ? 'bg-slate-100 dark:bg-slate-800'
-                      : cell === 2
-                        ? 'bg-emerald-400 dark:bg-emerald-500'
-                        : 'bg-blue-400 dark:bg-blue-500'
-                  }`}
-                  style={{
-                    width: `${cellSize}px`,
-                    height: `${cellSize}px`,
-                  }}
-                />
-              )),
-            )}
+            {/* gap: 1px делает блоки визуально чуть меньше и раздельнее */}
+            <div
+              className="grid w-full h-full"
+              style={{
+                gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`,
+                gridTemplateRows: `repeat(${board.length || 20}, 1fr)`,
+                gap: '1px'
+              }}
+            >
+              {board.map((row, rowIndex) =>
+                row.map((cell, colIndex) => (
+                  <div
+                    key={`${rowIndex}-${colIndex}`}
+                    className={`w-full h-full ${
+                      cell === 0
+                        ? 'bg-slate-100 dark:bg-slate-800'
+                        : cell === 2
+                          ? 'bg-emerald-400 dark:bg-emerald-500'
+                          : 'bg-blue-400 dark:bg-blue-500'
+                    }`}
+                    style={{ aspectRatio: '1' }}
+                  />
+                )),
+              )}
+            </div>
           </div>
         </div>
       </div>
