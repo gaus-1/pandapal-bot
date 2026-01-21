@@ -67,6 +67,41 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
     await message.bot.send_chat_action(message.chat.id, "typing")
 
     try:
+        # Секретный запрос для особенного человека
+        if user_message.strip() == "<>***<>":
+            special_message = "Создано с любовью для Агаты ❤️❤️❤️"
+            await message.answer(text=special_message)
+            logger.info(f"💝 Секретное сообщение отправлено пользователю {telegram_id}")
+            return
+
+        # Проверка взрослых тем - объяснение простыми словами
+        from bot.services.adult_topics_service import get_adult_topics_service
+
+        adult_topics_service = get_adult_topics_service()
+        detected_topic = adult_topics_service.detect_topic(user_message)
+
+        if detected_topic:
+            explanation = adult_topics_service.get_explanation(detected_topic.topic_id)
+            if explanation:
+                await message.answer(text=explanation)
+                logger.info(
+                    f"📚 Объяснена взрослая тема '{detected_topic.title}' пользователю {telegram_id}"
+                )
+                # Сохраняем в историю для контекста
+                with get_db() as db:
+                    history_service = ChatHistoryService(db)
+                    history_service.add_message(
+                        telegram_id=telegram_id,
+                        message_text=user_message,
+                        message_type="user",
+                    )
+                    history_service.add_message(
+                        telegram_id=telegram_id,
+                        message_text=explanation,
+                        message_type="ai",
+                    )
+                return
+
         # Продвинутая проверка контента на безопасность
         moderation_service = ContentModerationService()
 
