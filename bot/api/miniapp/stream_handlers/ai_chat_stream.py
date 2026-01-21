@@ -5,6 +5,7 @@
 и лучшей поддерживаемости (SOLID: SRP).
 """
 
+import asyncio
 import json
 import re
 from contextlib import suppress
@@ -1229,7 +1230,15 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                 # Сохраняем в историю
                 try:
-                    premium_service.increment_request_count(telegram_id)
+                    limit_reached, total_requests = premium_service.increment_request_count(
+                        telegram_id
+                    )
+
+                    # Проактивное уведомление от панды при достижении лимита (фоновая задача)
+                    if limit_reached:
+                        asyncio.create_task(
+                            premium_service.send_limit_reached_notification_async(telegram_id)
+                        )
                     history_service.add_message(telegram_id, user_message, "user")
                     # Формируем image_url из base64 если есть визуализация
                     image_url = None
@@ -1510,7 +1519,17 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                         # Сохраняем в историю
                         try:
-                            premium_service.increment_request_count(telegram_id)
+                            limit_reached, total_requests = premium_service.increment_request_count(
+                                telegram_id
+                            )
+
+                            # Проактивное уведомление от панды при достижении лимита (фоновая задача)
+                            if limit_reached:
+                                asyncio.create_task(
+                                    premium_service.send_limit_reached_notification_async(
+                                        telegram_id
+                                    )
+                                )
                             history_service.add_message(telegram_id, user_message, "user")
                             # Формируем image_url из base64 если есть визуализация
                             image_url = None

@@ -119,7 +119,17 @@ class MiniappPhotoService:
                         premium_service = PremiumFeaturesService(db)
                         history_service = ChatHistoryService(db)
 
-                        premium_service.increment_request_count(telegram_id)
+                        limit_reached, total_requests = premium_service.increment_request_count(
+                            telegram_id
+                        )
+
+                        # Проактивное уведомление от панды при достижении лимита (фоновая задача)
+                        if limit_reached:
+                            import asyncio
+
+                            asyncio.create_task(
+                                premium_service.send_limit_reached_notification_async(telegram_id)
+                            )
                         user_msg_text = message or "📷 Фото"
                         history_service.add_message(telegram_id, user_msg_text, "user")
                         history_service.add_message(telegram_id, full_response, "ai")
