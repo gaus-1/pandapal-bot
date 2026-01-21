@@ -161,7 +161,7 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
     <div className="flex flex-col h-full bg-white dark:bg-gray-900 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <h1 className="text-base font-bold text-gray-900 dark:text-slate-100">📚 Эрудит</h1>
+        <h1 className="text-base font-bold text-gray-900 dark:text-slate-100">📚 эрудит</h1>
         <button
           onClick={onBack}
           className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
@@ -182,11 +182,20 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
         </div>
       </div>
 
+      {/* Instructions */}
+      {state.current_move.length === 0 && !selectedTile && (
+        <div className="px-2 py-1 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 flex-shrink-0">
+          <div className="text-[10px] text-blue-800 dark:text-blue-200">
+            💡 <strong>Как играть:</strong> Выбери фишку → Нажми на клетку доски → Подтверди ход
+          </div>
+        </div>
+      )}
+
       {/* Game Board */}
-      <div className="flex-1 overflow-auto p-4">
+      <div className="flex-1 overflow-hidden flex items-center justify-center p-1 min-h-0">
         <div
-          className="grid gap-0.5 max-w-full mx-auto"
-          style={{ gridTemplateColumns: 'repeat(15, minmax(0, 1fr))', maxWidth: '100%' }}
+          className="grid gap-0.5 w-full h-full"
+          style={{ gridTemplateColumns: 'repeat(15, minmax(0, 1fr))', aspectRatio: '1', maxWidth: '100%', maxHeight: '100%' }}
         >
           {state.board.map((row, r) =>
             row.map((cell, c) => {
@@ -214,16 +223,16 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
       </div>
 
       {/* Player Tiles */}
-      <div className="p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-        <div className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Ваши фишки:</div>
-        <div className="flex flex-wrap gap-2">
+      <div className="p-2 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <div className="text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">Ваши фишки:</div>
+        <div className="flex flex-wrap gap-1">
           {state.player_tiles.map((tile, idx) => (
             <button
               key={idx}
               onClick={() => setSelectedTile(selectedTile === tile ? null : tile)}
               className={`
-                w-10 h-10 flex items-center justify-center
-                text-lg font-bold rounded
+                w-7 h-7 flex items-center justify-center
+                text-xs font-bold rounded
                 border-2
                 ${selectedTile === tile
                   ? 'bg-blue-500 text-white border-blue-600'
@@ -236,6 +245,11 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
             </button>
           ))}
         </div>
+        {selectedTile && (
+          <div className="text-[10px] text-blue-600 dark:text-blue-400 mt-0.5">
+            Выбрано: <strong>{selectedTile === '*' ? '★ (джокер)' : selectedTile}</strong> → Нажми на клетку доски
+          </div>
+        )}
       </div>
 
       {/* Action Buttons */}
