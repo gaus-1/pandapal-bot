@@ -445,355 +445,498 @@ class Game2048:
         self.game_over = True
 
 
-class TwoDotsGame:
-    """Логика игры Two Dots.
+class EruditeGame:
+    """Логика игры Эрудит (Scrabble).
 
     Механика:
-    - Сетка цветных точек (8x8)
-    - Соединение точек одного цвета (минимум 2)
-    - Квадраты - очистка всех точек того же цвета
-    - Каскадные эффекты после падения
-    - Удаление группы → гравитация → заполнение сверху
-    - Подсчет очков
+    - Поле 15x15 клеток с бонусными клетками
+    - Фишки с буквами и очками
+    - Составление слов по правилам кроссворда
+    - Подсчет очков с учетом бонусов
+    - AI противник
     """
 
-    width: int = 8
-    height: int = 8
-    num_colors: int = 5  # Количество цветов (1-5)
+    BOARD_SIZE: int = 15
+    TILES_PER_PLAYER: int = 7
+    BONUS_ALL_TILES: int = 50  # Бонус за использование всех 7 фишек
 
+    # Распределение букв и очков (русский Эрудит)
+    LETTER_VALUES: dict[str, int] = {
+        "А": 1,
+        "Б": 3,
+        "В": 1,
+        "Г": 3,
+        "Д": 2,
+        "Е": 1,
+        "Ж": 5,
+        "З": 5,
+        "И": 1,
+        "Й": 4,
+        "К": 2,
+        "Л": 2,
+        "М": 2,
+        "Н": 1,
+        "О": 1,
+        "П": 2,
+        "Р": 1,
+        "С": 1,
+        "Т": 1,
+        "У": 2,
+        "Ф": 8,
+        "Х": 5,
+        "Ц": 5,
+        "Ч": 5,
+        "Ш": 8,
+        "Щ": 10,
+        "Ъ": 15,
+        "Ы": 4,
+        "Ь": 3,
+        "Э": 8,
+        "Ю": 8,
+        "Я": 3,
+        "*": 0,  # Звездочка (джокер)
+    }
+
+    LETTER_COUNTS: dict[str, int] = {
+        "А": 8,
+        "Б": 2,
+        "В": 4,
+        "Г": 2,
+        "Д": 4,
+        "Е": 9,
+        "Ж": 1,
+        "З": 2,
+        "И": 6,
+        "Й": 1,
+        "К": 4,
+        "Л": 4,
+        "М": 3,
+        "Н": 5,
+        "О": 10,
+        "П": 4,
+        "Р": 5,
+        "С": 5,
+        "Т": 5,
+        "У": 4,
+        "Ф": 1,
+        "Х": 1,
+        "Ц": 1,
+        "Ч": 1,
+        "Ш": 1,
+        "Щ": 1,
+        "Ъ": 1,
+        "Ы": 2,
+        "Ь": 2,
+        "Э": 1,
+        "Ю": 1,
+        "Я": 2,
+        "*": 3,  # Звездочки
+    }
+
+    # Бонусные клетки (0=обычная, 1=бонус буквы x2, 2=x3, 3=бонус слова x2, 4=x3)
+    # Центральная клетка (7,7) - стартовая, бонус слова x2
     def __init__(self) -> None:
-        """Инициализация игры Two Dots"""
-        self.grid: list[list[int]] = [[0] * self.width for _ in range(self.height)]
-        self.score: int = 0
-        self.moves_left: int = 30  # Ограничение ходов (опционально)
-        self.level: int = 1
+        """Инициализация игры Эрудит"""
+        # Поле: None = пусто, str = буква
+        self.board: list[list[str | None]] = [
+            [None] * self.BOARD_SIZE for _ in range(self.BOARD_SIZE)
+        ]
+
+        # Бонусные клетки (0=обычная, 1=буква x2, 2=буква x3, 3=слово x2, 4=слово x3)
+        self.bonus_cells: list[list[int]] = [[0] * self.BOARD_SIZE for _ in range(self.BOARD_SIZE)]
+        self._init_bonus_cells()
+
+        # Мешок с фишками
+        self.bag: list[str] = []
+        self._init_bag()
+
+        # Фишки игроков
+        self.player_tiles: list[str] = []
+        self.ai_tiles: list[str] = []
+        self._deal_tiles()
+
+        # Счет
+        self.player_score: int = 0
+        self.ai_score: int = 0
+
+        # Состояние игры
+        self.current_player: int = 1  # 1 = игрок, 2 = AI
         self.game_over: bool = False
-        self.selected_path: list[tuple[int, int]] = []  # Текущий выбранный путь
-        self._fill_grid()
+        self.first_move: bool = True  # Первый ход должен проходить через центр
+        self.passes_count: int = 0  # Счетчик пропусков подряд
 
-    def _fill_grid(self) -> None:
-        """Заполнить сетку случайными цветами"""
-        for r in range(self.height):
-            for c in range(self.width):
-                self.grid[r][c] = random.randint(1, self.num_colors)
+        # Текущий ход (для валидации)
+        self.current_move: list[tuple[int, int, str]] = []  # [(row, col, letter), ...]
 
-    def _is_adjacent(self, pos1: tuple[int, int], pos2: tuple[int, int]) -> bool:
-        """Проверить, являются ли две позиции соседними (горизонтально/вертикально)"""
-        r1, c1 = pos1
-        r2, c2 = pos2
-        return abs(r1 - r2) + abs(c1 - c2) == 1
+        # Загружаем словарь
+        from bot.services.erudite_dictionary import is_valid_word
 
-    def _get_color(self, row: int, col: int) -> int:
-        """Получить цвет точки на позиции"""
-        if 0 <= row < self.height and 0 <= col < self.width:
-            return self.grid[row][col]
-        return 0
+        self.is_valid_word = is_valid_word
 
-    def select_dot(self, row: int, col: int) -> bool:
-        """Начать выбор с точки. Возвращает True если успешно."""
-        if self.game_over:
+    def _init_bonus_cells(self) -> None:
+        """Инициализация бонусных клеток (стандартная раскладка Scrabble)"""
+        # Бонусы слова x3 (красные углы)
+        for r, c in [(0, 0), (0, 7), (0, 14), (7, 0), (7, 14), (14, 0), (14, 7), (14, 14)]:
+            self.bonus_cells[r][c] = 4  # x3 слова
+
+        # Бонусы слова x2 (розовые)
+        for r, c in [
+            (1, 1),
+            (1, 13),
+            (2, 2),
+            (2, 12),
+            (3, 3),
+            (3, 11),
+            (4, 4),
+            (4, 10),
+            (10, 4),
+            (10, 10),
+            (11, 3),
+            (11, 11),
+            (12, 2),
+            (12, 12),
+            (13, 1),
+            (13, 13),
+            (7, 7),  # Центр - стартовая клетка
+        ]:
+            self.bonus_cells[r][c] = 3  # x2 слова
+
+        # Бонусы буквы x2 (светло-синие)
+        for r, c in [
+            (0, 3),
+            (0, 11),
+            (2, 6),
+            (2, 8),
+            (3, 0),
+            (3, 7),
+            (3, 14),
+            (6, 2),
+            (6, 6),
+            (6, 8),
+            (6, 12),
+            (7, 3),
+            (7, 11),
+            (8, 2),
+            (8, 6),
+            (8, 8),
+            (8, 12),
+            (11, 0),
+            (11, 7),
+            (11, 14),
+            (12, 6),
+            (12, 8),
+            (14, 3),
+            (14, 11),
+        ]:
+            self.bonus_cells[r][c] = 1  # x2 буквы
+
+        # Бонусы буквы x3 (темно-синие)
+        for r, c in [
+            (1, 5),
+            (1, 9),
+            (5, 1),
+            (5, 5),
+            (5, 9),
+            (5, 13),
+            (9, 1),
+            (9, 5),
+            (9, 9),
+            (9, 13),
+            (13, 5),
+            (13, 9),
+        ]:
+            self.bonus_cells[r][c] = 2  # x3 буквы
+
+    def _init_bag(self) -> None:
+        """Инициализация мешка с фишками"""
+        self.bag = []
+        for letter, count in self.LETTER_COUNTS.items():
+            self.bag.extend([letter] * count)
+        random.shuffle(self.bag)
+
+    def _deal_tiles(self) -> None:
+        """Раздать фишки игрокам"""
+        self.player_tiles = [
+            self.bag.pop() for _ in range(min(self.TILES_PER_PLAYER, len(self.bag)))
+        ]
+        self.ai_tiles = [self.bag.pop() for _ in range(min(self.TILES_PER_PLAYER, len(self.bag)))]
+
+    def place_tile(self, row: int, col: int, letter: str) -> bool:
+        """Разместить фишку на поле (для текущего хода)."""
+        if not (0 <= row < self.BOARD_SIZE and 0 <= col < self.BOARD_SIZE):
             return False
-        if not (0 <= row < self.height and 0 <= col < self.width):
-            return False
+        if self.board[row][col] is not None:
+            return False  # Клетка уже занята
 
-        cell = self.grid[row][col]
-        # Можно начать с обычной точки или спецточки, но не с пустой
-        if cell == 0:
-            return False
+        tiles = self.player_tiles if self.current_player == 1 else self.ai_tiles
+        if letter not in tiles:
+            return False  # Нет такой фишки
 
-        self.selected_path = [(row, col)]
+        self.current_move.append((row, col, letter))
         return True
 
-    def add_to_path(self, row: int, col: int) -> bool:
-        """Добавить точку в путь. Возвращает True если успешно."""
-        if not self.selected_path:
-            return False
-        if not (0 <= row < self.height and 0 <= col < self.width):
-            return False
+    def clear_move(self) -> None:
+        """Очистить текущий ход"""
+        self.current_move = []
 
-        # Проверяем, что точка уже не в пути
-        if (row, col) in self.selected_path:
-            return False
+    def validate_move(self) -> tuple[bool, str]:
+        """Валидировать текущий ход. Возвращает (успех, сообщение об ошибке)."""
+        if not self.current_move:
+            return False, "Ход пустой"
 
-        # Проверяем, что точка соседняя к последней в пути
-        last_pos = self.selected_path[-1]
-        if not self._is_adjacent(last_pos, (row, col)):
-            return False
+        # Проверка: все фишки на одной линии (горизонталь или вертикаль)
+        rows = [r for r, _, _ in self.current_move]
+        cols = [c for _, c, _ in self.current_move]
 
-        # Проверяем, что цвет совпадает (только обычные точки)
-        first_color = self._get_color(self.selected_path[0][0], self.selected_path[0][1])
-        new_color = self._get_color(row, col)
-        if new_color == 0 or new_color != first_color:
-            return False
+        is_horizontal = len(set(rows)) == 1
+        is_vertical = len(set(cols)) == 1
 
-        self.selected_path.append((row, col))
-        return True
+        if not (is_horizontal or is_vertical):
+            return False, "Фишки должны быть на одной линии"
 
-    def clear_path(self) -> None:
-        """Очистить выбранный путь"""
-        self.selected_path = []
-
-    def _is_square(self, path: list[tuple[int, int]]) -> bool:
-        """Проверить, образует ли путь квадрат (все 4 угла прямоугольника присутствуют)"""
-        if len(path) < 4:
-            return False
-
-        # Получаем уникальные позиции
-        unique_positions = set(path)
-        if len(unique_positions) < 4:
-            return False
-
-        # Находим границы
-        rows = [r for r, _ in unique_positions]
-        cols = [c for _, c in unique_positions]
-        min_row, max_row = min(rows), max(rows)
-        min_col, max_col = min(cols), max(cols)
-
-        width = max_col - min_col + 1
-        height = max_row - min_row + 1
-
-        # Прямоугольник должен быть минимум 2x2
-        if width < 2 or height < 2:
-            return False
-
-        # Проверяем, что все 4 угла прямоугольника присутствуют в пути
-        corners = [(min_row, min_col), (min_row, max_col), (max_row, min_col), (max_row, max_col)]
-
-        # Все 4 угла должны быть в пути - это определяет квадрат/прямоугольник
-        return all(corner in unique_positions for corner in corners)
-
-    def _remove_all_color(self, color: int) -> int:
-        """Удалить все точки указанного цвета. Возвращает количество удаленных."""
-        removed = 0
-        for r in range(self.height):
-            for c in range(self.width):
-                if self.grid[r][c] == color:
-                    self.grid[r][c] = 0
-                    removed += 1
-        return removed
-
-    def _process_cascades(self) -> bool:
-        """Обработать каскадные эффекты после падения. Возвращает True если были каскады."""
-        had_cascade = False
-        max_iterations = 10  # Защита от бесконечного цикла
-
-        for _ in range(max_iterations):
-            # Ищем автоматические линии (3+ одинаковых подряд)
-            to_remove: set[tuple[int, int]] = set()
-
-            # Проверяем горизонтальные линии
-            for r in range(self.height):
-                current_color = None
-                line_start = 0
-                line_length = 0
-
-                for c in range(self.width):
-                    color = self.grid[r][c]
-                    # Учитываем только обычные цвета (положительные)
-                    if color > 0 and color == current_color:
-                        line_length += 1
-                    else:
-                        # Конец линии
-                        if current_color is not None and line_length >= 3:
-                            # Удаляем линию
-                            for cc in range(line_start, line_start + line_length):
-                                to_remove.add((r, cc))
-
-                        if color > 0:
-                            current_color = color
-                            line_start = c
-                            line_length = 1
-                        else:
-                            current_color = None
-                            line_start = c + 1
-                            line_length = 0
-
-                # Проверяем последнюю линию
-                if current_color is not None and line_length >= 3:
-                    for cc in range(line_start, line_start + line_length):
-                        to_remove.add((r, cc))
-
-            # Проверяем вертикальные линии
-            for c in range(self.width):
-                current_color = None
-                line_start = 0
-                line_length = 0
-
-                for r in range(self.height):
-                    color = self.grid[r][c]
-                    if color > 0 and color == current_color:
-                        line_length += 1
-                    else:
-                        if current_color is not None and line_length >= 3:
-                            for rr in range(line_start, line_start + line_length):
-                                to_remove.add((rr, c))
-
-                        if color > 0:
-                            current_color = color
-                            line_start = r
-                            line_length = 1
-                        else:
-                            current_color = None
-                            line_start = r + 1
-                            line_length = 0
-
-                if current_color is not None and line_length >= 3:
-                    for rr in range(line_start, line_start + line_length):
-                        to_remove.add((rr, c))
-
-            if not to_remove:
-                break
-
-            had_cascade = True
-            # Удаляем найденные линии
-            for r, c in to_remove:
-                self.grid[r][c] = 0
-
-            # Подсчет очков за каскад
-            self.score += len(to_remove) * 10
-
-            # Применяем гравитацию
-            self._apply_gravity()
-
-            # Заполняем сверху
-            self._refill_grid()
-
-        return had_cascade
-
-    def confirm_path(self) -> bool:
-        """Подтвердить и удалить выбранный путь. Возвращает True если успешно."""
-        if len(self.selected_path) < 2:
-            self.clear_path()
-            return False
-
-        path_length = len(self.selected_path)
-        first_pos = self.selected_path[0]
-        first_color = self._get_color(first_pos[0], first_pos[1])
-        is_square = self._is_square(self.selected_path)
-
-        # Проверяем квадрат - удаляем все точки того же цвета
-        if is_square:
-            # Квадрат удаляет все точки того же цвета
-            removed = self._remove_all_color(first_color)
-            points = removed * 20  # Бонус за квадрат
-            self.score += points
+        # Проверка: фишки соседние
+        if is_horizontal:
+            sorted_cols = sorted(cols)
+            for i in range(len(sorted_cols) - 1):
+                if sorted_cols[i + 1] - sorted_cols[i] != 1:
+                    return False, "Фишки должны быть соседними"
         else:
-            # Обычное удаление пути
-            for r, c in self.selected_path:
-                self.grid[r][c] = 0
+            sorted_rows = sorted(rows)
+            for i in range(len(sorted_rows) - 1):
+                if sorted_rows[i + 1] - sorted_rows[i] != 1:
+                    return False, "Фишки должны быть соседними"
 
-            # Подсчет очков
-            points = path_length * 10
-            self.score += points
+        # Проверка первого хода: должен проходить через центр
+        if self.first_move:
+            center = (self.BOARD_SIZE // 2, self.BOARD_SIZE // 2)
+            if center not in [(r, c) for r, c, _ in self.current_move]:
+                return False, "Первый ход должен проходить через центр поля"
 
-        # Применяем гравитацию
-        self._apply_gravity()
+        # Проверка: подключение к существующим словам (если не первый ход)
+        if not self.first_move:
+            connected = False
+            for r, c, _ in self.current_move:
+                # Проверяем соседей
+                for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    nr, nc = r + dr, c + dc
+                    if 0 <= nr < self.BOARD_SIZE and 0 <= nc < self.BOARD_SIZE:
+                        if self.board[nr][nc] is not None:
+                            connected = True
+                            break
+                if connected:
+                    break
+            if not connected:
+                return False, "Новое слово должно соединяться с существующими"
 
-        # Заполняем сверху
-        self._refill_grid()
+        # Проверка слов: собираем все слова, образованные ходом
+        words = self._get_words_from_move()
+        for word in words:
+            if not self.is_valid_word(word):
+                return False, f"Слово '{word}' не найдено в словаре"
 
-        # Обрабатываем каскады
-        self._process_cascades()
+        return True, ""
 
-        # Уменьшаем ходы
-        if self.moves_left > 0:
-            self.moves_left -= 1
-            if self.moves_left == 0:
-                self.game_over = True
+    def _get_words_from_move(self) -> list[str]:
+        """Получить все слова, образованные текущим ходом."""
+        words = []
 
-        # Проверяем game over (нет валидных ходов)
-        if not self._has_valid_moves():
-            self.game_over = True
+        # Временно размещаем фишки для проверки
+        temp_board = [row[:] for row in self.board]
+        for r, c, letter in self.current_move:
+            temp_board[r][c] = letter
 
-        self.clear_path()
-        return True
+        # Проверяем основное слово (по направлению хода)
+        if self.current_move:
+            first_r, first_c, _ = self.current_move[0]
+            # Определяем направление
+            if len(set(r for r, _, _ in self.current_move)) == 1:
+                # Горизонтальное
+                row = first_r
+                word = ""
+                for c in range(self.BOARD_SIZE):
+                    if temp_board[row][c] is not None:
+                        word += temp_board[row][c]
+                    else:
+                        if word:
+                            words.append(word)
+                            word = ""
+                if word:
+                    words.append(word)
+            else:
+                # Вертикальное
+                col = first_c
+                word = ""
+                for r in range(self.BOARD_SIZE):
+                    if temp_board[r][col] is not None:
+                        word += temp_board[r][col]
+                    else:
+                        if word:
+                            words.append(word)
+                            word = ""
+                if word:
+                    words.append(word)
 
-    def _apply_gravity(self) -> None:
-        """Применить гравитацию: точки падают вниз"""
-        for c in range(self.width):
-            # Собираем все непустые точки в столбце снизу вверх
-            column = []
-            for r in range(self.height - 1, -1, -1):
-                if self.grid[r][c] != 0:
-                    column.append(self.grid[r][c])
+        # Проверяем перпендикулярные слова
+        for r, c, _ in self.current_move:
+            # Проверяем перпендикулярное направление
+            if len(set(rr for rr, _, _ in self.current_move)) == 1:
+                # Ход горизонтальный - проверяем вертикаль
+                word = ""
+                for rr in range(self.BOARD_SIZE):
+                    if temp_board[rr][c] is not None:
+                        word += temp_board[rr][c]
+                    else:
+                        if len(word) > 1:
+                            words.append(word)
+                        word = ""
+                if len(word) > 1:
+                    words.append(word)
+            else:
+                # Ход вертикальный - проверяем горизонталь
+                word = ""
+                for cc in range(self.BOARD_SIZE):
+                    if temp_board[r][cc] is not None:
+                        word += temp_board[r][cc]
+                    else:
+                        if len(word) > 1:
+                            words.append(word)
+                        word = ""
+                if len(word) > 1:
+                    words.append(word)
 
-            # Заполняем столбец снизу
-            for r in range(self.height - 1, -1, -1):
-                if column:
-                    self.grid[r][c] = column.pop(0)
-                else:
-                    self.grid[r][c] = 0
+        return [w for w in words if len(w) >= 2]
 
-    def _refill_grid(self) -> None:
-        """Заполнить пустые ячейки сверху новыми цветами"""
-        for c in range(self.width):
-            for r in range(self.height):
-                if self.grid[r][c] == 0:
-                    self.grid[r][c] = random.randint(1, self.num_colors)
+    def calculate_score(self) -> int:
+        """Подсчитать очки за текущий ход."""
+        if not self.current_move:
+            return 0
 
-    def _has_valid_moves(self) -> bool:
-        """Проверить, есть ли валидные ходы"""
-        for r in range(self.height):
-            for c in range(self.width):
-                color = self.grid[r][c]
-                if color == 0:
-                    continue
+        score = 0
+        word_multiplier = 1
 
-                # Проверяем соседей того же цвета
-                neighbors = [(r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)]
-                for nr, nc in neighbors:
-                    if (
-                        0 <= nr < self.height
-                        and 0 <= nc < self.width
-                        and self.grid[nr][nc] == color
-                    ):
-                        return True
+        # Подсчитываем очки за новые фишки
+        for r, c, letter in self.current_move:
+            letter_value = self.LETTER_VALUES.get(letter.upper(), 0)
+            bonus = self.bonus_cells[r][c]
 
-        return False
+            if bonus == 1:  # x2 буквы
+                letter_value *= 2
+            elif bonus == 2:  # x3 буквы
+                letter_value *= 3
+            elif bonus == 3:  # x2 слова
+                word_multiplier *= 2
+            elif bonus == 4:  # x3 слова
+                word_multiplier *= 3
+
+            score += letter_value
+
+        score *= word_multiplier
+
+        # Бонус за использование всех 7 фишек
+        if len(self.current_move) == self.TILES_PER_PLAYER:
+            score += self.BONUS_ALL_TILES
+
+        return score
+
+    def make_move(self) -> tuple[bool, str]:
+        """Сделать ход. Возвращает (успех, сообщение)."""
+        if self.game_over or self.current_player != 1:
+            return False, "Не ваш ход"
+
+        # Валидация
+        valid, error = self.validate_move()
+        if not valid:
+            return False, error
+
+        # Подсчет очков
+        move_score = self.calculate_score()
+        self.player_score += move_score
+
+        # Размещаем фишки на поле
+        tiles = self.player_tiles
+        for r, c, letter in self.current_move:
+            self.board[r][c] = letter
+            tiles.remove(letter)
+
+        # Добираем фишки
+        while len(tiles) < self.TILES_PER_PLAYER and self.bag:
+            tiles.append(self.bag.pop())
+
+        # Первый ход сделан
+        if self.first_move:
+            self.first_move = False
+
+        # Очищаем ход
+        self.current_move = []
+        self.passes_count = 0
+
+        # Проверка окончания игры
+        if not self.bag and (not self.player_tiles or not self.ai_tiles):
+            self._end_game()
+
+        return True, f"Ход принят! +{move_score} очков"
+
+    def _end_game(self) -> None:
+        """Завершить игру и подсчитать финальные очки."""
+        self.game_over = True
+
+        # Вычитаем оставшиеся фишки
+        player_penalty = sum(self.LETTER_VALUES.get(t.upper(), 0) for t in self.player_tiles)
+        ai_penalty = sum(self.LETTER_VALUES.get(t.upper(), 0) for t in self.ai_tiles)
+
+        self.player_score -= player_penalty
+        self.ai_score -= ai_penalty
+
+        # Если кто-то выложил все фишки - добавляем очки противника
+        if not self.player_tiles:
+            self.player_score += ai_penalty
+        elif not self.ai_tiles:
+            self.ai_score += player_penalty
 
     def get_state(self) -> dict:
         """Получить состояние для фронтенда"""
         return {
-            "grid": [row[:] for row in self.grid],
-            "score": self.score,
-            "moves_left": self.moves_left,
-            "level": self.level,
+            "board": [[cell if cell else "" for cell in row] for row in self.board],
+            "bonus_cells": self.bonus_cells,
+            "player_tiles": self.player_tiles,
+            "ai_tiles": self.ai_tiles,
+            "player_score": self.player_score,
+            "ai_score": self.ai_score,
+            "current_player": self.current_player,
             "game_over": self.game_over,
-            "selected_path": self.selected_path[:],
-            "width": self.width,
-            "height": self.height,
-            "num_colors": self.num_colors,
+            "first_move": self.first_move,
+            "current_move": self.current_move,
+            "bag_count": len(self.bag),
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "TwoDotsGame":
+    def from_dict(cls, data: dict) -> "EruditeGame":
         """Восстановить игру из словаря"""
         game = cls.__new__(cls)
-        game.width = data.get("width", 8)
-        game.height = data.get("height", 8)
-        game.num_colors = data.get("num_colors", 5)
 
-        loaded_grid = data.get("grid", [[0] * 8 for _ in range(8)])
-        # Убеждаемся, что сетка правильного размера
-        if len(loaded_grid) != game.height:
-            game.grid = [[0] * game.width for _ in range(game.height)]
-            game._fill_grid()
-        else:
-            game.grid = []
-            for row in loaded_grid:
-                if len(row) == game.width:
-                    game.grid.append(row[:])
-                else:
-                    game.grid.append([0] * game.width)
-            # Дополняем если нужно
-            while len(game.grid) < game.height:
-                game.grid.append([0] * game.width)
-            game.grid = game.grid[: game.height]
+        # Восстанавливаем поле
+        board_data = data.get("board", [])
+        game.board = [[cell if cell else None for cell in row] for row in board_data]
+        if not game.board or len(game.board) != cls.BOARD_SIZE:
+            game.board = [[None] * cls.BOARD_SIZE for _ in range(cls.BOARD_SIZE)]
 
-        game.score = data.get("score", 0)
-        game.moves_left = data.get("moves_left", 30)
-        game.level = data.get("level", 1)
+        # Бонусные клетки
+        game.bonus_cells = data.get(
+            "bonus_cells", [[0] * cls.BOARD_SIZE for _ in range(cls.BOARD_SIZE)]
+        )
+        game.player_tiles = data.get("player_tiles", [])
+        game.ai_tiles = data.get("ai_tiles", [])
+        game.bag = data.get("bag", [])
+        game.player_score = data.get("player_score", 0)
+        game.ai_score = data.get("ai_score", 0)
+        game.current_player = data.get("current_player", 1)
         game.game_over = data.get("game_over", False)
-        game.selected_path = data.get("selected_path", [])
+        game.first_move = data.get("first_move", True)
+        game.passes_count = data.get("passes_count", 0)
+        game.current_move = data.get("current_move", [])
+
+        from bot.services.erudite_dictionary import is_valid_word
+
+        game.is_valid_word = is_valid_word
 
         return game
