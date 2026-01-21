@@ -140,6 +140,15 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             )
             return response
 
+        # Секретный запрос для особенного человека
+        if user_message.strip() == "<>***<>":
+            special_message = "Создано с любовью для Агаты ❤️❤️❤️"
+            event_data = json.dumps({"content": special_message}, ensure_ascii=False)
+            await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+            await response.write(b"event: done\ndata: {}\n\n")
+            logger.info(f"💝 Секретное сообщение отправлено пользователю {telegram_id} (Mini App)")
+            return response
+
         with get_db() as db:
             user_service = UserService(db)
             history_service = ChatHistoryService(db)
