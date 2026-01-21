@@ -166,7 +166,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
   const { board, score, game_over } = state;
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden bg-white dark:bg-slate-900">
+    <div className="w-full h-full flex flex-col overflow-hidden bg-white dark:bg-slate-900 border-r border-l border-gray-300 dark:border-slate-600">
       {/* Header - компактный */}
       <div className="flex items-center justify-between px-3 pt-2 pb-1 flex-shrink-0">
         <button
