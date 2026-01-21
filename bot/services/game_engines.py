@@ -636,6 +636,11 @@ class TetrisGame:
         current_blocks = self._get_blocks(self.current_row, self.current_col, self.current_rotation)
         if any(r >= self.height for r, _ in current_blocks):
             # Фигура УЖЕ за границами - блокируем немедленно
+            logger.error(
+                f"⚠️ Tetris step: Фигура УЖЕ за границами! "
+                f"current_row={self.current_row}, height={self.height}, "
+                f"blocks={current_blocks}, shape={self.current_shape}"
+            )
             self._lock_piece()
             return
 
@@ -664,6 +669,11 @@ class TetrisGame:
                 # Если хотя бы один блок выходит за дно (r >= height) или за боковые границы
                 if r >= self.height or c < 0 or c >= self.width:
                     # Блокируем текущую фигуру БЕЗ движения вниз
+                    logger.debug(
+                        f"🔒 Tetris step: Блокировка из-за границ! "
+                        f"new_row={new_row}, block_r={r}, height={self.height}, "
+                        f"blocks={blocks}, shape={self.current_shape}"
+                    )
                     self._lock_piece()
                     return
 
@@ -730,12 +740,21 @@ class TetrisGame:
         if self.current_shape and not self.game_over:
             # КРИТИЧНО: Проверяем, что фигура не выходит за границы
             blocks = self._get_blocks(self.current_row, self.current_col, self.current_rotation)
-            # Если хотя бы один блок за границами - НЕ отображаем фигуру
-            if not any(r >= self.height for r, _ in blocks):
-                # Отображаем только блоки в пределах доски (0 <= r < height)
-                for r, c in blocks:
-                    if 0 <= r < self.height and 0 <= c < self.width:
-                        preview[r][c] = 2  # Текущая фигура
+            # Отображаем только блоки в пределах доски (0 <= r < height)
+            for r, c in blocks:
+                # КРИТИЧНО: Если блок за границами - НЕ отображаем его
+                if 0 <= r < self.height and 0 <= c < self.width:
+                    # КРИТИЧНО: Используем значение 2 для падающей фигуры (frontend ожидает cell === 1 для падающей)
+                    # Но в _lock_piece используется 1 для зафиксированных, поэтому используем 2 для падающей
+                    if preview[r][c] == 0:  # Не перезаписываем зафиксированные блоки
+                        preview[r][c] = 2  # Текущая падающая фигура
+                elif r >= self.height:
+                    # Блок за нижней границей - критическая ошибка
+                    logger.error(
+                        f"⚠️ Tetris get_state: Блок за нижней границей! "
+                        f"row={r}, height={self.height}, current_row={self.current_row}, "
+                        f"shape={self.current_shape}, blocks={blocks}"
+                    )
 
         return {
             "board": preview,
