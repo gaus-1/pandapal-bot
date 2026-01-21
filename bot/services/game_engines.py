@@ -582,8 +582,17 @@ class TetrisGame:
         new_board = [row for row in self.board if not all(cell != 0 for cell in row)]
         cleared = self.height - len(new_board)
 
+        # КРИТИЧНО: Всегда восстанавливаем доску до точного размера height x width
+        # Добавляем пустые строки сверху
         for _ in range(cleared):
             new_board.insert(0, [0] * self.width)
+
+        # КРИТИЧНО: Если доска все еще не 20 строк (не должно быть, но на всякий случай)
+        # Дополняем или обрезаем до точного размера
+        while len(new_board) < self.height:
+            new_board.insert(0, [0] * self.width)
+        while len(new_board) > self.height:
+            new_board.pop(0)
 
         self.board = new_board
 
@@ -696,7 +705,28 @@ class TetrisGame:
 
     def get_state(self) -> dict:
         """Получить состояние для фронтенда."""
-        preview = [row[:] for row in self.board]
+        # КРИТИЧНО: Всегда создаем доску точного размера height x width
+        # Если доска меньше - дополняем пустыми строками сверху
+        # Если больше - обрезаем сверху
+        preview = []
+        if len(self.board) < self.height:
+            # Дополняем пустыми строками сверху
+            for _ in range(self.height - len(self.board)):
+                preview.append([0] * self.width)
+            preview.extend([row[:] for row in self.board])
+        elif len(self.board) > self.height:
+            # Обрезаем сверху (берем последние height строк)
+            preview = [row[:] for row in self.board[-self.height :]]
+        else:
+            preview = [row[:] for row in self.board]
+
+        # КРИТИЧНО: Убеждаемся, что каждая строка имеет точную ширину
+        for i in range(len(preview)):
+            if len(preview[i]) < self.width:
+                preview[i].extend([0] * (self.width - len(preview[i])))
+            elif len(preview[i]) > self.width:
+                preview[i] = preview[i][: self.width]
+
         if self.current_shape and not self.game_over:
             # КРИТИЧНО: Проверяем, что фигура не выходит за границы
             blocks = self._get_blocks(self.current_row, self.current_col, self.current_rotation)
