@@ -10,13 +10,13 @@ import { useAppStore } from '../../store/appStore';
 import { TicTacToe } from './TicTacToe';
 import { Checkers } from './Checkers';
 import { Game2048 } from './Game2048';
-import { TwoDots } from './TwoDots';
+import { Erudite } from './Erudite';
 
 interface GamesScreenProps {
   user: UserProfile;
 }
 
-type GameType = 'tic_tac_toe' | 'checkers' | '2048' | 'two_dots' | null;
+type GameType = 'tic_tac_toe' | 'checkers' | '2048' | 'erudite' | null;
 
 const GAMES = [
   {
@@ -41,10 +41,10 @@ const GAMES = [
     color: 'from-blue-200 to-blue-100',
   },
   {
-    id: 'two_dots',
-    name: 'Two Dots',
-    icon: '🔴',
-    description: 'Соединяй точки одного цвета и набирай очки!',
+    id: 'erudite',
+    name: 'Эрудит',
+    icon: '📚',
+    description: 'Составляй слова и набирай очки!',
     color: 'from-blue-200 to-blue-100',
   },
 ] as const;
@@ -133,8 +133,8 @@ export function GamesScreen({ user }: GamesScreenProps) {
             onGameEnd={handleGameEnd}
           />
         )}
-        {selectedGame === 'two_dots' && (
-          <TwoDots
+        {selectedGame === 'erudite' && (
+          <Erudite
             sessionId={sessionId}
             user={user}
             onBack={handleBack}
@@ -171,7 +171,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
           {GAMES.map((game) => {
             const gameStats = stats[game.id];
             const hasStats = gameStats && gameStats.total_games > 0;
-            const hasBestScore = (game.id === '2048' || game.id === 'two_dots') && gameStats?.best_score;
+            const hasBestScore = game.id === '2048' && gameStats?.best_score;
             return (
               <button
                 key={game.id}
@@ -236,7 +236,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
                     {stat.game_type === 'tic_tac_toe' && '❌⭕ Крестики-нолики'}
                     {stat.game_type === 'checkers' && '⚫⚪ Шашки'}
                     {stat.game_type === '2048' && '🔢 2048'}
-                    {stat.game_type === 'two_dots' && '🔴 Two Dots'}
+                    {stat.game_type === 'erudite' && '📚 Эрудит'}
                   </div>
                   <div className="text-sm sm:text-base font-bold text-gray-900 dark:text-slate-100">
                     {stat.wins} побед
