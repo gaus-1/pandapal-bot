@@ -556,6 +556,10 @@ class TetrisGame:
 
     def _lock_piece(self) -> None:
         """Закрепить фигуру и очистить линии."""
+        if not self.current_shape:
+            logger.warning("⚠️ Tetris _lock_piece: Попытка блокировки без фигуры!")
+            return
+
         logger.debug(
             f"🔒 Tetris lock_piece: pos=({self.current_row},{self.current_col}), shape={self.current_shape}"
         )
@@ -563,7 +567,8 @@ class TetrisGame:
         # КРИТИЧНО: Блокируем только блоки, которые находятся в пределах доски
         # Блоки ниже доски (r >= height) или за боковыми границами игнорируем
         blocks_to_lock = []
-        for r, c in self._get_blocks(self.current_row, self.current_col, self.current_rotation):
+        current_blocks = self._get_blocks(self.current_row, self.current_col, self.current_rotation)
+        for r, c in current_blocks:
             # СТРОГАЯ проверка границ: только блоки ВНУТРИ доски
             if 0 <= r < self.height and 0 <= c < self.width:
                 blocks_to_lock.append((r, c))
@@ -571,8 +576,18 @@ class TetrisGame:
                 # Блок за нижней границей - критическая ошибка
                 logger.error(
                     f"⚠️ Tetris _lock_piece: Блок за нижней границей! "
-                    f"row={r}, height={self.height}, current_row={self.current_row}"
+                    f"row={r}, height={self.height}, current_row={self.current_row}, "
+                    f"blocks={current_blocks}"
                 )
+
+        if not blocks_to_lock:
+            logger.error(
+                f"⚠️ Tetris _lock_piece: Нет блоков для блокировки! "
+                f"current_row={self.current_row}, blocks={current_blocks}"
+            )
+            # Все равно спавним новую фигуру, чтобы игра не зависла
+            self._spawn_new_piece()
+            return
 
         # Блокируем только валидные блоки
         for r, c in blocks_to_lock:
@@ -670,30 +685,32 @@ class TetrisGame:
                 if r >= self.height or c < 0 or c >= self.width:
                     # Блокируем текущую фигуру БЕЗ движения вниз
                     logger.debug(
-                        f"🔒 Tetris step: Блокировка из-за границ! "
-                        f"new_row={new_row}, block_r={r}, height={self.height}, "
-                        f"blocks={blocks}, shape={self.current_shape}"
+                        f"🔒 Tetris step: Блокировка из-за границ ДО движения! "
+                        f"current_row={self.current_row}, new_row={new_row}, block_r={r}, "
+                        f"height={self.height}, blocks={blocks}, shape={self.current_shape}"
                     )
                     self._lock_piece()
                     return
 
         # Попытка выполнить действие
         if self._can_place(new_row, new_col, new_rot):
-            self.current_row, self.current_col, self.current_rotation = new_row, new_col, new_rot
-
-            # КРИТИЧНО: Проверка блокировки ПОСЛЕ каждого движения вниз
-            # Если фигура не может двигаться дальше вниз - блокируем
+            # КРИТИЧНО: Для движения вниз - проверяем следующую позицию ПЕРЕД обновлением
             if action in ("down", "tick"):
                 # Проверяем следующую позицию вниз
-                next_blocks = self._get_blocks(
-                    self.current_row + 1, self.current_col, self.current_rotation
-                )
-                # Если хотя бы один блок выйдет за пределы или коллизия - блокируем
+                next_blocks = self._get_blocks(new_row + 1, new_col, new_rot)
+                # Если хотя бы один блок выйдет за пределы или коллизия - блокируем ТЕКУЩУЮ позицию
                 if any(r >= self.height for r, _ in next_blocks) or not self._can_place(
-                    self.current_row + 1, self.current_col, self.current_rotation
+                    new_row + 1, new_col, new_rot
                 ):
+                    # Блокируем фигуру на ТЕКУЩЕЙ позиции (не двигаем вниз)
+                    logger.debug(
+                        f"🔒 Tetris step: Блокировка после проверки следующей позиции! "
+                        f"current_row={self.current_row}, new_row={new_row}, height={self.height}"
+                    )
                     self._lock_piece()
                     return  # Выходим сразу после блокировки
+            # Если все проверки пройдены - обновляем позицию
+            self.current_row, self.current_col, self.current_rotation = new_row, new_col, new_rot
 
         # Если движение вниз не удалось из-за коллизии - блокируем фигуру
         # КРИТИЧНО: Это происходит когда фигура уперлась в дно или блоки
@@ -711,6 +728,10 @@ class TetrisGame:
                 )
                 self.game_over = True
                 return
+            logger.debug(
+                f"🔒 Tetris step: Блокировка из-за коллизии! "
+                f"current_row={self.current_row}, height={self.height}"
+            )
             self._lock_piece()
 
     def get_state(self) -> dict:
