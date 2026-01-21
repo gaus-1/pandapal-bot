@@ -239,6 +239,29 @@ class AdvancedModerationService:
                 suggested_action="approve",
             )
 
+        # Проверяем, является ли запрос образовательным запросом про взрослые темы
+        # (деньги, ЖКУ, документы и т.д.) - такие запросы НЕ блокируем
+        try:
+            from bot.services.adult_topics_service import get_adult_topics_service
+
+            adult_topics_service = get_adult_topics_service()
+            detected_adult_topic = adult_topics_service.detect_topic(content)
+
+            if detected_adult_topic:
+                logger.debug(
+                    f"✅ Образовательный запрос про взрослую тему: {detected_adult_topic.title}"
+                )
+                return ModerationResult(
+                    is_safe=True,
+                    level=ModerationLevel.SAFE,
+                    category=ContentCategory.EDUCATION,
+                    confidence=1.0,
+                    reason=f"Образовательный запрос: {detected_adult_topic.title}",
+                    suggested_action="approve",
+                )
+        except Exception as e:
+            logger.debug(f"⚠️ Ошибка проверки взрослых тем: {e}")
+
         # Нормализуем текст
         normalized_content = self._normalize_text(content)
 
@@ -277,7 +300,11 @@ class AdvancedModerationService:
 
         return text.lower()
 
-    def _analyze_context(self, content: str, user_context: dict[str, Any] = None) -> dict[str, Any]:
+    def _analyze_context(
+        self,
+        content: str,
+        user_context: dict[str, Any] = None,  # noqa: ARG002
+    ) -> dict[str, Any]:
         """Анализирует образовательный контекст"""
         context_score = 0
         detected_subjects = []
@@ -347,7 +374,7 @@ class AdvancedModerationService:
         category_results: list[dict],
         intent_analysis: dict,
         context_analysis: dict,
-        user_context: dict[str, Any] = None,
+        user_context: dict[str, Any] = None,  # noqa: ARG002
     ) -> ModerationResult:
         """Принимает финальное решение по модерации"""
         # Если нет категорий - безопасно
@@ -404,7 +431,10 @@ class AdvancedModerationService:
         )
 
     def _get_suggested_action(
-        self, level: ModerationLevel, category: ContentCategory, confidence: float
+        self,
+        level: ModerationLevel,
+        category: ContentCategory,  # noqa: ARG002
+        confidence: float,  # noqa: ARG002
     ) -> str:
         """Возвращает рекомендуемое действие"""
         actions = {

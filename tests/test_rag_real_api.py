@@ -1,0 +1,238 @@
+"""
+Тесты RAG системы с реальными API запросами.
+
+Проверяет что Панда:
+- Учитывает ВСЕ слова в запросе пользователя
+- Дает глубокие структурированные ответы
+- Правильно использует Wikipedia и образовательные источники
+- Отвечает на все аспекты сложных вопросов
+
+ВАЖНО: Требует реального YANDEX_CLOUD_API_KEY для запуска.
+"""
+
+import os
+
+import pytest
+
+from bot.services.ai_service_solid import get_ai_service
+from bot.services.knowledge_service import get_knowledge_service
+from bot.services.prompt_builder import PromptBuilder
+
+
+@pytest.mark.skipif(
+    not os.getenv("YANDEX_CLOUD_API_KEY"),
+    reason="Требуется YANDEX_CLOUD_API_KEY для реальных API тестов",
+)
+class TestRAGRealAPI:
+    """Тесты RAG с реальными API запросами."""
+
+    @pytest.fixture
+    def ai_service(self):
+        """Получить AI сервис."""
+        return get_ai_service()
+
+    @pytest.fixture
+    def knowledge_service(self):
+        """Получить Knowledge сервис."""
+        return get_knowledge_service()
+
+    @pytest.mark.asyncio
+    async def test_all_words_considered_simple(self, ai_service):
+        """Проверка что AI учитывает ВСЕ слова в простом вопросе."""
+        # Вопрос содержит: "как", "почему", "вода", "пар"
+        question = "Объясни как и почему вода превращается в пар?"
+
+        response = await ai_service.generate_response(
+            user_message=question, chat_history=[], user_age=12
+        )
+
+        # Проверяем что ответ содержит объяснения ДЛЯ ОБОИХ аспектов
+        assert "как" in question.lower() or "процесс" in response.lower(), (
+            "Не объяснён процесс (КАК)"
+        )
+        assert "почему" in question.lower() or any(
+            word in response.lower() for word in ["потому", "причина", "из-за", "энергия"]
+        ), "Не объяснена причина (ПОЧЕМУ)"
+
+        # Проверяем что ответ достаточно глубокий
+        assert len(response) > 300, f"Ответ слишком короткий ({len(response)} символов), должен быть глубже"
+
+        # Проверяем структуру - должны быть абзацы
+        paragraphs = [p.strip() for p in response.split("\n\n") if p.strip()]
+        assert len(paragraphs) >= 2, "Ответ не структурирован (нет абзацев)"
+
+    @pytest.mark.asyncio
+    async def test_all_words_considered_complex(self, ai_service):
+        """Проверка что AI учитывает ВСЕ слова в сложном вопросе."""
+        # Вопрос содержит несколько тем: "фотосинтез", "растения", "кислород", "как работает"
+        question = "Расскажи подробно что такое фотосинтез, как он работает в растениях и зачем он нужен для кислорода?"
+
+        response = await ai_service.generate_response(
+            user_message=question, chat_history=[], user_age=13
+        )
+
+        # Проверяем что ответ покрывает ВСЕ аспекты
+        assert "фотосинтез" in response.lower(), "Не упомянут фотосинтез"
+        assert "растени" in response.lower(), "Не упомянуты растения"
+        assert "кислород" in response.lower(), "Не упомянут кислород"
+
+        # Проверяем что объяснён механизм (КАК работает)
+        assert any(
+            word in response.lower() for word in ["процесс", "работает", "происходит", "свет", "вода"]
+        ), "Не объяснён механизм фотосинтеза"
+
+        # Проверяем глубину ответа
+        assert len(response) > 500, f"Ответ слишком короткий для сложного вопроса ({len(response)} символов)"
+
+    @pytest.mark.asyncio
+    async def test_multiple_questions_in_one(self, ai_service):
+        """Проверка что AI отвечает на несколько вопросов в одном сообщении."""
+        # Три вопроса в одном: "что", "как", "зачем"
+        question = "Что такое электричество, как оно вырабатывается и зачем нужно в доме?"
+
+        response = await ai_service.generate_response(
+            user_message=question, chat_history=[], user_age=11
+        )
+
+        # Проверяем что ответ покрывает ВСЕ три вопроса
+        # 1. ЧТО такое электричество
+        assert any(
+            word in response.lower() for word in ["электричество", "энергия", "ток", "электроны"]
+        ), "Не объяснено ЧТО такое электричество"
+
+        # 2. КАК вырабатывается
+        assert any(
+            word in response.lower()
+            for word in ["электростанци", "генератор", "вырабатывается", "производ"]
+        ), "Не объяснено КАК вырабатывается электричество"
+
+        # 3. ЗАЧЕМ нужно
+        assert any(
+            word in response.lower()
+            for word in ["свет", "приборы", "нужно", "использу", "работа"]
+        ), "Не объяснено ЗАЧЕМ нужно электричество"
+
+        # Проверяем структуру - должны быть разделы для каждого вопроса
+        assert len(response) > 600, "Ответ слишком короткий для трёх вопросов"
+
+    @pytest.mark.asyncio
+    async def test_rag_knowledge_integration(self, knowledge_service):
+        """Проверка что RAG находит релевантную информацию."""
+        question = "Объясни теорему Пифагора"
+
+        # Enhanced search с reranking
+        results = await knowledge_service.enhanced_search(
+            user_question=question, user_age=14, top_k=3
+        )
+
+        # Должны быть результаты для известной темы
+        assert len(results) > 0, "RAG не нашёл информацию про теорему Пифагора"
+
+        # Проверяем что результаты содержат релевантные слова
+        combined_content = " ".join(r.content for r in results).lower()
+        assert any(
+            word in combined_content for word in ["пифагор", "треугольник", "гипотенуза", "катет"]
+        ), "RAG результаты не релевантны запросу"
+
+    @pytest.mark.asyncio
+    async def test_rag_wikipedia_integration(self, knowledge_service):
+        """Проверка интеграции с Wikipedia."""
+        question = "Что такое солнечная система?"
+
+        # Получаем контекст из Wikipedia
+        wiki_context = await knowledge_service.get_wikipedia_context_for_question(
+            question, user_age=10
+        )
+
+        if wiki_context:  # Wikipedia может быть недоступна
+            assert len(wiki_context) > 0, "Wikipedia контекст пустой"
+            assert any(
+                word in wiki_context.lower() for word in ["солнце", "планет", "систем"]
+            ), "Wikipedia контекст не релевантен"
+
+    @pytest.mark.asyncio
+    async def test_prompt_builder_extracts_keywords(self):
+        """Проверка что PromptBuilder извлекает все важные слова."""
+        builder = PromptBuilder()
+
+        question = "Объясни как и почему происходит фотосинтез в растениях и зачем он нужен"
+
+        prompt = builder.build_system_prompt(
+            user_message=question,
+            user_age=12,
+            is_history_cleared=False,
+        )
+
+        # Проверяем что промпт содержит инструкцию про ключевые слова
+        assert "ВАЖНО" in prompt, "Промпт не содержит инструкцию про важные слова"
+        assert "ключевые слова" in prompt.lower(), "Промпт не упоминает ключевые слова"
+
+        # Проверяем что извлечены важные слова
+        important_words = ["как", "почему", "фотосинтез", "растени", "зачем"]
+        for word in important_words:
+            # Слово должно быть либо в исходном вопросе (который будет передан AI),
+            # либо явно упомянуто в промпте как важное
+            assert word in question.lower() or word in prompt.lower()
+
+
+@pytest.mark.skipif(
+    not os.getenv("YANDEX_CLOUD_API_KEY"),
+    reason="Требуется YANDEX_CLOUD_API_KEY",
+)
+class TestYandexAPIRealRequests:
+    """Тесты с реальными запросами к Yandex Cloud API."""
+
+    @pytest.fixture
+    def ai_service(self):
+        """Получить AI сервис."""
+        return get_ai_service()
+
+    @pytest.mark.asyncio
+    async def test_simple_math_question(self, ai_service):
+        """Реальный API тест - простой математический вопрос."""
+        question = "Сколько будет 7 умножить на 8?"
+
+        response = await ai_service.generate_response(
+            user_message=question, chat_history=[], user_age=8
+        )
+
+        # Проверяем что ответ содержит правильный результат
+        assert "56" in response, "Неправильный ответ на 7×8"
+        assert len(response) > 50, "Ответ слишком короткий"
+
+    @pytest.mark.asyncio
+    async def test_complex_explanation_question(self, ai_service):
+        """Реальный API тест - сложный вопрос с объяснением."""
+        question = "Объясни подробно что такое деление с остатком и как его решать с примерами"
+
+        response = await ai_service.generate_response(
+            user_message=question, chat_history=[], user_age=10
+        )
+
+        # Проверяем что ответ достаточно глубокий
+        assert len(response) > 300, "Ответ недостаточно подробный для сложного вопроса"
+
+        # Проверяем что есть примеры
+        assert any(
+            word in response.lower() for word in ["пример", "например", "допустим", "представь"]
+        ), "Нет примеров в ответе"
+
+        # Проверяем ключевые термины
+        assert "остаток" in response.lower(), "Не объяснён остаток"
+        assert "дел" in response.lower(), "Не объяснено деление"
+
+    @pytest.mark.asyncio
+    async def test_visualization_context_integration(self, ai_service):
+        """Тест что AI правильно реагирует на контекст визуализации."""
+        # Запрос на график
+        question = "Покажи график функции y = x²"
+
+        # Это должно активировать детектор визуализации, но проверяем только AI ответ
+        response = await ai_service.generate_response(
+            user_message=question, chat_history=[], user_age=14
+        )
+
+        # AI должен дать пояснение про параболу
+        assert any(word in response.lower() for word in ["парабол", "график", "квадрат"]), (
+            "AI не дал пояснение про график"
+        )

@@ -6,6 +6,8 @@ Game Engines - чистая логика игр без зависимостей 
 import random
 from typing import Literal
 
+from loguru import logger
+
 PlayerType = Literal[1, 2]  # 1 - X, 2 - O
 
 
@@ -295,15 +297,36 @@ class CheckersGame:
 
         # Смена хода
         self.must_capture_from = None
-        self.current_player = 2 if self.current_player == 1 else 1
-        self._check_win()
+        next_player = 2 if self.current_player == 1 else 1
+
+        # КРИТИЧНО: Проверяем победу ДО смены хода
+        # Проверяем, есть ли у следующего игрока возможные ходы
+        next_player_moves = self.get_valid_moves(next_player)
+
+        # Считаем шашки
+        count_1 = sum(row.count(1) + row.count(3) for row in self.board)
+        count_2 = sum(row.count(2) + row.count(4) for row in self.board)
+
+        # Определяем победителя ПЕРЕД сменой хода
+        if count_2 == 0:
+            # У черных (AI) не осталось шашек - белые (пользователь) победили
+            self.winner = 1
+        elif count_1 == 0:
+            # У белых (пользователь) не осталось шашек - черные (AI) победили
+            self.winner = 2
+        elif not next_player_moves:
+            # У следующего игрока нет ходов - текущий игрок побеждает
+            self.winner = self.current_player
+
+        # Теперь меняем ход (если игра не окончена)
+        self.current_player = next_player
         return True
 
     def _check_win(self):
-        """Проверить победу"""
-        opponent = 2 if self.current_player == 1 else 1
-        opponent_moves = self.get_valid_moves(opponent)
-
+        """
+        УСТАРЕЛ: Проверка победы теперь выполняется в make_move.
+        Оставлен для обратной совместимости.
+        """
         # Считаем шашки
         count_1 = sum(row.count(1) + row.count(3) for row in self.board)
         count_2 = sum(row.count(2) + row.count(4) for row in self.board)
@@ -312,8 +335,14 @@ class CheckersGame:
             self.winner = 2
         elif count_2 == 0:
             self.winner = 1
-        elif not opponent_moves:
-            self.winner = self.current_player  # Текущий игрок победил
+        else:
+            # Проверяем наличие ходов у противника
+            opponent = 2 if self.current_player == 1 else 1
+            opponent_moves = self.get_valid_moves(opponent)
+            if not opponent_moves:
+                # Противник не может ходить - текущий игрок победил
+                # НО: текущий игрок УЖЕ сменился, так что победил предыдущий
+                self.winner = opponent  # Побеждает тот, кто только что сходил
 
 
 class Game2048:
@@ -524,10 +553,22 @@ class TetrisGame:
     def _lock_piece(self) -> None:
         """Закрепить фигуру и очистить линии."""
         # КРИТИЧНО: Блокируем только блоки, которые находятся в пределах доски
-        # Блоки ниже доски (r >= height) игнорируем - они уже за пределами
+        # Блоки ниже доски (r >= height) или за боковыми границами игнорируем
+        blocks_to_lock = []
         for r, c in self._get_blocks(self.current_row, self.current_col, self.current_rotation):
+            # СТРОГАЯ проверка границ: только блоки ВНУТРИ доски
             if 0 <= r < self.height and 0 <= c < self.width:
-                self.board[r][c] = 1
+                blocks_to_lock.append((r, c))
+            elif r >= self.height:
+                # Блок за нижней границей - критическая ошибка
+                logger.error(
+                    f"⚠️ Tetris _lock_piece: Блок за нижней границей! "
+                    f"row={r}, height={self.height}, current_row={self.current_row}"
+                )
+
+        # Блокируем только валидные блоки
+        for r, c in blocks_to_lock:
+            self.board[r][c] = 1
 
         # Очистка линий
         new_board = [row for row in self.board if not all(cell != 0 for cell in row)]
@@ -593,12 +634,14 @@ class TetrisGame:
         if action in ("down", "tick"):
             # Проверяем, что ВСЕ блоки фигуры будут в пределах доски
             blocks = self._get_blocks(new_row, new_col, new_rot)
-            max_row = max(r for r, _ in blocks)
 
-            # Если хотя бы один блок выходит за дно - блокируем СРАЗУ
-            if max_row >= self.height:
-                self._lock_piece()
-                return
+            # Проверяем каждый блок на выход за границы
+            for r, c in blocks:
+                # Если хотя бы один блок выходит за дно (r >= height) или за боковые границы
+                if r >= self.height or c < 0 or c >= self.width:
+                    # Блокируем текущую фигуру БЕЗ движения вниз
+                    self._lock_piece()
+                    return
 
         # Попытка выполнить действие
         if self._can_place(new_row, new_col, new_rot):
@@ -606,16 +649,34 @@ class TetrisGame:
 
             # КРИТИЧНО: Проверка блокировки ПОСЛЕ каждого движения вниз
             # Если фигура не может двигаться дальше вниз - блокируем
-            if action in ("down", "tick") and not self._can_place(
-                self.current_row + 1, self.current_col, self.current_rotation
-            ):
-                self._lock_piece()
-                return  # Выходим сразу после блокировки
+            if action in ("down", "tick"):
+                # Проверяем следующую позицию вниз
+                next_blocks = self._get_blocks(
+                    self.current_row + 1, self.current_col, self.current_rotation
+                )
+                # Если хотя бы один блок выйдет за пределы или коллизия - блокируем
+                if any(r >= self.height for r, _ in next_blocks) or not self._can_place(
+                    self.current_row + 1, self.current_col, self.current_rotation
+                ):
+                    self._lock_piece()
+                    return  # Выходим сразу после блокировки
 
         # Если движение вниз не удалось из-за коллизии - блокируем фигуру
         # КРИТИЧНО: Это происходит когда фигура уперлась в дно или блоки
         elif action in ("down", "tick"):
             # Мы попытались идти вниз, но не смогли - блокируем
+            # Но только если текущая позиция в пределах доски
+            current_blocks = self._get_blocks(
+                self.current_row, self.current_col, self.current_rotation
+            )
+            if any(r >= self.height for r, _ in current_blocks):
+                # Фигура уже за пределами - это ошибка, блокируем без записи
+                logger.error(
+                    f"⚠️ Tetris: Фигура за пределами доски при попытке блокировки: "
+                    f"row={self.current_row}, blocks={current_blocks}"
+                )
+                self.game_over = True
+                return
             self._lock_piece()
 
     def get_state(self) -> dict:
