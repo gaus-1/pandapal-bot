@@ -215,82 +215,93 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
         )
 
         if is_image_request:
-            from bot.services.yandex_art_service import get_yandex_art_service
+            # КРИТИЧНО: Проверяем, является ли запрос учебным (визуализация)
+            # Если это визуализация - обрабатываем дальше в основном потоке
+            from bot.services.visualization_service import get_visualization_service
 
-            art_service = get_yandex_art_service()
-            is_available = art_service.is_available()
-
-            logger.info(
-                f"🎨 Stream: Запрос на генерацию изображения от {telegram_id}: "
-                f"'{user_message[:50]}', art_service.is_available={is_available}"
+            viz_service = get_visualization_service()
+            visualization_image, visualization_type = viz_service.detect_visualization_request(
+                user_message
             )
 
-            if is_available:
-                try:
-                    # Генерируем изображение
-                    image_bytes = await art_service.generate_image(
-                        prompt=user_message, style="auto", aspect_ratio="1:1"
-                    )
+            # Если это НЕ визуализация (не учебный запрос) - генерируем через YandexART
+            if not visualization_image:
+                from bot.services.yandex_art_service import get_yandex_art_service
 
-                    if image_bytes:
-                        # Конвертируем в base64
-                        import base64
+                art_service = get_yandex_art_service()
+                is_available = art_service.is_available()
 
-                        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
-                        image_data = json.dumps(
-                            {"image": image_base64, "type": "generated_image"},
-                            ensure_ascii=False,
-                        )
-                        await response.write(f"event: image\ndata: {image_data}\n\n".encode())
+                logger.info(
+                    f"🎨 Stream: Запрос на генерацию изображения (не учебный) от {telegram_id}: "
+                    f"'{user_message[:50]}', art_service.is_available={is_available}"
+                )
 
-                        # Отправляем текстовое сообщение
-                        caption = f"🎨 Вот что я нарисовал по твоему запросу:\n\n{user_message}"
-                        event_data = json.dumps({"content": caption}, ensure_ascii=False)
-                        await response.write(f"event: message\ndata: {event_data}\n\n".encode())
-                        await response.write(b"event: done\ndata: {}\n\n")
-
-                        logger.info(
-                            f"🎨 Stream: Изображение сгенерировано для пользователя {telegram_id}"
+                if is_available:
+                    try:
+                        # Генерируем изображение
+                        image_bytes = await art_service.generate_image(
+                            prompt=user_message, style="auto", aspect_ratio="1:1"
                         )
 
-                        # Сохраняем в историю
-                        with get_db() as db:
-                            history_service = ChatHistoryService(db)
-                            history_service.add_message(
-                                telegram_id=telegram_id,
-                                message_text=user_message,
-                                message_type="user",
+                        if image_bytes:
+                            # Конвертируем в base64
+                            import base64
+
+                            image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+                            image_data = json.dumps(
+                                {"image": image_base64, "type": "generated_image"},
+                                ensure_ascii=False,
                             )
-                            image_url = f"data:image/jpeg;base64,{image_base64}"
-                            history_service.add_message(
-                                telegram_id=telegram_id,
-                                message_text="[Сгенерировано изображение]",
-                                message_type="ai",
-                                image_url=image_url,
+                            await response.write(f"event: image\ndata: {image_data}\n\n".encode())
+
+                            # Для не учебных изображений - короткое пояснение
+                            caption = "Могу нарисовать что-то по школьным предметам! 📚"
+                            event_data = json.dumps({"content": caption}, ensure_ascii=False)
+                            await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+                            await response.write(b"event: done\ndata: {}\n\n")
+
+                            logger.info(
+                                f"🎨 Stream: Изображение сгенерировано для пользователя {telegram_id}"
                             )
-                            db.commit()
-                        return response
-                    else:
-                        logger.warning(
-                            f"⚠️ Stream: Не удалось сгенерировать изображение для {telegram_id}"
-                        )
+
+                            # Сохраняем в историю с коротким пояснением
+                            with get_db() as db:
+                                history_service = ChatHistoryService(db)
+                                history_service.add_message(
+                                    telegram_id=telegram_id,
+                                    message_text=user_message,
+                                    message_type="user",
+                                )
+                                image_url = f"data:image/jpeg;base64,{image_base64}"
+                                history_service.add_message(
+                                    telegram_id=telegram_id,
+                                    message_text=caption,
+                                    message_type="ai",
+                                    image_url=image_url,
+                                )
+                                db.commit()
+                            return response
+                        else:
+                            logger.warning(
+                                f"⚠️ Stream: Не удалось сгенерировать изображение для {telegram_id}"
+                            )
+                            error_msg = json.dumps(
+                                {
+                                    "error": "Не получилось нарисовать картинку. Попробуй переформулировать запрос!"
+                                },
+                                ensure_ascii=False,
+                            )
+                            await response.write(f"event: error\ndata: {error_msg}\n\n".encode())
+                            return response
+
+                    except Exception as e:
+                        logger.error(f"❌ Stream: Ошибка генерации изображения: {e}", exc_info=True)
                         error_msg = json.dumps(
-                            {
-                                "error": "Не получилось нарисовать картинку. Попробуй переформулировать запрос!"
-                            },
+                            {"error": "Упс, что-то пошло не так с рисованием. Попробуй снова!"},
                             ensure_ascii=False,
                         )
                         await response.write(f"event: error\ndata: {error_msg}\n\n".encode())
                         return response
-
-                except Exception as e:
-                    logger.error(f"❌ Stream: Ошибка генерации изображения: {e}", exc_info=True)
-                    error_msg = json.dumps(
-                        {"error": "Упс, что-то пошло не так с рисованием. Попробуй снова!"},
-                        ensure_ascii=False,
-                    )
-                    await response.write(f"event: error\ndata: {error_msg}\n\n".encode())
-                    return response
             else:
                 logger.warning(
                     f"⚠️ Stream: YandexART недоступен (нет API ключей или роли). "

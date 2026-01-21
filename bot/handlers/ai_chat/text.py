@@ -110,78 +110,92 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 return
 
         # Детектор запросов на генерацию изображений
-        image_keywords = [
-            "нарисуй",
-            "нарисовать",
-            "рисунок",
-            "картинк",
-            "изображени",
-            "фото",
-            "иллюстраци",
-            "визуализируй",
-            "покажи как выглядит",
-            "сгенерируй изображение",
-            "создай картинку",
-        ]
-        is_image_request = any(keyword in user_message.lower() for keyword in image_keywords)
+        # КРИТИЧНО: Проверяем, является ли запрос учебным (визуализация)
+        from bot.services.visualization_service import get_visualization_service
 
-        logger.debug(
-            f"🎨 Проверка детектора изображений: '{user_message[:50]}', "
-            f"is_image_request={is_image_request}"
+        viz_service = get_visualization_service()
+        visualization_image, visualization_type = viz_service.detect_visualization_request(
+            user_message
         )
 
-        if is_image_request:
-            from bot.services.yandex_art_service import get_yandex_art_service
+        # Если это НЕ визуализация - проверяем запрос на YandexART
+        if not visualization_image:
+            image_keywords = [
+                "нарисуй",
+                "нарисовать",
+                "рисунок",
+                "картинк",
+                "изображени",
+                "фото",
+                "иллюстраци",
+                "визуализируй",
+                "покажи как выглядит",
+                "сгенерируй изображение",
+                "создай картинку",
+            ]
+            is_image_request = any(keyword in user_message.lower() for keyword in image_keywords)
 
-            art_service = get_yandex_art_service()
-            is_available = art_service.is_available()
-
-            logger.info(
-                f"🎨 Запрос на генерацию изображения от {telegram_id}: "
-                f"'{user_message[:50]}', art_service.is_available={is_available}"
+            logger.debug(
+                f"🎨 Проверка детектора изображений: '{user_message[:50]}', "
+                f"is_image_request={is_image_request}"
             )
 
-            if is_available:
-                try:
-                    # Генерируем изображение
-                    image_bytes = await art_service.generate_image(
-                        prompt=user_message, style="auto", aspect_ratio="1:1"
-                    )
+            if is_image_request:
+                from bot.services.yandex_art_service import get_yandex_art_service
 
-                    if image_bytes:
-                        # Отправляем изображение
-                        photo = BufferedInputFile(image_bytes, filename="generated_image.jpg")
-                        await message.answer_photo(
-                            photo=photo,
-                            caption=f"🎨 Вот что я нарисовал по твоему запросу:\n\n{user_message}",
+                art_service = get_yandex_art_service()
+                is_available = art_service.is_available()
+
+                logger.info(
+                    f"🎨 Запрос на генерацию изображения (не учебный) от {telegram_id}: "
+                    f"'{user_message[:50]}', art_service.is_available={is_available}"
+                )
+
+                if is_available:
+                    try:
+                        # Генерируем изображение
+                        image_bytes = await art_service.generate_image(
+                            prompt=user_message, style="auto", aspect_ratio="1:1"
                         )
-                        logger.info(f"🎨 Изображение сгенерировано для пользователя {telegram_id}")
 
-                        # Сохраняем в историю
-                        with get_db() as db:
-                            history_service = ChatHistoryService(db)
-                            history_service.add_message(
-                                telegram_id=telegram_id,
-                                message_text=user_message,
-                                message_type="user",
+                        if image_bytes:
+                            # Отправляем изображение с коротким пояснением
+                            photo = BufferedInputFile(image_bytes, filename="generated_image.jpg")
+                            caption = "Могу нарисовать что-то по школьным предметам! 📚"
+                            await message.answer_photo(photo=photo, caption=caption)
+                            logger.info(
+                                f"🎨 Изображение сгенерировано для пользователя {telegram_id}"
                             )
-                            history_service.add_message(
-                                telegram_id=telegram_id,
-                                message_text="[Сгенерировано изображение]",
-                                message_type="ai",
+
+                            # Сохраняем в историю с коротким пояснением
+                            with get_db() as db:
+                                history_service = ChatHistoryService(db)
+                                history_service.add_message(
+                                    telegram_id=telegram_id,
+                                    message_text=user_message,
+                                    message_type="user",
+                                )
+                                history_service.add_message(
+                                    telegram_id=telegram_id,
+                                    message_text=caption,
+                                    message_type="ai",
+                                )
+                            return
+                        else:
+                            logger.warning(
+                                f"⚠️ Не удалось сгенерировать изображение для {telegram_id}"
                             )
-                        return
-                    else:
-                        logger.warning(f"⚠️ Не удалось сгенерировать изображение для {telegram_id}")
+                            await message.answer(
+                                "Извини, не получилось нарисовать картинку. Попробуй переформулировать запрос!"
+                            )
+                            return
+
+                    except Exception as e:
+                        logger.error(f"❌ Ошибка генерации изображения: {e}", exc_info=True)
                         await message.answer(
-                            "Извини, не получилось нарисовать картинку. Попробуй переформулировать запрос!"
+                            "Упс, что-то пошло не так с рисованием. Попробуй снова!"
                         )
                         return
-
-                except Exception as e:
-                    logger.error(f"❌ Ошибка генерации изображения: {e}", exc_info=True)
-                    await message.answer("Упс, что-то пошло не так с рисованием. Попробуй снова!")
-                    return
             else:
                 logger.warning(
                     f"⚠️ YandexART недоступен (нет API ключей или роли). "
