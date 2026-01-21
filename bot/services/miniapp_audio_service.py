@@ -9,6 +9,7 @@
 """
 
 import base64
+import json
 
 from aiohttp import web
 from loguru import logger
@@ -103,6 +104,50 @@ class MiniappAudioService:
                 user_message = transcribed_text
 
             logger.info(f"✅ Stream: Аудио распознано: {transcribed_text[:100]}")
+
+            # КРИТИЧНО: Проверка распознанного текста на запрещенные темы
+            from bot.services.moderation_service import ContentModerationService
+
+            moderation_service = ContentModerationService()
+
+            # Проверка на провокационные вопросы
+            if moderation_service.is_provocative_question(user_message):
+                logger.warning(
+                    f"🚫 Stream: Провокационный вопрос в аудио от {telegram_id}: {user_message[:50]}..."
+                )
+                # Вежливо перенаправляем на учебу
+                safe_response = (
+                    "Я помогаю с учебой и школьными предметами! 📚\n\n"
+                    "Могу помочь с:\n"
+                    "• Математикой (задачи, примеры, формулы)\n"
+                    "• Русским языком (правила, орфография, грамматика)\n"
+                    "• Историей (даты, события, эпохи)\n"
+                    "• Географией (страны, карты, природные зоны)\n"
+                    "• Физикой, химией, биологией\n"
+                    "• Литературой и иностранными языками\n\n"
+                    "Задай вопрос по любому школьному предмету! 🐼"
+                )
+                await response.write(
+                    f'event: message\ndata: {{"content": {json.dumps(safe_response, ensure_ascii=False)}}}\n\n'.encode()
+                )
+                await response.write(b"event: done\ndata: {}\n\n")
+                return None
+
+            # Проверка на запрещенные темы
+            is_safe, reason = moderation_service.is_safe_content(user_message)
+            if not is_safe:
+                logger.warning(
+                    f"🚫 Stream: Запрещенная тема в аудио от {telegram_id}: {reason}, "
+                    f"текст: '{user_message[:50]}...'"
+                )
+                # Вежливо перенаправляем на учебу
+                safe_response = moderation_service.get_safe_response_alternative()
+                await response.write(
+                    f'event: message\ndata: {{"content": {json.dumps(safe_response, ensure_ascii=False)}}}\n\n'.encode()
+                )
+                await response.write(b"event: done\ndata: {}\n\n")
+                return None
+
             await response.write(b'event: status\ndata: {"status": "transcribed"}\n\n')
 
             return user_message

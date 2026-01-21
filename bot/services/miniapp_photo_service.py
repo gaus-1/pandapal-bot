@@ -9,6 +9,7 @@
 """
 
 import base64
+import json
 
 from aiohttp import web
 from loguru import logger
@@ -97,10 +98,20 @@ class MiniappPhotoService:
                     # Vision API уже решил задачу - отправляем ответ напрямую
                     full_response = clean_ai_response(vision_result.analysis)
 
-                    # Отправляем ответ через streaming
-                    import json as json_lib
+                    # КРИТИЧНО: Проверка ответа Vision API на запрещенные темы
+                    from bot.services.moderation_service import ContentModerationService
 
-                    chunk_data = json_lib.dumps({"chunk": full_response}, ensure_ascii=False)
+                    moderation_service = ContentModerationService()
+                    is_safe_response, reason = moderation_service.is_safe_content(full_response)
+                    if not is_safe_response:
+                        logger.warning(
+                            f"🚫 Stream: Vision API вернул небезопасный ответ для фото от {telegram_id}: {reason}"
+                        )
+                        # Заменяем на безопасный ответ
+                        full_response = moderation_service.get_safe_response_alternative()
+
+                    # Отправляем ответ через streaming
+                    chunk_data = json.dumps({"chunk": full_response}, ensure_ascii=False)
                     await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
 
                     # Сохраняем в историю
@@ -146,6 +157,25 @@ class MiniappPhotoService:
 
                 # Если Vision API не дал готовый ответ - используем распознанный текст
                 if vision_result.recognized_text:
+                    # КРИТИЧНО: Проверка распознанного текста на запрещенные темы
+                    from bot.services.moderation_service import ContentModerationService
+
+                    moderation_service = ContentModerationService()
+                    is_safe, reason = moderation_service.is_safe_content(
+                        vision_result.recognized_text
+                    )
+                    if not is_safe:
+                        logger.warning(
+                            f"🚫 Stream: Запрещенная тема в распознанном тексте фото от {telegram_id}: {reason}"
+                        )
+                        # Вежливо перенаправляем на учебу
+                        safe_response = moderation_service.get_safe_response_alternative()
+                        await response.write(
+                            f'event: message\ndata: {{"content": {json.dumps(safe_response, ensure_ascii=False)}}}\n\n'.encode()
+                        )
+                        await response.write(b"event: done\ndata: {}\n\n")
+                        return None, True
+
                     user_message = (
                         f"На фото написано: {vision_result.recognized_text}\n\n"
                         "Помоги решить эту задачу полностью."
