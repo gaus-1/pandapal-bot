@@ -234,10 +234,10 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                           imageUrl: imageUrl,
                         };
                       } else {
-                        // Если нет сообщения AI, создаем новое
+                        // Если нет сообщения AI, создаем новое без подписи
                         updated.push({
                           role: 'ai',
-                          content: data.type === 'generated_image' ? '🎨 Изображение сгенерировано' : '',
+                          content: '',
                           imageUrl: imageUrl,
                           timestamp: new Date().toISOString(),
                         });
