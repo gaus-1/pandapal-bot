@@ -181,10 +181,43 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                       return updated;
                     }
                   );
+                } else if (eventType === 'message' && data.content) {
+                  // Получено полное сообщение (например, секретное сообщение)
+                  const messageContent = data.content;
+
+                  // Обновляем или добавляем сообщение AI
+                  queryClient.setQueryData<ChatMessage[]>(
+                    queryKeys.chatHistory(telegramId, limit),
+                    (old) => {
+                      if (!old) return old;
+                      const updated = [...old];
+                      const lastMessage = updated[updated.length - 1];
+
+                      if (lastMessage && lastMessage.role === 'user') {
+                        // Добавляем новое сообщение AI
+                        updated.push({
+                          role: 'ai',
+                          content: messageContent,
+                          timestamp: new Date().toISOString(),
+                        });
+                      } else if (lastMessage && lastMessage.role === 'ai') {
+                        // Обновляем существующее сообщение AI
+                        updated[updated.length - 1] = {
+                          ...lastMessage,
+                          content: messageContent,
+                        };
+                      }
+
+                      return updated;
+                    }
+                  );
+                  currentResponseRef.current = messageContent;
                 } else if (eventType === 'image' && data.image) {
-                  // Получено изображение визуализации
+                  // Получено изображение (визуализация или сгенерированное)
                   const imageBase64 = data.image;
-                  const imageUrl = `data:image/png;base64,${imageBase64}`;
+                  // Определяем тип изображения: generated_image = JPEG, иначе PNG
+                  const imageType = data.type === 'generated_image' ? 'jpeg' : 'png';
+                  const imageUrl = `data:image/${imageType};base64,${imageBase64}`;
 
                   // Обновляем последнее сообщение AI, добавляя изображение
                   queryClient.setQueryData<ChatMessage[]>(
@@ -200,6 +233,14 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                           ...lastMessage,
                           imageUrl: imageUrl,
                         };
+                      } else {
+                        // Если нет сообщения AI, создаем новое
+                        updated.push({
+                          role: 'ai',
+                          content: data.type === 'generated_image' ? '🎨 Изображение сгенерировано' : '',
+                          imageUrl: imageUrl,
+                          timestamp: new Date().toISOString(),
+                        });
                       }
 
                       return updated;
