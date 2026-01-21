@@ -4,7 +4,7 @@
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import BufferedInputFile, Message
 from loguru import logger
 
 from bot.database import get_db
@@ -101,6 +101,68 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                         message_type="ai",
                     )
                 return
+
+        # Детектор запросов на генерацию изображений
+        image_keywords = [
+            "нарисуй",
+            "нарисовать",
+            "рисунок",
+            "картинк",
+            "изображени",
+            "фото",
+            "иллюстраци",
+            "визуализируй",
+            "покажи как выглядит",
+            "сгенерируй изображение",
+            "создай картинку",
+        ]
+        is_image_request = any(keyword in user_message.lower() for keyword in image_keywords)
+
+        if is_image_request:
+            from bot.services.yandex_art_service import get_yandex_art_service
+
+            art_service = get_yandex_art_service()
+            if art_service.is_available():
+                try:
+                    # Генерируем изображение
+                    image_bytes = await art_service.generate_image(
+                        prompt=user_message, style="auto", aspect_ratio="1:1"
+                    )
+
+                    if image_bytes:
+                        # Отправляем изображение
+                        photo = BufferedInputFile(image_bytes, filename="generated_image.jpg")
+                        await message.answer_photo(
+                            photo=photo,
+                            caption=f"🎨 Вот что я нарисовал по твоему запросу:\n\n{user_message}",
+                        )
+                        logger.info(f"🎨 Изображение сгенерировано для пользователя {telegram_id}")
+
+                        # Сохраняем в историю
+                        with get_db() as db:
+                            history_service = ChatHistoryService(db)
+                            history_service.add_message(
+                                telegram_id=telegram_id,
+                                message_text=user_message,
+                                message_type="user",
+                            )
+                            history_service.add_message(
+                                telegram_id=telegram_id,
+                                message_text="[Сгенерировано изображение]",
+                                message_type="ai",
+                            )
+                        return
+                    else:
+                        logger.warning(f"⚠️ Не удалось сгенерировать изображение для {telegram_id}")
+                        await message.answer(
+                            "Извини, не получилось нарисовать картинку. Попробуй переформулировать запрос!"
+                        )
+                        return
+
+                except Exception as e:
+                    logger.error(f"❌ Ошибка генерации изображения: {e}", exc_info=True)
+                    await message.answer("Упс, что-то пошло не так с рисованием. Попробуй снова!")
+                    return
 
         # Продвинутая проверка контента на безопасность
         moderation_service = ContentModerationService()
@@ -1036,8 +1098,6 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
         # Отправляем ответ пользователю (без parse_mode для избежания ошибок форматирования)
         if visualization_image:
             # Отправляем изображение вместе с текстом
-            from aiogram.types import BufferedInputFile
-
             photo = BufferedInputFile(visualization_image, filename="visualization.png")
             await message.answer_photo(
                 photo=photo,
