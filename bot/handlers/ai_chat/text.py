@@ -125,11 +125,23 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
         ]
         is_image_request = any(keyword in user_message.lower() for keyword in image_keywords)
 
+        logger.debug(
+            f"🎨 Проверка детектора изображений: '{user_message[:50]}', "
+            f"is_image_request={is_image_request}"
+        )
+
         if is_image_request:
             from bot.services.yandex_art_service import get_yandex_art_service
 
             art_service = get_yandex_art_service()
-            if art_service.is_available():
+            is_available = art_service.is_available()
+
+            logger.info(
+                f"🎨 Запрос на генерацию изображения от {telegram_id}: "
+                f"'{user_message[:50]}', art_service.is_available={is_available}"
+            )
+
+            if is_available:
                 try:
                     # Генерируем изображение
                     image_bytes = await art_service.generate_image(
@@ -170,6 +182,13 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                     logger.error(f"❌ Ошибка генерации изображения: {e}", exc_info=True)
                     await message.answer("Упс, что-то пошло не так с рисованием. Попробуй снова!")
                     return
+            else:
+                logger.warning(
+                    f"⚠️ YandexART недоступен (нет API ключей или роли). "
+                    f"Запрос: '{user_message[:50]}'"
+                )
+                # Продолжаем обычную обработку текстом
+                logger.info("📝 Обрабатываем запрос как обычный текст")
 
         # Продвинутая проверка контента на безопасность
         moderation_service = ContentModerationService()
