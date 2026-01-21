@@ -358,7 +358,7 @@ export async function updateUserProfile(
 
 export interface GameSession {
   id: number;
-  game_type: 'tic_tac_toe' | 'checkers' | '2048';
+  game_type: 'tic_tac_toe' | 'checkers' | '2048' | 'two_dots';
   game_state: Record<string, unknown>;
   result: 'win' | 'loss' | 'draw' | 'in_progress' | null;
   score: number | null;
@@ -415,37 +415,6 @@ export async function ticTacToeMove(sessionId: number, position: number): Promis
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ position }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(errorData.error || 'Ошибка хода');
-  }
-
-  const data = await response.json();
-  return data;
-}
-
-/**
- * Сделать шаг в тетрисе
- */
-export async function tetrisMove(
-  sessionId: number,
-  action: 'left' | 'right' | 'down' | 'rotate' | 'tick',
-): Promise<{
-  board: number[][];
-  score: number;
-  lines_cleared: number;
-  game_over: boolean;
-  width: number;
-  height: number;
-}> {
-  const response = await fetch(`${API_BASE_URL}/miniapp/games/tetris/${sessionId}/move`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ action }),
   });
 
   if (!response.ok) {
@@ -534,6 +503,41 @@ export async function game2048Move(sessionId: number, direction: 'up' | 'down' |
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ direction }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка хода');
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+/**
+ * Сделать действие в Two Dots
+ */
+export async function twoDotsMove(
+  sessionId: number,
+  action: 'select' | 'add' | 'clear' | 'confirm',
+  row?: number,
+  col?: number
+): Promise<{
+  grid: number[][];
+  score: number;
+  moves_left: number;
+  level: number;
+  game_over: boolean;
+  selected_path: Array<[number, number]>;
+  width: number;
+  height: number;
+}> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/two-dots/${sessionId}/move`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ action, row, col }),
   });
 
   if (!response.ok) {
