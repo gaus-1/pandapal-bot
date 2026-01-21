@@ -38,12 +38,12 @@ class Game2048MoveRequest(BaseModel):  # noqa: D101
     direction: str  # 'up', 'down', 'left', 'right'
 
 
-class TwoDotsMoveRequest(BaseModel):  # noqa: D101
-    """Request для действия в Two Dots"""
+class EruditePlaceTileRequest(BaseModel):  # noqa: D101
+    """Request для размещения фишки в Эрудите"""
 
-    action: str  # 'select', 'add', 'clear', 'confirm'
-    row: int | None = None  # Строка (для select/add)
-    col: int | None = None  # Колонка (для select/add)
+    row: int  # Строка (0-14)
+    col: int  # Колонка (0-14)
+    letter: str  # Буква
 
 
 def _initialize_game_state(game_type: str) -> dict:
@@ -86,20 +86,23 @@ def _initialize_game_state(game_type: str) -> dict:
             "game_over": state["game_over"],
         }
 
-    elif game_type == "two_dots":
-        from bot.services.game_engines import TwoDotsGame
+    elif game_type == "erudite":
+        from bot.services.game_engines import EruditeGame
 
-        game = TwoDotsGame()
+        game = EruditeGame()
         state = game.get_state()
         return {
-            "grid": state["grid"],
-            "score": state["score"],
-            "moves_left": state["moves_left"],
-            "level": state["level"],
+            "board": state["board"],
+            "bonus_cells": state["bonus_cells"],
+            "player_tiles": state["player_tiles"],
+            "ai_tiles": state["ai_tiles"],
+            "player_score": state["player_score"],
+            "ai_score": state["ai_score"],
+            "current_player": state["current_player"],
             "game_over": state["game_over"],
-            "selected_path": state["selected_path"],
-            "width": state["width"],
-            "height": state["height"],
+            "first_move": state["first_move"],
+            "current_move": state["current_move"],
+            "bag_count": state["bag_count"],
         }
 
     return {}
@@ -129,7 +132,7 @@ async def create_game(request: web.Request) -> web.Response:
                 {"error": "Invalid request", "details": e.errors()}, status=400
             )
 
-        if validated.game_type not in ["tic_tac_toe", "checkers", "2048", "two_dots"]:
+        if validated.game_type not in ["tic_tac_toe", "checkers", "2048", "erudite"]:
             return web.json_response({"error": "Invalid game_type"}, status=400)
 
         initial_state = _initialize_game_state(validated.game_type)
@@ -287,31 +290,28 @@ async def game_2048_move(request: web.Request) -> web.Response:
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
-async def two_dots_move(request: web.Request) -> web.Response:
+async def erudite_place_tile(request: web.Request) -> web.Response:
     """
-    Сделать действие в Two Dots.
+    Разместить фишку в Эрудите.
 
-    POST /api/miniapp/games/two-dots/{session_id}/move
-    Body: { "action": "select" | "add" | "clear" | "confirm", "row": int?, "col": int? }
+    POST /api/miniapp/games/erudite/{session_id}/place-tile
+    Body: { "row": int, "col": int, "letter": str }
     """
     try:
         session_id = int(request.match_info["session_id"])
         data = await request.json()
 
         try:
-            validated = TwoDotsMoveRequest(**data)
+            validated = EruditePlaceTileRequest(**data)
         except ValidationError as e:
             return web.json_response(
                 {"error": "Invalid request", "details": e.errors()}, status=400
             )
 
-        if validated.action not in ["select", "add", "clear", "confirm"]:
-            return web.json_response({"error": "Invalid action"}, status=400)
-
         with get_db() as db:
             games_service = GamesService(db)
-            state = games_service.two_dots_move(
-                session_id, validated.action, validated.row, validated.col
+            state = games_service.erudite_move(
+                session_id, validated.row, validated.col, validated.letter
             )
             db.commit()
 
@@ -321,7 +321,31 @@ async def two_dots_move(request: web.Request) -> web.Response:
         logger.warning(f"⚠️ Invalid move: {e}")
         return web.json_response({"error": str(e)}, status=400)
     except Exception as e:
-        logger.error(f"❌ Ошибка хода в Two Dots: {e}", exc_info=True)
+        logger.error(f"❌ Ошибка размещения фишки в Эрудите: {e}", exc_info=True)
+        return web.json_response({"error": "Internal server error"}, status=500)
+
+
+async def erudite_confirm_move(request: web.Request) -> web.Response:
+    """
+    Подтвердить ход в Эрудите.
+
+    POST /api/miniapp/games/erudite/{session_id}/confirm-move
+    """
+    try:
+        session_id = int(request.match_info["session_id"])
+
+        with get_db() as db:
+            games_service = GamesService(db)
+            state = games_service.erudite_confirm_move(session_id)
+            db.commit()
+
+        return web.json_response({"success": True, **state})
+
+    except ValueError as e:
+        logger.warning(f"⚠️ Invalid move: {e}")
+        return web.json_response({"error": str(e)}, status=400)
+    except Exception as e:
+        logger.error(f"❌ Ошибка подтверждения хода в Эрудите: {e}", exc_info=True)
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
@@ -411,7 +435,10 @@ def setup_games_routes(app: web.Application) -> None:
         "/api/miniapp/games/checkers/{session_id}/valid-moves", get_checkers_valid_moves
     )
     app.router.add_post("/api/miniapp/games/2048/{session_id}/move", game_2048_move)
-    app.router.add_post("/api/miniapp/games/two-dots/{session_id}/move", two_dots_move)
+    app.router.add_post("/api/miniapp/games/erudite/{session_id}/place-tile", erudite_place_tile)
+    app.router.add_post(
+        "/api/miniapp/games/erudite/{session_id}/confirm-move", erudite_confirm_move
+    )
     app.router.add_get("/api/miniapp/games/{telegram_id}/stats", get_game_stats)
     app.router.add_get("/api/miniapp/games/session/{session_id}", get_game_session)
 

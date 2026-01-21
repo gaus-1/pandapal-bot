@@ -13,7 +13,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from bot.models import GameSession, GameStats
-from bot.services.game_engines import CheckersGame, Game2048, TicTacToe, TwoDotsGame
+from bot.services.game_engines import CheckersGame, EruditeGame, Game2048, TicTacToe
 from bot.services.gamification_service import GamificationService
 
 
@@ -1086,17 +1086,15 @@ class GamesService:
             "won": state["won"],
         }
 
-    def two_dots_move(
-        self, session_id: int, action: str, row: int | None = None, col: int | None = None
-    ) -> dict:
+    def erudite_move(self, session_id: int, row: int, col: int, letter: str) -> dict:
         """
-        Сделать действие в Two Dots.
+        Разместить фишку в Эрудите.
 
         Args:
             session_id: ID сессии
-            action: 'select', 'add', 'clear', 'confirm'
-            row: Строка (для select/add)
-            col: Колонка (для select/add)
+            row: Строка
+            col: Колонка
+            letter: Буква
         """
         session = self.db.get(GameSession, session_id)
         if not session:
@@ -1104,25 +1102,13 @@ class GamesService:
 
         # Восстанавливаем игру из сохранённого состояния
         if session.game_state and isinstance(session.game_state, dict):
-            game = TwoDotsGame.from_dict(session.game_state)
+            game = EruditeGame.from_dict(session.game_state)
         else:
-            game = TwoDotsGame()
+            game = EruditeGame()
 
-        # Выполняем действие
-        if action == "select":
-            if row is None or col is None:
-                raise ValueError("row and col required for select action")
-            game.select_dot(row, col)
-        elif action == "add":
-            if row is None or col is None:
-                raise ValueError("row and col required for add action")
-            game.add_to_path(row, col)
-        elif action == "clear":
-            game.clear_path()
-        elif action == "confirm":
-            game.confirm_path()
-        else:
-            raise ValueError(f"Invalid action: {action}")
+        # Размещаем фишку
+        if not game.place_tile(row, col, letter):
+            raise ValueError("Не удалось разместить фишку")
 
         state = game.get_state()
 
@@ -1130,20 +1116,72 @@ class GamesService:
         self.update_game_session(
             session_id,
             {
-                "grid": state["grid"],
-                "score": state["score"],
-                "moves_left": state["moves_left"],
-                "level": state["level"],
+                "board": state["board"],
+                "bonus_cells": state["bonus_cells"],
+                "player_tiles": state["player_tiles"],
+                "ai_tiles": state["ai_tiles"],
+                "player_score": state["player_score"],
+                "ai_score": state["ai_score"],
+                "current_player": state["current_player"],
                 "game_over": state["game_over"],
-                "selected_path": state["selected_path"],
-                "width": state["width"],
-                "height": state["height"],
+                "first_move": state["first_move"],
+                "current_move": state["current_move"],
+                "bag_count": state["bag_count"],
             },
             "loss" if state["game_over"] else "in_progress",
         )
 
         if state["game_over"]:
-            self.finish_game_session(session_id, "loss", state["score"])
+            self.finish_game_session(
+                session_id,
+                "loss" if state["player_score"] < state["ai_score"] else "win",
+                state["player_score"],
+            )
+            self.db.commit()
+
+        return state
+
+    def erudite_confirm_move(self, session_id: int) -> dict:
+        """Подтвердить ход в Эрудите."""
+        session = self.db.get(GameSession, session_id)
+        if not session:
+            raise ValueError(f"Game session {session_id} not found")
+
+        if session.game_state and isinstance(session.game_state, dict):
+            game = EruditeGame.from_dict(session.game_state)
+        else:
+            game = EruditeGame()
+
+        success, message = game.make_move()
+        if not success:
+            raise ValueError(message)
+
+        state = game.get_state()
+
+        self.update_game_session(
+            session_id,
+            {
+                "board": state["board"],
+                "bonus_cells": state["bonus_cells"],
+                "player_tiles": state["player_tiles"],
+                "ai_tiles": state["ai_tiles"],
+                "player_score": state["player_score"],
+                "ai_score": state["ai_score"],
+                "current_player": state["current_player"],
+                "game_over": state["game_over"],
+                "first_move": state["first_move"],
+                "current_move": state["current_move"],
+                "bag_count": state["bag_count"],
+            },
+            "loss" if state["game_over"] else "in_progress",
+        )
+
+        if state["game_over"]:
+            self.finish_game_session(
+                session_id,
+                "loss" if state["player_score"] < state["ai_score"] else "win",
+                state["player_score"],
+            )
             self.db.commit()
 
         return state
