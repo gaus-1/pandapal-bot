@@ -1061,7 +1061,20 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 ai_response = add_random_engagement_question(ai_response)
 
             # Увеличиваем счетчик запросов (независимо от истории)
-            premium_service.increment_request_count(telegram_id)
+            limit_reached, total_requests = premium_service.increment_request_count(telegram_id)
+
+            # Проактивное уведомление от панды при достижении лимита
+            if limit_reached:
+                try:
+                    from aiogram import Bot
+
+                    from bot.config import settings
+
+                    bot_instance = Bot(token=settings.telegram_bot_token)
+                    await premium_service.send_limit_reached_notification(telegram_id, bot_instance)
+                    await bot_instance.session.close()
+                except Exception as e:
+                    logger.error(f"❌ Ошибка отправки проактивного уведомления: {e}")
 
             # Сохраняем сообщение пользователя в историю
             history_service.add_message(

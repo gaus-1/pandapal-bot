@@ -143,7 +143,17 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                         from bot.services.premium_features_service import PremiumFeaturesService
 
                         premium_service = PremiumFeaturesService(db)
-                        premium_service.increment_request_count(telegram_id)
+                        limit_reached, total_requests = premium_service.increment_request_count(
+                            telegram_id
+                        )
+
+                        # Проактивное уведомление от панды при достижении лимита (фоновая задача)
+                        if limit_reached:
+                            import asyncio
+
+                            asyncio.create_task(
+                                premium_service.send_limit_reached_notification_async(telegram_id)
+                            )
                         history_service.add_message(telegram_id, user_message, "user")
                         history_service.add_message(telegram_id, cleaned_response, "ai")
 
@@ -357,7 +367,15 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             unlocked_achievements = []  # Инициализируем в начале блока
             try:
                 # Увеличиваем счетчик запросов (независимо от истории)
-                premium_service.increment_request_count(telegram_id)
+                limit_reached, total_requests = premium_service.increment_request_count(telegram_id)
+
+                # Проактивное уведомление от панды при достижении лимита (фоновая задача)
+                if limit_reached:
+                    import asyncio
+
+                    asyncio.create_task(
+                        premium_service.send_limit_reached_notification_async(telegram_id)
+                    )
 
                 logger.info(f"💾 Сохраняю сообщение пользователя: {user_message[:50]}...")
                 user_msg = history_service.add_message(telegram_id, user_message, "user")
