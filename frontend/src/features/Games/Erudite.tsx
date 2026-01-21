@@ -158,27 +158,27 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-900">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-900 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">📚 Эрудит</h1>
+      <div className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <h1 className="text-base font-bold text-gray-900 dark:text-slate-100">📚 Эрудит</h1>
         <button
           onClick={onBack}
-          className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+          className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
         >
           Назад
         </button>
       </div>
 
       {/* Scores */}
-      <div className="flex justify-between p-4 bg-gray-50 dark:bg-gray-800">
+      <div className="flex justify-between p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Вы</div>
-          <div className="text-xl font-bold text-blue-600 dark:text-blue-400">{state.player_score}</div>
+          <div className="text-xs text-gray-600 dark:text-gray-400">Вы</div>
+          <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{state.player_score}</div>
         </div>
         <div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">AI</div>
-          <div className="text-xl font-bold text-red-600 dark:text-red-400">{state.ai_score}</div>
+          <div className="text-xs text-gray-600 dark:text-gray-400">🐼 Панда</div>
+          <div className="text-lg font-bold text-red-600 dark:text-red-400">{state.ai_score}</div>
         </div>
       </div>
 
@@ -196,7 +196,7 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
                 <div
                   key={`${r}-${c}`}
                   className={`
-                    aspect-square flex items-center justify-center text-xs font-bold
+                    aspect-square flex items-center justify-center text-[10px] font-bold
                     border border-gray-300 dark:border-gray-600
                     ${getBonusColor(bonus)}
                     ${cell ? 'bg-white dark:bg-gray-700' : ''}
@@ -238,17 +238,44 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
         </div>
       </div>
 
-      {/* Confirm Button */}
-      {state.current_move.length > 0 && (
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            onClick={handleConfirmMove}
-            className="w-full py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600"
-          >
-            Подтвердить ход ({state.current_move.length} фишек)
-          </button>
-        </div>
-      )}
+      {/* Action Buttons */}
+      <div className="p-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex-shrink-0">
+        {state.current_move.length > 0 ? (
+          <div className="flex gap-1.5">
+            <button
+              onClick={handleConfirmMove}
+              className="flex-1 py-2 bg-green-500 text-white rounded-lg font-semibold text-xs hover:bg-green-600 active:scale-95"
+            >
+              ✅ Подтвердить ({state.current_move.length})
+            </button>
+            <button
+              onClick={async () => {
+                if (!state) return;
+                try {
+                  const response = await fetch(`${API_BASE_URL}/api/miniapp/games/erudite/${sessionId}/clear-move`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                  });
+                  if (response.ok) {
+                    const data = await response.json();
+                    setState(data as EruditeState);
+                    setSelectedTile(null);
+                  }
+                } catch (err) {
+                  console.error('Ошибка очистки хода:', err);
+                }
+              }}
+              className="px-3 py-2 bg-gray-500 text-white rounded-lg text-xs hover:bg-gray-600 active:scale-95"
+            >
+              🗑️
+            </button>
+          </div>
+        ) : (
+          <div className="text-[10px] text-gray-500 dark:text-gray-400 text-center">
+            Выбери фишку и размести её на доске
+          </div>
+        )}
+      </div>
 
       {/* Game Over */}
       {state.game_over && (
@@ -258,7 +285,7 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
               {state.player_score > state.ai_score ? 'Победа!' : 'Поражение'}
             </div>
             <div className="text-gray-600 dark:text-gray-400 mb-4">
-              Вы: {state.player_score} | AI: {state.ai_score}
+              Вы: {state.player_score} | Панда: {state.ai_score}
             </div>
             <button
               onClick={onGameEnd}

@@ -1141,6 +1141,41 @@ class GamesService:
 
         return state
 
+    def erudite_clear_move(self, session_id: int) -> dict:
+        """
+        Очистить текущий ход в Эрудите.
+
+        Args:
+            session_id: ID сессии
+
+        Returns:
+            dict: Обновленное состояние игры
+        """
+        session = self.db.get(GameSession, session_id)
+        if not session:
+            raise ValueError("Session not found")
+
+        game = EruditeGame.from_dict(session.game_state)
+        game.clear_move()
+        state = game.get_state()
+
+        session.game_state = {
+            "board": state["board"],
+            "bonus_cells": state["bonus_cells"],
+            "player_tiles": state["player_tiles"],
+            "ai_tiles": state["ai_tiles"],
+            "player_score": state["player_score"],
+            "ai_score": state["ai_score"],
+            "current_player": state["current_player"],
+            "game_over": state["game_over"],
+            "first_move": state["first_move"],
+            "current_move": state["current_move"],
+            "bag_count": state["bag_count"],
+        }
+
+        self.db.flush()
+        return state
+
     def erudite_confirm_move(self, session_id: int) -> dict:
         """Подтвердить ход в Эрудите."""
         session = self.db.get(GameSession, session_id)
