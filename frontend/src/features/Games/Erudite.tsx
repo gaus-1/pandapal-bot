@@ -184,37 +184,57 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
 
       {/* Instructions */}
       {state.current_move.length === 0 && !selectedTile && (
-        <div className="px-2 py-1 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 flex-shrink-0">
-          <div className="text-[10px] text-blue-800 dark:text-blue-200">
-            💡 <strong>Как играть:</strong> Выбери фишку → Нажми на клетку доски → Подтверди ход
+        <div className="px-3 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b-2 border-blue-300 dark:border-blue-700 flex-shrink-0">
+          <div className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-1">
+            💡 Как играть:
+          </div>
+          <div className="text-[11px] text-blue-800 dark:text-blue-200 space-y-0.5">
+            <div>1️⃣ Нажми на фишку внизу, чтобы выбрать её</div>
+            <div>2️⃣ Нажми на пустую клетку доски, чтобы поставить фишку</div>
+            <div>3️⃣ Составь слово (вертикально или горизонтально)</div>
+            <div>4️⃣ Нажми "Подтвердить" для завершения хода</div>
+            {state.first_move && (
+              <div className="mt-1 pt-1 border-t border-blue-300 dark:border-blue-600 font-semibold">
+                ⭐ Первый ход должен проходить через центр доски (звёздочка)
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {/* Game Board */}
-      <div className="flex-1 overflow-hidden flex items-center justify-center p-1 min-h-0">
+      <div className="flex-1 overflow-hidden flex items-center justify-center p-2 min-h-0">
         <div
-          className="grid gap-0.5 w-full h-full"
+          className="grid gap-1 w-full h-full"
           style={{ gridTemplateColumns: 'repeat(15, minmax(0, 1fr))', aspectRatio: '1', maxWidth: '100%', maxHeight: '100%' }}
         >
           {state.board.map((row, r) =>
             row.map((cell, c) => {
               const bonus = state.bonus_cells[r][c];
               const isInCurrentMove = state.current_move.some(([mr, mc]) => mr === r && mc === c);
+              const isCenter = r === 7 && c === 7;
               return (
                 <div
                   key={`${r}-${c}`}
                   className={`
-                    aspect-square flex items-center justify-center text-[10px] font-bold
-                    border border-gray-300 dark:border-gray-600
+                    aspect-square flex items-center justify-center text-xs font-bold
+                    border-2 transition-all
+                    ${isCenter && !cell ? 'border-yellow-400 bg-yellow-100 dark:bg-yellow-900/30' : 'border-gray-300 dark:border-gray-600'}
                     ${getBonusColor(bonus)}
-                    ${cell ? 'bg-white dark:bg-gray-700' : ''}
-                    ${isInCurrentMove ? 'ring-2 ring-blue-500' : ''}
-                    ${!cell && !state.game_over && state.current_player === 1 ? 'cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700' : ''}
+                    ${cell ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}
+                    ${isInCurrentMove ? 'ring-2 ring-blue-500 ring-offset-1' : ''}
+                    ${!cell && !state.game_over && state.current_player === 1 ? 'cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 hover:scale-105' : ''}
                   `}
                   onClick={() => !cell && handlePlaceTile(r, c)}
+                  title={isCenter && state.first_move ? 'Центр доски - первый ход должен проходить здесь' : ''}
                 >
-                  {cell || (bonus > 0 && !cell ? (bonus === 1 ? '2x' : bonus === 2 ? '3x' : bonus === 3 ? '2x' : bonus === 4 ? '3x' : '') : '')}
+                  {cell ? (
+                    <span className="text-sm font-extrabold text-gray-900 dark:text-gray-100">{cell}</span>
+                  ) : isCenter && state.first_move ? (
+                    <span className="text-yellow-500 text-sm">⭐</span>
+                  ) : bonus > 0 ? (
+                    <span className="text-[10px]">{bonus === 1 ? '2x' : bonus === 2 ? '3x' : bonus === 3 ? '2x' : bonus === 4 ? '3x' : ''}</span>
+                  ) : null}
                 </div>
               );
             })
@@ -224,21 +244,21 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
 
       {/* Player Tiles */}
       <div className="p-2 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <div className="text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">Ваши фишки:</div>
-        <div className="flex flex-wrap gap-1">
+        <div className="text-xs font-semibold mb-1.5 text-gray-700 dark:text-gray-300">Ваши фишки:</div>
+        <div className="flex flex-wrap gap-1.5">
           {state.player_tiles.map((tile, idx) => (
             <button
               key={idx}
               onClick={() => setSelectedTile(selectedTile === tile ? null : tile)}
               className={`
-                w-7 h-7 flex items-center justify-center
-                text-xs font-bold rounded
-                border-2
+                w-9 h-9 flex items-center justify-center
+                text-sm font-bold rounded-lg shadow-sm
+                border-2 transition-all
                 ${selectedTile === tile
-                  ? 'bg-blue-500 text-white border-blue-600'
+                  ? 'bg-blue-500 text-white border-blue-600 scale-110 shadow-md'
                   : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600'
                 }
-                hover:bg-blue-100 dark:hover:bg-blue-900
+                hover:bg-blue-100 dark:hover:bg-blue-900 hover:scale-105 active:scale-95
               `}
             >
               {tile === '*' ? '★' : tile}
@@ -246,8 +266,8 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
           ))}
         </div>
         {selectedTile && (
-          <div className="text-[10px] text-blue-600 dark:text-blue-400 mt-0.5">
-            Выбрано: <strong>{selectedTile === '*' ? '★ (джокер)' : selectedTile}</strong> → Нажми на клетку доски
+          <div className="text-xs text-blue-600 dark:text-blue-400 mt-1.5 font-medium">
+            ✅ Выбрано: <strong className="text-blue-700 dark:text-blue-300">{selectedTile === '*' ? '★ (джокер)' : selectedTile}</strong> → Нажми на пустую клетку доски
           </div>
         )}
       </div>
@@ -285,8 +305,8 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
             </button>
           </div>
         ) : (
-          <div className="text-[10px] text-gray-500 dark:text-gray-400 text-center">
-            Выбери фишку и размести её на доске
+          <div className="text-xs text-gray-600 dark:text-gray-400 text-center py-1">
+            👆 Выбери фишку внизу, затем нажми на клетку доски
           </div>
         )}
       </div>
