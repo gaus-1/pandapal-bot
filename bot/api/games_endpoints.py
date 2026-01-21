@@ -325,6 +325,30 @@ async def erudite_place_tile(request: web.Request) -> web.Response:
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
+async def erudite_clear_move(request: web.Request) -> web.Response:
+    """
+    Очистить текущий ход в Эрудите.
+
+    POST /api/miniapp/games/erudite/{session_id}/clear-move
+    """
+    try:
+        session_id = int(request.match_info["session_id"])
+
+        with get_db() as db:
+            games_service = GamesService(db)
+            state = games_service.erudite_clear_move(session_id)
+            db.commit()
+
+        return web.json_response({"success": True, **state})
+
+    except ValueError as e:
+        logger.warning(f"⚠️ Invalid move: {e}")
+        return web.json_response({"error": str(e)}, status=400)
+    except Exception as e:
+        logger.error(f"❌ Ошибка очистки хода в Эрудите: {e}", exc_info=True)
+        return web.json_response({"error": "Internal server error"}, status=500)
+
+
 async def erudite_confirm_move(request: web.Request) -> web.Response:
     """
     Подтвердить ход в Эрудите.
@@ -436,6 +460,7 @@ def setup_games_routes(app: web.Application) -> None:
     )
     app.router.add_post("/api/miniapp/games/2048/{session_id}/move", game_2048_move)
     app.router.add_post("/api/miniapp/games/erudite/{session_id}/place-tile", erudite_place_tile)
+    app.router.add_post("/api/miniapp/games/erudite/{session_id}/clear-move", erudite_clear_move)
     app.router.add_post(
         "/api/miniapp/games/erudite/{session_id}/confirm-move", erudite_confirm_move
     )
