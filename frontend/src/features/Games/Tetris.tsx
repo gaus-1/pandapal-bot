@@ -1,5 +1,6 @@
 /**
- * Tetris Game Component - SIMPLE WORKING VERSION
+ * Tetris Game Component - FIXED VERSION
+ * Исправлены: выравнивание кнопок и отображение падающих фигур
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -26,7 +27,6 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<number | null>(null);
   const mountedRef = useRef(true);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // Загрузка состояния
   const loadState = useCallback(async () => {
@@ -153,7 +153,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         intervalRef.current = null;
       }
     };
-  }, [state?.level, state?.game_over]); // Зависимости только от level и game_over, не от всего state
+  }, [state?.level, state?.game_over]);
 
   if (!state) {
     return (
@@ -195,10 +195,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
       )}
 
       {/* Game Board - АДАПТИВНЫЙ РАЗМЕР с фиксированным aspect ratio */}
-      <div
-        ref={containerRef}
-        className="flex items-center justify-center px-2 sm:px-3 py-2 w-full flex-1 overflow-hidden min-h-0"
-      >
+      <div className="flex items-center justify-center px-2 sm:px-3 py-2 w-full flex-1 overflow-hidden min-h-0">
         <div className="relative w-full max-w-[95vw] max-h-[65vh] mx-auto">
           <div
             className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-3 shadow-inner mx-auto overflow-hidden"
@@ -220,34 +217,41 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
               }}
             >
               {board.map((row, rowIndex) =>
-                row.map((cell, colIndex) => (
-                  <div
-                    key={`${rowIndex}-${colIndex}`}
-                    className={`w-full h-full ${
-                      cell === 0
-                        ? 'bg-slate-100 dark:bg-slate-800'
-                        : cell === 2
-                          ? 'bg-emerald-400 dark:bg-emerald-500'
-                          : 'bg-blue-400 dark:bg-blue-500'
-                    }`}
-                    style={{ aspectRatio: '1' }}
-                  />
-                )),
+                row.map((cell, colIndex) => {
+                  // Определяем цвет клетки
+                  let cellClass = 'bg-slate-100 dark:bg-slate-800'; // Пустая клетка
+
+                  if (cell === 1) {
+                    // Текущая фигура (падающая)
+                    cellClass = 'bg-blue-500 dark:bg-blue-500';
+                  } else if (cell === 2) {
+                    // Зафиксированная фигура
+                    cellClass = 'bg-emerald-500 dark:bg-emerald-500';
+                  }
+
+                  return (
+                    <div
+                      key={`${rowIndex}-${colIndex}`}
+                      className={`w-full h-full ${cellClass}`}
+                      style={{ aspectRatio: '1' }}
+                    />
+                  );
+                }),
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Controls */}
+      {/* Controls - ИСПРАВЛЕНО ВЫРАВНИВАНИЕ КНОПОК */}
       <div className="flex-shrink-0 pt-0 pb-2 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
-        <div className="mx-auto px-3" style={{ maxWidth: '330px' }}>
+        <div className="mx-auto px-3 w-full max-w-[400px]">
           <div className="flex gap-1.5 mb-1.5">
             <button
               type="button"
               onClick={() => handleAction('left')}
               disabled={game_over}
-              className="flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-xs font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
+              className="flex-1 py-3 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-xs font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center"
             >
               ← Влево
             </button>
@@ -255,7 +259,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
               type="button"
               onClick={() => handleAction('rotate')}
               disabled={game_over}
-              className="flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-xs font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
+              className="flex-1 py-3 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-xs font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center whitespace-nowrap"
             >
               ⟳ Повернуть
             </button>
@@ -263,7 +267,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
               type="button"
               onClick={() => handleAction('right')}
               disabled={game_over}
-              className="flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-xs font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
+              className="flex-1 py-3 rounded-lg bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-xs font-semibold text-gray-900 dark:text-slate-100 active:bg-gray-100 dark:active:bg-slate-700 touch-manipulation shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center"
             >
               Вправо →
             </button>
@@ -272,7 +276,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
             type="button"
             onClick={() => handleAction('down')}
             disabled={game_over}
-            className="w-full py-2 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-xs font-semibold text-white shadow-lg touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed min-h-[40px]"
+            className="w-full py-3 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-xs font-semibold text-white shadow-lg touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
           >
             ↓ Быстрее
           </button>
