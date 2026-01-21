@@ -196,23 +196,23 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
 
       {/* Game Board - АДАПТИВНЫЙ РАЗМЕР с фиксированным aspect ratio */}
       <div className="flex items-center justify-center px-2 sm:px-3 py-2 w-full flex-1 overflow-hidden min-h-0">
-        <div className="relative w-full max-w-[95vw] max-h-[65vh] mx-auto">
+        <div className="relative w-full max-w-[95vw] mx-auto">
           <div
-            className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-3 shadow-inner mx-auto overflow-hidden"
+            className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-3 shadow-inner mx-auto"
             style={{
               // Фиксированный aspect ratio 0.5 (ширина:высота = 1:2 для 10x20 клеток)
               aspectRatio: '0.5',
               // Ширина занимает максимум 90% от доступной ширины или 50% от высоты
-              width: 'min(90vw, calc((100vh - 180px) * 0.5))',
-              maxHeight: 'calc(100vh - 180px)'
+              width: 'min(90vw, calc((100vh - 200px) * 0.5))',
+              maxHeight: 'calc(100vh - 200px)'
             }}
           >
             {/* gap: 1px делает блоки визуально чуть меньше и раздельнее */}
             <div
               className="grid w-full h-full"
               style={{
-                gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`,
-                gridTemplateRows: `repeat(${board.length || 20}, 1fr)`,
+                gridTemplateColumns: `repeat(10, 1fr)`,
+                gridTemplateRows: `repeat(20, 1fr)`,
                 gap: '1px'
               }}
             >
