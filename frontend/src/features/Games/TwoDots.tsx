@@ -143,19 +143,29 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
 
   const handleCellClick = (row: number, col: number) => {
     if (!state || state.game_over || isLoading) return;
-    if (!state || state.selected_path.length === 0) {
-      handleAction('select', row, col);
-    } else {
-      const lastPos = state.selected_path[state.selected_path.length - 1];
-      const [lastRow, lastCol] = lastPos;
-      const isAdjacent = Math.abs(row - lastRow) + Math.abs(col - lastCol) === 1;
 
-      if (isAdjacent) {
-        handleAction('add', row, col);
-      } else {
-        handleAction('clear');
-        handleAction('select', row, col);
-      }
+    // Если путь пустой - начинаем новый путь
+    if (state.selected_path.length === 0) {
+      handleAction('select', row, col);
+      return;
+    }
+
+    // Проверяем, кликнули ли на последнюю точку пути - подтверждаем
+    const lastPos = state.selected_path[state.selected_path.length - 1];
+    const [lastRow, lastCol] = lastPos;
+    if (row === lastRow && col === lastCol && state.selected_path.length >= 2) {
+      handleAction('confirm');
+      return;
+    }
+
+    // Проверяем, соседняя ли точка
+    const isAdjacent = Math.abs(row - lastRow) + Math.abs(col - lastCol) === 1;
+    if (isAdjacent) {
+      handleAction('add', row, col);
+    } else {
+      // Если кликнули на другую точку - начинаем новый путь
+      handleAction('clear');
+      handleAction('select', row, col);
     }
   };
 
@@ -275,7 +285,16 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
 
       {/* Controls */}
       <div className="flex-shrink-0 pt-0 pb-2 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
-        <div className="mx-auto px-3 w-full max-w-[400px]">
+        <div className="mx-auto px-3 w-full max-w-[400px] space-y-2">
+          {state.selected_path.length >= 2 && (
+            <button
+              onClick={() => handleAction('confirm')}
+              disabled={isLoading || state.game_over}
+              className="w-full py-2 px-4 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Подтвердить ({state.selected_path.length} точек)
+            </button>
+          )}
           <button
             type="button"
             onClick={() => handleAction('clear')}
@@ -284,6 +303,11 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
           >
             Очистить выбор
           </button>
+          {state.selected_path.length === 0 && (
+            <p className="text-xs text-center text-gray-500 dark:text-slate-400 px-2">
+              Кликни на точку, чтобы начать. Кликни на последнюю точку пути, чтобы подтвердить.
+            </p>
+          )}
         </div>
       </div>
     </div>
