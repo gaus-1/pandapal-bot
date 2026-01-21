@@ -64,7 +64,7 @@ npm run dev
 - Streaming ответы через Server-Sent Events для быстрой генерации
 - Поддержка текста, голоса и изображений с анализом через Vision API
 - Автоматический перевод и объяснение грамматики для 5 языков (английский, немецкий, французский, испанский, русский)
-- Игры PandaPalGo: Крестики-нолики, Шашки, 2048, Тетрис с AI противником
+- Игры PandaPalGo: Крестики-нолики, Шашки, 2048, Two Dots с AI противником
 - Система достижений и прогресса с XP, уровнями и наградами
 - Premium подписки через YooKassa с сохранением карт
 - Многоуровневая модерация контента для безопасности детей (150+ паттернов)
@@ -130,7 +130,7 @@ PandaPal/
 │   │   ├── visualization/                   # Генерация графиков/таблиц по предметам
 │   │   ├── homework_service.py              # Проверка домашних заданий по фото
 │   │   ├── adaptive_learning_service.py     # Адаптивное обучение, проблемные темы
-│   │   ├── games_service.py                 # Игры PandaPalGo (TicTacToe, Checkers, 2048, Tetris)
+│   │   ├── games_service.py                 # Игры PandaPalGo (TicTacToe, Checkers, 2048, Two Dots)
 │   │   ├── gamification_service.py          # Достижения, уровни, XP
 │   │   ├── premium_features_service.py      # Premium лимиты и доступ
 │   │   ├── payment_service.py               # YooKassa / Telegram Stars
@@ -212,7 +212,7 @@ PandaPal/
 - `user_service.py` — управление пользователями
 - `payment_service.py` — интеграция с YooKassa (продакшн, сохранение карт)
 - `premium_features_service.py` — проверка Premium статуса и лимитов
-- `games_service.py` — логика игр PandaPalGo (TicTacToe, Checkers, 2048, Tetris)
+- `games_service.py` — логика игр PandaPalGo (TicTacToe, Checkers, 2048, Two Dots)
 - `gamification_service.py` — достижения, уровни, XP
 - **`visualization/`** — Генерация визуализаций по предметам:
   - `detector.py` — детектор запросов на визуализацию (графики, таблицы, схемы, карты)
@@ -302,7 +302,7 @@ PandaPal/
 - Исправлена логика разблокировки достижений
 - Предотвращение дублирования разблокировок
 - Оптимизация проверки достижений
-- Добавлена игра Тетрис в PandaPalGo
+- Добавлена игра Two Dots в PandaPalGo
 
 ### Frontend
 

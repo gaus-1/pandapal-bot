@@ -2,142 +2,12 @@
 Критичные тесты для игровых движков.
 
 Проверяет исправления:
-- Тетрис: блоки не должны падать ниже границы
 - Шашки: всегда должны быть возможные ходы или победитель определён
 """
 
 import pytest
 
-from bot.services.game_engines import CheckersGame, TetrisGame
-
-
-class TestTetrisCritical:
-    """Критичные тесты для Тетриса."""
-
-    def test_tetris_blocks_never_go_below_board(self):
-        """Проверка что блоки НИКОГДА не выходят за нижнюю границу."""
-        game = TetrisGame()
-
-        # Симулируем 1000 ходов вниз подряд
-        for _ in range(1000):
-            if game.game_over:
-                break
-            game.step("tick")
-
-            # Проверяем что ВСЕ блоки на доске в пределах [0, height)
-            for r in range(game.height):
-                for c in range(game.width):
-                    cell = game.board[r][c]
-                    # Допустимы только 0 (пусто) или 1 (блок)
-                    assert cell in [0, 1], f"Недопустимое значение {cell} в ячейке ({r}, {c})"
-
-            # Проверяем текущую фигуру
-            if not game.game_over and game.current_shape:
-                blocks = game._get_blocks(
-                    game.current_row, game.current_col, game.current_rotation
-                )
-                for r, c in blocks:
-                    # Текущая фигура может быть выше доски (r < 0), но НЕ ниже
-                    assert r < game.height, (
-                        f"Блок фигуры за нижней границей: row={r}, height={game.height}, "
-                        f"current_row={game.current_row}, shape={game.current_shape}"
-                    )
-                    assert 0 <= c < game.width, f"Блок фигуры за боковой границей: col={c}"
-
-    def test_tetris_figure_locks_at_bottom(self):
-        """Проверка что фигура блокируется при достижении дна."""
-        game = TetrisGame()
-
-        initial_shape = game.current_shape
-
-        # Двигаем фигуру вниз до упора
-        for _ in range(50):  # Достаточно для достижения дна
-            if game.game_over:
-                break
-
-            prev_row = game.current_row
-            game.step("tick")
-
-            # Если фигура сменилась - значит заблокировалась
-            if game.current_shape != initial_shape:
-                # Проверяем что предыдущая фигура не вышла за границы
-                assert prev_row < game.height, f"Фигура заблокировалась за границей: {prev_row}"
-                break
-
-    def test_tetris_down_action_safety(self):
-        """Проверка что действие 'down' безопасно."""
-        game = TetrisGame()
-
-        # 100 действий 'down' подряд
-        for i in range(100):
-            if game.game_over:
-                break
-
-            prev_board = [row[:] for row in game.board]
-            prev_row = game.current_row
-
-            game.step("down")
-
-            # Проверяем что доска корректна
-            for r in range(game.height):
-                for c in range(game.width):
-                    assert game.board[r][c] in [
-                        0,
-                        1,
-                    ], f"Итерация {i}: Недопустимое значение в board[{r}][{c}] = {game.board[r][c]}"
-
-            # Проверяем что current_row не вышел за границы
-            if not game.game_over and game.current_shape:
-                assert (
-                    game.current_row < game.height
-                ), f"Итерация {i}: current_row={game.current_row} >= height={game.height}"
-
-    def test_tetris_get_state_safety(self):
-        """Проверка что get_state() никогда не содержит блоки за границами."""
-        game = TetrisGame()
-
-        for _ in range(200):
-            if game.game_over:
-                break
-
-            game.step("tick")
-            state = game.get_state()
-
-            # Проверяем что board в state корректен
-            board = state["board"]
-            assert len(board) == game.height, f"Высота доски в state != {game.height}"
-
-            for r, row in enumerate(board):
-                assert len(row) == game.width, f"Ширина строки {r} в state != {game.width}"
-                for c, cell in enumerate(row):
-                    assert cell in [
-                        0,
-                        1,
-                        2,
-                    ], f"Недопустимое значение в state board[{r}][{c}] = {cell}"
-
-    def test_tetris_move_left_right(self):
-        """Проверка что движение влево/вправо не ломает границы."""
-        game = TetrisGame()
-
-        # 50 случайных движений влево/вправо
-        import random
-
-        for _ in range(50):
-            if game.game_over:
-                break
-
-            action = random.choice(["left", "right", "down"])
-            game.step(action)
-
-            # Проверяем границы
-            if not game.game_over and game.current_shape:
-                blocks = game._get_blocks(
-                    game.current_row, game.current_col, game.current_rotation
-                )
-                for r, c in blocks:
-                    assert 0 <= c < game.width, f"Блок за боковой границей: col={c}"
-                    assert r < game.height, f"Блок за нижней границей: row={r}"
+from bot.services.game_engines import CheckersGame
 
 
 class TestCheckersCritical:
@@ -281,24 +151,6 @@ class TestCheckersCritical:
 class TestGameEnginesRobustness:
     """Тесты устойчивости игровых движков."""
 
-    def test_tetris_handles_rapid_inputs(self):
-        """Проверка что Тетрис выдерживает быстрые действия."""
-        game = TetrisGame()
-
-        actions = ["left", "right", "rotate", "down"] * 100
-
-        for action in actions:
-            if game.game_over:
-                break
-            game.step(action)
-
-            # Проверяем консистентность состояния
-            state = game.get_state()
-            assert state["width"] == game.width
-            assert state["height"] == game.height
-            assert state["score"] >= 0
-            assert state["lines_cleared"] >= 0
-
     def test_checkers_handles_edge_cases(self):
         """Проверка что Шашки обрабатывают граничные случаи."""
         game = CheckersGame()
@@ -322,31 +174,3 @@ class TestGameEnginesRobustness:
         valid_moves = game.get_valid_moves(1)
         # Дамка должна иметь много ходов
         assert len(valid_moves) > 0, "Дамка должна иметь возможные ходы!"
-
-    def test_tetris_lock_piece_never_crashes(self):
-        """Проверка что _lock_piece() никогда не падает с ошибкой."""
-        game = TetrisGame()
-
-        # Ставим фигуру в разные позиции и блокируем
-        test_positions = [
-            (0, 5, 0),  # Верх
-            (18, 5, 0),  # Почти дно
-            (19, 5, 0),  # Самый низ (последняя строка)
-            (10, 0, 0),  # Левый край
-            (10, 9, 0),  # Правый край
-        ]
-
-        for row, col, rotation in test_positions:
-            game.current_row = row
-            game.current_col = col
-            game.current_rotation = rotation
-
-            # Пытаемся заблокировать - НЕ должно крашнуться
-            try:
-                game._lock_piece()
-                # Проверяем что доска всё ещё валидна
-                for r in range(game.height):
-                    for c in range(game.width):
-                        assert game.board[r][c] in [0, 1, 2]
-            except Exception as e:
-                pytest.fail(f"_lock_piece() упал с ошибкой для позиции {row},{col}: {e}")
