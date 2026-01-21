@@ -143,7 +143,24 @@ async def handle_image(message: Message, state: FSMContext):  # noqa: ARG001
                 return
 
             # Увеличиваем счетчик запросов (независимо от истории)
-            premium_service.increment_request_count(message.from_user.id)
+            limit_reached, total_requests = premium_service.increment_request_count(
+                message.from_user.id
+            )
+
+            # Проактивное уведомление от панды при достижении лимита
+            if limit_reached:
+                try:
+                    from aiogram import Bot
+
+                    from bot.config import settings
+
+                    bot_instance = Bot(token=settings.telegram_bot_token)
+                    await premium_service.send_limit_reached_notification(
+                        message.from_user.id, bot_instance
+                    )
+                    await bot_instance.session.close()
+                except Exception as e:
+                    logger.error(f"❌ Ошибка отправки проактивного уведомления: {e}")
 
             # Сохраняем в историю (синхронный метод, без await)
             history_service.add_message(
