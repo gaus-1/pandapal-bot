@@ -194,21 +194,23 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
       )}
 
       {/* Game Board - АДАПТИВНЫЙ РАЗМЕР */}
-      <div className="flex items-center justify-center px-2 sm:px-3 py-2 w-full h-full overflow-hidden" style={{ height: 'calc(100vh - 240px)' }}>
+      <div className="flex items-center justify-center px-2 sm:px-3 py-2 w-full flex-1 overflow-hidden" style={{ minHeight: 0 }}>
         {/*
            ИСПРАВЛЕНИЕ:
            1. width: '100%' - занимает всю доступную ширину.
-           2. maxWidth: 'calc((100vh - 240px) / 2)' - НО! Ширина не может превышать половину высоты экрана.
+           2. maxWidth: 'calc((100vh - 180px) / 2)' - Ширина не может превышать половину доступной высоты.
               Это гарантирует, что доска с пропорцией 0.5 (ширина/высота) всегда поместится в высоту экрана.
               На широких экранах: ширина будет 100%.
               На узких/высоких экранах: ширина сожмется, чтобы не обрезать дно.
+           3. Используем flex-1 вместо фиксированной высоты для адаптивности.
         */}
         <div
           className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner mx-auto overflow-hidden"
           style={{
             width: '100%',
-            maxWidth: 'calc((100vh - 240px) / 2)',
-            aspectRatio: '0.5'
+            maxWidth: 'calc((100vh - 180px) / 2)',
+            aspectRatio: '0.5',
+            maxHeight: 'calc(100vh - 180px)'
           }}
         >
           {/* gap: 2px делает блоки визуально чуть меньше и раздельнее */}
