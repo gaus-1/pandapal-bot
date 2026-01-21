@@ -74,7 +74,15 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
 
         if (!mountedRef.current) return;
 
-        setState({
+        // Визуальная обратная связь
+        if (action === 'confirm') {
+          telegram.hapticFeedback('medium');
+        } else if (action === 'select' || action === 'add') {
+          telegram.hapticFeedback('light');
+        }
+
+        // Обновляем состояние - после confirm точки удаляются, гравитация применяется
+        const newState = {
           grid: result.grid || Array(8).fill(null).map(() => Array(8).fill(0)),
           score: result.score ?? 0,
           moves_left: result.moves_left ?? 30,
@@ -83,7 +91,9 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
           selected_path: (result.selected_path as Array<[number, number]>) || [],
           width: result.width ?? 8,
           height: result.height ?? 8,
-        });
+        };
+
+        setState(newState);
 
         if (result.game_over) {
           telegram.notifyWarning();
@@ -135,8 +145,10 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
     if (!isSelectingRef.current) return;
     isSelectingRef.current = false;
     if (state && state.selected_path.length >= 2) {
+      // Автоматически подтверждаем при отпускании, если выбрано 2+ точки
       handleAction('confirm');
-    } else {
+    } else if (state && state.selected_path.length === 1) {
+      // Если выбрана только одна точка - очищаем
       handleAction('clear');
     }
   };
@@ -154,6 +166,7 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
     const lastPos = state.selected_path[state.selected_path.length - 1];
     const [lastRow, lastCol] = lastPos;
     if (row === lastRow && col === lastCol && state.selected_path.length >= 2) {
+      // Подтверждаем ход
       handleAction('confirm');
       return;
     }
@@ -165,7 +178,9 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
     } else {
       // Если кликнули на другую точку - начинаем новый путь
       handleAction('clear');
-      handleAction('select', row, col);
+      setTimeout(() => {
+        handleAction('select', row, col);
+      }, 50);
     }
   };
 
@@ -180,7 +195,7 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
   const { grid, score, moves_left } = state;
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden bg-white dark:bg-slate-900 border-r border-l border-gray-300 dark:border-slate-600">
+    <div className="w-full h-full flex flex-col overflow-hidden bg-white dark:bg-slate-900 border-r border-l border-gray-300 dark:border-slate-600" style={{ touchAction: 'none' }}>
       {/* Header */}
       <div className="flex items-center justify-between px-3 pt-2 pb-1 flex-shrink-0">
         <button
@@ -214,15 +229,22 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
       )}
 
       {/* Game Grid */}
-      <div className="flex items-center justify-center px-2 sm:px-3 py-2 w-full flex-1 overflow-hidden min-h-0">
+      <div
+        className="flex items-center justify-center px-2 sm:px-3 py-2 w-full flex-1 overflow-hidden min-h-0"
+        style={{ touchAction: 'none', overscrollBehavior: 'none' }}
+        onTouchMove={(e) => e.preventDefault()}
+      >
         <div className="relative w-full max-w-[95vw] mx-auto">
           <div
-            className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-2 sm:p-3 shadow-inner mx-auto"
+            className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-2 sm:p-3 shadow-inner mx-auto select-none"
             style={{
               aspectRatio: '1',
               width: 'min(90vw, calc((100vh - 160px) * 0.85))',
-              maxHeight: 'calc(100vh - 160px)'
+              maxHeight: 'calc(100vh - 160px)',
+              touchAction: 'none',
+              overscrollBehavior: 'none'
             }}
+            onTouchMove={(e) => e.preventDefault()}
           >
             <div
               className="grid w-full h-full"
@@ -240,20 +262,30 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
                   return (
                     <div
                       key={`${rowIndex}-${colIndex}`}
-                      className={`w-full h-full rounded-full transition-all touch-manipulation ${
+                      className={`w-full h-full rounded-full transition-all duration-200 ${
                         inPath ? 'ring-2 ring-white ring-offset-1 scale-110 z-10' : ''
                       } ${state.game_over ? 'opacity-50' : 'cursor-pointer'}`}
                       style={{
                         backgroundColor: color,
                         opacity: cell === 0 ? 0 : 1,
+                        touchAction: 'none',
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        pointerEvents: cell === 0 ? 'none' : 'auto',
                       }}
-                      onClick={() => handleCellClick(rowIndex, colIndex)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleCellClick(rowIndex, colIndex);
+                      }}
                       onTouchStart={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         handleCellTouchStart(rowIndex, colIndex);
                       }}
                       onTouchMove={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         const touch = e.touches[0];
                         const element = document.elementFromPoint(touch.clientX, touch.clientY);
                         if (element) {
@@ -272,6 +304,7 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
                       }}
                       onTouchEnd={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         handleCellTouchEnd();
                       }}
                     />
@@ -288,11 +321,15 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
         <div className="mx-auto px-3 w-full max-w-[400px] space-y-2">
           {state.selected_path.length >= 2 && (
             <button
-              onClick={() => handleAction('confirm')}
+              type="button"
+              onClick={() => {
+                telegram.hapticFeedback('medium');
+                handleAction('confirm');
+              }}
               disabled={isLoading || state.game_over}
-              className="w-full py-2 px-4 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 rounded-lg bg-green-500 hover:bg-green-600 active:bg-green-700 text-xs font-semibold text-white shadow-lg touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] transition-all"
             >
-              Подтвердить ({state.selected_path.length} точек)
+              ✅ Подтвердить ({state.selected_path.length} точек)
             </button>
           )}
           <button
@@ -303,9 +340,9 @@ export function TwoDots({ sessionId, onBack, onGameEnd }: TwoDotsProps) {
           >
             Очистить выбор
           </button>
-          {state.selected_path.length === 0 && (
+          {state.selected_path.length === 0 && !state.game_over && (
             <p className="text-xs text-center text-gray-500 dark:text-slate-400 px-2">
-              Кликни на точку, чтобы начать. Кликни на последнюю точку пути, чтобы подтвердить.
+              Проведи по точкам одного цвета или кликни на них. Отпусти, чтобы подтвердить.
             </p>
           )}
         </div>
