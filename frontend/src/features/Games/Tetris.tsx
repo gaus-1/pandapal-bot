@@ -1,6 +1,6 @@
 /**
  * Tetris Game Component - SIMPLE WORKING VERSION
- * Простая рабочая реализация тетриса для детей
+ * Простая рабочая реализация тетриса
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -184,8 +184,6 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       </div>
 
-      {/* Panda и заголовок - компактно, скрыт для экономии места */}
-
       <div className="px-3 pb-1 flex-shrink-0">
         <h1 className="text-sm font-bold text-gray-900 dark:text-slate-100">🧱 Тетрис</h1>
       </div>
@@ -196,32 +194,43 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       )}
 
-      {/* Game Board - фиксированные границы, блоки не выходят */}
-      <div className="flex items-center justify-center px-2 sm:px-3 py-2 overflow-hidden" style={{ height: 'calc(100vh - 260px)', maxHeight: '550px', minHeight: '300px' }}>
-        <div className="flex items-center justify-center w-full h-full" style={{ maxWidth: '330px' }}>
-          <div className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner w-full max-h-full overflow-hidden" style={{ aspectRatio: '0.5' }}>
-            <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`, gridTemplateRows: `repeat(${board.length || 20}, 1fr)`, gap: '1px' }}>
-              {board.map((row, rowIndex) =>
-                row.map((cell, colIndex) => (
-                  <div
-                    key={`${rowIndex}-${colIndex}`}
-                    className={`w-full h-full ${
-                      cell === 0
-                        ? 'bg-slate-100 dark:bg-slate-800'
-                        : cell === 2
-                          ? 'bg-emerald-400 dark:bg-emerald-500'
-                          : 'bg-blue-400 dark:bg-blue-500'
-                    }`}
-                    style={{ aspectRatio: '1' }}
-                  />
-                )),
-              )}
-            </div>
+      {/* Game Board - ИСПРАВЛЕНО */}
+      <div className="flex items-center justify-center px-2 sm:px-3 py-2 overflow-hidden w-full h-full" style={{ height: 'calc(100vh - 260px)', maxHeight: '550px', minHeight: '300px' }}>
+        {/*
+           Мы используем height: '100%' чтобы занять всю доступную высоту.
+           aspectRatio: '0.5' вычислит ширину как 50% от высоты (сохраняя пропорции 10x20).
+           maxWidth: '330px' ограничивает ширину на больших экранах.
+           Это гарантирует, что нижние ряды не обрежутся.
+        */}
+        <div
+          className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner overflow-hidden mx-auto"
+          style={{
+            height: '100%',
+            aspectRatio: '0.5',
+            maxWidth: '330px'
+          }}
+        >
+          <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`, gridTemplateRows: `repeat(${board.length || 20}, 1fr)`, gap: '1px' }}>
+            {board.map((row, rowIndex) =>
+              row.map((cell, colIndex) => (
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className={`w-full h-full ${
+                    cell === 0
+                      ? 'bg-slate-100 dark:bg-slate-800'
+                      : cell === 2
+                        ? 'bg-emerald-400 dark:bg-emerald-500'
+                        : 'bg-blue-400 dark:bg-blue-500'
+                  }`}
+                  style={{ aspectRatio: '1' }}
+                />
+              )),
+            )}
           </div>
         </div>
       </div>
 
-      {/* Controls - выровнены по размеру окна игры, верх совпадает с низом игрового окна */}
+      {/* Controls - выровнены по размеру окна игры */}
       <div className="flex-shrink-0 pt-0 pb-2 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
         <div className="mx-auto px-3" style={{ maxWidth: '330px' }}>
           <div className="flex gap-1.5 mb-1.5">
