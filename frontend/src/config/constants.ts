@@ -44,7 +44,7 @@ export const FEATURES: readonly Feature[] = [
   {
     id: 'pandapalgo',
     title: 'PandaPalGo',
-    description: 'Играй с пандой в крестики-нолики, шашки, 2048 и тетрис!',
+    description: 'Играй с пандой в крестики-нолики, шашки, 2048 и Two Dots!',
   },
 ] as const;
 

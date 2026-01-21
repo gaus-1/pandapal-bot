@@ -13,7 +13,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.orm import Session
 
 from bot.models import GameSession, GameStats
-from bot.services.game_engines import CheckersGame, Game2048, TetrisGame, TicTacToe
+from bot.services.game_engines import CheckersGame, Game2048, TicTacToe, TwoDotsGame
 from bot.services.gamification_service import GamificationService
 
 
@@ -255,7 +255,6 @@ class GamesService:
         self.db = db
         self.tic_tac_toe_ai = TicTacToeAI(difficulty="medium")
         self.checkers_ai = CheckersAI()
-        self.tetris_engine = TetrisGame()
 
     def create_game_session(
         self, telegram_id: int, game_type: str, initial_state: dict | None = None
@@ -1087,50 +1086,63 @@ class GamesService:
             "won": state["won"],
         }
 
-    def tetris_move(self, session_id: int, action: str) -> dict:
+    def two_dots_move(
+        self, session_id: int, action: str, row: int | None = None, col: int | None = None
+    ) -> dict:
         """
-        Сделать шаг в тетрисе.
+        Сделать действие в Two Dots.
 
         Args:
             session_id: ID сессии
-            action: 'left', 'right', 'down', 'rotate', 'tick'
+            action: 'select', 'add', 'clear', 'confirm'
+            row: Строка (для select/add)
+            col: Колонка (для select/add)
         """
         session = self.db.get(GameSession, session_id)
         if not session:
             raise ValueError(f"Game session {session_id} not found")
 
-        # Восстанавливаем игру из сохранённого состояния используя from_dict
+        # Восстанавливаем игру из сохранённого состояния
         if session.game_state and isinstance(session.game_state, dict):
-            game = TetrisGame.from_dict(session.game_state)
+            game = TwoDotsGame.from_dict(session.game_state)
         else:
-            game = TetrisGame()
+            game = TwoDotsGame()
 
-        # Делаем шаг
-        game.step(action)
+        # Выполняем действие
+        if action == "select":
+            if row is None or col is None:
+                raise ValueError("row and col required for select action")
+            game.select_dot(row, col)
+        elif action == "add":
+            if row is None or col is None:
+                raise ValueError("row and col required for add action")
+            game.add_to_path(row, col)
+        elif action == "clear":
+            game.clear_path()
+        elif action == "confirm":
+            game.confirm_path()
+        else:
+            raise ValueError(f"Invalid action: {action}")
+
         state = game.get_state()
 
         # Обновляем сессию
         self.update_game_session(
             session_id,
             {
-                "board": state["board"],
+                "grid": state["grid"],
                 "score": state["score"],
-                "lines_cleared": state["lines_cleared"],
-                "level": state.get("level", 1),
+                "moves_left": state["moves_left"],
+                "level": state["level"],
                 "game_over": state["game_over"],
-                "width": state.get("width", game.width),
-                "height": state.get("height", game.height),
-                "current_shape": state.get("current_shape"),
-                "current_row": state.get("current_row"),
-                "current_col": state.get("current_col"),
-                "current_rotation": state.get("current_rotation"),
-                "bag": game._bag,
+                "selected_path": state["selected_path"],
+                "width": state["width"],
+                "height": state["height"],
             },
             "loss" if state["game_over"] else "in_progress",
         )
 
         if state["game_over"]:
-            # В тетрисе считаем поражением окончание игры, учитываем счёт
             self.finish_game_session(session_id, "loss", state["score"])
             self.db.commit()
 

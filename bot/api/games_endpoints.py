@@ -38,10 +38,12 @@ class Game2048MoveRequest(BaseModel):  # noqa: D101
     direction: str  # 'up', 'down', 'left', 'right'
 
 
-class TetrisMoveRequest(BaseModel):  # noqa: D101
-    """Request для шага в тетрисе"""
+class TwoDotsMoveRequest(BaseModel):  # noqa: D101
+    """Request для действия в Two Dots"""
 
-    action: str  # 'left', 'right', 'down', 'rotate', 'tick'
+    action: str  # 'select', 'add', 'clear', 'confirm'
+    row: int | None = None  # Строка (для select/add)
+    col: int | None = None  # Колонка (для select/add)
 
 
 def _initialize_game_state(game_type: str) -> dict:
@@ -84,26 +86,20 @@ def _initialize_game_state(game_type: str) -> dict:
             "game_over": state["game_over"],
         }
 
-    elif game_type == "tetris":
-        from bot.services.game_engines import TetrisGame
+    elif game_type == "two_dots":
+        from bot.services.game_engines import TwoDotsGame
 
-        game = TetrisGame()
+        game = TwoDotsGame()
         state = game.get_state()
-        # УЛУЧШЕНО: Убеждаемся, что все поля включены в начальное состояние
         return {
-            "board": state["board"],
+            "grid": state["grid"],
             "score": state["score"],
-            "lines_cleared": state["lines_cleared"],
-            "level": state.get("level", 1),  # УЛУЧШЕНО: Добавлен уровень
+            "moves_left": state["moves_left"],
+            "level": state["level"],
             "game_over": state["game_over"],
-            "width": state.get("width", game.width),
-            "height": state.get("height", game.height),
-            "current_shape": state.get("current_shape"),
-            # КРИТИЧНО: Сохраняем реальный current_row (может быть -2 для спавна выше поля)
-            "current_row": state.get("current_row"),
-            "current_col": state.get("current_col", game.width // 2),
-            "current_rotation": state.get("current_rotation", 0),
-            "bag": game._bag,  # УЛУЧШЕНО: Сохраняем Bag of 7
+            "selected_path": state["selected_path"],
+            "width": state["width"],
+            "height": state["height"],
         }
 
     return {}
@@ -114,7 +110,7 @@ async def create_game(request: web.Request) -> web.Response:
     Создать новую игровую сессию.
 
     POST /api/miniapp/games/create
-    Body: { "game_type": "tic_tac_toe" | "checkers" | "2048" | "tetris" }
+    Body: { "game_type": "tic_tac_toe" | "checkers" | "2048" }
     """
     try:
         data = await request.json()
@@ -133,7 +129,7 @@ async def create_game(request: web.Request) -> web.Response:
                 {"error": "Invalid request", "details": e.errors()}, status=400
             )
 
-        if validated.game_type not in ["tic_tac_toe", "checkers", "2048", "tetris"]:
+        if validated.game_type not in ["tic_tac_toe", "checkers", "2048", "two_dots"]:
             return web.json_response({"error": "Invalid game_type"}, status=400)
 
         initial_state = _initialize_game_state(validated.game_type)
@@ -291,30 +287,32 @@ async def game_2048_move(request: web.Request) -> web.Response:
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
-async def tetris_move(request: web.Request) -> web.Response:
+async def two_dots_move(request: web.Request) -> web.Response:
     """
-    Сделать шаг в тетрисе.
+    Сделать действие в Two Dots.
 
-    POST /api/miniapp/games/tetris/{session_id}/move
-    Body: { "action": "left" | "right" | "down" | "rotate" | "tick" }
+    POST /api/miniapp/games/two-dots/{session_id}/move
+    Body: { "action": "select" | "add" | "clear" | "confirm", "row": int?, "col": int? }
     """
     try:
         session_id = int(request.match_info["session_id"])
         data = await request.json()
 
         try:
-            validated = TetrisMoveRequest(**data)
+            validated = TwoDotsMoveRequest(**data)
         except ValidationError as e:
             return web.json_response(
                 {"error": "Invalid request", "details": e.errors()}, status=400
             )
 
-        if validated.action not in ["left", "right", "down", "rotate", "tick"]:
+        if validated.action not in ["select", "add", "clear", "confirm"]:
             return web.json_response({"error": "Invalid action"}, status=400)
 
         with get_db() as db:
             games_service = GamesService(db)
-            state = games_service.tetris_move(session_id, validated.action)
+            state = games_service.two_dots_move(
+                session_id, validated.action, validated.row, validated.col
+            )
             db.commit()
 
         return web.json_response({"success": True, **state})
@@ -323,7 +321,7 @@ async def tetris_move(request: web.Request) -> web.Response:
         logger.warning(f"⚠️ Invalid move: {e}")
         return web.json_response({"error": str(e)}, status=400)
     except Exception as e:
-        logger.error(f"❌ Ошибка хода в тетрисе: {e}", exc_info=True)
+        logger.error(f"❌ Ошибка хода в Two Dots: {e}", exc_info=True)
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
@@ -413,7 +411,7 @@ def setup_games_routes(app: web.Application) -> None:
         "/api/miniapp/games/checkers/{session_id}/valid-moves", get_checkers_valid_moves
     )
     app.router.add_post("/api/miniapp/games/2048/{session_id}/move", game_2048_move)
-    app.router.add_post("/api/miniapp/games/tetris/{session_id}/move", tetris_move)
+    app.router.add_post("/api/miniapp/games/two-dots/{session_id}/move", two_dots_move)
     app.router.add_get("/api/miniapp/games/{telegram_id}/stats", get_game_stats)
     app.router.add_get("/api/miniapp/games/session/{session_id}", get_game_session)
 

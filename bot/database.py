@@ -238,51 +238,6 @@ def _apply_alembic_migration_for_existing_tables(alembic_cfg, current_revision: 
                     except Exception as img_err:
                         logger.warning(f"⚠️ Не удалось добавить image_url: {img_err}")
 
-                # Проверяем и применяем миграцию для Tetris если нужно
-                try:
-                    with engine.begin() as conn:
-                        # Проверяем constraint для game_sessions
-                        result = conn.execute(
-                            text(
-                                """
-                                SELECT constraint_name, check_clause
-                                FROM information_schema.check_constraints
-                                WHERE constraint_name = 'ck_game_sessions_game_type'
-                                """
-                            )
-                        ).fetchone()
-                        if result and "tetris" not in result[1].lower():
-                            logger.info("📋 Tetris отсутствует в constraint, применяем миграцию...")
-                            conn.execute(
-                                text(
-                                    "ALTER TABLE game_sessions DROP CONSTRAINT IF EXISTS ck_game_sessions_game_type"
-                                )
-                            )
-                            conn.execute(
-                                text(
-                                    """
-                                    ALTER TABLE game_sessions ADD CONSTRAINT ck_game_sessions_game_type
-                                    CHECK (game_type IN ('tic_tac_toe', 'checkers', '2048', 'tetris'))
-                                    """
-                                )
-                            )
-                            conn.execute(
-                                text(
-                                    "ALTER TABLE game_stats DROP CONSTRAINT IF EXISTS ck_game_stats_game_type"
-                                )
-                            )
-                            conn.execute(
-                                text(
-                                    """
-                                    ALTER TABLE game_stats ADD CONSTRAINT ck_game_stats_game_type
-                                    CHECK (game_type IN ('tic_tac_toe', 'checkers', '2048', 'tetris'))
-                                    """
-                                )
-                            )
-                            logger.info("✅ Миграция для Tetris применена")
-                except Exception as tetris_err:
-                    logger.warning(f"⚠️ Не удалось применить миграцию Tetris: {tetris_err}")
-
                 # После обработки конфликтов пытаемся применить оставшиеся миграции
                 try:
                     command.upgrade(alembic_cfg, "heads")

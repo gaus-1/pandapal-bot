@@ -6,8 +6,6 @@ Game Engines - чистая логика игр без зависимостей 
 import random
 from typing import Literal
 
-from loguru import logger
-
 PlayerType = Literal[1, 2]  # 1 - X, 2 - O
 
 
@@ -447,381 +445,355 @@ class Game2048:
         self.game_over = True
 
 
-class TetrisGame:
-    """Логика игры Tetris.
+class TwoDotsGame:
+    """Логика игры Two Dots.
 
-    Исправления:
-    1. Добавлен метод from_dict для восстановления состояния из Redis/JSON.
-    2. Приведение action к нижнему регистру (兼容 'LEFT', 'Left', 'left').
-    3. Исправлена центровка фигуры I (spawn x=5), чтобы она была ровно по центру.
-    4. Убрана опасная логика отскоков, которая могла ломать состояние.
-    5. О-фигура теперь не вращается.
+    Механика:
+    - Сетка цветных точек (8x8)
+    - Соединение точек одного цвета (минимум 2)
+    - Квадраты - очистка всех точек того же цвета
+    - Каскадные эффекты после падения
+    - Удаление группы → гравитация → заполнение сверху
+    - Подсчет очков
     """
 
-    width: int = 10
-    height: int = 20
-
-    # Фигуры. Относительные координаты (row, col)
-    # Для I-фигуры изменены смещения для лучшей центровки на сетке 10x20
-    _SHAPES = {
-        "I": [(0, -1), (0, 0), (0, 1), (0, 2)],  # Горизонтальная I
-        "O": [(0, 0), (0, 1), (1, 0), (1, 1)],  # Квадрат
-        "T": [(0, -1), (0, 0), (0, 1), (1, 0)],  # T-образная
-        "L": [(0, -1), (0, 0), (0, 1), (1, -1)],  # L-образная
-        "J": [(0, -1), (0, 0), (0, 1), (1, 1)],  # J-образная
-        "S": [(0, 0), (0, 1), (1, -1), (1, 0)],  # S-образная
-        "Z": [(0, -1), (0, 0), (1, 0), (1, 1)],  # Z-образная
-    }
+    width: int = 8
+    height: int = 8
+    num_colors: int = 5  # Количество цветов (1-5)
 
     def __init__(self) -> None:
-        self.board: list[list[int]] = [[0] * self.width for _ in range(self.height)]
+        """Инициализация игры Two Dots"""
+        self.grid: list[list[int]] = [[0] * self.width for _ in range(self.height)]
         self.score: int = 0
-        self.lines_cleared: int = 0
+        self.moves_left: int = 30  # Ограничение ходов (опционально)
         self.level: int = 1
         self.game_over: bool = False
+        self.selected_path: list[tuple[int, int]] = []  # Текущий выбранный путь
+        self._fill_grid()
 
-        self.current_shape: str | None = None
-        self.current_rotation: int = 0
-        self.current_row: int = 0
-        self.current_col: int = 0
+    def _fill_grid(self) -> None:
+        """Заполнить сетку случайными цветами"""
+        for r in range(self.height):
+            for c in range(self.width):
+                self.grid[r][c] = random.randint(1, self.num_colors)
 
-        # ГСЧ для мешка фигур
-        import random
+    def _is_adjacent(self, pos1: tuple[int, int], pos2: tuple[int, int]) -> bool:
+        """Проверить, являются ли две позиции соседними (горизонтально/вертикально)"""
+        r1, c1 = pos1
+        r2, c2 = pos2
+        return abs(r1 - r2) + abs(c1 - c2) == 1
 
-        self._rnd = random
-        self._bag: list[str] = []
-        self._refill_bag()
-        self._spawn_new_piece()
+    def _get_color(self, row: int, col: int) -> int:
+        """Получить цвет точки на позиции"""
+        if 0 <= row < self.height and 0 <= col < self.width:
+            return self.grid[row][col]
+        return 0
 
-    def _refill_bag(self) -> None:
-        """Заполнить мешок Bag of 7."""
-        self._bag = list(self._SHAPES.keys())
-        self._rnd.shuffle(self._bag)
+    def select_dot(self, row: int, col: int) -> bool:
+        """Начать выбор с точки. Возвращает True если успешно."""
+        if self.game_over:
+            return False
+        if not (0 <= row < self.height and 0 <= col < self.width):
+            return False
 
-    def _spawn_new_piece(self) -> None:
-        """Создать новую фигуру."""
-        if not self._bag:
-            self._refill_bag()
+        cell = self.grid[row][col]
+        # Можно начать с обычной точки или спецточки, но не с пустой
+        if cell == 0:
+            return False
 
-        self.current_shape = self._bag.pop()
-        self.current_rotation = 0
-
-        # КРИТИЧНО: Спавним фигуру сразу в видимой части (row = 0), чтобы она была видна!
-        # Предыдущий подход (row = -2) не работал, так как get_state() отображает только r >= 0
-        self.current_row = 0
-
-        # Центровка по X. width=10, середина 5.
-        # Для I-фигуры со смещениями -1..2, кол=5 даст 4..6 (ровный центр)
-        self.current_col = self.width // 2 + (1 if self.width % 2 == 0 else 0)
-
-        logger.debug(
-            f"✨ Tetris spawn: {self.current_shape} на позиции ({self.current_row},{self.current_col})"
-        )
-
-        # ПРОВЕРКА GAME OVER УБРАНА - фигура всегда может быть размещена на пустой доске
-        # Game Over проверяется только при спавне новой фигуры после _lock_piece()
-
-    def _get_blocks(self, row: int, col: int, rotation: int) -> list[tuple[int, int]]:
-        """Получить координаты блоков фигуры."""
-        offsets = self._SHAPES[self.current_shape or "I"]
-
-        def _rotate(dr: int, dc: int, rot: int) -> tuple[int, int]:
-            # Поворот на 90 градусов по часовой стрелке (row, col) -> (-col, row)
-            for _ in range(rot % 4):
-                dr, dc = -dc, dr
-            return dr, dc
-
-        blocks: list[tuple[int, int]] = []
-        for dr, dc in offsets:
-            r_off, c_off = _rotate(dr, dc, rotation)
-            blocks.append((row + r_off, col + c_off))
-        return blocks
-
-    def _can_place(self, row: int, col: int, rotation: int) -> bool:
-        """Проверить коллизию."""
-        for r, c in self._get_blocks(row, col, rotation):
-            # Границы X
-            if c < 0 or c >= self.width:
-                return False
-            # Если r < 0 (в буфере сверху), разрешаем
-            if r < 0:
-                continue
-            # КРИТИЧНО: Границы Y (дно) - блокируем если любой блок достиг или превысил нижнюю границу
-            if r >= self.height:
-                return False
-            # Занятость ячейки - проверяем только в пределах доски
-            if 0 <= r < self.height and self.board[r][c] != 0:
-                return False
+        self.selected_path = [(row, col)]
         return True
 
-    def _lock_piece(self) -> None:
-        """Закрепить фигуру и очистить линии."""
-        if not self.current_shape:
-            logger.warning("⚠️ Tetris _lock_piece: Попытка блокировки без фигуры!")
-            return
+    def add_to_path(self, row: int, col: int) -> bool:
+        """Добавить точку в путь. Возвращает True если успешно."""
+        if not self.selected_path:
+            return False
+        if not (0 <= row < self.height and 0 <= col < self.width):
+            return False
 
-        logger.debug(
-            f"🔒 Tetris lock_piece: pos=({self.current_row},{self.current_col}), shape={self.current_shape}"
-        )
+        # Проверяем, что точка уже не в пути
+        if (row, col) in self.selected_path:
+            return False
 
-        # КРИТИЧНО: Блокируем только блоки, которые находятся в пределах доски
-        # Блоки ниже доски (r >= height) или за боковыми границами игнорируем
-        blocks_to_lock = []
-        current_blocks = self._get_blocks(self.current_row, self.current_col, self.current_rotation)
-        for r, c in current_blocks:
-            # СТРОГАЯ проверка границ: только блоки ВНУТРИ доски
-            if 0 <= r < self.height and 0 <= c < self.width:
-                blocks_to_lock.append((r, c))
-            elif r >= self.height:
-                # Блок за нижней границей - критическая ошибка
-                logger.error(
-                    f"⚠️ Tetris _lock_piece: Блок за нижней границей! "
-                    f"row={r}, height={self.height}, current_row={self.current_row}, "
-                    f"blocks={current_blocks}"
-                )
+        # Проверяем, что точка соседняя к последней в пути
+        last_pos = self.selected_path[-1]
+        if not self._is_adjacent(last_pos, (row, col)):
+            return False
 
-        if not blocks_to_lock:
-            logger.error(
-                f"⚠️ Tetris _lock_piece: Нет блоков для блокировки! "
-                f"current_row={self.current_row}, blocks={current_blocks}"
-            )
-            # Все равно спавним новую фигуру, чтобы игра не зависла
-            self._spawn_new_piece()
-            return
+        # Проверяем, что цвет совпадает (только обычные точки)
+        first_color = self._get_color(self.selected_path[0][0], self.selected_path[0][1])
+        new_color = self._get_color(row, col)
+        if new_color == 0 or new_color != first_color:
+            return False
 
-        # Блокируем только валидные блоки
-        for r, c in blocks_to_lock:
-            self.board[r][c] = 1
+        self.selected_path.append((row, col))
+        return True
 
-        # Очистка линий
-        new_board = [row for row in self.board if not all(cell != 0 for cell in row)]
-        cleared = self.height - len(new_board)
+    def clear_path(self) -> None:
+        """Очистить выбранный путь"""
+        self.selected_path = []
 
-        # КРИТИЧНО: Всегда восстанавливаем доску до точного размера height x width
-        # Добавляем пустые строки сверху
-        for _ in range(cleared):
-            new_board.insert(0, [0] * self.width)
+    def _is_square(self, path: list[tuple[int, int]]) -> bool:
+        """Проверить, образует ли путь квадрат (все 4 угла прямоугольника присутствуют)"""
+        if len(path) < 4:
+            return False
 
-        # КРИТИЧНО: Если доска все еще не 20 строк (не должно быть, но на всякий случай)
-        # Дополняем или обрезаем до точного размера
-        while len(new_board) < self.height:
-            new_board.insert(0, [0] * self.width)
-        while len(new_board) > self.height:
-            new_board.pop(0)
+        # Получаем уникальные позиции
+        unique_positions = set(path)
+        if len(unique_positions) < 4:
+            return False
 
-        self.board = new_board
+        # Находим границы
+        rows = [r for r, _ in unique_positions]
+        cols = [c for _, c in unique_positions]
+        min_row, max_row = min(rows), max(rows)
+        min_col, max_col = min(cols), max(cols)
 
-        if cleared:
-            self.lines_cleared += cleared
-            score_map = {1: 40, 2: 100, 3: 300, 4: 1200}
-            self.score += score_map.get(cleared, 40) * self.level
-            self.level = (self.lines_cleared // 10) + 1
+        width = max_col - min_col + 1
+        height = max_row - min_row + 1
 
-        self._spawn_new_piece()
-        # Проверка Game Over: только после спавна новой фигуры на заполненной доске
-        # Проверяем, может ли фигура быть размещена на row=0 (верхняя граница)
-        # Только если доска заполнена в верхних рядах (0-2) - проверяем более широкую зону
-        has_blocks_in_top = any(any(cell != 0 for cell in row) for row in self.board[:3])
-        if has_blocks_in_top and not self._can_place(
-            self.current_row, self.current_col, self.current_rotation
-        ):
+        # Прямоугольник должен быть минимум 2x2
+        if width < 2 or height < 2:
+            return False
+
+        # Проверяем, что все 4 угла прямоугольника присутствуют в пути
+        corners = [(min_row, min_col), (min_row, max_col), (max_row, min_col), (max_row, max_col)]
+
+        # Все 4 угла должны быть в пути - это определяет квадрат/прямоугольник
+        return all(corner in unique_positions for corner in corners)
+
+    def _remove_all_color(self, color: int) -> int:
+        """Удалить все точки указанного цвета. Возвращает количество удаленных."""
+        removed = 0
+        for r in range(self.height):
+            for c in range(self.width):
+                if self.grid[r][c] == color:
+                    self.grid[r][c] = 0
+                    removed += 1
+        return removed
+
+    def _process_cascades(self) -> bool:
+        """Обработать каскадные эффекты после падения. Возвращает True если были каскады."""
+        had_cascade = False
+        max_iterations = 10  # Защита от бесконечного цикла
+
+        for _ in range(max_iterations):
+            # Ищем автоматические линии (3+ одинаковых подряд)
+            to_remove: set[tuple[int, int]] = set()
+
+            # Проверяем горизонтальные линии
+            for r in range(self.height):
+                current_color = None
+                line_start = 0
+                line_length = 0
+
+                for c in range(self.width):
+                    color = self.grid[r][c]
+                    # Учитываем только обычные цвета (положительные)
+                    if color > 0 and color == current_color:
+                        line_length += 1
+                    else:
+                        # Конец линии
+                        if current_color is not None and line_length >= 3:
+                            # Удаляем линию
+                            for cc in range(line_start, line_start + line_length):
+                                to_remove.add((r, cc))
+
+                        if color > 0:
+                            current_color = color
+                            line_start = c
+                            line_length = 1
+                        else:
+                            current_color = None
+                            line_start = c + 1
+                            line_length = 0
+
+                # Проверяем последнюю линию
+                if current_color is not None and line_length >= 3:
+                    for cc in range(line_start, line_start + line_length):
+                        to_remove.add((r, cc))
+
+            # Проверяем вертикальные линии
+            for c in range(self.width):
+                current_color = None
+                line_start = 0
+                line_length = 0
+
+                for r in range(self.height):
+                    color = self.grid[r][c]
+                    if color > 0 and color == current_color:
+                        line_length += 1
+                    else:
+                        if current_color is not None and line_length >= 3:
+                            for rr in range(line_start, line_start + line_length):
+                                to_remove.add((rr, c))
+
+                        if color > 0:
+                            current_color = color
+                            line_start = r
+                            line_length = 1
+                        else:
+                            current_color = None
+                            line_start = r + 1
+                            line_length = 0
+
+                if current_color is not None and line_length >= 3:
+                    for rr in range(line_start, line_start + line_length):
+                        to_remove.add((rr, c))
+
+            if not to_remove:
+                break
+
+            had_cascade = True
+            # Удаляем найденные линии
+            for r, c in to_remove:
+                self.grid[r][c] = 0
+
+            # Подсчет очков за каскад
+            self.score += len(to_remove) * 10
+
+            # Применяем гравитацию
+            self._apply_gravity()
+
+            # Заполняем сверху
+            self._refill_grid()
+
+        return had_cascade
+
+    def confirm_path(self) -> bool:
+        """Подтвердить и удалить выбранный путь. Возвращает True если успешно."""
+        if len(self.selected_path) < 2:
+            self.clear_path()
+            return False
+
+        path_length = len(self.selected_path)
+        first_pos = self.selected_path[0]
+        first_color = self._get_color(first_pos[0], first_pos[1])
+        is_square = self._is_square(self.selected_path)
+
+        # Проверяем квадрат - удаляем все точки того же цвета
+        if is_square:
+            # Квадрат удаляет все точки того же цвета
+            removed = self._remove_all_color(first_color)
+            points = removed * 20  # Бонус за квадрат
+            self.score += points
+        else:
+            # Обычное удаление пути
+            for r, c in self.selected_path:
+                self.grid[r][c] = 0
+
+            # Подсчет очков
+            points = path_length * 10
+            self.score += points
+
+        # Применяем гравитацию
+        self._apply_gravity()
+
+        # Заполняем сверху
+        self._refill_grid()
+
+        # Обрабатываем каскады
+        self._process_cascades()
+
+        # Уменьшаем ходы
+        if self.moves_left > 0:
+            self.moves_left -= 1
+            if self.moves_left == 0:
+                self.game_over = True
+
+        # Проверяем game over (нет валидных ходов)
+        if not self._has_valid_moves():
             self.game_over = True
 
-    def step(self, action: str) -> None:
-        """Обработка хода."""
-        if self.game_over:
-            logger.debug(f"🎮 Tetris step: игра окончена, action={action}")
-            return
+        self.clear_path()
+        return True
 
-        logger.debug(
-            f"🎮 Tetris step: action={action}, pos=({self.current_row},{self.current_col}), "
-            f"shape={self.current_shape}, rot={self.current_rotation}"
-        )
+    def _apply_gravity(self) -> None:
+        """Применить гравитацию: точки падают вниз"""
+        for c in range(self.width):
+            # Собираем все непустые точки в столбце снизу вверх
+            column = []
+            for r in range(self.height - 1, -1, -1):
+                if self.grid[r][c] != 0:
+                    column.append(self.grid[r][c])
 
-        # КРИТИЧНО: Если нет фигуры - создаем новую
-        if not self.current_shape:
-            logger.debug("🎮 Tetris step: нет фигуры, создаем новую")
-            self._spawn_new_piece()
-            # Если после спавна game_over - выходим
-            if self.game_over:
-                return
+            # Заполняем столбец снизу
+            for r in range(self.height - 1, -1, -1):
+                if column:
+                    self.grid[r][c] = column.pop(0)
+                else:
+                    self.grid[r][c] = 0
 
-        # КРИТИЧНО: Проверяем, что текущая фигура не выходит за границы
-        # Это может случиться после загрузки из Redis или ошибки
-        current_blocks = self._get_blocks(self.current_row, self.current_col, self.current_rotation)
-        if any(r >= self.height for r, _ in current_blocks):
-            # Фигура УЖЕ за границами - блокируем немедленно
-            logger.error(
-                f"⚠️ Tetris step: Фигура УЖЕ за границами! "
-                f"current_row={self.current_row}, height={self.height}, "
-                f"blocks={current_blocks}, shape={self.current_shape}"
-            )
-            self._lock_piece()
-            return
+    def _refill_grid(self) -> None:
+        """Заполнить пустые ячейки сверху новыми цветами"""
+        for c in range(self.width):
+            for r in range(self.height):
+                if self.grid[r][c] == 0:
+                    self.grid[r][c] = random.randint(1, self.num_colors)
 
-        # Нормализация действия
-        action = action.strip().lower()
+    def _has_valid_moves(self) -> bool:
+        """Проверить, есть ли валидные ходы"""
+        for r in range(self.height):
+            for c in range(self.width):
+                color = self.grid[r][c]
+                if color == 0:
+                    continue
 
-        new_row, new_col, new_rot = self.current_row, self.current_col, self.current_rotation
+                # Проверяем соседей того же цвета
+                neighbors = [(r - 1, c), (r + 1, c), (r, c - 1), (r, c + 1)]
+                for nr, nc in neighbors:
+                    if (
+                        0 <= nr < self.height
+                        and 0 <= nc < self.width
+                        and self.grid[nr][nc] == color
+                    ):
+                        return True
 
-        if action == "left":
-            new_col -= 1
-        elif action == "right":
-            new_col += 1
-        elif action in ("down", "tick"):
-            new_row += 1
-        elif action == "rotate" and self.current_shape != "O":
-            # O не вращается
-            new_rot = (new_rot + 1) % 4
-
-        # Попытка выполнить действие
-        if self._can_place(new_row, new_col, new_rot):
-            # Обновляем позицию
-            self.current_row, self.current_col, self.current_rotation = new_row, new_col, new_rot
-
-            # КРИТИЧНО: Для движения вниз - проверяем следующую позицию ПОСЛЕ обновления
-            if action in ("down", "tick"):
-                # Проверяем следующую позицию вниз (теперь current_row уже обновлен)
-                next_blocks = self._get_blocks(
-                    self.current_row + 1, self.current_col, self.current_rotation
-                )
-                # Если хотя бы один блок выйдет за пределы или коллизия - блокируем
-                if any(r >= self.height for r, _ in next_blocks) or not self._can_place(
-                    self.current_row + 1, self.current_col, self.current_rotation
-                ):
-                    # Блокируем фигуру на текущей позиции
-                    logger.debug(
-                        f"🔒 Tetris step: Блокировка после движения вниз! "
-                        f"current_row={self.current_row}, next_row={self.current_row + 1}, height={self.height}"
-                    )
-                    self._lock_piece()
-                    return  # Выходим сразу после блокировки
-
-        # Если движение вниз не удалось из-за коллизии - блокируем фигуру
-        # КРИТИЧНО: Это происходит когда фигура уперлась в дно или блоки
-        elif action in ("down", "tick"):
-            # Мы попытались идти вниз, но не смогли - блокируем
-            # Но только если текущая позиция в пределах доски
-            current_blocks = self._get_blocks(
-                self.current_row, self.current_col, self.current_rotation
-            )
-            if any(r >= self.height for r, _ in current_blocks):
-                # Фигура уже за пределами - это ошибка, блокируем без записи
-                logger.error(
-                    f"⚠️ Tetris: Фигура за пределами доски при попытке блокировки: "
-                    f"row={self.current_row}, blocks={current_blocks}"
-                )
-                self.game_over = True
-                return
-            logger.debug(
-                f"🔒 Tetris step: Блокировка из-за коллизии! "
-                f"current_row={self.current_row}, height={self.height}"
-            )
-            self._lock_piece()
+        return False
 
     def get_state(self) -> dict:
-        """Получить состояние для фронтенда."""
-        # КРИТИЧНО: Всегда создаем доску точного размера height x width
-        # Если доска меньше - дополняем пустыми строками сверху
-        # Если больше - обрезаем сверху
-        preview = []
-        if len(self.board) < self.height:
-            # Дополняем пустыми строками сверху
-            for _ in range(self.height - len(self.board)):
-                preview.append([0] * self.width)
-            preview.extend([row[:] for row in self.board])
-        elif len(self.board) > self.height:
-            # Обрезаем сверху (берем последние height строк)
-            preview = [row[:] for row in self.board[-self.height :]]
-        else:
-            preview = [row[:] for row in self.board]
-
-        # КРИТИЧНО: Убеждаемся, что каждая строка имеет точную ширину
-        for i in range(len(preview)):
-            if len(preview[i]) < self.width:
-                preview[i].extend([0] * (self.width - len(preview[i])))
-            elif len(preview[i]) > self.width:
-                preview[i] = preview[i][: self.width]
-
-        if self.current_shape and not self.game_over:
-            # КРИТИЧНО: Проверяем, что фигура не выходит за границы
-            blocks = self._get_blocks(self.current_row, self.current_col, self.current_rotation)
-            # Отображаем только блоки в пределах доски (0 <= r < height)
-            for r, c in blocks:
-                # КРИТИЧНО: Если блок за границами - НЕ отображаем его
-                if 0 <= r < self.height and 0 <= c < self.width:
-                    # КРИТИЧНО: Используем значение 2 для падающей фигуры (frontend ожидает cell === 1 для падающей)
-                    # Но в _lock_piece используется 1 для зафиксированных, поэтому используем 2 для падающей
-                    if preview[r][c] == 0:  # Не перезаписываем зафиксированные блоки
-                        preview[r][c] = 2  # Текущая падающая фигура
-                elif r >= self.height:
-                    # Блок за нижней границей - критическая ошибка
-                    logger.error(
-                        f"⚠️ Tetris get_state: Блок за нижней границей! "
-                        f"row={r}, height={self.height}, current_row={self.current_row}, "
-                        f"shape={self.current_shape}, blocks={blocks}"
-                    )
-
+        """Получить состояние для фронтенда"""
         return {
-            "board": preview,
+            "grid": [row[:] for row in self.grid],
             "score": self.score,
-            "lines_cleared": self.lines_cleared,
+            "moves_left": self.moves_left,
             "level": self.level,
             "game_over": self.game_over,
-            "current_shape": self.current_shape,
-            "current_row": self.current_row,
-            "current_col": self.current_col,
-            "current_rotation": self.current_rotation,
+            "selected_path": self.selected_path[:],
             "width": self.width,
             "height": self.height,
+            "num_colors": self.num_colors,
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "TetrisGame":
-        """Восстановить игру из словаря (например, из Redis)."""
-        game = cls.__new__(cls)  # Создаем экземпляр без вызова __init__
-        loaded_board = data.get("board", [[0] * 10 for _ in range(20)])
-        loaded_score = data.get("score", 0)
-        loaded_lines = data.get("lines_cleared", 0)
+    def from_dict(cls, data: dict) -> "TwoDotsGame":
+        """Восстановить игру из словаря"""
+        game = cls.__new__(cls)
+        game.width = data.get("width", 8)
+        game.height = data.get("height", 8)
+        game.num_colors = data.get("num_colors", 5)
 
-        # КРИТИЧНО: Если доска заполнена блоками, но счет 0 и линии 0 - это ошибка состояния
-        # Сбрасываем доску на пустую для корректного старта игры
-        has_blocks = any(any(cell != 0 for cell in row) for row in loaded_board)
-        if has_blocks and loaded_score == 0 and loaded_lines == 0:
-            # Сброс доски - это первый запуск или поврежденное состояние
-            game.board = [[0] * 10 for _ in range(20)]
+        loaded_grid = data.get("grid", [[0] * 8 for _ in range(8)])
+        # Убеждаемся, что сетка правильного размера
+        if len(loaded_grid) != game.height:
+            game.grid = [[0] * game.width for _ in range(game.height)]
+            game._fill_grid()
         else:
-            game.board = loaded_board
+            game.grid = []
+            for row in loaded_grid:
+                if len(row) == game.width:
+                    game.grid.append(row[:])
+                else:
+                    game.grid.append([0] * game.width)
+            # Дополняем если нужно
+            while len(game.grid) < game.height:
+                game.grid.append([0] * game.width)
+            game.grid = game.grid[: game.height]
 
-        game.score = loaded_score
-        game.lines_cleared = loaded_lines
+        game.score = data.get("score", 0)
+        game.moves_left = data.get("moves_left", 30)
         game.level = data.get("level", 1)
-
-        # КРИТИЧНО: Фильтруем ложные game_over при счете 0
-        loaded_game_over = data.get("game_over", False)
-        # Если game_over=true, но счет 0 и линии 0 - это ошибка, сбрасываем флаг
-        # ИГНОРИРУЕМ game_over при первом запуске (пустая доска, счет 0)
-        game.game_over = loaded_game_over and (loaded_score > 0 or loaded_lines > 0)
-
-        game.current_shape = data.get("current_shape")
-        # КРИТИЧНО: Используем 0 вместо -2 для видимости фигуры
-        game.current_row = data.get("current_row", 0)
-        game.current_col = data.get("current_col", 5)
-        game.current_rotation = data.get("current_rotation", 0)
-
-        # ГСЧ для мешка фигур
-        import random
-
-        game._rnd = random
-
-        # Восстанавливаем состояние мешка, чтобы предсказание фигур работало корректно
-        # (Опционально: можно просто пересоздать мешок, если не важна точность предсказания)
-        game._bag = data.get("bag", data.get("_bag", []))
-        if not game._bag:
-            game._refill_bag()
-
-        # КРИТИЧНО: Если current_shape None - спавним новую фигуру
-        if not game.current_shape:
-            game._spawn_new_piece()
+        game.game_over = data.get("game_over", False)
+        game.selected_path = data.get("selected_path", [])
 
         return game
