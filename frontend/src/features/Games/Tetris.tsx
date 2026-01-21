@@ -1,6 +1,5 @@
 /**
  * Tetris Game Component - SIMPLE WORKING VERSION
- * Простая рабочая реализация тетриса
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -194,23 +193,26 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       )}
 
-      {/* Game Board - ИСПРАВЛЕНО */}
-      <div className="flex items-center justify-center px-2 sm:px-3 py-2 overflow-hidden w-full h-full" style={{ height: 'calc(100vh - 260px)', maxHeight: '550px', minHeight: '300px' }}>
+      {/* Game Board - АДАПТИВНЫЙ РАЗМЕР */}
+      <div className="flex items-center justify-center px-2 sm:px-3 py-2 w-full h-full overflow-hidden" style={{ height: 'calc(100vh - 240px)' }}>
         {/*
-           Мы используем height: '100%' чтобы занять всю доступную высоту.
-           aspectRatio: '0.5' вычислит ширину как 50% от высоты (сохраняя пропорции 10x20).
-           maxWidth: '330px' ограничивает ширину на больших экранах.
-           Это гарантирует, что нижние ряды не обрежутся.
+           ИСПРАВЛЕНИЕ:
+           1. width: '100%' - занимает всю доступную ширину.
+           2. maxWidth: 'calc((100vh - 240px) / 2)' - НО! Ширина не может превышать половину высоты экрана.
+              Это гарантирует, что доска с пропорцией 0.5 (ширина/высота) всегда поместится в высоту экрана.
+              На широких экранах: ширина будет 100%.
+              На узких/высоких экранах: ширина сожмется, чтобы не обрезать дно.
         */}
         <div
-          className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner overflow-hidden mx-auto"
+          className="bg-slate-100 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-lg p-1 shadow-inner mx-auto overflow-hidden"
           style={{
-            height: '100%',
-            aspectRatio: '0.5',
-            maxWidth: '330px'
+            width: '100%',
+            maxWidth: 'calc((100vh - 240px) / 2)',
+            aspectRatio: '0.5'
           }}
         >
-          <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`, gridTemplateRows: `repeat(${board.length || 20}, 1fr)`, gap: '1px' }}>
+          {/* gap: 2px делает блоки визуально чуть меньше и раздельнее */}
+          <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${board[0]?.length || 10}, 1fr)`, gridTemplateRows: `repeat(${board.length || 20}, 1fr)`, gap: '2px' }}>
             {board.map((row, rowIndex) =>
               row.map((cell, colIndex) => (
                 <div
@@ -230,7 +232,7 @@ export function Tetris({ sessionId, onBack, onGameEnd }: TetrisProps) {
         </div>
       </div>
 
-      {/* Controls - выровнены по размеру окна игры */}
+      {/* Controls */}
       <div className="flex-shrink-0 pt-0 pb-2 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
         <div className="mx-auto px-3" style={{ maxWidth: '330px' }}>
           <div className="flex gap-1.5 mb-1.5">
