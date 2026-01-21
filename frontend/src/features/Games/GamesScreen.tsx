@@ -42,7 +42,7 @@ const GAMES = [
   },
   {
     id: 'erudite',
-    name: 'Эрудит',
+    name: 'эрудит',
     icon: '📚',
     description: 'Составляй слова и набирай очки!',
     color: 'from-blue-200 to-blue-100',
@@ -236,7 +236,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
                     {stat.game_type === 'tic_tac_toe' && '❌⭕ Крестики-нолики'}
                     {stat.game_type === 'checkers' && '⚫⚪ Шашки'}
                     {stat.game_type === '2048' && '🔢 2048'}
-                    {stat.game_type === 'erudite' && '📚 Эрудит'}
+                    {stat.game_type === 'erudite' && '📚 эрудит'}
                   </div>
                   <div className="text-sm sm:text-base font-bold text-gray-900 dark:text-slate-100">
                     {stat.wins} побед
