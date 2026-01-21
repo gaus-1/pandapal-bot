@@ -9,6 +9,7 @@ Create Date: 2026-01-15 12:00:00.000000
 from typing import Sequence, Union
 
 from alembic import op
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision: str = "20260115_remove_tetris"
@@ -18,6 +19,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # Сначала удаляем все записи с game_type='tetris' из game_sessions и game_stats
+    op.execute(text("DELETE FROM game_sessions WHERE game_type = 'tetris'"))
+    op.execute(text("DELETE FROM game_stats WHERE game_type = 'tetris'"))
+
     # Удаляем tetris из check-constraint'ов game_sessions и game_stats
     op.drop_constraint("ck_game_sessions_game_type", "game_sessions", type_="check")
     op.drop_constraint("ck_game_stats_game_type", "game_stats", type_="check")
