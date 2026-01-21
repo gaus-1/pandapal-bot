@@ -140,13 +140,123 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             )
             return response
 
+        # Детектор запросов на генерацию изображений (ПЕРЕД секретным запросом)
+        image_keywords = [
+            "нарисуй",
+            "нарисовать",
+            "рисунок",
+            "картинк",
+            "изображени",
+            "фото",
+            "иллюстраци",
+            "визуализируй",
+            "покажи как выглядит",
+            "сгенерируй изображение",
+            "создай картинку",
+        ]
+        is_image_request = any(keyword in user_message.lower() for keyword in image_keywords)
+
+        logger.debug(
+            f"🎨 Stream: Проверка детектора изображений: '{user_message[:50]}', "
+            f"is_image_request={is_image_request}"
+        )
+
+        if is_image_request:
+            from bot.services.yandex_art_service import get_yandex_art_service
+
+            art_service = get_yandex_art_service()
+            is_available = art_service.is_available()
+
+            logger.info(
+                f"🎨 Stream: Запрос на генерацию изображения от {telegram_id}: "
+                f"'{user_message[:50]}', art_service.is_available={is_available}"
+            )
+
+            if is_available:
+                try:
+                    # Генерируем изображение
+                    image_bytes = await art_service.generate_image(
+                        prompt=user_message, style="auto", aspect_ratio="1:1"
+                    )
+
+                    if image_bytes:
+                        # Конвертируем в base64
+                        import base64
+
+                        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+                        image_data = json.dumps(
+                            {"image": image_base64, "type": "generated_image"},
+                            ensure_ascii=False,
+                        )
+                        await response.write(f"event: image\ndata: {image_data}\n\n".encode())
+
+                        # Отправляем текстовое сообщение
+                        caption = f"🎨 Вот что я нарисовал по твоему запросу:\n\n{user_message}"
+                        event_data = json.dumps({"content": caption}, ensure_ascii=False)
+                        await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+                        await response.write(b"event: done\ndata: {}\n\n")
+
+                        logger.info(
+                            f"🎨 Stream: Изображение сгенерировано для пользователя {telegram_id}"
+                        )
+
+                        # Сохраняем в историю
+                        with get_db() as db:
+                            history_service = ChatHistoryService(db)
+                            history_service.add_message(
+                                telegram_id=telegram_id,
+                                message_text=user_message,
+                                message_type="user",
+                            )
+                            image_url = f"data:image/jpeg;base64,{image_base64}"
+                            history_service.add_message(
+                                telegram_id=telegram_id,
+                                message_text="[Сгенерировано изображение]",
+                                message_type="ai",
+                                image_url=image_url,
+                            )
+                            db.commit()
+                        return response
+                    else:
+                        logger.warning(
+                            f"⚠️ Stream: Не удалось сгенерировать изображение для {telegram_id}"
+                        )
+                        error_msg = json.dumps(
+                            {
+                                "error": "Не получилось нарисовать картинку. Попробуй переформулировать запрос!"
+                            },
+                            ensure_ascii=False,
+                        )
+                        await response.write(f"event: error\ndata: {error_msg}\n\n".encode())
+                        return response
+
+                except Exception as e:
+                    logger.error(f"❌ Stream: Ошибка генерации изображения: {e}", exc_info=True)
+                    error_msg = json.dumps(
+                        {"error": "Упс, что-то пошло не так с рисованием. Попробуй снова!"},
+                        ensure_ascii=False,
+                    )
+                    await response.write(f"event: error\ndata: {error_msg}\n\n".encode())
+                    return response
+            else:
+                logger.warning(
+                    f"⚠️ Stream: YandexART недоступен (нет API ключей или роли). "
+                    f"Запрос: '{user_message[:50]}'"
+                )
+                # Продолжаем обычную обработку текстом
+                logger.info("📝 Stream: Обрабатываем запрос как обычный текст")
+
         # Секретный запрос для особенного человека
-        if user_message.strip() == "<>***<>":
+        # Более гибкая проверка с удалением всех пробелов и невидимых символов
+        normalized_message = "".join(user_message.split())
+        if normalized_message == "<>***<>" or user_message.strip() == "<>***<>":
             special_message = "Создано с любовью для Агаты ❤️❤️❤️"
             event_data = json.dumps({"content": special_message}, ensure_ascii=False)
             await response.write(f"event: message\ndata: {event_data}\n\n".encode())
             await response.write(b"event: done\ndata: {}\n\n")
-            logger.info(f"💝 Секретное сообщение отправлено пользователю {telegram_id} (Mini App)")
+            logger.info(
+                f"💝 Секретное сообщение отправлено пользователю {telegram_id} (Mini App): '{user_message}'"
+            )
             return response
 
         with get_db() as db:
