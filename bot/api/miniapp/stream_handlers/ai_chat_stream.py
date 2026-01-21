@@ -140,7 +140,60 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             )
             return response
 
-        # Детектор запросов на генерацию изображений (ПЕРЕД секретным запросом)
+        # КРИТИЧНО: Проверка запрещенных тем для всех типов запросов (текст, фото, аудио)
+        # Проверяем ПЕРЕД секретным запросом и генерацией изображений
+        from bot.monitoring import log_user_activity
+        from bot.services.moderation_service import ContentModerationService
+
+        moderation_service = ContentModerationService()
+
+        # Проверка на провокационные вопросы о запрещенных темах
+        if moderation_service.is_provocative_question(user_message):
+            logger.warning(
+                f"🚫 Stream: Провокационный вопрос от {telegram_id}: {user_message[:50]}..."
+            )
+            log_user_activity(
+                telegram_id, "provocative_question", False, "question_about_forbidden_topics"
+            )
+
+            # Вежливо перенаправляем на учебу
+            safe_response = (
+                "Я помогаю с учебой и школьными предметами! 📚\n\n"
+                "Могу помочь с:\n"
+                "• Математикой (задачи, примеры, формулы)\n"
+                "• Русским языком (правила, орфография, грамматика)\n"
+                "• Историей (даты, события, эпохи)\n"
+                "• Географией (страны, карты, природные зоны)\n"
+                "• Физикой, химией, биологией\n"
+                "• Литературой и иностранными языками\n\n"
+                "Задай вопрос по любому школьному предмету! 🐼"
+            )
+            await send_achievements_event(response, telegram_id, "message_sent")
+            await response.write(
+                f'event: message\ndata: {{"content": {json.dumps(safe_response, ensure_ascii=False)}}}\n\n'.encode()
+            )
+            await response.write(b"event: done\ndata: {}\n\n")
+            return response
+
+        # Проверка на запрещенные темы в тексте
+        is_safe, reason = moderation_service.is_safe_content(user_message)
+        if not is_safe:
+            logger.warning(
+                f"🚫 Stream: Запрещенная тема обнаружена от {telegram_id}: {reason}, "
+                f"сообщение: '{user_message[:50]}...'"
+            )
+            log_user_activity(telegram_id, "forbidden_topic_blocked", False, reason or "unknown")
+
+            # Вежливо перенаправляем на учебу
+            safe_response = moderation_service.get_safe_response_alternative()
+            await send_achievements_event(response, telegram_id, "message_sent")
+            await response.write(
+                f'event: message\ndata: {{"content": {json.dumps(safe_response, ensure_ascii=False)}}}\n\n'.encode()
+            )
+            await response.write(b"event: done\ndata: {}\n\n")
+            return response
+
+        # Детектор запросов на генерацию изображений (ПОСЛЕ проверки модерации)
         image_keywords = [
             "нарисуй",
             "нарисовать",
@@ -299,38 +352,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 )
                 return response
 
-            # Проверка на провокационные вопросы о запрещенных темах
-            from bot.monitoring import log_user_activity
-            from bot.services.moderation_service import ContentModerationService
-
-            moderation_service = ContentModerationService()
-            if moderation_service.is_provocative_question(user_message):
-                logger.warning(
-                    f"🚫 Stream: Провокационный вопрос от {telegram_id}: {user_message[:50]}..."
-                )
-                log_user_activity(
-                    telegram_id, "provocative_question", False, "question_about_forbidden_topics"
-                )
-
-                # Вежливо перенаправляем на учебу
-                safe_response = (
-                    "Я помогаю с учебой и школьными предметами! 📚\n\n"
-                    "Могу помочь с:\n"
-                    "• Математикой (задачи, примеры, формулы)\n"
-                    "• Русским языком (правила, орфография, грамматика)\n"
-                    "• Историей (даты, события, эпохи)\n"
-                    "• Географией (страны, карты, природные зоны)\n"
-                    "• Физикой, химией, биологией\n"
-                    "• Литературой и иностранными языками\n\n"
-                    "Задай вопрос по любому школьному предмету! 🐼"
-                )
-                await send_achievements_event(response, telegram_id, "message_sent")
-                await response.write(
-                    f'event: message\ndata: {{"text": {json.dumps(safe_response, ensure_ascii=False)}}}\n\n'.encode()
-                )
-                await response.write(b"event: done\ndata: {}\n\n")
-                return response
-
             # Отправляем событие начала генерации
             await response.write(b'event: status\ndata: {"status": "generating"}\n\n')
 
@@ -464,6 +485,15 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                 # Очищаем полный ответ от запрещенных символов
                 full_response = clean_ai_response(full_response)
+
+                # КРИТИЧНО: Проверка ответа AI на запрещенные темы
+                is_safe_response, reason = moderation_service.is_safe_content(full_response)
+                if not is_safe_response:
+                    logger.warning(
+                        f"🚫 Stream: AI сгенерировал небезопасный ответ для {telegram_id}: {reason}"
+                    )
+                    # Заменяем на безопасный ответ
+                    full_response = moderation_service.get_safe_response_alternative()
 
                 # Проверяем, нужна ли визуализация (таблица умножения, графики, диаграммы)
                 # multiplication_number уже определен выше, если не был - проверяем в ответе AI
