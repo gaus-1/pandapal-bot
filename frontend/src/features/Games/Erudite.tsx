@@ -182,6 +182,15 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
         </div>
       </div>
 
+      {/* Правило первого хода */}
+      {state.first_move && state.current_player === 1 && (
+        <div className="px-2 py-1 bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 flex-shrink-0">
+          <div className="text-xs text-yellow-800 dark:text-yellow-200">
+            ⭐ Первый ход: разместите слово так, чтобы оно проходило через центральную клетку (⭐)
+          </div>
+        </div>
+      )}
+
       {/* Game Board */}
       <div className="flex-1 overflow-hidden flex items-center justify-center p-1 min-h-0">
         <div

@@ -1215,6 +1215,17 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     if not full_response.endswith((".", "!", "?")):
                                         full_response += "."
 
+                        # Удаляем упоминания про автоматическую генерацию
+                        if visualization_image_base64:
+                            full_response = (
+                                visualization_service.postprocess_text_for_visualization(
+                                    full_response,
+                                    intent,
+                                    visualization_image_base64,
+                                    multiplication_number,
+                                )
+                            )
+
                         # Делаем первые 1–2 предложения кратким жирным резюме
                         full_response = _format_visualization_explanation(full_response)
 
@@ -1507,6 +1518,27 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                             # Дополнительная очистка уже выполняется в clean_ai_response,
                             # здесь не дублируем специальные паттерны.
+
+                            # Удаляем упоминания про автоматическую генерацию
+                            if visualization_image_base64:
+                                # В fallback случае intent может быть не определен, создаем пустой
+                                from bot.services.miniapp_intent_service import VisualizationIntent
+
+                                fallback_intent = (
+                                    intent
+                                    if "intent" in locals()
+                                    else VisualizationIntent(
+                                        kind="table" if multiplication_number_fallback else "graph"
+                                    )
+                                )
+                                cleaned_response = (
+                                    visualization_service.postprocess_text_for_visualization(
+                                        cleaned_response,
+                                        fallback_intent,
+                                        visualization_image_base64,
+                                        multiplication_number_fallback,
+                                    )
+                                )
 
                             # Делаем первые 1–2 предложения кратким жирным резюме
                             cleaned_response = _format_visualization_explanation(cleaned_response)
