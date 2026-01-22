@@ -123,7 +123,13 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         telegram.hapticFeedback("light");
       } else {
         telegram.hapticFeedback("heavy");
-        setError("Эта фишка не может ходить");
+        // Проверяем, есть ли обязательное взятие другой фишкой
+        const hasMandatoryCapture = validMoves.some((move) => move.capture !== null);
+        if (hasMandatoryCapture) {
+          setError("Сначала нужно съесть фишку противника");
+        } else {
+          setError("Эта фишка не может ходить");
+        }
         setTimeout(() => setError(null), 2000);
       }
       return;

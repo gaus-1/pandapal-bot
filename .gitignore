@@ -46,9 +46,15 @@ frontend/.pnpm-debug.log*
 
 # Testing
 .coverage
+coverage.xml
 htmlcov/
 .pytest_cache/
 .vitest/
+
+# Reports
+vulture_report.txt
+vulture_full_report.txt
+*.report.txt
 
 # Playwright
 frontend/playwright-report/
