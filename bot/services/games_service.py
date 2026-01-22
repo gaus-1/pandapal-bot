@@ -686,6 +686,14 @@ class GamesService:
         else:
             game = CheckersGame()
 
+        # КРИТИЧНО: Проверяем, что очередь пользователя
+        # Если current_player != 1, значит очередь AI - пользователь не может ходить
+        if game.current_player != 1:
+            logger.warning(
+                f"⚠️ Попытка получить ходы для пользователя, но очередь AI (current_player={game.current_player})"
+            )
+            return []
+
         # Получаем валидные ходы для пользователя (player = 1)
         valid_moves = game.get_valid_moves(1)
 
@@ -759,11 +767,15 @@ class GamesService:
         else:
             game = CheckersGame()
 
-        # Ход пользователя (player = 1)
-        # Устанавливаем текущего игрока на пользователя перед проверкой хода
-        # Это необходимо, так как после хода AI current_player = 1, но состояние может быть сохранено неправильно
-        game.current_player = 1
+        # КРИТИЧНО: Проверяем, что очередь пользователя
+        # Если current_player != 1, значит очередь AI - пользователь не может ходить
+        if game.current_player != 1:
+            logger.warning(
+                f"⚠️ Попытка хода пользователя, но очередь AI (current_player={game.current_player})"
+            )
+            raise ValueError("Не ваша очередь ходить")
 
+        # Ход пользователя (player = 1)
         # Получаем валидные ходы для диагностики
         user_valid_moves = game.get_valid_moves(1)
 
@@ -813,6 +825,31 @@ class GamesService:
                 "kings": state.get("kings"),
                 "winner": "user",
                 "game_over": True,
+                "ai_move": None,
+            }
+
+        # КРИТИЧНО: Если есть обязательное взятие (множественное взятие),
+        # пользователь должен продолжать ходить той же фишкой
+        # Сохраняем состояние и возвращаем управление пользователю
+        if game.must_capture_from:
+            state = game.get_board_state()
+            must_capture = list(game.must_capture_from) if game.must_capture_from else None
+            self.update_game_session(
+                session_id,
+                {
+                    "board": state["board"],
+                    "kings": state.get("kings"),
+                    "current_player": game.current_player,  # Остается 1 (пользователь)
+                    "must_capture": must_capture,
+                },
+                "in_progress",
+            )
+            self.db.commit()
+            return {
+                "board": state["board"],
+                "kings": state.get("kings"),
+                "winner": None,
+                "game_over": False,
                 "ai_move": None,
             }
 
