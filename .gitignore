@@ -144,8 +144,9 @@ update_render_env.py
 *_backup.py
 *_old.py
 
-# Documentation with secrets
+# Documentation with secrets (exclude public docs)
 *SECURITY*.md
+!.github/SECURITY.md
 *DEPLOYMENT*.md
 *INCIDENT*.md
 *SECRET*.md
@@ -153,13 +154,15 @@ update_render_env.py
 *RENDER*.md
 *SETUP*.md
 *INSTALL*.md
+!docs/getting-started/installation.md
 *PRIVACY*.md
 *INTERNAL*.md
 
-# Setup and deployment docs
+# Setup and deployment docs (exclude public docs)
 docs/SETUP/
 docs/DEPLOYMENT/
 docs/INSTALL/
+!docs/getting-started/
 
 # Large presentation files
 docs/presentation/logo.png
