@@ -102,8 +102,8 @@ npm run dev
 
 ```
 PandaPal/
-├── bot/                    # Backend логика
-│   ├── handlers/           # Обработчики команд Telegram
+├── bot/                     # Backend логика
+│   ├── handlers/            # Обработчики команд Telegram
 │   │   ├── ai_chat/         # Модульная структура AI чата
 │   │   │   ├── text.py      # Текстовые сообщения
 │   │   │   ├── voice.py     # Голосовые и аудио
@@ -113,7 +113,7 @@ PandaPal/
 │   │   │   └── __init__.py  # Регистрация router
 │   │   ├── start.py         # Команда /start
 │   │   └── ...              # Остальные handlers
-│   ├── services/           # Бизнес-логика (AI, платежи, игры, Mini App, RAG)
+│   ├── services/            # Бизнес-логика (AI, платежи, игры, Mini App, RAG)
 │   │   ├── ai_service_solid.py          # Фасад над Yandex Cloud AI
 │   │   ├── yandex_cloud_service.py      # Низкоуровневый Yandex Cloud клиент
 │   │   ├── yandex_ai_response_generator.py  # Генерация AI ответов с RAG
@@ -142,13 +142,13 @@ PandaPal/
 │   │   └── token_rotator.py                 # Ротация AI‑ключей
 │   ├── api/                # HTTP endpoints
 │   │   ├── miniapp/        # API для Telegram Mini App
-│   │   │   ├── chat_stream.py  # Streaming AI чат (SSE) + визуализации
-│   │   │   ├── homework.py     # Проверка домашних заданий (check, history, statistics)
-│   │   │   ├── other.py        # История чата, предметы, логирование
-│   │   │   └── __init__.py     # Регистрация Mini App маршрутов
-│   │   ├── games_endpoints.py  # API для игр
-│   │   ├── premium_endpoints.py# Премиум и платежи
-│   │   └── auth_endpoints.py   # Telegram Login / auth API
+│   │   │   ├── chat_stream.py   # Streaming AI чат (SSE) + визуализации
+│   │   │   ├── homework.py      # Проверка домашних заданий (check, history, statistics)
+│   │   │   ├── other.py         # История чата, предметы, логирование
+│   │   │   └── __init__.py      # Регистрация Mini App маршрутов
+│   │   ├── games_endpoints.py   # API для игр
+│   │   ├── premium_endpoints.py # Премиум и платежи
+│   │   └── auth_endpoints.py    # Telegram Login / auth API
 │   ├── config/             # Настройки, промпты, паттерны модерации
 │   ├── security/           # Middleware, валидация, rate limiting
 │   ├── monitoring/         # Метрики, мониторинг
@@ -163,12 +163,12 @@ PandaPal/
 │   │   └── services/       # API клиенты
 │   └── public/             # Статические файлы
 ├── tests/                  # Тесты (unit, integration, e2e, security, performance)
-│   ├── unit/              # Unit тесты отдельных компонентов
-│   ├── integration/       # Интеграционные тесты с реальным API
-│   ├── e2e/               # End-to-end тесты полных сценариев
+│   ├── unit/               # Unit тесты отдельных компонентов
+│   ├── integration/        # Интеграционные тесты с реальным API
+│   ├── e2e/                # End-to-end тесты полных сценариев
 │   │   └── test_comprehensive_panda_e2e.py  # Комплексные E2E тесты всех функций
-│   ├── security/          # Тесты безопасности
-│   └── performance/       # Тесты производительности
+│   ├── security/           # Тесты безопасности
+│   └── performance/        # Тесты производительности
 ├── alembic/                # Миграции БД (Alembic)
 ├── scripts/                # Утилиты (см. scripts/README.md)
 ├── config/                 # Конфигурация (см. config/README.md)
