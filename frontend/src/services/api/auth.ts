@@ -31,7 +31,8 @@ export async function authenticateUser(): Promise<UserProfile> {
     throw new Error(errorData.error || 'Authentication failed');
   }
 
-  return response.json();
+  const data = await response.json();
+  return data.user; // Backend возвращает { success: true, user: {...} }
 }
 
 /**
