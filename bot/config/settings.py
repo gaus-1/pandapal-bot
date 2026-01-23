@@ -1,14 +1,8 @@
 """
-Основной класс конфигурации приложения PandaPal Bot.
+Основной класс конфигурации приложения.
 
-Содержит все настройки для работы бота, включая:
-- Подключения к внешним сервисам (БД, Telegram, Yandex Cloud AI)
-- Параметры безопасности и модерации
-- Лимиты и ограничения
-- Настройки для разработки и продакшена
-
-Все параметры автоматически загружаются из переменных окружения
-с поддержкой множественных алиасов для удобства.
+Содержит все настройки для работы бота. Параметры загружаются
+из переменных окружения с поддержкой множественных алиасов.
 """
 
 from pydantic import AliasChoices, Field, field_validator
@@ -16,36 +10,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """
-    Основной класс конфигурации приложения.
-
-    Содержит все настройки для работы бота, включая:
-    - Подключения к внешним сервисам (БД, Telegram, Yandex Cloud AI)
-    - Параметры безопасности и модерации
-    - Лимиты и ограничения
-    - Настройки для разработки и продакшена
-
-    Все параметры автоматически загружаются из переменных окружения
-    с поддержкой множественных алиасов для удобства.
-
-    Attributes:
-        database_url (str): URL подключения к PostgreSQL базе данных.
-        telegram_bot_token (str): Токен Telegram бота от @BotFather.
-        yandex_cloud_api_key (str): API ключ для Yandex Cloud (YandexGPT, SpeechKit, Vision).
-        yandex_cloud_folder_id (str): Folder ID в Yandex Cloud.
-        yandex_gpt_model (str): Модель YandexGPT (всегда yandexgpt/latest для всех пользователей - стабильная Latest версия).
-        ai_temperature (float): Температура генерации AI (0.0-1.0).
-        ai_max_tokens (int): Максимальное количество токенов в ответе AI.
-        forbidden_topics (str): Запрещенные темы через запятую для модерации.
-        content_filter_level (int): Уровень строгости фильтра (1-5).
-        ai_rate_limit_per_minute (int): Лимит AI запросов в минуту на пользователя.
-        daily_message_limit (int): Дневной лимит сообщений (999999 = без ограничений).
-        chat_history_limit (int): Количество сообщений в истории для контекста AI.
-        secret_key (str): Секретный ключ для сессий и шифрования.
-        sentry_dsn (Optional[str]): DSN для Sentry мониторинга ошибок.
-        debug (bool): Режим отладки.
-        frontend_url (str): URL фронтенд приложения.
-    """
+    """Основной класс конфигурации приложения."""
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"

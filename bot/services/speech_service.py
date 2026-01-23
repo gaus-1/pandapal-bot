@@ -1,12 +1,7 @@
 """
 Сервис распознавания речи через Yandex SpeechKit.
 
-Миграция с OpenAI Whisper на Yandex Cloud SpeechKit STT.
 Поддерживает русский и английский языки.
-
-⚠️ КРИТИЧЕСКИЙ МОДУЛЬ - РАБОТАЕТ СТАБИЛЬНО!
-⛔ НЕ ИЗМЕНЯТЬ сигнатуру transcribe_voice() без явного запроса!
-✅ Текущая сигнатура: transcribe_voice(voice_file_bytes: bytes, language: str = "ru")
 """
 
 import subprocess
@@ -19,15 +14,7 @@ from bot.services.yandex_cloud_service import get_yandex_cloud_service
 
 
 class SpeechRecognitionService:
-    """
-    Сервис для распознавания речи через Yandex SpeechKit STT.
-
-    Преимущества Yandex SpeechKit:
-    - Отличное распознавание русского языка
-    - Поддержка различных форматов аудио
-    - Низкая стоимость (₽0.30-0.60 за минуту)
-    - Не требует локальных ресурсов (облачный)
-    """
+    """Сервис для распознавания речи через Yandex SpeechKit STT."""
 
     def __init__(self):
         """Инициализация сервиса распознавания речи."""
@@ -35,16 +22,7 @@ class SpeechRecognitionService:
         logger.info("✅ Yandex SpeechKit STT сервис инициализирован")
 
     async def transcribe_voice(self, voice_file_bytes: bytes, language: str = "ru") -> str | None:
-        """
-        Распознать речь из голосового сообщения через Yandex SpeechKit.
-
-        Args:
-            voice_file_bytes: Байты аудио файла (.webm, .ogg, .mp3, .wav).
-            language: Язык распознавания (ru/en).
-
-        Returns:
-            str: Распознанный текст или None при ошибке.
-        """
+        """Распознать речь из голосового сообщения через Yandex SpeechKit."""
         try:
             logger.info(f"🎤 Распознавание речи через Yandex SpeechKit (язык: {language})")
 
@@ -75,15 +53,7 @@ class SpeechRecognitionService:
             raise
 
     async def _convert_audio_if_needed(self, audio_bytes: bytes) -> bytes:
-        """
-        Конвертирует webm в oggopus через ffmpeg, если нужно.
-
-        Args:
-            audio_bytes: Исходные байты аудио
-
-        Returns:
-            bytes: Конвертированные байты (oggopus) или исходные, если конвертация не нужна
-        """
+        """Конвертирует webm в oggopus через ffmpeg, если нужно."""
         try:
             # Проверяем, является ли это webm (первые байты: 1a 45 df a3)
             if audio_bytes[:4] == b"\x1a\x45\xdf\xa3":  # WebM signature
@@ -185,12 +155,7 @@ _speech_service: SpeechRecognitionService | None = None
 
 
 def get_speech_service() -> SpeechRecognitionService:
-    """
-    Получить глобальный экземпляр Yandex SpeechKit сервиса.
-
-    Returns:
-        SpeechRecognitionService: Глобальный экземпляр.
-    """
+    """Получить глобальный экземпляр Yandex SpeechKit сервиса."""
     global _speech_service
     if _speech_service is None:
         _speech_service = SpeechRecognitionService()
