@@ -227,7 +227,8 @@ def validate_origin(request: web.Request) -> tuple[bool, str | None]:
     return True, None
 
 
-async def security_middleware(_app: web.Application, handler):
+@web.middleware
+async def security_middleware(request: web.Request, handler) -> web.Response:
     """
     Главный security middleware.
 
@@ -237,220 +238,212 @@ async def security_middleware(_app: web.Application, handler):
     - Security headers
     - Request ID для tracing
     """
+    # Генерируем request ID для tracing
+    request_id = str(uuid.uuid4())
+    request["request_id"] = request_id
 
-    async def middleware_handler(request: web.Request) -> web.Response:
-        # Генерируем request ID для tracing
-        request_id = str(uuid.uuid4())
-        request["request_id"] = request_id
+    # Получаем IP адрес
+    # Проверяем X-Forwarded-For (для прокси/Cloudflare)
+    ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+    if not ip:
+        ip = request.headers.get("X-Real-IP", "")
+    if not ip:
+        ip = request.remote
 
-        # Получаем IP адрес
-        # Проверяем X-Forwarded-For (для прокси/Cloudflare)
-        ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
-        if not ip:
-            ip = request.headers.get("X-Real-IP", "")
-        if not ip:
-            ip = request.remote
+    request["client_ip"] = ip
 
-        request["client_ip"] = ip
+    # Защита от попыток доступа к чувствительным файлам
+    sensitive_patterns = [
+        ".env",
+        ".env.local",
+        ".env.production",
+        ".git/config",
+        ".git/HEAD",
+        "config.json",
+        "secrets.yaml",
+        "credentials.json",
+        "wp-config.php",
+        "composer.json",
+        "package.json",
+        "/etc/passwd",
+        "/proc/self/environ",
+    ]
+    path_lower = request.path.lower()
+    if any(pattern in path_lower for pattern in sensitive_patterns):
+        logger.warning(
+            f"🚨 Попытка доступа к чувствительному файлу: IP={ip}, Path={request.path}, "
+            f"UA={request.headers.get('User-Agent', 'N/A')[:100]}"
+        )
+        log_security_event(
+            SecurityEventType.UNAUTHORIZED_ACCESS,
+            f"Sensitive file access attempt: {request.path}",
+            SecurityEventSeverity.WARNING,
+            metadata={
+                "ip": ip,
+                "path": request.path,
+                "user_agent": request.headers.get("User-Agent", "N/A"),
+            },
+        )
+        return web.json_response(
+            {"error": "Not found", "request_id": request_id},
+            status=404,
+        )
 
-        # Защита от попыток доступа к чувствительным файлам
-        sensitive_patterns = [
-            ".env",
-            ".env.local",
-            ".env.production",
-            ".git/config",
-            ".git/HEAD",
-            "config.json",
-            "secrets.yaml",
-            "credentials.json",
-            "wp-config.php",
-            "composer.json",
-            "package.json",
-            "/etc/passwd",
-            "/proc/self/environ",
-        ]
-        path_lower = request.path.lower()
-        if any(pattern in path_lower for pattern in sensitive_patterns):
-            logger.warning(
-                f"🚨 Попытка доступа к чувствительному файлу: IP={ip}, Path={request.path}, "
-                f"UA={request.headers.get('User-Agent', 'N/A')[:100]}"
-            )
-            log_security_event(
-                SecurityEventType.UNAUTHORIZED_ACCESS,
-                f"Sensitive file access attempt: {request.path}",
-                SecurityEventSeverity.WARNING,
-                metadata={
-                    "ip": ip,
-                    "path": request.path,
-                    "user_agent": request.headers.get("User-Agent", "N/A"),
-                },
-            )
-            return web.json_response(
-                {"error": "Not found", "request_id": request_id},
-                status=404,
-            )
+    # Rate limiting (исключаем статические файлы, webhook, мини-апп)
+    # Для AI endpoints rate limiting проверяется в самом endpoint с учетом premium
+    # Здесь применяем только базовый IP-based rate limiting для защиты от DDoS
+    excluded_paths = [
+        "/webhook",  # Telegram webhook
+        "/ai/chat",  # AI chat (своя логика rate limiting)
+        "/health",  # Health check
+        "/metrics",  # Metrics endpoint
+    ]
 
-        # Rate limiting (исключаем статические файлы, webhook, мини-апп)
-        # Для AI endpoints rate limiting проверяется в самом endpoint с учетом premium
-        # Здесь применяем только базовый IP-based rate limiting для защиты от DDoS
-        excluded_paths = [
-            "/webhook",  # Telegram webhook
-            "/ai/chat",  # AI chat (своя логика rate limiting)
-            "/health",  # Health check
-            "/metrics",  # Metrics endpoint
-        ]
+    # Исключаем статические файлы (CSS, JS, images, fonts, etc.)
+    static_extensions = [
+        ".css",
+        ".js",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".svg",
+        ".ico",
+        ".woff",
+        ".woff2",
+        ".ttf",
+        ".eot",
+        ".map",
+    ]
+    is_static_file = any(request.path.endswith(ext) for ext in static_extensions)
 
-        # Исключаем статические файлы (CSS, JS, images, fonts, etc.)
-        static_extensions = [
-            ".css",
-            ".js",
-            ".png",
-            ".jpg",
-            ".jpeg",
-            ".gif",
-            ".svg",
-            ".ico",
-            ".woff",
-            ".woff2",
-            ".ttf",
-            ".eot",
-            ".map",
-        ]
-        is_static_file = any(request.path.endswith(ext) for ext in static_extensions)
+    # Исключаем мини-апп endpoints (они имеют свою логику rate limiting)
+    is_miniapp_endpoint = request.path.startswith("/api/miniapp/")
 
-        # Исключаем мини-апп endpoints (они имеют свою логику rate limiting)
-        is_miniapp_endpoint = request.path.startswith("/api/miniapp/")
-
-        # Применяем rate limiting только к API endpoints (не мини-апп и не статика)
-        if (
-            not any(request.path.startswith(excluded) for excluded in excluded_paths)
-            and not is_static_file
-            and not is_miniapp_endpoint
-            and request.path.startswith("/api/")
-        ):
-            rate_limiter = get_rate_limiter(request.path)
-            if rate_limiter:
-                allowed, reason = rate_limiter.is_allowed(ip)
-                if not allowed:
-                    logger.warning(
-                        f"🚫 Rate limit exceeded: IP={ip}, Path={request.path}, Reason={reason}"
-                    )
-                    log_security_event(
-                        SecurityEventType.RATE_LIMIT_EXCEEDED,
-                        f"Rate limit exceeded: {request.path}",
-                        SecurityEventSeverity.WARNING,
-                        metadata={"ip": ip, "path": request.path, "reason": reason},
-                    )
-                    return web.json_response(
-                        {
-                            "error": "Rate limit exceeded. Please try again later.",
-                            "request_id": request_id,
-                        },
-                        status=429,
-                        headers={"Retry-After": "60"},
-                    )
-
-        # Логируем ВСЕ запросы к API для отладки
-        if request.path.startswith("/api/"):
-            origin = request.headers.get("Origin", "N/A")
-            referer = request.headers.get("Referer", "N/A")
-            user_agent = request.headers.get("User-Agent", "N/A")[:100]
-            logger.info(
-                f"📥 API запрос: {request.method} {request.path}, IP={ip}, Origin={origin}, Referer={referer}, UA={user_agent}"
-            )
-
-        # CSRF protection (только для API endpoints)
-        if request.path.startswith("/api/"):
-            valid, reason = validate_origin(request)
-            if not valid:
-                origin = request.headers.get("Origin", "N/A")
-                referer = request.headers.get("Referer", "N/A")
+    # Применяем rate limiting только к API endpoints (не мини-апп и не статика)
+    if (
+        not any(request.path.startswith(excluded) for excluded in excluded_paths)
+        and not is_static_file
+        and not is_miniapp_endpoint
+        and request.path.startswith("/api/")
+    ):
+        rate_limiter = get_rate_limiter(request.path)
+        if rate_limiter:
+            allowed, reason = rate_limiter.is_allowed(ip)
+            if not allowed:
                 logger.warning(
-                    f"🚫 CSRF protection: Invalid origin/referer: IP={ip}, Path={request.path}, "
-                    f"Origin={origin}, Referer={referer}, Reason={reason}"
+                    f"🚫 Rate limit exceeded: IP={ip}, Path={request.path}, Reason={reason}"
                 )
                 log_security_event(
-                    SecurityEventType.AUTHENTICATION_FAILURE,
-                    f"CSRF protection triggered: {request.path}",
+                    SecurityEventType.RATE_LIMIT_EXCEEDED,
+                    f"Rate limit exceeded: {request.path}",
                     SecurityEventSeverity.WARNING,
                     metadata={"ip": ip, "path": request.path, "reason": reason},
                 )
                 return web.json_response(
-                    {"error": "Invalid request origin", "request_id": request_id},
-                    status=403,
+                    {
+                        "error": "Rate limit exceeded. Please try again later.",
+                        "request_id": request_id,
+                    },
+                    status=429,
+                    headers={"Retry-After": "60"},
                 )
 
-        # Выполняем запрос
-        try:
-            response = await handler(request)
-        except Exception as e:
-            logger.error(
-                f"❌ Error in request handler: {e}",
-                exc_info=True,
-                extra={"request_id": request_id, "ip": ip, "path": request.path},
+    # Логируем ВСЕ запросы к API для отладки
+    if request.path.startswith("/api/"):
+        origin = request.headers.get("Origin", "N/A")
+        referer = request.headers.get("Referer", "N/A")
+        user_agent = request.headers.get("User-Agent", "N/A")[:100]
+        logger.info(
+            f"📥 API запрос: {request.method} {request.path}, IP={ip}, Origin={origin}, Referer={referer}, UA={user_agent}"
+        )
+
+    # CSRF protection (только для API endpoints)
+    if request.path.startswith("/api/"):
+        valid, reason = validate_origin(request)
+        if not valid:
+            origin = request.headers.get("Origin", "N/A")
+            referer = request.headers.get("Referer", "N/A")
+            logger.warning(
+                f"🚫 CSRF protection: Invalid origin/referer: IP={ip}, Path={request.path}, "
+                f"Origin={origin}, Referer={referer}, Reason={reason}"
             )
-            # Возвращаем generic error без деталей
+            log_security_event(
+                SecurityEventType.AUTHENTICATION_FAILURE,
+                f"CSRF protection triggered: {request.path}",
+                SecurityEventSeverity.WARNING,
+                metadata={"ip": ip, "path": request.path, "reason": reason},
+            )
             return web.json_response(
-                {"error": "Internal server error", "request_id": request_id},
-                status=500,
+                {"error": "Invalid request origin", "request_id": request_id},
+                status=403,
             )
 
-        # Добавляем security headers
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        # X-Frame-Options: разрешаем встраивание для Telegram (нужно для Mini App на ПК)
-        # Используем SAMEORIGIN вместо DENY, чтобы Telegram Web мог встроить сайт в iframe
-        # Дополнительная защита через CSP frame-ancestors
-        response.headers["X-Frame-Options"] = "SAMEORIGIN"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-
-        # HSTS только для HTTPS
-        # Проверяем scheme напрямую или через X-Forwarded-Proto (для Railway/Cloudflare прокси)
-        is_https = (
-            request.scheme == "https"
-            or request.headers.get("X-Forwarded-Proto", "").lower() == "https"
-            or request.headers.get("X-Forwarded-Ssl", "").lower() == "on"
+    # Выполняем запрос
+    try:
+        response = await handler(request)
+    except Exception as e:
+        logger.error(
+            f"❌ Error in request handler: {e}",
+            exc_info=True,
+            extra={"request_id": request_id, "ip": ip, "path": request.path},
         )
-        if is_https:
-            response.headers["Strict-Transport-Security"] = (
-                "max-age=31536000; includeSubDomains; preload"
-            )
-
-        # Content-Security-Policy с разрешением встраивания для Telegram
-        # frame-ancestors контролирует, кто может встроить страницу в iframe
-        # Разрешаем только Telegram домены для Mini App
-        csp_frame_ancestors = (
-            "frame-ancestors 'self' https://web.telegram.org https://telegram.org;"
+        # Возвращаем generic error без деталей
+        return web.json_response(
+            {"error": "Internal server error", "request_id": request_id},
+            status=500,
         )
 
-        # Для API endpoints - более строгий CSP
-        if request.path.startswith("/api/"):
-            response.headers["Content-Security-Policy"] = (
-                f"default-src 'self'; {csp_frame_ancestors}"
-            )
-        else:
-            # Для frontend (Mini App) - разрешаем встраивание в Telegram
-            # 'unsafe-inline' нужен для inline скриптов в index.html (подавление ошибок Telegram WebView)
-            # https://mc.yandex.ru нужен для Яндекс.Метрики
-            response.headers["Content-Security-Policy"] = (
-                "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' https://telegram.org https://web.telegram.org https://mc.yandex.ru; "
-                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                "font-src 'self' https://fonts.gstatic.com; "
-                "img-src 'self' data: https:; "
-                f"connect-src 'self' https://api.pandapal.ru https://mc.yandex.ru wss://mc.yandex.ru; "
-                f"{csp_frame_ancestors} "
-                "base-uri 'self'; "
-                "form-action 'self'; "
-                "upgrade-insecure-requests;"
-            )
+    # Добавляем security headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    # X-Frame-Options: разрешаем встраивание для Telegram (нужно для Mini App на ПК)
+    # Используем SAMEORIGIN вместо DENY, чтобы Telegram Web мог встроить сайт в iframe
+    # Дополнительная защита через CSP frame-ancestors
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
-        # Request ID для tracing
-        response.headers["X-Request-ID"] = request_id
+    # HSTS только для HTTPS
+    # Проверяем scheme напрямую или через X-Forwarded-Proto (для Railway/Cloudflare прокси)
+    is_https = (
+        request.scheme == "https"
+        or request.headers.get("X-Forwarded-Proto", "").lower() == "https"
+        or request.headers.get("X-Forwarded-Ssl", "").lower() == "on"
+    )
+    if is_https:
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains; preload"
+        )
 
-        return response
+    # Content-Security-Policy с разрешением встраивания для Telegram
+    # frame-ancestors контролирует, кто может встроить страницу в iframe
+    # Разрешаем только Telegram домены для Mini App
+    csp_frame_ancestors = "frame-ancestors 'self' https://web.telegram.org https://telegram.org;"
 
-    return middleware_handler
+    # Для API endpoints - более строгий CSP
+    if request.path.startswith("/api/"):
+        response.headers["Content-Security-Policy"] = f"default-src 'self'; {csp_frame_ancestors}"
+    else:
+        # Для frontend (Mini App) - разрешаем встраивание в Telegram
+        # 'unsafe-inline' нужен для inline скриптов в index.html (подавление ошибок Telegram WebView)
+        # https://mc.yandex.ru нужен для Яндекс.Метрики
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://telegram.org https://web.telegram.org https://mc.yandex.ru; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: https:; "
+            f"connect-src 'self' https://api.pandapal.ru https://mc.yandex.ru wss://mc.yandex.ru; "
+            f"{csp_frame_ancestors} "
+            "base-uri 'self'; "
+            "form-action 'self'; "
+            "upgrade-insecure-requests;"
+        )
+
+    # Request ID для tracing
+    response.headers["X-Request-ID"] = request_id
+
+    return response
 
 
 def setup_security_middleware(app: web.Application) -> None:
