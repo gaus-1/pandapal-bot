@@ -40,7 +40,7 @@ cachetools==6.2.4               # In-memory кеш утилиты
 # Безопасность и шифрование
 cryptography==46.0.3            # Криптографическая библиотека
 cffi==2.0.0                     # C Foreign Function Interface
-pycparser==2.23                 # C парсер для cffi
+pycparser==3.0                 # C парсер для cffi
 rsa==4.9.1                      # RSA шифрование
 pyasn1==0.6.2                   # ASN.1 типы
 pyasn1_modules==0.4.2           # ASN.1 модули
