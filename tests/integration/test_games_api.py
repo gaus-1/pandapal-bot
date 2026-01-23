@@ -115,18 +115,18 @@ class TestGamesAPI(AioHTTPTestCase):
         assert "game_state" in data
 
     @unittest_run_loop
-    async def test_create_game_hangman(self):
-        """Создание игры виселица"""
+    async def test_create_game_checkers(self):
+        """Создание игры шашки"""
         resp = await self.client.request(
             "POST",
             f"/api/miniapp/games/{self.test_telegram_id}/create",
-            json={"game_type": "hangman"},
+            json={"game_type": "checkers"},
         )
         assert resp.status == 200
         data = await resp.json()
         assert data["success"] is True
-        assert data["game_type"] == "hangman"
-        assert "word" in data["game_state"]
+        assert data["game_type"] == "checkers"
+        assert "board" in data["game_state"]
 
     @unittest_run_loop
     async def test_create_game_2048(self):
@@ -176,26 +176,26 @@ class TestGamesAPI(AioHTTPTestCase):
         assert move_data["board"][0] == "X"
 
     @unittest_run_loop
-    async def test_hangman_guess(self):
-        """Угадывание буквы в виселице"""
+    async def test_checkers_move(self):
+        """Ход в шашках"""
         # Создаем игру
         create_resp = await self.client.request(
             "POST",
             f"/api/miniapp/games/{self.test_telegram_id}/create",
-            json={"game_type": "hangman"},
+            json={"game_type": "checkers"},
         )
         create_data = await create_resp.json()
         session_id = create_data["session_id"]
 
-        # Угадываем букву
-        guess_resp = await self.client.request(
+        # Делаем ход (белые начинают снизу, ходят вверх)
+        move_resp = await self.client.request(
             "POST",
-            f"/api/miniapp/games/hangman/{session_id}/guess",
-            json={"letter": "а"},
+            f"/api/miniapp/games/checkers/{session_id}/move",
+            json={"from_row": 5, "from_col": 0, "to_row": 4, "to_col": 1},
         )
-        assert guess_resp.status == 200
-        guess_data = await guess_resp.json()
-        assert "guessed_letters" in guess_data
+        assert move_resp.status == 200
+        move_data = await move_resp.json()
+        assert "board" in move_data
 
     @unittest_run_loop
     async def test_2048_move(self):

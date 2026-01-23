@@ -88,7 +88,20 @@ class HomeworkCheckRequest(BaseModel):
 class AuthRequest(BaseModel):
     """Валидация запроса на аутентификацию."""
 
-    initData: str = Field(..., min_length=10, max_length=10000, description="Telegram initData")
+    initData: str | None = Field(
+        None, min_length=10, max_length=10000, description="Telegram initData (camelCase)"
+    )
+    init_data: str | None = Field(
+        None, min_length=10, max_length=10000, description="Telegram initData (snake_case)"
+    )
+
+    def model_post_init(self, __context) -> None:  # noqa: ARG002
+        """Проверка что есть хотя бы одно поле и нормализация."""
+        # Поддержка обоих форматов для обратной совместимости
+        if self.init_data and not self.initData:
+            self.initData = self.init_data
+        elif not self.initData and not self.init_data:
+            raise ValueError("Either initData or init_data must be provided")
 
 
 class PremiumInvoiceRequest(BaseModel):
