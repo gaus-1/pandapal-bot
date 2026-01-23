@@ -12,7 +12,7 @@ magic-filter==1.0.12            # Фильтры для aiogram
 # Используем прямые HTTP запросы вместо тяжелого SDK
 
 # База данных
-SQLAlchemy==2.0.45              # ORM для PostgreSQL
+SQLAlchemy==2.0.46              # ORM для PostgreSQL
 alembic==1.18.0                 # Миграции базы данных
 psycopg==3.3.2                  # Драйвер PostgreSQL (асинхронный)
 psycopg-binary==3.3.2           # Бинарный wheel для psycopg
