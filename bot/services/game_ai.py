@@ -197,7 +197,11 @@ class CheckersAI:
     def _get_all_moves(
         self, board: list[list[str | None]], player: str
     ) -> list[tuple[int, int, int, int]]:
-        """Получить все возможные ходы для игрока"""
+        """
+        Получить все возможные ходы для игрока.
+        DEPRECATED: используется старая логика для обратной совместимости.
+        Новая логика в games_service использует CheckersGame.get_valid_moves.
+        """
         moves = []
         for row in range(8):
             for col in range(8):
@@ -208,7 +212,10 @@ class CheckersAI:
     def _get_moves_from_position(
         self, board: list[list[str | None]], row: int, col: int
     ) -> list[tuple[int, int, int, int]]:
-        """Получить все возможные ходы из заданной позиции."""
+        """
+        Получить все возможные ходы из заданной позиции.
+        DEPRECATED: не учитывает дамки и обязательное взятие.
+        """
         moves = []
         # AI двигается вниз (увеличение row, так как он вверху доски)
         for dr, dc in [(1, -1), (1, 1)]:

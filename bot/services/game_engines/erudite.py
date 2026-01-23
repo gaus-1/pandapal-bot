@@ -279,14 +279,22 @@ class EruditeGame:
                 # Проверяем соседей
                 for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                     nr, nc = r + dr, c + dc
-                    if 0 <= nr < self.BOARD_SIZE and 0 <= nc < self.BOARD_SIZE:
-                        if self.board[nr][nc] is not None:
-                            connected = True
-                            break
+                    if (
+                        0 <= nr < self.BOARD_SIZE
+                        and 0 <= nc < self.BOARD_SIZE
+                        and self.board[nr][nc] is not None
+                    ):
+                        connected = True
+                        break
                 if connected:
                     break
             if not connected:
                 return False, "Новое слово должно соединяться с существующими"
+
+            # Проверяем что образуется хотя бы одно валидное слово длиной > 1
+            words = self._get_words_from_move()
+            if not words:
+                return False, "Ход не образует валидных слов"
 
         # Проверка слов: собираем все слова, образованные ходом
         words = self._get_words_from_move()
@@ -309,7 +317,7 @@ class EruditeGame:
         if self.current_move:
             first_r, first_c, _ = self.current_move[0]
             # Определяем направление
-            if len(set(r for r, _, _ in self.current_move)) == 1:
+            if len({r for r, _, _ in self.current_move}) == 1:
                 # Горизонтальное
                 row = first_r
                 word = ""
@@ -339,7 +347,7 @@ class EruditeGame:
         # Проверяем перпендикулярные слова
         for r, c, _ in self.current_move:
             # Проверяем перпендикулярное направление
-            if len(set(rr for rr, _, _ in self.current_move)) == 1:
+            if len({rr for rr, _, _ in self.current_move}) == 1:
                 # Ход горизонтальный - проверяем вертикаль
                 word = ""
                 for rr in range(self.BOARD_SIZE):
@@ -364,39 +372,83 @@ class EruditeGame:
                 if len(word) > 1:
                     words.append(word)
 
-        return [w for w in words if len(w) >= 2]
+        # Убираем дубликаты и слова короче 2 букв
+        return list({w for w in words if len(w) >= 2})
 
     def calculate_score(self) -> int:
         """Подсчитать очки за текущий ход."""
         if not self.current_move:
             return 0
 
-        score = 0
-        word_multiplier = 1
-
-        # Подсчитываем очки за новые фишки
+        # Временно размещаем фишки для расчета
+        temp_board = [row[:] for row in self.board]
         for r, c, letter in self.current_move:
-            letter_value = self.LETTER_VALUES.get(letter.upper(), 0)
-            bonus = self.bonus_cells[r][c]
+            temp_board[r][c] = letter
 
-            if bonus == 1:  # x2 буквы
-                letter_value *= 2
-            elif bonus == 2:  # x3 буквы
-                letter_value *= 3
-            elif bonus == 3:  # x2 слова
-                word_multiplier *= 2
-            elif bonus == 4:  # x3 слова
-                word_multiplier *= 3
+        total_score = 0
 
-            score += letter_value
+        # Получаем все слова образованные ходом
+        words_list = self._get_words_from_move()
 
-        score *= word_multiplier
+        # Подсчитываем очки за каждое слово
+        for word in words_list:
+            word_score = 0
+            word_multiplier = 1
+
+            # Находим позиции букв этого слова
+            # Определяем направление основного хода
+            if len({r for r, _, _ in self.current_move}) == 1:
+                # Горизонтальный ход - ищем слово горизонтально
+                row = self.current_move[0][0]
+                for c in range(self.BOARD_SIZE):
+                    if temp_board[row][c] and temp_board[row][c] in word:
+                        letter = temp_board[row][c]
+                        letter_value = self.LETTER_VALUES.get(letter.upper(), 0)
+
+                        # Применяем бонусы только для новых фишек
+                        is_new = any(r == row and c == col for r, col, _ in self.current_move)
+                        if is_new:
+                            bonus = self.bonus_cells[row][c]
+                            if bonus == 1:  # x2 буквы
+                                letter_value *= 2
+                            elif bonus == 2:  # x3 буквы
+                                letter_value *= 3
+                            elif bonus == 3:  # x2 слова
+                                word_multiplier *= 2
+                            elif bonus == 4:  # x3 слова
+                                word_multiplier *= 3
+
+                        word_score += letter_value
+            else:
+                # Вертикальный ход - ищем слово вертикально
+                col = self.current_move[0][1]
+                for r in range(self.BOARD_SIZE):
+                    if temp_board[r][col] and temp_board[r][col] in word:
+                        letter = temp_board[r][col]
+                        letter_value = self.LETTER_VALUES.get(letter.upper(), 0)
+
+                        # Применяем бонусы только для новых фишек
+                        is_new = any(r == row and col == c for row, c, _ in self.current_move)
+                        if is_new:
+                            bonus = self.bonus_cells[r][col]
+                            if bonus == 1:  # x2 буквы
+                                letter_value *= 2
+                            elif bonus == 2:  # x3 буквы
+                                letter_value *= 3
+                            elif bonus == 3:  # x2 слова
+                                word_multiplier *= 2
+                            elif bonus == 4:  # x3 слова
+                                word_multiplier *= 3
+
+                        word_score += letter_value
+
+            total_score += word_score * word_multiplier
 
         # Бонус за использование всех 7 фишек
         if len(self.current_move) == self.TILES_PER_PLAYER:
-            score += self.BONUS_ALL_TILES
+            total_score += self.BONUS_ALL_TILES
 
-        return score
+        return total_score
 
     def make_move(self) -> tuple[bool, str]:
         """Сделать ход. Возвращает (успех, сообщение)."""
@@ -430,11 +482,37 @@ class EruditeGame:
         self.current_move = []
         self.passes_count = 0
 
+        # Переключаем игрока на AI
+        self.current_player = 2
+
         # Проверка окончания игры
         if not self.bag and (not self.player_tiles or not self.ai_tiles):
             self._end_game()
 
         return True, f"Ход принят! +{move_score} очков"
+
+    def make_ai_move(self) -> tuple[bool, str]:
+        """
+        Сделать ход AI (простая логика для начала).
+        Пытается выложить любое валидное слово из своих фишек.
+        """
+        if self.game_over or self.current_player != 2:
+            return False, "Не ход AI"
+
+        # Простая стратегия: попробовать выложить любое валидное слово
+        # Для начала просто пропускаем ход (заглушка)
+        # TODO: Реализовать полноценный AI
+
+        # Пропускаем ход
+        self.passes_count += 1
+        self.current_player = 1  # Переключаем обратно на игрока
+
+        # Проверка окончания (2 пропуска подряд)
+        if self.passes_count >= 2:
+            self._end_game()
+            return True, "AI пропустил ход. Игра окончена."
+
+        return True, "AI пропустил ход"
 
     def _end_game(self) -> None:
         """Завершить игру и подсчитать финальные очки."""
