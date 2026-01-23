@@ -2,7 +2,10 @@
 Модели обучения: сессии, проблемные темы, домашние задания.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     JSON,
@@ -19,6 +22,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from .base import Base
+
+if TYPE_CHECKING:
+    from .user import User
 
 
 class LearningSession(Base):
@@ -56,7 +62,7 @@ class LearningSession(Base):
     is_completed: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
 
     # Relationship
-    user: Mapped["User"] = relationship("User", back_populates="sessions")
+    user: Mapped[User] = relationship("User", back_populates="sessions")
 
     __table_args__ = (Index("idx_sessions_user_date", "user_telegram_id", "session_start"),)
 
@@ -106,7 +112,7 @@ class ProblemTopic(Base):
     )
 
     # Relationship
-    user: Mapped["User"] = relationship("User")
+    user: Mapped[User] = relationship("User")
 
     __table_args__ = (
         Index("idx_problem_topics_user", "user_telegram_id"),
@@ -189,7 +195,7 @@ class HomeworkSubmission(Base):
     )
 
     # Relationship
-    user: Mapped["User"] = relationship("User")
+    user: Mapped[User] = relationship("User")
 
     __table_args__ = (
         Index("idx_homework_submissions_user", "user_telegram_id"),
