@@ -1,12 +1,7 @@
 """
 Сервис интеграции с Yandex Cloud AI.
 
-Объединяет все AI возможности Yandex Cloud:
-- YandexGPT (текстовые ответы)
-- SpeechKit (распознавание речи)
-- Vision (анализ изображений)
-
-Для образовательного бота PandaPal.
+Объединяет YandexGPT, SpeechKit и Vision API.
 """
 
 import base64
@@ -23,14 +18,7 @@ from bot.services.ai_request_queue import get_ai_request_queue
 
 
 class YandexCloudService:
-    """
-    Единый сервис для работы с Yandex Cloud AI.
-
-    Возможности:
-    - Генерация текстовых ответов (YandexGPT)
-    - Распознавание речи (SpeechKit STT)
-    - Анализ изображений (Vision OCR)
-    """
+    """Единый сервис для работы с Yandex Cloud AI."""
 
     def __init__(self):
         """Инициализация сервиса Yandex Cloud."""
@@ -203,9 +191,7 @@ class YandexCloudService:
             logger.error(f"❌ Ошибка извлечения текста из Vision API: {e}", exc_info=True)
             return ""
 
-    # ============================================================================
-    # YANDEXGPT - ТЕКСТОВЫЕ ОТВЕТЫ
-    # ============================================================================
+    # YandexGPT - текстовые ответы
 
     async def generate_text_response(
         self,
@@ -459,9 +445,7 @@ class YandexCloudService:
             logger.error(f"❌ Неожиданная ошибка YandexGPT streaming: {e}")
             raise
 
-    # ============================================================================
-    # SPEECHKIT STT - РАСПОЗНАВАНИЕ РЕЧИ
-    # ============================================================================
+    # SpeechKit STT - распознавание речи
 
     async def recognize_speech(
         self, audio_data: bytes, audio_format: str = "oggopus", language: str = "ru-RU"
@@ -530,9 +514,7 @@ class YandexCloudService:
             logger.error(f"❌ Неожиданная ошибка SpeechKit: {e}")
             raise
 
-    # ============================================================================
-    # VISION OCR - АНАЛИЗ ИЗОБРАЖЕНИЙ
-    # ============================================================================
+    # Vision OCR - анализ изображений
 
     async def analyze_image_with_text(
         self, image_data: bytes, user_question: str | None = None
@@ -802,9 +784,7 @@ class YandexCloudService:
                 "has_text": bool(recognized_text),
             }
 
-    # ============================================================================
-    # УТИЛИТЫ
-    # ============================================================================
+    # Утилиты
 
     def get_model_info(self) -> dict[str, str]:
         """Информация о текущей модели."""
@@ -816,9 +796,7 @@ class YandexCloudService:
         }
 
 
-# ============================================================================
-# ГЛОБАЛЬНЫЙ ЭКЗЕМПЛЯР (SINGLETON)
-# ============================================================================
+# Глобальный экземпляр (Singleton)
 
 _yandex_service: YandexCloudService | None = None
 

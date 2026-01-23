@@ -1,9 +1,7 @@
 """
-AI сервис для генерации ответов через Yandex Cloud (YandexGPT).
+AI сервис для генерации ответов через Yandex Cloud.
 
-Предоставляет единый интерфейс для работы с AI сервисами Yandex Cloud,
-включая генерацию текстовых ответов, анализ изображений и модерацию контента.
-Реализует паттерн Facade и следует принципам SOLID.
+Предоставляет единый интерфейс для работы с YandexGPT, SpeechKit и Vision API.
 """
 
 from loguru import logger
@@ -27,22 +25,10 @@ except ImportError:
 
 
 class YandexAIService:
-    """
-    Facade для Yandex Cloud AI сервисов.
-
-    Координирует работу с YandexGPT, SpeechKit и Vision API,
-    обеспечивая единый интерфейс для генерации ответов и анализа контента.
-
-    Принципы проектирования:
-    - SRP: только координация AI сервисов
-    - OCP: можно расширять без изменения существующего кода
-    - LSP: можно заменить реализации без нарушения функциональности
-    - ISP: использует только необходимые интерфейсы
-    - DIP: зависит от абстракций, а не от конкретных реализаций
-    """
+    """Facade для Yandex Cloud AI сервисов."""
 
     def __init__(self):
-        """Dependency Injection - соблюдение DIP."""
+        """Инициализация сервиса."""
         # Создаем зависимости
         moderator = ContentModerator()
         context_builder = ContextBuilder()
@@ -66,24 +52,7 @@ class YandexAIService:
         is_premium: bool = False,
         is_auto_greeting_sent: bool = False,
     ) -> str:
-        """
-        Генерация ответа через YandexGPT.
-
-        Args:
-            user_message: Сообщение пользователя
-            chat_history: История чата
-            user_age: Возраст пользователя для адаптации
-            user_name: Имя пользователя для обращения
-            is_history_cleared: Флаг очистки истории
-            message_count_since_name: Количество сообщений с последнего обращения по имени
-            skip_name_asking: Пропустить запрос имени
-            non_educational_questions_count: Количество непредметных вопросов подряд
-            is_premium: Premium статус пользователя (определяет модель: Pro для Premium, Lite для обычных)
-            is_auto_greeting_sent: Флаг, что автоматическое приветствие уже было отправлено
-
-        Returns:
-            str: Ответ от AI
-        """
+        """Генерация ответа через YandexGPT."""
         return await self.response_generator.generate_response(
             user_message,
             chat_history,
@@ -98,42 +67,17 @@ class YandexAIService:
         )
 
     def get_model_info(self) -> dict[str, str]:
-        """
-        Получить информацию о текущей AI модели.
-
-        Returns:
-            Dict[str, str]: Словарь с информацией о модели (name, version и т.д.)
-        """
+        """Получить информацию о текущей AI модели."""
         return self.response_generator.get_model_info()
 
     async def analyze_image(
         self, image_data: bytes, user_message: str | None = None, user_age: int | None = None
     ) -> str:
-        """
-        Анализировать изображение через Yandex Vision API.
-
-        Args:
-            image_data: Байты изображения для анализа
-            user_message: Опциональное текстовое сообщение пользователя
-            user_age: Возраст пользователя для адаптации ответа
-
-        Returns:
-            str: Текстовое описание содержимого изображения
-        """
+        """Анализировать изображение через Yandex Vision API."""
         return await self.response_generator.analyze_image(image_data, user_message, user_age)
 
     async def moderate_image_content(self, image_data: bytes) -> tuple[bool, str]:
-        """
-        Проверить изображение на безопасность через модерацию.
-
-        Args:
-            image_data: Байты изображения для проверки
-
-        Returns:
-            tuple[bool, str]: (is_safe, reason)
-                - is_safe: True если изображение безопасно, False если нет
-                - reason: Причина блокировки (если is_safe=False)
-        """
+        """Проверить изображение на безопасность через модерацию."""
         return await self.response_generator.moderate_image_content(image_data)
 
 
@@ -142,15 +86,7 @@ _ai_service: YandexAIService | None = None
 
 
 def get_ai_service() -> YandexAIService:
-    """
-    Получить глобальный экземпляр Yandex AI сервиса.
-
-    Реализует паттерн Singleton для обеспечения единого экземпляра
-    во всем приложении.
-
-    Returns:
-        YandexAIService: Глобальный экземпляр AI сервиса.
-    """
+    """Получить глобальный экземпляр Yandex AI сервиса."""
     global _ai_service
     if _ai_service is None:
         _ai_service = YandexAIService()

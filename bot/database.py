@@ -1,26 +1,8 @@
 """
-Управление подключением к базе данных PostgreSQL для PandaPal Bot.
+Управление подключением к базе данных PostgreSQL.
 
-Этот модуль предоставляет всю функциональность для работы с базой данных:
-создание подключений, управление сессиями, инициализацию таблиц и сервисы
-для проверки здоровья БД.
-
-Основные компоненты:
-- **SQLAlchemy Engine**: Подключение к PostgreSQL на Railway.app
-- **Session Factory**: Создание изолированных сессий для транзакций
-- **Context Manager**: Безопасное управление жизненным циклом сессий
-- **DatabaseService**: Сервис для проверки состояния подключения
-
-Конфигурация:
-- **Connection Pool**: QueuePool для высокой нагрузки (переиспользование соединений)
-- **SSL Mode**: Обязательный SSL для Railway PostgreSQL
-- **Timeout**: 10 секунд на установку подключения
-- **Pool Settings**: 5 соединений, max 20, recycle 1800s
-
-Best Practices:
-- Используйте get_db() как context manager для автоматического закрытия сессий
-- В продакшене применяйте Alembic миграции вместо create_all()
-- Проверяйте здоровье БД через DatabaseService.check_connection()
+Предоставляет подключения, управление сессиями, инициализацию таблиц
+и проверку здоровья БД.
 """
 
 import os
@@ -96,18 +78,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def init_db() -> None:
-    """
-    Инициализация базы данных PostgreSQL.
-
-    Создает все таблицы, определенные в моделях SQLAlchemy,
-    если они не существуют. Используется для первоначальной настройки
-    или тестовой среды.
-
-    ВНИМАНИЕ: В production используйте Alembic миграции для управления схемой БД!
-
-    Raises:
-        Exception: При ошибке создания таблиц.
-    """
+    """Инициализация базы данных (создание таблиц)."""
     try:
         Base.metadata.create_all(bind=engine)
         logger.info("✅ База данных инициализирована")
@@ -556,15 +527,7 @@ def _apply_fallback_sql_migration() -> bool:
 
 
 async def init_database() -> None:
-    """
-    Асинхронная инициализация базы данных PostgreSQL.
-
-    Проверяет подключение к базе данных и валидирует её состояние.
-    Опционально применяет миграции Alembic при старте (если AUTO_MIGRATE=true).
-
-    Raises:
-        Exception: При ошибке подключения или проверки БД.
-    """
+    """Инициализация базы данных с проверкой подключения."""
     try:
         if DatabaseService.check_connection():
             logger.info("✅ База данных подключена и готова к работе")
@@ -626,22 +589,7 @@ async def init_database() -> None:
 
 @contextmanager
 def get_db() -> Generator[Session]:
-    """
-    Контекстный менеджер для получения сессии базы данных.
-
-    Автоматически создает сессию БД и гарантирует её корректное закрытие
-    после завершения работы. Обеспечивает безопасное управление транзакциями
-    и предотвращает утечки соединений.
-
-    Yields:
-        Session: Сессия SQLAlchemy для работы с базой данных.
-
-    Example:
-        >>> with get_db() as db:
-        ...     user = db.query(User).filter_by(telegram_id=123).first()
-        ...     user.name = "Новое имя"
-        ...     db.commit()  # Автоматически откатится при ошибке
-    """
+    """Контекстный менеджер для получения сессии базы данных."""
     db = SessionLocal()
     try:
         yield db
@@ -657,23 +605,14 @@ def get_db() -> Generator[Session]:
 
 
 class DatabaseService:
-    """
-    Сервис для работы с базой данных
-    Предоставляет высокоуровневые методы
-    """
+    """Сервис для работы с базой данных."""
 
     @staticmethod
     def get_db_session() -> Session:
         """
-        Получить новую сессию БД
-        НЕ ЗАБУДЬТЕ закрыть сессию после использования!
+        Получить новую сессию БД.
 
-        .. deprecated:: 2025-01
-           Используйте `get_db()` context manager вместо этого метода.
-           Это обеспечивает автоматическое закрытие сессии и обработку ошибок.
-
-        Returns:
-            Session: Новая сессия SQLAlchemy
+        Deprecated: используйте get_db() context manager.
         """
         import warnings
 
@@ -687,12 +626,7 @@ class DatabaseService:
 
     @staticmethod
     def check_connection() -> bool:
-        """
-        Проверка подключения к базе данных
-
-        Returns:
-            bool: True если подключение работает
-        """
+        """Проверка подключения к базе данных."""
         # Логируем URL для диагностики (без пароля)
         db_url_clean = "***:***@***"
         from contextlib import suppress
