@@ -20,9 +20,11 @@ from aiogram import Bot, Dispatcher  # noqa: E402
 from aiogram.client.default import DefaultBotProperties  # noqa: E402
 from aiogram.enums import ParseMode  # noqa: E402
 from aiogram.fsm.storage.memory import MemoryStorage  # noqa: E402
+from aiogram.fsm.storage.redis import RedisStorage  # noqa: E402
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler  # noqa: E402
 from aiohttp import web  # noqa: E402
 from loguru import logger  # noqa: E402
+from redis.asyncio import Redis  # noqa: E402
 
 from bot.config import settings  # noqa: E402
 from bot.database import init_database  # noqa: E402
@@ -69,8 +71,9 @@ class PandaPalBotServer:
                 default=DefaultBotProperties(parse_mode=ParseMode.HTML),
             )
 
-            # Создаем Dispatcher с MemoryStorage
-            storage = MemoryStorage()
+            # Создаем Dispatcher с Redis storage для горизонтального масштабирования
+            # Fallback на MemoryStorage если Redis недоступен
+            storage = await self._create_fsm_storage()
             self.dp = Dispatcher(storage=storage)
 
             # Регистрируем все роутеры
@@ -84,6 +87,40 @@ class PandaPalBotServer:
         except Exception as e:
             logger.error(f"❌ Ошибка инициализации бота: {e}")
             raise
+
+    async def _create_fsm_storage(self):
+        """
+        Создать FSM storage с поддержкой Redis для горизонтального масштабирования.
+
+        Returns:
+            RedisStorage или MemoryStorage в зависимости от доступности Redis
+        """
+        redis_url = os.getenv("REDIS_URL")
+
+        if redis_url:
+            try:
+                # Пытаемся подключиться к Redis
+                redis_client = Redis.from_url(
+                    redis_url,
+                    decode_responses=True,
+                    socket_timeout=5.0,
+                    socket_connect_timeout=5.0,
+                )
+
+                # Проверяем подключение
+                await redis_client.ping()
+
+                # Создаем Redis storage для FSM
+                storage = RedisStorage(redis=redis_client, state_ttl=86400, data_ttl=86400)
+                logger.info("✅ FSM storage: Redis (горизонтальное масштабирование поддерживается)")
+                return storage
+
+            except Exception as e:
+                logger.warning(f"⚠️ Redis недоступен для FSM: {e}, используем MemoryStorage")
+
+        # Fallback на MemoryStorage
+        logger.info("📋 FSM storage: MemoryStorage (только один инстанс)")
+        return MemoryStorage()
 
     async def setup_webhook(self) -> str:
         """Настройка webhook для Telegram."""

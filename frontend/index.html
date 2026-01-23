@@ -66,6 +66,21 @@
     <!-- Referrer policy для безопасности -->
     <meta name="referrer" content="strict-origin-when-cross-origin" />
 
+    <!-- Content Security Policy (OWASP A03 - XSS Protection) -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' https://telegram.org https://mc.yandex.ru https://www.googletagmanager.com https://yastatic.net;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      img-src 'self' data: https: blob:;
+      font-src 'self' https://fonts.gstatic.com;
+      connect-src 'self' https://pandapal.ru https://*.railway.app https://api.telegram.org https://mc.yandex.ru wss://pandapal.ru;
+      frame-src 'self' https://telegram.org https://t.me;
+      frame-ancestors 'self' https://web.telegram.org https://telegram.org https://t.me;
+      base-uri 'self';
+      form-action 'self';
+      object-src 'none';
+    " />
+
     <title>PandaPal — Безопасный и полезный AI - друг для детей | Safe and Useful AI Friend for Children</title>
 
     <!-- DNS prefetch для внешних ресурсов -->

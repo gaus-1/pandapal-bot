@@ -13,13 +13,13 @@ class TestMonitoringComplete:
 
     @pytest.mark.unit
     def test_log_user_activity_success(self):
-        with patch("bot.monitoring.logger") as mock_logger:
+        with patch("bot.monitoring_legacy.logger") as mock_logger:
             log_user_activity(123, "test_action", True, "success")
             mock_logger.info.assert_called_once()
 
     @pytest.mark.unit
     def test_log_user_activity_failure(self):
-        with patch("bot.monitoring.logger") as mock_logger:
+        with patch("bot.monitoring_legacy.logger") as mock_logger:
             log_user_activity(123, "test_action", False, "error")
             assert mock_logger.warning.called or mock_logger.info.called
 
