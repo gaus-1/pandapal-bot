@@ -111,11 +111,11 @@ multidict==6.7.0                # Словари с множественными
 frozenlist==1.8.0               # Замороженные списки
 propcache==0.4.1                # Кеширование свойств
 
-# gRPC (для будущего масштабирования)
-grpcio==1.76.0                  # gRPC фреймворк
-grpcio-status==1.76.0           # Коды статусов gRPC (должны совпадать с grpcio)
-protobuf==6.33.4                # Protocol buffers
-proto-plus==1.27.0              # Утилиты для protobuf
+# gRPC (для будущего масштабирования) - временно удалено из-за CVE в protobuf
+# grpcio==1.76.0                  # gRPC фреймворк
+# grpcio-status==1.76.0           # Коды статусов gRPC (должны совпадать с grpcio)
+# protobuf==6.33.4                # Protocol buffers (CVE-2025-XXXXX: JSON recursion bypass)
+# proto-plus==1.27.0              # Утилиты для protobuf
 
 # Подсказки типов
 typing_extensions==4.15.0       # Обратно совместимые подсказки типов
