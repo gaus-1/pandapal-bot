@@ -12,6 +12,7 @@ AI Chat handlers - модульная структура.
 from aiogram import Router
 
 from . import document, image, text, voice
+from .text import handle_ai_message, start_ai_chat
 
 # Создаём роутер для AI чата
 router = Router(name="ai_chat")
@@ -22,4 +23,4 @@ voice.register_handlers(router)
 image.register_handlers(router)
 document.register_handlers(router)
 
-__all__ = ["router"]
+__all__ = ["router", "start_ai_chat", "handle_ai_message"]
