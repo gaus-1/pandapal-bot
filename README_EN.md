@@ -1,211 +1,153 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/gaus-1/pandapal-bot/main/frontend/public/logo.png" alt="PandaPal Logo" width="200"/>
 
-  # 🐼 PandaPal Bot
+<img src="https://raw.githubusercontent.com/gaus-1/pandapal-bot/main/frontend/public/logo.png" alt="PandaPal Logo" width="200">
 
-  **Safe AI Friend for Kids**
+# PandaPal
 
-  Telegram bot with artificial intelligence, created specifically for educational purposes for children in grades 1-9.
+Educational platform for schoolchildren grades 1-9 with Telegram bot and web application. Helps children learn all subjects with protection from unsafe content.
 
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-  [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-  [![Telegram Bot](https://img.shields.io/badge/Telegram-Bot-blue?logo=telegram)](https://t.me/PandaPalBot)
-  [![React](https://img.shields.io/badge/React-18-61dafb?logo=react)](https://reactjs.org/)
+[![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
+[![React](https://img.shields.io/badge/React-19-61dafb?logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript)](https://www.typescriptlang.org/)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/gaus-1/pandapal-bot/main-ci-cd.yml?label=CI%2FCD)](https://github.com/gaus-1/pandapal-bot/actions)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
+
+[Website](https://pandapal.ru) • [Telegram Bot](https://t.me/PandaPalBot)
+
 </div>
 
-## 🎯 About the Project
+## About the Project
 
-PandaPal is a smart assistant for children that:
-- 🤖 Answers questions using Google Gemini AI
-- 🛡️ Filters content for child safety
-- 📚 Provides educational materials
-- 👨‍👩‍👧‍👦 Allows parents to control activity
-- 🎮 Motivates through interactive tasks
+PandaPal is an intelligent assistant for homework help. The bot works 24/7 and helps children with homework, explains complex topics, and supports foreign language learning.
 
-## ✨ Key Features
+### Key Features
 
-### For Children:
-- 💬 **Smart Answers** - AI understands children's questions and answers clearly
-- 📖 **Educational Content** - materials for school subjects
-- 🏆 **Achievement System** - motivation through progress and rewards
-- 🎨 **Interactive Tasks** - interesting exercises and puzzles
+- **Enhanced RAG system** — intelligent knowledge base search with semantic caching, result reranking, and context compression for token savings (75-90%)
+- **Premium quality intelligent assistant** — deep structured responses powered by YandexGPT Pro considering ALL query words, detailed explanations and visualizations
+- **Adult topics explained** — accessible explanation of life questions for children (money, banks, documents, utilities, work, health) in simple words with examples
+- **Visualizations with explanations** — automatic generation of charts, tables, diagrams (including pie charts), schemes, and maps with detailed explanations
+- **Image generation** — create pictures from descriptions via YandexART (requires ai.imageGeneration.user role)
+- **Homework checking** — automatic homework verification from photos with error detection, corrections, and explanations
+- **Adaptive learning** — tracking problematic topics, automatic difficulty adaptation to student level
+- Streaming responses via Server-Sent Events for fast generation
+- Support for text, voice, and images with analysis via Vision API
+- Automatic translation and grammar explanations for 5 languages (English, German, French, Spanish, Russian)
+- PandaPalGo Games: Tic-Tac-Toe, Checkers, 2048, Erudite with opponent
+- Achievement and progress system with XP, levels, and rewards
+- Premium subscriptions via YooKassa with card saving
+- Multi-level content moderation for children's safety (150+ patterns)
+- Dark theme for comfortable use
 
-### For Parents:
-- 👀 **Parental Control** - view child's activity
-- ⚙️ **Safety Settings** - flexible filter configuration
-- 📊 **Progress Analytics** - reports on successes and interests
-- ⏰ **Time Control** - usage restrictions
+## Quick Start
 
-## 🚀 Quick Start
+For local development:
 
-### 1. View Repository
-
-**⚠️ NOTE:** This is proprietary software. Clone/download is prohibited without written permission.
-See [LICENSE](LICENSE) for details.
-
-### 2. Install Dependencies
 ```bash
-# Create virtual environment
+# Clone repository
+git clone https://github.com/gaus-1/pandapal-bot.git
+cd pandapal-bot
+
+# Install Python dependencies
 python -m venv venv
-
-# Activate (Windows)
-venv\Scripts\activate
-
-# Activate (Linux/macOS)
-source venv/bin/activate
-
-# Install packages
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-```
 
-### 3. Environment Setup
-Create `.env` file based on `.env.example`:
-```bash
-cp .env.example .env
-```
+# Setup environment
+cp config/env.template .env
+# Fill .env file with your API keys
 
-Fill in required variables:
-```env
-TELEGRAM_BOT_TOKEN=your_bot_token_here
-GEMINI_API_KEY=your_gemini_api_key_here
-DATABASE_URL=postgresql://user:password@localhost/pandapal
-SECRET_KEY=your_secret_key_here
-```
-
-### 4. Database Setup
-```bash
-# Apply migrations
+# Database migrations
 alembic upgrade head
-```
 
-### 5. Start Bot
-```bash
-python -m bot.main
-```
+# Run backend
+python web_server.py
 
-## 🌐 Web Interface
-
-The project includes a modern website on React + TypeScript:
-
-### Start frontend:
-```bash
+# In another terminal - run frontend
 cd frontend
 npm install
 npm run dev
 ```
 
-Website will be available at: `http://localhost:5173`
+Full installation and configuration documentation: see [docs/](docs/)
 
-## 🏗️ Architecture
+## Technologies
 
-### Backend (Python)
-- **aiogram 3.x** - Telegram Bot API
-- **Google Gemini AI** - natural language processing
-- **SQLAlchemy** - ORM for database work
-- **PostgreSQL** - main database
-- **Redis** - caching and sessions
-- **Alembic** - database migrations
+### Backend
 
-### Frontend (React + TypeScript)
-- **React 18** - user interface
-- **TypeScript** - typed JavaScript
-- **Tailwind CSS** - styling
-- **Vite** - build and development
+- Python 3.13, aiogram 3.23, aiohttp 3.13
+- SQLAlchemy 2.0, PostgreSQL 17, Alembic
+- Redis 6.4 for sessions (Upstash)
+- Yandex Cloud: YandexGPT Pro, SpeechKit STT, Vision OCR, Translate API
+- YooKassa 3.9.0 for payments (production mode)
+- Parameters: temperature=0.3, max_tokens=2000
 
-### Security
-- 🔒 **OWASP Top 10** - security standards compliance
-- 🛡️ **Content Filtering** - AI message moderation
-- 🔐 **Data Encryption** - personal information protection
-- 📝 **Audit Logging** - action tracking
+### Frontend
 
-## 📁 Project Structure
+- React 19, TypeScript 5, Vite 7
+- TanStack Query 5, Zustand 5
+- Tailwind CSS 3
+- Telegram Mini App SDK 8.0
+
+### Infrastructure
+
+- Railway.app for hosting (webhook mode, 24/7)
+- Cloudflare for DNS, SSL, CDN
+- GitHub Actions for CI/CD
+- Upstash Redis for sessions
+- Keep-alive mechanism to prevent Railway FREE sleep
+
+## Project Structure
 
 ```
 PandaPal/
-├── bot/                    # Backend Python
-│   ├── handlers/           # Command handlers
-│   ├── services/           # Business logic
-│   ├── security/           # Security modules
-│   ├── database/           # Database models
-│   └── monitoring/         # Monitoring and metrics
-├── frontend/               # Frontend React
+├── bot/                    # Backend logic
+│   ├── handlers/           # Telegram command handlers
+│   │   ├── ai_chat/        # Modular chat structure (text, voice, image, document)
+│   │   └── ...             # Other handlers
+│   ├── services/           # Business logic (AI, payments, games, Mini App, RAG)
+│   │   ├── rag/            # Enhanced RAG system
+│   │   └── visualization/  # Subject-specific visualizations
+│   ├── api/                # HTTP endpoints
+│   │   └── miniapp/        # Telegram Mini App API
+│   ├── config/             # Settings, prompts, moderation patterns
+│   ├── security/           # Middleware, validation, rate limiting
+│   ├── monitoring/         # Metrics, monitoring
+│   ├── models.py           # SQLAlchemy DB models
+│   └── database.py         # PostgreSQL connection
+├── frontend/               # React web application
 │   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── pages/          # Pages
-│   │   └── config/         # Configuration
-├── tests/                  # Tests
-├── docs/                   # Documentation
-├── scripts/                # Helper scripts
-└── alembic/               # Database migrations
+│   │   ├── components/     # UI components
+│   │   ├── features/       # Main features (AIChat, Premium, Games)
+│   │   └── services/       # API clients
+│   └── public/             # Static files
+├── tests/                  # Tests (unit, integration, e2e, security, performance)
+├── alembic/                # DB migrations (Alembic)
+├── scripts/                # Utilities
+└── web_server.py           # Entry point (aiohttp + aiogram webhook + frontend)
 ```
 
-## 🧪 Testing
+## Security
 
-```bash
-# Run all tests
-pytest
+- Validation via Pydantic V2
+- SQLAlchemy ORM for SQL injection protection
+- CSP headers for XSS protection
+- Moderation: 150+ patterns, profanity filters in 4 languages
+- Rate limiting for overload protection
+- HTTPS via Cloudflare Full Strict
+- Secrets only in environment variables
 
-# Tests with coverage
-pytest --cov=bot
+Report vulnerabilities: see [SECURITY.md](SECURITY.md)
 
-# Load testing
-python scripts/load_testing.py --users 20 --duration 60
-```
+## License
 
-## 📊 Monitoring
+This is proprietary software. All rights reserved.
 
-- **Prometheus metrics** - `/metrics` endpoint
-- **OpenAPI documentation** - `/api-docs`
-- **Logging** - structured logs
-- **Performance** - response time monitoring
+Usage, copying, distribution, and modification are prohibited without written permission from the copyright holder.
 
-## 🔧 Development
+Details: see [LICENSE](LICENSE)
 
-### Pre-commit hooks
-```bash
-pre-commit install
-```
+## Contacts
 
-### Code formatting
-```bash
-# Python
-black bot/
-isort bot/
-
-# TypeScript
-npm run format
-```
-
-### Linters
-```bash
-# Python
-flake8 bot/
-pylint bot/
-
-# TypeScript
-npm run lint
-```
-
-## 📚 Documentation
-
-- [API Documentation](docs/api/openapi.yaml)
-- [Testing](docs/TESTING/TESTING.md)
-
-## ⚠️ License Notice
-
-This repository is proprietary software. All rights reserved.
-Please see [LICENSE](LICENSE) for details.
-
-## 📄 License
-
-Proprietary License - see [LICENSE](LICENSE)
-
-## 🆘 Support
-
-- 📧 Email: support@pandapal.ru
-- 💬 Telegram: [@PandaPalBot](https://t.me/PandaPalBot)
-- 🐛 Issues: [GitHub Issues](https://github.com/gaus-1/pandapal-bot/issues)
-
----
-
-**Made with ❤️ for children and their parents**
+- Website: https://pandapal.ru
+- Telegram Bot: https://t.me/PandaPalBot
+- GitHub: https://github.com/gaus-1/pandapal-bot
