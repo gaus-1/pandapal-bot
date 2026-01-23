@@ -52,7 +52,7 @@ pydantic-settings==2.12.0       # Управление настройками
 pydantic_core==2.41.5           # Rust core для Pydantic
 python-dotenv==1.2.1            # Поддержка .env файлов
 PyYAML==6.0.3                   # YAML парсер
-tomlkit==0.13.3                 # TOML парсер
+tomlkit==0.14.0                 # TOML парсер
 marshmallow==4.2.0              # Сериализация объектов
 
 # Логирование и мониторинг
