@@ -200,7 +200,9 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
           {state.board.map((row, r) =>
             row.map((cell, c) => {
               const bonus = state.bonus_cells[r][c];
-              const isInCurrentMove = state.current_move.some(([mr, mc]) => mr === r && mc === c);
+              const currentMoveTile = state.current_move.find(([mr, mc]) => mr === r && mc === c);
+              const isInCurrentMove = !!currentMoveTile;
+              const displayTile = cell || (currentMoveTile ? currentMoveTile[2] : null);
               const isCenter = r === 7 && c === 7;
               return (
                 <div
@@ -208,17 +210,19 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
                   className={`
                     aspect-square flex items-center justify-center text-sm font-bold
                     border-2 transition-all
-                    ${isCenter && !cell ? 'border-yellow-400 bg-yellow-100 dark:bg-yellow-900/30' : 'border-gray-300 dark:border-gray-600'}
+                    ${isCenter && !displayTile ? 'border-yellow-400 bg-yellow-100 dark:bg-yellow-900/30' : 'border-gray-300 dark:border-gray-600'}
                     ${getBonusColor(bonus)}
-                    ${cell ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}
-                    ${isInCurrentMove ? 'ring-2 ring-blue-500' : ''}
-                    ${!cell && !state.game_over && state.current_player === 1 ? 'cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700' : ''}
+                    ${displayTile ? 'bg-white dark:bg-gray-700 shadow-sm' : ''}
+                    ${isInCurrentMove ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : ''}
+                    ${!displayTile && !state.game_over && state.current_player === 1 ? 'cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700' : ''}
                   `}
-                  onClick={() => !cell && handlePlaceTile(r, c)}
+                  onClick={() => !displayTile && handlePlaceTile(r, c)}
                   title={isCenter && state.first_move ? 'Центр доски - первый ход должен проходить здесь' : ''}
                 >
-                  {cell ? (
-                    <span className="text-base font-extrabold text-gray-900 dark:text-gray-100">{cell}</span>
+                  {displayTile ? (
+                    <span className={`text-base font-extrabold ${isInCurrentMove ? 'text-blue-600 dark:text-blue-300' : 'text-gray-900 dark:text-gray-100'}`}>
+                      {displayTile}
+                    </span>
                   ) : isCenter && state.first_move ? (
                     <span className="text-yellow-500 text-base">⭐</span>
                   ) : bonus > 0 ? (
