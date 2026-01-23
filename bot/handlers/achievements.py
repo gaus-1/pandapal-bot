@@ -29,14 +29,13 @@ from loguru import logger
 
 from bot.database import get_db
 from bot.keyboards.achievements_kb import get_achievements_keyboard
-from bot.keyboards.main_kb import get_main_menu_keyboard
 from bot.services.user_service import UserService
 
 router = Router(name="achievements")
 
 
 @router.message(F.text == "🏆 Достижения")
-async def show_achievements(message: Message, state: FSMContext):
+async def show_achievements(message: Message, state: FSMContext):  # noqa: ARG001
     """
     Обработчик кнопки "🏆 Достижения"
     Показывает систему достижений пользователя с реальными данными
@@ -97,7 +96,7 @@ async def show_achievements(message: Message, state: FSMContext):
 
 
 @router.callback_query(F.data == "achievements:my")
-async def show_my_achievements(callback: CallbackQuery, state: FSMContext):
+async def show_my_achievements(callback: CallbackQuery, state: FSMContext):  # noqa: ARG001
     """Показать полученные достижения с реальными данными"""
     telegram_id = callback.from_user.id
 
@@ -143,7 +142,7 @@ async def show_my_achievements(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "achievements:available")
-async def show_available_achievements(callback: CallbackQuery, state: FSMContext):
+async def show_available_achievements(callback: CallbackQuery, state: FSMContext):  # noqa: ARG001
     """Показать доступные для получения достижения с реальными данными"""
     telegram_id = callback.from_user.id
 
@@ -204,7 +203,7 @@ async def show_available_achievements(callback: CallbackQuery, state: FSMContext
 
 
 @router.callback_query(F.data == "achievements:leaderboard")
-async def show_leaderboard(callback: CallbackQuery, state: FSMContext):
+async def show_leaderboard(callback: CallbackQuery, state: FSMContext):  # noqa: ARG001
     """Показать рейтинг пользователей"""
     await callback.message.edit_text(
         text="📈 <b>Рейтинг учеников</b>\n\n"

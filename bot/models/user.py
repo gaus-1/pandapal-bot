@@ -2,8 +2,10 @@
 Модели пользователей и их прогресса.
 """
 
+from __future__ import annotations
+
 from datetime import UTC, datetime
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     JSON,
@@ -21,6 +23,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from .base import Base
+
+if TYPE_CHECKING:
+    from .chat import ChatHistory
+    from .learning import LearningSession, UserProgress
+    from .payments import Subscription
 
 
 class User(Base):
@@ -82,33 +89,33 @@ class User(Base):
         DateTime(timezone=True), nullable=True
     )
 
-    parent: Mapped[Optional["User"]] = relationship(
+    parent: Mapped[User | None] = relationship(
         "User",
         remote_side=[telegram_id],
         foreign_keys=[parent_telegram_id],
         back_populates="children",
     )
 
-    children: Mapped[list["User"]] = relationship(
+    children: Mapped[list[User]] = relationship(
         "User", back_populates="parent", foreign_keys=[parent_telegram_id]
     )
 
-    sessions: Mapped[list["LearningSession"]] = relationship(
+    sessions: Mapped[list[LearningSession]] = relationship(
         "LearningSession", back_populates="user", cascade="all, delete-orphan"
     )
 
-    progress: Mapped[list["UserProgress"]] = relationship(
+    progress: Mapped[list[UserProgress]] = relationship(
         "UserProgress", back_populates="user", cascade="all, delete-orphan"
     )
 
-    messages: Mapped[list["ChatHistory"]] = relationship(
+    messages: Mapped[list[ChatHistory]] = relationship(
         "ChatHistory",
         back_populates="user",
         cascade="all, delete-orphan",
         order_by="ChatHistory.timestamp.desc()",
     )
 
-    subscriptions: Mapped[list["Subscription"]] = relationship(
+    subscriptions: Mapped[list[Subscription]] = relationship(
         "Subscription",
         back_populates="user",
         cascade="all, delete-orphan",
@@ -212,7 +219,7 @@ class UserProgress(Base):
     )
 
     # Relationship
-    user: Mapped["User"] = relationship("User", back_populates="progress")
+    user: Mapped[User] = relationship("User", back_populates="progress")
 
     __table_args__ = (Index("idx_progress_user_subject", "user_telegram_id", "subject"),)
 
