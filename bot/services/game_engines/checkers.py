@@ -167,6 +167,23 @@ class CheckersGame:
         """
         Совершает ход. Возвращает True, если ход успешен.
         """
+        # Проверка границ доски
+        if not (0 <= start_r < 8 and 0 <= start_c < 8 and 0 <= end_r < 8 and 0 <= end_c < 8):
+            return False
+
+        # Проверка что клетки темные (в шашках ходы только на темные клетки)
+        if (start_r + start_c) % 2 == 0 or (end_r + end_c) % 2 == 0:
+            return False
+
+        # Проверка что шашка принадлежит текущему игроку
+        piece = self.board[start_r][start_c]
+        if piece == 0:
+            return False
+        if self.current_player == 1 and piece not in (1, 3):  # Игрок 1: обычная или дамка
+            return False
+        if self.current_player == 2 and piece not in (2, 4):  # Игрок 2: обычная или дамка
+            return False
+
         valid_moves = self.get_valid_moves(self.current_player)
         move_match = None
         for m in valid_moves:
@@ -187,20 +204,25 @@ class CheckersGame:
             cap_r, cap_c = move_match["capture"]
             self.board[cap_r][cap_c] = 0
 
-            # Превращение в дамку (прерывает серию взятий в некоторых правилах)
-            if (piece == 1 and end_r == 0) or (piece == 2 and end_r == 7):
-                self.board[end_r][end_c] += 2  # 1->3, 2->4
-
-            # Проверяем, есть ли еще взятия у этой шашки
-            new_captures = self._get_piece_moves(end_r, end_c, self.board[end_r][end_c])
+            # По правилам русских шашек превращение в дамку НЕ прерывает цепочку взятий
+            # Сначала проверяем возможность продолжения как простой шашкой
+            new_captures = self._get_piece_moves(end_r, end_c, piece)
             has_next_jump = any(m["capture"] for m in new_captures)
+
+            # Если нет продолжения простой шашкой, превращаем в дамку и проверяем снова
+            if not has_next_jump and ((piece == 1 and end_r == 0) or (piece == 2 and end_r == 7)):
+                self.board[end_r][end_c] += 2  # 1->3, 2->4
+                new_captures = self._get_piece_moves(end_r, end_c, self.board[end_r][end_c])
+                has_next_jump = any(m["capture"] for m in new_captures)
 
             if has_next_jump:
                 self.must_capture_from = (end_r, end_c)
                 return True  # Ход переходит снова тому же игроку
 
-        # Превращение в дамку (если не было взятия или если взятие было последним)
-        if (piece == 1 and end_r == 0) or (piece == 2 and end_r == 7):
+        # Превращение в дамку (если не было взятия или взятие завершено)
+        if ((piece == 1 and end_r == 0) or (piece == 2 and end_r == 7)) and self.board[end_r][
+            end_c
+        ] == piece:
             self.board[end_r][end_c] += 2
 
         # Смена хода
