@@ -64,30 +64,49 @@
 
 PandaPal реализует следующие меры безопасности:
 
+#### OWASP Top 10 Protection
+
+**A01: Broken Access Control** ✅
+- Централизованная проверка владельца ресурса через `verify_resource_owner()` и `require_owner()` в `bot/api/validators.py`
+- Все endpoints с `telegram_id` в URL защищены от несанкционированного доступа
+- Frontend отправляет `X-Telegram-Init-Data` заголовок во всех API запросах
+- Backend валидирует HMAC-SHA256 подпись через Telegram Bot Token
+- При попытке доступа к чужим данным возвращается 403 Forbidden
+- Защищено 16+ endpoints: профиль, прогресс, достижения, дашборд, история чата, игры, домашние задания, Premium функции
+
+**A10: SSRF Protection** ✅
+- Все внешние HTTP запросы проходят через `SSRFProtection.validate_external_request()`
+- Whitelist разрешенных доменов (nsportal.ru, school203.ru)
+- Блокировка запросов к localhost, внутренним IP (10.x, 172.16-31.x, 192.168.x)
+- Валидация схемы URL (только http/https)
+- Реализовано в `bot/services/web_scraper.py` через метод `_safe_get()`
+
 #### Защита данных
-- ✅ Шифрование данных в transit (HTTPS/TLS)
-- ✅ Шифрование секретов в БД
-- ✅ Безопасное хранение паролей (bcrypt)
-- ✅ Токены с ограниченным сроком действия
+- ✅ Шифрование данных в transit (HTTPS/TLS через Cloudflare Full Strict)
+- ✅ Секреты только в переменных окружения, никогда в коде
+- ✅ Telegram initData валидация через HMAC-SHA256
 
 #### Защита приложения
-- ✅ Валидация входных данных (Pydantic)
-- ✅ Защита от SQL injection (SQLAlchemy ORM)
-- ✅ Защита от XSS (Content Security Policy)
-- ✅ Защита от CSRF (токены)
+- ✅ Валидация входных данных (Pydantic V2)
+- ✅ Защита от SQL injection (SQLAlchemy ORM, параметризованные запросы)
+- ✅ Защита от XSS (Content Security Policy headers в frontend)
+- ✅ Защита от CSRF (токены, CORS настройки)
 - ✅ Rate limiting (60 req/min API, 30 req/min AI)
-- ✅ Модерация контента (150+ паттернов)
+- ✅ Модерация контента (150+ паттернов, 4 языка)
+- ✅ Owner verification для всех защищенных ресурсов
 
 #### Инфраструктура
 - ✅ Регулярные обновления зависимостей
 - ✅ Автоматическое сканирование уязвимостей (Dependabot)
-- ✅ Pre-commit hooks (bandit, safety)
+- ✅ Pre-commit hooks (ruff, pylint, bandit, safety)
 - ✅ CI/CD с проверками безопасности
+- ✅ Redis FSM storage для горизонтального масштабирования
 
 #### Мониторинг
-- ✅ Логирование всех критических операций
+- ✅ Логирование всех критических операций (loguru)
+- ✅ Prometheus metrics для мониторинга производительности
+- ✅ Аудит логирование попыток несанкционированного доступа
 - ✅ Мониторинг подозрительной активности
-- ✅ Алерты на аномалии
 
 ### Известные ограничения
 

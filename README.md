@@ -275,24 +275,69 @@ graph TB
 
 ### Security
 
+- **OWASP A01: Broken Access Control** — проверка владельца ресурса через `X-Telegram-Init-Data` заголовок (HMAC-SHA256 валидация). Все endpoints с `telegram_id` в URL защищены от несанкционированного доступа
+- **OWASP A10: SSRF Protection** — валидация всех внешних URL через whitelist доменов, блокировка внутренних IP и localhost
+- **Content Security Policy (CSP)** — строгие CSP headers в frontend для защиты от XSS
 - Многоуровневая модерация контента (150+ паттернов, 4 языка)
 - Rate limiting: 60 req/min API, 30 req/min AI
 - Daily limits: 30 запросов в месяц (free), 500 в день (month), без ограничений (year)
-- CSP headers, CORS, CSRF защита
+- CORS, CSRF защита
 - Валидация всех входных данных через Pydantic V2
+- SQLAlchemy ORM для защиты от SQL injection
 - Аудит логирование через loguru
 
 ## Безопасность
 
-- Валидация через Pydantic V2
-- SQLAlchemy ORM для защиты от SQL injection
-- CSP headers для защиты от XSS
-- Модерация: 150+ паттернов, фильтры мата на 4 языках
-- Rate limiting для защиты от перегрузки
-- HTTPS через Cloudflare Full Strict
-- Секреты только в переменных окружения
+### Реализованные меры защиты
 
-Сообщить об уязвимости: см. [SECURITY.md](SECURITY.md)
+#### OWASP Top 10
+
+- **A01: Broken Access Control** ✅
+  - Все API endpoints с `telegram_id` в URL защищены проверкой владельца ресурса
+  - Frontend отправляет `X-Telegram-Init-Data` заголовок во всех запросах
+  - Backend валидирует HMAC-SHA256 подпись через Telegram Bot Token
+  - Защищенные endpoints: `/user/{id}`, `/progress/{id}`, `/achievements/{id}`, `/dashboard/{id}`, `/chat/history/{id}`, `/games/{id}/*`, `/homework/{id}/*`, `/premium/{id}/*`
+  - При попытке доступа к чужим данным возвращается 403 Forbidden
+
+- **A10: SSRF Protection** ✅
+  - Все внешние HTTP запросы проходят через `SSRFProtection.validate_external_request()`
+  - Whitelist разрешенных доменов (nsportal.ru, school203.ru)
+  - Блокировка запросов к localhost, внутренним IP (10.x, 172.16-31.x, 192.168.x)
+  - Валидация схемы URL (только http/https)
+
+#### Другие меры
+
+- **Валидация данных**: Pydantic V2 для всех входных данных
+- **SQL Injection**: SQLAlchemy ORM, параметризованные запросы
+- **XSS Protection**: Content Security Policy (CSP) headers в frontend
+- **Модерация контента**: 150+ паттернов, фильтры на 4 языках (русский, английский, немецкий, французский)
+- **Rate Limiting**: 60 req/min для API, 30 req/min для AI запросов
+- **HTTPS**: Cloudflare Full Strict, принудительное перенаправление на HTTPS
+- **Секреты**: только в переменных окружения, никогда в коде
+- **Аудит логирование**: все критичные операции логируются через loguru
+
+### Защищенные endpoints
+
+Все следующие endpoints требуют заголовок `X-Telegram-Init-Data` и проверяют владельца ресурса:
+
+- `GET/PATCH /api/miniapp/user/{telegram_id}` — профиль пользователя
+- `GET /api/miniapp/progress/{telegram_id}` — прогресс обучения
+- `GET /api/miniapp/achievements/{telegram_id}` — достижения
+- `GET /api/miniapp/dashboard/{telegram_id}` — статистика дашборда
+- `GET/DELETE /api/miniapp/chat/history/{telegram_id}` — история чата
+- `POST /api/miniapp/chat/greeting/{telegram_id}` — приветствие
+- `POST /api/miniapp/ai/chat` — AI чат (telegram_id в body)
+- `POST /api/miniapp/games/{telegram_id}/create` — создание игры
+- `GET /api/miniapp/games/{telegram_id}/stats` — статистика игр
+- `GET /api/miniapp/homework/history/{telegram_id}` — история ДЗ
+- `GET /api/miniapp/homework/statistics/{telegram_id}` — статистика ДЗ
+- `GET /api/miniapp/premium/status/{telegram_id}` — статус Premium
+- `GET /api/miniapp/premium/learning-plan/{telegram_id}` — план обучения
+- `GET /api/miniapp/premium/bonus-lessons/{telegram_id}` — бонусные уроки
+- `GET /api/miniapp/premium/features/{telegram_id}` — Premium функции
+- `GET /api/miniapp/premium/support-queue/{telegram_id}` — очередь поддержки
+
+Сообщить об уязвимости: см. [SECURITY.md](.github/SECURITY.md)
 
 ## Последние изменения (2025)
 
