@@ -10,7 +10,7 @@ API endpoints для Premium функций.
 from aiohttp import web
 from loguru import logger
 
-from bot.api.validators import validate_telegram_id
+from bot.api.validators import require_owner, validate_telegram_id
 from bot.database import get_db
 from bot.services import (
     BonusLessonsService,
@@ -25,9 +25,14 @@ async def miniapp_get_learning_plan(request: web.Request) -> web.Response:
     Получить персональный план обучения (Premium функция).
 
     GET /api/miniapp/premium/learning-plan/{telegram_id}
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         with get_db() as db:
             premium_service = PremiumFeaturesService(db)
@@ -61,9 +66,14 @@ async def miniapp_get_bonus_lessons(request: web.Request) -> web.Response:
     Получить список бонусных уроков (VIP функция).
 
     GET /api/miniapp/premium/bonus-lessons/{telegram_id}
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         with get_db() as db:
             bonus_service = BonusLessonsService(db)
@@ -95,9 +105,15 @@ async def miniapp_get_bonus_lesson_content(request: web.Request) -> web.Response
     Получить содержание бонусного урока (VIP функция).
 
     GET /api/miniapp/premium/bonus-lessons/{telegram_id}/{lesson_id}
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
+
         lesson_id = request.match_info.get("lesson_id")
 
         if not lesson_id:
@@ -136,9 +152,14 @@ async def miniapp_get_premium_features_status(request: web.Request) -> web.Respo
     Получить статус всех Premium функций.
 
     GET /api/miniapp/premium/features/{telegram_id}
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         with get_db() as db:
             premium_service = PremiumFeaturesService(db)
@@ -159,9 +180,14 @@ async def miniapp_get_support_queue_status(request: web.Request) -> web.Response
     Получить информацию о позиции пользователя в очереди поддержки.
 
     GET /api/miniapp/premium/support-queue/{telegram_id}
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         with get_db() as db:
             support_service = PrioritySupportService(db)

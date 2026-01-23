@@ -9,7 +9,7 @@ from contextlib import suppress
 from aiohttp import web
 from loguru import logger
 
-from bot.api.validators import validate_limit, validate_telegram_id
+from bot.api.validators import require_owner, validate_limit, validate_telegram_id
 from bot.database import get_db
 from bot.services import ChatHistoryService
 
@@ -19,6 +19,7 @@ async def miniapp_get_chat_history(request: web.Request) -> web.Response:
     Получить историю чата.
 
     GET /api/miniapp/chat/history/{telegram_id}?limit=50
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         # Безопасная валидация telegram_id
@@ -27,6 +28,10 @@ async def miniapp_get_chat_history(request: web.Request) -> web.Response:
         except ValueError as e:
             logger.warning(f"⚠️ Invalid telegram_id: {e}")
             return web.json_response({"error": str(e)}, status=400)
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         # Безопасная валидация limit
         limit = validate_limit(request.query.get("limit"), default=50, max_limit=100)
@@ -60,6 +65,7 @@ async def miniapp_clear_chat_history(request: web.Request) -> web.Response:
     Очистить историю чата.
 
     DELETE /api/miniapp/chat/history/{telegram_id}
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         # Безопасная валидация telegram_id
@@ -68,6 +74,10 @@ async def miniapp_clear_chat_history(request: web.Request) -> web.Response:
         except ValueError as e:
             logger.warning(f"⚠️ Invalid telegram_id: {e}")
             return web.json_response({"error": str(e)}, status=400)
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         with get_db() as db:
             history_service = ChatHistoryService(db)
@@ -91,9 +101,14 @@ async def miniapp_add_greeting(request: web.Request) -> web.Response:
 
     POST /api/miniapp/chat/greeting/{telegram_id}
     Body: { "message": "Привет, начнем?" } (опционально)
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         # Парсим тело запроса (может быть пустым)
         greeting_message = None

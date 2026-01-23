@@ -8,7 +8,7 @@ from aiohttp import web
 from loguru import logger
 from pydantic import ValidationError
 
-from bot.api.validators import AIChatRequest
+from bot.api.validators import AIChatRequest, require_owner
 from bot.database import get_db
 from bot.models import ChatHistory
 from bot.services import ChatHistoryService, UserService
@@ -98,6 +98,12 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             )
 
         telegram_id = validated.telegram_id
+
+        # Проверка владельца ресурса (OWASP A01)
+        # Предотвращает отправку сообщений от чужого имени
+        if error_response := require_owner(request, telegram_id):
+            return error_response
+
         message = validated.message or ""
         photo_base64 = validated.photo_base64
         audio_base64 = validated.audio_base64

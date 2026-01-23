@@ -8,7 +8,7 @@ from aiohttp import web
 from loguru import logger
 from pydantic import ValidationError
 
-from bot.api.validators import HomeworkCheckRequest, validate_telegram_id
+from bot.api.validators import HomeworkCheckRequest, require_owner, validate_telegram_id
 from bot.database import get_db
 from bot.services import UserService
 from bot.services.homework_service import HomeworkService
@@ -124,9 +124,14 @@ async def miniapp_get_homework_history(request: web.Request) -> web.Response:
     Получить историю проверок ДЗ.
 
     GET /api/miniapp/homework/history/{telegram_id}?limit=20&subject=математика
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         # Получаем параметры запроса
         limit = int(request.query.get("limit", 20))
@@ -155,9 +160,14 @@ async def miniapp_get_homework_statistics(request: web.Request) -> web.Response:
     Получить статистику проверок ДЗ.
 
     GET /api/miniapp/homework/statistics/{telegram_id}
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         with get_db() as db:
             homework_service = HomeworkService(db)
