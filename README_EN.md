@@ -9,7 +9,9 @@ Educational platform for schoolchildren grades 1-9 with Telegram bot and web app
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript)](https://www.typescriptlang.org/)
-[![CI/CD](https://img.shields.io/github/actions/workflow/status/gaus-1/pandapal-bot/main-ci-cd.yml?label=CI%2FCD)](https://github.com/gaus-1/pandapal-bot/actions)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+[![Railway Deploy](https://img.shields.io/badge/deploy-Railway-purple?logo=railway)](https://railway.app)
 [![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
 
 [Website](https://pandapal.ru) • [Telegram Bot](https://t.me/PandaPalBot)
@@ -146,8 +148,16 @@ Usage, copying, distribution, and modification are prohibited without written pe
 
 Details: see [LICENSE](LICENSE)
 
+## Contributing
+
+We welcome contributions to the project! See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details.
+
 ## Contacts
 
 - Website: https://pandapal.ru
 - Telegram Bot: https://t.me/PandaPalBot
 - GitHub: https://github.com/gaus-1/pandapal-bot
+
+## GitHub Topics
+
+`telegram-bot` `education` `ai-assistant` `yandex-cloud` `react` `typescript` `python` `postgresql` `educational-platform` `kids-learning` `homework-helper` `aiogram` `mini-app`
