@@ -2,7 +2,10 @@
 Модели игр: сессии и статистика.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     JSON,
@@ -18,6 +21,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from .base import Base
+
+if TYPE_CHECKING:
+    from .user import User
 
 
 class GameSession(Base):
@@ -48,7 +54,7 @@ class GameSession(Base):
     duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # Relationship
-    user: Mapped["User"] = relationship("User", foreign_keys=[user_telegram_id])
+    user: Mapped[User] = relationship("User", foreign_keys=[user_telegram_id])
 
     __table_args__ = (
         Index("idx_game_sessions_user_type", "user_telegram_id", "game_type"),
@@ -117,7 +123,7 @@ class GameStats(Base):
     )
 
     # Relationship
-    user: Mapped["User"] = relationship("User", foreign_keys=[user_telegram_id])
+    user: Mapped[User] = relationship("User", foreign_keys=[user_telegram_id])
 
     __table_args__ = (
         Index("idx_game_stats_user_type", "user_telegram_id", "game_type"),

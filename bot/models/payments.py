@@ -2,8 +2,10 @@
 Модели платежей и подписок.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     JSON,
@@ -21,6 +23,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from .base import Base
+
+if TYPE_CHECKING:
+    from .user import User
 
 
 class Subscription(Base):
@@ -78,7 +83,7 @@ class Subscription(Base):
     )
 
     # Relationship
-    user: Mapped["User"] = relationship("User", back_populates="subscriptions")
+    user: Mapped[User] = relationship("User", back_populates="subscriptions")
 
     __table_args__ = (
         Index("idx_subscriptions_user_active", "user_telegram_id", "is_active"),
@@ -179,8 +184,8 @@ class Payment(Base):
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
-    user: Mapped["User"] = relationship("User", foreign_keys=[user_telegram_id])
-    subscription: Mapped[Optional["Subscription"]] = relationship(
+    user: Mapped[User] = relationship("User", foreign_keys=[user_telegram_id])
+    subscription: Mapped[Subscription | None] = relationship(
         "Subscription", foreign_keys=[subscription_id]
     )
 
