@@ -2,7 +2,24 @@
  * API для игр.
  */
 
+import { telegram } from '../telegram';
 import { API_BASE_URL } from './config';
+
+/**
+ * Получить заголовки с авторизацией для защищенных запросов.
+ */
+function getAuthHeaders(): HeadersInit {
+  const initData = telegram.getInitData();
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  if (initData) {
+    headers['X-Telegram-Init-Data'] = initData;
+  }
+
+  return headers;
+}
 
 export interface GameSession {
   id: number;
@@ -33,9 +50,7 @@ export interface GameStats {
 export async function createGame(telegramId: number, gameType: string): Promise<{ session_id: number; game_type: string; game_state: Record<string, unknown> }> {
   const response = await fetch(`${API_BASE_URL}/miniapp/games/${telegramId}/create`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ game_type: gameType }),
   });
 
@@ -59,9 +74,7 @@ export async function ticTacToeMove(sessionId: number, position: number): Promis
 }> {
   const response = await fetch(`${API_BASE_URL}/miniapp/games/tic-tac-toe/${sessionId}/move`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ position }),
   });
 
@@ -84,9 +97,7 @@ export async function getCheckersValidMoves(sessionId: number): Promise<Array<{
 }>> {
   const response = await fetch(`${API_BASE_URL}/miniapp/games/checkers/${sessionId}/valid-moves`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
@@ -116,9 +127,7 @@ export async function checkersMove(
 }> {
   const response = await fetch(`${API_BASE_URL}/miniapp/games/checkers/${sessionId}/move`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       from_row: fromRow,
       from_col: fromCol,
@@ -147,9 +156,7 @@ export async function game2048Move(sessionId: number, direction: 'up' | 'down' |
 }> {
   const response = await fetch(`${API_BASE_URL}/miniapp/games/2048/${sessionId}/move`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ direction }),
   });
 
@@ -171,7 +178,7 @@ export async function getGameStats(telegramId: number, gameType?: string): Promi
     ? `${API_BASE_URL}/miniapp/games/${telegramId}/stats?game_type=${gameType}`
     : `${API_BASE_URL}/miniapp/games/${telegramId}/stats`;
 
-  const response = await fetch(url);
+  const response = await fetch(url, { headers: getAuthHeaders() });
 
   if (!response.ok) {
     throw new Error('Ошибка получения статистики');
@@ -185,7 +192,9 @@ export async function getGameStats(telegramId: number, gameType?: string): Promi
  * Получить игровую сессию
  */
 export async function getGameSession(sessionId: number): Promise<GameSession> {
-  const response = await fetch(`${API_BASE_URL}/miniapp/games/session/${sessionId}`);
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/session/${sessionId}`, {
+    headers: getAuthHeaders(),
+  });
 
   if (!response.ok) {
     throw new Error('Ошибка получения сессии');

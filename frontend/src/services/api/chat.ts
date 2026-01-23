@@ -2,8 +2,25 @@
  * API для чата с AI.
  */
 
+import { telegram } from '../telegram';
 import { API_BASE_URL } from './config';
 import type { AchievementUnlocked } from './types';
+
+/**
+ * Получить заголовки с авторизацией для защищенных запросов.
+ */
+function getAuthHeaders(): HeadersInit {
+  const initData = telegram.getInitData();
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  if (initData) {
+    headers['X-Telegram-Init-Data'] = initData;
+  }
+
+  return headers;
+}
 
 export async function sendAIMessage(
   telegramId: number,
@@ -29,9 +46,7 @@ export async function sendAIMessage(
 
   const response = await fetch(`${API_BASE_URL}/miniapp/ai/chat`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(requestBody),
   });
 
@@ -57,7 +72,8 @@ export async function getChatHistory(
   limit: number = 50
 ): Promise<Array<{ role: 'user' | 'ai'; content: string; timestamp: string; imageUrl?: string }>> {
   const response = await fetch(
-    `${API_BASE_URL}/miniapp/chat/history/${telegramId}?limit=${limit}`
+    `${API_BASE_URL}/miniapp/chat/history/${telegramId}?limit=${limit}`,
+    { headers: getAuthHeaders() }
   );
 
   if (!response.ok) {
@@ -77,9 +93,7 @@ export async function getChatHistory(
 export async function addGreetingMessage(telegramId: number, message?: string): Promise<{ success: boolean; message: string; role: string }> {
   const response = await fetch(`${API_BASE_URL}/miniapp/chat/greeting/${telegramId}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(message ? { message } : {}),
   });
 
@@ -96,6 +110,7 @@ export async function clearChatHistory(telegramId: number): Promise<{ deleted_co
     `${API_BASE_URL}/miniapp/chat/history/${telegramId}`,
     {
       method: 'DELETE',
+      headers: getAuthHeaders(),
     }
   );
 

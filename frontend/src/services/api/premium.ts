@@ -2,7 +2,24 @@
  * API для премиум подписки.
  */
 
+import { telegram } from '../telegram';
 import { API_BASE_URL } from './config';
+
+/**
+ * Получить заголовки с авторизацией для защищенных запросов.
+ */
+function getAuthHeaders(): HeadersInit {
+  const initData = telegram.getInitData();
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  if (initData) {
+    headers['X-Telegram-Init-Data'] = initData;
+  }
+
+  return headers;
+}
 
 export async function createPremiumPayment(
   telegramId: number,
@@ -17,9 +34,7 @@ export async function createPremiumPayment(
 }> {
   const response = await fetch(`${API_BASE_URL}/miniapp/premium/create-payment`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       telegram_id: telegramId,
       plan_id: planId,
@@ -53,7 +68,9 @@ export async function getPremiumStatus(telegramId: number): Promise<{
     has_saved_payment_method?: boolean;
   } | null;
 }> {
-  const response = await fetch(`${API_BASE_URL}/miniapp/premium/status/${telegramId}`);
+  const response = await fetch(`${API_BASE_URL}/miniapp/premium/status/${telegramId}`, {
+    headers: getAuthHeaders(),
+  });
 
   if (!response.ok) {
     throw new Error('Ошибка получения статуса Premium');
@@ -71,9 +88,7 @@ export async function removeSavedPaymentMethod(telegramId: number): Promise<{
 }> {
   const response = await fetch(`${API_BASE_URL}/miniapp/premium/remove-payment-method`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       telegram_id: telegramId,
     }),

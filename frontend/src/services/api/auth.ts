@@ -7,6 +7,23 @@ import { API_BASE_URL } from './config';
 import type { UserProfile, ProgressItem, Achievement, DashboardStats } from './types';
 
 /**
+ * Получить заголовки с авторизацией для защищенных запросов.
+ * Включает X-Telegram-Init-Data для проверки владельца ресурса (OWASP A01).
+ */
+function getAuthHeaders(): HeadersInit {
+  const initData = telegram.getInitData();
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  if (initData) {
+    headers['X-Telegram-Init-Data'] = initData;
+  }
+
+  return headers;
+}
+
+/**
  * Аутентификация пользователя через Telegram initData
  */
 export async function authenticateUser(): Promise<UserProfile> {
@@ -18,9 +35,7 @@ export async function authenticateUser(): Promise<UserProfile> {
 
   const response = await fetch(`${API_BASE_URL}/miniapp/auth`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       init_data: initData,
     }),
@@ -39,7 +54,9 @@ export async function authenticateUser(): Promise<UserProfile> {
  * Получить профиль пользователя
  */
 export async function getUserProfile(telegramId: number): Promise<UserProfile> {
-  const response = await fetch(`${API_BASE_URL}/miniapp/profile/${telegramId}`);
+  const response = await fetch(`${API_BASE_URL}/miniapp/profile/${telegramId}`, {
+    headers: getAuthHeaders(),
+  });
 
   if (!response.ok) {
     throw new Error('Failed to fetch user profile');
@@ -52,7 +69,9 @@ export async function getUserProfile(telegramId: number): Promise<UserProfile> {
  * Получить прогресс пользователя
  */
 export async function getUserProgress(telegramId: number): Promise<ProgressItem[]> {
-  const response = await fetch(`${API_BASE_URL}/miniapp/progress/${telegramId}`);
+  const response = await fetch(`${API_BASE_URL}/miniapp/progress/${telegramId}`, {
+    headers: getAuthHeaders(),
+  });
 
   if (!response.ok) {
     throw new Error('Failed to fetch user progress');
@@ -65,7 +84,9 @@ export async function getUserProgress(telegramId: number): Promise<ProgressItem[
  * Получить достижения пользователя
  */
 export async function getUserAchievements(telegramId: number): Promise<Achievement[]> {
-  const response = await fetch(`${API_BASE_URL}/miniapp/achievements/${telegramId}`);
+  const response = await fetch(`${API_BASE_URL}/miniapp/achievements/${telegramId}`, {
+    headers: getAuthHeaders(),
+  });
 
   if (!response.ok) {
     throw new Error('Failed to fetch achievements');
@@ -78,7 +99,9 @@ export async function getUserAchievements(telegramId: number): Promise<Achieveme
  * Получить статистику дашборда
  */
 export async function getDashboardStats(telegramId: number): Promise<DashboardStats> {
-  const response = await fetch(`${API_BASE_URL}/miniapp/dashboard/${telegramId}`);
+  const response = await fetch(`${API_BASE_URL}/miniapp/dashboard/${telegramId}`, {
+    headers: getAuthHeaders(),
+  });
 
   if (!response.ok) {
     return {
@@ -117,9 +140,7 @@ export async function updateUserProfile(
 ): Promise<UserProfile> {
   const response = await fetch(`${API_BASE_URL}/miniapp/profile/${telegramId}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
 
