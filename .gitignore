@@ -60,6 +60,8 @@ vulture_full_report.txt
 frontend/playwright-report/
 frontend/test-results/
 frontend/.playwright/
+.playwright-mcp/
+.browser-tests/
 
 # Temporary files
 *.tmp
