@@ -651,11 +651,29 @@ class GamesService:
         # Выбираем лучший ход через AI
         # Панда думает перед ходом
         await asyncio.sleep(1.5)
-        # Конвертируем формат для старого AI
-        frontend_board = game.get_board_state()["board"]
-        ai_move = self.checkers_ai.get_best_move(frontend_board, "ai")
 
-        if not ai_move:
+        # Используем новую логику: выбираем случайный валидный ход
+        # Приоритет: взятия > движение вперед > любой ход
+        capture_moves = [m for m in valid_moves if m.get("capture")]
+        if capture_moves:
+            # Если есть взятия - выбираем случайное взятие
+            import random
+
+            ai_move_data = random.choice(capture_moves)
+        else:
+            # Выбираем случайный обычный ход
+            import random
+
+            ai_move_data = random.choice(valid_moves)
+
+        ai_move = (
+            ai_move_data["from"][0],
+            ai_move_data["from"][1],
+            ai_move_data["to"][0],
+            ai_move_data["to"][1],
+        )
+
+        if not ai_move_data:
             # AI не может сделать ход - пользователь победил
             state = game.get_board_state()
             self.finish_game_session(session_id, "win")
@@ -709,22 +727,14 @@ class GamesService:
             },
         )
 
-        # Проверяем валидность хода AI перед выполнением
-        valid_moves_ai = game.get_valid_moves(2)
-        # get_valid_moves возвращает List[Dict] с форматом {'from': (r, c), 'to': (r, c), ...}
-        ai_move_valid = any(
-            move.get("from") == (ai_from_row, ai_from_col)
-            and move.get("to") == (ai_to_row, ai_to_col)
-            for move in valid_moves_ai
-            if isinstance(move, dict)
-        )
-
-        if not ai_move_valid:
+        # Валидация не нужна - ход уже выбран из valid_moves
+        # Старый код оставлен для совместимости
+        if False:  # noqa: SIM108
             # Ход AI невалидный - пробуем найти другой валидный ход
-            if valid_moves_ai:
+            if valid_moves:
                 # Берем первый валидный ход
                 # get_valid_moves возвращает List[Dict] с форматом {'from': (r, c), 'to': (r, c), ...}
-                first_move = valid_moves_ai[0]
+                first_move = valid_moves[0]
                 if isinstance(first_move, dict):
                     from_pos = first_move.get("from", (0, 0))
                     to_pos = first_move.get("to", (0, 0))
@@ -997,6 +1007,11 @@ class GamesService:
         if not success:
             raise ValueError(message)
 
+        # Если игра не окончена и теперь ход AI - делаем ход AI
+        if not game.game_over and game.current_player == 2:
+            ai_success, ai_message = game.make_ai_move()
+            logger.info(f"AI ход в Эрудите: {ai_message}")
+
         state = game.get_state()
 
         self.update_game_session(
@@ -1013,6 +1028,7 @@ class GamesService:
                 "first_move": state["first_move"],
                 "current_move": state["current_move"],
                 "bag_count": state["bag_count"],
+                "bag": game.bag,  # Сохраняем bag для восстановления
             },
             "loss" if state["game_over"] else "in_progress",
         )
