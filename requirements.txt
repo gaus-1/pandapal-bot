@@ -21,7 +21,7 @@ greenlet==3.3.0                 # Поддержка async для SQLAlchemy
 # Веб-сервер и API
 fastapi==0.128.0                # Асинхронный веб-фреймворк
 uvicorn[standard]==0.40.0       # ASGI сервер
-starlette==0.50.0               # Основа FastAPI
+starlette==0.52.1               # Основа FastAPI
 aiohttp==3.13.3                 # Асинхронный HTTP клиент/сервер
 httpx==0.28.1                   # HTTP клиент для асинхронных запросов
 httpcore==1.0.9                 # HTTP core для httpx
