@@ -3,6 +3,11 @@
 
 Этот модуль реализует функциональность для автоматического сбора информации
 с образовательных сайтов, включая задачи, новости и учебные материалы.
+
+Безопасность (OWASP A10 - SSRF):
+- Все внешние URL валидируются через SSRFProtection
+- Разрешены только whitelisted домены
+- Блокируются внутренние IP и localhost
 """
 
 import asyncio
@@ -14,6 +19,8 @@ from urllib.parse import urljoin
 import aiohttp
 from bs4 import BeautifulSoup
 from loguru import logger
+
+from bot.security import SSRFProtection, validate_url_safety
 
 
 @dataclass
@@ -129,6 +136,32 @@ class WebScraperService:
             await self.session.close()
             self.session = None
 
+    async def _safe_get(self, url: str) -> aiohttp.ClientResponse | None:
+        """
+        Безопасный HTTP GET запрос с SSRF защитой (OWASP A10).
+
+        Args:
+            url: URL для запроса
+
+        Returns:
+            Response объект или None если URL небезопасен
+        """
+        # Валидация URL перед запросом
+        if not validate_url_safety(url):
+            logger.warning(f"🚫 SSRF: заблокирован небезопасный URL: {url}")
+            return None
+
+        # Дополнительная проверка через SSRFProtection
+        if not SSRFProtection.validate_external_request(url, "GET"):
+            logger.warning(f"🚫 SSRF: запрос к {url} заблокирован политикой безопасности")
+            return None
+
+        try:
+            return await self.session.get(url)
+        except Exception as e:
+            logger.error(f"❌ Ошибка HTTP запроса к {url}: {e}")
+            return None
+
     async def scrape_nsportal_tasks(self, limit: int = 50) -> list[EducationalContent]:
         """
         Парсить задачи с nsportal.ru.
@@ -165,25 +198,25 @@ class WebScraperService:
         tasks = []
 
         try:
-            async with self.session.get(url) as response:
-                if response.status == 200:
-                    html = await response.text()
-                    soup = BeautifulSoup(html, "html.parser")
+            response = await self._safe_get(url)
+            if response and response.status == 200:
+                html = await response.text()
+                soup = BeautifulSoup(html, "html.parser")
 
-                    # Ищем ссылки на материалы
-                    material_links = soup.find_all("a", href=True)[:limit]
+                # Ищем ссылки на материалы
+                material_links = soup.find_all("a", href=True)[:limit]
 
-                    for link in material_links:
-                        try:
-                            link_href = str(link.get("href", ""))
-                            if link_href:
-                                material_url = urljoin(url, link_href)
-                                task = await self._extract_nsportal_material(material_url, subject)
-                                if task:
-                                    tasks.append(task)
-                        except Exception as e:
-                            logger.debug(f"Ошибка извлечения материала: {e}")
-                            continue
+                for link in material_links:
+                    try:
+                        link_href = str(link.get("href", ""))
+                        if link_href:
+                            material_url = urljoin(url, link_href)
+                            task = await self._extract_nsportal_material(material_url, subject)
+                            if task:
+                                tasks.append(task)
+                    except Exception as e:
+                        logger.debug(f"Ошибка извлечения материала: {e}")
+                        continue
 
         except Exception as e:
             logger.error(f"❌ Ошибка парсинга предмета {subject}: {e}")
@@ -193,36 +226,36 @@ class WebScraperService:
     async def _extract_nsportal_material(self, url: str, subject: str) -> EducationalContent | None:
         """Извлечь материал с nsportal.ru."""
         try:
-            async with self.session.get(url) as response:
-                if response.status == 200:
-                    html = await response.text()
-                    soup = BeautifulSoup(html, "html.parser")
+            response = await self._safe_get(url)
+            if response and response.status == 200:
+                html = await response.text()
+                soup = BeautifulSoup(html, "html.parser")
 
-                    # Извлекаем заголовок
-                    title_elem = soup.find("h1") or soup.find("title")
-                    title = title_elem.get_text().strip() if title_elem else "Материал без названия"
+                # Извлекаем заголовок
+                title_elem = soup.find("h1") or soup.find("title")
+                title = title_elem.get_text().strip() if title_elem else "Материал без названия"
 
-                    # Извлекаем контент
-                    content_elem = soup.find("div", class_="content") or soup.find("main")
-                    if not content_elem:
-                        content_elem = soup.find("body")
+                # Извлекаем контент
+                content_elem = soup.find("div", class_="content") or soup.find("main")
+                if not content_elem:
+                    content_elem = soup.find("body")
 
-                    content = content_elem.get_text().strip() if content_elem else ""
+                content = content_elem.get_text().strip() if content_elem else ""
 
-                    # Очищаем контент
-                    content = re.sub(r"\s+", " ", content)
-                    content = content[:2000]  # Ограничиваем длину
+                # Очищаем контент
+                content = re.sub(r"\s+", " ", content)
+                content = content[:2000]  # Ограничиваем длину
 
-                    if len(content) > 100:  # Только содержательные материалы
-                        return EducationalContent(
-                            title=title,
-                            content=content,
-                            subject=subject,
-                            difficulty="средняя",
-                            source_url=url,
-                            extracted_at=datetime.now(),
-                            tags=[subject, "nsportal.ru"],
-                        )
+                if len(content) > 100:  # Только содержательные материалы
+                    return EducationalContent(
+                        title=title,
+                        content=content,
+                        subject=subject,
+                        difficulty="средняя",
+                        source_url=url,
+                        extracted_at=datetime.now(),
+                        tags=[subject, "nsportal.ru"],
+                    )
 
         except Exception as e:
             logger.debug(f"Ошибка извлечения материала {url}: {e}")
@@ -264,24 +297,24 @@ class WebScraperService:
         materials = []
 
         try:
-            async with self.session.get(url) as response:
-                if response.status == 200:
-                    html = await response.text()
-                    soup = BeautifulSoup(html, "html.parser")
+            response = await self._safe_get(url)
+            if response and response.status == 200:
+                html = await response.text()
+                soup = BeautifulSoup(html, "html.parser")
 
-                    # Ищем статьи и материалы
-                    articles = soup.find_all(
-                        ["article", "div"], class_=re.compile(r"(article|post|content)")
-                    )[:limit]
+                # Ищем статьи и материалы
+                articles = soup.find_all(
+                    ["article", "div"], class_=re.compile(r"(article|post|content)")
+                )[:limit]
 
-                    for article in articles:
-                        try:
-                            material = await self._extract_school203_material(article, section)
-                            if material:
-                                materials.append(material)
-                        except Exception as e:
-                            logger.debug(f"Ошибка извлечения статьи: {e}")
-                            continue
+                for article in articles:
+                    try:
+                        material = await self._extract_school203_material(article, section)
+                        if material:
+                            materials.append(material)
+                    except Exception as e:
+                        logger.debug(f"Ошибка извлечения статьи: {e}")
+                        continue
 
         except Exception as e:
             logger.error(f"❌ Ошибка парсинга раздела {section}: {e}")
@@ -348,61 +381,61 @@ class WebScraperService:
 
         return news
 
-    async def _scrape_nsportal_news(self, days_back: int) -> list[NewsItem]:
+    async def _scrape_nsportal_news(self, days_back: int) -> list[NewsItem]:  # noqa: ARG002
         """Парсить новости с nsportal.ru."""
         news = []
 
         try:
             news_url = self.nsportal_config["news_url"]
-            async with self.session.get(news_url) as response:
-                if response.status == 200:
-                    html = await response.text()
-                    soup = BeautifulSoup(html, "html.parser")
+            response = await self._safe_get(news_url)
+            if response and response.status == 200:
+                html = await response.text()
+                soup = BeautifulSoup(html, "html.parser")
 
-                    # Ищем новости
-                    news_items = soup.find_all(
-                        ["article", "div"], class_=re.compile(r"(news|article|post)")
-                    )[:20]
+                # Ищем новости
+                news_items = soup.find_all(
+                    ["article", "div"], class_=re.compile(r"(news|article|post)")
+                )[:20]
 
-                    for item in news_items:
-                        try:
-                            news_item = await self._extract_news_item(item, "nsportal.ru")
-                            if news_item:
-                                news.append(news_item)
-                        except Exception as e:
-                            logger.debug(f"Ошибка извлечения новости: {e}")
-                            continue
+                for item in news_items:
+                    try:
+                        news_item = await self._extract_news_item(item, "nsportal.ru")
+                        if news_item:
+                            news.append(news_item)
+                    except Exception as e:
+                        logger.debug(f"Ошибка извлечения новости: {e}")
+                        continue
 
         except Exception as e:
             logger.error(f"❌ Ошибка парсинга новостей nsportal.ru: {e}")
 
         return news
 
-    async def _scrape_school203_news(self, days_back: int) -> list[NewsItem]:
+    async def _scrape_school203_news(self, days_back: int) -> list[NewsItem]:  # noqa: ARG002
         """Парсить новости с school203.spb.ru."""
         news = []
 
         try:
             # Ищем раздел новостей
             news_url = f"{self.school203_config['base_url']}/novosti"
-            async with self.session.get(news_url) as response:
-                if response.status == 200:
-                    html = await response.text()
-                    soup = BeautifulSoup(html, "html.parser")
+            response = await self._safe_get(news_url)
+            if response and response.status == 200:
+                html = await response.text()
+                soup = BeautifulSoup(html, "html.parser")
 
-                    # Ищем новости
-                    news_items = soup.find_all(
-                        ["article", "div"], class_=re.compile(r"(news|article|post)")
-                    )[:15]
+                # Ищем новости
+                news_items = soup.find_all(
+                    ["article", "div"], class_=re.compile(r"(news|article|post)")
+                )[:15]
 
-                    for item in news_items:
-                        try:
-                            news_item = await self._extract_news_item(item, "school203.spb.ru")
-                            if news_item:
-                                news.append(news_item)
-                        except Exception as e:
-                            logger.debug(f"Ошибка извлечения новости: {e}")
-                            continue
+                for item in news_items:
+                    try:
+                        news_item = await self._extract_news_item(item, "school203.spb.ru")
+                        if news_item:
+                            news.append(news_item)
+                    except Exception as e:
+                        logger.debug(f"Ошибка извлечения новости: {e}")
+                        continue
 
         except Exception as e:
             logger.error(f"❌ Ошибка парсинга новостей school203.spb.ru: {e}")

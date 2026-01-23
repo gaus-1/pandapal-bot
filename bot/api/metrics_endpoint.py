@@ -92,7 +92,10 @@ class MetricsEndpoint:
             metrics_text = export_prometheus_metrics()
 
             return web.Response(
-                text=metrics_text, content_type="text/plain; version=0.0.4; charset=utf-8"
+                text=metrics_text,
+                content_type="text/plain",
+                charset="utf-8",
+                headers={"X-Prometheus-Version": "0.0.4"},
             )
 
         except Exception as e:

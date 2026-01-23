@@ -138,11 +138,62 @@ async def miniapp_auth(request: web.Request) -> web.Response:
         return web.json_response({"error": f"Server error: {str(e)}"}, status=500)
 
 
+def _verify_resource_owner(
+    request: web.Request, target_telegram_id: int
+) -> tuple[bool, str | None]:
+    """
+    Проверка владельца ресурса (OWASP A01: Broken Access Control).
+
+    Верифицирует, что пользователь из initData имеет право доступа к ресурсу.
+
+    Args:
+        request: HTTP запрос с заголовком X-Telegram-Init-Data
+        target_telegram_id: ID ресурса к которому запрашивается доступ
+
+    Returns:
+        (allowed, error_message): Разрешен ли доступ и сообщение об ошибке
+    """
+    # Получаем initData из заголовка
+    init_data = request.headers.get("X-Telegram-Init-Data")
+
+    if not init_data:
+        # Без initData - запрещаем доступ к защищенным ресурсам
+        logger.warning("⚠️ Запрос без X-Telegram-Init-Data к защищенному ресурсу")
+        return False, "Authorization required: X-Telegram-Init-Data header missing"
+
+    # Валидируем initData
+    auth_validator = TelegramWebAppAuth()
+    validated_data = auth_validator.validate_init_data(init_data)
+
+    if not validated_data:
+        logger.warning("⚠️ Невалидный initData в заголовке")
+        return False, "Invalid authorization data"
+
+    # Извлекаем telegram_id из initData
+    user_data = auth_validator.extract_user_data(validated_data)
+    if not user_data or not user_data.get("id"):
+        logger.warning("⚠️ Не удалось извлечь user_id из initData")
+        return False, "Invalid user data in authorization"
+
+    requester_id = user_data["id"]
+
+    # Проверяем что запрашивающий == владелец ресурса
+    if requester_id != target_telegram_id:
+        logger.warning(
+            f"🚫 Access denied: user {requester_id} tried to access resource of user {target_telegram_id}"
+        )
+        return False, "Access denied: you can only access your own resources"
+
+    return True, None
+
+
 async def miniapp_get_user(request: web.Request) -> web.Response:
     """
     Получить профиль пользователя.
 
     GET /api/miniapp/user/{telegram_id}
+
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         # Безопасная валидация telegram_id
@@ -151,6 +202,11 @@ async def miniapp_get_user(request: web.Request) -> web.Response:
         except ValueError as e:
             logger.warning(f"⚠️ Invalid telegram_id: {e}")
             return web.json_response({"error": str(e)}, status=400)
+
+        # Проверка владельца ресурса (A01: Broken Access Control)
+        allowed, error_msg = _verify_resource_owner(request, telegram_id)
+        if not allowed:
+            return web.json_response({"error": error_msg}, status=403)
 
         with get_db() as db:
             user_service = UserService(db)
@@ -179,6 +235,8 @@ async def miniapp_update_user(request: web.Request) -> web.Response:
 
     PATCH /api/miniapp/user/{telegram_id}
     Body: { "age": 10, "grade": 4 }
+
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         # Безопасная валидация telegram_id
@@ -187,6 +245,11 @@ async def miniapp_update_user(request: web.Request) -> web.Response:
         except ValueError as e:
             logger.warning(f"⚠️ Invalid telegram_id: {e}")
             return web.json_response({"error": str(e)}, status=400)
+
+        # Проверка владельца ресурса (A01: Broken Access Control)
+        allowed, error_msg = _verify_resource_owner(request, telegram_id)
+        if not allowed:
+            return web.json_response({"error": error_msg}, status=403)
 
         # Валидация входных данных
         data = await request.json()

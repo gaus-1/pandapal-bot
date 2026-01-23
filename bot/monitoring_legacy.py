@@ -127,7 +127,7 @@ class MonitoringService:
         if not recent_activities:
             return {"status": "no_data"}
 
-        unique_users = len(set(a.user_id for a in recent_activities))
+        unique_users = len({a.user_id for a in recent_activities})
         success_rate = sum(1 for a in recent_activities if a.success) / len(recent_activities)
 
         action_counts: dict[str, int] = {}
@@ -292,7 +292,7 @@ def _get_active_connections() -> int:
 
 
 # HTTP endpoints для мониторинга
-async def health_check(request):
+async def health_check(_request):
     """Health check endpoint"""
     health = monitoring_service.get_health_status()
     status_code = 200 if health["healthy"] else 503
@@ -300,19 +300,19 @@ async def health_check(request):
     return web.json_response(health, status=status_code)
 
 
-async def metrics_endpoint(request):
+async def metrics_endpoint(_request):
     """Endpoint для метрик"""
     performance = monitoring_service.get_performance_summary()
     return web.json_response(performance)
 
 
-async def user_stats_endpoint(request):
+async def user_stats_endpoint(_request):
     """Endpoint для статистики пользователей"""
     stats = monitoring_service.get_user_stats()
     return web.json_response(stats)
 
 
-async def detailed_metrics_endpoint(request):
+async def detailed_metrics_endpoint(_request):
     """Подробные метрики для администраторов"""
     data = {
         "performance": monitoring_service.get_performance_summary(),
