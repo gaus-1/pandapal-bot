@@ -1,8 +1,4 @@
-"""
-Декораторы для улучшения качества кода
-Реализация паттернов и принципов ООП
-
-"""
+"""Декораторы для улучшения качества кода."""
 
 import functools
 import time
@@ -20,30 +16,13 @@ from tenacity import (
 F = TypeVar("F", bound=Callable[..., Any])
 
 
-# === ASYNC RETRY С TENACITY ===
 def async_retry(
     max_attempts: int = 3,
     min_wait: float = 1.0,
     max_wait: float = 10.0,
     exceptions: tuple = (Exception,),
 ):
-    """
-    Асинхронный декоратор retry с экспоненциальной задержкой.
-
-    Использует tenacity для надежного повтора при сбоях внешних сервисов
-    (Yandex Cloud, Telegram API, PostgreSQL).
-
-    Args:
-        max_attempts: Максимальное количество попыток
-        min_wait: Минимальная задержка между попытками (секунды)
-        max_wait: Максимальная задержка между попытками (секунды)
-        exceptions: Типы исключений для повтора
-
-    Example:
-        >>> @async_retry(max_attempts=3, exceptions=(aiohttp.ClientError,))
-        ... async def call_external_api():
-        ...     return await api.request()
-    """
+    """Асинхронный декоратор retry с экспоненциальной задержкой."""
     return retry(
         stop=stop_after_attempt(max_attempts),
         wait=wait_exponential(multiplier=1, min=min_wait, max=max_wait),
@@ -56,26 +35,7 @@ def async_retry(
 
 
 def log_execution_time(func: F) -> F:
-    """
-    Декоратор для логирования времени выполнения функции.
-
-    Реализует принцип единственной ответственности (SRP) - единственная задача:
-    измерение и логирование времени выполнения декорируемой функции.
-
-    Args:
-        func (F): Функция для декорирования.
-
-    Returns:
-        F: Декорированная функция с добавленным логированием времени выполнения.
-
-    Example:
-        >>> @log_execution_time
-        ... def slow_function():
-        ...     time.sleep(1)
-        ...     return "done"
-        >>> slow_function()
-        # В логах: "slow_function выполнена за 1.001s"
-    """
+    """Декоратор для логирования времени выполнения функции."""
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):  # type: ignore
@@ -90,26 +50,7 @@ def log_execution_time(func: F) -> F:
 
 
 def retry_on_exception(max_attempts: int = 3, delay: float = 1.0, exceptions: tuple = (Exception,)):
-    """
-    Декоратор для автоматических повторных попыток при возникновении исключений.
-
-    Реализует принцип устойчивости к сбоям - автоматически повторяет выполнение
-    функции при возникновении указанных типов исключений с экспоненциальной задержкой.
-
-    Args:
-        max_attempts (int): Максимальное количество попыток выполнения функции.
-        delay (float): Базовая задержка между попытками в секундах.
-        exceptions (tuple): Типы исключений, при которых следует повторять попытки.
-
-    Returns:
-        F: Декорированная функция с автоматическими повторами при ошибках.
-
-    Example:
-        >>> @retry_on_exception(max_attempts=3, delay=1.0, exceptions=(ConnectionError,))
-        ... def unstable_api_call():
-        ...     # Может упасть с ConnectionError
-        ...     return api_request()
-    """
+    """Декоратор для автоматических повторных попыток при возникновении исключений."""
 
     def decorator(func: F) -> F:
         @functools.wraps(func)
@@ -138,22 +79,15 @@ def retry_on_exception(max_attempts: int = 3, delay: float = 1.0, exceptions: tu
 
 
 def validate_input(**validators):
-    """
-    Декоратор для валидации входных параметров
-    Реализует принцип единственной ответственности (SRP)
-
-    Args:
-        **validators: Словарь валидаторов {параметр: функция_валидации}
-    """
+    """Декоратор для валидации входных параметров."""
 
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):  # type: ignore
             # Валидация kwargs
             for param_name, validator in validators.items():
-                if param_name in kwargs:
-                    if not validator(kwargs[param_name]):
-                        raise ValueError(f"❌ Некорректное значение параметра {param_name}")
+                if param_name in kwargs and not validator(kwargs[param_name]):
+                    raise ValueError(f"❌ Некорректное значение параметра {param_name}")
 
             return func(*args, **kwargs)
 
@@ -163,13 +97,7 @@ def validate_input(**validators):
 
 
 def cache_result(ttl: int | None = None):
-    """
-    Декоратор для кэширования результатов
-    Реализует паттерн Cache-Aside
-
-    Args:
-        ttl: Время жизни кэша в секундах
-    """
+    """Декоратор для кэширования результатов."""
 
     def decorator(func: F) -> F:
         cache: dict[str, Any] = {}
@@ -181,10 +109,9 @@ def cache_result(ttl: int | None = None):
             cache_key = str(args) + str(sorted(kwargs.items()))
 
             # Проверяем TTL
-            if ttl and cache_key in cache_times:
-                if time.time() - cache_times[cache_key] > ttl:
-                    del cache[cache_key]
-                    del cache_times[cache_key]
+            if ttl and cache_key in cache_times and time.time() - cache_times[cache_key] > ttl:
+                del cache[cache_key]
+                del cache_times[cache_key]
 
             # Возвращаем из кэша или вычисляем
             if cache_key in cache:
@@ -206,13 +133,7 @@ def cache_result(ttl: int | None = None):
 
 
 def rate_limit(calls_per_minute: int = 60):
-    """
-    Декоратор для ограничения частоты вызовов
-    Реализует принцип единственной ответственности (SRP)
-
-    Args:
-        calls_per_minute: Количество вызовов в минуту
-    """
+    """Декоратор для ограничения частоты вызовов."""
 
     def decorator(func: F) -> F:
         call_times: list[float] = []
@@ -237,13 +158,7 @@ def rate_limit(calls_per_minute: int = 60):
 
 
 def security_check(check_function: Callable[[], bool]):
-    """
-    Декоратор для проверки безопасности
-    Реализует принцип единственной ответственности (SRP)
-
-    Args:
-        check_function: Функция проверки безопасности
-    """
+    """Декоратор для проверки безопасности."""
 
     def decorator(func: F) -> F:
         @functools.wraps(func)
@@ -258,13 +173,7 @@ def security_check(check_function: Callable[[], bool]):
 
 
 def deprecated(reason: str = "Функция устарела"):
-    """
-    Декоратор для пометки устаревших функций
-    Реализует принцип открытости/закрытости (OCP)
-
-    Args:
-        reason: Причина устаревания
-    """
+    """Декоратор для пометки устаревших функций."""
 
     def decorator(func: F) -> F:
         @functools.wraps(func)
@@ -284,13 +193,7 @@ class SecurityError(Exception):
 
 
 def singleton(cls):
-    """
-    Декоратор для реализации паттерна Singleton
-    Реализует принцип единственной ответственности (SRP)
-
-    Args:
-        cls: Класс для применения Singleton
-    """
+    """Декоратор для реализации паттерна Singleton."""
     instances = {}
 
     def get_instance(*args, **kwargs):
@@ -302,16 +205,7 @@ def singleton(cls):
 
 
 def memoize(func: F) -> F:
-    """
-    Декоратор для мемоизации функций
-    Реализует паттерн Memoization
-
-    Args:
-        func: Функция для мемоизации
-
-    Returns:
-        F: Мемоизированная функция
-    """
+    """Декоратор для мемоизации функций."""
     cache: dict[str, Any] = {}
 
     @functools.wraps(func)
