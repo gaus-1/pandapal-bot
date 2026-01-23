@@ -102,23 +102,22 @@ class OverloadProtection:
 
         try:
             # Проверяем перегрузку
-            if self.is_overloaded():
+            if self.is_overloaded() and request.path.startswith("/api/"):
                 # Graceful degradation: упрощенные ответы
-                if request.path.startswith("/api/"):
-                    logger.warning(
-                        f"⚠️ Система перегружена ({self.get_current_load():.1%}), "
-                        f"применяем graceful degradation для {request.path}"
-                    )
-                    # Возвращаем упрощенный ответ для API
-                    return web.json_response(
-                        {
-                            "error": "Service temporarily overloaded",
-                            "message": "Please try again in a few seconds",
-                            "retry_after": 5,
-                        },
-                        status=503,
-                        headers={"Retry-After": "5"},
-                    )
+                logger.warning(
+                    f"⚠️ Система перегружена ({self.get_current_load():.1%}), "
+                    f"применяем graceful degradation для {request.path}"
+                )
+                # Возвращаем упрощенный ответ для API
+                return web.json_response(
+                    {
+                        "error": "Service temporarily overloaded",
+                        "message": "Please try again in a few seconds",
+                        "retry_after": 5,
+                    },
+                    status=503,
+                    headers={"Retry-After": "5"},
+                )
 
             # Обрабатываем запрос
             response = await handler(request)
@@ -178,20 +177,17 @@ def get_overload_protection() -> OverloadProtection:
     return _overload_protection
 
 
-async def overload_protection_middleware(app: web.Application, handler) -> web.Response:
+@web.middleware
+async def overload_protection_middleware(request: web.Request, handler) -> web.Response:
     """
     Middleware для защиты от перегрузки.
 
     Применяет graceful degradation при высокой нагрузке.
     """
+    # Исключаем health check и статические файлы
+    if request.path in ["/health", "/metrics"] or request.path.startswith("/assets/"):
+        return await handler(request)
+
+    # Применяем защиту от перегрузки
     protection = get_overload_protection()
-
-    async def middleware_handler(request: web.Request) -> web.Response:
-        # Исключаем health check и статические файлы
-        if request.path in ["/health", "/metrics"] or request.path.startswith("/assets/"):
-            return await handler(request)
-
-        # Применяем защиту от перегрузки
-        return await protection.process_request(request, handler)
-
-    return middleware_handler
+    return await protection.process_request(request, handler)

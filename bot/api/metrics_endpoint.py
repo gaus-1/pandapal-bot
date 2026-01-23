@@ -217,6 +217,41 @@ def create_metrics_routes() -> list:
     return routes
 
 
+@web.middleware
+async def metrics_middleware(request: Request, handler):
+    """Middleware для отслеживания HTTP запросов."""
+    start_time = asyncio.get_event_loop().time()
+
+    try:
+        response = await handler(request)
+
+        # Записываем успешный запрос
+        _ = asyncio.get_event_loop().time() - start_time  # response_time для будущих метрик
+
+        # Можно добавить метрики для HTTP запросов
+        # metrics.increment_counter('http_requests_total', {
+        #     'method': request.method,
+        #     'path': request.path,
+        #     'status': response.status
+        # })
+
+        return response
+
+    except Exception as e:
+        # Записываем ошибку
+        # response_time вычисляется для будущего логирования
+        _ = asyncio.get_event_loop().time() - start_time
+        logger.error("Ошибка в metrics endpoint: %s", e, exc_info=True)
+
+        # metrics.increment_counter('http_requests_total', {
+        #     'method': request.method,
+        #     'path': request.path,
+        #     'status': 500
+        # })
+
+        raise
+
+
 def setup_metrics_middleware(app: web.Application):
     """
     Настроить middleware для метрик.
@@ -226,39 +261,6 @@ def setup_metrics_middleware(app: web.Application):
     """
     if not METRICS_AVAILABLE:
         return
-
-    async def metrics_middleware(request: Request, handler):
-        """Middleware для отслеживания HTTP запросов."""
-        start_time = asyncio.get_event_loop().time()
-
-        try:
-            response = await handler(request)
-
-            # Записываем успешный запрос
-            _ = asyncio.get_event_loop().time() - start_time  # response_time для будущих метрик
-
-            # Можно добавить метрики для HTTP запросов
-            # metrics.increment_counter('http_requests_total', {
-            #     'method': request.method,
-            #     'path': request.path,
-            #     'status': response.status
-            # })
-
-            return response
-
-        except Exception as e:
-            # Записываем ошибку
-            # response_time вычисляется для будущего логирования
-            _ = asyncio.get_event_loop().time() - start_time
-            logger.error("Ошибка в metrics endpoint: %s", e, exc_info=True)
-
-            # metrics.increment_counter('http_requests_total', {
-            #     'method': request.method,
-            #     'path': request.path,
-            #     'status': 500
-            # })
-
-            raise
 
     app.middlewares.append(metrics_middleware)
     logger.info("📊 Middleware для метрик настроен")
