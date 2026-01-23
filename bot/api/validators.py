@@ -4,7 +4,11 @@
 Защита от injection атак через строгую типизацию.
 """
 
+from aiohttp import web
+from loguru import logger
 from pydantic import BaseModel, Field, field_validator
+
+from bot.security.telegram_auth import TelegramWebAppAuth
 
 
 class UpdateUserRequest(BaseModel):
@@ -164,6 +168,84 @@ def validate_telegram_id(telegram_id_str: str) -> int:
         if "invalid literal" in str(e):
             raise ValueError(f"Invalid telegram_id format: {telegram_id_str}") from e
         raise
+
+
+def verify_resource_owner(request: web.Request, target_telegram_id: int) -> tuple[bool, str | None]:
+    """
+    Проверка владельца ресурса (OWASP A01: Broken Access Control).
+
+    Верифицирует, что пользователь из initData имеет право доступа к ресурсу.
+    Используется для защиты всех endpoints с telegram_id в URL.
+
+    Args:
+        request: HTTP запрос с заголовком X-Telegram-Init-Data
+        target_telegram_id: ID ресурса к которому запрашивается доступ
+
+    Returns:
+        (allowed, error_message): Разрешен ли доступ и сообщение об ошибке
+    """
+    # Получаем initData из заголовка
+    init_data = request.headers.get("X-Telegram-Init-Data")
+
+    if not init_data:
+        # Без initData - запрещаем доступ к защищенным ресурсам
+        logger.warning(
+            f"🚫 A01: Запрос без X-Telegram-Init-Data к ресурсу user={target_telegram_id}"
+        )
+        return False, "Authorization required: X-Telegram-Init-Data header missing"
+
+    # Валидируем initData
+    auth_validator = TelegramWebAppAuth()
+    validated_data = auth_validator.validate_init_data(init_data)
+
+    if not validated_data:
+        logger.warning(f"🚫 A01: Невалидный initData для ресурса user={target_telegram_id}")
+        return False, "Invalid authorization data"
+
+    # Извлекаем telegram_id из initData
+    user_data = auth_validator.extract_user_data(validated_data)
+    if not user_data or not user_data.get("id"):
+        logger.warning(
+            f"🚫 A01: Не удалось извлечь user_id из initData для user={target_telegram_id}"
+        )
+        return False, "Invalid user data in authorization"
+
+    requester_id = user_data["id"]
+
+    # Проверяем что запрашивающий == владелец ресурса
+    if requester_id != target_telegram_id:
+        logger.warning(
+            f"🚫 A01: Access denied - user {requester_id} пытался получить доступ к user {target_telegram_id}"
+        )
+        return False, "Access denied: you can only access your own resources"
+
+    return True, None
+
+
+def require_owner(request: web.Request, target_telegram_id: int) -> web.Response | None:
+    """
+    Декоратор-хелпер для проверки владельца ресурса.
+
+    Возвращает готовый Response с ошибкой 403 если доступ запрещен,
+    или None если доступ разрешен.
+
+    Использование:
+        error_response = require_owner(request, telegram_id)
+        if error_response:
+            return error_response
+        # ... продолжить обработку
+
+    Args:
+        request: HTTP запрос
+        target_telegram_id: ID пользователя-владельца ресурса
+
+    Returns:
+        web.Response с ошибкой 403, или None если доступ разрешен
+    """
+    allowed, error_msg = verify_resource_owner(request, target_telegram_id)
+    if not allowed:
+        return web.json_response({"error": error_msg}, status=403)
+    return None
 
 
 def validate_limit(limit_str: str | None, default: int = 50, max_limit: int = 100) -> int:

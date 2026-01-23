@@ -6,7 +6,7 @@ from aiohttp import web
 from loguru import logger
 from pydantic import BaseModel, ValidationError
 
-from bot.api.validators import validate_telegram_id
+from bot.api.validators import require_owner, validate_telegram_id
 from bot.database import get_db
 from bot.services.games_service import GamesService
 
@@ -112,8 +112,9 @@ async def create_game(request: web.Request) -> web.Response:
     """
     Создать новую игровую сессию.
 
-    POST /api/miniapp/games/create
+    POST /api/miniapp/games/{telegram_id}/create
     Body: { "game_type": "tic_tac_toe" | "checkers" | "2048" }
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         data = await request.json()
@@ -124,6 +125,10 @@ async def create_game(request: web.Request) -> web.Response:
         if not telegram_id_str:
             return web.json_response({"error": "telegram_id not found"}, status=400)
         telegram_id = validate_telegram_id(telegram_id_str)
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         try:
             validated = CreateGameRequest(**data)
@@ -379,9 +384,15 @@ async def get_game_stats(request: web.Request) -> web.Response:
 
     GET /api/miniapp/games/{telegram_id}/stats
     Query: ?game_type=tic_tac_toe (опционально)
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
+
         game_type = request.query.get("game_type")
 
         with get_db() as db:

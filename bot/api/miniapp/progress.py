@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from bot.api.validators import (
     DashboardStatsResponse,
     DetailedAnalyticsResponse,
+    require_owner,
     validate_telegram_id,
 )
 from bot.database import get_db
@@ -21,6 +22,7 @@ async def miniapp_get_progress(request: web.Request) -> web.Response:
     Получить прогресс обучения пользователя.
 
     GET /api/miniapp/progress/{telegram_id}
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         # Безопасная валидация telegram_id
@@ -29,6 +31,10 @@ async def miniapp_get_progress(request: web.Request) -> web.Response:
         except ValueError as e:
             logger.warning(f"⚠️ Invalid telegram_id: {e}")
             return web.json_response({"error": str(e)}, status=400)
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         with get_db() as db:
             user_service = UserService(db)
@@ -52,6 +58,7 @@ async def miniapp_get_achievements(request: web.Request) -> web.Response:
     Получить достижения пользователя с реальными данными из БД.
 
     GET /api/miniapp/achievements/{telegram_id}
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         # Безопасная валидация telegram_id
@@ -60,6 +67,10 @@ async def miniapp_get_achievements(request: web.Request) -> web.Response:
         except ValueError as e:
             logger.warning(f"⚠️ Invalid telegram_id: {e}")
             return web.json_response({"error": str(e)}, status=400)
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         with get_db() as db:
             from bot.services.gamification_service import GamificationService
@@ -96,6 +107,7 @@ async def miniapp_get_dashboard(request: web.Request) -> web.Response:
     Получить статистику для дашборда.
 
     GET /api/miniapp/dashboard/{telegram_id}
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         # Безопасная валидация telegram_id
@@ -104,6 +116,10 @@ async def miniapp_get_dashboard(request: web.Request) -> web.Response:
         except ValueError as e:
             logger.warning(f"⚠️ Invalid telegram_id: {e}")
             return web.json_response({"error": str(e)}, status=400)
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         with get_db() as db:
             user_service = UserService(db)

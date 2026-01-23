@@ -14,6 +14,7 @@ from pydantic import ValidationError
 from bot.api.validators import (
     PremiumPaymentRequest,
     PremiumYooKassaRequest,
+    require_owner,
     validate_telegram_id,
 )
 from bot.config import settings
@@ -596,9 +597,14 @@ async def get_premium_status(request: web.Request) -> web.Response:
     Получить статус Premium подписки пользователя.
 
     GET /api/miniapp/premium/status/{telegram_id}
+    Требует заголовок X-Telegram-Init-Data для проверки владельца ресурса.
     """
     try:
         telegram_id = validate_telegram_id(request.match_info["telegram_id"])
+
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
 
         with get_db() as db:
             subscription_service = SubscriptionService(db)
