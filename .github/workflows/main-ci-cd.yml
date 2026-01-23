@@ -1,16 +1,7 @@
-# ============================================================================
-# PANDAPAL BOT - ГЛАВНЫЙ CI/CD PIPELINE
-# ============================================================================
-# ⚠️ ПРОПРИЕТАРНОЕ ПРОГРАММНОЕ ОБЕСПЕЧЕНИЕ
-# Этот код защищен проприетарной лицензией. Использование запрещено.
-# См. LICENSE и .github/DISCLAIMER.md
-# ============================================================================
-# Профессиональный pipeline для Senior/Lead разработки
-# - Backend (Python 3.13 + PostgreSQL 17)
-# - Frontend (React 18 + TypeScript + Vite)
-# - Security scanning
-# - Auto-deploy to Railway
-# ============================================================================
+# PandaPal CI/CD Pipeline
+# Backend: Python 3.13 + PostgreSQL 17
+# Frontend: React 18 + TypeScript + Vite
+# Auto-deploy: Railway
 
 name: 🐼 PandaPal CI/CD
 
@@ -26,9 +17,7 @@ env:
   POSTGRES_VERSION: '17'
 
 jobs:
-  # ============================================================================
-  # BACKEND: Python + PostgreSQL
-  # ============================================================================
+  # Backend: Python + PostgreSQL
   backend:
     name: 🐍 Backend (Python 3.13)
     runs-on: ubuntu-latest
@@ -138,9 +127,7 @@ jobs:
           subject-digest: '${{ steps.digest-backend.outputs.digest }}'
           push-to-registry: false
 
-  # ============================================================================
-  # FRONTEND: React + TypeScript + Vite
-  # ============================================================================
+  # Frontend: React + TypeScript + Vite
   frontend:
     name: ⚛️ Frontend (React 18)
     runs-on: ubuntu-latest
@@ -212,9 +199,7 @@ jobs:
           subject-digest: '${{ steps.digest-frontend.outputs.digest }}'
           push-to-registry: false
 
-  # ============================================================================
-  # SECURITY: Безопасность и уязвимости
-  # ============================================================================
+  # Security: Безопасность и уязвимости
   security:
     name: 🛡️ Security Scan
     runs-on: ubuntu-latest
@@ -280,9 +265,7 @@ jobs:
           echo "🌐 URL: https://pandapal.ru"
           echo "📊 Health: https://pandapal.ru/health"
 
-  # ============================================================================
-  # SUMMARY: Итоговый отчет
-  # ============================================================================
+  # Summary: Итоговый отчет
   summary:
     name: 📊 Build Summary
     runs-on: ubuntu-latest
@@ -292,10 +275,7 @@ jobs:
     steps:
       - name: 📊 Print summary
         run: |
-          echo "============================================"
           echo "🐼 PandaPal Bot - CI/CD Summary"
-          echo "============================================"
           echo "Backend: ${{ needs.backend.result }}"
           echo "Frontend: ${{ needs.frontend.result }}"
-          echo "============================================"
-          echo "✅ Pipeline completed!"
+          echo "✅ Pipeline completed"
