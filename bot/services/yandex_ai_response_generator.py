@@ -373,8 +373,9 @@ def clean_ai_response(text: str) -> str:
     for pattern in auto_system_patterns:
         text = re.sub(pattern, "", text, flags=re.IGNORECASE)
 
-    # Убираем математические символы верхних индексов и спецзнаков
-    # (Оставляем знаки препинания и базовые операторы + - =)
+    # Убираем только сложные математические символы
+    # КРИТИЧЕСКИ ВАЖНО: НЕ удаляем ×, так как это основной символ умножения по промптам!
+    # (Оставляем знаки препинания и базовые операторы + - = × ÷)
     complex_math_chars = [
         "²",
         "³",
@@ -384,8 +385,7 @@ def clean_ai_response(text: str) -> str:
         "∠",
         "°",
         "•",
-        "×",
-    ]  # × можно заменить на x, но лучше оставить
+    ]
     for char in complex_math_chars:
         text = text.replace(char, "")
 
