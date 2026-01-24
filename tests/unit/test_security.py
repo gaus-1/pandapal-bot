@@ -204,3 +204,55 @@ class TestAuditLogger:
             assert True
         except Exception as e:
             pytest.fail(f"Логирование несанкционированного доступа вызвало исключение: {e}")
+
+    def test_log_payment_event(self):
+        """Тест логирования событий платежей."""
+        # Тест не должен вызывать исключений
+        try:
+            AuditLogger.log_payment_event(
+                event_type=SecurityEventType.PAYMENT_CREATED,
+                user_id=12345,
+                payment_id="test_payment_123",
+                amount=599.0,
+                currency="RUB",
+                plan_id="month",
+                payment_method="yookassa_card",
+            )
+            assert True
+        except Exception as e:
+            pytest.fail(f"Логирование платежа вызвало исключение: {e}")
+
+    def test_log_subscription_event(self):
+        """Тест логирования событий подписок."""
+        # Тест не должен вызывать исключений
+        try:
+            AuditLogger.log_subscription_event(
+                event_type=SecurityEventType.SUBSCRIPTION_ACTIVATED,
+                user_id=12345,
+                subscription_id=1,
+                plan_id="month",
+            )
+            assert True
+        except Exception as e:
+            pytest.fail(f"Логирование подписки вызвало исключение: {e}")
+
+    def test_log_user_data_access(self):
+        """Тест логирования доступа к данным пользователя."""
+        # Тест не должен вызывать исключений
+        try:
+            # Доступ к своим данным
+            AuditLogger.log_user_data_access(
+                user_id=12345, accessed_user_id=12345, resource="/profile", action="read"
+            )
+
+            # Доступ к чужим данным (должен быть WARNING)
+            AuditLogger.log_user_data_access(
+                user_id=12345,
+                accessed_user_id=67890,
+                resource="/profile",
+                action="read",
+                ip_address="192.168.1.1",
+            )
+            assert True
+        except Exception as e:
+            pytest.fail(f"Логирование доступа к данным вызвало исключение: {e}")

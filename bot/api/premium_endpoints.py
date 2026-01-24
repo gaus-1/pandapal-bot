@@ -20,6 +20,7 @@ from bot.api.validators import (
 from bot.config import settings
 from bot.database import get_db
 from bot.models import Payment as PaymentModel
+from bot.security.audit_logger import AuditLogger, SecurityEventType
 from bot.services import PaymentService, SubscriptionService, UserService
 
 
@@ -244,6 +245,18 @@ async def create_yookassa_payment(request: web.Request) -> web.Response:
             )
             db.add(payment_record)
             db.commit()
+
+            # Audit logging: платеж создан
+            AuditLogger.log_payment_event(
+                event_type=SecurityEventType.PAYMENT_CREATED,
+                user_id=telegram_id,
+                payment_id=payment_data["payment_id"],
+                amount=plan["price"],
+                currency=payment_data["amount"]["currency"],
+                plan_id=plan_id,
+                payment_method="yookassa_card",
+                additional_metadata={"ip_address": request.get("client_ip")},
+            )
 
             logger.info(
                 f"✅ ЮKassa платеж создан и сохранен: payment_id={payment_data['payment_id']}, "

@@ -24,6 +24,7 @@ class SecurityEventType(Enum):
     LOGIN_SUCCESS = "login_success"
     LOGIN_FAILURE = "login_failure"
     UNAUTHORIZED_ACCESS = "unauthorized_access"
+    AUTHENTICATION_FAILURE = "authentication_failure"
 
     # Модерация контента
     CONTENT_BLOCKED = "content_blocked"
@@ -40,6 +41,19 @@ class SecurityEventType(Enum):
     # Критические события
     SECURITY_VIOLATION = "security_violation"
     DATA_BREACH_ATTEMPT = "data_breach_attempt"
+
+    # Платежи и подписки (критические операции)
+    PAYMENT_CREATED = "payment_created"
+    PAYMENT_SUCCEEDED = "payment_succeeded"
+    PAYMENT_FAILED = "payment_failed"
+    SUBSCRIPTION_ACTIVATED = "subscription_activated"
+    SUBSCRIPTION_EXPIRED = "subscription_expired"
+    SUBSCRIPTION_CANCELLED = "subscription_cancelled"
+
+    # Доступ к данным
+    USER_DATA_ACCESSED = "user_data_accessed"
+    USER_DATA_MODIFIED = "user_data_modified"
+    SENSITIVE_DATA_EXPORT = "sensitive_data_export"
 
 
 class SecurityEventSeverity(Enum):
@@ -106,7 +120,7 @@ class AuditLogger:
                         masked[key] = value[:2] + "*" * (len(value) - 4) + value[-2:]
                     else:
                         masked[key] = "*" * len(value)
-                elif isinstance(value, (dict, list)):
+                elif isinstance(value, dict | list):
                     # Рекурсивно маскируем вложенные структуры
                     masked[key] = AuditLogger.mask_sensitive_data(value)
                 else:
@@ -166,8 +180,10 @@ class AuditLogger:
         safe_metadata = AuditLogger.mask_sensitive_data(metadata) if metadata else {}
 
         # Формируем структурированное сообщение
+        from datetime import UTC
+
         log_entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "event_type": event_type.value,
             "severity": severity.value,
             "message": safe_message,
@@ -272,6 +288,129 @@ class AuditLogger:
             metadata={
                 "service": service,
                 "error": AuditLogger.sanitize_log_message(error_message),
+            },
+        )
+
+    @staticmethod
+    def log_payment_event(
+        event_type: SecurityEventType,
+        user_id: int,
+        payment_id: str,
+        amount: float,
+        currency: str,
+        plan_id: str,
+        payment_method: str | None = None,
+        additional_metadata: dict | None = None,
+    ) -> None:
+        """
+        Логирует события связанные с платежами.
+
+        Args:
+            event_type: Тип события (PAYMENT_CREATED, PAYMENT_SUCCEEDED, PAYMENT_FAILED)
+            user_id: ID пользователя
+            payment_id: ID платежа
+            amount: Сумма платежа
+            currency: Валюта
+            plan_id: ID плана подписки
+            payment_method: Метод оплаты
+            additional_metadata: Дополнительные метаданные
+        """
+        metadata = {
+            "payment_id": payment_id,
+            "amount": amount,
+            "currency": currency,
+            "plan_id": plan_id,
+            "payment_method": payment_method,
+        }
+
+        if additional_metadata:
+            metadata.update(additional_metadata)
+
+        severity = SecurityEventSeverity.INFO
+        if event_type == SecurityEventType.PAYMENT_FAILED:
+            severity = SecurityEventSeverity.WARNING
+
+        AuditLogger.log_security_event(
+            event_type=event_type,
+            severity=severity,
+            message=f"Платеж {event_type.value}: {payment_id}",
+            user_id=user_id,
+            metadata=metadata,
+        )
+
+    @staticmethod
+    def log_subscription_event(
+        event_type: SecurityEventType,
+        user_id: int,
+        subscription_id: int,
+        plan_id: str,
+        additional_metadata: dict | None = None,
+    ) -> None:
+        """
+        Логирует события связанные с подписками.
+
+        Args:
+            event_type: Тип события (SUBSCRIPTION_ACTIVATED, SUBSCRIPTION_EXPIRED, SUBSCRIPTION_CANCELLED)
+            user_id: ID пользователя
+            subscription_id: ID подписки
+            plan_id: ID плана
+            additional_metadata: Дополнительные метаданные
+        """
+        metadata = {
+            "subscription_id": subscription_id,
+            "plan_id": plan_id,
+        }
+
+        if additional_metadata:
+            metadata.update(additional_metadata)
+
+        severity = SecurityEventSeverity.INFO
+        if event_type == SecurityEventType.SUBSCRIPTION_EXPIRED:
+            severity = SecurityEventSeverity.WARNING
+
+        AuditLogger.log_security_event(
+            event_type=event_type,
+            severity=severity,
+            message=f"Подписка {event_type.value}: {subscription_id}",
+            user_id=user_id,
+            metadata=metadata,
+        )
+
+    @staticmethod
+    def log_user_data_access(
+        user_id: int,
+        accessed_user_id: int,
+        resource: str,
+        action: str,
+        ip_address: str | None = None,
+    ) -> None:
+        """
+        Логирует доступ к данным пользователя.
+
+        Args:
+            user_id: ID пользователя, выполняющего доступ
+            accessed_user_id: ID пользователя, чьи данные запрашиваются
+            resource: Ресурс, к которому был доступ
+            action: Действие (read, update, delete)
+            ip_address: IP адрес
+        """
+        severity = SecurityEventSeverity.INFO
+
+        # Если пользователь обращается к чужим данным - повышаем критичность
+        if user_id != accessed_user_id:
+            severity = SecurityEventSeverity.WARNING
+
+        AuditLogger.log_security_event(
+            event_type=SecurityEventType.USER_DATA_ACCESSED,
+            severity=severity,
+            message=f"Доступ к данным пользователя: {resource}",
+            user_id=user_id,
+            metadata={
+                "accessed_user_id": f"***{str(accessed_user_id)[-4:]}",
+                "resource": resource,
+                "action": action,
+                "ip_address": ip_address,
+                "is_own_data": user_id == accessed_user_id,
             },
         )
 
