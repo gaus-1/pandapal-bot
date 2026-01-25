@@ -107,7 +107,7 @@ export function EmergencyScreen() {
   };
 
   return (
-    <div ref={containerRef} data-emergency-screen className="h-full overflow-y-auto bg-white dark:bg-slate-900 p-4 sm:p-6 md:p-8 max-w-4xl mx-auto pb-24">
+    <div ref={containerRef} data-emergency-screen className="h-full overflow-y-auto bg-white dark:bg-slate-800 p-4 sm:p-6 md:p-8 max-w-4xl mx-auto pb-24">
       {/* Заголовок */}
       <div className="mb-6 sm:mb-8">
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold text-gray-900 dark:text-slate-100 mb-2 sm:mb-3">

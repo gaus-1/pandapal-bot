@@ -224,7 +224,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   };
 
   return (
-    <div className="w-full h-full bg-white dark:bg-slate-900 flex flex-col overflow-hidden">
+    <div className="w-full h-full bg-white dark:bg-slate-800 flex flex-col overflow-hidden">
       {/* Заголовок */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-700">
         <button
@@ -317,7 +317,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                             -mt-[6px]
                             ${cell === "user"
                               ? "bg-white dark:bg-slate-300 border-[3px] border-gray-300 dark:border-slate-500"
-                              : "bg-gray-800 dark:bg-slate-900 border-[3px] border-gray-900 dark:border-slate-800"}
+                              : "bg-gray-800 dark:bg-slate-800 border-[3px] border-gray-900 dark:border-slate-700"}
                           `}
                           style={{
                             boxShadow: cell === "user"
@@ -356,7 +356,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
       {/* Инструкция */}
       {!gameOver && (
-        <div className="flex-shrink-0 text-center text-xs sm:text-sm text-gray-600 dark:text-slate-400 px-4 py-2 space-y-1 bg-white dark:bg-slate-900">
+        <div className="flex-shrink-0 text-center text-xs sm:text-sm text-gray-600 dark:text-slate-400 px-4 py-2 space-y-1 bg-white dark:bg-slate-800">
           <p className="m-0">Ты играешь белыми, панда играет черными</p>
           <p className="m-0">Нажми на свою фишку, затем на клетку для хода</p>
         </div>
@@ -364,7 +364,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
       {/* Кнопка новой игры */}
       {gameOver && (
-        <div className="flex-shrink-0 text-center px-4 py-3 bg-white dark:bg-slate-900">
+        <div className="flex-shrink-0 text-center px-4 py-3 bg-white dark:bg-slate-800">
           <button
             onClick={onBack}
             className="px-8 py-3 bg-blue-500 dark:bg-blue-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px] shadow-md"

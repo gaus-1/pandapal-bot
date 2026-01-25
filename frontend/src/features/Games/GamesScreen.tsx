@@ -108,7 +108,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
 
   if (selectedGame && sessionId) {
     return (
-      <div className="w-full h-full bg-white dark:bg-slate-900 overflow-y-auto">
+      <div className="w-full h-full bg-white dark:bg-slate-800 overflow-y-auto">
         {selectedGame === 'tic_tac_toe' && (
           <TicTacToe
             sessionId={sessionId}
@@ -146,7 +146,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
   }
 
   return (
-    <div className="w-full h-full bg-white dark:bg-slate-900 flex flex-col">
+    <div className="w-full h-full bg-white dark:bg-slate-800 flex flex-col">
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Заголовок */}
@@ -230,7 +230,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
               {Object.values(stats).map((stat) => (
                 <div
                   key={stat.game_type}
-                  className="p-2 bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700"
+                  className="p-2 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700"
                 >
                   <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-1">
                     {stat.game_type === 'tic_tac_toe' && '❌⭕ Крестики-нолики'}
@@ -253,7 +253,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
       </div>
 
       {/* Нижняя навигация */}
-      <nav className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom">
+      <nav className="flex-shrink-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom">
         <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
           <button
             onClick={() => {

@@ -199,7 +199,7 @@ function MiniAppContent() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-slate-900 overflow-hidden">
+    <div className="h-screen flex flex-col bg-white dark:bg-slate-800 overflow-hidden">
       {/* Основной контент с Suspense для lazy loading */}
       <div className="flex-1 overflow-hidden">
         <Suspense fallback={<LoadingFallback />}>
@@ -214,7 +214,7 @@ function MiniAppContent() {
 
       {/* Нижняя навигация - фиксированная */}
       {currentScreen === 'ai-chat' ? (
-        <nav className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
+        <nav className="flex-shrink-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
           <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
             <NavButton
               icon="🏆"
@@ -237,7 +237,7 @@ function MiniAppContent() {
           </div>
         </nav>
       ) : currentScreen === 'games' ? null : (
-        <nav className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
+        <nav className="flex-shrink-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
           <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
             <NavButton
               icon="💬"

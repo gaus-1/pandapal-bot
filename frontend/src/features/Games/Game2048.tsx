@@ -234,7 +234,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
   };
 
   return (
-    <div className="w-full h-full bg-white dark:bg-slate-900 overflow-y-auto">
+    <div className="w-full h-full bg-white dark:bg-slate-800 overflow-y-auto">
       <div className="max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Заголовок */}
         <div className="flex items-center justify-between mb-2">

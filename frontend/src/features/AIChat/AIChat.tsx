@@ -358,7 +358,7 @@ export function AIChat({ user }: AIChatProps) {
       {/* Основной контент */}
       <div className="flex flex-col h-full relative" style={{ zIndex: 1, position: 'relative' }}>
       {/* Заголовок */}
-      <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-slate-800 dark:to-slate-900 shadow-sm p-1.5 sm:p-2 border-b border-blue-500/30 dark:border-slate-700 relative z-10">
+      <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-slate-800 dark:to-slate-800 shadow-sm p-1.5 sm:p-2 border-b border-blue-500/30 dark:border-slate-700 relative z-10">
         <div className="flex items-center gap-1.5 sm:gap-2">
           <img src="/logo.png" alt="PandaPal" width={32} height={32} loading="lazy" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 dark:bg-slate-800/90 p-0.5 shadow-sm" />
           <div className="flex-1 min-w-0">
@@ -522,7 +522,7 @@ export function AIChat({ user }: AIChatProps) {
       )}
 
       {/* Поле ввода */}
-      <div className="flex-shrink-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-t border-gray-200/50 dark:border-slate-700/50 p-1.5 sm:p-2 shadow-lg relative z-10">
+      <div className="flex-shrink-0 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-t border-gray-200/50 dark:border-slate-700/50 p-1.5 sm:p-2 shadow-lg relative z-10">
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
         <div className="flex items-center gap-1 sm:gap-1.5">
           <button onClick={handlePhotoClick} disabled={isSending || isRecording} className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-md transition-all active:scale-95 shadow-sm self-center">

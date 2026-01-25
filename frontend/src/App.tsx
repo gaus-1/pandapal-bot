@@ -111,7 +111,7 @@ const App: React.FC = () => {
   // Показываем загрузку пока проверяем окружение
   if (isChecking) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-slate-900">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-slate-800">
         <div className="text-center">
           <div className="text-6xl mb-4">🐼</div>
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
