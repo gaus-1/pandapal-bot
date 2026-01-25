@@ -397,8 +397,8 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 enhanced_system_prompt += f"\n\n📚 Дополнительная информация:\n{web_context}"
 
             # Используем Pro модель для всех пользователей (YandexGPT 5 Pro Latest - стабильная версия)
-            # Формат yandexgpt/latest - как в примере из Yandex Cloud Console
-            model_name = "yandexgpt/latest"
+            # Используем модель из настроек (yandexgpt/latest или yandexgpt/rc)
+            model_name = settings.yandex_gpt_model
             temperature = settings.ai_temperature  # Основной параметр для всех пользователей
             max_tokens = settings.ai_max_tokens  # Основной параметр для всех пользователей
             logger.info(f"💎 Stream: Используем Pro модель для пользователя {telegram_id}")
