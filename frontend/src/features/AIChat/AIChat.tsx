@@ -860,21 +860,38 @@ function removeDuplicateBlocks(text: string): string {
 
   if (lines.length < 2) return text;
 
-  // Шаг 2: Удаляем дубликаты строк
+  // Шаг 2: Удаляем дубликаты строк, НО сохраняем markdown структуру!
   const seenLines = new Set<string>();
   const uniqueLines: string[] = [];
 
   for (const line of lines) {
-    const normalized = line.trim().toLowerCase().replace(/\s+/g, ' ');
+    const trimmedLine = line.trim();
+
+    // НЕ удаляем структурные элементы markdown (заголовки, списки)
+    const isMarkdownStructure = (
+      trimmedLine.startsWith('#') ||  // ### Заголовок
+      trimmedLine.startsWith('-') ||  // - пункт списка
+      trimmedLine.startsWith('*') ||  // * пункт или **жирный**
+      /^\d+\./.test(trimmedLine) ||   // 1. нумерованный список
+      trimmedLine.startsWith('•')     // • буллет
+    );
+
+    if (isMarkdownStructure) {
+      // Структурные элементы всегда добавляем
+      uniqueLines.push(trimmedLine);
+      continue;
+    }
+
+    const normalized = trimmedLine.toLowerCase().replace(/\s+/g, ' ');
     if (normalized.length >= 20) {
       if (!seenLines.has(normalized)) {
         seenLines.add(normalized);
-        uniqueLines.push(line.trim());
+        uniqueLines.push(trimmedLine);
       }
     } else {
       // Короткие строки проверяем на точное совпадение
-      if (!uniqueLines.includes(line.trim())) {
-        uniqueLines.push(line.trim());
+      if (!uniqueLines.includes(trimmedLine)) {
+        uniqueLines.push(trimmedLine);
       }
     }
   }
