@@ -214,16 +214,18 @@ class PhysicsVisualization(BaseVisualizationService):
                 ha="center",
             )
             ax.annotate("Плавление", xy=(4.5, t_melt + 5), fontsize=10, ha="center")
-            ax.annotate(
-                "Нагрев\nжидкости", xy=(8, (t_melt + t_end) / 2), fontsize=10, ha="center"
-            )
+            ax.annotate("Нагрев\nжидкости", xy=(8, (t_melt + t_end) / 2), fontsize=10, ha="center")
 
             # Горизонтальная пунктирная линия на уровне плавления
-            ax.axhline(y=t_melt, color="r", linestyle="--", alpha=0.5, label=f"t плавления = {t_melt}°C")
+            ax.axhline(
+                y=t_melt, color="r", linestyle="--", alpha=0.5, label=f"t плавления = {t_melt}°C"
+            )
 
             ax.set_xlabel("Время, мин", fontsize=12)
             ax.set_ylabel("Температура, °C", fontsize=12)
-            ax.set_title(f"График нагревания и плавления {data['name']}", fontsize=14, fontweight="bold")
+            ax.set_title(
+                f"График нагревания и плавления {data['name']}", fontsize=14, fontweight="bold"
+            )
             ax.grid(True, alpha=0.3)
             ax.legend(loc="lower right")
             plt.tight_layout()
@@ -270,9 +272,13 @@ class PhysicsVisualization(BaseVisualizationService):
             ax.plot(time, temp, f"{color}-", linewidth=2)
 
             if process == "heating":
-                ax.axhline(y=100, color="gray", linestyle="--", alpha=0.5, label="t кипения = 100°C")
+                ax.axhline(
+                    y=100, color="gray", linestyle="--", alpha=0.5, label="t кипения = 100°C"
+                )
             else:
-                ax.axhline(y=20, color="gray", linestyle="--", alpha=0.5, label="t окружающей среды = 20°C")
+                ax.axhline(
+                    y=20, color="gray", linestyle="--", alpha=0.5, label="t окружающей среды = 20°C"
+                )
 
             ax.set_xlabel("Время, мин", fontsize=12)
             ax.set_ylabel("Температура, °C", fontsize=12)

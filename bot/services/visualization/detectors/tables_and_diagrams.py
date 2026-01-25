@@ -571,7 +571,7 @@ def detect_subject_tables_and_diagrams(
                 else:
                     image = viz_service.generate_heating_cooling_graph("heating")
                 if image:
-                    logger.info(f"📈 Детектирован график теплового процесса")
+                    logger.info("📈 Детектирован график теплового процесса")
                     return image, "graph"
 
     math_graph_patterns = [

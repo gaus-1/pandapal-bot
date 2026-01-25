@@ -534,7 +534,10 @@ class GeographyVisualization(BaseVisualizationService):
                 return None
 
         # Проверяем районы Москвы по названиям
-        if country_lower_check in moscow_districts_names and moscow_districts_names[country_lower_check]:
+        if (
+            country_lower_check in moscow_districts_names
+            and moscow_districts_names[country_lower_check]
+        ):
             country_data = moscow_districts_names[country_lower_check]
             lat, lon, name, zoom = country_data
             logger.info(f"🗺️ Найден район Москвы: {name}")

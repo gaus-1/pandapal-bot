@@ -396,10 +396,8 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             verified_context = None
             if response_generator._should_use_wikipedia(user_message):
                 try:
-                    verified_context = (
-                        await response_generator.knowledge_service.get_wikipedia_context_for_question(
-                            user_message, user.age
-                        )
+                    verified_context = await response_generator.knowledge_service.get_wikipedia_context_for_question(
+                        user_message, user.age
                     )
                     if verified_context:
                         logger.debug(f"📚 Wikipedia контекст получен для: {user_message[:50]}...")
@@ -1528,7 +1526,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 )
 
                                 logger.info(
-                                    f"✅ Stream: Fallback - добавлено полноценное пояснение к таблице умножения"
+                                    "✅ Stream: Fallback - добавлено полноценное пояснение к таблице умножения"
                                 )
 
                             # Дополнительная очистка уже выполняется в clean_ai_response,

@@ -208,7 +208,9 @@ class ComputerScienceVisualization(BaseVisualizationService):
             "",
             xy=(cx + 1, 5.5),
             xytext=(8, 2.1),
-            arrowprops=dict(arrowstyle="->", color="black", lw=1.5, connectionstyle="arc3,rad=-0.3"),
+            arrowprops=dict(
+                arrowstyle="->", color="black", lw=1.5, connectionstyle="arc3,rad=-0.3"
+            ),
         )
 
         # Ветка "Нет" - выход из цикла
@@ -239,7 +241,9 @@ class ComputerScienceVisualization(BaseVisualizationService):
             "",
             xy=(cx + 1, 5.5),
             xytext=(8, 2.1),
-            arrowprops=dict(arrowstyle="->", color="black", lw=1.5, connectionstyle="arc3,rad=-0.3"),
+            arrowprops=dict(
+                arrowstyle="->", color="black", lw=1.5, connectionstyle="arc3,rad=-0.3"
+            ),
         )
 
         # Ветка "Нет"
