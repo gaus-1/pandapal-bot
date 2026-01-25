@@ -52,13 +52,19 @@ class PandaPalBotServer:
         self.settings = settings
         self._shutdown_in_progress = False
 
-        # Создаем приложение сразу для раннего healthcheck
+        # Создаем приложение и добавляем ВСЕ роуты сразу (до запуска сервера)
+        # После запуска сервера через AppRunner роутер "замораживается"
         try:
             self._setup_app_base()
             self._setup_health_endpoints()
-            logger.info("✅ Базовое приложение создано для healthcheck")
+            # Добавляем все роуты ДО запуска сервера
+            self._setup_middleware()
+            self._setup_api_routes()
+            self._setup_frontend_static()
+            # Webhook handler добавим после инициализации бота (до запуска сервера)
+            logger.info("✅ Приложение создано со всеми роутами (webhook добавим позже)")
         except Exception as e:
-            logger.error(f"❌ Ошибка создания базового приложения: {e}", exc_info=True)
+            logger.error(f"❌ Ошибка создания приложения: {e}", exc_info=True)
 
     async def init_bot(self) -> None:
         """Инициализация Bot и Dispatcher."""
@@ -518,9 +524,7 @@ class PandaPalBotServer:
             logger.warning("⚠️ Frontend не найден, используется fallback")
 
     def _setup_webhook_handler(self) -> None:
-        """Настройка webhook handler."""
-        # Настраиваем webhook handler ПОСЛЕ регистрации всех маршрутов
-        # Явно указываем путь /webhook для Railway
+        """Настройка webhook handler после инициализации бота."""
         webhook_path = "/webhook"
         webhook_handler = SimpleRequestHandler(dispatcher=self.dp, bot=self.bot)
         webhook_handler.register(self.app, path=webhook_path)
@@ -618,80 +622,57 @@ class PandaPalBotServer:
 
     def create_app(self) -> web.Application:
         """
-        Добавление остальных роутов к существующему приложению.
+        Обратная совместимость - все роуты уже добавлены в __init__.
 
-        Базовое приложение с /health уже создано в __init__ и запущено
-        в start_early_server(). Здесь добавляем middleware, API, frontend.
+        Этот метод больше не используется, роуты добавляются до запуска сервера.
         """
-        try:
-            logger.info("🌐 Добавление роутов к веб-приложению...")
+        return self.app
 
-            # Настройка middleware
-            self._setup_middleware()
-
-            # Настройка API маршрутов
-            self._setup_api_routes()
-
-            # Настройка frontend статики
-            self._setup_frontend_static()
-
-            # Настройка webhook handler
-            self._setup_webhook_handler()
-
-            logger.info("✅ Веб-приложение полностью настроено")
-            return self.app
-
-        except Exception as e:
-            logger.error(f"❌ Ошибка настройки приложения: {e}")
-            raise
-
-    async def startup(self) -> None:
-        """Запуск сервера - инициализация всех компонентов."""
+    async def startup_bot(self) -> None:
+        """Инициализация бота (вызывается ДО запуска сервера)."""
         # Проверка Redis подключения
         await self._check_redis_connection()
 
         # Проверка Prometheus метрик
         self._check_prometheus_status()
-        try:
-            logger.info("🚀 Запуск PandaPal Bot Server...")
 
-            # Инициализация базы данных
-            await init_database()
-            logger.info("📊 База данных инициализирована")
+        logger.info("🚀 Инициализация PandaPal Bot...")
 
-            # Инициализация SessionService (для персистентных сессий)
-            from bot.services.session_service import get_session_service
+        # Инициализация базы данных
+        await init_database()
+        logger.info("📊 База данных инициализирована")
 
-            get_session_service()
-            logger.info("🔐 SessionService инициализирован")
+        # Инициализация SessionService (для персистентных сессий)
+        from bot.services.session_service import get_session_service
 
-            # Инициализация бота
-            await self.init_bot()
+        get_session_service()
+        logger.info("🔐 SessionService инициализирован")
 
-            # Обновляем bot в app context (был None при создании app в __init__)
-            self.app["bot"] = self.bot
+        # Инициализация бота
+        await self.init_bot()
 
-            # Запуск SimpleEngagementService для еженедельных напоминаний
-            if self.bot:
-                from bot.services.simple_engagement import SimpleEngagementService
+        # Обновляем bot в app context (был None при создании app в __init__)
+        self.app["bot"] = self.bot
 
-                self.engagement_service = SimpleEngagementService(self.bot)
-                await self.engagement_service.start()
-                logger.info("⏰ SimpleEngagementService запущен")
+        # Добавляем webhook handler (ДО запуска сервера, чтобы роутер не был заморожен)
+        self._setup_webhook_handler()
 
-            # Настройка webhook
-            webhook_url = await self.setup_webhook()
+    async def startup_services(self) -> None:
+        """Инициализация сервисов (вызывается ПОСЛЕ запуска сервера)."""
+        # Запуск SimpleEngagementService для еженедельных напоминаний
+        if self.bot:
+            from bot.services.simple_engagement import SimpleEngagementService
 
-            # Создание веб-приложения
-            self.create_app()
+            self.engagement_service = SimpleEngagementService(self.bot)
+            await self.engagement_service.start()
+            logger.info("⏰ SimpleEngagementService запущен")
 
-            logger.info("✅ Сервер готов к работе")
-            logger.info(f"🌐 Webhook URL: {webhook_url}")
-            logger.info(f"🏥 Health check: https://{self.settings.webhook_domain}/health")
+        # Настройка webhook
+        webhook_url = await self.setup_webhook()
 
-        except Exception as e:
-            logger.error(f"❌ Ошибка запуска сервера: {e}")
-            raise
+        logger.info("✅ Сервер готов к работе")
+        logger.info(f"🌐 Webhook URL: {webhook_url}")
+        logger.info(f"🏥 Health check: https://{self.settings.webhook_domain}/health")
 
     async def shutdown(self) -> None:
         """Остановка сервера - очистка ресурсов."""
@@ -856,14 +837,17 @@ async def main() -> None:
     server = PandaPalBotServer()
 
     try:
-        # ВАЖНО: Сначала запускаем HTTP сервер с /health для Railway healthcheck
-        # Это позволяет отвечать на healthcheck во время тяжелой инициализации
+        # 1. Инициализация бота (БД, бот) ДО запуска сервера
+        # Это нужно чтобы добавить webhook handler до "заморозки" роутера
+        await server.startup_bot()
+
+        # 2. Запускаем HTTP сервер (роутер "замораживается" после этого)
         await server.start_early_server()
 
-        # Затем выполняем тяжелую инициализацию (БД, бот, webhook)
-        await server.startup()
+        # 3. Инициализация сервисов (webhook setup, services) ПОСЛЕ запуска сервера
+        await server.startup_services()
 
-        # После startup() добавляем остальные роуты и запускаем основной цикл
+        # 4. Основной цикл
         await server.run()
 
     except KeyboardInterrupt:
