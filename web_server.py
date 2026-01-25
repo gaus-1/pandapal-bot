@@ -526,6 +526,45 @@ class PandaPalBotServer:
         webhook_handler.register(self.app, path=webhook_path)
         logger.info(f"📡 Webhook handler зарегистрирован на пути: {webhook_path}")
 
+    async def start_early_server(self) -> None:
+        """
+        Запуск минимального HTTP сервера с /health ДО тяжелой инициализации.
+
+        Это критично для Railway healthcheck - сервер должен отвечать
+        на /health в течение 30 секунд после старта контейнера.
+        """
+        try:
+            port = int(os.getenv("PORT", "10000"))
+            host = os.getenv("HOST", "0.0.0.0")
+
+            logger.info(f"🏥 Запуск раннего healthcheck сервера на {host}:{port}")
+
+            # Создаем и запускаем runner с базовым приложением (уже имеет /health)
+            self.runner = web.AppRunner(
+                self.app,
+                access_log=None,
+                keepalive_timeout=75,
+                enable_cleanup_closed=True,
+            )
+            await self.runner.setup()
+
+            self.site = web.TCPSite(
+                self.runner,
+                host,
+                port,
+                backlog=1000,
+                reuse_address=True,
+                reuse_port=False,
+            )
+            await self.site.start()
+
+            logger.info(f"✅ Ранний healthcheck сервер запущен на порту {port}")
+            logger.info("🏥 /health доступен для Railway healthcheck")
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка запуска раннего сервера: {e}")
+            raise
+
     async def _check_redis_connection(self) -> None:
         """Проверка подключения к Redis и логирование статуса."""
         try:
@@ -578,15 +617,14 @@ class PandaPalBotServer:
             logger.warning(f"⚠️ Ошибка проверки Prometheus: {e}")
 
     def create_app(self) -> web.Application:
-        """Создание aiohttp приложения."""
+        """
+        Добавление остальных роутов к существующему приложению.
+
+        Базовое приложение с /health уже создано в __init__ и запущено
+        в start_early_server(). Здесь добавляем middleware, API, frontend.
+        """
         try:
-            logger.info("🌐 Создание веб-приложения...")
-
-            # Создание базового приложения
-            self._setup_app_base()
-
-            # Настройка health check endpoints ПЕРВЫМИ (для Railway healthcheck)
-            self._setup_health_endpoints()
+            logger.info("🌐 Добавление роутов к веб-приложению...")
 
             # Настройка middleware
             self._setup_middleware()
@@ -600,11 +638,11 @@ class PandaPalBotServer:
             # Настройка webhook handler
             self._setup_webhook_handler()
 
-            logger.info("✅ Веб-приложение создано")
+            logger.info("✅ Веб-приложение полностью настроено")
             return self.app
 
         except Exception as e:
-            logger.error(f"❌ Ошибка создания приложения: {e}")
+            logger.error(f"❌ Ошибка настройки приложения: {e}")
             raise
 
     async def startup(self) -> None:
@@ -629,6 +667,9 @@ class PandaPalBotServer:
 
             # Инициализация бота
             await self.init_bot()
+
+            # Обновляем bot в app context (был None при создании app в __init__)
+            self.app["bot"] = self.bot
 
             # Запуск SimpleEngagementService для еженедельных напоминаний
             if self.bot:
@@ -717,38 +758,13 @@ class PandaPalBotServer:
             logger.error(f"❌ Ошибка остановки сервера: {e}")
 
     async def run(self) -> None:
-        """Запуск веб-сервера."""
+        """Запуск основного цикла веб-сервера (сервер уже запущен в start_early_server)."""
         try:
-            # Получаем порт и хост из переменных окружения
-            # Railway/Render требуют 0.0.0.0 для публичного доступа
             port = int(os.getenv("PORT", "10000"))
             host = os.getenv("HOST", "0.0.0.0")
 
-            logger.info(f"🌐 Запуск веб-сервера на {host}:{port}")
-
-            # Запускаем веб-сервер с настройками для высокой нагрузки
-            self.runner = web.AppRunner(
-                self.app,
-                # Настройки для обработки высокой нагрузки
-                access_log=None,  # Отключаем access log для производительности (опционально)
-                keepalive_timeout=75,  # Keep-alive таймаут (увеличено с 30)
-                enable_cleanup_closed=True,  # Автоматическая очистка закрытых соединений
-            )
-            await self.runner.setup()
-
-            self.site = web.TCPSite(
-                self.runner,
-                host,
-                port,
-                # Настройки TCP для высокой нагрузки
-                backlog=1000,  # Размер очереди ожидающих соединений (по умолчанию 128)
-                reuse_address=True,  # Переиспользование адреса
-                reuse_port=False,  # Не используем SO_REUSEPORT (может вызвать проблемы)
-            )
-            await self.site.start()
-
-            logger.info(f"✅ Сервер запущен на порту {port}")
-            logger.info(f"✅ Healthcheck доступен: http://{host}:{port}/health")
+            # Сервер уже запущен в start_early_server(), здесь только логируем и ждем
+            logger.info(f"✅ Веб-сервер полностью инициализирован на {host}:{port}")
 
             # Проверяем, что healthcheck действительно работает
             try:
@@ -840,8 +856,14 @@ async def main() -> None:
     server = PandaPalBotServer()
 
     try:
-        # Запуск сервера
+        # ВАЖНО: Сначала запускаем HTTP сервер с /health для Railway healthcheck
+        # Это позволяет отвечать на healthcheck во время тяжелой инициализации
+        await server.start_early_server()
+
+        # Затем выполняем тяжелую инициализацию (БД, бот, webhook)
         await server.startup()
+
+        # После startup() добавляем остальные роуты и запускаем основной цикл
         await server.run()
 
     except KeyboardInterrupt:
