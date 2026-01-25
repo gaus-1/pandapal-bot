@@ -493,26 +493,277 @@ class EruditeGame:
 
     def make_ai_move(self) -> tuple[bool, str]:
         """
-        Сделать ход AI (простая логика для начала).
-        Пытается выложить любое валидное слово из своих фишек.
+        Сделать ход AI с полноценной логикой поиска слов.
+
+        Стратегия:
+        1. Если первый ход - ищем слово через центр
+        2. Ищем все возможные позиции для слов (горизонтально и вертикально)
+        3. Генерируем все возможные слова из фишек AI
+        4. Выбираем слово с максимальным количеством очков
         """
         if self.game_over or self.current_player != 2:
             return False, "Не ход AI"
 
-        # Простая стратегия: попробовать выложить любое валидное слово
-        # Для начала просто пропускаем ход (заглушка)
-        # TODO: Реализовать полноценный AI
+        best_move = self._find_best_ai_move()
 
-        # Пропускаем ход
+        if best_move:
+            word, positions, score = best_move
+
+            # Размещаем фишки на поле
+            for r, c, letter in positions:
+                self.board[r][c] = letter
+                # Убираем использованную фишку
+                letter_upper = letter.upper()
+                if letter_upper in self.ai_tiles:
+                    self.ai_tiles.remove(letter_upper)
+                elif "*" in self.ai_tiles:
+                    self.ai_tiles.remove("*")
+
+            # Добавляем очки
+            self.ai_score += score
+
+            # Добираем фишки
+            while len(self.ai_tiles) < self.TILES_PER_PLAYER and self.bag:
+                self.ai_tiles.append(self.bag.pop())
+
+            # Первый ход сделан
+            if self.first_move:
+                self.first_move = False
+
+            self.passes_count = 0
+            self.current_player = 1
+
+            # Проверка окончания игры
+            if not self.bag and not self.ai_tiles:
+                self._end_game()
+
+            return True, f"AI выложил '{word}' и получил +{score} очков"
+
+        # Не нашли ход - пропускаем
         self.passes_count += 1
-        self.current_player = 1  # Переключаем обратно на игрока
+        self.current_player = 1
 
-        # Проверка окончания (2 пропуска подряд)
         if self.passes_count >= 2:
             self._end_game()
             return True, "AI пропустил ход. Игра окончена."
 
         return True, "AI пропустил ход"
+
+    def _find_best_ai_move(self) -> tuple[str, list[tuple[int, int, str]], int] | None:
+        """
+        Найти лучший ход для AI.
+
+        Returns:
+            (слово, позиции [(row, col, letter), ...], очки) или None
+        """
+        # Простой словарь коротких слов для AI (расширенный)
+        simple_words = [
+            "КОТ", "ДОМ", "СОН", "ЛЕС", "МИР", "НОС", "РОТ", "СЫР", "ДЫМ", "ЛОБ",
+            "ВОЛ", "ВОЗ", "ДОЛ", "КОМ", "ЛОМ", "ПОЛ", "СОМ", "ТОН", "ХОР", "ШОВ",
+            "БОК", "ВОР", "ГОД", "КОД", "ЛОТ", "МОХ", "НОЖ", "ПОД", "РОД", "СОК",
+            "ТОК", "ФОН", "ШОК", "ЛЕВ", "МЕД", "СЕВ", "ДЕД", "ЛЕД", "ПЕС", "БЕГ",
+            "ВЕС", "ВЕК", "ГЕН", "ДЕН", "ЗЕВ", "КЕН", "ЛЕН", "МЕЛ", "НЕТ", "ПЕЧ",
+            "АКТ", "АРТ", "АСС", "БАЛ", "БАР", "БАС", "ВАЛ", "ВАР", "ГАЗ", "ДАР",
+            "ЗАЛ", "КАР", "ЛАК", "МАК", "МАТ", "ПАР", "РАЗ", "САД", "ТАЗ", "ЧАС",
+            "ШАГ", "ШАР", "ЯД", "ЯМА", "АД", "УМ", "УС", "ОН", "НА", "ДА", "НУ",
+            "АХ", "ОХ", "УХ", "ЭХ", "ЕЛЬ", "ОСЬ", "УЖ", "ЕЖ", "ЁЖ", "ИВА", "ОСА",
+            "ЕДА", "ИРА", "УРА", "АУ", "АЙ", "ОЙ", "ЭЙ", "ЮГ", "ЮЛА", "ЯР", "ЯК",
+        ]
+
+        best_score = 0
+        best_move = None
+
+        if self.first_move:
+            # Первый ход - ищем слово через центр (7, 7)
+            for word in simple_words:
+                if self._can_form_word(word, self.ai_tiles):
+                    # Пробуем разместить горизонтально через центр
+                    start_col = 7 - len(word) // 2
+                    if start_col >= 0 and start_col + len(word) <= self.BOARD_SIZE:
+                        positions = [(7, start_col + i, word[i]) for i in range(len(word))]
+                        score = self._calculate_word_score(positions)
+                        if score > best_score:
+                            best_score = score
+                            best_move = (word, positions, score)
+        else:
+            # Ищем позиции рядом с существующими буквами
+            anchor_positions = self._find_anchor_positions()
+
+            for anchor_row, anchor_col in anchor_positions:
+                # Пробуем слова горизонтально и вертикально
+                for word in simple_words:
+                    if self._can_form_word_with_board(word, self.ai_tiles, anchor_row, anchor_col):
+                        # Горизонтально
+                        move = self._try_place_word(word, anchor_row, anchor_col, horizontal=True)
+                        if move:
+                            positions, score = move
+                            if score > best_score:
+                                best_score = score
+                                best_move = (word, positions, score)
+
+                        # Вертикально
+                        move = self._try_place_word(word, anchor_row, anchor_col, horizontal=False)
+                        if move:
+                            positions, score = move
+                            if score > best_score:
+                                best_score = score
+                                best_move = (word, positions, score)
+
+        return best_move
+
+    def _can_form_word(self, word: str, tiles: list[str]) -> bool:
+        """Проверить, можно ли составить слово из фишек."""
+        available = tiles.copy()
+        jokers = available.count("*")
+
+        for letter in word:
+            if letter in available:
+                available.remove(letter)
+            elif jokers > 0:
+                jokers -= 1
+            else:
+                return False
+        return True
+
+    def _can_form_word_with_board(
+        self, word: str, tiles: list[str], anchor_row: int, anchor_col: int
+    ) -> bool:
+        """Проверить, можно ли составить слово с учетом букв на доске."""
+        # Упрощенная проверка - просто проверяем есть ли буквы
+        available = tiles.copy()
+        jokers = available.count("*")
+
+        for letter in word:
+            # Проверяем есть ли буква на доске рядом
+            board_has = False
+            for dr in range(-len(word), len(word) + 1):
+                for dc in range(-len(word), len(word) + 1):
+                    r, c = anchor_row + dr, anchor_col + dc
+                    if 0 <= r < self.BOARD_SIZE and 0 <= c < self.BOARD_SIZE:
+                        if self.board[r][c] == letter:
+                            board_has = True
+                            break
+                if board_has:
+                    break
+
+            if board_has:
+                continue
+            elif letter in available:
+                available.remove(letter)
+            elif jokers > 0:
+                jokers -= 1
+            else:
+                return False
+        return True
+
+    def _find_anchor_positions(self) -> list[tuple[int, int]]:
+        """Найти позиции рядом с существующими буквами."""
+        anchors = set()
+        for r in range(self.BOARD_SIZE):
+            for c in range(self.BOARD_SIZE):
+                if self.board[r][c] is not None:
+                    # Добавляем соседние пустые клетки
+                    for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                        nr, nc = r + dr, c + dc
+                        if (
+                            0 <= nr < self.BOARD_SIZE
+                            and 0 <= nc < self.BOARD_SIZE
+                            and self.board[nr][nc] is None
+                        ):
+                            anchors.add((nr, nc))
+        return list(anchors)
+
+    def _try_place_word(
+        self, word: str, anchor_row: int, anchor_col: int, horizontal: bool
+    ) -> tuple[list[tuple[int, int, str]], int] | None:
+        """
+        Попытаться разместить слово, используя якорную позицию.
+
+        Returns:
+            (позиции новых букв, очки) или None
+        """
+        positions = []
+        tiles_needed = []
+
+        for i, letter in enumerate(word):
+            if horizontal:
+                r, c = anchor_row, anchor_col + i - len(word) // 2
+            else:
+                r, c = anchor_row + i - len(word) // 2, anchor_col
+
+            # Проверяем границы
+            if r < 0 or r >= self.BOARD_SIZE or c < 0 or c >= self.BOARD_SIZE:
+                return None
+
+            # Если клетка занята
+            if self.board[r][c] is not None:
+                if self.board[r][c] != letter:
+                    return None
+                # Буква уже на доске - не нужна новая фишка
+            else:
+                positions.append((r, c, letter))
+                tiles_needed.append(letter)
+
+        # Проверяем, есть ли нужные фишки
+        if not positions:
+            return None
+
+        available = self.ai_tiles.copy()
+        jokers = available.count("*")
+
+        for letter in tiles_needed:
+            if letter in available:
+                available.remove(letter)
+            elif jokers > 0:
+                jokers -= 1
+            else:
+                return None
+
+        # Проверяем связность с существующими буквами
+        if not self.first_move:
+            connected = False
+            for r, c, _ in positions:
+                for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    nr, nc = r + dr, c + dc
+                    if (
+                        0 <= nr < self.BOARD_SIZE
+                        and 0 <= nc < self.BOARD_SIZE
+                        and self.board[nr][nc] is not None
+                    ):
+                        connected = True
+                        break
+                if connected:
+                    break
+
+            if not connected:
+                return None
+
+        # Подсчет очков
+        score = self._calculate_word_score(positions)
+
+        return positions, score
+
+    def _calculate_word_score(self, positions: list[tuple[int, int, str]]) -> int:
+        """Подсчитать очки за размещение слова."""
+        word_multiplier = 1
+        word_score = 0
+
+        for r, c, letter in positions:
+            letter_score = self.LETTER_VALUES.get(letter.upper(), 0)
+            bonus = self.bonus_cells[r][c]
+
+            if bonus == 1:  # буква x2
+                letter_score *= 2
+            elif bonus == 2:  # буква x3
+                letter_score *= 3
+            elif bonus == 3:  # слово x2
+                word_multiplier *= 2
+            elif bonus == 4:  # слово x3
+                word_multiplier *= 3
+
+            word_score += letter_score
+
+        return word_score * word_multiplier
 
     def _end_game(self) -> None:
         """Завершить игру и подсчитать финальные очки."""

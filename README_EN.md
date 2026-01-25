@@ -24,17 +24,19 @@ PandaPal is an intelligent assistant for homework help. The bot works 24/7 and h
 
 ### Key Features
 
-- **Enhanced RAG system** — intelligent knowledge base search with semantic caching, result reranking, and context compression for token savings (75-90%)
-- **Premium quality intelligent assistant** — deep structured responses powered by YandexGPT Pro considering ALL query words, detailed explanations and visualizations
-- **Adult topics explained** — accessible explanation of life questions for children (money, banks, documents, utilities, work, health) in simple words with examples
-- **Visualizations with explanations** — automatic generation of charts, tables, diagrams (including pie charts), schemes, and maps with detailed explanations
-- **Image generation** — create pictures from descriptions via YandexART (requires ai.imageGeneration.user role)
-- **Homework checking** — automatic homework verification from photos with error detection, corrections, and explanations
+- **Premium quality intelligent assistant** — deep structured responses powered by YandexGPT Pro considering ALL query words, detailed explanations like the best tutors
+- **Help with ALL school subjects** — math, algebra, geometry, Russian, literature, English, German, French, Spanish, history, social studies, geography, physics, chemistry, biology, computer science, natural science
+- **Visualizations for all subjects** — function graphs, multiplication/addition/division tables, country and city maps with borders, climatograms of natural zones, algorithm flowcharts, melting and heating graphs, Mendeleev's periodic table
+- **Homework checking** — photo of task + your solution → panda will check, find errors, correct and explain
+- **Photo tasks** — text recognition from textbooks and notebooks via Vision API with solution explanation
+- **Voice questions** — speech recognition via SpeechKit STT with detailed text response
+- **Image generation** — create pictures from descriptions via YandexART
+- **Adult topics explained** — money, banks, taxes, utilities, documents, health in simple words for life preparation
 - **Adaptive learning** — tracking problematic topics, automatic difficulty adaptation to student level
-- Streaming responses via Server-Sent Events for fast generation
-- Support for text, voice, and images with analysis via Vision API
-- Automatic translation and grammar explanations for 5 languages (English, German, French, Spanish, Russian)
-- PandaPalGo Games: Tic-Tac-Toe, Checkers, 2048, Erudite with opponent
+- **Enhanced RAG system** — intelligent knowledge base search with semantic caching and context compression (75-90% token savings)
+- Streaming responses via Server-Sent Events for instant generation
+- Automatic translation and grammar explanations for 5 languages
+- PandaPalGo Games: Tic-Tac-Toe, Checkers with AI, 2048, Erudite (word building)
 - Achievement and progress system with XP, levels, and rewards
 - Premium subscriptions via YooKassa with card saving
 - Multi-level content moderation for children's safety (150+ patterns)

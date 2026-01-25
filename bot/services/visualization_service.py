@@ -76,6 +76,18 @@ class VisualizationService(BaseVisualizationService):
         """
         return self.detector.detect(text)
 
+    def detect_geography_question(self, text: str) -> str | None:
+        """
+        Определяет, является ли запрос географическим вопросом типа "где находится X".
+
+        Args:
+            text: Текст сообщения для анализа
+
+        Returns:
+            str | None: Название страны/города для карты или None
+        """
+        return self.detector.detect_geography_question(text)
+
     # Делегируем методы арифметики
     def generate_full_multiplication_table(self) -> bytes | None:
         """Генерирует полную таблицу умножения (1-10)."""
@@ -232,6 +244,14 @@ class VisualizationService(BaseVisualizationService):
         """Генерирует таблицу удельных сопротивлений."""
         return self.physics.generate_physics_resistivity_table()
 
+    def generate_melting_graph(self, substance: str = "лед") -> bytes | None:
+        """Генерирует график плавления вещества."""
+        return self.physics.generate_melting_graph(substance)
+
+    def generate_heating_cooling_graph(self, process: str = "heating") -> bytes | None:
+        """Генерирует график нагревания/охлаждения."""
+        return self.physics.generate_heating_cooling_graph(process)
+
     # Делегируем методы химии
     def generate_chemistry_solubility_table(self) -> bytes | None:
         """Генерирует таблицу растворимости."""
@@ -262,10 +282,22 @@ class VisualizationService(BaseVisualizationService):
         """Генерирует схематичную карту страны."""
         return self.geography.generate_country_map(country_name)
 
+    def generate_climatogram(self, zone: str = "тайга") -> bytes | None:
+        """Генерирует климатограмму для природной зоны или города."""
+        return self.geography.generate_climatogram(zone)
+
     # Делегируем методы истории
     def generate_history_timeline_table(self) -> bytes | None:
         """Генерирует хронологическую таблицу."""
         return self.history.generate_history_timeline_table()
+
+    def generate_battle_scheme(self, battle: str = "бородино") -> bytes | None:
+        """Генерирует схему исторической битвы."""
+        return self.history.generate_battle_scheme(battle)
+
+    def generate_war_timeline(self, war: str = "вов") -> bytes | None:
+        """Генерирует хронологию войны."""
+        return self.history.generate_war_timeline(war)
 
     # Делегируем методы обществознания
     def generate_government_branches_table(self) -> bytes | None:
@@ -276,6 +308,14 @@ class VisualizationService(BaseVisualizationService):
     def generate_number_systems_table(self) -> bytes | None:
         """Генерирует таблицу систем счисления."""
         return self.computer_science.generate_number_systems_table()
+
+    def generate_flowchart(self, algorithm_type: str = "linear") -> bytes | None:
+        """Генерирует блок-схему алгоритма."""
+        return self.computer_science.generate_flowchart(algorithm_type)
+
+    def generate_truth_table(self, operation: str = "and") -> bytes | None:
+        """Генерирует таблицу истинности для логической операции."""
+        return self.computer_science.generate_truth_table(operation)
 
     # Делегируем методы окружающего мира
     def generate_seasons_months_table(self) -> bytes | None:

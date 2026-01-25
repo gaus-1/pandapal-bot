@@ -392,7 +392,27 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     context=web_context, question=user_message, max_sentences=7
                 )
 
-            # Добавляем веб-контекст к промпту, если он есть
+            # КРИТИЧЕСКИ ВАЖНО: Получаем Wikipedia контекст для образовательных вопросов
+            verified_context = None
+            if response_generator._should_use_wikipedia(user_message):
+                try:
+                    verified_context = (
+                        await response_generator.knowledge_service.get_wikipedia_context_for_question(
+                            user_message, user.age
+                        )
+                    )
+                    if verified_context:
+                        logger.debug(f"📚 Wikipedia контекст получен для: {user_message[:50]}...")
+                except Exception as e:
+                    logger.warning(f"⚠️ Ошибка получения Wikipedia контекста: {e}")
+
+            # Добавляем контекст к промпту (Wikipedia имеет приоритет)
+            if verified_context:
+                enhanced_system_prompt += f"\n\n📖 ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ:\n{verified_context}\n"
+                enhanced_system_prompt += (
+                    "Используй эту информацию для точного и достоверного ответа. "
+                    "НИКОГДА не упоминай источники информации в ответе."
+                )
             if web_context:
                 enhanced_system_prompt += f"\n\n📚 Дополнительная информация:\n{web_context}"
 
@@ -1185,6 +1205,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 full_response = add_random_engagement_question(base_text)
                         else:
                             # КРИТИЧНО: Удаляем дублирование таблицы умножения текстом (если модель всё же написала)
+                            # Но СОХРАНЯЕМ полноценное объяснение - не обрезаем до 2 предложений!
                             multiplication_duplicate_patterns = [
                                 r"\d+\s*[×x*]\s*\d+\s*=\s*\d+",
                                 r"\d+\s+\d+\s*=\s*\d+",
@@ -1194,26 +1215,13 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     pattern, "", full_response, flags=re.IGNORECASE
                                 )
 
-                            # Удаляем множественные пробелы и пустые строки
-                            full_response = re.sub(r"\s+", " ", full_response)
-                            full_response = re.sub(r"\n\s*\n", "\n", full_response)
+                            # Удаляем множественные пробелы, но СОХРАНЯЕМ абзацы (двойные переносы)
+                            full_response = re.sub(r"[ \t]+", " ", full_response)
+                            full_response = re.sub(r"\n{3,}", "\n\n", full_response)
+                            full_response = full_response.strip()
 
-                            # Если ответ слишком длинный (больше 2 предложений) - обрезаем до первых 2
-                            sentences = re.split(r"[.!?]+\s+", full_response.strip())
-                            if len(sentences) > 2:
-                                meaningful_sentences = [
-                                    s.strip()
-                                    for s in sentences[:2]
-                                    if s.strip() and len(s.strip()) > 10
-                                ]
-                                if meaningful_sentences:
-                                    full_response = ". ".join(meaningful_sentences)
-                                    if not full_response.endswith((".", "!", "?")):
-                                        full_response += "."
-                                else:
-                                    full_response = ". ".join(sentences[:2])
-                                    if not full_response.endswith((".", "!", "?")):
-                                        full_response += "."
+                            # НЕ обрезаем до 2 предложений!
+                            # Пользователь хочет ПОЛНОЦЕННЫЕ пояснения под визуализацией
 
                         # Удаляем упоминания про автоматическую генерацию
                         if visualization_image_base64:
@@ -1230,7 +1238,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         full_response = _format_visualization_explanation(full_response)
 
                         logger.info(
-                            f"✅ Stream: Текст обрезан до короткого объяснения (есть визуализация): {full_response[:100]}"
+                            f"✅ Stream: Полноценное пояснение к визуализации (длина: {len(full_response)}): {full_response[:100]}"
                         )
 
                 # Ограничиваем размер полного ответа
@@ -1502,18 +1510,25 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             await response.write(f"event: image\ndata: {image_data}\n\n".encode())
                             logger.info("📊 Stream: Fallback - изображение визуализации отправлено")
 
-                            # Если есть визуализация - заменяем весь текст на короткий ответ
-                            # Не пытаемся удалять фрагменты - это ломает ответ!
+                            # Если есть визуализация таблицы умножения - даём полноценное пояснение
                             if multiplication_number_fallback:
                                 logger.info(
-                                    f"🔍 Stream: Fallback ДО замены (multiplication_number={multiplication_number_fallback}): {cleaned_response[:200]}"
+                                    f"🔍 Stream: Fallback с визуализацией таблицы умножения (число={multiplication_number_fallback})"
                                 )
 
-                                # Просто заменяем весь ответ на короткий, если есть визуализация
-                                cleaned_response = "Вот таблица умножения."
+                                # Полноценное пояснение вместо короткого ответа
+                                cleaned_response = (
+                                    f"Вот таблица умножения на {multiplication_number_fallback}!\n\n"
+                                    f"Как пользоваться таблицей: найди число {multiplication_number_fallback} в левой колонке, "
+                                    f"а второй множитель — в верхней строке. На пересечении — ответ.\n\n"
+                                    f"Например, чтобы найти {multiplication_number_fallback} × 5, "
+                                    f"смотри строку {multiplication_number_fallback} и столбец 5.\n\n"
+                                    f"Таблица умножения пригодится для быстрого счёта в магазине, "
+                                    f"при решении задач и в повседневной жизни."
+                                )
 
                                 logger.info(
-                                    f"✅ Stream: Fallback - текст заменен на короткий ответ (есть визуализация): {cleaned_response}"
+                                    f"✅ Stream: Fallback - добавлено полноценное пояснение к таблице умножения"
                                 )
 
                             # Дополнительная очистка уже выполняется в clean_ai_response,

@@ -414,9 +414,29 @@ def detect_subject_tables_and_diagrams(
     ]
     for pattern in history_patterns:
         if re.search(pattern, text_lower):
-            if "карт" in text_lower or "схем" in text_lower or "битв" in text_lower:
-                # TODO: Добавить методы генерации карт войн и схем битв
-                pass
+            # Проверяем запрос на схему битвы
+            if "схем" in text_lower and "битв" in text_lower:
+                battle = "бородино"
+                battles = ["бородино", "куликово", "полтава", "сталинград", "ледово"]
+                for b in battles:
+                    if b in text_lower:
+                        battle = b
+                        break
+                image = viz_service.generate_battle_scheme(battle)
+                if image:
+                    logger.info(f"📊 Детектирована схема битвы: {battle}")
+                    return image, "scheme"
+            # Проверяем запрос на хронологию войны
+            elif "хронолог" in text_lower or "войн" in text_lower:
+                war = "вов"
+                if "1812" in text_lower or "наполеон" in text_lower:
+                    war = "1812"
+                elif "северн" in text_lower:
+                    war = "северная"
+                image = viz_service.generate_war_timeline(war)
+                if image:
+                    logger.info(f"📊 Детектирована хронология войны: {war}")
+                    return image, "table"
             else:
                 image = viz_service.generate_history_timeline_table()
                 if image:
@@ -539,8 +559,20 @@ def detect_subject_tables_and_diagrams(
 
         for pattern in physics_thermal_patterns:
             if re.search(pattern, text_lower):
-                # TODO: добавить специализированные графики тепловых процессов
-                pass
+                substance = "лед"
+                for s in ["свинец", "олово", "алюминий"]:
+                    if s in text_lower:
+                        substance = s
+                        break
+                if re.search(r"охлаждени|остывани", text_lower):
+                    image = viz_service.generate_heating_cooling_graph("cooling")
+                elif re.search(r"плавлени|тает", text_lower):
+                    image = viz_service.generate_melting_graph(substance)
+                else:
+                    image = viz_service.generate_heating_cooling_graph("heating")
+                if image:
+                    logger.info(f"📈 Детектирован график теплового процесса")
+                    return image, "graph"
 
     math_graph_patterns = [
         r"график\s+(?:парабол|синус|косинус|тангенс|логарифм|экспонент|степенн)",
