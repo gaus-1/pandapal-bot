@@ -177,7 +177,6 @@ class MiniappChatContextService:
             user_message=user_message,
             non_educational_questions_count=user.non_educational_questions_count,
             is_auto_greeting_sent=is_auto_greeting_sent,
-            is_educational=is_educational,
         )
 
         # Преобразуем историю в формат Yandex
