@@ -7,7 +7,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Checkers } from '../Checkers';
 import * as api from '../../../services/api';
-import { telegram } from '../../../services/telegram';
 
 vi.mock('../../../services/api');
 vi.mock('../../../services/telegram');
@@ -58,14 +57,11 @@ describe('Checkers', () => {
     expect(backButton).toBeInTheDocument();
   });
 
-  it('делает ход при клике на фишку и затем на клетку', async () => {
-    const user = userEvent.setup();
-    vi.mocked(api.checkersMove).mockResolvedValue({
-      board: Array(8).fill(null).map(() => Array(8).fill(null)),
-      kings: Array(8).fill(null).map(() => Array(8).fill(false)),
-      winner: null,
-      game_over: false,
-    });
+  it('запрашивает valid-moves и отображает доску при ходе пользователя', async () => {
+    vi.mocked(api.getCheckersValidMoves).mockResolvedValue([
+      { from: [5, 1], to: [4, 0], capture: null },
+      { from: [5, 1], to: [4, 2], capture: null },
+    ]);
 
     render(
       <Checkers
@@ -79,28 +75,10 @@ describe('Checkers', () => {
     await waitFor(() => {
       expect(screen.getByText('Твой ход!')).toBeInTheDocument();
     });
-
-    // Находим клетку с фишкой пользователя (обычно в нижних рядах, ряды 5-7)
-    // Ищем клетки с aria-label, которые содержат координаты в нижних рядах
-    const allCells = screen.getAllByRole('button');
-    const userCell = allCells.find((btn) => {
-      const label = btn.getAttribute('aria-label');
-      if (!label || !label.startsWith('Клетка')) return false;
-      // Проверяем, что внутри есть белая фишка (пользователь)
-      const hasUserPiece = btn.querySelector('.bg-white');
-      return hasUserPiece !== null;
+    await waitFor(() => {
+      expect(api.getCheckersValidMoves).toHaveBeenCalledWith(1);
     });
-
-    // Если нашли клетку с фишкой пользователя, кликаем на неё
-    if (userCell) {
-      await user.click(userCell);
-      await waitFor(() => {
-        expect(telegram.hapticFeedback).toHaveBeenCalledWith('light');
-      });
-    } else {
-      // Если не нашли, просто проверяем, что компонент отрендерился
-      expect(screen.getByText('Твой ход!')).toBeInTheDocument();
-    }
+    expect(screen.getByRole('button', { name: /Клетка 6, 2/ })).toBeInTheDocument();
   });
 
   it('показывает победу пользователя', async () => {

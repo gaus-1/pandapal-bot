@@ -101,7 +101,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   const loadValidMoves = async () => {
     try {
       const moves = await getCheckersValidMoves(sessionId);
-      setValidMoves(moves);
+      setValidMoves(Array.isArray(moves) ? moves : []);
     } catch (err) {
       console.error("Ошибка загрузки валидных ходов:", err);
       setValidMoves([]);
@@ -113,9 +113,10 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       return;
     }
 
+    const moves = validMoves ?? [];
     // Проверяем, можно ли выбрать эту фишку (есть ли у неё валидные ходы)
     if (board[row][col] === "user") {
-      const canMove = validMoves.some(
+      const canMove = moves.some(
         (move) => move.from[0] === row && move.from[1] === col
       );
       if (canMove) {
@@ -123,8 +124,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         telegram.hapticFeedback("light");
       } else {
         telegram.hapticFeedback("heavy");
-        // Проверяем, есть ли обязательное взятие другой фишкой
-        const hasMandatoryCapture = validMoves.some((move) => move.capture !== null);
+        const hasMandatoryCapture = moves.some((move) => move.capture !== null);
         if (hasMandatoryCapture) {
           setError("Сначала нужно съесть фишку противника");
         } else {
@@ -137,8 +137,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
     if (selectedCell) {
       const [fromRow, fromCol] = selectedCell;
-      // Проверяем, валиден ли этот ход
-      const isValidMove = validMoves.some(
+      const isValidMove = moves.some(
         (move) =>
           move.from[0] === fromRow &&
           move.from[1] === fromCol &&
@@ -210,7 +209,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
   const isValidMoveTarget = (row: number, col: number) => {
     if (!selectedCell) return false;
-    return validMoves.some(
+    const m = validMoves ?? [];
+    return m.some(
       (move) =>
         move.from[0] === selectedCell[0] &&
         move.from[1] === selectedCell[1] &&
@@ -220,7 +220,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   };
 
   const hasMandatoryCapture = () => {
-    return validMoves.some((move) => move.capture !== null);
+    return (validMoves ?? []).some((move) => move.capture !== null);
   };
 
   return (

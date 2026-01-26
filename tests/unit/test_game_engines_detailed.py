@@ -92,34 +92,29 @@ class TestCheckersGameDetailed:
         assert len(directions) > 0
 
     def test_must_capture_continuation(self):
-        """Проверка продолжения множественного взятия"""
+        """Проверка продолжения множественного взятия. Только тёмные клетки (row+col нечётно)."""
         game = CheckersGame()
 
-        # Создаем ситуацию множественного взятия
-        game.board[5][1] = 1  # Белая
-        game.board[4][2] = 2  # Черная 1
-        game.board[2][4] = 2  # Черная 2
-        game.board[3][3] = 0  # Пустое поле 1
-        game.board[1][5] = 0  # Пустое поле 2
+        # Белая (5,0), черные (4,1),(2,3), пустые (3,2),(1,4) — все тёмные
+        game.board[5][0] = 1
+        game.board[4][1] = 2
+        game.board[2][3] = 2
+        game.board[3][2] = 0
+        game.board[1][4] = 0
 
-        # Очищаем остальные
         for r in range(8):
             for c in range(8):
-                if (r, c) not in [(5, 1), (4, 2), (2, 4), (3, 3), (1, 5)]:
+                if (r, c) not in [(5, 0), (4, 1), (2, 3), (3, 2), (1, 4)]:
                     game.board[r][c] = 0
 
-        # Делаем первое взятие
-        result = game.make_move(5, 1, 3, 3)  # Бьем первую черную
+        result = game.make_move(5, 0, 3, 2)  # бьём (4,1)
         assert result is True
 
-        # Проверяем, что установлено обязательное взятие
         assert game.must_capture_from is not None
-        assert game.must_capture_from == (3, 3)
-
-        # Проверяем, что можем продолжить взятие
+        assert game.must_capture_from == (3, 2)  # шашка приземлилась сюда
         valid_moves = game.get_valid_moves(1)
         assert len(valid_moves) > 0
-        assert all(m["from"] == game.must_capture_from for m in valid_moves)
+        assert all(m["from"] == (3, 2) for m in valid_moves)
         assert all(m["capture"] is not None for m in valid_moves)
 
 

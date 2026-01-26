@@ -169,23 +169,21 @@ class TestCheckersGameEngine:
             assert game.board[from_row][from_col] == 0
 
     def test_king_promotion(self):
-        """Превращение в дамку"""
+        """Превращение в дамку. Ходы только по тёмным клеткам (row+col нечётно)."""
         game = CheckersGame()
 
-        # Белая шашка на последней строке (0)
-        game.board[1][1] = 1  # Белая шашка
-        game.board[0][0] = 0  # Пустое поле на последней строке
+        # Белая шашка (1,0), пустое поле (0,1) — оба тёмные
+        game.board[1][0] = 1
+        game.board[0][1] = 0
 
-        # Очищаем остальные фигуры
         for r in range(8):
             for c in range(8):
-                if (r, c) not in [(1, 1), (0, 0)]:
+                if (r, c) not in [(1, 0), (0, 1)]:
                     game.board[r][c] = 0
 
-        # Делаем ход на последнюю строку
-        result = game.make_move(1, 1, 0, 0)
+        result = game.make_move(1, 0, 0, 1)
         assert result is True
-        assert game.board[0][0] == 3  # Дамка (1 + 2 = 3)
+        assert game.board[0][1] == 3  # Дамка
 
     def test_board_state_format(self):
         """Формат состояния доски"""

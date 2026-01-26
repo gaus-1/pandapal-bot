@@ -266,10 +266,11 @@ class EruditeGame:
                 if sorted_rows[i + 1] - sorted_rows[i] != 1:
                     return False, "Фишки должны быть соседними"
 
-        # Проверка первого хода: должен проходить через центр
+        # Проверка первого хода: должен проходить через центр (7,7)
         if self.first_move:
             center = (self.BOARD_SIZE // 2, self.BOARD_SIZE // 2)
-            if center not in [(r, c) for r, c, _ in self.current_move]:
+            positions = [(int(r), int(c)) for r, c, _ in self.current_move]
+            if center not in positions:
                 return False, "Первый ход должен проходить через центр поля"
 
         # Проверка: подключение к существующим словам (если не первый ход)
@@ -732,10 +733,13 @@ class EruditeGame:
             for dr in range(-len(word), len(word) + 1):
                 for dc in range(-len(word), len(word) + 1):
                     r, c = anchor_row + dr, anchor_col + dc
-                    if 0 <= r < self.BOARD_SIZE and 0 <= c < self.BOARD_SIZE:
-                        if self.board[r][c] == letter:
-                            board_has = True
-                            break
+                    if (
+                        0 <= r < self.BOARD_SIZE
+                        and 0 <= c < self.BOARD_SIZE
+                        and self.board[r][c] == letter
+                    ):
+                        board_has = True
+                        break
                 if board_has:
                     break
 
@@ -915,7 +919,9 @@ class EruditeGame:
         game.game_over = data.get("game_over", False)
         game.first_move = data.get("first_move", True)
         game.passes_count = data.get("passes_count", 0)
-        game.current_move = data.get("current_move", [])
+        raw_move = data.get("current_move", [])
+        # Нормализуем: из JSON приходят списки [r,c,letter], приводим к tuple
+        game.current_move = [(int(x[0]), int(x[1]), str(x[2])) for x in raw_move if len(x) >= 3]
 
         from bot.services.erudite_dictionary import is_valid_word
 

@@ -464,7 +464,7 @@ class GamesService:
             return []
 
         # Получаем валидные ходы для пользователя (player = 1)
-        valid_moves = game.get_valid_moves(1)
+        raw = game.get_valid_moves(1)
 
         _debug_log(
             hypothesis_id="H1",
@@ -474,9 +474,18 @@ class GamesService:
                 "session_id": session_id,
                 "current_player": game.current_player,
                 "must_capture_from": game.must_capture_from,
-                "valid_moves_count": len(valid_moves),
+                "valid_moves_count": len(raw),
             },
         )
+        # JSON-сериализуемый формат: list вместо tuple (from/to/capture)
+        valid_moves = [
+            {
+                "from": [m["from"][0], m["from"][1]],
+                "to": [m["to"][0], m["to"][1]],
+                "capture": [m["capture"][0], m["capture"][1]] if m["capture"] else None,
+            }
+            for m in raw
+        ]
         return valid_moves
 
     async def checkers_move(
