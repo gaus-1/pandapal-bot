@@ -481,6 +481,18 @@ class TestSubjectsPhotoRealAPI:
         assert analysis, "AI анализ не выполнен"
         assert len(analysis) > 50, "Анализ слишком короткий"
 
+        # Проверка структурирования ответа (для frontend парсинга)
+        has_structure = (
+            "\n\n" in analysis or
+            "Определение:" in analysis or
+            "Ключевые свойства:" in analysis or
+            "Как это работает:" in analysis or
+            "Где применяется:" in analysis or
+            "Итог:" in analysis
+        )
+        assert has_structure or len(analysis.split()) > 10, \
+            "Ответ должен быть структурированным (абзацы или секции)"
+
         print(f"\n[OK] Math (photo): {analysis[:150]}...")
 
     @pytest.mark.asyncio

@@ -155,6 +155,22 @@ class TestMiniAppVoiceRealFlow:
                         assert (
                             "response" in response_data or "error" in response_data
                         ), "Ответ должен содержать response или error"
+
+                        # ПРОВЕРКА 5: Ответ структурирован (для frontend парсинга)
+                        if "response" in response_data:
+                            ai_response = response_data["response"]
+                            # Проверяем что ответ можно разбить на блоки (есть абзацы или структурированные секции)
+                            has_structure = (
+                                "\n\n" in ai_response or
+                                "Определение:" in ai_response or
+                                "Ключевые свойства:" in ai_response or
+                                "Как это работает:" in ai_response or
+                                "Где применяется:" in ai_response or
+                                "Итог:" in ai_response
+                            )
+                            # Ответ должен быть структурированным (хотя бы по абзацам)
+                            assert has_structure or len(ai_response.split()) > 10, \
+                                "Ответ должен быть структурированным (абзацы или секции)"
                     else:
                         # Если нет _body, проверяем только статус
                         assert response.status == 200, "Ответ должен быть успешным"

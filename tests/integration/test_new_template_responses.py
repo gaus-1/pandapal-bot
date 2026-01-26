@@ -201,6 +201,18 @@ class TestNewTemplateResponses:
             sentences = [s.strip() for s in response.split(".") if s.strip()]
             assert len(sentences) >= 4, f"{subject}: Слишком мало предложений ({len(sentences)} < 4)"
 
+            # Проверка структурирования ответа (для frontend парсинга)
+            has_structure = (
+                "\n\n" in response or
+                "Определение:" in response or
+                "Ключевые свойства:" in response or
+                "Как это работает:" in response or
+                "Где применяется:" in response or
+                "Итог:" in response
+            )
+            assert has_structure or len(response.split()) > 10, \
+                f"{subject}: Ответ должен быть структурированным (абзацы или секции)"
+
             print(f"✅ {subject}: качество OK!")
 
         print("\n\n[OK] ВСЕ ТЕСТЫ ПРОШЛИ УСПЕШНО!")

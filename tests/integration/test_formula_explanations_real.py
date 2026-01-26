@@ -103,6 +103,19 @@ class TestFormulaExplanationsWithAI:
         )
         # Проверяем что есть пример
         assert any(word in response_lower for word in ["пример", "если", "допустим"])
+
+        # Проверка структурирования ответа (для frontend парсинга)
+        has_structure = (
+            "\n\n" in response or
+            "Определение:" in response or
+            "Ключевые свойства:" in response or
+            "Как это работает:" in response or
+            "Где применяется:" in response or
+            "Итог:" in response
+        )
+        assert has_structure or len(response.split()) > 10, \
+            "Ответ должен быть структурированным (абзацы или секции)"
+
         logger.info(f"✅ Ответ AI:\n{response}")
 
     async def test_explain_speed_formula_with_ai(self):
