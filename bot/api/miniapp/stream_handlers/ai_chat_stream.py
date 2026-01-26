@@ -1242,8 +1242,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     logger.error(f"❌ Stream: Ошибка сохранения: {save_error}", exc_info=True)
                     db.rollback()
 
-                # При визуализации текст не стримился — отправляем финальное пояснение
-                if visualization_image_base64 and full_response:
+                # Всегда отправляем финальное сообщение с очищенным (дедуплицированным) текстом:
+                # при визуализации — пояснение; без неё — полный ответ (убирает повторы от модели)
+                if full_response:
                     msg_data = json.dumps({"content": full_response}, ensure_ascii=False)
                     await response.write(f"event: message\ndata: {msg_data}\n\n".encode())
 
