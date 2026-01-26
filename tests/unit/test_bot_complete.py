@@ -29,11 +29,11 @@ class TestBotComponents:
 
     @pytest.mark.unit
     def test_ai_system_prompt_structure(self):
-        """Тест структуры AI промпта (обновлено для Yandex)"""
+        """Структура AI промпта: роль + визуал (остальное отключено)."""
         assert AI_SYSTEM_PROMPT is not None
-        assert len(AI_SYSTEM_PROMPT) > 100
-        assert "PandaPal" in AI_SYSTEM_PROMPT  # Обновлено
-        assert "РЕБЕН" in AI_SYSTEM_PROMPT  # Проверка на детскую направленность
+        assert len(AI_SYSTEM_PROMPT) > 50
+        assert "PandaPal" in AI_SYSTEM_PROMPT
+        assert "визуал" in AI_SYSTEM_PROMPT.lower() or "школьник" in AI_SYSTEM_PROMPT.lower()
 
     @pytest.mark.unit
     def test_forbidden_patterns_complete(self):
