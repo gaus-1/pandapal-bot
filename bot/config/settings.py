@@ -65,10 +65,10 @@ class Settings(BaseSettings):
     )
 
     ai_max_tokens: int = Field(
-        default=2000,
+        default=8192,
         ge=100,
         le=8192,
-        description="Максимум токенов для Pro модели (рекомендуется 2000)",
+        description="Максимум токенов для Pro модели (8192 - максимальная полнота ответов)",
         validation_alias=AliasChoices("AI_MAX_TOKENS", "ai_max_tokens"),
     )
 
@@ -82,10 +82,10 @@ class Settings(BaseSettings):
     )
 
     ai_max_tokens_pro: int = Field(
-        default=2000,
+        default=8192,
         ge=100,
         le=8192,
-        description="Максимум токенов для Pro модели (рекомендуется 2000)",
+        description="Максимум токенов для Pro модели (8192 - максимальная полнота ответов)",
         validation_alias=AliasChoices("AI_MAX_TOKENS_PRO", "ai_max_tokens_pro"),
     )
 

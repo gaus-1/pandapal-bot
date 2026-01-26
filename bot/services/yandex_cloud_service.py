@@ -198,8 +198,8 @@ class YandexCloudService:
         user_message: str,
         chat_history: list[dict[str, str]] | None = None,
         system_prompt: str | None = None,
-        temperature: float = 0.7,
-        max_tokens: int = 2000,
+        temperature: float = 0.4,
+        max_tokens: int = 8192,
         model: str | None = None,
     ) -> str:
         """
@@ -299,8 +299,8 @@ class YandexCloudService:
         user_message: str,
         chat_history: list[dict[str, str]] | None = None,
         system_prompt: str | None = None,
-        temperature: float = 0.7,
-        max_tokens: int = 2000,
+        temperature: float = 0.4,
+        max_tokens: int = 8192,
         model: str | None = None,
     ) -> AsyncIterator[str]:
         """
