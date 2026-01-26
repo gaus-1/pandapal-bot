@@ -92,7 +92,8 @@ export async function getUserAchievements(telegramId: number): Promise<Achieveme
     throw new Error('Failed to fetch achievements');
   }
 
-  return response.json();
+  const data = await response.json();
+  return data.achievements || [];
 }
 
 /**
