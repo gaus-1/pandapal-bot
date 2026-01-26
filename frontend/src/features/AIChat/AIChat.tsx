@@ -571,9 +571,51 @@ export function AIChat({ user }: AIChatProps) {
   );
 }
 
+import {
+  parseStructuredSections,
+  parseListItems,
+  isList,
+  isNumberedList,
+} from './parseStructuredSections';
+
 interface MessageContentProps {
   content: string;
   role: string;
+}
+
+function renderSectionContent(content: string) {
+  if (isNumberedList(content)) {
+    const items = parseListItems(content);
+    return (
+      <ol className="list-decimal list-inside space-y-1 ml-2 text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
+        {items.map((item, i) => (
+          <li key={i} className="whitespace-pre-wrap break-words mb-1">
+            {item}
+          </li>
+        ))}
+      </ol>
+    );
+  }
+
+  if (isList(content)) {
+    const items = parseListItems(content);
+    return (
+      <ul className="list-disc list-inside space-y-1 ml-2 text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
+        {items.map((item, i) => (
+          <li key={i} className="whitespace-pre-wrap break-words mb-1">
+            {item}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  // Обычный текст
+  return (
+    <p className="whitespace-pre-wrap break-words text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
+      {content}
+    </p>
+  );
 }
 
 function MessageContent({ content, role }: MessageContentProps) {
@@ -592,347 +634,26 @@ function MessageContent({ content, role }: MessageContentProps) {
     // Исправляем "3*3=9" на "3 × 3 = 9"
     .replace(/(\d+)\*(\d+)\s*=\s*(\d+)/g, '$1 × $2 = $3');
 
-  const { summary, steps, rest } = parseAiMessage(cleanedContent);
+  // ВСЕГДА используем структурированные блоки
+  const structuredSections = parseStructuredSections(cleanedContent);
 
   return (
-    <div className="space-y-2 sm:space-y-3">
-      {summary && (
-        <p className="whitespace-pre-wrap break-words font-semibold text-xs sm:text-sm leading-relaxed text-gray-900 dark:text-slate-100">
-          {summary}
-        </p>
-      )}
-      {steps.length > 0 && (
-        <ol className="list-decimal list-inside space-y-1 text-xs sm:text-sm leading-relaxed pl-2 text-gray-900 dark:text-slate-100">
-          {steps.map((step, index) => (
-            <li key={index} className="whitespace-pre-wrap break-words mb-1">
-              {stripLeadingNumber(step)}
-            </li>
-          ))}
-        </ol>
-      )}
-      {rest.map(
-        (paragraph, index) =>
-          paragraph.trim() && (
-            <div
-              key={index}
-              className="whitespace-pre-wrap break-words text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100"
-            >
-              {/* Обработка задач с структурированным форматированием */}
-              {paragraph.includes('**Задача') || paragraph.includes('**Условие:') || paragraph.includes('**Решение:') || paragraph.includes('**Ответ:') || paragraph.includes('**Проверка:') ? (
-                <div className="space-y-3 border-l-2 border-blue-300 dark:border-blue-600 pl-3 py-2">
-                  {paragraph.split(/\n\n+/).map((section, sectionIndex) => {
-                    if (!section.trim()) return null;
-
-                    // Заголовок задачи
-                    if (section.includes('**Задача')) {
-                      const title = section.replace(/\*\*/g, '').trim();
-                      return (
-                        <h3 key={sectionIndex} className="font-display font-bold text-sm sm:text-base text-blue-600 dark:text-blue-400 mb-2">
-                          {title}
-                        </h3>
-                      );
-                    }
-
-                    // Секции с заголовками
-                    if (section.match(/^\*\*[^*]+\*\*/)) {
-                      const parts = section.split(/(\*\*[^*]+\*\*)/);
-                      return (
-                        <div key={sectionIndex} className="space-y-1">
-                          {parts.map((part, partIndex) => {
-                            if (part.startsWith('**') && part.endsWith('**')) {
-                              const header = part.replace(/\*\*/g, '');
-                              return (
-                                <p key={partIndex} className="font-semibold text-xs sm:text-sm text-gray-800 dark:text-gray-200 mt-2 first:mt-0">
-                                  {header}
-                                </p>
-                              );
-                            } else if (part.trim()) {
-                              // Проверяем, есть ли нумерованные шаги
-                              if (/^\d+\./.test(part.trim())) {
-                                const steps = part.split(/(\d+\.\s+[^\n]+)/g).filter(s => s.trim());
-                                return (
-                                  <ol key={partIndex} className="list-decimal list-inside space-y-1 ml-2">
-                                    {steps.map((step, stepIndex) => {
-                                      const stepMatch = step.match(/^(\d+\.)\s+(.+)/);
-                                      if (stepMatch) {
-                                        return (
-                                          <li key={stepIndex} className="text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
-                                            {stepMatch[2]}
-                                          </li>
-                                        );
-                                      }
-                                      return null;
-                                    })}
-                                  </ol>
-                                );
-                              }
-                              return (
-                                <p key={partIndex} className="text-[11px] sm:text-xs leading-relaxed text-gray-700 dark:text-gray-300">
-                                  {part.trim()}
-                                </p>
-                              );
-                            }
-                            return null;
-                          })}
-                        </div>
-                      );
-                    }
-
-                    // Обычный текст
-                    return (
-                      <p key={sectionIndex} className="text-[11px] sm:text-xs leading-relaxed text-gray-700 dark:text-gray-300">
-                        {section.trim()}
-                      </p>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
-                  {paragraph.trim()}
-                </p>
-              )}
-            </div>
-          ),
-      )}
+    <div className="space-y-0">
+      {structuredSections.map((section, index) => (
+        <div
+          key={index}
+          className="py-2 first:pt-0 last:pb-0"
+        >
+          {section.title && (
+            <h3 className="font-semibold text-xs sm:text-sm mb-1.5 text-gray-900 dark:text-slate-100">
+              {section.title}
+            </h3>
+          )}
+          <div>
+            {renderSectionContent(section.content)}
+          </div>
+        </div>
+      ))}
     </div>
   );
-}
-
-function parseAiMessage(content: string): {
-  summary: string | null;
-  steps: string[];
-  rest: string[];
-} {
-  // Сначала удаляем явные дубликаты (повторяющиеся блоки текста)
-  content = removeDuplicateBlocks(content);
-
-  // Проверяем наличие задач
-  const taskRegex = /###Задача\s+\d+:/i;
-  const hasTasks = taskRegex.test(content);
-
-  if (hasTasks) {
-    // Разбиваем на задачи
-    const tasks = content.split(/(?=###Задача\s+\d+:)/i).filter(t => t.trim());
-    const parsedBlocks: string[] = [];
-
-    for (const task of tasks) {
-      if (!task.trim()) continue;
-
-      // Разбиваем задачу на секции
-      const sections: string[] = [];
-      let currentSection = '';
-      let currentSectionType = '';
-
-      const lines = task.split(/\r?\n/);
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-
-        if (!line) {
-          if (currentSection) {
-            sections.push(currentSection.trim());
-            currentSection = '';
-            currentSectionType = '';
-          }
-          continue;
-        }
-
-        // Определяем тип секции
-        if (/^###Задача\s+\d+:/.test(line)) {
-          if (currentSection) sections.push(currentSection.trim());
-          currentSection = line.replace(/###/g, '**').replace(/:/g, ':**');
-          currentSectionType = 'title';
-        } else if (line.includes('**Условие:**')) {
-          // Обрабатываем случай, когда Условие на той же строке
-          const parts = line.split(/(\*\*Условие:\*\*)/);
-          if (currentSection) sections.push(currentSection.trim());
-          currentSection = parts.join('');
-          currentSectionType = 'condition';
-        } else if (line.includes('**Решение:**')) {
-          const parts = line.split(/(\*\*Решение:\*\*)/);
-          if (currentSection) sections.push(currentSection.trim());
-          currentSection = parts.join('');
-          currentSectionType = 'solution';
-        } else if (line.includes('**Ответ:**')) {
-          const parts = line.split(/(\*\*Ответ:\*\*)/);
-          if (currentSection) sections.push(currentSection.trim());
-          currentSection = parts.join('');
-          currentSectionType = 'answer';
-        } else if (line.includes('**Проверка:**')) {
-          const parts = line.split(/(\*\*Проверка:\*\*)/);
-          if (currentSection) sections.push(currentSection.trim());
-          currentSection = parts.join('');
-          currentSectionType = 'check';
-        } else if (/^Понятно\?/.test(line)) {
-          if (currentSection) sections.push(currentSection.trim());
-          currentSection = line;
-          currentSectionType = 'question';
-        } else {
-          // Продолжение текущей секции
-          if (currentSectionType === 'solution' && /^\d+\./.test(line)) {
-            // Шаг решения
-            currentSection += '\n' + line;
-          } else {
-            currentSection += (currentSection ? (currentSection.endsWith(':') ? ' ' : '\n') : '') + line;
-          }
-        }
-      }
-
-      if (currentSection) {
-        sections.push(currentSection.trim());
-      }
-
-      // Объединяем секции задачи
-      if (sections.length > 0) {
-        parsedBlocks.push(sections.join('\n\n'));
-      }
-    }
-
-    if (parsedBlocks.length > 0) {
-      return {
-        summary: null,
-        steps: [],
-        rest: parsedBlocks,
-      };
-    }
-  }
-
-  // Обычный парсинг для не-задач
-  const lines = content.split(/\r?\n/);
-  const summaryLines: string[] = [];
-  const stepLines: string[] = [];
-  const otherLines: string[] = [];
-
-  for (const rawLine of lines) {
-    const line = rawLine.trimEnd();
-    if (!line.trim()) {
-      otherLines.push(line);
-      continue;
-    }
-
-    if (/^\s*\d+[.)]\s+/.test(line)) {
-      stepLines.push(line.trim());
-    } else if (summaryLines.length === 0 && !line.startsWith('**') && !line.startsWith('###')) {
-      summaryLines.push(line.trim());
-    } else {
-      otherLines.push(line);
-    }
-  }
-
-  const summary = summaryLines.length > 0 ? summaryLines.join(' ') : null;
-
-  // Склеиваем остальные строки обратно в абзацы по пустым строкам
-  const rest: string[] = [];
-  let buffer: string[] = [];
-  for (const line of otherLines) {
-    if (!line.trim()) {
-      if (buffer.length) {
-        rest.push(buffer.join(' ').trim());
-        buffer = [];
-      }
-    } else {
-      buffer.push(line.trim());
-    }
-  }
-  if (buffer.length) {
-    rest.push(buffer.join(' ').trim());
-  }
-
-  return {
-    summary,
-    steps: stepLines,
-    rest,
-  };
-}
-
-function stripLeadingNumber(line: string): string {
-  return line.replace(/^\s*\d+[.)]\s+/, '').trim();
-}
-
-/**
- * Удаляет повторяющиеся блоки текста из ответа AI.
- * Агрессивная версия для полного удаления всех повторений.
- */
-function removeDuplicateBlocks(text: string): string {
-  if (!text || text.length < 50) return text;
-
-  // Шаг 1: Разбиваем на строки
-  const lines = text.split('\n').filter(l => l.trim().length > 0);
-
-  if (lines.length < 2) return text;
-
-  // Шаг 2: Удаляем дубликаты строк, НО сохраняем markdown структуру!
-  const seenLines = new Set<string>();
-  const uniqueLines: string[] = [];
-
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-
-    // НЕ удаляем структурные элементы markdown (заголовки, списки)
-    const isMarkdownStructure = (
-      trimmedLine.startsWith('#') ||  // ### Заголовок
-      trimmedLine.startsWith('-') ||  // - пункт списка
-      trimmedLine.startsWith('*') ||  // * пункт или **жирный**
-      /^\d+\./.test(trimmedLine) ||   // 1. нумерованный список
-      trimmedLine.startsWith('•')     // • буллет
-    );
-
-    if (isMarkdownStructure) {
-      // Структурные элементы всегда добавляем
-      uniqueLines.push(trimmedLine);
-      continue;
-    }
-
-    const normalized = trimmedLine.toLowerCase().replace(/\s+/g, ' ');
-    if (normalized.length >= 20) {
-      if (!seenLines.has(normalized)) {
-        seenLines.add(normalized);
-        uniqueLines.push(trimmedLine);
-      }
-    } else {
-      // Короткие строки проверяем на точное совпадение
-      if (!uniqueLines.includes(trimmedLine)) {
-        uniqueLines.push(trimmedLine);
-      }
-    }
-  }
-
-  let result = uniqueLines.join('\n');
-
-  // Шаг 3: Удаляем повторяющиеся блоки (несколько строк подряд)
-  if (uniqueLines.length >= 4) {
-    const seenBlocks = new Set<string>();
-    const finalLines: string[] = [];
-    let i = 0;
-
-    while (i < uniqueLines.length) {
-      let foundDuplicate = false;
-      // Проверяем блоки разной длины (от 5 до 2 строк)
-      for (let blockLen = 5; blockLen >= 2; blockLen--) {
-        if (i + blockLen > uniqueLines.length) continue;
-
-        const block = uniqueLines.slice(i, i + blockLen).join('\n');
-        const normalizedBlock = block.toLowerCase().replace(/\s+/g, ' ');
-
-        if (normalizedBlock.length >= 40) {
-          if (seenBlocks.has(normalizedBlock)) {
-            // Пропускаем весь блок
-            i += blockLen;
-            foundDuplicate = true;
-            break;
-          } else {
-            seenBlocks.add(normalizedBlock);
-          }
-        }
-      }
-
-      if (!foundDuplicate) {
-        finalLines.push(uniqueLines[i]);
-        i++;
-      }
-    }
-
-    result = finalLines.join('\n');
-  }
-
-  return result;
 }

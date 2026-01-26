@@ -45,10 +45,7 @@ def _format_visualization_explanation(text: str) -> str:
     rest = " ".join(meaningful[2:])
 
     # Если в первой части уже есть явное выделение, не добавляем ещё одно
-    if summary.lstrip().startswith(("**", "__", "<b>", "<strong>")):
-        summary_formatted = summary
-    else:
-        summary_formatted = f"**{summary}**"
+    summary_formatted = summary
 
     if rest:
         return f"{summary_formatted} {rest}"

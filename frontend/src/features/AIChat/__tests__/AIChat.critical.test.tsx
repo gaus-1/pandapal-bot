@@ -439,7 +439,7 @@ describe('AIChat - Критические пути', () => {
       }, { timeout: 3000 });
 
       // Проверяем что показывается приветствие
-      expect(screen.getByText(/Начни общение/i)).toBeInTheDocument();
+      expect(screen.getByText(/Начни общение!/i)).toBeInTheDocument();
     });
   });
 });
