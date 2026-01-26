@@ -110,6 +110,7 @@ class TestAllServicesReal:
     @pytest.mark.asyncio
     async def test_premium_features_service_premium_user(self, real_db_session, premium_user):
         """Тест PremiumFeaturesService для Premium пользователя"""
+        _ = premium_user  # Фикстура используется для настройки БД
         service = PremiumFeaturesService(real_db_session)
 
         assert service.is_premium_active(111222333)
@@ -125,6 +126,7 @@ class TestAllServicesReal:
     @pytest.mark.asyncio
     async def test_premium_features_service_vip_user(self, real_db_session, vip_user):
         """Тест PremiumFeaturesService для VIP пользователя"""
+        _ = vip_user  # Фикстура используется для настройки БД
         service = PremiumFeaturesService(real_db_session)
 
         assert service.is_premium_active(111222333)
@@ -144,6 +146,7 @@ class TestAllServicesReal:
     @pytest.mark.asyncio
     async def test_personal_tutor_service_premium_user(self, real_db_session, premium_user):
         """Тест PersonalTutorService для Premium пользователя"""
+        _ = premium_user  # Фикстура используется для настройки БД
         service = PersonalTutorService(real_db_session)
 
         plan = await service.get_learning_plan(111222333)
@@ -168,6 +171,7 @@ class TestAllServicesReal:
     @pytest.mark.asyncio
     async def test_priority_support_service_premium_user(self, real_db_session, premium_user):
         """Тест PrioritySupportService для Premium пользователя"""
+        _ = premium_user  # Фикстура используется для настройки БД
         service = PrioritySupportService(real_db_session)
 
         priority = service.get_support_priority(111222333)
@@ -179,6 +183,7 @@ class TestAllServicesReal:
     @pytest.mark.asyncio
     async def test_priority_support_service_vip_user(self, real_db_session, vip_user):
         """Тест PrioritySupportService для VIP пользователя"""
+        _ = vip_user  # Фикстура используется для настройки БД
         service = PrioritySupportService(real_db_session)
 
         priority = service.get_support_priority(111222333)
@@ -200,6 +205,7 @@ class TestAllServicesReal:
     @pytest.mark.asyncio
     async def test_bonus_lessons_service_premium_user(self, real_db_session, premium_user):
         """Тест BonusLessonsService для Premium пользователя (не VIP)"""
+        _ = premium_user  # Фикстура используется для настройки БД
         service = BonusLessonsService(real_db_session)
 
         with pytest.raises(PermissionError):
@@ -208,6 +214,7 @@ class TestAllServicesReal:
     @pytest.mark.asyncio
     async def test_bonus_lessons_service_vip_user(self, real_db_session, vip_user):
         """Тест BonusLessonsService для VIP пользователя"""
+        _ = vip_user  # Фикстура используется для настройки БД
         service = BonusLessonsService(real_db_session)
 
         lessons = service.get_bonus_lessons(111222333)
@@ -227,6 +234,7 @@ class TestAllServicesReal:
     @pytest.mark.asyncio
     async def test_analytics_service_messages_per_day(self, real_db_session, premium_user):
         """Тест AnalyticsService.get_messages_per_day для Premium"""
+        _ = premium_user  # Фикстура используется для настройки БД
         from bot.services.chat_history_service import ChatHistoryService
 
         # Создаём историю сообщений
@@ -255,6 +263,7 @@ class TestAllServicesReal:
     @pytest.mark.asyncio
     async def test_analytics_service_most_active_subjects(self, real_db_session, premium_user):
         """Тест AnalyticsService.get_most_active_subjects для Premium"""
+        _ = premium_user  # Фикстура используется для настройки БД
         from bot.services.chat_history_service import ChatHistoryService
 
         # Создаём историю с разными предметами
@@ -283,6 +292,7 @@ class TestAllServicesReal:
     @pytest.mark.asyncio
     async def test_analytics_service_learning_trends(self, real_db_session, premium_user):
         """Тест AnalyticsService.get_learning_trends для Premium"""
+        _ = premium_user  # Фикстура используется для настройки БД
         from bot.services.chat_history_service import ChatHistoryService
 
         # Создаём историю за несколько дней
@@ -310,6 +320,7 @@ class TestAllServicesReal:
     @pytest.mark.asyncio
     async def test_gamification_service_premium_achievements(self, real_db_session, premium_user):
         """Тест GamificationService для premium achievements"""
+        _ = premium_user  # Фикстура используется для настройки БД
         service = GamificationService(real_db_session)
 
         # Получаем все достижения

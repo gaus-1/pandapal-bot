@@ -7,7 +7,7 @@ import asyncio
 import os
 import sys
 from pathlib import Path
-from typing import AsyncGenerator, Generator
+from typing import Generator
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -38,7 +38,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Мокаем yookassa для тестов (не нужен для Stars платежей)
 try:
-    import yookassa
+    import yookassa  # noqa: F401
 except ImportError:
     # Создаём полный mock модуль yookassa
     import sys

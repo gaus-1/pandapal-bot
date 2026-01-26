@@ -208,6 +208,12 @@ class ILoggerService(ABC):
         pass
 
     @abstractmethod
-    def log_security_event(self, event_type: str, details: dict[str, Any]) -> None:
-        """Логирование событий безопасности"""
+    def log_security_event(self, event_type: str, _details: dict[str, Any]) -> None:
+        """
+        Логирование событий безопасности
+
+        Args:
+            event_type: Тип события безопасности
+            _details: Детали события (используется в реализации)
+        """
         pass

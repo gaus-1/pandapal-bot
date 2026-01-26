@@ -19,7 +19,6 @@ import os
 import tempfile
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
-from decimal import Decimal
 from unittest.mock import patch
 
 import pytest

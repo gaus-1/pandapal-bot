@@ -13,7 +13,7 @@ import tempfile
 from datetime import datetime, timezone
 
 import pytest
-from aiogram.types import Chat, Message, Update, User
+from aiogram.types import Chat, Message, User
 from aiohttp import web
 from aiohttp.test_utils import make_mocked_request
 from sqlalchemy import create_engine
@@ -51,6 +51,7 @@ class TestWebhookAndSecurityReal:
         request = make_mocked_request("GET", "/test", app=app)
 
         async def handler(req):
+            _ = req  # Параметр для совместимости с middleware
             return web.Response(text="OK")
 
         # Применяем middleware
@@ -74,6 +75,7 @@ class TestWebhookAndSecurityReal:
         request = make_mocked_request("GET", "/test", app=app)
 
         async def handler(req):
+            _ = req  # Параметр для совместимости с middleware
             return web.Response(text="OK")
 
         middleware = security_middleware(app, handler)
@@ -94,6 +96,7 @@ class TestWebhookAndSecurityReal:
         app = web.Application()
 
         async def handler(req):
+            _ = req  # Параметр для совместимости с middleware
             return web.Response(text="OK")
 
         middleware = security_middleware(app, handler)
@@ -120,7 +123,7 @@ class TestWebhookAndSecurityReal:
     @pytest.mark.asyncio
     async def test_webhook_telegram_update(self, real_db_session):
         """Тест: Обработка Telegram webhook update"""
-        from bot.handlers.ai_chat import ai_chat_handler
+        _ = real_db_session  # Фикстура для настройки БД
 
         # Создаём mock update от Telegram
         telegram_user = User(

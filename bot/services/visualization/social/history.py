@@ -8,10 +8,8 @@ try:
     import matplotlib
 
     matplotlib.use("Agg")
-    import matplotlib.patches as mpatches
     import matplotlib.pyplot as plt
-    import numpy as np
-    from matplotlib.patches import Circle, FancyArrowPatch, Polygon, Rectangle
+    from matplotlib.patches import Circle, Polygon, Rectangle
 
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
@@ -139,7 +137,7 @@ class HistoryVisualization(BaseVisualizationService):
         )
 
         # Флеши Багратиона
-        for i, x in enumerate([2, 3, 4]):
+        for _i, x in enumerate([2, 3, 4]):
             ax.add_patch(
                 Polygon(
                     [[x, 1.5], [x + 0.3, 1.8], [x + 0.6, 1.5]],
@@ -171,10 +169,16 @@ class HistoryVisualization(BaseVisualizationService):
 
         # Стрелки атак
         ax.annotate(
-            "", xy=(2.5, 4), xytext=(2.5, 6.5), arrowprops=dict(arrowstyle="->", color="blue", lw=2)
+            "",
+            xy=(2.5, 4),
+            xytext=(2.5, 6.5),
+            arrowprops={"arrowstyle": "->", "color": "blue", "lw": 2},
         )
         ax.annotate(
-            "", xy=(6, 4), xytext=(5, 6.5), arrowprops=dict(arrowstyle="->", color="blue", lw=2)
+            "",
+            xy=(6, 4),
+            xytext=(5, 6.5),
+            arrowprops={"arrowstyle": "->", "color": "blue", "lw": 2},
         )
 
         # Легенда
@@ -183,7 +187,10 @@ class HistoryVisualization(BaseVisualizationService):
         ax.add_patch(Rectangle((9, 6.5), 0.5, 0.3, facecolor="#42a5f5", edgecolor="black"))
         ax.text(9.7, 6.65, "Французские войска", fontsize=8, va="center")
         ax.annotate(
-            "", xy=(9.5, 6.1), xytext=(9, 6.1), arrowprops=dict(arrowstyle="->", color="blue", lw=2)
+            "",
+            xy=(9.5, 6.1),
+            xytext=(9, 6.1),
+            arrowprops={"arrowstyle": "->", "color": "blue", "lw": 2},
         )
         ax.text(9.7, 6.1, "Направление атак", fontsize=8, va="center")
 
@@ -231,13 +238,21 @@ class HistoryVisualization(BaseVisualizationService):
 
         # Стрелки
         ax.annotate(
-            "", xy=(6, 3), xytext=(6, 6.5), arrowprops=dict(arrowstyle="->", color="#f57c00", lw=2)
+            "",
+            xy=(6, 3),
+            xytext=(6, 6.5),
+            arrowprops={"arrowstyle": "->", "color": "#f57c00", "lw": 2},
         )
         ax.annotate(
             "",
             xy=(6, 6.5),
             xytext=(10.5, 2),
-            arrowprops=dict(arrowstyle="->", color="darkred", lw=2, connectionstyle="arc3,rad=0.3"),
+            arrowprops={
+                "arrowstyle": "->",
+                "color": "darkred",
+                "lw": 2,
+                "connectionstyle": "arc3,rad=0.3",
+            },
         )
 
         # Легенда
@@ -294,7 +309,7 @@ class HistoryVisualization(BaseVisualizationService):
             "",
             xy=(4.5, 4.5),
             xytext=(4.5, 6.5),
-            arrowprops=dict(arrowstyle="->", color="blue", lw=2),
+            arrowprops={"arrowstyle": "->", "color": "blue", "lw": 2},
         )
 
         # Легенда
@@ -324,13 +339,13 @@ class HistoryVisualization(BaseVisualizationService):
         # Советские удары (клещи)
         # Северный удар
         ax.annotate(
-            "", xy=(4, 6), xytext=(2, 8), arrowprops=dict(arrowstyle="->", color="red", lw=3)
+            "", xy=(4, 6), xytext=(2, 8), arrowprops={"arrowstyle": "->", "color": "red", "lw": 3}
         )
         ax.text(1.5, 8.2, "Юго-Зап.\nфронт", fontsize=8, color="red")
 
         # Южный удар
         ax.annotate(
-            "", xy=(4, 3), xytext=(2, 1), arrowprops=dict(arrowstyle="->", color="red", lw=3)
+            "", xy=(4, 3), xytext=(2, 1), arrowprops={"arrowstyle": "->", "color": "red", "lw": 3}
         )
         ax.text(1.5, 0.5, "Сталингр.\nфронт", fontsize=8, color="red")
 
@@ -380,19 +395,29 @@ class HistoryVisualization(BaseVisualizationService):
 
         # Стрелки
         ax.annotate(
-            "", xy=(6, 4), xytext=(6, 6), arrowprops=dict(arrowstyle="->", color="gray", lw=2)
+            "", xy=(6, 4), xytext=(6, 6), arrowprops={"arrowstyle": "->", "color": "gray", "lw": 2}
         )
         ax.annotate(
             "",
             xy=(4.5, 5),
             xytext=(2, 4),
-            arrowprops=dict(arrowstyle="->", color="red", lw=2, connectionstyle="arc3,rad=0.2"),
+            arrowprops={
+                "arrowstyle": "->",
+                "color": "red",
+                "lw": 2,
+                "connectionstyle": "arc3,rad=0.2",
+            },
         )
         ax.annotate(
             "",
             xy=(7.5, 5),
             xytext=(10, 4),
-            arrowprops=dict(arrowstyle="->", color="red", lw=2, connectionstyle="arc3,rad=-0.2"),
+            arrowprops={
+                "arrowstyle": "->",
+                "color": "red",
+                "lw": 2,
+                "connectionstyle": "arc3,rad=-0.2",
+            },
         )
 
         # Легенда

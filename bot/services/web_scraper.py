@@ -118,8 +118,9 @@ class WebScraperService:
         await self.start_session()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):  # noqa: ARG002
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Асинхронный контекстный менеджер - выход."""
+        _ = exc_type, exc_val, exc_tb  # Параметры для совместимости с context manager
         await self.close_session()
 
     async def start_session(self):

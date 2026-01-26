@@ -13,9 +13,10 @@ def _debug_log(
     location: str,  # noqa: ARG001
     message: str,  # noqa: ARG001
     data: dict | None = None,  # noqa: ARG001
-    run_id: str = "initial",  # noqa: ARG001
+    run_id: str = "initial",
 ) -> None:
     """Записать отладочное сообщение в NDJSON-файл debug.log."""
+    _ = run_id  # Параметр для совместимости, но не используется
     # Логирование отключено для production
     return
 

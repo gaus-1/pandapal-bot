@@ -61,12 +61,13 @@ class SentryConfig:
 
         logging.info(f"✅ Sentry инициализирован для среды: {self.environment}")
 
-    def _before_send_filter(self, event, hint):  # noqa: ARG002
+    def _before_send_filter(self, event, hint):
         """
         Фильтрация событий перед отправкой в Sentry.
 
         Маскирует чувствительные данные и фильтрует неважные ошибки.
         """
+        _ = hint  # Sentry передает hint, но мы его не используем
         # Маскируем чувствительные данные
         if "extra" in event:
             for key in ["token", "password", "secret", "key"]:
@@ -84,10 +85,11 @@ class SentryConfig:
 
         return event
 
-    def _before_send_transaction(self, event, hint):  # noqa: ARG002
+    def _before_send_transaction(self, event, hint):
         """
         Фильтрация транзакций перед отправкой в Sentry.
         """
+        _ = hint  # Sentry передает hint, но мы его не используем
         # Маскируем URL с токенами
         if "request" in event and "url" in event["request"]:
             url = event["request"]["url"]

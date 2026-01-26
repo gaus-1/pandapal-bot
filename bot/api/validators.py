@@ -59,12 +59,13 @@ class AIChatRequest(BaseModel):
             raise ValueError("telegram_id must be positive")
         return v
 
-    def model_post_init(self, __context) -> None:  # noqa: ARG002
+    def model_post_init(self, __context) -> None:
         """Проверка что есть хотя бы одно поле (message, photo или audio)."""
         if not any([self.message, self.photo_base64, self.audio_base64]):
             raise ValueError(
                 "At least one of message, photo_base64, or audio_base64 must be provided"
             )
+        _ = __context  # Pydantic требует этот параметр
 
 
 class HomeworkCheckRequest(BaseModel):
@@ -99,8 +100,9 @@ class AuthRequest(BaseModel):
         None, min_length=10, max_length=10000, description="Telegram initData (snake_case)"
     )
 
-    def model_post_init(self, __context) -> None:  # noqa: ARG002
+    def model_post_init(self, __context) -> None:
         """Проверка что есть хотя бы одно поле и нормализация."""
+        _ = __context  # Pydantic требует этот параметр
         # Поддержка обоих форматов для обратной совместимости
         if self.init_data and not self.initData:
             self.initData = self.init_data
