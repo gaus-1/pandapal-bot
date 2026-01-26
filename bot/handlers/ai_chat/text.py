@@ -9,7 +9,7 @@ from loguru import logger
 
 from bot.database import get_db
 from bot.monitoring import log_user_activity, monitor_performance
-from bot.services import ChatHistoryService, ContentModerationService, UserService
+from bot.services import ChatHistoryService, UserService
 from bot.services.ai_service_solid import get_ai_service
 
 from .helpers import extract_user_name_from_message
@@ -249,118 +249,7 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 # Продолжаем обычную обработку текстом
                 logger.info("📝 Обрабатываем запрос как обычный текст")
 
-        # Продвинутая проверка контента на безопасность
-        moderation_service = ContentModerationService()
-
-        # Проверка на провокационные вопросы о запрещенных темах
-        if moderation_service.is_provocative_question(user_message):
-            logger.warning(f"🚫 Провокационный вопрос от {telegram_id}: {user_message[:50]}...")
-            log_user_activity(
-                telegram_id, "provocative_question", False, "question_about_forbidden_topics"
-            )
-
-            # Вежливо перенаправляем на учебу
-            safe_response = (
-                "Я помогаю с учебой и школьными предметами! 📚\n\n"
-                "Могу помочь с:\n"
-                "• Математикой (задачи, примеры, формулы)\n"
-                "• Русским языком (правила, орфография, грамматика)\n"
-                "• Историей (даты, события, эпохи)\n"
-                "• Географией (страны, карты, природные зоны)\n"
-                "• Физикой, химией, биологией\n"
-                "• Литературой и иностранными языками\n\n"
-                "Задай вопрос по любому школьному предмету! 🐼"
-            )
-            await message.answer(text=safe_response)
-            return
-
-        # Сначала базовая проверка
-        is_safe, reason = moderation_service.is_safe_content(user_message)
-
-        if not is_safe:
-            logger.warning(f"🚫 Заблокирован контент от {telegram_id}: {reason}")
-            moderation_service.log_blocked_content(telegram_id, user_message, reason)
-            log_user_activity(telegram_id, "blocked_content", False, reason)
-
-            # Записываем метрику безопасности (базовая блокировка)
-            try:
-                with get_db() as db:
-                    user_service = UserService(db)
-                    user = user_service.get_user_by_telegram_id(telegram_id)
-                    if user and user.user_type == "child":
-                        from bot.services.analytics_service import AnalyticsService
-
-                        analytics_service = AnalyticsService(db)
-                        analytics_service.record_safety_metric(
-                            metric_name="blocked_messages",
-                            value=1.0,
-                            user_telegram_id=telegram_id,
-                            category="basic_moderation",
-                        )
-            except Exception as e:
-                logger.debug(f"⚠️ Не удалось записать метрику безопасности: {e}")
-
-            safe_response = moderation_service.get_safe_response_alternative("blocked_content")
-            await message.answer(text=safe_response)
-            return
-
-        # Затем продвинутая модерация
-        user_context = {
-            "telegram_id": telegram_id,
-            "username": message.from_user.username,
-            "first_name": message.from_user.first_name,
-        }
-
-        try:
-            advanced_result = await moderation_service.advanced_moderate_content(
-                user_message, user_context
-            )
-
-            # Если продвинутая модерация заблокировала контент
-            if not advanced_result.is_safe:
-                logger.warning(
-                    f"🚫 Продвинутая модерация заблокировала контент от {telegram_id}: "
-                    f"{advanced_result.reason} (уверенность: {advanced_result.confidence:.2f})"
-                )
-
-                # Логируем активность
-                log_user_activity(
-                    telegram_id,
-                    "advanced_blocked_content",
-                    False,
-                    f"{advanced_result.category.value if advanced_result.category else 'unknown'}: {advanced_result.reason}",
-                )
-
-                # Записываем метрику безопасности
-                try:
-                    with get_db() as db:
-                        from bot.services.analytics_service import AnalyticsService
-
-                        analytics_service = AnalyticsService(db)
-                        analytics_service.record_safety_metric(
-                            metric_name="blocked_messages",
-                            value=1.0,
-                            user_telegram_id=telegram_id,
-                            category=(
-                                advanced_result.category.value
-                                if advanced_result.category
-                                else "unknown"
-                            ),
-                        )
-                except Exception as e:
-                    logger.debug(f"⚠️ Не удалось записать метрику безопасности: {e}")
-
-                # Используем альтернативный ответ из продвинутой модерации
-                response_text = (
-                    advanced_result.alternative_response
-                    or moderation_service.get_safe_response_alternative("blocked_content")
-                )
-                await message.answer(text=response_text)
-                return
-
-        except Exception as e:
-            logger.error(f"❌ Ошибка продвинутой модерации: {e}")
-            # Продолжаем с базовой модерацией в случае ошибки
+        # Правила по запрещённым темам отключены — не применяются ни в каком виде
 
         # Работа с базой данных
         with get_db() as db:
@@ -1095,8 +984,7 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 is_auto_greeting_sent=is_auto_greeting_sent,
             )
 
-            # Промодерируем ответ AI на безопасность
-            ai_response = moderation_service.sanitize_ai_response(ai_response)
+            # Правила по запрещённым темам отключены — ответ не фильтруем
 
             # Добавляем вовлекающий вопрос после визуализаций
             if visualization_image and visualization_type:

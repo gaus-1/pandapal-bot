@@ -105,16 +105,7 @@ async def handle_image(message: Message, state: FSMContext):  # noqa: ARG001
             ai_service = get_ai_service()
             history_service = ChatHistoryService(db)
 
-            # Проверяем модерацию изображения
-            is_safe, reason = await ai_service.moderate_image_content(image_bytes)
-
-            if not is_safe:
-                await processing_msg.edit_text(
-                    "🚫 Это изображение не подходит для детей. "
-                    "Попробуй отправить что-то другое! 🐼"
-                )
-                log_user_activity(message.from_user.id, "image_blocked", False, reason)
-                return
+            # Правила по запрещённым темам отключены — модерация изображений не применяется
 
             # Получаем подпись к изображению (если есть)
             caption = message.caption or ""
@@ -126,21 +117,7 @@ async def handle_image(message: Message, state: FSMContext):  # noqa: ARG001
                 user_age=user.age,
             )
 
-            # Проверяем ответ AI на запрещенные темы (дополнительная проверка)
-            from bot.services.moderation_service import ContentModerationService
-
-            moderation_service = ContentModerationService()
-            is_safe_response, reason = moderation_service.is_safe_content(ai_response)
-
-            if not is_safe_response:
-                # Вежливо переводим на учебу, не упоминая запрещенную тему
-                await processing_msg.edit_text(
-                    "🚫 Это изображение не подходит для учебы. "
-                    "Попробуй отправить фото с задачей или вопросом по школьным предметам! "
-                    "Я помогу с математикой, русским, историей, географией и другими предметами! 🐼📚"
-                )
-                log_user_activity(message.from_user.id, "image_blocked_ai_response", False, reason)
-                return
+            # Правила по запрещённым темам отключены — ответ AI не фильтруем
 
             # Увеличиваем счетчик запросов (независимо от истории)
             limit_reached, total_requests = premium_service.increment_request_count(
