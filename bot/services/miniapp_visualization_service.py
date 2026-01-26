@@ -574,9 +574,9 @@ class MiniappVisualizationService:
         for pattern in patterns_to_remove:
             full_response = re.sub(pattern, "", full_response, flags=re.IGNORECASE)
 
-        # Убираем лишние пробелы и переносы строк после удаления
-        full_response = re.sub(r"\s+", " ", full_response)
-        full_response = re.sub(r"\n\s*\n", "\n", full_response)
+        # Убираем лишние пробелы, сохраняем абзацы (переносы)
+        full_response = re.sub(r"[ \t]+", " ", full_response)
+        full_response = re.sub(r"\n{3,}", "\n\n", full_response)
         full_response = full_response.strip()
 
         if intent.kind == "table":

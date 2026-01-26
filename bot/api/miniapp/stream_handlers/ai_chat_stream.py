@@ -7,7 +7,6 @@
 
 import asyncio
 import json
-import re
 from contextlib import suppress
 
 import httpx
@@ -31,29 +30,8 @@ from bot.services.yandex_ai_response_generator import clean_ai_response
 
 
 def _format_visualization_explanation(text: str) -> str:
-    """
-    Делает первое короткое резюме визуализации жирным (1–2 предложения),
-    остальной текст оставляет обычным.
-    """
-    text = (text or "").strip()
-    if not text:
-        return text
-
-    # Делим по предложениям
-    sentences = re.split(r"[.!?]+\s+", text)
-    meaningful = [s.strip() for s in sentences if s and s.strip()]
-    if not meaningful:
-        return text
-
-    summary = " ".join(meaningful[:2])
-    rest = " ".join(meaningful[2:])
-
-    # Если в первой части уже есть явное выделение, не добавляем ещё одно
-    summary_formatted = summary
-
-    if rest:
-        return f"{summary_formatted} {rest}"
-    return summary_formatted
+    """Оставляем текст как есть — полная свобода модели."""
+    return (text or "").strip()
 
 
 async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
@@ -1234,7 +1212,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 )
                             )
 
-                        # Делаем первые 1–2 предложения кратким жирным резюме
                         full_response = _format_visualization_explanation(full_response)
 
                         logger.info(
