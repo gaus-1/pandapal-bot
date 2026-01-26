@@ -74,8 +74,13 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 f"has_audio={bool(data.get('audio_base64'))}"
             )
         except Exception as json_error:
+            err_str = str(json_error)
             logger.error(f"❌ Stream: ошибка парсинга JSON: {json_error}", exc_info=True)
-            await response.write(b'event: error\ndata: {"error": "Invalid JSON"}\n\n')
+            if "Content Too Large" in err_str or "too large" in err_str.lower():
+                msg = '{"error": "Фото или аудио слишком большие. Уменьши размер фото или длину голосового."}'
+                await response.write(f"event: error\ndata: {msg}\n\n".encode())
+            else:
+                await response.write(b'event: error\ndata: {"error": "Invalid JSON"}\n\n')
             return response
 
         # Валидация входных данных
