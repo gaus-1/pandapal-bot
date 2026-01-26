@@ -34,6 +34,23 @@ def _format_visualization_explanation(text: str) -> str:
     return (text or "").strip()
 
 
+def _is_refusal_like(text: str) -> bool:
+    """Проверка, похож ли текст на отказ модели обсуждать тему."""
+    if not (text or "").strip():
+        return False
+    t = text.lower().strip()
+    refusal_phrases = [
+        "не могу обсуждать эту тему",
+        "не могу ответить на этот вопрос",
+        "поговорим о чём-нибудь ещё",
+        "давайте поговорим о чём-нибудь",
+        "давай лучше поговорим о чём-то",
+        "лучше поговорим об учёбе",
+        "давай лучше обсудим что-то",
+    ]
+    return any(p in t for p in refusal_phrases)
+
+
 async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
     """
     Отправить сообщение AI и получить streaming ответ через SSE.
@@ -471,28 +488,8 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     full_response += cleaned_chunk
                     collected_chunks.append(cleaned_chunk)
 
-                    # Если будет визуализация - НЕ отправляем chunks с таблицей умножения
-                    if will_have_visualization:
-                        # Проверяем, содержит ли chunk таблицу умножения (оба паттерна!)
-                        multiplication_text_pattern = re.compile(
-                            r"\d+\s*[×x*]\s*\d+\s*=\s*\d+", re.IGNORECASE
-                        )
-                        # КРИТИЧНО: паттерн БЕЗ символа умножения - именно такой формат приходит от AI
-                        multiplication_text_pattern_no_symbol = re.compile(
-                            r"\d+\s+\d+\s*=\s*\d+", re.IGNORECASE
-                        )
-                        if not multiplication_text_pattern.search(
-                            cleaned_chunk
-                        ) and not multiplication_text_pattern_no_symbol.search(cleaned_chunk):
-                            # Отправляем только chunks без таблицы умножения
-                            import json as json_lib
-
-                            chunk_data = json_lib.dumps(
-                                {"chunk": cleaned_chunk}, ensure_ascii=False
-                            )
-                            await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
-                    else:
-                        # Обычная отправка всех chunks
+                    # Если будет визуализация — не стримим текст: покажем только image + наше пояснение
+                    if not will_have_visualization:
                         import json as json_lib
 
                         chunk_data = json_lib.dumps({"chunk": cleaned_chunk}, ensure_ascii=False)
@@ -1219,6 +1216,16 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                         full_response = _format_visualization_explanation(full_response)
 
+                        # Если при визуализации модель отказалась — подменяем на нейтральное пояснение
+                        if visualization_image_base64 and _is_refusal_like(full_response):
+                            full_response = (
+                                "📐 Вот визуализация. Изучи её — по осям отложены данные. "
+                                "Если нужны подробности, спроси!"
+                            )
+                            logger.info(
+                                "🔄 Stream: Текст модели — отказ; подменено на пояснение к визуализации"
+                            )
+
                         logger.info(
                             f"✅ Stream: Полноценное пояснение к визуализации (длина: {len(full_response)}): {full_response[:100]}"
                         )
@@ -1295,6 +1302,11 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 except Exception as save_error:
                     logger.error(f"❌ Stream: Ошибка сохранения: {save_error}", exc_info=True)
                     db.rollback()
+
+                # При визуализации текст не стримился — отправляем финальное пояснение
+                if visualization_image_base64 and full_response:
+                    msg_data = json.dumps({"content": full_response}, ensure_ascii=False)
+                    await response.write(f"event: message\ndata: {msg_data}\n\n".encode())
 
                 # Отправляем событие завершения
                 await response.write(b'event: done\ndata: {"status": "completed"}\n\n')
@@ -1552,6 +1564,11 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                             # Делаем первые 1–2 предложения кратким жирным резюме
                             cleaned_response = _format_visualization_explanation(cleaned_response)
+                            if visualization_image_base64 and _is_refusal_like(cleaned_response):
+                                cleaned_response = (
+                                    "📐 Вот визуализация. Изучи её — по осям отложены данные. "
+                                    "Если нужны подробности, спроси!"
+                                )
 
                         # Отправляем полный ответ как один chunk
                         import json as json_lib

@@ -23,9 +23,6 @@ Single Responsibility. Проверяет текстовые сообщения 
 - Interface Segregation: минимальный интерфейс IModerator
 """
 
-from loguru import logger
-
-from bot.config import FORBIDDEN_PATTERNS
 from bot.services.yandex_ai_response_generator import IModerator
 
 
@@ -38,34 +35,9 @@ class ContentModerator(IModerator):
     - единственная задача: модерация контента.
     """
 
-    def moderate(self, text: str) -> tuple[bool, str]:
+    def moderate(self, text: str) -> tuple[bool, str]:  # noqa: ARG002
         """
         Проверка контента на безопасность.
-
-        Анализирует текст на наличие запрещенных паттернов и тем,
-        возвращает результат проверки и причину блокировки (если есть).
-
-        Args:
-            text (str): Текст для проверки.
-
-        Returns:
-            Tuple[bool, str]: (безопасен, причина_блокировки).
+        Отключено: свобода модели, сама знает границы.
         """
-        import re
-
-        text_lower = text.lower()
-
-        # Проверяем учебный контекст
-        educational_keywords = ["умножение", "таблица", "математика", "задача", "урок", "учеба"]
-        if any(keyword in text_lower for keyword in educational_keywords):
-            return True, "Учебный контекст - безопасен"
-
-        for pattern in FORBIDDEN_PATTERNS:
-            pattern_lower = pattern.lower()
-            # Ищем целое слово с границами \b для избежания ложных срабатываний
-            # Например, "нож" не должен находиться в "умножение"
-            if re.search(r"\b" + re.escape(pattern_lower) + r"\b", text_lower):
-                logger.warning(f"🚫 Запрещенный контент: {pattern}")
-                return False, f"Запрещенная тема: {pattern}"
-
-        return True, "Контент безопасен"
+        return True, ""
