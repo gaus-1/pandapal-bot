@@ -1086,6 +1086,7 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 chat_history=history,
                 user_age=user.age,
                 user_name=user.first_name,
+                user_grade=user.grade,
                 is_history_cleared=is_history_cleared,
                 message_count_since_name=user_message_count,
                 skip_name_asking=user.skip_name_asking,
@@ -1126,16 +1127,27 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 telegram_id=telegram_id, message_text=user_message, message_type="user"
             )
 
-            # Если история была очищена и пользователь, возможно, назвал имя
-            if is_history_cleared and not user.first_name and not user.skip_name_asking:
-                extracted_name, is_refusal = extract_user_name_from_message(user_message)
-                if is_refusal:
-                    user.skip_name_asking = True
-                    logger.info(
-                        "✅ Пользователь отказался называть имя, устанавливаем флаг skip_name_asking"
-                    )
-                elif extracted_name:
-                    user.first_name = extracted_name
+            # Если история была очищена и пользователь, возможно, назвал имя или класс
+            if is_history_cleared and not user.skip_name_asking:
+                # Извлекаем имя
+                if not user.first_name:
+                    extracted_name, is_refusal = extract_user_name_from_message(user_message)
+                    if is_refusal:
+                        user.skip_name_asking = True
+                        logger.info(
+                            "✅ Пользователь отказался называть имя, устанавливаем флаг skip_name_asking"
+                        )
+                    elif extracted_name:
+                        user.first_name = extracted_name
+
+                # Извлекаем класс
+                if not user.grade:
+                    from bot.api.miniapp.helpers import extract_user_grade_from_message
+
+                    extracted_grade = extract_user_grade_from_message(user_message)
+                    if extracted_grade:
+                        user.grade = extracted_grade
+                        logger.info(f"✅ Класс пользователя обновлен: {user.grade}")
                     logger.info(f"✅ Имя пользователя обновлено: {user.first_name}")
 
             # Сохраняем ответ AI в историю

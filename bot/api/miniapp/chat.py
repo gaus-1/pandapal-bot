@@ -16,6 +16,7 @@ from bot.services.ai_service_solid import get_ai_service
 from bot.services.yandex_ai_response_generator import clean_ai_response
 
 from .helpers import (
+    extract_user_grade_from_message,
     extract_user_name_from_message,
     format_achievements,
     process_audio_message,
@@ -345,6 +346,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 chat_history=history,
                 user_age=user.age,
                 user_name=user.first_name,
+                user_grade=user.grade,
                 is_history_cleared=is_history_cleared,
                 message_count_since_name=user_message_count,
                 skip_name_asking=user.skip_name_asking,
@@ -387,17 +389,26 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 user_msg = history_service.add_message(telegram_id, user_message, "user")
                 logger.info(f"✅ Сообщение пользователя добавлено в сессию: id={user_msg.id}")
 
-                # Если история была очищена и пользователь, возможно, назвал имя
-                if is_history_cleared and not user.first_name and not user.skip_name_asking:
-                    extracted_name, is_refusal = extract_user_name_from_message(user_message)
-                    if is_refusal:
-                        user.skip_name_asking = True
-                        logger.info(
-                            "✅ Пользователь отказался называть имя, устанавливаем флаг skip_name_asking"
-                        )
-                    elif extracted_name:
-                        user.first_name = extracted_name
-                        logger.info(f"✅ Имя пользователя обновлено: {user.first_name}")
+                # Если история была очищена и пользователь, возможно, назвал имя или класс
+                if is_history_cleared and not user.skip_name_asking:
+                    # Извлекаем имя
+                    if not user.first_name:
+                        extracted_name, is_refusal = extract_user_name_from_message(user_message)
+                        if is_refusal:
+                            user.skip_name_asking = True
+                            logger.info(
+                                "✅ Пользователь отказался называть имя, устанавливаем флаг skip_name_asking"
+                            )
+                        elif extracted_name:
+                            user.first_name = extracted_name
+                            logger.info(f"✅ Имя пользователя обновлено: {user.first_name}")
+
+                    # Извлекаем класс
+                    if not user.grade:
+                        extracted_grade = extract_user_grade_from_message(user_message)
+                        if extracted_grade:
+                            user.grade = extracted_grade
+                            logger.info(f"✅ Класс пользователя обновлен: {user.grade}")
 
                 logger.info(f"💾 Сохраняю ответ AI: {full_response[:50]}...")
                 ai_msg = history_service.add_message(telegram_id, full_response, "ai")

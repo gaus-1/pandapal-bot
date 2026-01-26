@@ -15,7 +15,11 @@ from aiohttp import web
 from loguru import logger
 from pydantic import ValidationError
 
-from bot.api.miniapp.helpers import extract_user_name_from_message, send_achievements_event
+from bot.api.miniapp.helpers import (
+    extract_user_grade_from_message,
+    extract_user_name_from_message,
+    send_achievements_event,
+)
 from bot.api.validators import AIChatRequest
 from bot.database import get_db
 from bot.services import ChatHistoryService, UserService
@@ -1262,17 +1266,30 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         telegram_id, full_response_for_db, "ai", image_url=image_url
                     )
 
-                    # Если история была очищена и пользователь, возможно, назвал имя
-                    if is_history_cleared and not user.first_name and not user.skip_name_asking:
-                        extracted_name, is_refusal = extract_user_name_from_message(user_message)
-                        if is_refusal:
-                            user.skip_name_asking = True
-                            logger.info(
-                                "✅ Stream: Пользователь отказался называть имя, устанавливаем флаг skip_name_asking"
+                    # Если история была очищена и пользователь, возможно, назвал имя или класс
+                    if is_history_cleared and not user.skip_name_asking:
+                        # Извлекаем имя
+                        if not user.first_name:
+                            extracted_name, is_refusal = extract_user_name_from_message(
+                                user_message
                             )
-                        elif extracted_name:
-                            user.first_name = extracted_name
-                            logger.info(f"✅ Stream: Имя пользователя обновлено: {user.first_name}")
+                            if is_refusal:
+                                user.skip_name_asking = True
+                                logger.info(
+                                    "✅ Stream: Пользователь отказался называть имя, устанавливаем флаг skip_name_asking"
+                                )
+                            elif extracted_name:
+                                user.first_name = extracted_name
+                                logger.info(
+                                    f"✅ Stream: Имя пользователя обновлено: {user.first_name}"
+                                )
+
+                        # Извлекаем класс
+                        if not user.grade:
+                            extracted_grade = extract_user_grade_from_message(user_message)
+                            if extracted_grade:
+                                user.grade = extracted_grade
+                                logger.info(f"✅ Stream: Класс пользователя обновлен: {user.grade}")
 
                     # Геймификация
                     unlocked_achievements = []

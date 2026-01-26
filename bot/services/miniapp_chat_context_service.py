@@ -170,6 +170,7 @@ class MiniappChatContextService:
         prompt_builder = get_prompt_builder()
         enhanced_system_prompt = prompt_builder.build_system_prompt(
             user_age=user.age,
+            user_grade=user.grade,
             user_name=user.first_name,
             message_count_since_name=user_message_count,
             is_history_cleared=is_history_cleared,

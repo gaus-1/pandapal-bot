@@ -87,7 +87,14 @@ class IAIService(ABC):
         user_message: str,
         chat_history: list[dict[str, str]],
         user_age: int | None = None,
-        user_grade: int | None = None,  # noqa: ARG002
+        user_name: str | None = None,
+        user_grade: int | None = None,
+        is_history_cleared: bool = False,
+        message_count_since_name: int = 0,
+        skip_name_asking: bool = False,
+        non_educational_questions_count: int = 0,
+        is_premium: bool = False,
+        is_auto_greeting_sent: bool = False,
     ) -> str:
         """Генерация ответа ИИ"""
         pass

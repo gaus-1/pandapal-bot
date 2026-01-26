@@ -594,6 +594,7 @@ class YandexAIResponseGenerator:
         chat_history: list[dict] = None,
         user_age: int | None = None,
         user_name: str | None = None,
+        user_grade: int | None = None,
         is_history_cleared: bool = False,
         message_count_since_name: int = 0,
         skip_name_asking: bool = False,  # noqa: ARG002
@@ -702,6 +703,7 @@ class YandexAIResponseGenerator:
                 message_count_since_name=message_count_since_name,
                 non_educational_questions_count=non_educational_questions_count,
                 user_age=user_age,
+                user_grade=user_grade,
                 is_auto_greeting_sent=is_auto_greeting_sent,
             )
 

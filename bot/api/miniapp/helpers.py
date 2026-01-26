@@ -309,3 +309,32 @@ def extract_user_name_from_message(user_message: str) -> tuple[str | None, bool]
         return cleaned_message.split()[0].capitalize(), False
 
     return None, False
+
+
+def extract_user_grade_from_message(user_message: str) -> int | None:
+    """
+    Извлечение класса пользователя из сообщения.
+
+    Returns:
+        int | None: Класс (1-11) или None если не найден
+    """
+    cleaned_message = user_message.strip().lower()
+
+    # Паттерны для извлечения класса
+    grade_patterns = [
+        r"(\d+)\s*класс",  # "5 класс", "7 класс"
+        r"в\s*(\d+)\s*классе",  # "в 5 классе"
+        r"учусь\s*в\s*(\d+)",  # "учусь в 5"
+        r"класс\s*(\d+)",  # "класс 5"
+        r"^(\d+)$",  # Просто число "5" (если сообщение короткое)
+    ]
+
+    for pattern in grade_patterns:
+        match = re.search(pattern, cleaned_message)
+        if match:
+            grade = int(match.group(1))
+            # Валидация: класс должен быть от 1 до 11
+            if 1 <= grade <= 11:
+                return grade
+
+    return None
