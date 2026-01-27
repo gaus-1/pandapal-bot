@@ -321,6 +321,8 @@ class PandaPalBotServer:
         self.app.router.add_get("/health", health_check)
         # Детальный health check для мониторинга
         self.app.router.add_get("/health/detailed", health_check_detailed)
+        # Тестовый endpoint для проверки новостного бота
+        self.app.router.add_get("/test/news-webhook", test_news_webhook)
 
     def _register_api_route(self, module_path: str, setup_func_name: str, route_name: str) -> None:
         """Регистрация одного API роута."""
