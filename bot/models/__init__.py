@@ -27,6 +27,9 @@ from .games import GameSession, GameStats
 # Модели обучения
 from .learning import HomeworkSubmission, LearningSession, ProblemTopic
 
+# Модели новостей
+from .news import News
+
 # Модели платежей
 from .payments import Payment, Subscription
 
@@ -61,4 +64,6 @@ __all__ = [
     # Games
     "GameSession",
     "GameStats",
+    # News
+    "News",
 ]

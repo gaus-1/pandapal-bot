@@ -27,6 +27,7 @@ from loguru import logger  # noqa: E402
 from redis.asyncio import Redis  # noqa: E402
 
 from bot.config import settings  # noqa: E402
+from bot.config.news_bot_settings import news_bot_settings  # noqa: E402
 from bot.database import init_database  # noqa: E402
 from bot.handlers import routers  # noqa: E402
 
@@ -46,10 +47,17 @@ class PandaPalBotServer:
         """Инициализация сервера."""
         self.bot: Bot | None = None
         self.dp: Dispatcher | None = None
+        self.news_bot: Bot | None = None
+        self.news_dp: Dispatcher | None = None
         self.app: web.Application | None = None
         self.runner: web.AppRunner | None = None
         self.site: web.TCPSite | None = None
         self.settings = settings
+        self.news_bot_enabled = os.getenv("NEWS_BOT_ENABLED", "false").lower() in (
+            "true",
+            "1",
+            "yes",
+        )
         self._shutdown_in_progress = False
 
         # Создаем приложение и добавляем ВСЕ роуты сразу (до запуска сервера)
@@ -523,10 +531,18 @@ class PandaPalBotServer:
 
     def _setup_webhook_handler(self) -> None:
         """Настройка webhook handler после инициализации бота."""
+        # Основной бот
         webhook_path = "/webhook"
         webhook_handler = SimpleRequestHandler(dispatcher=self.dp, bot=self.bot)
         webhook_handler.register(self.app, path=webhook_path)
         logger.info(f"📡 Webhook handler зарегистрирован на пути: {webhook_path}")
+
+        # Новостной бот (если включен)
+        if self.news_bot_enabled and self.news_bot and self.news_dp:
+            news_webhook_path = "/webhook/news"
+            news_webhook_handler = SimpleRequestHandler(dispatcher=self.news_dp, bot=self.news_bot)
+            news_webhook_handler.register(self.app, path=news_webhook_path)
+            logger.info(f"📡 News bot webhook handler зарегистрирован на пути: {news_webhook_path}")
 
     async def start_early_server(self) -> None:
         """
@@ -646,14 +662,46 @@ class PandaPalBotServer:
         get_session_service()
         logger.info("🔐 SessionService инициализирован")
 
-        # Инициализация бота
+        # Инициализация основного бота
         await self.init_bot()
 
         # Обновляем bot в app context (был None при создании app в __init__)
         self.app["bot"] = self.bot
 
-        # Добавляем webhook handler (ДО запуска сервера, чтобы роутер не был заморожен)
+        # Инициализация новостного бота (если включен)
+        if self.news_bot_enabled:
+            await self.init_news_bot()
+
+        # Добавляем webhook handlers (ДО запуска сервера, чтобы роутер не был заморожен)
         self._setup_webhook_handler()
+
+    async def init_news_bot(self) -> None:
+        """Инициализация новостного бота."""
+        try:
+            logger.info("📰 Инициализация новостного бота...")
+
+            # Создаем Bot для новостей
+            self.news_bot = Bot(
+                token=news_bot_settings.news_bot_token,
+                default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+            )
+
+            # Создаем Dispatcher для новостного бота
+            storage = await self._create_fsm_storage()
+            self.news_dp = Dispatcher(storage=storage)
+
+            # Регистрируем роутер новостного бота
+            from bot.handlers.news_bot import router as news_bot_router
+
+            self.news_dp.include_router(news_bot_router)
+            logger.info("✅ Роутер новостного бота зарегистрирован")
+
+            logger.info("✅ Новостной бот инициализирован")
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка инициализации новостного бота: {e}")
+            # Не прерываем запуск основного бота
+            self.news_bot_enabled = False
 
     async def startup_services(self) -> None:
         """Инициализация сервисов (вызывается ПОСЛЕ запуска сервера)."""
@@ -665,12 +713,40 @@ class PandaPalBotServer:
             await self.engagement_service.start()
             logger.info("⏰ SimpleEngagementService запущен")
 
-        # Настройка webhook
+        # Настройка webhook основного бота
         webhook_url = await self.setup_webhook()
+
+        # Настройка webhook новостного бота (если включен)
+        if self.news_bot_enabled and self.news_bot:
+            await self.setup_news_bot_webhook()
 
         logger.info("✅ Сервер готов к работе")
         logger.info(f"🌐 Webhook URL: {webhook_url}")
+        if self.news_bot_enabled:
+            logger.info(
+                f"📰 News bot webhook: https://{news_bot_settings.news_bot_webhook_domain}/webhook/news"
+            )
         logger.info(f"🏥 Health check: https://{self.settings.webhook_domain}/health")
+
+    async def setup_news_bot_webhook(self) -> str:
+        """Настройка webhook для новостного бота."""
+        try:
+            webhook_url = f"https://{news_bot_settings.news_bot_webhook_domain}/webhook/news"
+            logger.info(f"🔗 Установка webhook новостного бота: {webhook_url}")
+
+            await self.news_bot.set_webhook(
+                url=webhook_url,
+                drop_pending_updates=True,
+            )
+
+            webhook_info = await self.news_bot.get_webhook_info()
+            logger.info(f"✅ Webhook новостного бота установлен: {webhook_info.url}")
+
+            return webhook_url
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка установки webhook новостного бота: {e}")
+            raise
 
     async def shutdown(self) -> None:
         """Остановка сервера - очистка ресурсов."""
@@ -723,13 +799,28 @@ class PandaPalBotServer:
                 except Exception as e:
                     logger.warning(f"⚠️ Ошибка удаления webhook: {e}")
 
-            # Закрываем сессию бота
+            # Удаляем webhook новостного бота
+            if self.news_bot:
+                try:
+                    await self.news_bot.delete_webhook(drop_pending_updates=False)
+                    logger.info("✅ Webhook новостного бота удален")
+                except Exception as e:
+                    logger.warning(f"⚠️ Ошибка удаления webhook новостного бота: {e}")
+
+            # Закрываем сессии ботов
             if self.bot:
                 try:
                     await self.bot.session.close()
                     logger.info("✅ Сессия бота закрыта")
                 except Exception as e:
                     logger.warning(f"⚠️ Ошибка закрытия сессии бота: {e}")
+
+            if self.news_bot:
+                try:
+                    await self.news_bot.session.close()
+                    logger.info("✅ Сессия новостного бота закрыта")
+                except Exception as e:
+                    logger.warning(f"⚠️ Ошибка закрытия сессии новостного бота: {e}")
 
             logger.info("✅ Сервер остановлен")
 
