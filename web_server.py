@@ -53,11 +53,17 @@ class PandaPalBotServer:
         self.runner: web.AppRunner | None = None
         self.site: web.TCPSite | None = None
         self.settings = settings
-        self.news_bot_enabled = os.getenv("NEWS_BOT_ENABLED", "false").lower() in (
-            "true",
-            "1",
-            "yes",
-        )
+        # Проверяем включен ли новостной бот (из переменных окружения ИЛИ из настроек)
+        env_enabled = os.getenv("NEWS_BOT_ENABLED", "false").lower() in ("true", "1", "yes")
+        settings_enabled = news_bot_settings.news_bot_enabled
+        self.news_bot_enabled = env_enabled or settings_enabled
+
+        if self.news_bot_enabled:
+            logger.info(
+                f"📰 Новостной бот включен (env={env_enabled}, settings={settings_enabled})"
+            )
+        else:
+            logger.info("📰 Новостной бот отключен")
         self._shutdown_in_progress = False
 
         # Создаем приложение и добавляем ВСЕ роуты сразу (до запуска сервера)
