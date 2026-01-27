@@ -67,7 +67,10 @@ async def cmd_start(message: Message, state: FSMContext) -> None:
                 "Давай начнем с возраста:"
             )
 
-            await message.answer(welcome_text, reply_markup=get_age_keyboard())
+            sent_message = await message.answer(welcome_text, reply_markup=get_age_keyboard())
+            logger.info(
+                f"📰 Сообщение отправлено пользователю {telegram_id}: message_id={sent_message.message_id}"
+            )
             await state.set_state("news_setting_age")
         else:
             # Предпочтения уже настроены
@@ -86,7 +89,10 @@ async def cmd_start(message: Message, state: FSMContext) -> None:
                 "/settings — настройки"
             )
 
-            await message.answer(welcome_text)
+            sent_message = await message.answer(welcome_text)
+            logger.info(
+                f"📰 Сообщение отправлено пользователю {telegram_id}: message_id={sent_message.message_id}"
+            )
             await state.clear()
 
         logger.info(f"📰 /start обработан успешно для пользователя {telegram_id}")

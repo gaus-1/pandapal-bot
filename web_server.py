@@ -1140,12 +1140,16 @@ class PandaPalBotServer:
             await self.shutdown()
 
     async def _keep_alive_ping(self, port: int) -> None:
-        """Keep-alive пинг для предотвращения засыпания контейнера."""
+        """Keep-alive пинг для предотвращения засыпания контейнера и проверка webhook."""
         import aiohttp
 
         await asyncio.sleep(5)  # Даем серверу 5 сек на полный запуск
 
         logger.info("🔄 Keep-alive пинг запущен (каждые 4 минуты)")
+
+        # Запускаем проверку webhook новостного бота в фоне
+        if self.news_bot_enabled and self.news_bot:
+            asyncio.create_task(self._check_news_bot_webhook_periodically())
 
         while True:
             try:
@@ -1166,6 +1170,50 @@ class PandaPalBotServer:
             except Exception as e:
                 logger.warning(f"⚠️ Keep-alive ping error: {e}")
                 await asyncio.sleep(60)  # При ошибке ждем 1 минуту и пробуем снова
+
+    async def _check_news_bot_webhook_periodically(self) -> None:
+        """Периодическая проверка и переустановка webhook новостного бота."""
+        await asyncio.sleep(30)  # Ждем 30 сек после старта
+
+        logger.info("🔄 Запущена периодическая проверка webhook новостного бота (каждые 5 минут)")
+
+        while True:
+            try:
+                await asyncio.sleep(300)  # Проверяем каждые 5 минут
+
+                if not self.news_bot_enabled or not self.news_bot:
+                    break
+
+                webhook_info = await self.news_bot.get_webhook_info()
+                expected_url = f"https://{self.settings.webhook_domain}/webhook/news"
+
+                if not webhook_info.url or webhook_info.url != expected_url:
+                    logger.warning(
+                        f"⚠️ Webhook новостного бота сброшен! "
+                        f"Ожидали: {expected_url}, Получили: {webhook_info.url or 'пусто'}"
+                    )
+                    logger.info("🔗 Переустанавливаем webhook...")
+
+                    try:
+                        await self.setup_news_bot_webhook()
+                        webhook_info = await self.news_bot.get_webhook_info()
+                        if webhook_info.url == expected_url:
+                            logger.info("✅ Webhook новостного бота успешно переустановлен")
+                        else:
+                            logger.error(
+                                f"❌ Не удалось переустановить webhook: {webhook_info.url}"
+                            )
+                    except Exception as e:
+                        logger.error(f"❌ Ошибка переустановки webhook: {e}", exc_info=True)
+                else:
+                    logger.debug(f"✅ Webhook новостного бота в порядке: {webhook_info.url}")
+
+            except asyncio.CancelledError:
+                logger.info("🛑 Периодическая проверка webhook остановлена")
+                break
+            except Exception as e:
+                logger.error(f"❌ Ошибка проверки webhook: {e}", exc_info=True)
+                await asyncio.sleep(60)  # При ошибке ждем минуту перед следующей попыткой
 
 
 async def main() -> None:
