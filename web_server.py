@@ -199,10 +199,11 @@ class PandaPalBotServer:
         except ImportError:
             logger.warning("⚠️ Защита от перегрузки недоступна")
 
-        # Middleware для логирования webhook запросов (регистрируется ПЕРВЫМ)
+        # Middleware для логирования ВСЕХ входящих запросов (регистрируется ПЕРВЫМ)
         @web.middleware
-        async def webhook_logging_middleware(request: web.Request, handler):
-            """Логирование всех запросов к webhook."""
+        async def request_logging_middleware(request: web.Request, handler):
+            """Логирование всех входящих запросов для диагностики."""
+            # Логируем ВСЕ запросы к webhook путям
             if request.path.startswith("/webhook"):
                 ip = (
                     request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
@@ -211,29 +212,32 @@ class PandaPalBotServer:
                 user_agent = request.headers.get("User-Agent", "N/A")[:100]
                 content_type = request.headers.get("Content-Type", "N/A")
                 logger.info(
-                    f"📥 Webhook запрос: {request.method} {request.path}, IP={ip}, "
+                    f"📥 [EARLY] Webhook запрос: {request.method} {request.path}, IP={ip}, "
                     f"Content-Type={content_type}, UA={user_agent[:50]}"
                 )
 
                 # Для новостного бота логируем дополнительно
                 if request.path == "/webhook/news":
                     logger.info(
-                        f"📰 News bot webhook request received: {request.method} {request.path}, IP={ip}"
+                        f"📰 [EARLY] News bot webhook request: {request.method} {request.path}, IP={ip}"
                     )
-                    # Логируем все заголовки для диагностики
                     logger.debug(f"📰 News bot headers: {dict(request.headers)}")
 
             try:
                 response = await handler(request)
                 if request.path.startswith("/webhook"):
-                    logger.info(f"📤 Webhook ответ: {request.path}, status={response.status}")
+                    logger.info(
+                        f"📤 [EARLY] Webhook ответ: {request.path}, status={response.status}"
+                    )
                 return response
             except Exception as e:
-                logger.error(f"❌ Ошибка обработки webhook {request.path}: {e}", exc_info=True)
+                logger.error(
+                    f"❌ [EARLY] Ошибка обработки webhook {request.path}: {e}", exc_info=True
+                )
                 raise
 
-        # Регистрируем ПЕРВЫМ, чтобы логировать все запросы
-        self.app.middlewares.insert(0, webhook_logging_middleware)
+        # Регистрируем ПЕРВЫМ (до security middleware), чтобы видеть все запросы
+        self.app.middlewares.insert(0, request_logging_middleware)
 
     async def _check_bot_health(self) -> tuple[str, dict]:
         """Проверка здоровья бота."""
@@ -292,6 +296,20 @@ class PandaPalBotServer:
 
         async def test_news_webhook(_request: web.Request) -> web.Response:
             """Тестовый endpoint для проверки доступности /webhook/news."""
+            # Проверяем статус webhook, если бот доступен
+            webhook_status = {}
+            if self.news_bot_enabled and self.news_bot:
+                try:
+                    webhook_info = await self.news_bot.get_webhook_info()
+                    webhook_status = {
+                        "url": webhook_info.url or "",
+                        "pending_updates": webhook_info.pending_update_count,
+                        "last_error": webhook_info.last_error_message,
+                        "ip_address": webhook_info.ip_address,
+                    }
+                except Exception as e:
+                    webhook_status = {"error": str(e)}
+
             return web.json_response(
                 {
                     "status": "ok",
@@ -299,6 +317,7 @@ class PandaPalBotServer:
                     "message": "News bot webhook endpoint is accessible",
                     "bot_enabled": self.news_bot_enabled,
                     "bot_initialized": self.news_bot is not None,
+                    "webhook_info": webhook_status,
                 },
                 status=200,
             )
