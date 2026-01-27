@@ -261,6 +261,19 @@ class PandaPalBotServer:
                 status=200,
             )
 
+        async def test_news_webhook(_request: web.Request) -> web.Response:
+            """Тестовый endpoint для проверки доступности /webhook/news."""
+            return web.json_response(
+                {
+                    "status": "ok",
+                    "path": "/webhook/news",
+                    "message": "News bot webhook endpoint is accessible",
+                    "bot_enabled": self.news_bot_enabled,
+                    "bot_initialized": self.news_bot is not None,
+                },
+                status=200,
+            )
+
         async def health_check_detailed(_request: web.Request) -> web.Response:
             """Детальный health check с проверкой всех компонентов."""
             components = {}
