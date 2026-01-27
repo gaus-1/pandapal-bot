@@ -155,7 +155,7 @@ def validate_origin(request: web.Request) -> tuple[bool, str | None]:
         (valid, reason): Валиден ли origin и причина если нет
     """
     # Исключаем GET запросы и health check
-    if request.method == "GET" or request.path in ["/health", "/webhook"]:
+    if request.method == "GET" or request.path in ["/health", "/webhook", "/webhook/news"]:
         return True, None
 
     # Для Telegram Mini App endpoints проверяем наличие initData в теле запроса
@@ -294,6 +294,7 @@ async def security_middleware(request: web.Request, handler) -> web.Response:
     # Здесь применяем только базовый IP-based rate limiting для защиты от DDoS
     excluded_paths = [
         "/webhook",  # Telegram webhook
+        "/webhook/news",  # News bot webhook
         "/ai/chat",  # AI chat (своя логика rate limiting)
         "/health",  # Health check
         "/metrics",  # Metrics endpoint

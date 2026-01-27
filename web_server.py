@@ -204,10 +204,18 @@ class PandaPalBotServer:
         async def webhook_logging_middleware(request: web.Request, handler):
             """Логирование всех запросов к webhook."""
             if request.path.startswith("/webhook"):
-                logger.info(
-                    f"📥 Webhook запрос: {request.method} {request.path}, "
-                    f"IP={request.remote}, Headers={dict(request.headers)}"
+                ip = (
+                    request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+                    or request.remote
                 )
+                logger.info(f"📥 Webhook запрос: {request.method} {request.path}, IP={ip}")
+
+                # Для новостного бота логируем дополнительно
+                if request.path == "/webhook/news":
+                    logger.info(
+                        f"📰 News bot webhook request received: {request.method} {request.path}"
+                    )
+
             return await handler(request)
 
         self.app.middlewares.append(webhook_logging_middleware)
@@ -575,6 +583,7 @@ class PandaPalBotServer:
         # Новостной бот (если включен)
         if self.news_bot_enabled and self.news_bot and self.news_dp:
             news_webhook_path = "/webhook/news"
+
             news_webhook_handler = SimpleRequestHandler(dispatcher=self.news_dp, bot=self.news_bot)
             news_webhook_handler.register(self.app, path=news_webhook_path)
             logger.info(f"📡 News bot webhook handler зарегистрирован на пути: {news_webhook_path}")
@@ -746,11 +755,43 @@ class PandaPalBotServer:
             storage = await self._create_fsm_storage()
             self.news_dp = Dispatcher(storage=storage)
 
+            # Добавляем middleware для логирования обновлений
+            from aiogram import BaseMiddleware
+            from aiogram.types import CallbackQuery, Message
+
+            class NewsBotLoggingMiddleware(BaseMiddleware):
+                """Middleware для логирования всех обновлений новостного бота."""
+
+                async def __call__(self, handler, event, data):
+                    """Логирование обновлений."""
+                    update_type = type(event).__name__
+                    logger.info(f"📰 News bot update received: type={update_type}")
+
+                    if isinstance(event, Message):
+                        user_id = event.from_user.id if event.from_user else "unknown"
+                        text = event.text[:50] if event.text else "non-text"
+                        logger.info(f"📰 News bot message: user={user_id}, text={text}")
+                    elif isinstance(event, CallbackQuery):
+                        user_id = event.from_user.id if event.from_user else "unknown"
+                        cb_data = event.data[:50] if event.data else "no-data"
+                        logger.info(f"📰 News bot callback: user={user_id}, data={cb_data}")
+
+                    return await handler(event, data)
+
             # Регистрируем роутер новостного бота
             from bot.handlers.news_bot import router as news_bot_router
 
             self.news_dp.include_router(news_bot_router)
             logger.info("✅ Роутер новостного бота зарегистрирован")
+
+            # Добавляем middleware для логирования ПОСЛЕ регистрации роутера
+            self.news_dp.message.middleware(NewsBotLoggingMiddleware())
+            self.news_dp.callback_query.middleware(NewsBotLoggingMiddleware())
+
+            # Логируем зарегистрированные обработчики
+            logger.info(
+                f"📰 News bot handlers registered: message={len(self.news_dp.message.handlers)}, callback_query={len(self.news_dp.callback_query.handlers)}"
+            )
 
             # Проверяем, что бот работает
             bot_info = await self.news_bot.get_me()
