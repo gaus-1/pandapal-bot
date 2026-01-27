@@ -680,6 +680,12 @@ class PandaPalBotServer:
         try:
             logger.info("📰 Инициализация новостного бота...")
 
+            # Проверяем токен
+            if not news_bot_settings.news_bot_token:
+                logger.error("❌ NEWS_BOT_TOKEN не установлен, новостной бот отключен")
+                self.news_bot_enabled = False
+                return
+
             # Создаем Bot для новостей
             self.news_bot = Bot(
                 token=news_bot_settings.news_bot_token,
