@@ -823,6 +823,32 @@ class PandaPalBotServer:
             logger.info(f"✅ Webhook новостного бота установлен: {webhook_info.url}")
             logger.info(f"📊 Webhook info: {webhook_info}")
 
+            # Проверяем, что webhook действительно установлен
+            if webhook_info.url != webhook_url:
+                logger.error(
+                    f"❌ КРИТИЧНО: Webhook URL не совпадает! "
+                    f"Ожидали: {webhook_url}, Получили: {webhook_info.url}"
+                )
+            else:
+                logger.info(f"✅ Webhook URL совпадает: {webhook_info.url}")
+
+            # Проверяем ошибки
+            if webhook_info.last_error_message:
+                logger.error(
+                    f"❌ Ошибка webhook новостного бота: {webhook_info.last_error_message} "
+                    f"(дата: {webhook_info.last_error_date})"
+                )
+            else:
+                logger.info("✅ Ошибок webhook нет")
+
+            # Проверяем pending updates
+            if webhook_info.pending_update_count > 0:
+                logger.warning(
+                    f"⚠️ Есть {webhook_info.pending_update_count} ожидающих обновлений для новостного бота"
+                )
+            else:
+                logger.info("✅ Ожидающих обновлений нет")
+
             # Дополнительная диагностика
             if webhook_info.url != webhook_url:
                 logger.error(
