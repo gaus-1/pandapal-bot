@@ -208,12 +208,17 @@ class PandaPalBotServer:
                     request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
                     or request.remote
                 )
-                logger.info(f"📥 Webhook запрос: {request.method} {request.path}, IP={ip}")
+                user_agent = request.headers.get("User-Agent", "N/A")[:100]
+                content_type = request.headers.get("Content-Type", "N/A")
+                logger.info(
+                    f"📥 Webhook запрос: {request.method} {request.path}, IP={ip}, "
+                    f"Content-Type={content_type}, UA={user_agent[:50]}"
+                )
 
                 # Для новостного бота логируем дополнительно
                 if request.path == "/webhook/news":
                     logger.info(
-                        f"📰 News bot webhook request received: {request.method} {request.path}"
+                        f"📰 News bot webhook request received: {request.method} {request.path}, IP={ip}"
                     )
 
             return await handler(request)
@@ -878,8 +883,19 @@ class PandaPalBotServer:
                 f"📊 Webhook info: url={webhook_info.url}, "
                 f"pending={webhook_info.pending_update_count}, "
                 f"last_error={webhook_info.last_error_message}, "
-                f"last_error_date={webhook_info.last_error_date}"
+                f"last_error_date={webhook_info.last_error_date}, "
+                f"ip_address={webhook_info.ip_address}, "
+                f"max_connections={webhook_info.max_connections}, "
+                f"allowed_updates={webhook_info.allowed_updates}"
             )
+
+            # КРИТИЧНО: Проверяем, что webhook действительно установлен
+            if not webhook_info.url or webhook_info.url != webhook_url:
+                logger.error(
+                    f"❌ КРИТИЧНО: Webhook новостного бота НЕ установлен правильно! "
+                    f"Ожидали: {webhook_url}, Получили: {webhook_info.url}"
+                )
+                raise RuntimeError(f"Webhook новостного бота не установлен: {webhook_info.url}")
 
             # Проверяем, что webhook действительно установлен
             if webhook_info.url != webhook_url:
