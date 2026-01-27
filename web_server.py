@@ -198,16 +198,10 @@ class PandaPalBotServer:
         async def webhook_logging_middleware(request: web.Request, handler):
             """Логирование всех запросов к webhook."""
             if request.path.startswith("/webhook"):
-                try:
-                    body = await request.read()
-                    logger.info(
-                        f"📥 Webhook запрос: {request.method} {request.path}, "
-                        f"IP={request.remote}, Size={len(body)} bytes"
-                    )
-                    # Создаем новый request с телом для следующего handler
-                    request._read_bytes = body
-                except Exception as e:
-                    logger.warning(f"⚠️ Ошибка чтения тела запроса: {e}")
+                logger.info(
+                    f"📥 Webhook запрос: {request.method} {request.path}, "
+                    f"IP={request.remote}, Headers={dict(request.headers)}"
+                )
             return await handler(request)
 
         self.app.middlewares.append(webhook_logging_middleware)
@@ -559,41 +553,10 @@ class PandaPalBotServer:
         # Новостной бот (если включен)
         if self.news_bot_enabled and self.news_bot and self.news_dp:
             news_webhook_path = "/webhook/news"
-
-            # Создаем обертку для логирования всех запросов
-            async def news_webhook_handler_wrapper(request: web.Request) -> web.Response:
-                """Обертка для логирования запросов к новостному боту."""
-                try:
-                    body = await request.read()
-                    logger.info(
-                        f"📥 News bot webhook запрос: {request.method} {request.path_qs}, "
-                        f"IP={request.remote}, Content-Type={request.headers.get('Content-Type', 'N/A')}, "
-                        f"Body size={len(body)} bytes"
-                    )
-                    # Создаем новый request с телом для handler
-                    new_request = web.Request(
-                        request.method,
-                        request.path_qs,
-                        request.headers,
-                        request.match_info,
-                        request.app,
-                        request._writer,
-                        request._protocol,
-                        request._payload,
-                        request._transport,
-                        request._closed,
-                        request._cache,
-                    )
-                    # Устанавливаем тело обратно
-                    new_request._read_bytes = body
-                    handler = SimpleRequestHandler(dispatcher=self.news_dp, bot=self.news_bot)
-                    return await handler.handle(new_request)
-                except Exception as e:
-                    logger.error(f"❌ Ошибка обработки webhook новостного бота: {e}", exc_info=True)
-                    return web.Response(status=500, text="Internal Server Error")
-
-            self.app.router.add_post(news_webhook_path, news_webhook_handler_wrapper)
+            news_webhook_handler = SimpleRequestHandler(dispatcher=self.news_dp, bot=self.news_bot)
+            news_webhook_handler.register(self.app, path=news_webhook_path)
             logger.info(f"📡 News bot webhook handler зарегистрирован на пути: {news_webhook_path}")
+            logger.info(f"📋 News bot token: {news_bot_settings.news_bot_token[:15]}...")
         else:
             logger.warning(
                 f"⚠️ News bot webhook handler НЕ зарегистрирован: "
