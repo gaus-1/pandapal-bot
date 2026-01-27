@@ -30,8 +30,8 @@ class PaymentService:
 
     # Тарифные планы (цена в рублях)
     PLANS = {
-        "month": {"name": "Premium на месяц", "price": 599.00, "days": 30},
-        "year": {"name": "Premium на год", "price": 4990.00, "days": 365},
+        "month": {"name": "Premium на месяц", "price": 299.00, "days": 30},
+        "year": {"name": "Premium на год", "price": 2990.00, "days": 365},
     }
 
     def __init__(self):

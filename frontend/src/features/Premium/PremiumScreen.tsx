@@ -26,7 +26,7 @@ const PREMIUM_PLANS: PremiumPlan[] = [
   {
     id: 'month',
     name: 'Месяц',
-    priceRub: 599,
+    priceRub: 299,
     duration: '30 дней',
     features: [
       '📝 Текстовые и фото запросы без ограничений',
@@ -42,7 +42,7 @@ const PREMIUM_PLANS: PremiumPlan[] = [
   {
     id: 'year',
     name: 'Год',
-    priceRub: 4990,
+    priceRub: 2990,
     duration: '365 дней',
     features: [
       '📝 Текст, фото и аудио без ограничений',
