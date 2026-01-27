@@ -803,6 +803,16 @@ class PandaPalBotServer:
             logger.info(f"🔗 Установка webhook новостного бота: {webhook_url}")
             logger.info(f"📋 Токен новостного бота: {news_bot_settings.news_bot_token[:10]}...")
 
+            # Принудительно удаляем старый webhook перед установкой нового
+            try:
+                await self.news_bot.delete_webhook(drop_pending_updates=True)
+                logger.info("🗑️ Старый webhook новостного бота удален")
+            except Exception as e:
+                logger.warning(f"⚠️ Ошибка удаления старого webhook (может не существовать): {e}")
+
+            # Небольшая задержка перед установкой нового webhook
+            await asyncio.sleep(0.5)
+
             await self.news_bot.set_webhook(
                 url=webhook_url,
                 drop_pending_updates=True,
