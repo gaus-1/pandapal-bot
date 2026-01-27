@@ -707,7 +707,11 @@ class PandaPalBotServer:
             self.news_dp.include_router(news_bot_router)
             logger.info("✅ Роутер новостного бота зарегистрирован")
 
-            logger.info("✅ Новостной бот инициализирован")
+            # Проверяем, что бот работает
+            bot_info = await self.news_bot.get_me()
+            logger.info(
+                f"✅ Новостной бот инициализирован: @{bot_info.username} ({bot_info.first_name})"
+            )
             logger.info(f"📋 Токен: {news_bot_settings.news_bot_token[:10]}...")
 
         except Exception as e:
@@ -732,7 +736,14 @@ class PandaPalBotServer:
 
         # Настройка webhook новостного бота (если включен)
         if self.news_bot_enabled and self.news_bot:
-            await self.setup_news_bot_webhook()
+            try:
+                await self.setup_news_bot_webhook()
+            except Exception as e:
+                logger.error(
+                    f"❌ Критическая ошибка установки webhook новостного бота: {e}", exc_info=True
+                )
+                # Отключаем бот, если не удалось установить webhook
+                self.news_bot_enabled = False
 
         logger.info("✅ Сервер готов к работе")
         logger.info(f"🌐 Webhook URL: {webhook_url}")
