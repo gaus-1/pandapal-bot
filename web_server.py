@@ -516,10 +516,10 @@ class PandaPalBotServer:
             self.app.router.add_get("/", lambda _: web.FileResponse(frontend_dist / "index.html"))
 
             # SPA Fallback - все неизвестные роуты возвращают index.html
-            # НО исключаем /api, /assets, /webhook, /health, /.well-known
+            # НО исключаем /api, /assets, /webhook, /health, /test, /.well-known
             async def spa_fallback(request: web.Request) -> web.Response:
                 path = request.path
-                # Исключаем API, assets, webhook, health, .well-known из SPA fallback
+                # Исключаем API, assets, webhook, health, test, .well-known из SPA fallback
                 # Проверяем ТОЧНО, чтобы не перехватывать assets
                 if (
                     path.startswith("/api/")
@@ -528,6 +528,7 @@ class PandaPalBotServer:
                     or path.startswith("/webhook/")
                     or path == "/health"
                     or path.startswith("/health/")
+                    or path.startswith("/test/")
                     or path.startswith("/.well-known/")
                 ):
                     # Логируем 404 для assets для отладки
