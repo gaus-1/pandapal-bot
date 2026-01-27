@@ -557,6 +557,15 @@ class PandaPalBotServer:
             news_webhook_handler.register(self.app, path=news_webhook_path)
             logger.info(f"📡 News bot webhook handler зарегистрирован на пути: {news_webhook_path}")
             logger.info(f"📋 News bot token: {news_bot_settings.news_bot_token[:15]}...")
+
+            # Проверяем, что роут действительно зарегистрирован
+            routes = [str(route) for route in self.app.router.routes()]
+            news_routes = [r for r in routes if "/webhook/news" in r]
+            if news_routes:
+                logger.info(f"✅ Роут /webhook/news найден в зарегистрированных: {news_routes}")
+            else:
+                logger.error("❌ Роут /webhook/news НЕ найден в зарегистрированных роутах!")
+                logger.info(f"📋 Все webhook роуты: {[r for r in routes if 'webhook' in r]}")
         else:
             logger.warning(
                 f"⚠️ News bot webhook handler НЕ зарегистрирован: "
@@ -786,6 +795,22 @@ class PandaPalBotServer:
             webhook_info = await self.news_bot.get_webhook_info()
             logger.info(f"✅ Webhook новостного бота установлен: {webhook_info.url}")
             logger.info(f"📊 Webhook info: {webhook_info}")
+
+            # Дополнительная диагностика
+            if webhook_info.url != webhook_url:
+                logger.error(
+                    f"❌ КРИТИЧНО: Webhook URL не совпадает! "
+                    f"Ожидали: {webhook_url}, Получили: {webhook_info.url}"
+                )
+            if webhook_info.last_error_message:
+                logger.error(
+                    f"❌ Ошибка webhook новостного бота: {webhook_info.last_error_message} "
+                    f"(дата: {webhook_info.last_error_date})"
+                )
+            if webhook_info.pending_update_count > 0:
+                logger.warning(
+                    f"⚠️ Есть {webhook_info.pending_update_count} ожидающих обновлений для новостного бота"
+                )
 
             return webhook_url
 
