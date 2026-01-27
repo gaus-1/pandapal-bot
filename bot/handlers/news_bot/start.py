@@ -36,7 +36,10 @@ async def cmd_start(message: Message, state: FSMContext) -> None:
         telegram_id = message.from_user.id
         first_name = message.from_user.first_name or "друг"
 
-        logger.info(f"📰 /start в новостном боте: user={telegram_id}")
+        logger.info(
+            f"📰 /start в новостном боте: user={telegram_id}, "
+            f"bot_id={message.bot.id if hasattr(message, 'bot') else 'unknown'}"
+        )
 
         # Регистрируем пользователя если нужно
         with get_db() as db:

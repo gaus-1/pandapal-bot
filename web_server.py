@@ -781,6 +781,11 @@ class PandaPalBotServer:
             # Регистрируем роутер новостного бота
             from bot.handlers.news_bot import router as news_bot_router
 
+            # Логируем обработчики в роутере ДО включения
+            logger.info(
+                f"📰 News bot router handlers: message={len(news_bot_router.message.handlers)}, callback_query={len(news_bot_router.callback_query.handlers)}"
+            )
+
             self.news_dp.include_router(news_bot_router)
             logger.info("✅ Роутер новостного бота зарегистрирован")
 
@@ -788,9 +793,10 @@ class PandaPalBotServer:
             self.news_dp.message.middleware(NewsBotLoggingMiddleware())
             self.news_dp.callback_query.middleware(NewsBotLoggingMiddleware())
 
-            # Логируем зарегистрированные обработчики
+            # В aiogram 3.x обработчики остаются в роутере, не копируются в dispatcher
+            # Это нормальное поведение - dispatcher использует обработчики через роутер
             logger.info(
-                f"📰 News bot handlers registered: message={len(self.news_dp.message.handlers)}, callback_query={len(self.news_dp.callback_query.handlers)}"
+                f"📰 News bot router handlers: message={len(news_bot_router.message.handlers)}, callback_query={len(news_bot_router.callback_query.handlers)}"
             )
 
             # Проверяем, что бот работает
