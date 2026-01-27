@@ -844,13 +844,41 @@ class PandaPalBotServer:
         # Настройка webhook новостного бота (если включен)
         if self.news_bot_enabled and self.news_bot:
             try:
-                await self.setup_news_bot_webhook()
+                # Пробуем установить webhook с повторными попытками
+                max_retries = 3
+                for attempt in range(1, max_retries + 1):
+                    try:
+                        await self.setup_news_bot_webhook()
+                        # Проверяем, что webhook действительно установлен
+                        webhook_info = await self.news_bot.get_webhook_info()
+                        if webhook_info.url:
+                            logger.info(
+                                f"✅ Webhook новостного бота успешно установлен (попытка {attempt})"
+                            )
+                            break
+                        else:
+                            logger.warning(
+                                f"⚠️ Webhook не установлен после попытки {attempt}, повторяем..."
+                            )
+                            if attempt < max_retries:
+                                await asyncio.sleep(2)
+                    except Exception as e:
+                        logger.warning(
+                            f"⚠️ Ошибка установки webhook (попытка {attempt}/{max_retries}): {e}"
+                        )
+                        if attempt < max_retries:
+                            await asyncio.sleep(2)
+                        else:
+                            raise
             except Exception as e:
                 logger.error(
-                    f"❌ Критическая ошибка установки webhook новостного бота: {e}", exc_info=True
+                    f"❌ Критическая ошибка установки webhook новостного бота после {max_retries} попыток: {e}",
+                    exc_info=True,
                 )
-                # Отключаем бот, если не удалось установить webhook
-                self.news_bot_enabled = False
+                # НЕ отключаем бот - возможно webhook установится позже
+                logger.warning(
+                    "⚠️ Новостной бот будет работать, но webhook нужно установить вручную"
+                )
 
         logger.info("✅ Сервер готов к работе")
         logger.info(f"🌐 Webhook URL: {webhook_url}")
