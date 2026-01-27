@@ -1173,13 +1173,28 @@ class PandaPalBotServer:
 
     async def _check_news_bot_webhook_periodically(self) -> None:
         """Периодическая проверка и переустановка webhook новостного бота."""
-        await asyncio.sleep(30)  # Ждем 30 сек после старта
+        await asyncio.sleep(10)  # Ждем 10 сек после старта для первой проверки
 
-        logger.info("🔄 Запущена периодическая проверка webhook новостного бота (каждые 5 минут)")
+        # Первая проверка сразу после старта
+        try:
+            if self.news_bot_enabled and self.news_bot:
+                webhook_info = await self.news_bot.get_webhook_info()
+                expected_url = f"https://{self.settings.webhook_domain}/webhook/news"
+                if not webhook_info.url or webhook_info.url != expected_url:
+                    logger.warning(
+                        f"⚠️ Webhook новостного бота не установлен при старте! "
+                        f"Ожидали: {expected_url}, Получили: {webhook_info.url or 'пусто'}"
+                    )
+                    logger.info("🔗 Устанавливаем webhook...")
+                    await self.setup_news_bot_webhook()
+        except Exception as e:
+            logger.error(f"❌ Ошибка проверки webhook при старте: {e}", exc_info=True)
+
+        logger.info("🔄 Запущена периодическая проверка webhook новостного бота (каждые 2 минуты)")
 
         while True:
             try:
-                await asyncio.sleep(300)  # Проверяем каждые 5 минут
+                await asyncio.sleep(120)  # Проверяем каждые 2 минуты
 
                 if not self.news_bot_enabled or not self.news_bot:
                     break
