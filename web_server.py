@@ -896,13 +896,6 @@ class PandaPalBotServer:
                     f"Ожидали: {webhook_url}, Получили: {webhook_info.url}"
                 )
                 raise RuntimeError(f"Webhook новостного бота не установлен: {webhook_info.url}")
-
-            # Проверяем, что webhook действительно установлен
-            if webhook_info.url != webhook_url:
-                logger.error(
-                    f"❌ КРИТИЧНО: Webhook URL не совпадает! "
-                    f"Ожидали: {webhook_url}, Получили: {webhook_info.url}"
-                )
             else:
                 logger.info(f"✅ Webhook URL совпадает: {webhook_info.url}")
 

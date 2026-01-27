@@ -73,6 +73,8 @@ Scripts for data operations:
 Scripts for environment setup:
 - `check_env.py` - Verify environment variables
 - `check_yandexgpt_models.py` - Check YandexGPT models
+- `check_news_bot_webhook.py` - Check news bot webhook status via Telegram API
+- `setup_news_bot_webhook.py` - Force setup news bot webhook
 
 ### Documentation
 Scripts for generating documentation:
