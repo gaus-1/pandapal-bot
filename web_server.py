@@ -868,7 +868,12 @@ class PandaPalBotServer:
 
             webhook_info = await self.news_bot.get_webhook_info()
             logger.info(f"✅ Webhook новостного бота установлен: {webhook_info.url}")
-            logger.info(f"📊 Webhook info: {webhook_info}")
+            logger.info(
+                f"📊 Webhook info: url={webhook_info.url}, "
+                f"pending={webhook_info.pending_update_count}, "
+                f"last_error={webhook_info.last_error_message}, "
+                f"last_error_date={webhook_info.last_error_date}"
+            )
 
             # Проверяем, что webhook действительно установлен
             if webhook_info.url != webhook_url:
