@@ -199,7 +199,7 @@ class PandaPalBotServer:
         except ImportError:
             logger.warning("⚠️ Защита от перегрузки недоступна")
 
-        # Middleware для логирования webhook запросов
+        # Middleware для логирования webhook запросов (регистрируется ПЕРВЫМ)
         @web.middleware
         async def webhook_logging_middleware(request: web.Request, handler):
             """Логирование всех запросов к webhook."""
@@ -220,10 +220,20 @@ class PandaPalBotServer:
                     logger.info(
                         f"📰 News bot webhook request received: {request.method} {request.path}, IP={ip}"
                     )
+                    # Логируем все заголовки для диагностики
+                    logger.debug(f"📰 News bot headers: {dict(request.headers)}")
 
-            return await handler(request)
+            try:
+                response = await handler(request)
+                if request.path.startswith("/webhook"):
+                    logger.info(f"📤 Webhook ответ: {request.path}, status={response.status}")
+                return response
+            except Exception as e:
+                logger.error(f"❌ Ошибка обработки webhook {request.path}: {e}", exc_info=True)
+                raise
 
-        self.app.middlewares.append(webhook_logging_middleware)
+        # Регистрируем ПЕРВЫМ, чтобы логировать все запросы
+        self.app.middlewares.insert(0, webhook_logging_middleware)
 
     async def _check_bot_health(self) -> tuple[str, dict]:
         """Проверка здоровья бота."""
