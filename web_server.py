@@ -723,15 +723,15 @@ class PandaPalBotServer:
         logger.info("✅ Сервер готов к работе")
         logger.info(f"🌐 Webhook URL: {webhook_url}")
         if self.news_bot_enabled:
-            logger.info(
-                f"📰 News bot webhook: https://{news_bot_settings.news_bot_webhook_domain}/webhook/news"
-            )
+            logger.info(f"📰 News bot webhook: https://{self.settings.webhook_domain}/webhook/news")
         logger.info(f"🏥 Health check: https://{self.settings.webhook_domain}/health")
 
     async def setup_news_bot_webhook(self) -> str:
         """Настройка webhook для новостного бота."""
         try:
-            webhook_url = f"https://{news_bot_settings.news_bot_webhook_domain}/webhook/news"
+            # Используем тот же домен, что и основной бот
+            webhook_domain = self.settings.webhook_domain
+            webhook_url = f"https://{webhook_domain}/webhook/news"
             logger.info(f"🔗 Установка webhook новостного бота: {webhook_url}")
 
             await self.news_bot.set_webhook(

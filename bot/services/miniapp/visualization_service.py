@@ -11,7 +11,7 @@ import re
 
 from loguru import logger
 
-from bot.services.miniapp_intent_service import VisualizationIntent
+from bot.services.miniapp.intent_service import VisualizationIntent
 from bot.services.visualization_service import get_visualization_service
 
 

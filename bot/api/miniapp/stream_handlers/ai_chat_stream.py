@@ -23,9 +23,9 @@ from bot.api.validators import AIChatRequest
 from bot.database import get_db
 from bot.services import ChatHistoryService, UserService
 from bot.services.ai_service_solid import get_ai_service
-from bot.services.miniapp_audio_service import MiniappAudioService
-from bot.services.miniapp_photo_service import MiniappPhotoService
-from bot.services.miniapp_visualization_service import MiniappVisualizationService
+from bot.services.miniapp.audio_service import MiniappAudioService
+from bot.services.miniapp.photo_service import MiniappPhotoService
+from bot.services.miniapp.visualization_service import MiniappVisualizationService
 from bot.services.yandex_ai_response_generator import clean_ai_response
 
 
@@ -284,7 +284,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 return response
 
             # Готовим контекст чата через отдельный сервис (SRP)
-            from bot.services.miniapp_chat_context_service import MiniappChatContextService
+            from bot.services.miniapp.chat_context_service import MiniappChatContextService
 
             context_service = MiniappChatContextService(db)
             context = context_service.prepare_context(
@@ -378,7 +378,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 # КРИТИЧНО: Используем IntentService для понимания ВСЕГО запроса
                 import re
 
-                from bot.services.miniapp_intent_service import get_intent_service
+                from bot.services.miniapp.intent_service import get_intent_service
                 from bot.services.visualization_service import get_visualization_service
 
                 intent_service = get_intent_service()
@@ -1484,7 +1484,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             # Удаляем упоминания про автоматическую генерацию
                             if visualization_image_base64:
                                 # В fallback случае intent может быть не определен, создаем пустой
-                                from bot.services.miniapp_intent_service import VisualizationIntent
+                                from bot.services.miniapp.intent_service import VisualizationIntent
 
                                 fallback_intent = (
                                     intent
