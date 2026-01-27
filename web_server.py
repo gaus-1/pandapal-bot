@@ -543,6 +543,11 @@ class PandaPalBotServer:
             news_webhook_handler = SimpleRequestHandler(dispatcher=self.news_dp, bot=self.news_bot)
             news_webhook_handler.register(self.app, path=news_webhook_path)
             logger.info(f"📡 News bot webhook handler зарегистрирован на пути: {news_webhook_path}")
+        else:
+            logger.warning(
+                f"⚠️ News bot webhook handler НЕ зарегистрирован: "
+                f"enabled={self.news_bot_enabled}, bot={self.news_bot is not None}, dp={self.news_dp is not None}"
+            )
 
     async def start_early_server(self) -> None:
         """
@@ -703,11 +708,14 @@ class PandaPalBotServer:
             logger.info("✅ Роутер новостного бота зарегистрирован")
 
             logger.info("✅ Новостной бот инициализирован")
+            logger.info(f"📋 Токен: {news_bot_settings.news_bot_token[:10]}...")
 
         except Exception as e:
-            logger.error(f"❌ Ошибка инициализации новостного бота: {e}")
+            logger.error(f"❌ Ошибка инициализации новостного бота: {e}", exc_info=True)
             # Не прерываем запуск основного бота
             self.news_bot_enabled = False
+            self.news_bot = None
+            self.news_dp = None
 
     async def startup_services(self) -> None:
         """Инициализация сервисов (вызывается ПОСЛЕ запуска сервера)."""
@@ -735,10 +743,15 @@ class PandaPalBotServer:
     async def setup_news_bot_webhook(self) -> str:
         """Настройка webhook для новостного бота."""
         try:
+            if not self.news_bot:
+                logger.error("❌ News bot не инициализирован, невозможно установить webhook")
+                return ""
+
             # Используем тот же домен, что и основной бот
             webhook_domain = self.settings.webhook_domain
             webhook_url = f"https://{webhook_domain}/webhook/news"
             logger.info(f"🔗 Установка webhook новостного бота: {webhook_url}")
+            logger.info(f"📋 Токен новостного бота: {news_bot_settings.news_bot_token[:10]}...")
 
             await self.news_bot.set_webhook(
                 url=webhook_url,
@@ -747,11 +760,12 @@ class PandaPalBotServer:
 
             webhook_info = await self.news_bot.get_webhook_info()
             logger.info(f"✅ Webhook новостного бота установлен: {webhook_info.url}")
+            logger.info(f"📊 Webhook info: {webhook_info}")
 
             return webhook_url
 
         except Exception as e:
-            logger.error(f"❌ Ошибка установки webhook новостного бота: {e}")
+            logger.error(f"❌ Ошибка установки webhook новостного бота: {e}", exc_info=True)
             raise
 
     async def shutdown(self) -> None:
