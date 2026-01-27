@@ -790,6 +790,7 @@ class PandaPalBotServer:
             await self.news_bot.set_webhook(
                 url=webhook_url,
                 drop_pending_updates=True,
+                allowed_updates=["message", "callback_query", "inline_query"],
             )
 
             webhook_info = await self.news_bot.get_webhook_info()
