@@ -191,7 +191,7 @@ class PersonalTutorService:
 
         return recommendations
 
-    def _generate_weekly_goals(self, activity: dict, user: User) -> list[dict]:
+    def _generate_weekly_goals(self, activity: dict, user: User) -> list[dict]:  # noqa: ARG002
         """Генерация недельных целей."""
         goals = []
 

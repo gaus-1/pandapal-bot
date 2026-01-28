@@ -204,7 +204,7 @@ async def logout(request: web.Request) -> web.Response:
         return web.json_response({"success": False, "error": "Internal server error"}, status=500)
 
 
-async def session_stats(request: web.Request) -> web.Response:
+async def session_stats(_request: web.Request) -> web.Response:
     """
     Статистика по сессиям (для мониторинга).
 

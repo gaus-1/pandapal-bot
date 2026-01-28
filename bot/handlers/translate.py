@@ -23,7 +23,7 @@ class TranslateStates(StatesGroup):
 
 
 @router.message(Command("translate"))
-async def translate_command(message: Message, state: FSMContext):
+async def translate_command(message: Message, state: FSMContext):  # noqa: ARG001
     """Команда для перевода текста."""
     # Клавиатура с выбором языка
     keyboard = InlineKeyboardMarkup(

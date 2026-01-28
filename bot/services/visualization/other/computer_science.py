@@ -144,7 +144,7 @@ class ComputerScienceVisualization(BaseVisualizationService):
             "",
             xy=(x2, y2),
             xytext=(x1, y1),
-            arrowprops=dict(arrowstyle="->", color="black", lw=1.5),
+            arrowprops={"arrowstyle": "->", "color": "black", "lw": 1.5},
         )
 
     def _draw_flowchart_linear(self, ax):
@@ -208,9 +208,12 @@ class ComputerScienceVisualization(BaseVisualizationService):
             "",
             xy=(cx + 1, 5.5),
             xytext=(8, 2.1),
-            arrowprops=dict(
-                arrowstyle="->", color="black", lw=1.5, connectionstyle="arc3,rad=-0.3"
-            ),
+            arrowprops={
+                "arrowstyle": "->",
+                "color": "black",
+                "lw": 1.5,
+                "connectionstyle": "arc3,rad=-0.3",
+            },
         )
 
         # Ветка "Нет" - выход из цикла
@@ -241,9 +244,12 @@ class ComputerScienceVisualization(BaseVisualizationService):
             "",
             xy=(cx + 1, 5.5),
             xytext=(8, 2.1),
-            arrowprops=dict(
-                arrowstyle="->", color="black", lw=1.5, connectionstyle="arc3,rad=-0.3"
-            ),
+            arrowprops={
+                "arrowstyle": "->",
+                "color": "black",
+                "lw": 1.5,
+                "connectionstyle": "arc3,rad=-0.3",
+            },
         )
 
         # Ветка "Нет"

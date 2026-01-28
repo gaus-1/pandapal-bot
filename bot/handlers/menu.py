@@ -40,7 +40,7 @@ router = Router(name="menu")
 
 
 @router.message(F.text == "📚 Помощь с уроками")
-async def homework_help(message: Message, state: FSMContext):
+async def homework_help(message: Message, state: FSMContext):  # noqa: ARG001
     """
     Обработчик кнопки "📚 Помощь с уроками".
 
@@ -144,7 +144,7 @@ async def help_type_selected(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(F.text == "📊 Мой прогресс")
-async def show_progress(message: Message, state: FSMContext):
+async def show_progress(message: Message, state: FSMContext):  # noqa: ARG001
     """
     Обработчик кнопки "📊 Мой прогресс"
     Показывает статистику и достижения
