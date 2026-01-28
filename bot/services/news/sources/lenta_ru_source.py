@@ -138,9 +138,9 @@ class LentaRuSource(BaseNewsSource):
         """
         Собрать новости со всех рубрик Lenta.ru.
 
-        Лимит распределяется по рубрикам (минимум 1 на рубрику).
+        Лимит распределяется по рубрикам (минимум 2 на рубрику для разнообразия).
         """
-        per_rubric = max(1, limit // len(LENTA_RUBRICS))
+        per_rubric = max(2, limit // len(LENTA_RUBRICS))
         all_news = []
 
         for path, source_label in LENTA_RUBRICS:

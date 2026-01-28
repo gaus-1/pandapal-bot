@@ -67,13 +67,14 @@ class WorldNewsAPISource(BaseNewsSource):
                             except (ValueError, AttributeError):
                                 pass
 
+                        # image_url не используем — API часто отдаёт логотип издания, а не иллюстрацию к статье
                         news_item = {
                             "title": item.get("title", ""),
                             "content": item.get("text", ""),
                             "url": item.get("url"),
                             "source": self.get_source_name(),
                             "published_date": published_date,
-                            "image_url": item.get("image"),
+                            "image_url": None,
                         }
 
                         if news_item["title"] and news_item["content"]:

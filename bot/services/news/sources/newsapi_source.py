@@ -66,13 +66,14 @@ class NewsAPISource(BaseNewsSource):
                             except (ValueError, AttributeError):
                                 pass
 
+                        # urlToImage часто логотип издания, не иллюстрация к статье — не показываем
                         news_item = {
                             "title": item.get("title", ""),
                             "content": item.get("description", "") or item.get("content", ""),
                             "url": item.get("url"),
                             "source": self.get_source_name(),
                             "published_date": published_date,
-                            "image_url": item.get("urlToImage"),
+                            "image_url": None,
                         }
 
                         if news_item["title"] and news_item["content"]:

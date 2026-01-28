@@ -1319,11 +1319,12 @@ class PandaPalBotServer:
             from bot.services.news.sources.world_news_api_source import WorldNewsAPISource
             from bot.services.news_collector_service import NewsCollectorService
 
+            # Lenta первым — больше новостей с Lenta.ru в ленте
             sources = [
+                LentaRuSource(),
                 WorldNewsAPISource(),
                 NewsAPISource(),
                 WebScraperNewsSource(),
-                LentaRuSource(),
                 HumorSiteSource(),
                 JokeAPISource(),
                 LocalHumorSource(),

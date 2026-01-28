@@ -168,6 +168,9 @@ class SSRFProtection:
         "mc.yandex.ru",
         "www.google-analytics.com",
         "lenta.ru",
+        "mel.fm",
+        "deti.mail.ru",
+        "umorashka.ru",
     ]
 
     # Запрещенные IP диапазоны (внутренние сети)
