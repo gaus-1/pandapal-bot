@@ -102,7 +102,7 @@ jobs:
       - name: 🐳 Build Docker image (backend)
         id: build-backend
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           load: true
@@ -175,7 +175,7 @@ jobs:
       - name: 🐳 Build Docker image (frontend)
         id: build-frontend
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           load: true
