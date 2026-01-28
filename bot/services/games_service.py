@@ -888,8 +888,9 @@ class GamesService:
         else:
             game = EruditeGame()
 
-        # Размещаем фишку
-        if not game.place_tile(row, col, letter):
+        # Нормализуем букву (фишки в игре — заглавные; джокер не трогаем)
+        letter_normalized = letter.upper() if letter and letter != "*" else letter
+        if not game.place_tile(row, col, letter_normalized):
             raise ValueError("Не удалось разместить фишку")
 
         state = game.get_state()
