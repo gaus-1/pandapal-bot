@@ -24,6 +24,7 @@ from bot.services.news.sources.joke_api_source import JokeAPISource
 from bot.services.news.sources.lenta_ru_source import LentaRuSource
 from bot.services.news.sources.local_humor_source import LocalHumorSource
 from bot.services.news.sources.newsapi_source import NewsAPISource
+from bot.services.news.sources.rbc_rss_source import RbcRssSource
 from bot.services.news.sources.web_scraper_source import WebScraperNewsSource
 from bot.services.news.sources.world_news_api_source import WorldNewsAPISource
 from bot.services.yandex_cloud_service import YandexCloudService
@@ -50,6 +51,7 @@ class NewsCollectorService:
         # Источники новостей
         if sources is None:
             self.sources = [
+                RbcRssSource(),
                 WorldNewsAPISource(),
                 NewsAPISource(),
                 WebScraperNewsSource(),
