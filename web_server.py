@@ -1240,7 +1240,7 @@ class PandaPalBotServer:
                 await asyncio.sleep(60)  # При ошибке ждем минуту перед следующей попыткой
 
     async def _check_and_collect_news_on_startup(self) -> None:
-        """Проверить и собрать новости при старте, если их нет."""
+        """Проверить и собрать новости при старте, если их меньше 20."""
         try:
             await asyncio.sleep(5)  # Ждем немного после старта сервера
 
@@ -1251,8 +1251,10 @@ class PandaPalBotServer:
                 repo = NewsRepository(db)
                 news_count = repo.count_all()
 
-                if news_count == 0:
-                    logger.info("📰 Новостей в БД нет, запускаю сбор при старте...")
+                if news_count < 20:
+                    logger.info(
+                        f"📰 В БД только {news_count} новостей, запускаю сбор при старте..."
+                    )
                     await self._collect_news_now()
                 else:
                     logger.info(
@@ -1262,29 +1264,36 @@ class PandaPalBotServer:
             logger.error(f"❌ Ошибка проверки новостей при старте: {e}", exc_info=True)
 
     async def _news_collection_loop(self) -> None:
-        """Фоновая задача для ежедневного сбора новостей."""
-        collection_time = time(6, 0)  # 6:00 утра
+        """Фоновая задача для сбора новостей 3 раза в день: 6:00, 12:00, 18:00."""
+        collection_times = [time(6, 0), time(12, 0), time(18, 0)]
 
         while True:
             try:
-                # Вычисляем время до следующего сбора
-                now = datetime.now().time()
-                if now < collection_time:
-                    # Время сбора еще не наступило сегодня
-                    wait_seconds = (
-                        datetime.combine(datetime.now().date(), collection_time) - datetime.now()
-                    ).total_seconds()
-                else:
-                    # Время сбора прошло, ждем до завтра
-                    tomorrow = datetime.now().date() + timedelta(days=1)
-                    wait_seconds = (
-                        datetime.combine(tomorrow, collection_time) - datetime.now()
-                    ).total_seconds()
+                now = datetime.now()
+                now_time = now.time()
 
-                logger.info(f"📰 Следующий сбор новостей через {wait_seconds / 3600:.1f} часов")
+                # Находим следующее время сбора
+                next_time = None
+                for ct in collection_times:
+                    if now_time < ct:
+                        next_time = ct
+                        break
+
+                if next_time is None:
+                    # Все времена прошли сегодня, берем первое завтра
+                    next_time = collection_times[0]
+                    target_date = now.date() + timedelta(days=1)
+                else:
+                    target_date = now.date()
+
+                target_datetime = datetime.combine(target_date, next_time)
+                wait_seconds = (target_datetime - now).total_seconds()
+
+                logger.info(
+                    f"📰 Следующий сбор новостей в {next_time.strftime('%H:%M')} (через {wait_seconds / 3600:.1f} часов)"
+                )
                 await asyncio.sleep(wait_seconds)
 
-                # Выполняем сбор новостей
                 await self._collect_news_now()
 
             except asyncio.CancelledError:
@@ -1292,7 +1301,7 @@ class PandaPalBotServer:
                 break
             except Exception as e:
                 logger.error(f"❌ Ошибка в цикле сбора новостей: {e}", exc_info=True)
-                await asyncio.sleep(3600)  # При ошибке ждем час перед повтором
+                await asyncio.sleep(3600)
 
     async def _collect_news_now(self) -> None:
         """Выполнить сбор новостей прямо сейчас."""
@@ -1321,7 +1330,7 @@ class PandaPalBotServer:
             ]
 
             collector = NewsCollectorService(sources=sources)
-            total_collected = await collector.collect_news(limit_per_source=5)
+            total_collected = await collector.collect_news(limit_per_source=15)
             await collector.close()
 
             logger.info(f"✅ Сбор новостей завершен: собрано {total_collected} новостей")

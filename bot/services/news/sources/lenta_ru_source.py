@@ -93,10 +93,23 @@ class LentaRuSource(BaseNewsSource):
                     continue
                 seen_urls.add(full_url)
 
-                # Заголовок: приоритет у предыдущего h3 (на Lenta заголовок в h3, в ссылке — время/подзаголовок)
+                # Ищем заголовок: сначала предыдущий h3, потом родительский h3, потом текст ссылки
+                title = ""
                 prev_h3 = a.find_previous("h3")
-                title = (prev_h3.get_text(strip=True) if prev_h3 else a.get_text(strip=True)) or ""
+                if prev_h3:
+                    title = prev_h3.get_text(strip=True)
+                else:
+                    parent = a.parent
+                    if parent:
+                        parent_h3 = parent.find("h3")
+                        if parent_h3:
+                            title = parent_h3.get_text(strip=True)
+                    if not title:
+                        title = a.get_text(strip=True)
+
+                # Убираем время и дату из конца заголовка
                 title = re.sub(r"\d{1,2}:\d{2},?\s*\d{1,2}\s+\w+\s+\d{4}$", "", title).strip()
+                title = re.sub(r"^\d{1,2}:\d{2},?\s*", "", title).strip()
                 if not title or len(title) < 5:
                     continue
 
