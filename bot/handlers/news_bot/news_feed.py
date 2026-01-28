@@ -10,6 +10,7 @@ from aiogram.types import Message
 from loguru import logger
 
 from bot.database import get_db
+from bot.keyboards.news_bot.news_navigation_kb import get_news_expand_keyboard
 from bot.services.news.repository import NewsRepository
 from bot.services.news_bot.user_preferences_service import UserPreferencesService
 
@@ -103,10 +104,16 @@ async def cmd_news(message: Message) -> None:
             if i > 0:
                 text = "━━━━━━━━━━━━━━━━━━━━\n\n" + text
 
+            keyboard = get_news_expand_keyboard(news["id"], expanded=False)
             if news.get("image_url"):
-                await message.answer_photo(news["image_url"], caption=text, parse_mode="HTML")
+                await message.answer_photo(
+                    news["image_url"],
+                    caption=text,
+                    parse_mode="HTML",
+                    reply_markup=keyboard,
+                )
             else:
-                await message.answer(text, parse_mode="HTML")
+                await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
             prefs_service.mark_news_read(telegram_id, news["id"])
             if (i + 1) % 20 == 0:
                 await asyncio.sleep(0.5)

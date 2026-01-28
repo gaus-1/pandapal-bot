@@ -32,6 +32,15 @@ def get_news_navigation_keyboard(
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
+def get_news_expand_keyboard(news_id: int, expanded: bool = False) -> InlineKeyboardMarkup:
+    """Кнопка «Читать полностью» или «Свернуть» под новостью."""
+    if expanded:
+        btn = InlineKeyboardButton(text="📎 Свернуть", callback_data=f"news_brief:{news_id}")
+    else:
+        btn = InlineKeyboardButton(text="📖 Читать полностью", callback_data=f"news_full:{news_id}")
+    return InlineKeyboardMarkup(inline_keyboard=[[btn]])
+
+
 def get_news_actions_keyboard(news_id: int) -> InlineKeyboardMarkup:
     """
     Получить клавиатуру действий с новостью.
