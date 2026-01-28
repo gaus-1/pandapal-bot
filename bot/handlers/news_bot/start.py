@@ -20,28 +20,48 @@ from bot.services.user_service import UserService
 router = Router(name="news_bot_start")
 
 MAX_NEWS_ON_START = 50
-MAX_CONTENT_LENGTH = 900
+BRIEF_CONTENT_LENGTH = 150
 DELAY_BETWEEN_MESSAGES = 0.05
+
+CATEGORY_EMOJIS = {
+    "спорт": "⚽",
+    "образование": "📚",
+    "игры": "🎮",
+    "мода": "👗",
+    "еда": "🍕",
+    "животные": "🐾",
+    "природа": "🌳",
+    "факты": "💡",
+    "события": "📰",
+    "приколы": "😄",
+}
 
 
 def register_handlers(router_instance: Router) -> None:
-    """Зарегистрировать handlers в роутере."""
     router_instance.message.register(cmd_start, CommandStart())
     router_instance.message.register(cmd_start, Command("start"))
 
 
 def _format_news_item(news: dict) -> str:
-    """Форматировать одну новость в текст."""
+    """Форматировать новость: заголовок + краткое описание."""
     title = news["title"]
-    content = news["content"] or ""
-    if len(content) > MAX_CONTENT_LENGTH:
-        cut = content.rfind(".", 0, MAX_CONTENT_LENGTH)
-        if cut > MAX_CONTENT_LENGTH * 0.7:
-            content = content[: cut + 1] + "\n\n..."
-        else:
-            cut = content.rfind(" ", 0, MAX_CONTENT_LENGTH)
-            content = content[: cut if cut > 0 else MAX_CONTENT_LENGTH] + "..."
-    return f"<b>{title}</b>\n\n{content}"
+    category = news.get("category", "события")
+    emoji = CATEGORY_EMOJIS.get(category, "📰")
+
+    content = news.get("content", "") or ""
+    if content:
+        if len(content) > BRIEF_CONTENT_LENGTH:
+            cut = content.rfind(".", 0, BRIEF_CONTENT_LENGTH)
+            if cut > BRIEF_CONTENT_LENGTH * 0.7:
+                content = content[: cut + 1]
+            else:
+                cut = content.rfind(" ", 0, BRIEF_CONTENT_LENGTH)
+                content = content[: cut if cut > 0 else BRIEF_CONTENT_LENGTH] + "..."
+        brief = f"\n\n{content}"
+    else:
+        brief = ""
+
+    return f"{emoji} <b>{title}</b>{brief}"
 
 
 async def cmd_start(message: Message) -> None:
@@ -58,17 +78,33 @@ async def cmd_start(message: Message) -> None:
                 first_name=message.from_user.first_name,
                 last_name=message.from_user.last_name,
             )
+            prefs_service = UserPreferencesService(db)
+            prefs = prefs_service.get_or_create_preferences(telegram_id)
+            read_ids = set(prefs.get("read_news_ids", []) or [])
+
             repository = NewsRepository(db)
-            raw_list = repository.find_recent(limit=MAX_NEWS_ON_START)
-            news_list = [
-                {
-                    "id": n.id,
-                    "title": n.title,
-                    "content": n.content or "",
-                    "image_url": getattr(n, "image_url", None),
-                }
-                for n in raw_list
-            ]
+            raw_list = repository.find_recent(limit=MAX_NEWS_ON_START * 2)
+
+            seen_titles = set()
+            news_list = []
+            for n in raw_list:
+                if n.id in read_ids:
+                    continue
+                title_lower = n.title.lower().strip()
+                if title_lower in seen_titles:
+                    continue
+                seen_titles.add(title_lower)
+                news_list.append(
+                    {
+                        "id": n.id,
+                        "title": n.title,
+                        "content": n.content or "",
+                        "category": n.category or "события",
+                        "image_url": getattr(n, "image_url", None),
+                    }
+                )
+                if len(news_list) >= MAX_NEWS_ON_START:
+                    break
 
         if not news_list:
             await message.answer(
@@ -80,6 +116,9 @@ async def cmd_start(message: Message) -> None:
             prefs_service = UserPreferencesService(db)
             for i, news in enumerate(news_list):
                 text = _format_news_item(news)
+                if i > 0:
+                    text = "━━━━━━━━━━━━━━━━━━━━\n\n" + text
+
                 if news.get("image_url"):
                     await message.answer_photo(news["image_url"], caption=text, parse_mode="HTML")
                 else:
