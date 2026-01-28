@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from aiogram.types import Message, User as TelegramUser
 from aiogram.fsm.context import FSMContext
 
-from bot.handlers.news_bot import start, news_feed, categories, settings, help
+from bot.handlers.news_bot import help, news_feed, start
 
 
 @pytest.fixture
@@ -46,39 +46,6 @@ async def test_start_handler(mock_message, mock_state):
         with patch("bot.services.user_service.UserService.get_or_create_user") as mock_user_service:
             mock_user_service.return_value = MagicMock()
 
-            with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.get_or_create_preferences") as mock_prefs:
-                mock_prefs.return_value = {"categories": []}
-
-                with patch("bot.services.news.repository.NewsRepository.find_recent") as mock_find:
-                    from bot.models.news import News
-
-                    mock_news = MagicMock(spec=News)
-                    mock_news.id = 1
-                    mock_news.title = "Тестовая новость"
-                    mock_news.content = "Содержание"
-                    mock_news.image_url = None
-                    mock_find.return_value = [mock_news]
-
-                    with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.mark_news_read") as mock_mark:
-                        with patch.object(mock_message, "answer", new_callable=AsyncMock) as mock_answer:
-                            with patch.object(mock_message, "answer_photo", new_callable=AsyncMock):
-                                await start.cmd_start(mock_message, mock_state)
-
-                                # Проверяем, что ответ отправлен
-                                assert mock_answer.called
-
-
-@pytest.mark.asyncio
-async def test_news_handler(mock_message, mock_state):
-    """Тест handler команды /news."""
-    with patch("bot.database.get_db") as mock_get_db:
-        mock_db = MagicMock()
-        mock_get_db.return_value.__enter__.return_value = mock_db
-        mock_get_db.return_value.__exit__.return_value = None
-
-        with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.get_or_create_preferences") as mock_prefs:
-            mock_prefs.return_value = {"categories": []}
-
             with patch("bot.services.news.repository.NewsRepository.find_recent") as mock_find:
                 from bot.models.news import News
 
@@ -92,27 +59,37 @@ async def test_news_handler(mock_message, mock_state):
                 with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.mark_news_read"):
                     with patch.object(mock_message, "answer", new_callable=AsyncMock) as mock_answer:
                         with patch.object(mock_message, "answer_photo", new_callable=AsyncMock):
-                            await news_feed.cmd_news(mock_message, mock_state)
+                            await start.cmd_start(mock_message, mock_state)
 
                             # Проверяем, что ответ отправлен
                             assert mock_answer.called
 
 
 @pytest.mark.asyncio
-async def test_categories_handler(mock_message, mock_state):
-    """Тест handler команды /categories."""
+async def test_news_handler(mock_message, mock_state):
+    """Тест handler команды /news."""
     with patch("bot.database.get_db") as mock_get_db:
         mock_db = MagicMock()
         mock_get_db.return_value.__enter__.return_value = mock_db
         mock_get_db.return_value.__exit__.return_value = None
 
-        with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.get_or_create_preferences") as mock_prefs:
-            mock_prefs.return_value = {"categories": []}
+        with patch("bot.services.news.repository.NewsRepository.find_recent") as mock_find:
+            from bot.models.news import News
 
-            with patch.object(mock_message, "answer", new_callable=AsyncMock) as mock_answer:
-                await categories.cmd_categories(mock_message, mock_state)
+            mock_news = MagicMock(spec=News)
+            mock_news.id = 1
+            mock_news.title = "Тестовая новость"
+            mock_news.content = "Содержание"
+            mock_news.image_url = None
+            mock_find.return_value = [mock_news]
 
-                assert mock_answer.called
+            with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.mark_news_read"):
+                with patch.object(mock_message, "answer", new_callable=AsyncMock) as mock_answer:
+                    with patch.object(mock_message, "answer_photo", new_callable=AsyncMock):
+                        await news_feed.cmd_news(mock_message, mock_state)
+
+                        # Проверяем, что ответ отправлен
+                        assert mock_answer.called
 
 
 @pytest.mark.asyncio

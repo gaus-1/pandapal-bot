@@ -21,7 +21,6 @@ def get_news_navigation_keyboard(
     """
     buttons = []
 
-    # Навигация
     nav_row = []
     if has_prev:
         nav_row.append(InlineKeyboardButton(text="⬅️ Назад", callback_data=f"news_prev:{news_id}"))
@@ -29,13 +28,6 @@ def get_news_navigation_keyboard(
         nav_row.append(InlineKeyboardButton(text="Вперед ➡️", callback_data=f"news_next:{news_id}"))
     if nav_row:
         buttons.append(nav_row)
-
-    # Дополнительные действия
-    action_row = [
-        InlineKeyboardButton(text="📂 Категории", callback_data="news_categories"),
-        InlineKeyboardButton(text="⚙️ Настройки", callback_data="news_settings"),
-    ]
-    buttons.append(action_row)
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 

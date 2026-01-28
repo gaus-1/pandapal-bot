@@ -1262,11 +1262,11 @@ class PandaPalBotServer:
             logger.error(f"❌ Ошибка проверки новостей при старте: {e}", exc_info=True)
 
     async def _news_collection_loop(self) -> None:
-        """Фоновая задача: сбор новостей каждый час, чтобы бот всегда был с новостями."""
+        """Фоновая задача: сбор новостей каждые 30 минут, поток 24/7."""
         while True:
             try:
-                logger.info("📰 Следующий сбор новостей через 1 час")
-                await asyncio.sleep(3600)
+                logger.info("📰 Следующий сбор новостей через 30 мин")
+                await asyncio.sleep(1800)
 
                 await self._collect_news_now()
 
@@ -1275,7 +1275,7 @@ class PandaPalBotServer:
                 break
             except Exception as e:
                 logger.error(f"❌ Ошибка в цикле сбора новостей: {e}", exc_info=True)
-                await asyncio.sleep(3600)
+                await asyncio.sleep(1800)
 
     async def _collect_news_now(self) -> None:
         """Выполнить сбор новостей прямо сейчас."""
