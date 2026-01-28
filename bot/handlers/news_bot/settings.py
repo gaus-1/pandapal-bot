@@ -34,16 +34,12 @@ async def cmd_settings(message: Message, state: FSMContext) -> None:
         prefs_service = UserPreferencesService(db)
         prefs = prefs_service.get_or_create_preferences(telegram_id)
 
-        age = prefs.get("age", "не указан")
-        grade = prefs.get("grade", "не указан")
         categories = prefs.get("categories", [])
         notifications = "включена" if prefs.get("daily_notifications") else "выключена"
 
         text = (
             f"⚙️ <b>Настройки новостного бота</b>\n\n"
-            f"👤 Возраст: {age}\n"
-            f"📚 Класс: {grade}\n"
-            f"📂 Категории: {', '.join(categories) if categories else 'не выбраны'}\n"
+            f"📂 Категории: {', '.join(categories) if categories else 'не выбраны (все категории)'}\n"
             f"🔔 Ежедневная рассылка: {notifications}\n\n"
             "Выбери, что хочешь изменить:"
         )

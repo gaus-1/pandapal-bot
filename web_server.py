@@ -10,6 +10,7 @@ import asyncio
 import contextlib
 import os
 import sys
+from datetime import datetime, time, timedelta
 from pathlib import Path
 
 # Добавляем корневую папку в PYTHONPATH ПЕРЕД импортами
@@ -857,6 +858,14 @@ class PandaPalBotServer:
             await self.engagement_service.start()
             logger.info("⏰ SimpleEngagementService запущен")
 
+        # Запуск автоматического сбора новостей (если новостной бот включен)
+        if self.news_bot_enabled:
+            # Проверяем, есть ли новости при старте
+            asyncio.create_task(self._check_and_collect_news_on_startup())
+            # Запускаем ежедневный сбор
+            asyncio.create_task(self._news_collection_loop())
+            logger.info("📰 Автоматический сбор новостей запущен")
+
         # Настройка webhook основного бота
         webhook_url = await self.setup_webhook()
 
@@ -1229,6 +1238,93 @@ class PandaPalBotServer:
             except Exception as e:
                 logger.error(f"❌ Ошибка проверки webhook: {e}", exc_info=True)
                 await asyncio.sleep(60)  # При ошибке ждем минуту перед следующей попыткой
+
+    async def _check_and_collect_news_on_startup(self) -> None:
+        """Проверить и собрать новости при старте, если их нет."""
+        try:
+            await asyncio.sleep(5)  # Ждем немного после старта сервера
+
+            from bot.database import get_db
+            from bot.services.news.repository import NewsRepository
+
+            with get_db() as db:
+                repo = NewsRepository(db)
+                news_count = repo.count_all()
+
+                if news_count == 0:
+                    logger.info("📰 Новостей в БД нет, запускаю сбор при старте...")
+                    await self._collect_news_now()
+                else:
+                    logger.info(
+                        f"📰 В БД уже есть {news_count} новостей, сбор при старте не требуется"
+                    )
+        except Exception as e:
+            logger.error(f"❌ Ошибка проверки новостей при старте: {e}", exc_info=True)
+
+    async def _news_collection_loop(self) -> None:
+        """Фоновая задача для ежедневного сбора новостей."""
+        collection_time = time(6, 0)  # 6:00 утра
+
+        while True:
+            try:
+                # Вычисляем время до следующего сбора
+                now = datetime.now().time()
+                if now < collection_time:
+                    # Время сбора еще не наступило сегодня
+                    wait_seconds = (
+                        datetime.combine(datetime.now().date(), collection_time) - datetime.now()
+                    ).total_seconds()
+                else:
+                    # Время сбора прошло, ждем до завтра
+                    tomorrow = datetime.now().date() + timedelta(days=1)
+                    wait_seconds = (
+                        datetime.combine(tomorrow, collection_time) - datetime.now()
+                    ).total_seconds()
+
+                logger.info(f"📰 Следующий сбор новостей через {wait_seconds / 3600:.1f} часов")
+                await asyncio.sleep(wait_seconds)
+
+                # Выполняем сбор новостей
+                await self._collect_news_now()
+
+            except asyncio.CancelledError:
+                logger.info("🛑 Автоматический сбор новостей остановлен")
+                break
+            except Exception as e:
+                logger.error(f"❌ Ошибка в цикле сбора новостей: {e}", exc_info=True)
+                await asyncio.sleep(3600)  # При ошибке ждем час перед повтором
+
+    async def _collect_news_now(self) -> None:
+        """Выполнить сбор новостей прямо сейчас."""
+        if not self.news_bot_enabled:
+            return
+
+        try:
+            logger.info("📰 Начинаю сбор новостей...")
+            from bot.services.news.sources.humor_site_source import HumorSiteSource
+            from bot.services.news.sources.joke_api_source import JokeAPISource
+            from bot.services.news.sources.local_humor_source import LocalHumorSource
+            from bot.services.news.sources.newsapi_source import NewsAPISource
+            from bot.services.news.sources.web_scraper_source import WebScraperNewsSource
+            from bot.services.news.sources.world_news_api_source import WorldNewsAPISource
+            from bot.services.news_collector_service import NewsCollectorService
+
+            sources = [
+                WorldNewsAPISource(),
+                NewsAPISource(),
+                WebScraperNewsSource(),
+                HumorSiteSource(),
+                JokeAPISource(),
+                LocalHumorSource(),
+            ]
+
+            collector = NewsCollectorService(sources=sources)
+            total_collected = await collector.collect_news(limit_per_source=5)
+            await collector.close()
+
+            logger.info(f"✅ Сбор новостей завершен: собрано {total_collected} новостей")
+        except Exception as e:
+            logger.error(f"❌ Ошибка сбора новостей: {e}", exc_info=True)
 
 
 async def main() -> None:

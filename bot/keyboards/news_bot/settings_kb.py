@@ -76,10 +76,6 @@ def get_settings_keyboard() -> InlineKeyboardMarkup:
     """
     buttons = [
         [
-            InlineKeyboardButton(text="👤 Возраст", callback_data="news_set_age"),
-            InlineKeyboardButton(text="📚 Класс", callback_data="news_set_grade"),
-        ],
-        [
             InlineKeyboardButton(text="📂 Категории", callback_data="news_set_categories"),
             InlineKeyboardButton(text="🔔 Рассылка", callback_data="news_set_notifications"),
         ],

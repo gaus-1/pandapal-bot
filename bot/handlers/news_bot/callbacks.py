@@ -12,11 +12,7 @@ from loguru import logger
 from bot.database import get_db
 from bot.keyboards.news_bot.categories_kb import get_categories_keyboard
 from bot.keyboards.news_bot.news_navigation_kb import get_news_navigation_keyboard
-from bot.keyboards.news_bot.settings_kb import (
-    get_age_keyboard,
-    get_grade_keyboard,
-    get_settings_keyboard,
-)
+from bot.keyboards.news_bot.settings_kb import get_settings_keyboard
 from bot.models.news import News
 from bot.services.news_bot.user_preferences_service import UserPreferencesService
 
@@ -34,10 +30,6 @@ def register_handlers(router_instance: Router) -> None:
     router_instance.callback_query.register(handle_news_next, F.data.startswith("news_next:"))
     router_instance.callback_query.register(handle_news_prev, F.data.startswith("news_prev:"))
     router_instance.callback_query.register(handle_settings, F.data == "news_settings")
-    router_instance.callback_query.register(handle_set_age, F.data == "news_set_age")
-    router_instance.callback_query.register(handle_set_grade, F.data == "news_set_grade")
-    router_instance.callback_query.register(handle_age_select, F.data.startswith("news_age:"))
-    router_instance.callback_query.register(handle_grade_select, F.data.startswith("news_grade:"))
     router_instance.callback_query.register(handle_back, F.data == "news_back")
 
 
@@ -110,7 +102,28 @@ async def handle_news_next(callback: CallbackQuery, state: FSMContext) -> None:
                 news = db.get(News, next_id)
 
                 if news:
-                    text = f"<b>{news.title}</b>\n\n{news.content[:1000]}"
+                    from bot.keyboards.news_bot.categories_kb import get_category_emoji
+
+                    category_emoji = get_category_emoji(news.category)
+                    max_content_length = 900
+
+                    content = news.content
+                    if len(content) > max_content_length:
+                        cut_point = content.rfind(".", 0, max_content_length)
+                        if cut_point > max_content_length * 0.7:
+                            content = content[: cut_point + 1] + "\n\n..."
+                        else:
+                            cut_point = content.rfind(" ", 0, max_content_length)
+                            if cut_point > max_content_length * 0.7:
+                                content = content[:cut_point] + "..."
+                            else:
+                                content = content[:max_content_length] + "..."
+
+                    text = (
+                        f"{category_emoji} <b>{news.title}</b>\n"
+                        f"📂 {news.category.capitalize()}\n\n"
+                        f"{content}"
+                    )
 
                     await callback.message.edit_text(
                         text,
@@ -150,7 +163,28 @@ async def handle_news_prev(callback: CallbackQuery, state: FSMContext) -> None:
                 news = db.get(News, prev_id)
 
                 if news:
-                    text = f"<b>{news.title}</b>\n\n{news.content[:1000]}"
+                    from bot.keyboards.news_bot.categories_kb import get_category_emoji
+
+                    category_emoji = get_category_emoji(news.category)
+                    max_content_length = 900
+
+                    content = news.content
+                    if len(content) > max_content_length:
+                        cut_point = content.rfind(".", 0, max_content_length)
+                        if cut_point > max_content_length * 0.7:
+                            content = content[: cut_point + 1] + "\n\n..."
+                        else:
+                            cut_point = content.rfind(" ", 0, max_content_length)
+                            if cut_point > max_content_length * 0.7:
+                                content = content[:cut_point] + "..."
+                            else:
+                                content = content[:max_content_length] + "..."
+
+                    text = (
+                        f"{category_emoji} <b>{news.title}</b>\n"
+                        f"📂 {news.category.capitalize()}\n\n"
+                        f"{content}"
+                    )
 
                     await callback.message.edit_text(
                         text,
@@ -180,16 +214,12 @@ async def handle_settings(callback: CallbackQuery) -> None:
             prefs_service = UserPreferencesService(db)
             prefs = prefs_service.get_or_create_preferences(telegram_id)
 
-            age = prefs.get("age", "не указан")
-            grade = prefs.get("grade", "не указан")
             categories = prefs.get("categories", [])
             notifications = "включена" if prefs.get("daily_notifications") else "выключена"
 
             text = (
                 f"⚙️ <b>Настройки</b>\n\n"
-                f"👤 Возраст: {age}\n"
-                f"📚 Класс: {grade}\n"
-                f"📂 Категории: {', '.join(categories) if categories else 'не выбраны'}\n"
+                f"📂 Категории: {', '.join(categories) if categories else 'не выбраны (все категории)'}\n"
                 f"🔔 Рассылка: {notifications}"
             )
 
@@ -199,92 +229,6 @@ async def handle_settings(callback: CallbackQuery) -> None:
 
     except Exception as e:
         logger.error(f"❌ Ошибка открытия настроек: {e}")
-        await callback.answer("Ошибка", show_alert=True)
-
-
-async def handle_set_age(callback: CallbackQuery, state: FSMContext) -> None:
-    """Обработка выбора возраста."""
-    try:
-        telegram_id = callback.from_user.id
-
-        with get_db() as db:
-            prefs_service = UserPreferencesService(db)
-            prefs = prefs_service.get_or_create_preferences(telegram_id)
-            current_age = prefs.get("age")
-
-        await callback.message.edit_text(
-            "👤 Выбери свой возраст:", reply_markup=get_age_keyboard(current_age=current_age)
-        )
-        await state.set_state("news_setting_age")
-
-    except Exception as e:
-        logger.error(f"❌ Ошибка выбора возраста: {e}")
-        await callback.answer("Ошибка", show_alert=True)
-
-
-async def handle_set_grade(callback: CallbackQuery, state: FSMContext) -> None:
-    """Обработка выбора класса."""
-    try:
-        telegram_id = callback.from_user.id
-
-        with get_db() as db:
-            prefs_service = UserPreferencesService(db)
-            prefs = prefs_service.get_or_create_preferences(telegram_id)
-            current_grade = prefs.get("grade")
-
-        await callback.message.edit_text(
-            "📚 Выбери свой класс:", reply_markup=get_grade_keyboard(current_grade=current_grade)
-        )
-        await state.set_state("news_setting_grade")
-
-    except Exception as e:
-        logger.error(f"❌ Ошибка выбора класса: {e}")
-        await callback.answer("Ошибка", show_alert=True)
-
-
-async def handle_age_select(callback: CallbackQuery, state: FSMContext) -> None:
-    """Обработка выбора конкретного возраста."""
-    try:
-        age = int(callback.data.split(":")[1])
-        telegram_id = callback.from_user.id
-
-        with get_db() as db:
-            prefs_service = UserPreferencesService(db)
-            prefs_service.update_age(telegram_id, age)
-
-        await callback.message.edit_text(f"✅ Возраст установлен: {age} лет")
-        await state.clear()
-
-        # Предлагаем выбрать класс, если не выбран
-        with get_db() as db:
-            prefs_service = UserPreferencesService(db)
-            prefs = prefs_service.get_or_create_preferences(telegram_id)
-            if not prefs.get("grade"):
-                await callback.message.answer(
-                    "📚 Теперь выбери свой класс:", reply_markup=get_grade_keyboard()
-                )
-                await state.set_state("news_setting_grade")
-
-    except Exception as e:
-        logger.error(f"❌ Ошибка выбора возраста: {e}")
-        await callback.answer("Ошибка", show_alert=True)
-
-
-async def handle_grade_select(callback: CallbackQuery, state: FSMContext) -> None:
-    """Обработка выбора конкретного класса."""
-    try:
-        grade = int(callback.data.split(":")[1])
-        telegram_id = callback.from_user.id
-
-        with get_db() as db:
-            prefs_service = UserPreferencesService(db)
-            prefs_service.update_grade(telegram_id, grade)
-
-        await callback.message.edit_text(f"✅ Класс установлен: {grade}")
-        await state.clear()
-
-    except Exception as e:
-        logger.error(f"❌ Ошибка выбора класса: {e}")
         await callback.answer("Ошибка", show_alert=True)
 
 

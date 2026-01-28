@@ -1,7 +1,7 @@
 """
 Handler команды /start для новостного бота.
 
-Приветствие, выбор возраста и класса.
+Приветствие и показ новостей сразу.
 """
 
 import contextlib
@@ -13,7 +13,8 @@ from aiogram.types import Message
 from loguru import logger
 
 from bot.database import get_db
-from bot.keyboards.news_bot.settings_kb import get_age_keyboard
+from bot.keyboards.news_bot.categories_kb import get_categories_keyboard
+from bot.services.news.repository import NewsRepository
 from bot.services.news_bot.user_preferences_service import UserPreferencesService
 from bot.services.user_service import UserService
 
@@ -30,7 +31,7 @@ async def cmd_start(message: Message, state: FSMContext) -> None:
     """
     Обработчик команды /start.
 
-    Приветствие и настройка предпочтений пользователя.
+    Приветствие и показ новостей сразу.
     """
     try:
         telegram_id = message.from_user.id
@@ -55,46 +56,104 @@ async def cmd_start(message: Message, state: FSMContext) -> None:
             prefs_service = UserPreferencesService(db)
             prefs = prefs_service.get_or_create_preferences(telegram_id)
 
-        # Проверяем, настроены ли предпочтения
-        if not prefs.get("age") or not prefs.get("grade"):
-            # Нужно настроить возраст и класс
-            welcome_text = (
-                f"👋 Привет, {first_name}!\n\n"
-                "Я PandaPal News — бот с интересными новостями для детей!\n\n"
-                "Чтобы показывать тебе самые интересные новости, мне нужно узнать:\n"
-                "1️⃣ Твой возраст\n"
-                "2️⃣ Твой класс\n\n"
-                "Давай начнем с возраста:"
-            )
+            # Получаем новости
+            repository = NewsRepository(db)
+            categories = prefs.get("categories", [])
 
-            sent_message = await message.answer(welcome_text, reply_markup=get_age_keyboard())
-            logger.info(
-                f"📰 Сообщение отправлено пользователю {telegram_id}: message_id={sent_message.message_id}"
-            )
-            await state.set_state("news_setting_age")
+            if categories:
+                # Если выбраны категории, берем из них
+                all_news = []
+                for category in categories:
+                    news = repository.find_by_category(
+                        category=category, age=None, grade=None, limit=3
+                    )
+                    all_news.extend(news)
+                news_list = all_news[:10]
+            else:
+                # Показываем все новости по умолчанию
+                news_list = repository.find_recent(limit=10)
+
+        # Приветствие
+        welcome_text = (
+            f"👋 Привет, {first_name}!\n\n"
+            "Я PandaPal News — бот с интересными новостями для детей!\n\n"
+        )
+
+        if categories:
+            welcome_text += f"📂 Выбраны категории: {', '.join(categories)}\n\n"
         else:
-            # Предпочтения уже настроены
-            age = prefs.get("age")
-            grade = prefs.get("grade")
+            welcome_text += "📰 Показываю новости из всех категорий\n\n"
 
-            welcome_text = (
-                f"👋 Привет, {first_name}!\n\n"
-                f"Я PandaPal News — бот с интересными новостями!\n\n"
-                f"Твои настройки:\n"
-                f"👤 Возраст: {age} лет\n"
-                f"📚 Класс: {grade}\n\n"
-                "Используй команды:\n"
-                "/news — последние новости\n"
-                "/categories — выбор категорий\n"
-                "/settings — настройки"
+        welcome_text += "Используй команды:\n"
+        welcome_text += "/news — последние новости\n"
+        welcome_text += "/categories — выбор категорий\n"
+        welcome_text += "/settings — настройки"
+
+        await message.answer(
+            welcome_text, reply_markup=get_categories_keyboard(selected_categories=categories)
+        )
+
+        # Показываем новости если есть
+        if news_list:
+            from bot.keyboards.news_bot.news_navigation_kb import get_news_navigation_keyboard
+
+            # Отправляем первую новость
+            news = news_list[0]
+            from bot.keyboards.news_bot.categories_kb import get_category_emoji
+
+            category_emoji = get_category_emoji(news.category)
+            max_content_length = 900
+
+            content = news.content
+            if len(content) > max_content_length:
+                cut_point = content.rfind(".", 0, max_content_length)
+                if cut_point > max_content_length * 0.7:
+                    content = content[: cut_point + 1] + "\n\n..."
+                else:
+                    cut_point = content.rfind(" ", 0, max_content_length)
+                    if cut_point > max_content_length * 0.7:
+                        content = content[:cut_point] + "..."
+                    else:
+                        content = content[:max_content_length] + "..."
+
+            text = (
+                f"{category_emoji} <b>{news.title}</b>\n"
+                f"📂 {news.category.capitalize()}\n\n"
+                f"{content}"
             )
 
-            sent_message = await message.answer(welcome_text)
-            logger.info(
-                f"📰 Сообщение отправлено пользователю {telegram_id}: message_id={sent_message.message_id}"
-            )
-            await state.clear()
+            if news.image_url:
+                await message.answer_photo(
+                    news.image_url,
+                    caption=text,
+                    parse_mode="HTML",
+                    reply_markup=get_news_navigation_keyboard(
+                        news.id, has_next=len(news_list) > 1, has_prev=False
+                    ),
+                )
+            else:
+                await message.answer(
+                    text,
+                    parse_mode="HTML",
+                    reply_markup=get_news_navigation_keyboard(
+                        news.id, has_next=len(news_list) > 1, has_prev=False
+                    ),
+                )
 
+            # Отмечаем как прочитанную
+            with get_db() as db:
+                prefs_service = UserPreferencesService(db)
+                prefs_service.mark_news_read(telegram_id, news.id)
+
+            # Сохраняем индекс в state для навигации
+            await state.update_data(news_list_ids=[n.id for n in news_list], current_index=0)
+        else:
+            await message.answer(
+                "😔 Пока нет новостей.\n\n"
+                "Попробуй позже или выбери другие категории через /categories"
+            )
+
+        await state.clear()
         logger.info(f"📰 /start обработан успешно для пользователя {telegram_id}")
 
     except Exception as e:

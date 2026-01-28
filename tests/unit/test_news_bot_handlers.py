@@ -47,13 +47,25 @@ async def test_start_handler(mock_message, mock_state):
             mock_user_service.return_value = MagicMock()
 
             with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.get_or_create_preferences") as mock_prefs:
-                mock_prefs.return_value = {"age": None, "grade": None}
+                mock_prefs.return_value = {"categories": []}
 
-                with patch.object(mock_message, "answer", new_callable=AsyncMock) as mock_answer:
-                    await start.cmd_start(mock_message, mock_state)
+                with patch("bot.services.news.repository.NewsRepository.find_recent") as mock_find:
+                    from bot.models.news import News
 
-                    # Проверяем, что ответ отправлен
-                    assert mock_answer.called
+                    mock_news = MagicMock(spec=News)
+                    mock_news.id = 1
+                    mock_news.title = "Тестовая новость"
+                    mock_news.content = "Содержание"
+                    mock_news.image_url = None
+                    mock_find.return_value = [mock_news]
+
+                    with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.mark_news_read") as mock_mark:
+                        with patch.object(mock_message, "answer", new_callable=AsyncMock) as mock_answer:
+                            with patch.object(mock_message, "answer_photo", new_callable=AsyncMock):
+                                await start.cmd_start(mock_message, mock_state)
+
+                                # Проверяем, что ответ отправлен
+                                assert mock_answer.called
 
 
 @pytest.mark.asyncio
@@ -65,16 +77,25 @@ async def test_news_handler(mock_message, mock_state):
         mock_get_db.return_value.__exit__.return_value = None
 
         with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.get_or_create_preferences") as mock_prefs:
-            mock_prefs.return_value = {"age": 10, "grade": 5, "categories": []}
+            mock_prefs.return_value = {"categories": []}
 
-            with patch("bot.services.news.repository.NewsRepository.find_by_age") as mock_find:
-                mock_find.return_value = []
+            with patch("bot.services.news.repository.NewsRepository.find_recent") as mock_find:
+                from bot.models.news import News
 
-                with patch.object(mock_message, "answer", new_callable=AsyncMock) as mock_answer:
-                    await news_feed.cmd_news(mock_message, mock_state)
+                mock_news = MagicMock(spec=News)
+                mock_news.id = 1
+                mock_news.title = "Тестовая новость"
+                mock_news.content = "Содержание"
+                mock_news.image_url = None
+                mock_find.return_value = [mock_news]
 
-                    # Проверяем, что ответ отправлен
-                    assert mock_answer.called
+                with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.mark_news_read"):
+                    with patch.object(mock_message, "answer", new_callable=AsyncMock) as mock_answer:
+                        with patch.object(mock_message, "answer_photo", new_callable=AsyncMock):
+                            await news_feed.cmd_news(mock_message, mock_state)
+
+                            # Проверяем, что ответ отправлен
+                            assert mock_answer.called
 
 
 @pytest.mark.asyncio
@@ -101,6 +122,7 @@ async def test_help_handler(mock_message):
         await help.cmd_help(mock_message)
 
         assert mock_answer.called
-        # Проверяем, что в ответе есть информация о командах
+        # Проверяем, что в ответе есть информация о командах (текст в args или kwargs)
         call_args = mock_answer.call_args
-        assert "PandaPal News" in call_args[1]["text"] or "PandaPal News" in call_args[0][0]
+        text = (call_args[1].get("text") or (call_args[0][0] if call_args[0] else "")) or ""
+        assert "PandaPal News" in text

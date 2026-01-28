@@ -39,25 +39,20 @@ async def cmd_news(message: Message, state: FSMContext) -> None:
         prefs_service = UserPreferencesService(db)
         prefs = prefs_service.get_or_create_preferences(telegram_id)
 
-        # Получаем персонализированные новости
+        # Получаем новости
         repository = NewsRepository(db)
-        age = prefs.get("age")
-        grade = prefs.get("grade")
         categories = prefs.get("categories", [])
 
         if categories:
             # Если выбраны категории, берем из них
             all_news = []
             for category in categories:
-                news = repository.find_by_category(category=category, age=age, grade=grade, limit=3)
+                news = repository.find_by_category(category=category, age=None, grade=None, limit=3)
                 all_news.extend(news)
-            news_list = all_news[:5]
-        elif age:
-            news_list = repository.find_by_age(age, limit=5)
-        elif grade:
-            news_list = repository.find_by_grade(grade, limit=5)
+            news_list = all_news[:10]
         else:
-            news_list = repository.find_recent(limit=5)
+            # Показываем все новости по умолчанию
+            news_list = repository.find_recent(limit=10)
 
         if not news_list:
             await message.answer(
@@ -87,7 +82,32 @@ async def _send_news_message(
         current_index: Текущий индекс
     """
     try:
-        text = f"<b>{news.title}</b>\n\n{news.content[:1000]}"
+        from bot.keyboards.news_bot.categories_kb import get_category_emoji
+
+        # Красивое форматирование новости
+        category_emoji = get_category_emoji(news.category)
+        max_content_length = 900  # Оставляем место для заголовка и форматирования
+
+        # Обрезаем контент, сохраняя целые предложения
+        content = news.content
+        if len(content) > max_content_length:
+            # Ищем последнюю точку перед лимитом
+            cut_point = content.rfind(".", 0, max_content_length)
+            if cut_point > max_content_length * 0.7:  # Если точка не слишком близко к началу
+                content = content[: cut_point + 1] + "\n\n..."
+            else:
+                # Если точки нет, обрезаем по пробелу
+                cut_point = content.rfind(" ", 0, max_content_length)
+                if cut_point > max_content_length * 0.7:
+                    content = content[:cut_point] + "..."
+                else:
+                    content = content[:max_content_length] + "..."
+
+        text = (
+            f"{category_emoji} <b>{news.title}</b>\n"
+            f"📂 {news.category.capitalize()}\n\n"
+            f"{content}"
+        )
 
         if news.image_url:
             await message.answer_photo(
