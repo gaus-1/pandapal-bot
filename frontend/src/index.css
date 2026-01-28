@@ -7,13 +7,12 @@
    ================================================================= */
 
 @layer base {
-  /* Базовая типографика с новыми шрифтами */
+  /* Единые шрифты для сайта и Mini App: Inter (текст), Poppins (заголовки через font-display) */
   html {
-    /* Используем новые viewport height единицы 2025 для мобильных (dvh/svh/lvh) */
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    /* Viewport height для всех устройств (включая складные) */
     height: 100%;
-    /* Fallback для старых браузеров */
     height: calc(var(--vh, 1vh) * 100);
-    /* Новые единицы 2025: динамический viewport height (решает проблему с адресной строкой) */
     height: 100dvh;
   }
 
@@ -266,8 +265,22 @@
 
   .safe-area-inset-bottom {
     padding-block-end: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
-    /* Fallback */
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+  }
+
+  /* Высота под все устройства (Mini App и сайт): 100dvh с fallback */
+  .min-h-dvh {
+    min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
+    min-height: 100dvh;
+  }
+
+  /* Складные/узкие экраны (≤280px): уменьшенные отступы */
+  @media (max-width: 280px) {
+    .container-responsive {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
   }
 
   /* Скрытие скроллбара (опционально) */

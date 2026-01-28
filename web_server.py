@@ -31,6 +31,11 @@ from bot.config.news_bot_settings import news_bot_settings  # noqa: E402
 from bot.database import init_database  # noqa: E402
 from bot.handlers import routers  # noqa: E402
 
+# Отключить новостной бот и сбор новостей (Mini App и сайт не трогаем)
+NEWS_BOT_DISABLED = (
+    True  # True = выключено, False = по env NEWS_BOT_ENABLED / NEWS_COLLECTION_ENABLED
+)
+
 # Настройка логирования
 logger.remove()
 logger.add(
@@ -67,6 +72,10 @@ class PandaPalBotServer:
         self.news_collection_enabled = (
             self.news_bot_enabled or env_collection or news_bot_settings.news_collection_enabled
         )
+        if NEWS_BOT_DISABLED:
+            self.news_bot_enabled = False
+            self.news_collection_enabled = False
+            logger.info("📰 Новостной бот отключен по флагу NEWS_BOT_DISABLED")
 
         if self.news_bot_enabled:
             logger.info(

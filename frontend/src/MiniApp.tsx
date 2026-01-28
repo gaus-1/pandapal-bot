@@ -166,7 +166,7 @@ function MiniAppContent() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[var(--tg-theme-bg-color)]">
+      <div className="flex items-center justify-center min-h-screen min-h-dvh bg-[var(--tg-theme-bg-color)] safe-area-inset">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--tg-theme-button-color)]"></div>
           <p className="mt-4 text-[var(--tg-theme-text-color)]">Загрузка...</p>
@@ -177,7 +177,7 @@ function MiniAppContent() {
 
   if (error || !user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[var(--tg-theme-bg-color)] p-4">
+      <div className="flex items-center justify-center min-h-screen min-h-dvh bg-[var(--tg-theme-bg-color)] p-4 safe-area-inset">
         <div className="text-center">
           <div className="text-6xl mb-4">😔</div>
           <h2 className="text-xl font-display font-bold text-[var(--tg-theme-text-color)] mb-2">
@@ -199,7 +199,7 @@ function MiniAppContent() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-slate-800 overflow-hidden">
+    <div className="h-screen min-h-dvh flex flex-col bg-white dark:bg-slate-800 overflow-hidden">
       {/* Основной контент с Suspense для lazy loading */}
       <div className="flex-1 overflow-hidden">
         <Suspense fallback={<LoadingFallback />}>
@@ -306,7 +306,7 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
  */
 function LoadingFallback() {
   return (
-    <div className="flex items-center justify-center h-full min-h-screen">
+    <div className="flex items-center justify-center h-full min-h-screen min-h-dvh">
       <div className="text-center">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Загрузка...</p>
