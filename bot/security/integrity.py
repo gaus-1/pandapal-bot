@@ -167,6 +167,7 @@ class SSRFProtection:
         "pandapal.ru",
         "mc.yandex.ru",
         "www.google-analytics.com",
+        "lenta.ru",
     ]
 
     # Запрещенные IP диапазоны (внутренние сети)

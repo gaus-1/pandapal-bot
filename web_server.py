@@ -1303,6 +1303,7 @@ class PandaPalBotServer:
             logger.info("📰 Начинаю сбор новостей...")
             from bot.services.news.sources.humor_site_source import HumorSiteSource
             from bot.services.news.sources.joke_api_source import JokeAPISource
+            from bot.services.news.sources.lenta_ru_source import LentaRuSource
             from bot.services.news.sources.local_humor_source import LocalHumorSource
             from bot.services.news.sources.newsapi_source import NewsAPISource
             from bot.services.news.sources.web_scraper_source import WebScraperNewsSource
@@ -1313,6 +1314,7 @@ class PandaPalBotServer:
                 WorldNewsAPISource(),
                 NewsAPISource(),
                 WebScraperNewsSource(),
+                LentaRuSource(),
                 HumorSiteSource(),
                 JokeAPISource(),
                 LocalHumorSource(),

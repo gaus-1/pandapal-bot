@@ -21,6 +21,7 @@ from bot.services.news.moderators.content_moderator import NewsContentModerator
 from bot.services.news.repository import NewsRepository
 from bot.services.news.sources.humor_site_source import HumorSiteSource
 from bot.services.news.sources.joke_api_source import JokeAPISource
+from bot.services.news.sources.lenta_ru_source import LentaRuSource
 from bot.services.news.sources.local_humor_source import LocalHumorSource
 from bot.services.news.sources.newsapi_source import NewsAPISource
 from bot.services.news.sources.web_scraper_source import WebScraperNewsSource
@@ -52,6 +53,7 @@ class NewsCollectorService:
                 WorldNewsAPISource(),
                 NewsAPISource(),
                 WebScraperNewsSource(),
+                LentaRuSource(),
                 HumorSiteSource(),
                 JokeAPISource(),
                 LocalHumorSource(),
