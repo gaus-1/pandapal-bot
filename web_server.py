@@ -1241,7 +1241,7 @@ class PandaPalBotServer:
     async def _check_and_collect_news_on_startup(self) -> None:
         """При старте всегда запускаем сбор, чтобы бот был с новостями."""
         try:
-            await asyncio.sleep(5)  # Ждем немного после старта сервера
+            await asyncio.sleep(2)  # Короткая пауза для инициализации БД
 
             from bot.database import get_db
             from bot.services.news.repository import NewsRepository
