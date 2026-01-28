@@ -53,10 +53,20 @@ class PandaPalBotServer:
         self.runner: web.AppRunner | None = None
         self.site: web.TCPSite | None = None
         self.settings = settings
-        # Проверяем включен ли новостной бот (из переменных окружения ИЛИ из настроек)
+        # Новостной бот: включен ли Telegram-бот и webhook
         env_enabled = os.getenv("NEWS_BOT_ENABLED", "false").lower() in ("true", "1", "yes")
         settings_enabled = news_bot_settings.news_bot_enabled
         self.news_bot_enabled = env_enabled or settings_enabled
+
+        # Сбор новостей в БД: работает при NEWS_BOT_ENABLED или NEWS_COLLECTION_ENABLED
+        env_collection = os.getenv("NEWS_COLLECTION_ENABLED", "false").lower() in (
+            "true",
+            "1",
+            "yes",
+        )
+        self.news_collection_enabled = (
+            self.news_bot_enabled or env_collection or news_bot_settings.news_collection_enabled
+        )
 
         if self.news_bot_enabled:
             logger.info(
@@ -64,6 +74,12 @@ class PandaPalBotServer:
             )
         else:
             logger.info("📰 Новостной бот отключен")
+        if self.news_collection_enabled:
+            logger.info("📰 Сбор новостей в БД включен")
+        else:
+            logger.info(
+                "📰 Сбор новостей в БД отключен (NEWS_BOT_ENABLED или NEWS_COLLECTION_ENABLED=true чтобы включить)"
+            )
         self._shutdown_in_progress = False
 
         # Создаем приложение и добавляем ВСЕ роуты сразу (до запуска сервера)
@@ -322,6 +338,15 @@ class PandaPalBotServer:
                 status=200,
             )
 
+        async def trigger_collect_news(request: web.Request) -> web.Response:
+            """Запуск сбора новостей по запросу (для cron). Требует секретный ключ."""
+            auth = request.headers.get("Authorization") or request.query.get("key", "")
+            key = auth.replace("Bearer ", "").strip()
+            if not key or key != self.settings.secret_key:
+                return web.json_response({"error": "unauthorized"}, status=401)
+            asyncio.create_task(self._collect_news_now())
+            return web.json_response({"status": "ok", "message": "collection started"})
+
         async def health_check_detailed(_request: web.Request) -> web.Response:
             """Детальный health check с проверкой всех компонентов."""
             components = {}
@@ -371,6 +396,8 @@ class PandaPalBotServer:
         self.app.router.add_get("/health/detailed", health_check_detailed)
         # Тестовый endpoint для проверки новостного бота
         self.app.router.add_get("/test/news-webhook", test_news_webhook)
+        # Запуск сбора новостей по запросу (cron: GET/POST с ?key=SECRET_KEY или Authorization: Bearer SECRET_KEY)
+        self.app.router.add_route("*", "/internal/collect-news", trigger_collect_news)
 
     def _register_api_route(self, module_path: str, setup_func_name: str, route_name: str) -> None:
         """Регистрация одного API роута."""
@@ -857,11 +884,9 @@ class PandaPalBotServer:
             await self.engagement_service.start()
             logger.info("⏰ SimpleEngagementService запущен")
 
-        # Запуск автоматического сбора новостей (если новостной бот включен)
-        if self.news_bot_enabled:
-            # Проверяем, есть ли новости при старте
+        # Запуск автоматического сбора новостей (если включен бот или только сбор)
+        if self.news_collection_enabled:
             asyncio.create_task(self._check_and_collect_news_on_startup())
-            # Запускаем ежедневный сбор
             asyncio.create_task(self._news_collection_loop())
             logger.info("📰 Автоматический сбор новостей запущен")
 
@@ -1262,11 +1287,17 @@ class PandaPalBotServer:
             logger.error(f"❌ Ошибка проверки новостей при старте: {e}", exc_info=True)
 
     async def _news_collection_loop(self) -> None:
-        """Фоновая задача: сбор новостей каждые 30 минут, поток 24/7."""
+        """Фоновая задача: первый сбор через 5 мин, далее каждые 15 мин."""
+        first_run = True
         while True:
             try:
-                logger.info("📰 Следующий сбор новостей через 30 мин")
-                await asyncio.sleep(1800)
+                if first_run:
+                    logger.info("📰 Первый периодический сбор новостей через 5 мин")
+                    await asyncio.sleep(300)  # 5 мин до первого сбора
+                    first_run = False
+                else:
+                    logger.info("📰 Следующий сбор новостей через 15 мин")
+                    await asyncio.sleep(900)  # 15 мин
 
                 await self._collect_news_now()
 
@@ -1275,11 +1306,11 @@ class PandaPalBotServer:
                 break
             except Exception as e:
                 logger.error(f"❌ Ошибка в цикле сбора новостей: {e}", exc_info=True)
-                await asyncio.sleep(1800)
+                await asyncio.sleep(900)
 
     async def _collect_news_now(self) -> None:
         """Выполнить сбор новостей прямо сейчас."""
-        if not self.news_bot_enabled:
+        if not self.news_collection_enabled:
             return
 
         try:

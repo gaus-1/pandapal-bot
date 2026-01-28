@@ -37,6 +37,12 @@ class NewsBotSettings(BaseSettings):
         validation_alias=AliasChoices("NEWS_BOT_ENABLED", "news_bot_enabled"),
     )
 
+    news_collection_enabled: bool = Field(
+        default=False,
+        description="Включен ли сбор новостей в БД (можно true без NEWS_BOT_ENABLED)",
+        validation_alias=AliasChoices("NEWS_COLLECTION_ENABLED", "news_collection_enabled"),
+    )
+
     # Используем те же настройки БД и Yandex Cloud из основного settings
     # Эти поля не обязательны здесь, так как используются из основного settings
 
