@@ -16,7 +16,7 @@ SQLAlchemy==2.0.45              # ORM для PostgreSQL
 alembic==1.18.0                 # Миграции базы данных
 psycopg==3.3.2                  # Драйвер PostgreSQL (асинхронный)
 psycopg-binary==3.3.2           # Бинарный wheel для psycopg
-greenlet==3.3.0                 # Поддержка async для SQLAlchemy
+greenlet==3.3.1                 # Поддержка async для SQLAlchemy
 
 # Веб-сервер и API
 fastapi==0.128.0                # Асинхронный веб-фреймворк
