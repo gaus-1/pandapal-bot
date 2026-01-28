@@ -221,12 +221,7 @@ class NewsRepository:
         try:
             query = (
                 select(News)
-                .where(
-                    and_(
-                        News.is_active == True,  # noqa: E712
-                        News.is_moderated == True,  # noqa: E712
-                    )
-                )
+                .where(News.is_active == True)  # noqa: E712
                 .order_by(News.published_date.desc().nullslast(), News.created_at.desc())
                 .limit(limit)
             )
