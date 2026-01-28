@@ -19,7 +19,6 @@ interface PremiumPlan {
   priceRub: number;
   duration: string;
   features: string[];
-  popular?: boolean;
 }
 
 const PREMIUM_PLANS: PremiumPlan[] = [
@@ -29,29 +28,14 @@ const PREMIUM_PLANS: PremiumPlan[] = [
     priceRub: 299,
     duration: '30 дней',
     features: [
-      '📝 Текстовые и фото запросы без ограничений',
+      '📝 Текст, фото и аудио без ограничений',
+      '📚 Все предметы школьной программы без ограничений',
       '📊 Визуализации и графики по школьным предметам',
       '🎨 Генерация изображений',
-      '🌍 Русский и английский языки',
-      '🗺️ Карты стран и городов',
-      '📚 Все предметы школьной программы',
-      '📈 Аналитика прогресса',
-    ],
-    popular: true,
-  },
-  {
-    id: 'year',
-    name: 'Год',
-    priceRub: 2990,
-    duration: '365 дней',
-    features: [
-      '📝 Текст, фото и аудио без ограничений',
-      '📚 Все предметы без ограничений',
-      '🎨 Генерация изображений без ограничений',
       '🌍 Русский, английский, немецкий, французский, испанский',
-      '🗺️ Карты стран и городов без ограничений',
+      '🗺️ Карты стран и городов',
       '🏆 Эксклюзивные достижения',
-      '📊 Дополнительные визуализации и графики',
+      '📈 Аналитика прогресса',
       '🎮 Игры',
     ],
   },
@@ -213,7 +197,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         if (inTelegram) {
           await telegram.showAlert(
             `❌ Ошибка: ${errorMessage}\n\n` +
-            `Если вы пытаетесь купить подписку на месяц или год, ` +
+            `Если вы пытаетесь оформить подписку, ` +
             `автоплатежи еще не активированы.`
           );
         } else {
@@ -383,12 +367,6 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                 key={plan.id}
                 className="relative p-3 xs:p-4 sm:p-5 md:p-6 rounded-[1.25rem] xs:rounded-[1.5rem] sm:rounded-[1.75rem] md:rounded-[2rem] transition-all bg-gradient-to-br from-purple-50/85 via-pink-50/85 to-rose-50/85 dark:from-purple-950/35 dark:via-pink-950/35 dark:to-rose-950/35 border border-purple-200/30 dark:border-purple-800/25 shadow-[0_4px_16px_rgba(139,92,246,0.1)] dark:shadow-[0_4px_16px_rgba(139,92,246,0.2)]"
               >
-                {plan.popular && (
-                  <div className="inline-block px-2 xs:px-2.5 sm:px-3 py-0.5 xs:py-0.5 sm:py-1 bg-blue-500 text-white text-[10px] xs:text-xs sm:text-xs font-bold rounded-full mb-1 xs:mb-1.5 sm:mb-2">
-                    🔥 ПОПУЛЯРНЫЙ
-                  </div>
-                )}
-
                 <div className="flex items-center justify-between mb-1.5 xs:mb-2 sm:mb-3">
                   <div>
                     <h3 className="text-sm xs:text-base sm:text-lg md:text-xl font-display font-bold text-gray-900 dark:text-slate-100">
@@ -403,10 +381,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                       {plan.priceRub} ₽
                     </div>
                     <div className="text-[10px] xs:text-xs sm:text-sm text-gray-600 dark:text-slate-400">
-                      {(() => {
-                        const days = plan.id === 'month' ? 30 : 365;
-                        return `${(plan.priceRub / days).toFixed(0)} ₽/день`;
-                      })()}
+                      {(plan.priceRub / 30).toFixed(0)} ₽/день
                     </div>
                   </div>
                 </div>

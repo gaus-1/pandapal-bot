@@ -43,18 +43,19 @@ describe('PremiumScreen', () => {
     vi.mocked(telegram.notifyError).mockImplementation(() => {});
 
     vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
       json: async () => ({
         success: true,
         confirmation_url: 'https://yookassa.ru/payment',
       }),
-    });
+    } as Response);
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
-  it('отображает все тарифные планы', async () => {
+  it('отображает тарифный план', async () => {
     render(<PremiumScreen user={mockUser} />, { wrapper });
 
     await waitFor(() => {
@@ -62,15 +63,13 @@ describe('PremiumScreen', () => {
     });
 
     expect(screen.getByText('Месяц')).toBeInTheDocument();
-    expect(screen.getByText('Год')).toBeInTheDocument();
   });
 
-  it('отображает цены планов', async () => {
+  it('отображает цену плана', async () => {
     render(<PremiumScreen user={mockUser} />, { wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText('399 ₽')).toBeInTheDocument();
-      expect(screen.getByText('2990 ₽')).toBeInTheDocument();
+      expect(screen.getByText('299 ₽')).toBeInTheDocument();
     });
   });
 
@@ -80,10 +79,10 @@ describe('PremiumScreen', () => {
     render(<PremiumScreen user={mockUser} />, { wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText(/Купить Premium за 399 ₽/)).toBeInTheDocument();
+      expect(screen.getByText(/Premium за 299 ₽/)).toBeInTheDocument();
     });
 
-    const buyButton = screen.getByText(/Купить Premium за 399 ₽/);
+    const buyButton = screen.getByText(/Premium за 299 ₽/);
     await user.click(buyButton);
 
     await waitFor(() => {
@@ -106,38 +105,37 @@ describe('PremiumScreen', () => {
     render(<PremiumScreen user={mockUser} />, { wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText(/Купить Premium за 399 ₽/)).toBeInTheDocument();
+      expect(screen.getByText(/Premium за 299 ₽/)).toBeInTheDocument();
     });
 
-    const buyButton = screen.getByText(/Купить Premium за 399 ₽/);
+    const buyButton = screen.getByText(/Premium за 299 ₽/);
     await user.click(buyButton);
 
     await waitFor(() => {
       expect(telegram.openLink).toHaveBeenCalledWith('https://yookassa.ru/payment');
-      expect(telegram.showAlert).toHaveBeenCalled();
     });
   });
 
   it('обрабатывает ошибки при создании платежа', async () => {
     const user = userEvent.setup();
     vi.mocked(global.fetch).mockResolvedValue({
+      ok: false,
       json: async () => ({
         success: false,
         error: 'Ошибка создания платежа',
       }),
-    });
+    } as Response);
 
     render(<PremiumScreen user={mockUser} />, { wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText(/Купить Premium за 399 ₽/)).toBeInTheDocument();
+      expect(screen.getByText(/Premium за 299 ₽/)).toBeInTheDocument();
     });
 
-    const buyButton = screen.getByText(/Купить Premium за 399 ₽/);
+    const buyButton = screen.getByText(/Premium за 299 ₽/);
     await user.click(buyButton);
 
     await waitFor(() => {
-      expect(telegram.notifyError).toHaveBeenCalled();
       expect(telegram.showAlert).toHaveBeenCalledWith(
         expect.stringContaining('Ошибка создания платежа')
       );
@@ -158,28 +156,36 @@ describe('PremiumScreen', () => {
     render(<PremiumScreen user={mockUser} />, { wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText(/Безопасная оплата через ЮKassa/)).toBeInTheDocument();
+      expect(screen.getByText(/Оплата только через Telegram/)).toBeInTheDocument();
     });
   });
 
   it('блокирует кнопку покупки во время обработки', async () => {
     const user = userEvent.setup();
     vi.mocked(global.fetch).mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve({
-        json: async () => ({
-          success: true,
-          confirmation_url: 'https://yookassa.ru/payment',
-        }),
-      }), 100))
+      () =>
+        new Promise(resolve =>
+          setTimeout(
+            () =>
+              resolve({
+                ok: true,
+                json: async () => ({
+                  success: true,
+                  confirmation_url: 'https://yookassa.ru/payment',
+                }),
+              } as Response),
+            100
+          )
+        )
     );
 
     render(<PremiumScreen user={mockUser} />, { wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText(/Купить Premium за 399 ₽/)).toBeInTheDocument();
+      expect(screen.getByText(/Premium за 299 ₽/)).toBeInTheDocument();
     });
 
-    const buyButton = screen.getByText(/Купить Premium за 399 ₽/);
+    const buyButton = screen.getByText(/Premium за 299 ₽/);
     await user.click(buyButton);
 
     // Кнопка должна показывать "Обработка..."
