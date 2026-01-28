@@ -134,17 +134,19 @@ class LentaRuSource(BaseNewsSource):
 
         return news_list[:limit]
 
-    async def fetch_news(self, limit: int = 10) -> list[dict[str, Any]]:
-        """
-        Собрать новости со всех рубрик Lenta.ru.
+    # Все новости со страницы — типично 30–60 на рубрику
+    PER_RUBRIC_LIMIT = 60
 
-        Лимит распределяется по рубрикам (минимум 2 на рубрику для разнообразия).
+    async def fetch_news(self, limit: int = 10) -> list[dict[str, Any]]:  # noqa: ARG002
         """
-        per_rubric = max(2, limit // len(LENTA_RUBRICS))
+        Собрать все новости со всех рубрик Lenta.ru (все что на странице).
+
+        Лимит от коллектора игнорируется — парсим всю страницу каждой рубрики.
+        """
         all_news = []
 
         for path, source_label in LENTA_RUBRICS:
-            items = await self._scrape_rubric(path, source_label, per_rubric)
+            items = await self._scrape_rubric(path, source_label, limit=self.PER_RUBRIC_LIMIT)
             all_news.extend(items)
 
-        return all_news[:limit]
+        return all_news

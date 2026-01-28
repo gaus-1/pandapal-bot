@@ -10,7 +10,6 @@ import asyncio
 import contextlib
 import os
 import sys
-from datetime import datetime, time, timedelta
 from pathlib import Path
 
 # Добавляем корневую папку в PYTHONPATH ПЕРЕД импортами
@@ -1240,7 +1239,7 @@ class PandaPalBotServer:
                 await asyncio.sleep(60)  # При ошибке ждем минуту перед следующей попыткой
 
     async def _check_and_collect_news_on_startup(self) -> None:
-        """Проверить и собрать новости при старте, если их меньше 20."""
+        """При старте всегда запускаем сбор, чтобы бот был с новостями."""
         try:
             await asyncio.sleep(5)  # Ждем немного после старта сервера
 
@@ -1251,48 +1250,23 @@ class PandaPalBotServer:
                 repo = NewsRepository(db)
                 news_count = repo.count_all()
 
-                if news_count < 20:
-                    logger.info(
-                        f"📰 В БД только {news_count} новостей, запускаю сбор при старте..."
-                    )
-                    await self._collect_news_now()
-                else:
-                    logger.info(
-                        f"📰 В БД уже есть {news_count} новостей, сбор при старте не требуется"
-                    )
+            if news_count < 50:
+                logger.info(f"📰 В БД {news_count} новостей, запускаю сбор при старте...")
+                await self._collect_news_now()
+            else:
+                logger.info(
+                    f"📰 В БД уже {news_count} новостей, дозаполняю при старте для свежести"
+                )
+                await self._collect_news_now()
         except Exception as e:
             logger.error(f"❌ Ошибка проверки новостей при старте: {e}", exc_info=True)
 
     async def _news_collection_loop(self) -> None:
-        """Фоновая задача для сбора новостей 3 раза в день: 6:00, 12:00, 18:00."""
-        collection_times = [time(6, 0), time(12, 0), time(18, 0)]
-
+        """Фоновая задача: сбор новостей каждый час, чтобы бот всегда был с новостями."""
         while True:
             try:
-                now = datetime.now()
-                now_time = now.time()
-
-                # Находим следующее время сбора
-                next_time = None
-                for ct in collection_times:
-                    if now_time < ct:
-                        next_time = ct
-                        break
-
-                if next_time is None:
-                    # Все времена прошли сегодня, берем первое завтра
-                    next_time = collection_times[0]
-                    target_date = now.date() + timedelta(days=1)
-                else:
-                    target_date = now.date()
-
-                target_datetime = datetime.combine(target_date, next_time)
-                wait_seconds = (target_datetime - now).total_seconds()
-
-                logger.info(
-                    f"📰 Следующий сбор новостей в {next_time.strftime('%H:%M')} (через {wait_seconds / 3600:.1f} часов)"
-                )
-                await asyncio.sleep(wait_seconds)
+                logger.info("📰 Следующий сбор новостей через 1 час")
+                await asyncio.sleep(3600)
 
                 await self._collect_news_now()
 
