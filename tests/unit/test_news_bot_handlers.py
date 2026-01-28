@@ -59,9 +59,8 @@ async def test_start_handler(mock_message, mock_state):
                 with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.mark_news_read"):
                     with patch.object(mock_message, "answer", new_callable=AsyncMock) as mock_answer:
                         with patch.object(mock_message, "answer_photo", new_callable=AsyncMock):
-                            await start.cmd_start(mock_message, mock_state)
+                            await start.cmd_start(mock_message)
 
-                            # Проверяем, что ответ отправлен
                             assert mock_answer.called
 
 
@@ -86,9 +85,8 @@ async def test_news_handler(mock_message, mock_state):
             with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.mark_news_read"):
                 with patch.object(mock_message, "answer", new_callable=AsyncMock) as mock_answer:
                     with patch.object(mock_message, "answer_photo", new_callable=AsyncMock):
-                        await news_feed.cmd_news(mock_message, mock_state)
+                        await news_feed.cmd_news(mock_message)
 
-                        # Проверяем, что ответ отправлен
                         assert mock_answer.called
 
 

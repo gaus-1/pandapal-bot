@@ -59,7 +59,7 @@ async def test_complete_news_bot_flow(mock_message, mock_state):
                 with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.mark_news_read"):
                     from bot.handlers.news_bot.start import cmd_start
 
-                    await cmd_start(mock_message, mock_state)
+                    await cmd_start(mock_message)
                     assert mock_message.answer.called or mock_message.answer_photo.called
 
             with patch("bot.services.news.repository.NewsRepository.find_recent") as mock_find:
@@ -75,5 +75,5 @@ async def test_complete_news_bot_flow(mock_message, mock_state):
                 with patch("bot.services.news_bot.user_preferences_service.UserPreferencesService.mark_news_read"):
                     from bot.handlers.news_bot.news_feed import cmd_news
 
-                    await cmd_news(mock_message, mock_state)
+                    await cmd_news(mock_message)
                     assert mock_message.answer.called or mock_message.answer_photo.called

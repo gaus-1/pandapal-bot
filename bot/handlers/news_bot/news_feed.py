@@ -1,15 +1,15 @@
 """
-Команда /news — те же новости со всех разделов, поток без категорий.
+Команда /news — новости потоком сообщений, пользователь скроллит вниз. Без кнопок.
 """
+
+import asyncio
 
 from aiogram import Router
 from aiogram.filters import Command
-from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from loguru import logger
 
 from bot.database import get_db
-from bot.keyboards.news_bot.news_navigation_kb import get_news_navigation_keyboard
 from bot.services.news.repository import NewsRepository
 from bot.services.news_bot.user_preferences_service import UserPreferencesService
 
@@ -17,6 +17,7 @@ router = Router(name="news_bot_feed")
 
 MAX_NEWS = 50
 MAX_CONTENT_LENGTH = 900
+DELAY_BETWEEN_MESSAGES = 0.05
 
 
 def register_handlers(router_instance: Router) -> None:
@@ -33,8 +34,8 @@ def _format_item(news: dict) -> str:
     return f"<b>{news['title']}</b>\n\n{content}"
 
 
-async def cmd_news(message: Message, state: FSMContext) -> None:
-    """Новости со всех разделов, без категорий."""
+async def cmd_news(message: Message) -> None:
+    """Новости потоком — каждое сообщением, пользователь скроллит вниз."""
     telegram_id = message.from_user.id
     logger.info(f"📰 /news: user={telegram_id}")
 
@@ -46,7 +47,6 @@ async def cmd_news(message: Message, state: FSMContext) -> None:
                 "id": n.id,
                 "title": n.title,
                 "content": n.content or "",
-                "category": n.category,
                 "image_url": getattr(n, "image_url", None),
             }
             for n in raw_list
@@ -56,19 +56,16 @@ async def cmd_news(message: Message, state: FSMContext) -> None:
         await message.answer("📰 Новости загружаются. Обновляю каждые 30 минут.")
         return
 
-    news = news_list[0]
-    text = _format_item(news)
-    keyboard = get_news_navigation_keyboard(news["id"], has_next=len(news_list) > 1, has_prev=False)
-
-    if news.get("image_url"):
-        await message.answer_photo(
-            news["image_url"], caption=text, parse_mode="HTML", reply_markup=keyboard
-        )
-    else:
-        await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
-
     with get_db() as db:
         prefs_service = UserPreferencesService(db)
-        prefs_service.mark_news_read(telegram_id, news["id"])
-
-    await state.update_data(news_list_ids=[n["id"] for n in news_list], current_index=0)
+        for i, news in enumerate(news_list):
+            text = _format_item(news)
+            if news.get("image_url"):
+                await message.answer_photo(news["image_url"], caption=text, parse_mode="HTML")
+            else:
+                await message.answer(text, parse_mode="HTML")
+            prefs_service.mark_news_read(telegram_id, news["id"])
+            if (i + 1) % 20 == 0:
+                await asyncio.sleep(0.5)
+            else:
+                await asyncio.sleep(DELAY_BETWEEN_MESSAGES)
