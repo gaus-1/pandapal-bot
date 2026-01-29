@@ -75,7 +75,7 @@ def test_clean_formula_dedup_and_notation():
     cleaned = clean_ai_response(wall)
     assert cleaned.count("Формула для расчёта количества теплоты") <= 1
     assert "Δt" in cleaned or "Delta t" not in cleaned
-    assert " × " in cleaned
+    assert " × " in cleaned or " · " in cleaned
     assert "Q_Для" not in cleaned
 
 @pytest.mark.unit

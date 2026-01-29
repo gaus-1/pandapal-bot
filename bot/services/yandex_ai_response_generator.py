@@ -251,7 +251,9 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
                 if len(words_new) > 0 and len(words_seen) > 0:
                     common = len(words_new & words_seen)
                     similarity = common / max(len(words_new), len(words_seen))
-                    if similarity > 0.50:
+                    # Длинные почти одинаковые абзацы (повтор вводной фразы списка и т.п.)
+                    long_both = min(len(words_new), len(words_seen)) > 20
+                    if similarity > 0.50 or (long_both and similarity > 0.80):
                         is_duplicate = True
                         break
                 if (
@@ -403,6 +405,17 @@ def clean_ai_response(text: str) -> str:
     text = re.sub(r"\[(?:Кто такой|Что такое|Кто такая)[^\]]*\]", "", text, flags=re.IGNORECASE)
     text = re.sub(r"\[[^\]]{15,}\]", "", text)  # длинные скобки — инструкции/заголовки
 
+    # LaTeX в формулах → типографский стиль: убираем \quad, \text{}, \left/\right
+    text = re.sub(r"\\quad\s*", " ", text)
+    text = re.sub(r"\\text\s*\{([^}]*)\}", r"\1", text)
+    text = re.sub(r"\\left\s*\(\s*", "(", text)
+    text = re.sub(r"\s*\\right\s*\)", ")", text)
+    text = re.sub(r"\\left\s*\[\s*", "[", text)
+    text = re.sub(r"\s*\\right\s*\]", "]", text)
+    # Без слэша: left( / right) → ( / )
+    text = re.sub(r"\bleft\s*\(\s*", "(", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s*right\s*\)", ")", text, flags=re.IGNORECASE)
+
     # Пробелы вокруг ** для корректного отображения жирного
     text = normalize_bold_spacing(text)
 
@@ -488,14 +501,21 @@ def clean_ai_response(text: str) -> str:
     # Паттерн 3: "3*3=9" → "3 × 3 = 9"
     text = re.sub(r"(\d+)\*(\d+)\s*=\s*(\d+)", r"\1 × \2 = \3", text)
 
-    # Физика: Delta t / Delta T → Δt / ΔT; в формулах буква x как умножение → ×
+    # Физика: Delta t / Delta T → Δt / ΔT; в формулах буква x как умножение → ·
     text = re.sub(r"\bDelta\s+t\b", "Δt", text, flags=re.IGNORECASE)
     text = re.sub(r"\bDelta\s+T\b", "ΔT", text)
+    # Операнд x операнд (число или идентификатор типа log_a, b, c) → ·
     text = re.sub(
-        r"(\b[a-zA-Z]\b|\bDelta\b|\d)\s+x\s+(\b[a-zA-Z]\b|\bDelta\b|\d)",
-        r"\1 × \2",
+        r"(\b\d+\b|\b[a-zA-Z_][a-zA-Z0-9_]*\b)\s+x\s+(\b\d+\b|\b[a-zA-Z_][a-zA-Z0-9_]*\b)",
+        r"\1 · \2",
         text,
     )
+
+    # Степень в формулах: ^2 ^3 ^4 ^5 → ² ³ ⁴ ⁵ (типографский стиль)
+    text = re.sub(r"(\w)\^2\b", r"\1²", text)
+    text = re.sub(r"(\w)\^3\b", r"\1³", text)
+    text = re.sub(r"(\w)\^4\b", r"\1⁴", text)
+    text = re.sub(r"(\w)\^5\b", r"\1⁵", text)
 
     # Обрезка мусора в конце: склеенные «Q_Для решения…», «t_Для…» — убираем до конца строки
     text = re.sub(r"\s+[A-Za-z]_[А-Яа-яё]\S*(?:\s+\S+)*\s*$", "", text)
