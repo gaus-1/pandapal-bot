@@ -449,9 +449,15 @@ async def get_checkers_valid_moves(request: web.Request) -> web.Response:
 
         with get_db() as db:
             games_service = GamesService(db)
-            valid_moves = games_service.get_checkers_valid_moves(session_id)
+            result = games_service.get_checkers_valid_moves(session_id)
 
-        return web.json_response({"success": True, "valid_moves": valid_moves})
+        return web.json_response(
+            {
+                "success": True,
+                "valid_moves": result["valid_moves"],
+                "current_player": result["current_player"],
+            }
+        )
 
     except ValueError as e:
         logger.warning(f"⚠️ Invalid session_id: {e}")

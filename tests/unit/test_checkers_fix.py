@@ -64,8 +64,10 @@ async def test_checkers_current_player_fix(games_service, test_user):
     games_service.db.commit()
 
     # Получаем валидные ходы для пользователя
-    valid_moves = games_service.get_checkers_valid_moves(session.id)
+    result = games_service.get_checkers_valid_moves(session.id)
+    valid_moves = result["valid_moves"]
     assert len(valid_moves) > 0, "Должны быть валидные ходы для пользователя"
+    assert result["current_player"] == 1
 
     # Выбираем первый валидный ход
     first_move = valid_moves[0]
@@ -101,7 +103,8 @@ async def test_checkers_multiple_moves(games_service, test_user):
 
     # Делаем несколько ходов подряд
     for _ in range(3):
-        valid_moves = games_service.get_checkers_valid_moves(session.id)
+        result = games_service.get_checkers_valid_moves(session.id)
+        valid_moves = result["valid_moves"]
         if len(valid_moves) == 0:
             # Нет валидных ходов - игра закончена
             break

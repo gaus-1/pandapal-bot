@@ -404,15 +404,15 @@ class GamesService:
             "ai_move": ai_position,
         }
 
-    def get_checkers_valid_moves(self, session_id: int) -> list[dict]:
+    def get_checkers_valid_moves(self, session_id: int) -> dict:
         """
-        Получить валидные ходы для пользователя в шашках.
+        Получить валидные ходы для пользователя в шашках и текущего игрока.
 
         Args:
             session_id: ID сессии
 
         Returns:
-            List[Dict]: Список валидных ходов в формате [{"from": (row, col), "to": (row, col), "capture": (row, col) | None}, ...]
+            dict: {"valid_moves": [...], "current_player": 1|2}. current_player=2 — очередь AI.
         """
         session = self.db.get(GameSession, session_id)
         if not session:
@@ -455,13 +455,13 @@ class GamesService:
         else:
             game = CheckersGame()
 
-        # КРИТИЧНО: Проверяем, что очередь пользователя
-        # Если current_player != 1, значит очередь AI - пользователь не может ходить
+        # КРИТИЧНО: Если очередь AI — возвращаем пустой список и current_player=2,
+        # чтобы фронт показал «Ход соперника» и не показывал «Эта фишка не может ходить»
         if game.current_player != 1:
             logger.warning(
                 f"⚠️ Попытка получить ходы для пользователя, но очередь AI (current_player={game.current_player})"
             )
-            return []
+            return {"valid_moves": [], "current_player": game.current_player}
 
         # Получаем валидные ходы для пользователя (player = 1)
         raw = game.get_valid_moves(1)
@@ -486,7 +486,7 @@ class GamesService:
             }
             for m in raw
         ]
-        return valid_moves
+        return {"valid_moves": valid_moves, "current_player": game.current_player}
 
     async def checkers_move(
         self, session_id: int, from_row: int, from_col: int, to_row: int, to_col: int

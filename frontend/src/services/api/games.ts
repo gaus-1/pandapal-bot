@@ -88,13 +88,21 @@ export async function ticTacToeMove(sessionId: number, position: number): Promis
 }
 
 /**
- * Получить валидные ходы в шашках
+ * Ответ API валидных ходов в шашках (current_player: 1 = пользователь, 2 = соперник).
  */
-export async function getCheckersValidMoves(sessionId: number): Promise<Array<{
-  from: [number, number];
-  to: [number, number];
-  capture: [number, number] | null;
-}>> {
+export interface CheckersValidMovesResponse {
+  valid_moves: Array<{
+    from: [number, number];
+    to: [number, number];
+    capture: [number, number] | null;
+  }>;
+  current_player: 1 | 2;
+}
+
+/**
+ * Получить валидные ходы в шашках и текущего игрока.
+ */
+export async function getCheckersValidMoves(sessionId: number): Promise<CheckersValidMovesResponse> {
   const response = await fetch(`${API_BASE_URL}/miniapp/games/checkers/${sessionId}/valid-moves`, {
     method: 'GET',
     headers: getAuthHeaders(),
@@ -106,7 +114,10 @@ export async function getCheckersValidMoves(sessionId: number): Promise<Array<{
   }
 
   const data = await response.json();
-  return data.valid_moves;
+  return {
+    valid_moves: data.valid_moves ?? [],
+    current_player: data.current_player === 2 ? 2 : 1,
+  };
 }
 
 /**

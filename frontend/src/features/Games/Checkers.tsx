@@ -58,8 +58,12 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       const gameState = session.game_state as {
         board?: (string | null)[][];
         kings?: boolean[][];
+        current_player?: 1 | 2;
       };
 
+      if (gameState.current_player !== undefined) {
+        setIsUserTurn(gameState.current_player === 1);
+      }
       if (gameState.board) {
         setBoard(gameState.board);
         if (gameState.kings) {
@@ -104,9 +108,10 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
     const requestId = validMovesRequestRef.current;
     setValidMoves([]);
     try {
-      const moves = await getCheckersValidMoves(sessionId);
+      const data = await getCheckersValidMoves(sessionId);
       if (requestId === validMovesRequestRef.current) {
-        setValidMoves(Array.isArray(moves) ? moves : []);
+        setValidMoves(Array.isArray(data.valid_moves) ? data.valid_moves : []);
+        setIsUserTurn(data.current_player === 1);
       }
     } catch (err) {
       console.error("Ошибка загрузки валидных ходов:", err);
@@ -132,11 +137,16 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
         telegram.hapticFeedback("light");
       } else {
         telegram.hapticFeedback("heavy");
-        const hasMandatoryCapture = moves.some((move) => move.capture !== null);
-        if (hasMandatoryCapture) {
-          setError("Сначала нужно съесть фишку противника");
+        if (moves.length === 0) {
+          setError("Сейчас ход соперника");
+          setIsUserTurn(false);
         } else {
-          setError("Эта фишка не может ходить");
+          const hasMandatoryCapture = moves.some((move) => move.capture !== null);
+          setError(
+            hasMandatoryCapture
+              ? "Сначала нужно съесть фишку противника"
+              : "Эта фишка не может ходить"
+          );
         }
         setTimeout(() => setError(null), 2000);
       }

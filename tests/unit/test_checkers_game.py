@@ -226,9 +226,11 @@ class TestCheckersGameService:
         games_service.db.commit()
 
         # Получаем начальные валидные ходы
-        valid_moves = games_service.get_checkers_valid_moves(session.id)
+        result = games_service.get_checkers_valid_moves(session.id)
+        valid_moves = result["valid_moves"]
         assert valid_moves is not None
         assert len(valid_moves) > 0
+        assert result["current_player"] == 1
 
         if valid_moves:
             first_move = valid_moves[0]
@@ -263,7 +265,8 @@ class TestCheckersGameService:
         games_service.db.commit()
 
         # Делаем ход
-        valid_moves = games_service.get_checkers_valid_moves(session.id)
+        result = games_service.get_checkers_valid_moves(session.id)
+        valid_moves = result["valid_moves"]
         if valid_moves:
             first_move = valid_moves[0]
             from_pos = first_move["from"]
