@@ -1,8 +1,12 @@
-"""Проверка дедупликации повторяющихся абзацев (Archimedes-style)."""
+"""Проверка дедупликации повторяющихся абзацев и постобработки ответов."""
 
 import pytest
 
-from bot.services.yandex_ai_response_generator import clean_ai_response
+from bot.services.yandex_ai_response_generator import (
+    clean_ai_response,
+    normalize_bold_spacing,
+    remove_duplicate_text,
+)
 
 
 @pytest.mark.unit
@@ -17,6 +21,36 @@ def test_dedup_repeated_paragraphs():
     )
     text = block + "\n\n" + block + "\n\n" + block
     cleaned = clean_ai_response(text)
-    # Должен остаться один блок
     assert cleaned.count("Архимедова сила — это выталкивающая сила") <= 1
-    assert len(cleaned) <= len(block) * 2  # не больше двух блоков
+    assert len(cleaned) <= len(block) * 2
+
+
+@pytest.mark.unit
+def test_dedup_paragraph_with_prefix():
+    """Абзац с лишним префиксом («Книга Вот несколько…») удаляется как дубликат."""
+    base = (
+        "Вот несколько простых предложений на французском. "
+        "Первое. Второе. Третье предложение для примера."
+    )
+    with_prefix = "Книга " + base
+    text = base + "\n\n" + with_prefix
+    result = remove_duplicate_text(text, min_length=15)
+    assert result.count("Вот несколько простых предложений") <= 1
+    assert "Книга Вот несколько" not in result or result.count("Книга") == 0
+
+
+@pytest.mark.unit
+def test_normalize_bold_spacing():
+    """Пробелы вокруг ** вставляются для отображения жирного."""
+    assert normalize_bold_spacing("слово**термин**") == "слово ** термин **"
+    assert normalize_bold_spacing("уже **норм** текст") == "уже ** норм ** текст"
+    assert normalize_bold_spacing("без жирного") == "без жирного"
+
+
+@pytest.mark.unit
+def test_clean_removes_bracket_placeholders():
+    """Удаляются артефакты в скобках: [Кто такой...], [Приложить изображение...]."""
+    text = "Пифагор был философом. [Кто такой Пифагор] Он жил в Древней Греции."
+    cleaned = clean_ai_response(text)
+    assert "[Кто такой" not in cleaned
+    assert "Пифагор был" in cleaned

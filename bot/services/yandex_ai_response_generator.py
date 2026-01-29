@@ -83,6 +83,14 @@ def add_random_engagement_question(response: str) -> str:
     return f"{response_stripped}\n\n{random_question}"
 
 
+def _normalize_for_dedup(s: str) -> str:
+    """Нормализация для сравнения: убираем ** и лишние пробелы, чтобы дубли не различались из-за форматирования."""
+    if not s:
+        return ""
+    s = re.sub(r"\*\*", "", s.lower().strip())
+    return re.sub(r"\s+", " ", s)
+
+
 def remove_duplicate_text(text: str, min_length: int = 20) -> str:
     """
     Удаляет повторяющиеся фрагменты текста (дубликаты).
@@ -138,8 +146,8 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
             unique_lines.append(line)
             continue
 
-        # Нормализуем для сравнения
-        normalized = re.sub(r"\s+", " ", line.lower().strip())
+        # Нормализуем для сравнения (без ** чтобы не различать из-за форматирования)
+        normalized = _normalize_for_dedup(line)
 
         # Проверяем дубликаты
         if len(normalized) >= min_length:
@@ -168,7 +176,7 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
                     continue
 
                 block = "\n".join(unique_lines[i : i + block_len])
-                normalized_block = re.sub(r"\s+", " ", block.lower().strip())
+                normalized_block = _normalize_for_dedup(block)
 
                 if len(normalized_block) >= min_length * 2:
                     if normalized_block in seen_blocks:
@@ -185,31 +193,59 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
 
         result = "\n".join(final_lines)
 
-    # Шаг 5: Удаляем повторяющиеся абзацы (более агрессивно)
-    paragraphs = [p.strip() for p in result.split("\n\n") if p.strip()]
+    # Шаг 5: Удаляем повторяющиеся абзацы (похожесть 55%, подстрока, блок с префиксом)
+    raw_paragraphs = [p.strip() for p in result.split("\n\n") if p.strip()]
+    if len(raw_paragraphs) == 1 and "\n" in result:
+        paragraphs = [p.strip() for p in result.split("\n") if len(p.strip()) > 30]
+    else:
+        paragraphs = raw_paragraphs
     if len(paragraphs) >= 2:
         seen_paragraphs = set()
         unique_paragraphs = []
+        normalized_list = [_normalize_for_dedup(p) for p in paragraphs]
+        min_para_len = 25
 
-        for paragraph in paragraphs:
-            normalized_para = re.sub(r"\s+", " ", paragraph.lower().strip())
-            # Проверяем на похожесть (более 70% совпадения слов)
+        for idx, paragraph in enumerate(paragraphs):
+            normalized_para = normalized_list[idx]
+            words_new = set(normalized_para.split())
             is_duplicate = False
             for seen_para in seen_paragraphs:
-                # Сравниваем слова
-                words_new = set(normalized_para.split())
                 words_seen = set(seen_para.split())
                 if len(words_new) > 0 and len(words_seen) > 0:
-                    common_words = words_new & words_seen
-                    similarity = len(common_words) / max(len(words_new), len(words_seen))
-                    if similarity > 0.7:  # Больше 70% похожи
+                    common = len(words_new & words_seen)
+                    similarity = common / max(len(words_new), len(words_seen))
+                    if similarity > 0.55:
                         is_duplicate = True
                         break
+                if (
+                    len(normalized_para) >= min_para_len
+                    and len(seen_para) >= min_para_len
+                    and (normalized_para in seen_para or seen_para in normalized_para)
+                ):
+                    is_duplicate = True
+                    break
 
             if not is_duplicate:
                 seen_paragraphs.add(normalized_para)
                 unique_paragraphs.append(paragraph)
 
+        # Абзацы с лишним префиксом (1–4 слова): «Книга Вот несколько…» — удаляем дубликат
+        if len(unique_paragraphs) >= 2:
+            norm_unique = [_normalize_for_dedup(p) for p in unique_paragraphs]
+            to_remove = set()
+            for j in range(len(unique_paragraphs)):
+                wj = norm_unique[j].split()
+                for i in range(len(unique_paragraphs)):
+                    if i == j or i in to_remove or j in to_remove:
+                        continue
+                    wi = norm_unique[i].split()
+                    if len(wi) < 10:
+                        continue
+                    for prefix_len in range(1, min(5, len(wj))):
+                        if wj[prefix_len:] == wi:
+                            to_remove.add(j)
+                            break
+            unique_paragraphs = [p for k, p in enumerate(unique_paragraphs) if k not in to_remove]
         result = "\n\n".join(unique_paragraphs)
 
     # Шаг 6: Финальная проверка - удаляем повторяющиеся предложения
@@ -254,8 +290,8 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
             deduplicated_chunks.append(chunk)
             continue
 
-        chunk_normalized = re.sub(r"\s+", " ", chunk.strip().lower())
-        # Пропускаем только если это ТОЧНЫЙ дубликат предыдущего
+        chunk_normalized = _normalize_for_dedup(chunk)
+        # Пропускаем только если это дубликат предыдущего (с учётом **)
         if chunk_normalized and chunk_normalized != prev_chunk_normalized:
             deduplicated_chunks.append(chunk)
             prev_chunk_normalized = chunk_normalized
@@ -265,6 +301,15 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
     result = "".join(deduplicated_chunks)
 
     return result.strip() if result.strip() else text.strip()
+
+
+def normalize_bold_spacing(text: str) -> str:
+    """Вставляет пробел перед и после ** между буквами: слово**термин** → слово **термин**."""
+    if not text or "**" not in text:
+        return text
+    text = re.sub(r"(\w)\*\*", r"\1 **", text)
+    text = re.sub(r"\*\*(\w)", r"** \1", text)
+    return text
 
 
 def fix_glued_words(text: str) -> str:
@@ -302,10 +347,14 @@ def clean_ai_response(text: str) -> str:
     # Исправляем склеенные слова в начале
     text = fix_glued_words(text)
 
-    # Удаляем вставки в квадратных скобках (артефакты модели: [Приложить изображение...], [Дай...] и т.п.)
+    # Удаляем вставки в квадратных скобках (артефакты модели)
     text = re.sub(r"\[Приложить изображение[^\]]*\]", "", text, flags=re.IGNORECASE)
     text = re.sub(r"\[Дай[^\]]*\]", "", text, flags=re.IGNORECASE)
-    text = re.sub(r"\[[^\]]{15,}\]", "", text)  # длинные скобки — кандидаты в инструкции
+    text = re.sub(r"\[(?:Кто такой|Что такое|Кто такая)[^\]]*\]", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"\[[^\]]{15,}\]", "", text)  # длинные скобки — инструкции/заголовки
+
+    # Пробелы вокруг ** для корректного отображения жирного
+    text = normalize_bold_spacing(text)
 
     # Дублированная первая буква в начале предложения (ВВ каком -> В каком)
     text = re.sub(r"(^|[\n.]\s*)([А-Яа-яA-Za-z])\2(\s)", r"\1\2\3", text)
