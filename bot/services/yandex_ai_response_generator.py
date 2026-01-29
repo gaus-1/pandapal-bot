@@ -505,8 +505,9 @@ def clean_ai_response(text: str) -> str:
 
     # Сохраняем ** (markdown жирный) — фронтенд рендерит жирный текст для лучшего восприятия
 
-    # Заменяем LaTeX команды на текстовые эквиваленты (НЕ удаляем!)
-    # Сначала заменяем математические функции на их текстовые версии
+    # Заменяем LaTeX команды на типографский стиль (как в промпте: √, не sqrt())
+    text = re.sub(r"\\sqrt\s*\{([^}]*)\}", r"√(\1)", text)
+    # Остальные LaTeX команды
     latex_to_text = {
         r"\\log": "log",
         r"\\ln": "ln",
@@ -514,7 +515,7 @@ def clean_ai_response(text: str) -> str:
         r"\\cos": "cos",
         r"\\tan": "tan",
         r"\\cot": "cot",
-        r"\\sqrt": "sqrt",
+        r"\\sqrt": "√",
         r"\\sum": "sum",
         r"\\int": "integral",
         r"\\lim": "lim",
