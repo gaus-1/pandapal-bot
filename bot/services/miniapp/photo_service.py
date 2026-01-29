@@ -71,6 +71,21 @@ class MiniappPhotoService:
                     await response.write(b'event: error\ndata: {"error": "User not found"}\n\n')
                     return None, True
 
+                # КРИТИЧНО: Проверка лимита ДО вызова Vision API
+                premium_service = PremiumFeaturesService(db)
+                can_request, limit_reason = premium_service.can_make_ai_request(
+                    telegram_id, username=user.username
+                )
+                if not can_request:
+                    logger.warning(
+                        f"🚫 Stream (фото): AI запрос заблокирован для user={telegram_id}"
+                    )
+                    err_escaped = (limit_reason or "").replace('"', '\\"').replace("\n", " ")
+                    await response.write(
+                        f'event: error\ndata: {{"error": "{err_escaped}", "error_code": "RATE_LIMIT_EXCEEDED"}}\n\n'.encode()
+                    )
+                    return None, True
+
                 # Анализ изображения через Vision API
                 vision_result = await self.vision_service.analyze_image(
                     image_data=photo_bytes,
@@ -111,12 +126,17 @@ class MiniappPhotoService:
                             telegram_id
                         )
 
-                        # Проактивное уведомление от панды при достижении лимита (фоновая задача)
+                        # Проактивное уведомление от панды при достижении лимита (в чат + в Telegram)
                         if limit_reached:
                             import asyncio
 
                             asyncio.create_task(
                                 premium_service.send_limit_reached_notification_async(telegram_id)
+                            )
+                            history_service.add_message(
+                                telegram_id,
+                                premium_service.get_limit_reached_message_text(),
+                                "ai",
                             )
                         user_msg_text = message or "📷 Фото"
                         history_service.add_message(telegram_id, user_msg_text, "user")
@@ -140,6 +160,14 @@ class MiniappPhotoService:
                     except Exception as save_error:
                         logger.error(f"❌ Stream: Ошибка сохранения: {save_error}", exc_info=True)
                         db.rollback()
+
+                    # Сообщение от панды при достижении лимита (в чат)
+                    if limit_reached:
+                        limit_data = json.dumps(
+                            {"content": premium_service.get_limit_reached_message_text()},
+                            ensure_ascii=False,
+                        )
+                        await response.write(f"event: message\ndata: {limit_data}\n\n".encode())
 
                     # Отправляем событие завершения
                     await response.write(b'event: done\ndata: {"status": "completed"}\n\n')

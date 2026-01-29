@@ -26,6 +26,7 @@ from bot.services.ai_service_solid import get_ai_service
 from bot.services.miniapp.audio_service import MiniappAudioService
 from bot.services.miniapp.photo_service import MiniappPhotoService
 from bot.services.miniapp.visualization_service import MiniappVisualizationService
+from bot.services.premium_features_service import PremiumFeaturesService
 from bot.services.yandex_ai_response_generator import clean_ai_response
 
 
@@ -113,6 +114,27 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
         photo_base64 = validated.photo_base64
         audio_base64 = validated.audio_base64
         user_message = message
+
+        # КРИТИЧНО: Проверка лимита ДО любых платных вызовов (SpeechKit, Vision, YandexGPT)
+        with get_db() as db:
+            user_service = UserService(db)
+            premium_service = PremiumFeaturesService(db)
+            user = user_service.get_user_by_telegram_id(telegram_id)
+            if not user:
+                await response.write(b'event: error\ndata: {"error": "User not found"}\n\n')
+                return response
+            can_request, limit_reason = premium_service.can_make_ai_request(
+                telegram_id, username=user.username
+            )
+            if not can_request:
+                logger.warning(
+                    f"🚫 Stream: AI запрос заблокирован для user={telegram_id} (до audio/photo): {limit_reason}"
+                )
+                err_escaped = limit_reason.replace('"', '\\"').replace("\n", " ")
+                await response.write(
+                    f'event: error\ndata: {{"error": "{err_escaped}", "error_code": "RATE_LIMIT_EXCEEDED"}}\n\n'.encode()
+                )
+                return response
 
         # Отправляем событие начала обработки
         await response.write(b'event: start\ndata: {"status": "processing"}\n\n')
@@ -1181,11 +1203,13 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         telegram_id
                     )
 
-                    # Проактивное уведомление от панды при достижении лимита (фоновая задача)
+                    # Проактивное уведомление от панды при достижении лимита (в чат + в Telegram)
                     if limit_reached:
                         asyncio.create_task(
                             premium_service.send_limit_reached_notification_async(telegram_id)
                         )
+                        limit_msg = premium_service.get_limit_reached_message_text()
+                        history_service.add_message(telegram_id, limit_msg, "ai")
                     history_service.add_message(telegram_id, user_message, "user")
                     # Формируем image_url из base64 если есть визуализация
                     image_url = None
@@ -1247,6 +1271,14 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 if full_response:
                     msg_data = json.dumps({"content": full_response}, ensure_ascii=False)
                     await response.write(f"event: message\ndata: {msg_data}\n\n".encode())
+
+                # Сообщение от панды при достижении лимита (в чат, как при приветствии)
+                if limit_reached:
+                    limit_data = json.dumps(
+                        {"content": premium_service.get_limit_reached_message_text()},
+                        ensure_ascii=False,
+                    )
+                    await response.write(f"event: message\ndata: {limit_data}\n\n".encode())
 
                 # Отправляем событие завершения
                 await response.write(b'event: done\ndata: {"status": "completed"}\n\n')
@@ -1522,13 +1554,15 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 telegram_id
                             )
 
-                            # Проактивное уведомление от панды при достижении лимита (фоновая задача)
+                            # Проактивное уведомление от панды при достижении лимита (в чат + в Telegram)
                             if limit_reached:
                                 asyncio.create_task(
                                     premium_service.send_limit_reached_notification_async(
                                         telegram_id
                                     )
                                 )
+                                limit_msg_fb = premium_service.get_limit_reached_message_text()
+                                history_service.add_message(telegram_id, limit_msg_fb, "ai")
                             history_service.add_message(telegram_id, user_message, "user")
                             # Формируем image_url из base64 если есть визуализация
                             image_url = None
@@ -1546,6 +1580,16 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                 f"❌ Stream: Ошибка сохранения fallback ответа: {save_err}"
                             )
                             db.rollback()
+
+                        # Сообщение от панды при достижении лимита (в чат)
+                        if limit_reached:
+                            limit_data_fb = json.dumps(
+                                {"content": premium_service.get_limit_reached_message_text()},
+                                ensure_ascii=False,
+                            )
+                            await response.write(
+                                f"event: message\ndata: {limit_data_fb}\n\n".encode()
+                            )
 
                         # Отправляем событие завершения
                         await response.write(b'event: done\ndata: {"status": "completed"}\n\n')

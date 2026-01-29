@@ -119,8 +119,9 @@ class TelegramAuthService:
 
         if user:
             # Обновляем данные пользователя (могли измениться)
-            user.full_name = full_name
-            if username:
+            user.first_name = first_name or user.first_name
+            user.last_name = last_name or user.last_name
+            if username is not None:
                 user.username = username
             db.commit()
             logger.info(f"👤 Обновлён пользователь: {telegram_id} ({full_name})")
@@ -128,10 +129,9 @@ class TelegramAuthService:
             # Создаем нового пользователя
             user = User(
                 telegram_id=telegram_id,
-                full_name=full_name,
+                first_name=first_name,
+                last_name=last_name,
                 username=username,
-                age_group="unknown",  # Возраст узнаем позже
-                is_premium=False,
             )
             db.add(user)
             db.commit()

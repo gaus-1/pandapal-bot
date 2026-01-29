@@ -1,21 +1,13 @@
 """
-Обработчик платежей через Telegram Stars для Premium подписки.
+Обработчик платежей через Telegram.
 
-Обрабатывает события от Telegram:
-- PreCheckoutQuery: подтверждение платежа перед оплатой
-- SuccessfulPayment: успешная оплата и активация подписки
+- Stars: только донаты (donation_*). Premium по Stars НЕ даётся.
+- Premium: только при реальной оплате 299 ₽ через кнопку в разделе Премиум (ЮKassa).
 """
-
-import asyncio
-import random
-import re
 
 from aiogram import Router
 from aiogram.types import Message, PreCheckoutQuery, SuccessfulPayment
 from loguru import logger
-
-from bot.database import get_db
-from bot.services import SubscriptionService, UserService
 
 # Создаём роутер для обработчиков платежей
 router = Router(name="payment")
@@ -39,42 +31,22 @@ async def pre_checkout_handler(query: PreCheckoutQuery):
             await query.answer(ok=True)
             return
 
-        # Обрабатываем только Premium подписки
-        if not query.invoice_payload or not query.invoice_payload.startswith("premium_"):
+        # Premium по Stars не даём — только оплата 299 ₽ в разделе Премиум (ЮKassa)
+        if query.invoice_payload and query.invoice_payload.startswith("premium_"):
+            logger.info(
+                f"⚠️ PreCheckout premium_* отклонён: Stars не дают Premium. user={query.from_user.id}"
+            )
+            await query.answer(
+                ok=False,
+                error_message="Premium только по оплате 299 ₽ в разделе Премиум (кнопка в боте).",
+            )
+            return
+
+        if not query.invoice_payload or not query.invoice_payload.startswith("donation_"):
             logger.warning(f"⚠️ Неизвестный invoice payload: {query.invoice_payload}")
             await query.answer(ok=False, error_message="Неизвестный тип платежа")
             return
 
-        # Парсим payload: "premium_{plan_id}_{telegram_id}"
-        # Пример: "premium_month_123456789"
-        match = re.match(r"premium_(\w+)_(\d+)", query.invoice_payload)
-        if not match:
-            logger.warning(f"⚠️ Неверный формат payload: {query.invoice_payload}")
-            await query.answer(ok=False, error_message="Неверный формат платежа")
-            return
-
-        plan_id = match.group(1)
-        telegram_id = int(match.group(2))
-
-        # Проверяем что пользователь существует
-        with get_db() as db:
-            user_service = UserService(db)
-            user = user_service.get_user_by_telegram_id(telegram_id)
-
-            if not user:
-                logger.warning(f"⚠️ Пользователь не найден: {telegram_id}")
-                await query.answer(ok=False, error_message="Пользователь не найден")
-                return
-
-            # Проверяем валидность плана
-            valid_plans = ["month", "year"]
-            if plan_id not in valid_plans:
-                logger.warning(f"⚠️ Неверный plan_id: {plan_id}")
-                await query.answer(ok=False, error_message="Неверный тарифный план")
-                return
-
-        # Все проверки пройдены - разрешаем оплату
-        logger.info(f"✅ PreCheckout подтвержден: user={telegram_id}, plan={plan_id}")
         await query.answer(ok=True)
 
     except Exception as e:
@@ -85,10 +57,10 @@ async def pre_checkout_handler(query: PreCheckoutQuery):
 @router.message(SuccessfulPayment)
 async def successful_payment_handler(message: Message):
     """
-    Обработчик успешной оплаты - активация Premium подписки.
+    Обработчик успешной оплаты (Telegram).
 
-    Telegram отправляет это сообщение после успешной оплаты.
-    Нужно активировать подписку в БД.
+    Донаты (Stars) — благодарим. Premium по Stars не активируется;
+    Premium только при оплате 299 ₽ через ЮKassa (раздел Премиум).
 
     Args:
         message: Сообщение с данными об успешной оплате
@@ -127,75 +99,18 @@ async def successful_payment_handler(message: Message):
             )
             return
 
-        # Обрабатываем только Premium подписки
-        if not payment.invoice_payload or not payment.invoice_payload.startswith("premium_"):
-            logger.warning(f"⚠️ Неизвестный invoice payload в платеже: {payment.invoice_payload}")
-            return
-
-        # Парсим payload: "premium_{plan_id}_{telegram_id}"
-        match = re.match(r"premium_(\w+)_(\d+)", payment.invoice_payload)
-        if not match:
-            logger.error(f"❌ Неверный формат payload: {payment.invoice_payload}")
-            return
-
-        plan_id = match.group(1)
-        telegram_id = int(match.group(2))
-
-        # Активируем подписку
-        with get_db() as db:
-            subscription_service = SubscriptionService(db)
-            user_service = UserService(db)
-
-            # Проверяем что пользователь существует
-            user = user_service.get_user_by_telegram_id(telegram_id)
-            if not user:
-                logger.error(f"❌ Пользователь не найден при активации: {telegram_id}")
-                await message.answer("❌ Ошибка: пользователь не найден. Обратитесь в поддержку.")
-                return
-
-            # Активируем подписку (Telegram Stars)
-            subscription = subscription_service.activate_subscription(
-                telegram_id=telegram_id,
-                plan_id=plan_id,
-                transaction_id=payment.telegram_payment_charge_id,
-                invoice_payload=payment.invoice_payload,
-                payment_method="stars",
-                payment_id=payment.telegram_payment_charge_id,
+        # Платёж Stars с payload premium_* — НЕ активируем Premium (только 299 ₽ через ЮKassa)
+        if payment.invoice_payload and payment.invoice_payload.startswith("premium_"):
+            logger.info(
+                f"⚠️ SuccessfulPayment premium_* проигнорирован для активации: "
+                f"Stars не дают Premium. user={message.from_user.id}"
             )
-
-            db.commit()
-
-            # Определяем длительность для сообщения
-            plan_names = {
-                "month": "месяц",
-                "year": "год",
-            }
-            duration = plan_names.get(plan_id, plan_id)
-
-            # Отправляем подтверждение
             await message.answer(
-                f"🎉 <b>Premium активирован!</b>\n\n"
-                f"✅ Подписка на {duration} успешно активирована.\n"
-                f"📅 Действует до: {subscription.expires_at.strftime('%d.%m.%Y %H:%M')}\n\n"
-                f"Теперь у тебя есть доступ ко всем Premium функциям!",
+                "💎 <b>Premium по Stars не активируется.</b>\n\n"
+                "Premium можно оформить только по оплате 299 ₽ через кнопку в разделе <b>Премиум</b> в боте.",
                 parse_mode="HTML",
             )
-
-            # Отправляем дружелюбное сообщение от панды
-            panda_messages = [
-                "Я так рад, что теперь мы будем проводить больше времени вместе! Готов помогать тебе с уроками!",
-                "Ура! Теперь у нас будет больше возможностей для учебы и игр. Давай начнем!",
-            ]
-            panda_message = random.choice(panda_messages)
-
-            # Небольшая задержка перед сообщением от панды
-            await asyncio.sleep(1)
-            await message.answer(panda_message)
-
-            logger.info(
-                f"💰 Premium активирован: user={telegram_id}, plan={plan_id}, "
-                f"tx={payment.telegram_payment_charge_id}, expires={subscription.expires_at}"
-            )
+            return
 
     except Exception as e:
         # Используем % для логирования чтобы избежать проблем с фигурными скобками в SQL

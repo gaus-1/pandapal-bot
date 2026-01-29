@@ -38,6 +38,35 @@ async def handle_voice(message: Message):
     try:
         logger.info(f"🎤 Получено голосовое сообщение от {telegram_id}")
 
+        # КРИТИЧНО: Проверка лимита ДО скачивания и транскрипции (SpeechKit)
+        from bot.database import get_db
+        from bot.services import UserService
+        from bot.services.premium_features_service import PremiumFeaturesService
+
+        with get_db() as db:
+            user_service = UserService(db)
+            premium_service = PremiumFeaturesService(db)
+            user = user_service.get_user_by_telegram_id(telegram_id)
+            if user:
+                can_request, limit_reason = premium_service.can_make_ai_request(
+                    telegram_id, username=message.from_user.username
+                )
+                if not can_request:
+                    logger.warning(f"🚫 Голос: AI запрос заблокирован для user={telegram_id}")
+                    from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+                    keyboard = InlineKeyboardMarkup(
+                        inline_keyboard=[
+                            [
+                                InlineKeyboardButton(
+                                    text="💎 Узнать о Premium", callback_data="premium:info"
+                                )
+                            ]
+                        ]
+                    )
+                    await message.answer(limit_reason, reply_markup=keyboard, parse_mode="HTML")
+                    return
+
         # Показываем что обрабатываем
         processing_msg = await message.answer("🎤 Слушаю твоё сообщение... Пожалуйста, подожди! 🐼")
 
@@ -173,6 +202,35 @@ async def handle_audio(message: Message):
 
     try:
         logger.info(f"🎵 Получен аудиофайл от {telegram_id}")
+
+        # КРИТИЧНО: Проверка лимита ДО скачивания и транскрипции (SpeechKit)
+        from bot.database import get_db
+        from bot.services import UserService
+        from bot.services.premium_features_service import PremiumFeaturesService
+
+        with get_db() as db:
+            user_service = UserService(db)
+            premium_service = PremiumFeaturesService(db)
+            user = user_service.get_user_by_telegram_id(telegram_id)
+            if user:
+                can_request, limit_reason = premium_service.can_make_ai_request(
+                    telegram_id, username=message.from_user.username
+                )
+                if not can_request:
+                    logger.warning(f"🚫 Аудио: AI запрос заблокирован для user={telegram_id}")
+                    from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+                    keyboard = InlineKeyboardMarkup(
+                        inline_keyboard=[
+                            [
+                                InlineKeyboardButton(
+                                    text="💎 Узнать о Premium", callback_data="premium:info"
+                                )
+                            ]
+                        ]
+                    )
+                    await message.answer(limit_reason, reply_markup=keyboard, parse_mode="HTML")
+                    return
 
         # Показываем что обрабатываем
         processing_msg = await message.answer("🎵 Слушаю аудиофайл... Пожалуйста, подожди! 🐼")

@@ -135,6 +135,32 @@ class User(Base):
         """Строковое представление пользователя"""
         return f"<User(id={self.id}, telegram_id={self.telegram_id}, type={self.user_type})>"
 
+    @property
+    def is_premium(self) -> bool:
+        """Активна ли Premium подписка (по premium_until или активной подписке)."""
+        now = datetime.now(UTC)
+        if self.premium_until:
+            pt = self.premium_until
+            if pt.tzinfo is None:
+                pt = pt.replace(tzinfo=UTC)
+            if pt > now:
+                return True
+        if self.subscriptions:
+            for sub in self.subscriptions:
+                if sub.is_active and sub.expires_at:
+                    exp = sub.expires_at
+                    if exp.tzinfo is None:
+                        exp = exp.replace(tzinfo=UTC)
+                    if exp > now:
+                        return True
+        return False
+
+    @property
+    def full_name(self) -> str:
+        """Полное имя (first_name + last_name)."""
+        parts = [self.first_name, self.last_name] if self.last_name else [self.first_name]
+        return " ".join(p or "" for p in parts).strip() or ""
+
     def to_dict(self) -> dict:
         """Преобразование модели в словарь для API"""
         now = datetime.now(UTC)

@@ -101,9 +101,33 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
         telegram_id = validated.telegram_id
 
         # Проверка владельца ресурса (OWASP A01)
-        # Предотвращает отправку сообщений от чужого имени
         if error_response := require_owner(request, telegram_id):
             return error_response
+
+        # КРИТИЧНО: Проверка лимита ДО любых платных вызовов (SpeechKit, Vision, YandexGPT)
+        with get_db() as db:
+            user_service = UserService(db)
+            user = user_service.get_user_by_telegram_id(telegram_id)
+            if not user:
+                return web.json_response({"error": "User not found"}, status=404)
+            from bot.services.premium_features_service import PremiumFeaturesService
+
+            premium_service = PremiumFeaturesService(db)
+            can_request, limit_reason = premium_service.can_make_ai_request(
+                telegram_id, username=user.username
+            )
+            if not can_request:
+                logger.warning(f"🚫 Mini App Chat: AI запрос заблокирован для user={telegram_id}")
+                return web.json_response(
+                    {
+                        "error": limit_reason,
+                        "error_code": "RATE_LIMIT_EXCEEDED",
+                        "is_premium": False,
+                        "premium_required": True,
+                        "premium_message": limit_reason,
+                    },
+                    status=429,
+                )
 
         message = validated.message or ""
         photo_base64 = validated.photo_base64
@@ -372,18 +396,20 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             logger.info(f"💾 Начинаю сохранение в БД для telegram_id={telegram_id}")
             user_msg = None
             ai_msg = None
+            limit_reached_message_text = None
             unlocked_achievements = []  # Инициализируем в начале блока
             try:
                 # Увеличиваем счетчик запросов (независимо от истории)
                 limit_reached, total_requests = premium_service.increment_request_count(telegram_id)
 
-                # Проактивное уведомление от панды при достижении лимита (фоновая задача)
+                # Проактивное уведомление от панды при достижении лимита (в Telegram)
                 if limit_reached:
                     import asyncio
 
                     asyncio.create_task(
                         premium_service.send_limit_reached_notification_async(telegram_id)
                     )
+                    limit_reached_message_text = premium_service.get_limit_reached_message_text()
 
                 logger.info(f"💾 Сохраняю сообщение пользователя: {user_message[:50]}...")
                 user_msg = history_service.add_message(telegram_id, user_message, "user")
@@ -413,6 +439,10 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 logger.info(f"💾 Сохраняю ответ AI: {full_response[:50]}...")
                 ai_msg = history_service.add_message(telegram_id, full_response, "ai")
                 logger.info(f"✅ Ответ AI добавлен в сессию: id={ai_msg.id}")
+
+                # Сообщение от панды в чат при достижении лимита (как при приветствии)
+                if limit_reached and limit_reached_message_text:
+                    history_service.add_message(telegram_id, limit_reached_message_text, "ai")
 
                 # Обрабатываем геймификацию (XP и достижения) ПЕРЕД коммитом
                 try:
@@ -455,6 +485,8 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
 
             # Проверяем размер JSON перед отправкой
             response_data = {"success": True, "response": ai_response}
+            if limit_reached_message_text:
+                response_data["limit_reached_message"] = limit_reached_message_text
 
             # Добавляем информацию о разблокированных достижениях
             if unlocked_achievements:

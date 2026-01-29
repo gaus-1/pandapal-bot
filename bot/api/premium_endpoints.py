@@ -79,18 +79,16 @@ async def create_donation_invoice(request: web.Request) -> web.Response:
 
 async def handle_successful_payment(request: web.Request) -> web.Response:
     """
-    Обработка успешной оплаты Premium (fallback endpoint).
+    Статус после оплаты Premium (не активирует подписку).
 
     POST /api/miniapp/premium/payment-success
     Body: { "telegram_id": 123, "plan_id": "month", "transaction_id": "..." }
 
-    Примечание: Основная обработка происходит через webhook в payment_handler.py
-    Этот endpoint используется как fallback или для ручной активации.
+    Premium активируется ТОЛЬКО по webhook ЮKassa (payment.succeeded).
+    Этот endpoint только возвращает текущий статус подписки (для UI после редиректа).
     """
     try:
         data = await request.json()
-
-        # Валидация входных данных
         try:
             validated = PremiumPaymentRequest(**data)
         except ValidationError as e:
@@ -101,87 +99,33 @@ async def handle_successful_payment(request: web.Request) -> web.Response:
             )
 
         telegram_id = validated.telegram_id
-        plan_id = validated.plan_id
-        transaction_id = validated.transaction_id
 
         with get_db() as db:
             user_service = UserService(db)
             user = user_service.get_user_by_telegram_id(telegram_id)
-
             if not user:
                 return web.json_response({"error": "User not found"}, status=404)
 
-            # Активируем подписку
             subscription_service = SubscriptionService(db)
-            subscription = subscription_service.activate_subscription(
-                telegram_id=telegram_id,
-                plan_id=plan_id,
-                transaction_id=transaction_id,
-                payment_method="stars",
-                payment_id=transaction_id,  # Для Stars используем transaction_id как payment_id
-            )
+            is_premium = subscription_service.is_premium_active(telegram_id)
+            active_subscription = subscription_service.get_active_subscription(telegram_id)
 
-            db.commit()
+        payload = {
+            "success": True,
+            "is_premium": is_premium,
+            "message": (
+                "Premium активирован. Спасибо!"
+                if is_premium
+                else "Ожидаем подтверждение оплаты. Обнови страницу через несколько секунд."
+            ),
+        }
+        if active_subscription:
+            payload["expires_at"] = active_subscription.expires_at.isoformat()
 
-            logger.info(
-                f"💰 Premium активирован через API: user={telegram_id}, "
-                f"plan={plan_id}, tx={transaction_id}, expires={subscription.expires_at}"
-            )
+        return web.json_response(payload)
 
-            # Отправляем уведомление пользователю
-            try:
-                from aiogram import Bot
-
-                bot = Bot(token=settings.telegram_bot_token)
-
-                # Определяем длительность для сообщения
-                plan_names = {
-                    "month": "месяц",
-                    "year": "год",
-                }
-                duration = plan_names.get(plan_id, plan_id)
-
-                await bot.send_message(
-                    chat_id=telegram_id,
-                    text=(
-                        f"🎉 <b>Premium активирован!</b>\n\n"
-                        f"✅ Подписка на {duration} успешно активирована.\n"
-                        f"📅 Действует до: {subscription.expires_at.strftime('%d.%m.%Y %H:%M')}\n\n"
-                        f"Теперь у тебя есть доступ ко всем Premium функциям!"
-                    ),
-                    parse_mode="HTML",
-                )
-
-                # Отправляем дружелюбное сообщение от панды
-                panda_messages = [
-                    "Я так рад, что теперь мы будем проводить больше времени вместе! Готов помогать тебе с уроками!",
-                    "Ура! Теперь у нас будет больше возможностей для учебы и игр. Давай начнем!",
-                ]
-                panda_message = random.choice(panda_messages)
-
-                # Небольшая задержка перед сообщением от панды
-                await asyncio.sleep(1)
-                await bot.send_message(chat_id=telegram_id, text=panda_message)
-
-                await bot.session.close()
-                logger.info(f"✅ Уведомление отправлено пользователю {telegram_id}")
-            except Exception as e:
-                logger.error(f"❌ Ошибка отправки уведомления пользователю {telegram_id}: {e}")
-
-            return web.json_response(
-                {
-                    "success": True,
-                    "message": "Premium activated successfully",
-                    "expires_at": subscription.expires_at.isoformat(),
-                }
-            )
-
-    except ValueError as e:
-        logger.error(f"❌ Ошибка валидации: {e}")
-        return web.json_response({"error": str(e)}, status=400)
     except Exception as e:
-        # Используем % для логирования чтобы избежать проблем с фигурными скобками в SQL
-        logger.error("❌ Ошибка обработки оплаты: %s", str(e), exc_info=True)
+        logger.error("❌ Ошибка payment-success: %s", str(e), exc_info=True)
         return web.json_response({"error": "Internal server error"}, status=500)
 
 

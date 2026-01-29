@@ -62,20 +62,7 @@ class SubscriptionService:
         )
 
         subscription = self.db.execute(stmt).scalar_one_or_none()
-
-        if subscription:
-            # Также проверяем premium_until в User для быстрого доступа
-            user = self.db.execute(
-                select(User).where(User.telegram_id == telegram_id)
-            ).scalar_one_or_none()
-            if user and user.premium_until:
-                # Убеждаемся что premium_until timezone-aware
-                premium_until = user.premium_until
-                if premium_until.tzinfo is None:
-                    premium_until = premium_until.replace(tzinfo=UTC)
-                return premium_until > now
-
-        return False
+        return subscription is not None
 
     def get_active_subscription(self, telegram_id: int) -> Subscription | None:
         """
