@@ -16,6 +16,16 @@ from pathlib import Path
 root_dir = Path(__file__).parent
 sys.path.insert(0, str(root_dir))
 
+# Loguru в stdout до импорта bot.* — чтобы в Railway все логи шли в [inf], не в [err]
+from loguru import logger  # noqa: E402
+
+logger.remove()
+logger.add(
+    sys.stdout,
+    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan> - <level>{message}</level>",
+    level=os.environ.get("LOG_LEVEL", "INFO"),
+)
+
 from aiogram import Bot, Dispatcher  # noqa: E402
 from aiogram.client.default import DefaultBotProperties  # noqa: E402
 from aiogram.enums import ParseMode  # noqa: E402
@@ -23,7 +33,6 @@ from aiogram.fsm.storage.memory import MemoryStorage  # noqa: E402
 from aiogram.fsm.storage.redis import RedisStorage  # noqa: E402
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler  # noqa: E402
 from aiohttp import web  # noqa: E402
-from loguru import logger  # noqa: E402
 from redis.asyncio import Redis  # noqa: E402
 
 from bot.config import settings  # noqa: E402
@@ -34,14 +43,6 @@ from bot.handlers import routers  # noqa: E402
 # Отключить новостной бот и сбор новостей (Mini App и сайт не трогаем)
 NEWS_BOT_DISABLED = (
     True  # True = выключено, False = по env NEWS_BOT_ENABLED / NEWS_COLLECTION_ENABLED
-)
-
-# Настройка логирования
-logger.remove()
-logger.add(
-    sys.stdout,
-    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan> - <level>{message}</level>",
-    level=settings.log_level,
 )
 
 

@@ -132,7 +132,10 @@ markdown-it-py==4.0.0           # Markdown парсер
 mdurl==0.1.2                    # URL утилиты для Markdown
 Pygments==2.19.2                # Подсветка синтаксиса
 
-# Тестирование (только для разработки - исключить в продакшене)
+# Тестирование (CI и разработка)
+pytest==8.3.4                  # Фреймворк тестов
+pytest-cov==6.0.0              # Покрытие кода для pytest
+pytest-asyncio==0.24.0         # Async тесты (asyncio_mode = auto)
 iniconfig==2.3.0                # INI парсер для pytest
 pluggy==1.6.0                   # Система плагинов
 attrs==25.4.0                   # Классы без boilerplate кода
