@@ -363,7 +363,7 @@ export function AIChat({ user }: AIChatProps) {
           <img src="/logo.png" alt="PandaPal" width={32} height={32} loading="lazy" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 dark:bg-slate-800/90 p-0.5 shadow-sm" />
           <div className="flex-1 min-w-0">
             <h1 className="text-xs sm:text-sm md:text-base font-display font-bold text-white dark:text-slate-100 drop-shadow-sm truncate">PandaPal AI</h1>
-            <p className="text-[10px] sm:text-xs md:text-sm text-blue-50 dark:text-slate-300 font-medium truncate">Привет, {user.first_name}! 🎓</p>
+            <p className="text-[10px] sm:text-xs md:text-sm text-blue-50 dark:text-slate-300 font-semibold truncate">Привет, {user.first_name}! 🎓</p>
           </div>
           <div className="flex items-center gap-1.5">
             <MiniAppThemeToggle />
@@ -416,17 +416,20 @@ export function AIChat({ user }: AIChatProps) {
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 dark:border-blue-400"></div>
           </div>
         ) : (
-          groupedMessages.map((item) => {
-            // Отсечка даты
-            if ('type' in item && item.type === 'date') {
-              return <DateSeparator key={`date-${item.date.getTime()}`} date={item.date} />;
-            }
+          (() => {
+            const firstAiMessageIndex = messages.findIndex((m) => m.role === 'ai');
+            return groupedMessages.map((item) => {
+              if ('type' in item && item.type === 'date') {
+                return <DateSeparator key={`date-${item.date.getTime()}`} date={item.date} />;
+              }
+              const msg = item as ChatMessage;
+              const msgIndex = messages.indexOf(msg);
+              const isGreeting =
+                msg.role === 'ai' &&
+                msgIndex === firstAiMessageIndex &&
+                msg.content.length < 120;
 
-            // Сообщение
-            const msg = item as ChatMessage;
-            const msgIndex = messages.indexOf(msg);
-
-            return (
+              return (
               <div
                 key={`msg-${msgIndex}`}
                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group`}
@@ -451,7 +454,7 @@ export function AIChat({ user }: AIChatProps) {
                         className="w-full rounded-xl mb-2 shadow-md"
                       />
                     )}
-                    <MessageContent content={msg.content} role={msg.role} />
+                    <MessageContent content={msg.content} role={msg.role} isGreeting={isGreeting} />
                     <div className="flex items-center justify-end mt-1.5 sm:mt-2 gap-1.5">
                       <time
                         className={`text-[10px] sm:text-xs font-medium ${
@@ -488,8 +491,9 @@ export function AIChat({ user }: AIChatProps) {
                   </div>
                 </div>
               </div>
-            );
-          })
+              );
+            });
+          })()
         )}
         {isSending && (
           <div className="flex justify-start">
@@ -581,6 +585,7 @@ import {
 interface MessageContentProps {
   content: string;
   role: string;
+  isGreeting?: boolean;
 }
 
 /** Рендер текста с поддержкой **жирного** (markdown bold). */
@@ -634,7 +639,7 @@ function renderSectionContent(content: string) {
   );
 }
 
-function MessageContent({ content, role }: MessageContentProps) {
+function MessageContent({ content, role, isGreeting }: MessageContentProps) {
   if (role !== 'ai') {
     return (
       <p className="whitespace-pre-wrap break-words font-medium text-xs sm:text-sm leading-relaxed text-white dark:text-white">
@@ -643,6 +648,10 @@ function MessageContent({ content, role }: MessageContentProps) {
     );
   }
 
+  const wrapperClass = isGreeting
+    ? 'whitespace-pre-wrap break-words text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100 font-semibold'
+    : '';
+
   // Исправляем форматирование таблицы умножения перед парсингом
   const cleanedContent = content
     // Исправляем "3 3 = 9" на "3 × 3 = 9"
@@ -650,10 +659,8 @@ function MessageContent({ content, role }: MessageContentProps) {
     // Исправляем "3*3=9" на "3 × 3 = 9"
     .replace(/(\d+)\*(\d+)\s*=\s*(\d+)/g, '$1 × $2 = $3');
 
-  // ВСЕГДА используем структурированные блоки
   const structuredSections = parseStructuredSections(cleanedContent);
-
-  return (
+  const inner = (
     <div className="space-y-0">
       {structuredSections.map((section, index) => (
         <div
@@ -671,5 +678,11 @@ function MessageContent({ content, role }: MessageContentProps) {
         </div>
       ))}
     </div>
+  );
+
+  return isGreeting && wrapperClass ? (
+    <div className={wrapperClass}>{inner}</div>
+  ) : (
+    inner
   );
 }

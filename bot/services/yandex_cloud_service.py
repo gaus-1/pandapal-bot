@@ -517,7 +517,10 @@ class YandexCloudService:
     # Vision OCR - анализ изображений
 
     async def analyze_image_with_text(
-        self, image_data: bytes, user_question: str | None = None
+        self,
+        image_data: bytes,
+        user_question: str | None = None,
+        system_prompt: str | None = None,
     ) -> dict[str, Any]:
         """
         Анализ изображения: OCR + описание через YandexGPT.
@@ -525,6 +528,7 @@ class YandexCloudService:
         Args:
             image_data: Изображение в байтах
             user_question: Вопрос пользователя об изображении
+            system_prompt: Опционально — системный промпт для стиля ответа (например, проверка ДЗ)
 
         Returns:
             dict: {
@@ -707,18 +711,8 @@ class YandexCloudService:
 
             gpt_analysis = await self.generate_text_response(
                 user_message=analysis_prompt,
-                system_prompt=None,  # ЗАКОММЕНТИРОВАНО - полная свобода для Yandex Pro 5.1
-                # system_prompt=(
-                #     "Ты образовательный помощник для детей 1-9 класса. "
-                #     "КРИТИЧЕСКИ ВАЖНО: РЕШАЙ задачи ПОЛНОСТЬЮ, а не только подсказывай! "
-                #     "НЕ хвали за отправку фото - сразу РЕШАЙ задачи! "
-                #     "НЕ говори 'молодец что отправил фото' - ученик ждет РЕШЕНИЯ! "
-                #     "НЕ говори 'Да конечно помогу пришли мне описание того что на фото' - фото УЖЕ проанализировано, РЕШАЙ задачу! "
-                #     "НЕ проси описание фото - фото УЖЕ распознано, используй текст из промпта! "
-                #     "ВСЕГДА давай конкретные ОТВЕТЫ с числами. "
-                #     "Объясняй каждый шаг ПРОСТО."
-                # ),
-                temperature=0.3,  # Меньше креативности, больше точности
+                system_prompt=system_prompt,
+                temperature=0.3,
             )
 
             return {
