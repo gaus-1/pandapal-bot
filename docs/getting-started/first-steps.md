@@ -176,5 +176,4 @@ SELECT * FROM users LIMIT 10;
 
 - [Architecture Overview](../architecture/overview.md)
 - [API Documentation](../api/telegram-bot.md)
-- [Contributing Guide](../../.github/CONTRIBUTING.md)
 - [Testing Guide](../development/testing.md)

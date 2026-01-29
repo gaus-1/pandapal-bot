@@ -528,10 +528,6 @@ pytest tests/ --cov=bot --cov-report=html
 
 Подробности: см. [LICENSE](LICENSE)
 
-## Участие в разработке
-
-Мы приветствуем вклад в развитие проекта! См. [CONTRIBUTING.md](.github/CONTRIBUTING.md) для деталей.
-
 ## Контакты
 
 - Сайт: https://pandapal.ru

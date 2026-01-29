@@ -225,10 +225,6 @@ Usage, copying, distribution, and modification are prohibited without written pe
 
 Details: see [LICENSE](LICENSE)
 
-## Contributing
-
-We welcome contributions to the project! See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details.
-
 ## Contacts
 
 - Website: https://pandapal.ru
