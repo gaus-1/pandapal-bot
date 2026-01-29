@@ -267,17 +267,40 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
     return result.strip() if result.strip() else text.strip()
 
 
+def fix_glued_words(text: str) -> str:
+    """
+    Исправляет склеенные слова: УПривет, шеПривет, иПрезент и т.п.
+    """
+    if not text or len(text) < 4:
+        return text
+    # УПривет, шеПривет → Привет; иПрезент → и Презент; шеЭто → Это
+    glued_fixes = [
+        (r"\bУПривет\b", "Привет"),
+        (r"\bшеПривет\b", "Привет"),
+        (r"\bУПрезент\b", "Презент"),
+        (r"\bиПрезент\b", "и Презент"),
+        (r"\bшеЭто\b", "Это"),
+    ]
+    for pattern, replacement in glued_fixes:
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+    # Общий паттерн: одна буква/слог + заглавное слово (Привет, Презент, Это) → пробел + слово
+    text = re.sub(r"([а-яёa-z])([А-ЯЁA-Z][а-яёa-z]{2,})", r"\1 \2", text)
+    return text
+
+
 def clean_ai_response(text: str) -> str:
     """
     Очищает ответ AI от LaTeX, сложных математических символов и повторяющихся фрагментов.
     Сохраняет сравнения (>, <) и знаки препинания.
     Исправляет форматирование таблицы умножения.
     Удаляет дублирующиеся первые слова более агрессивно.
-    Дополнительно удаляет служебные формулировки про то, что
-    «система автоматически что-то нарисует/сгенерирует/добавит».
+    Исправляет склеенные слова (УПривет, иПрезент).
     """
     if not text:
         return text
+
+    # Исправляем склеенные слова в начале
+    text = fix_glued_words(text)
 
     # УЛУЧШЕННАЯ ПРОВЕРКА: Удаляем дублирующиеся первые слова
     # Проверяем первые 1-5 слов на дублирование
@@ -336,8 +359,19 @@ def clean_ai_response(text: str) -> str:
                 text = " ".join([words[0]] + words[2:])
                 words = text.split()
 
-    # Сначала удаляем дубликаты (более агрессивно, минимальная длина 20)
-    text = remove_duplicate_text(text, min_length=20)
+    # Удаляем дубликаты (минимальная длина 15 для ловли повторов типа «Привет! To be — это глагол...»)
+    text = remove_duplicate_text(text, min_length=15)
+
+    # Удаляем подряд идущие одинаковые абзацы (точное совпадение после нормализации)
+    paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+    if len(paragraphs) >= 2:
+        unique_ordered = [paragraphs[0]]
+        for i in range(1, len(paragraphs)):
+            prev_norm = re.sub(r"\s+", " ", unique_ordered[-1].lower().strip())
+            curr_norm = re.sub(r"\s+", " ", paragraphs[i].lower().strip())
+            if curr_norm != prev_norm or len(curr_norm) < 20:
+                unique_ordered.append(paragraphs[i])
+        text = "\n\n".join(unique_ordered)
 
     # Исправляем форматирование таблицы умножения
     # Паттерн 1: "1. 3 1 = 3" → "1. 3 × 1 = 3" (нумерованные списки - сначала обрабатываем их)
