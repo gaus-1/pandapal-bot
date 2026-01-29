@@ -35,15 +35,15 @@ async def test_user_creation(real_db_session):
         assert user.telegram_id == 123
 ```
 
-### Тест AI сервиса
+### Тест сервиса генерации ответов
 
 ```python
 @pytest.mark.asyncio
-async def test_ai_response():
+async def test_generation_response():
     from bot.services.ai_service_solid import get_ai_service
 
-    ai_service = get_ai_service()
-    response = await ai_service.generate_response(
+    service = get_ai_service()
+    response = await service.generate_response(
         user_message="Что такое фотосинтез?",
         user_age=10
     )

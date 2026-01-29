@@ -7,14 +7,13 @@
 ```
 bot/
 ├── handlers/      # Обработчики команд и сообщений
-├── services/      # Бизнес-логика (AI, платежи, игры, модерация)
+├── services/      # Бизнес-логика (YandexGPT, платежи, игры, модерация)
 ├── api/           # HTTP endpoints для Mini App
-├── config/        # Настройки, промпты для AI, паттерны модерации
+├── config/        # Настройки, промпты для YandexGPT, паттерны модерации
 ├── security/      # Middleware, валидация, rate limiting
-├── keyboards/     # Клавиатуры Telegram
 ├── localization/  # Переводы интерфейса (ru, en)
 ├── monitoring/    # Метрики, логи, ошибки
-├── models.py      # SQLAlchemy модели БД
+├── models/        # SQLAlchemy модели БД
 └── database.py    # Подключение к PostgreSQL
 ```
 
@@ -22,7 +21,7 @@ bot/
 
 **Handlers** - реагируют на команды и сообщения пользователей. Когда пользователь пишет `/start` или отправляет фото, срабатывает соответствующий handler.
 
-**Services** - вся логика приложения. Здесь AI генерирует ответы (YandexGPT Pro, streaming), модерация проверяет контент (150+ паттернов), платежи обрабатываются (YooKassa продакшн), игры работают (TicTacToe, Checkers, 2048).
+**Services** — вся логика приложения. Генерация ответов (YandexGPT Pro, streaming), модерация контента (150+ паттернов), платежи (YooKassa продакшн), игры (TicTacToe, Checkers, 2048, Эрудит).
 
 **API** - HTTP endpoints для Mini App. Когда пользователь открывает приложение в Telegram, оно обращается к этим endpoints.
 

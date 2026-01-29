@@ -4,14 +4,14 @@ HTTP endpoints для Telegram Mini App и внешних интеграций.
 
 ## Файлы
 
-- `miniapp/` - API для Mini App (разбито на модули: auth, chat, chat_stream, progress, other, helpers)
-- `miniapp_endpoints.py` - Обертка для обратной совместимости (DEPRECATED, используйте bot.api.miniapp)
-- `premium_endpoints.py` - YooKassa webhook, создание платежей
-- `auth_endpoints.py` - Telegram Login Widget, сессии для веб-сайта
-- `games_endpoints.py` - PandaPalGo API (создание игр, ходы, статистика)
-- `premium_features_endpoints.py` - Premium функции API
-- `metrics_endpoint.py` - метрики и мониторинг
-- `validators.py` - Pydantic валидаторы для запросов
+- `miniapp/` — API для Mini App (chat_stream, chat, progress, homework, other, helpers, stream_handlers)
+- `miniapp_endpoints.py` — обёртка для обратной совместимости (DEPRECATED, используйте bot.api.miniapp)
+- `premium_endpoints.py` — YooKassa webhook, создание платежей
+- `auth_endpoints.py` — Telegram Login Widget, сессии для веб-сайта
+- `games_endpoints.py` — PandaPalGo API (создание игр, ходы, статистика)
+- `premium_features_endpoints.py` — Premium функции API
+- `metrics_endpoint.py` — метрики и мониторинг
+- `validators.py` — Pydantic валидаторы для запросов
 
 ## Регистрация
 
@@ -40,15 +40,16 @@ async def chat_endpoint(request: web.Request) -> web.Response:
 
 ### С авторизацией
 
-Для Mini App нужна проверка авторизации Telegram:
+Для Mini App нужна проверка авторизации Telegram (заголовок `X-Telegram-Init-Data`, HMAC-SHA256):
 
 ```python
-from bot.security.telegram_auth import verify_telegram_auth
+from bot.api.validators import verify_resource_owner
 
 async def protected_endpoint(request: web.Request) -> web.Response:
-    auth_data = request.headers.get("X-Telegram-Auth")
-    if not verify_telegram_auth(auth_data):
-        return web.json_response({"error": "Unauthorized"}, status=401)
+    init_data = request.headers.get("X-Telegram-Init-Data")
+    telegram_id = get_telegram_id_from_request(request)
+    if not verify_resource_owner(init_data, telegram_id):
+        return web.json_response({"error": "Forbidden"}, status=403)
     # Продолжаем работу
 ```
 

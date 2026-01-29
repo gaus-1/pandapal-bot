@@ -32,7 +32,8 @@ Project configuration files for different environments and tools.
    ```env
    DATABASE_URL=postgresql://...
    TELEGRAM_BOT_TOKEN=...
-   YANDEX_API_KEY=...
+   YANDEX_CLOUD_API_KEY=...
+   YANDEX_CLOUD_FOLDER_ID=...
    ```
 
 3. Install dependencies:
@@ -43,10 +44,10 @@ Project configuration files for different environments and tools.
 ### Environment Variables
 
 Required variables:
-- `DATABASE_URL` - PostgreSQL connection string
-- `TELEGRAM_BOT_TOKEN` - Telegram bot token
-- `YANDEX_FOLDER_ID` - Yandex Cloud folder ID
-- `YANDEX_API_KEY` - Yandex Cloud API key
+- `DATABASE_URL` — PostgreSQL connection string
+- `TELEGRAM_BOT_TOKEN` — Telegram bot token
+- `YANDEX_CLOUD_FOLDER_ID` — Yandex Cloud folder ID
+- `YANDEX_CLOUD_API_KEY` — Yandex Cloud API key
 
 Optional variables:
 - `REDIS_URL` - Redis connection string

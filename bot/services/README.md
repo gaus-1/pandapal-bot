@@ -4,35 +4,42 @@
 
 ## Основные сервисы
 
-### AI сервисы
-- `ai_service_solid.py` - главный сервис, через него работаем с YandexGPT (Facade паттерн)
-- `yandex_cloud_service.py` - низкоуровневая работа с Yandex Cloud API (streaming/non-streaming, Vision, SpeechKit)
-- `yandex_ai_response_generator.py` - генерация ответов AI с учетом контекста, истории чата, возраста, очистка от повторов
-- `speech_service.py` - распознавание голоса через Yandex SpeechKit STT (WebM → OGG конвертация)
-- `vision_service.py` - анализ изображений через Yandex Vision API (OCR + GPT анализ)
-- `ai_context_builder.py` - сбор контекста для AI из истории чата
-- `ai_request_queue.py` - очередь запросов для предотвращения перегрузки API
+### Генерация ответов и контекст
+- `ai_service_solid.py` — фасад над Yandex Cloud (YandexGPT, Vision, SpeechKit)
+- `yandex_cloud_service.py` — низкоуровневая работа с Yandex Cloud API (streaming/non-streaming, Vision, SpeechKit)
+- `yandex_ai_response_generator.py` — генерация ответов с учётом контекста, истории, возраста, дедупликация
+- `speech_service.py` — распознавание голоса через Yandex SpeechKit STT (WebM → OGG)
+- `vision_service.py` — анализ изображений через Yandex Vision API (OCR + анализ)
+- `ai_context_builder.py` — сбор контекста из истории чата
+- `ai_request_queue.py` — очередь запросов для предотвращения перегрузки API
 
 ### Модерация
-- `moderation_service.py` - базовая модерация, проверка на запрещенные слова
-- `advanced_moderation.py` - умная модерация с категориями контента
-- `ai_moderator.py` - модерация через AI, когда обычных фильтров недостаточно
+- `moderation_service.py` — базовая модерация, проверка на запрещённые слова
+- `advanced_moderation.py` — модерация с категориями контента
+- `ai_moderator.py` — модерация через модель, когда фильтров недостаточно
 
 ### Платежи и Premium
 - `payment_service.py` - работа с YooKassa (продакшн режим, карты, СБП, сохранение карт, webhooks)
 - `subscription_service.py` - управление Premium подписками (активация, деактивация, проверка статуса)
-- `premium_features_service.py` - проверка Premium статуса и лимитов (30/500/unlimited запросов в день)
+- `premium_features_service.py` — проверка Premium статуса и лимитов (30 запросов/месяц free, 500/день month, без ограничений year)
 
 ### Игры
-- `games_service.py` - управление игровыми сессиями, сохранение прогресса, проверка игровых достижений
-- `game_engines.py` - игровая логика (TicTacToe, Checkers, 2048) с AI противниками
-- `gamification_service.py` - достижения, уровни, XP, мотивация (исправлена логика: игровые достижения не проверяются при AI ответах)
+- `games_service.py` — управление игровыми сессиями, сохранение прогресса, проверка игровых достижений
+- `game_engines/` — игровая логика (TicTacToe, Checkers, 2048, Erudite) с умным противником
+- `gamification_service.py` — достижения, уровни, XP, мотивация
 
 ### Образование
-- `personal_tutor_service.py` - персональный репетитор, анализ слабых мест ученика
-- `bonus_lessons_service.py` - бонусные уроки для Premium
-- `knowledge_service.py` - база знаний, поиск информации из веб-источников
-- `history_service.py` - история чата, контекст для AI
+- `personal_tutor_service.py` — персональный репетитор, анализ слабых мест ученика
+- `bonus_lessons_service.py` — бонусные уроки для Premium
+- `knowledge_service.py` — база знаний, поиск из веб-источников, Wikipedia, enhanced RAG
+- `history_service.py` — история чата, контекст для генерации ответов
+- `homework_service.py` — проверка домашних заданий по фото
+- `adaptive_learning_service.py` — отслеживание проблемных тем, адаптация сложности
+- `adult_topics_service.py` — объяснение взрослых тем (деньги, ЖКУ, документы) простыми словами
+- `visualization/` — генерация графиков, таблиц, карт, диаграмм по предметам
+- `rag/` — enhanced RAG (query_expander, reranker, semantic_cache, compressor)
+- `prompt_builder.py` — сборка системного промпта под контекст
+- `yandex_art_service.py` — генерация изображений по описанию (YandexART)
 
 ### Вспомогательные
 - `translate_service.py` - перевод через Yandex Translate с автоопределением языка
@@ -44,9 +51,8 @@
 - `web_scraper.py` - парсинг веб-страниц для knowledge service
 - `priority_support_service.py` - приоритетная поддержка для Premium
 
-### AI инфраструктура
-- `ai_context_builder.py` - собирает контекст для AI из истории чата
-- `ai_request_queue.py` - очередь запросов, чтобы не перегружать API
+### Mini App сервисы
+- `miniapp/` — intent_service, photo_service, chat_context_service, audio_service, visualization_service
 
 ## Как писать сервисы
 
