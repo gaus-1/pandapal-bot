@@ -526,19 +526,9 @@ def clean_ai_response(text: str) -> str:
     for pattern in auto_system_patterns:
         text = re.sub(pattern, "", text, flags=re.IGNORECASE)
 
-    # Убираем только сложные математические символы
-    # КРИТИЧЕСКИ ВАЖНО: НЕ удаляем ×, •, так как они используются для форматирования!
-    # • — буллеты в списках, × — умножение
-    complex_math_chars = [
-        "²",
-        "³",
-        "∑",
-        "∫",
-        "∞",
-        "∠",
-        "°",
-        # НЕ удаляем "•" — это буллеты в списках!
-    ]
+    # Убираем только символы, которые ломают отображение или не поддерживаются
+    # НЕ удаляем: × • (буллеты, умножение); ² ³ ∑ ∫ ∞ ∠ ° (формулы — см. prompts.py ЗАПИСЬ ФОРМУЛ)
+    complex_math_chars = []
     for char in complex_math_chars:
         text = text.replace(char, "")
 
