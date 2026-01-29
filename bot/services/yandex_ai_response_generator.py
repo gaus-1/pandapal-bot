@@ -123,7 +123,7 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
     # Шаг 2: Разбиваем на строки (по переносам)
     lines = [line.strip() for line in text.split("\n") if line.strip()]
 
-    if len(lines) < 2:
+    if len(lines) < 2 and len(text) <= 300:
         return text
 
     # Шаг 3: Удаляем дубликаты строк
@@ -131,31 +131,30 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
     seen_lines = set()
     unique_lines = []
 
-    for line in lines:
-        # НЕ удаляем структурные элементы markdown (заголовки, списки)
-        is_markdown_structure = (
-            line.strip().startswith("#")  # ### Заголовок
-            or line.strip().startswith("-")  # - пункт списка
-            or line.strip().startswith("*")  # * пункт списка
-            or re.match(r"^\d+\.", line.strip())  # 1. нумерованный список
-            or line.strip().startswith("•")  # • буллет
-        )
+    def _content_for_dedup(s: str) -> str:
+        """Содержимое строки без номера/маркера списка — для дедупликации."""
+        t = s.strip()
+        if re.match(r"^\d+\.\s*", t):
+            t = re.sub(r"^\d+\.\s*", "", t)
+        if t.startswith("- ") or t.startswith("* ") or t.startswith("• "):
+            t = t[2:].strip()
+        return _normalize_for_dedup(t)
 
-        if is_markdown_structure:
-            # Структурные элементы всегда добавляем
+    for line in lines:
+        # Заголовки (#) не дедуплицируем по содержимому
+        if line.strip().startswith("#"):
             unique_lines.append(line)
             continue
 
-        # Нормализуем для сравнения (без ** чтобы не различать из-за форматирования)
-        normalized = _normalize_for_dedup(line)
+        # Нормализуем для сравнения: для списков (1., -, *) — по содержимому без маркера
+        normalized = _content_for_dedup(line)
 
-        # Проверяем дубликаты
+        # Проверяем дубликаты по содержимому (ловим повторы «1. Определение…» / «1. Определение…»)
         if len(normalized) >= min_length:
             if normalized not in seen_lines:
                 seen_lines.add(normalized)
                 unique_lines.append(line)
         else:
-            # Короткие строки проверяем на точное совпадение
             if line not in unique_lines:
                 unique_lines.append(line)
 
@@ -193,7 +192,45 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
 
         result = "\n".join(final_lines)
 
-    # Шаг 5: Удаляем повторяющиеся абзацы (похожесть 55%, подстрока, блок с префиксом)
+    # Шаг 4.5: Один длинный абзац без переносов (типично «формулы») — режем по границам блоков и дедуплицируем
+    if len(result) > 300 and "\n\n" not in result:
+        parts = re.split(
+            r"(?=Формула для|Для решения задач|Вот некоторые из них|где:)",
+            result,
+            flags=re.IGNORECASE,
+        )
+        if len(parts) >= 2:
+            seen_parts = set()
+            unique_parts = []
+            for seg in parts:
+                seg = seg.strip()
+                if not seg or len(seg) < 50:
+                    if seg:
+                        unique_parts.append(seg)
+                    continue
+                norm = _normalize_for_dedup(seg)
+                if len(norm) < 80:
+                    unique_parts.append(seg)
+                    continue
+                is_dup = norm in seen_parts
+                if not is_dup:
+                    for seen in seen_parts:
+                        if len(seen) < 80:
+                            continue
+                        w_new = set(norm.split())
+                        w_seen = set(seen.split())
+                        if w_new and w_seen:
+                            sim = len(w_new & w_seen) / max(len(w_new), len(w_seen))
+                            if sim > 0.55:
+                                is_dup = True
+                                break
+                if not is_dup:
+                    seen_parts.add(norm)
+                    unique_parts.append(seg)
+            if unique_parts:
+                result = "\n\n".join(unique_parts)
+
+    # Шаг 5: Удаляем повторяющиеся абзацы (похожесть 50%, подстрока, блок с префиксом)
     raw_paragraphs = [p.strip() for p in result.split("\n\n") if p.strip()]
     if len(raw_paragraphs) == 1 and "\n" in result:
         paragraphs = [p.strip() for p in result.split("\n") if len(p.strip()) > 30]
@@ -214,7 +251,7 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
                 if len(words_new) > 0 and len(words_seen) > 0:
                     common = len(words_new & words_seen)
                     similarity = common / max(len(words_new), len(words_seen))
-                    if similarity > 0.55:
+                    if similarity > 0.50:
                         is_duplicate = True
                         break
                 if (
@@ -248,22 +285,35 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
             unique_paragraphs = [p for k, p in enumerate(unique_paragraphs) if k not in to_remove]
         result = "\n\n".join(unique_paragraphs)
 
-    # Шаг 6: Финальная проверка - удаляем повторяющиеся предложения
+    # Шаг 6: Удаляем повторяющиеся предложения (включая похожие по словам >70%)
     sentences = re.split(r"([.!?]\s+)", result)
     if len(sentences) >= 4:
-        seen_sentences = set()
+        seen_normalized = set()
         unique_sentences = []
+        sent_min_len = 40
 
         i = 0
         while i < len(sentences) - 1:
             sentence = sentences[i] + (sentences[i + 1] if i + 1 < len(sentences) else "")
-            normalized_sent = re.sub(r"\s+", " ", sentence.lower().strip())
-
-            if len(normalized_sent) >= min_length:
-                if normalized_sent not in seen_sentences:
-                    seen_sentences.add(normalized_sent)
-                    unique_sentences.append(sentence)
-            else:
+            normalized_sent = _normalize_for_dedup(sentence)
+            if len(normalized_sent) < sent_min_len:
+                unique_sentences.append(sentence)
+                i += 2
+                continue
+            is_dup = normalized_sent in seen_normalized
+            if not is_dup:
+                for seen in seen_normalized:
+                    if len(seen) < sent_min_len:
+                        continue
+                    w_new = set(normalized_sent.split())
+                    w_seen = set(seen.split())
+                    if w_new and w_seen:
+                        sim = len(w_new & w_seen) / max(len(w_new), len(w_seen))
+                        if sim > 0.7:
+                            is_dup = True
+                            break
+            if not is_dup:
+                seen_normalized.add(normalized_sent)
                 unique_sentences.append(sentence)
             i += 2
 
@@ -437,6 +487,18 @@ def clean_ai_response(text: str) -> str:
     text = re.sub(r"(?<!\d\.\s)(?<!\d\.)(\d+)\s+(\d+)\s*=\s*(\d+)", r"\1 × \2 = \3", text)
     # Паттерн 3: "3*3=9" → "3 × 3 = 9"
     text = re.sub(r"(\d+)\*(\d+)\s*=\s*(\d+)", r"\1 × \2 = \3", text)
+
+    # Физика: Delta t / Delta T → Δt / ΔT; в формулах буква x как умножение → ×
+    text = re.sub(r"\bDelta\s+t\b", "Δt", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bDelta\s+T\b", "ΔT", text)
+    text = re.sub(
+        r"(\b[a-zA-Z]\b|\bDelta\b|\d)\s+x\s+(\b[a-zA-Z]\b|\bDelta\b|\d)",
+        r"\1 × \2",
+        text,
+    )
+
+    # Обрезка мусора в конце: склеенные «Q_Для решения…», «t_Для…» — убираем до конца строки
+    text = re.sub(r"\s+[A-Za-z]_[А-Яа-яё]\S*(?:\s+\S+)*\s*$", "", text)
 
     # Убираем знак доллара (ограничители формул в Telegram/Markdown)
     text = text.replace("$", "")

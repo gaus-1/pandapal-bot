@@ -51,7 +51,7 @@ export function useChat({ telegramId, limit = 20, useStreaming = false }: UseCha
     },
   });
 
-  // Получение истории чата (порядок как на сервере; при открытии чата — свежая выгрузка)
+  // История чата: всегда с сервера при открытии (staleTime: 0), чтобы ПК и смартфон показывали одну и ту же хронологию
   const {
     data: messages = [],
     isLoading: isLoadingHistory,
@@ -61,6 +61,8 @@ export function useChat({ telegramId, limit = 20, useStreaming = false }: UseCha
     queryFn: () => getChatHistory(telegramId, limit),
     enabled: !!telegramId,
     refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
   // Отправка сообщения AI (streaming или обычный режим)
