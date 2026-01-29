@@ -65,10 +65,10 @@ npm run dev
 - **Генерация изображений** — создание картинок по описанию через YandexART
 - **Объяснение взрослых тем** — деньги, банки, налоги, ЖКУ, документы, здоровье простыми словами для подготовки к взрослой жизни
 - **Адаптивное обучение** — отслеживание проблемных тем, автоматическая адаптация сложности под уровень ученика
-- **Enhanced RAG система** — умный поиск по базе знаний с семантическим кешированием и контекстной компрессией (экономия 75-90% токенов)
+- **Enhanced RAG система** — умный поиск по базе знаний с семантическим кешированием и контекстной компрессией (сокращение объёма контекста 75–90%)
 - Streaming ответы через Server-Sent Events для мгновенной генерации
 - Автоматический перевод и объяснение грамматики для 5 языков
-- Игры PandaPalGo: Крестики-нолики, Шашки с AI, 2048, Эрудит (составление слов)
+- Игры PandaPalGo: Крестики-нолики, Шашки с умным противником, 2048, Эрудит (составление слов)
 - Система достижений и прогресса с XP, уровнями и наградами
 - Premium подписки через YooKassa с сохранением карт
 - Многоуровневая модерация контента для безопасности детей (150+ паттернов)
@@ -83,7 +83,7 @@ npm run dev
 - Redis 6.4 для сессий (Upstash)
 - Yandex Cloud: YandexGPT Pro, SpeechKit STT, Vision OCR, Translate API
 - YooKassa 3.9.0 для платежей (продакшн режим)
-- AI параметры: temperature=0.3, max_tokens=2000
+- Параметры генерации: temperature=0.3, max_tokens=2000
 
 ### Frontend
 
@@ -141,7 +141,7 @@ PandaPal/
 │   │   ├── history_service.py               # История чата (включая image_url)
 │   │   ├── adult_topics_service.py          # Объяснение взрослых тем детям (деньги, ЖКУ, документы)
 │   │   ├── yandex_art_service.py            # Генерация изображений через YandexART
-│   │   └── token_rotator.py                 # Ротация AI‑ключей
+│   │   └── token_rotator.py                 # Ротация ключей API
 │   ├── api/                # HTTP endpoints
 │   │   ├── miniapp/        # API для Telegram Mini App
 │   │   │   ├── chat_stream.py   # Streaming AI чат (SSE) + визуализации
@@ -236,7 +236,7 @@ graph TB
   - `query_expander.py` — multi-query RAG, расширение синонимами
   - `reranker.py` — переранжирование по relevance, age, recency, source quality
   - `semantic_cache.py` — кеширование похожих запросов (Jaccard similarity)
-  - `compressor.py` — контекстная компрессия для экономии токенов (75-90%)
+  - `compressor.py` — контекстная компрессия (сокращение объёма контекста 75–90%)
 - `knowledge_service.py` — база знаний с enhanced_search и дедупликацией
 - `speech_service.py` — распознавание голоса через Yandex SpeechKit STT
 - `vision_service.py` — анализ изображений через Yandex Vision API, проверка домашних заданий
@@ -502,7 +502,7 @@ pytest tests/ --cov=bot --cov-report=html
   - **Multi-query RAG** — расширение запросов синонимами и связанными терминами
   - **Reranking** — переранжирование результатов по relevance, age_match, recency, source_quality
   - **Semantic Cache** — кеширование похожих запросов (Jaccard similarity) с TTL
-  - **Context Compression** — сжатие контекста на 75-90% для экономии токенов
+  - **Context Compression** — сжатие контекста на 75–90%
   - **Дедупликация** — удаление дубликатов из результатов поиска
   - Интеграция в `knowledge_service.enhanced_search()` и AI response generator
 - **Улучшения качества AI ответов**

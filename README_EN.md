@@ -33,10 +33,10 @@ PandaPal is an intelligent assistant for homework help. The bot works 24/7 and h
 - **Image generation** — create pictures from descriptions via YandexART
 - **Adult topics explained** — money, banks, taxes, utilities, documents, health in simple words for life preparation
 - **Adaptive learning** — tracking problematic topics, automatic difficulty adaptation to student level
-- **Enhanced RAG system** — intelligent knowledge base search with semantic caching and context compression (75-90% token savings)
+- **Enhanced RAG system** — intelligent knowledge base search with semantic caching and context compression (75-90% context reduction)
 - Streaming responses via Server-Sent Events for instant generation
 - Automatic translation and grammar explanations for 5 languages
-- PandaPalGo Games: Tic-Tac-Toe, Checkers with AI, 2048, Erudite (word building)
+- PandaPalGo Games: Tic-Tac-Toe, Checkers with smart opponent, 2048, Erudite (word building)
 - Achievement and progress system with XP, levels, and rewards
 - Premium subscriptions via YooKassa with card saving
 - Multi-level content moderation for children's safety (150+ patterns)
@@ -83,7 +83,7 @@ Full installation and configuration documentation: see [docs/](docs/)
 - Redis 6.4 for sessions (Upstash)
 - Yandex Cloud: YandexGPT Pro, SpeechKit STT, Vision OCR, Translate API
 - YooKassa 3.9.0 for payments (production mode)
-- Parameters: temperature=0.3, max_tokens=2000
+- Generation parameters: temperature=0.3, max_tokens=2000
 
 ### Frontend
 
