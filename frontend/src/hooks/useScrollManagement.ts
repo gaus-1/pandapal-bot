@@ -20,16 +20,28 @@ export interface UseScrollManagementReturn {
 }
 
 export function useScrollManagement(
-  messagesCount: number
+  messagesCount: number,
+  isSending?: boolean
 ): UseScrollManagementReturn {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButtons, setShowScrollButtons] = useState(false);
+  const prevSendingRef = useRef(false);
 
-  // Автоскролл к последнему сообщению
+  // Автоскролл к последнему сообщению при новом сообщении или по завершении ответа
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messagesCount]);
+
+  // После завершения отправки (ответ пришёл) — скролл вниз, чтобы видеть ответ (фикс «увеличивается чат»)
+  useEffect(() => {
+    if (prevSendingRef.current && !isSending) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+    prevSendingRef.current = !!isSending;
+  }, [isSending]);
 
   // Показываем кнопки скролла если контент больше экрана
   useEffect(() => {

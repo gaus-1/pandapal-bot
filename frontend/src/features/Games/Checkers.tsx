@@ -4,7 +4,7 @@
  * Исправлено: Убрана серая зона (opacity-50), шашки оставлены на месте (-6px)
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { telegram } from "../../services/telegram";
 import {
   checkersMove,
@@ -35,6 +35,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
     to: [number, number];
     capture: [number, number] | null;
   }>>([]);
+  const validMovesRequestRef = useRef(0);
 
   useEffect(() => {
     loadGameState();
@@ -99,12 +100,19 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   };
 
   const loadValidMoves = async () => {
+    validMovesRequestRef.current += 1;
+    const requestId = validMovesRequestRef.current;
+    setValidMoves([]);
     try {
       const moves = await getCheckersValidMoves(sessionId);
-      setValidMoves(Array.isArray(moves) ? moves : []);
+      if (requestId === validMovesRequestRef.current) {
+        setValidMoves(Array.isArray(moves) ? moves : []);
+      }
     } catch (err) {
       console.error("Ошибка загрузки валидных ходов:", err);
-      setValidMoves([]);
+      if (requestId === validMovesRequestRef.current) {
+        setValidMoves([]);
+      }
     }
   };
 
@@ -157,6 +165,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
       try {
         telegram.hapticFeedback("light");
+        setValidMoves([]);
         const result = await checkersMove(sessionId, fromRow, fromCol, row, col);
 
         setBoard(result.board);

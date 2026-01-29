@@ -134,9 +134,9 @@ export function parseListItems(content: string): string[] {
     const trimmed = line.trim();
     if (!trimmed) continue;
 
-    // Маркированный список: - или • в начале
-    if (/^[-•]\s+/.test(trimmed)) {
-      items.push(trimmed.replace(/^[-•]\s+/, ''));
+    // Маркированный список: -, —, • в начале
+    if (/^[-–—•]\s+/.test(trimmed)) {
+      items.push(trimmed.replace(/^[-–—•]\s+/, ''));
     }
     // Нумерованный список: 1. или 1) в начале
     else if (/^\d+[.)]\s+/.test(trimmed)) {
@@ -152,7 +152,7 @@ export function isList(content: string): boolean {
   if (lines.length < 2) return false;
 
   // Проверяем, что большинство строк начинаются с маркера списка
-  const listLines = lines.filter(l => /^[-•]\s+/.test(l.trim()));
+  const listLines = lines.filter(l => /^[-–—•]\s+/.test(l.trim()));
   return listLines.length >= lines.length * 0.5;
 }
 

@@ -432,18 +432,17 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     max_tokens=max_tokens,
                     model=model_name,
                 ):
-                    # Очищаем chunk от запрещенных символов
-                    cleaned_chunk = clean_ai_response(chunk)
-                    full_response += cleaned_chunk
-                    collected_chunks.append(cleaned_chunk)
+                    full_response += chunk
+                    collected_chunks.append(chunk)
 
                     # Если будет визуализация — не стримим текст: покажем только image + наше пояснение
                     if not will_have_visualization:
                         import json as json_lib
 
-                        chunk_data = json_lib.dumps({"chunk": cleaned_chunk}, ensure_ascii=False)
+                        chunk_data = json_lib.dumps({"chunk": chunk}, ensure_ascii=False)
                         await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
 
+                # Дедупликация и форматирование только по полному ответу (сохраняем ** для жирного)
                 full_response = clean_ai_response(full_response)
 
                 # Проверяем, нужна ли визуализация (таблица умножения, графики, диаграммы)

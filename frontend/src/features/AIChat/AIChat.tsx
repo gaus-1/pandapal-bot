@@ -106,7 +106,7 @@ export function AIChat({ user }: AIChatProps) {
     showScrollButtons,
     scrollToTop,
     scrollToBottom,
-  } = useScrollManagement(messages.length);
+  } = useScrollManagement(messages.length, isSending);
 
   // Загрузка фото
   const {
@@ -382,7 +382,7 @@ export function AIChat({ user }: AIChatProps) {
       </div>
 
       {/* Сообщения */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-4 relative z-[1] bg-transparent" role="log">
+      <div ref={messagesContainerRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-4 relative z-[1] bg-transparent" role="log">
         {isLoadingHistory ? (
           <div className="text-center py-8"><div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 dark:border-blue-400"></div></div>
         ) : showWelcome && messages.length === 0 ? (
@@ -583,6 +583,22 @@ interface MessageContentProps {
   role: string;
 }
 
+/** Рендер текста с поддержкой **жирного** (markdown bold). */
+function renderTextWithBold(text: string): React.ReactNode {
+  const parts = text.split('**');
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 === 1 ? (
+          <strong key={i} className="font-semibold">{part}</strong>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 function renderSectionContent(content: string) {
   if (isNumberedList(content)) {
     const items = parseListItems(content);
@@ -590,7 +606,7 @@ function renderSectionContent(content: string) {
       <ol className="list-decimal list-inside space-y-1 ml-2 text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
         {items.map((item, i) => (
           <li key={i} className="whitespace-pre-wrap break-words mb-1">
-            {item}
+            {renderTextWithBold(item)}
           </li>
         ))}
       </ol>
@@ -603,17 +619,17 @@ function renderSectionContent(content: string) {
       <ul className="list-disc list-inside space-y-1 ml-2 text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
         {items.map((item, i) => (
           <li key={i} className="whitespace-pre-wrap break-words mb-1">
-            {item}
+            {renderTextWithBold(item)}
           </li>
         ))}
       </ul>
     );
   }
 
-  // Обычный текст
+  // Обычный текст с поддержкой жирного
   return (
     <p className="whitespace-pre-wrap break-words text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
-      {content}
+      {renderTextWithBold(content)}
     </p>
   );
 }
@@ -646,7 +662,7 @@ function MessageContent({ content, role }: MessageContentProps) {
         >
           {section.title && (
             <h3 className="font-semibold text-xs sm:text-sm mb-1.5 text-gray-900 dark:text-slate-100">
-              {section.title}
+              {renderTextWithBold(section.title)}
             </h3>
           )}
           <div>
