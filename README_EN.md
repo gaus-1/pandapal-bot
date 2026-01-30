@@ -127,6 +127,7 @@ PandaPal/
 ├── tests/                  # Tests (unit, integration, e2e, security, performance)
 ├── alembic/                # DB migrations (Alembic)
 ├── scripts/                # Utilities
+├── server_routes/          # Route registration (health, api, static, middleware)
 └── web_server.py           # Entry point (aiohttp + aiogram webhook + frontend)
 ```
 

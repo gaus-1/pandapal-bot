@@ -174,6 +174,7 @@ PandaPal/
 ├── alembic/                # Миграции БД (Alembic)
 ├── scripts/                # Утилиты (см. scripts/README.md)
 ├── config/                 # Конфигурация (см. config/README.md)
+├── server_routes/          # Регистрация роутов (health, api, static, middleware)
 └── web_server.py           # Entry point (aiohttp + aiogram webhook + frontend)
 ```
 
@@ -218,13 +219,10 @@ graph TB
 ### Entry Point
 
 - `web_server.py` — aiohttp сервер с webhook для Telegram, раздача frontend
-  - `PandaPalBotServer` — класс сервера с разделением ответственности (SRP)
+  - `PandaPalBotServer` — класс сервера, сборка app и lifecycle (init_bot, webhook, shutdown)
   - `_setup_app_base()` — базовая инициализация приложения
-  - `_setup_middleware()` — настройка security middleware
-  - `_setup_health_endpoints()` — health check endpoints
-  - `_setup_api_routes()` — регистрация API маршрутов
-  - `_setup_frontend_static()` — раздача статических файлов frontend
   - `_setup_webhook_handler()` — обработчик webhook от Telegram
+- `server_routes/` — регистрация роутов (вынесено из web_server): health, middleware, api, static
 
 ### Services (SOLID Architecture)
 
