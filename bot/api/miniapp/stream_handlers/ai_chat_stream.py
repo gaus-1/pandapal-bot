@@ -359,48 +359,25 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             response_generator = ai_service.response_generator
             yandex_service = response_generator.yandex_service
 
-            # Получаем веб-контекст через enhanced RAG search
             from bot.config import settings
             from bot.services.rag import ContextCompressor
 
             relevant_materials = await response_generator.knowledge_service.enhanced_search(
                 user_question=user_message,
                 user_age=user.age,
-                top_k=3,  # Топ-3 после reranking
+                top_k=3,
+                use_wikipedia=response_generator._should_use_wikipedia(user_message),
             )
             web_context = response_generator.knowledge_service.format_knowledge_for_ai(
                 relevant_materials
             )
-
-            # Context compression для экономии токенов
             if web_context:
                 compressor = ContextCompressor()
                 web_context = compressor.compress(
                     context=web_context, question=user_message, max_sentences=7
                 )
-
-            # КРИТИЧЕСКИ ВАЖНО: Получаем Wikipedia контекст для образовательных вопросов
-            verified_context = None
-            if response_generator._should_use_wikipedia(user_message):
-                try:
-                    verified_context = await response_generator.knowledge_service.get_wikipedia_context_for_question(
-                        user_message, user.age
-                    )
-                    if verified_context:
-                        logger.debug(f"📚 Wikipedia контекст получен для: {user_message[:50]}...")
-                except Exception as e:
-                    logger.warning(f"⚠️ Ошибка получения Wikipedia контекста: {e}")
-
-            # Добавляем контекст к промпту (Wikipedia имеет приоритет)
-            if verified_context:
-                enhanced_system_prompt += f"\n\n📖 ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ:\n{verified_context}\n"
-                enhanced_system_prompt += (
-                    "Используй эту информацию для точного и достоверного ответа. "
-                    "КРИТИЧЕСКИ ВАЖНО: Никогда не упоминай Wikipedia, сайты, источники — отвечай от своего имени."
-                )
             if web_context:
                 enhanced_system_prompt += f"\n\n📚 Дополнительная информация:\n{web_context}\n"
-                enhanced_system_prompt += "Не упоминай источники в ответе."
 
             # Используем Pro модель для всех пользователей (YandexGPT 5 Pro Latest - стабильная версия)
             # Используем модель из настроек (yandexgpt/latest или yandexgpt/rc)

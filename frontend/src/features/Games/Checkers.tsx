@@ -262,8 +262,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       {/* Статус */}
       <div className="flex-shrink-0 text-center py-2 px-4">
         {winner && (
-          <div className="mb-3">
-            <PandaReaction mood={winner === "user" ? "sad" : "happy"} />
+          <div className="mb-2">
+            <PandaReaction mood={winner === "user" ? "sad" : "happy"} size="small" />
           </div>
         )}
         <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100 mb-1">

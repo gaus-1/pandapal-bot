@@ -113,11 +113,19 @@ class CheckersGame:
             directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
 
         for dr, dc in directions:
-            # Простые ходы (только если нет обязательного взятия)
-            # Но мы собираем все ходы, а фильтрация на уровне get_valid_moves
-            nr, nc = r + dr, c + dc
-            if 0 <= nr < 8 and 0 <= nc < 8 and self.board[nr][nc] == 0:
-                moves.append({"from": (r, c), "to": (nr, nc), "capture": None})
+            # Простые ходы
+            if is_king:
+                # Дамка ходит на любое количество пустых клеток по диагонали
+                nr, nc = r + dr, c + dc
+                while 0 <= nr < 8 and 0 <= nc < 8 and self.board[nr][nc] == 0:
+                    moves.append({"from": (r, c), "to": (nr, nc), "capture": None})
+                    nr += dr
+                    nc += dc
+            else:
+                # Простая шашка — только на 1 клетку
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < 8 and 0 <= nc < 8 and self.board[nr][nc] == 0:
+                    moves.append({"from": (r, c), "to": (nr, nc), "capture": None})
 
             # Взятия
             if is_king:

@@ -725,6 +725,7 @@ class GamesService:
                 }
 
         ai_from_row, ai_from_col, ai_to_row, ai_to_col = ai_move
+        last_ai_move = (ai_from_row, ai_from_col, ai_to_row, ai_to_col)
 
         _debug_log(
             hypothesis_id="H3",
@@ -736,31 +737,8 @@ class GamesService:
             },
         )
 
-        # Выполняем ход AI
-        if game.make_move(ai_from_row, ai_from_col, ai_to_row, ai_to_col):
-            _debug_log(
-                hypothesis_id="H4",
-                location="GamesService.checkers_move.after_ai",
-                message="After AI move",
-                data={
-                    "session_id": session_id,
-                    "current_player": game.current_player,
-                    "must_capture_from": game.must_capture_from,
-                },
-            )
-            # Проверяем победу AI
-            if game.winner == 2:
-                state = game.get_board_state()
-                self.finish_game_session(session_id, "loss")
-                return {
-                    "board": state["board"],
-                    "kings": state.get("kings"),
-                    "winner": "ai",
-                    "game_over": True,
-                    "ai_move": (ai_from_row, ai_from_col, ai_to_row, ai_to_col),
-                }
-        else:
-            # Ход AI не выполнен - пользователь победил
+        # Выполняем ход AI (и цикл множественного взятия, пока дамка/шашка должна бить дальше)
+        if not game.make_move(ai_from_row, ai_from_col, ai_to_row, ai_to_col):
             state = game.get_board_state()
             self.finish_game_session(session_id, "win")
             return {
@@ -769,6 +747,44 @@ class GamesService:
                 "winner": "user",
                 "game_over": True,
                 "ai_move": None,
+            }
+
+        while game.winner is None and game.must_capture_from:
+            # AI должен продолжать бить (множественное взятие)
+            next_moves = game.get_valid_moves(2)
+            capture_moves = [m for m in next_moves if m.get("capture")]
+            if not capture_moves:
+                break
+            import random
+
+            ai_move_data = random.choice(capture_moves)
+            af, ac = ai_move_data["from"][0], ai_move_data["from"][1]
+            at_row, at_col = ai_move_data["to"][0], ai_move_data["to"][1]
+            last_ai_move = (af, ac, at_row, at_col)
+            await asyncio.sleep(0.5)
+            if not game.make_move(af, ac, at_row, at_col):
+                break
+
+        _debug_log(
+            hypothesis_id="H4",
+            location="GamesService.checkers_move.after_ai",
+            message="After AI move(s)",
+            data={
+                "session_id": session_id,
+                "current_player": game.current_player,
+                "must_capture_from": game.must_capture_from,
+            },
+        )
+
+        if game.winner == 2:
+            state = game.get_board_state()
+            self.finish_game_session(session_id, "loss")
+            return {
+                "board": state["board"],
+                "kings": state.get("kings"),
+                "winner": "ai",
+                "game_over": True,
+                "ai_move": last_ai_move,
             }
 
         # Сохраняем состояние
@@ -791,8 +807,139 @@ class GamesService:
             "kings": state.get("kings"),
             "winner": None,
             "game_over": False,
-            "ai_move": (ai_from_row, ai_from_col, ai_to_row, ai_to_col),
+            "ai_move": last_ai_move,
         }
+
+    async def checkers_run_ai_turn(self, session_id: int) -> dict:
+        """
+        Выполнить ход(ы) панды, когда очередь AI (current_player=2).
+        Используется при загрузке сессии, чтобы разблокировать «Ход панды».
+        """
+        session = self.db.get(GameSession, session_id)
+        if not session:
+            raise ValueError(f"Game session {session_id} not found")
+
+        game = self._checkers_load_game_from_session(session)
+        if game.current_player != 2:
+            state = game.get_board_state()
+            winner = "user" if game.winner == 1 else ("ai" if game.winner == 2 else None)
+            return {
+                "board": state["board"],
+                "kings": state.get("kings"),
+                "winner": winner,
+                "game_over": game.winner is not None,
+                "ai_move": None,
+            }
+
+        valid_moves = game.get_valid_moves(2)
+        if not valid_moves:
+            state = game.get_board_state()
+            self.finish_game_session(session_id, "win")
+            return {
+                "board": state["board"],
+                "kings": state.get("kings"),
+                "winner": "user",
+                "game_over": True,
+                "ai_move": None,
+            }
+
+        import random
+
+        capture_moves = [m for m in valid_moves if m.get("capture")]
+        ai_move_data = random.choice(capture_moves) if capture_moves else random.choice(valid_moves)
+        af, ac = ai_move_data["from"][0], ai_move_data["from"][1]
+        at_row, at_col = ai_move_data["to"][0], ai_move_data["to"][1]
+        last_ai_move = (af, ac, at_row, at_col)
+        await asyncio.sleep(0.8)
+        if not game.make_move(af, ac, at_row, at_col):
+            state = game.get_board_state()
+            self.finish_game_session(session_id, "win")
+            return {
+                "board": state["board"],
+                "kings": state.get("kings"),
+                "winner": "user",
+                "game_over": True,
+                "ai_move": None,
+            }
+
+        while game.winner is None and game.must_capture_from:
+            next_moves = game.get_valid_moves(2)
+            capture_moves = [m for m in next_moves if m.get("capture")]
+            if not capture_moves:
+                break
+            ai_move_data = random.choice(capture_moves)
+            af, ac = ai_move_data["from"][0], ai_move_data["from"][1]
+            at_row, at_col = ai_move_data["to"][0], ai_move_data["to"][1]
+            last_ai_move = (af, ac, at_row, at_col)
+            await asyncio.sleep(0.4)
+            if not game.make_move(af, ac, at_row, at_col):
+                break
+
+        if game.winner == 2:
+            state = game.get_board_state()
+            self.finish_game_session(session_id, "loss")
+            return {
+                "board": state["board"],
+                "kings": state.get("kings"),
+                "winner": "ai",
+                "game_over": True,
+                "ai_move": last_ai_move,
+            }
+
+        state = game.get_board_state()
+        must_capture = list(state.get("must_capture")) if state.get("must_capture") else None
+        self.update_game_session(
+            session_id,
+            {
+                "board": state["board"],
+                "kings": state.get("kings"),
+                "current_player": game.current_player,
+                "must_capture": must_capture,
+            },
+            "in_progress",
+        )
+        self.db.commit()
+        return {
+            "board": state["board"],
+            "kings": state.get("kings"),
+            "winner": None,
+            "game_over": False,
+            "ai_move": last_ai_move,
+        }
+
+    def _checkers_load_game_from_session(self, session: "GameSession") -> CheckersGame:
+        """Восстановить CheckersGame из сохранённого состояния сессии."""
+        if session.game_state and isinstance(session.game_state, dict):
+            game_state = session.game_state
+            board_data = game_state.get("board")
+            if board_data and isinstance(board_data, list) and len(board_data) == 8:
+                game = CheckersGame()
+                kings_data = game_state.get("kings", [])
+                for r in range(8):
+                    for c in range(8):
+                        cell = (
+                            board_data[r][c]
+                            if r < len(board_data) and c < len(board_data[r])
+                            else None
+                        )
+                        is_king = (
+                            kings_data[r][c]
+                            if r < len(kings_data) and c < len(kings_data[r])
+                            else False
+                        )
+                        if cell == "user":
+                            game.board[r][c] = 3 if is_king else 1
+                        elif cell == "ai":
+                            game.board[r][c] = 4 if is_king else 2
+                        else:
+                            game.board[r][c] = 0
+                game.current_player = game_state.get("current_player", 1)
+                must_capture = game_state.get("must_capture")
+                if must_capture and isinstance(must_capture, list) and len(must_capture) == 2:
+                    game.must_capture_from = tuple(must_capture)
+                game.winner = game_state.get("winner")
+                return game
+        return CheckersGame()
 
     def game_2048_move(self, session_id: int, direction: str) -> dict:
         """

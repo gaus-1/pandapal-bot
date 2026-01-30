@@ -6,8 +6,10 @@
 Теперь с поддержкой Wikipedia API для получения проверенных данных.
 """
 
+import json
 import re
 from datetime import datetime, timedelta
+from urllib.parse import quote
 
 import httpx
 from loguru import logger
@@ -98,43 +100,44 @@ class KnowledgeService:
         user_question: str,
         user_age: int | None = None,
         top_k: int = 3,
+        use_wikipedia: bool = True,
     ) -> list[EducationalContent]:
         """
         Улучшенный поиск с RAG компонентами.
+        При пустой базе и use_wikipedia=True подтягивает контекст из Wikipedia.
 
         Args:
             user_question: Вопрос пользователя
             user_age: Возраст для адаптации
             top_k: Количество результатов
+            use_wikipedia: Подтянуть Wikipedia при отсутствии результатов из базы
 
         Returns:
             Топ-K переранжированных результатов
         """
-        # 1. Проверяем semantic cache
         cached_result = self.semantic_cache.get(user_question)
         if cached_result:
             logger.debug(f"📚 Semantic cache hit: {user_question[:50]}")
             return cached_result
 
-        # 2. Query expansion
         expanded_query = self.query_expander.expand(user_question)
         logger.debug(f"📚 Expanded query: {expanded_query}")
 
-        # 3. Multi-query поиск
         query_variations = self.query_expander.generate_variations(user_question)
         all_results = []
-
         for variation in query_variations:
             results = await self.get_helpful_content(variation, user_age)
             all_results.extend(results)
 
-        # 4. Дедупликация
         unique_results = self._deduplicate_results(all_results)
 
-        # 5. Reranking
+        if not unique_results and use_wikipedia:
+            wiki_content = await self.get_wikipedia_educational(user_question, user_age)
+            if wiki_content:
+                unique_results = [wiki_content]
+
         ranked_results = self.reranker.rerank(user_question, unique_results, user_age, top_k=top_k)
 
-        # 6. Сохраняем в semantic cache
         if ranked_results:
             self.semantic_cache.set(user_question, ranked_results)
 
@@ -410,51 +413,24 @@ class KnowledgeService:
             formatted_content += f"   Источник: {material.source_url}\n"
 
         formatted_content += (
-            "\n\nИспользуй эту информацию для более точного и актуального ответа! 🎯"
+            "\n\nИспользуй эту информацию для более точного и актуального ответа. "
+            "Не упоминай Wikipedia и источники в ответе."
         )
 
         return formatted_content
 
-    async def get_wikipedia_summary(
-        self, topic: str, user_age: int | None = None, max_length: int = 500
-    ) -> str | None:
+    async def _wikipedia_search_title(self, topic: str) -> str | None:
         """
-        Получить краткое описание темы из проверенного источника.
-        БЕЗ ключа - открытый API, работает из России.
-
-        Args:
-            topic: Название темы для поиска.
-            user_age: Возраст пользователя для адаптации контента.
-            max_length: Максимальная длина ответа (символов).
-
-        Returns:
-            str: Краткое описание темы или None при ошибке.
+        Найти заголовок страницы по поисковому запросу (fallback при отсутствии точного titles).
         """
-        if not topic or not topic.strip():
-            return None
-
-        # Нормализуем тему для кэша
-        topic_normalized = topic.strip().lower()
-        cache_key = f"wikipedia:{topic_normalized}:{user_age or 'all'}"
-
-        # Проверяем кэш (TTL: 24 часа для стабильных данных)
-        cached = await cache_service.get(cache_key)
-        if cached:
-            logger.debug(f"📚 Кэш попадание для темы: {topic}")
-            return cached
-
         try:
-            # Запрос к Wikipedia API (БЕЗ ключа)
             params = {
                 "action": "query",
-                "prop": "extracts",
-                "exintro": "1",  # Только вступление (краткое описание)
-                "explaintext": "1",  # Только текст, без HTML
-                "titles": topic,
+                "list": "search",
+                "srsearch": topic,
+                "srlimit": 1,
                 "format": "json",
             }
-
-            # Wikipedia требует User-Agent header для предотвращения 403
             headers = {
                 "User-Agent": "PandaPal/1.0 (Educational Bot; contact@pandapal.ru)",
                 "Accept": "application/json",
@@ -463,48 +439,143 @@ class KnowledgeService:
                 response = await client.get(self.wikipedia_url, params=params)
                 response.raise_for_status()
                 data = response.json()
+            search = data.get("query", {}).get("search", [])
+            if search:
+                return search[0].get("title")
+        except Exception as e:
+            logger.debug(f"Wikipedia search fallback для '{topic}': {e}")
+        return None
 
-            # Извлекаем текст из ответа
+    async def get_wikipedia_summary(
+        self, topic: str, user_age: int | None = None, max_length: int = 500
+    ) -> tuple[str, str] | None:
+        """
+        Получить краткое описание темы из проверенного источника.
+        БЕЗ ключа - открытый API, работает из России.
+        При отсутствии страницы по точному titles выполняется поиск (list=search).
+
+        Args:
+            topic: Название темы для поиска.
+            user_age: Возраст пользователя для адаптации контента.
+            max_length: Максимальная длина ответа (символов).
+
+        Returns:
+            (extract, title) или None при ошибке.
+        """
+        if not topic or not topic.strip():
+            return None
+
+        topic_normalized = topic.strip().lower()
+        cache_key = f"wikipedia:{topic_normalized}:{user_age or 'all'}"
+
+        cached = await cache_service.get(cache_key)
+        if cached:
+            try:
+                obj = json.loads(cached)
+                logger.debug(f"📚 Кэш попадание для темы: {topic}")
+                return (obj["e"], obj["t"])
+            except (json.JSONDecodeError, KeyError):
+                pass
+
+        headers = {
+            "User-Agent": "PandaPal/1.0 (Educational Bot; contact@pandapal.ru)",
+            "Accept": "application/json",
+        }
+
+        try:
+            params = {
+                "action": "query",
+                "prop": "extracts",
+                "exintro": "1",
+                "explaintext": "1",
+                "titles": topic,
+                "format": "json",
+            }
+            async with httpx.AsyncClient(timeout=self.wikipedia_timeout, headers=headers) as client:
+                response = await client.get(self.wikipedia_url, params=params)
+                response.raise_for_status()
+                data = response.json()
+
             pages = data.get("query", {}).get("pages", {})
             if not pages:
                 logger.debug(f"📚 Страница не найдена для '{topic}'")
                 return None
 
             page = list(pages.values())[0]
+            title = page.get("title", topic)
 
-            # Проверяем, что страница существует (не disambiguation)
             if page.get("missing") or page.get("invalid"):
-                logger.debug(f"📚 Страница отсутствует или невалидна для '{topic}'")
-                return None
+                found_title = await self._wikipedia_search_title(topic)
+                if found_title:
+                    async with httpx.AsyncClient(
+                        timeout=self.wikipedia_timeout, headers=headers
+                    ) as client:
+                        resp = await client.get(
+                            self.wikipedia_url,
+                            params={
+                                "action": "query",
+                                "prop": "extracts",
+                                "exintro": "1",
+                                "explaintext": "1",
+                                "titles": found_title,
+                                "format": "json",
+                            },
+                        )
+                        resp.raise_for_status()
+                        data = resp.json()
+                    pages = data.get("query", {}).get("pages", {})
+                    if not pages:
+                        return None
+                    page = list(pages.values())[0]
+                    title = page.get("title", found_title)
+                else:
+                    logger.debug(f"📚 Страница отсутствует и поиск не дал результата для '{topic}'")
+                    return None
 
             extract = page.get("extract", "").strip()
-
+            if not extract:
+                found_title = await self._wikipedia_search_title(topic)
+                if found_title and found_title != title:
+                    async with httpx.AsyncClient(
+                        timeout=self.wikipedia_timeout, headers=headers
+                    ) as client:
+                        resp = await client.get(
+                            self.wikipedia_url,
+                            params={
+                                "action": "query",
+                                "prop": "extracts",
+                                "exintro": "1",
+                                "explaintext": "1",
+                                "titles": found_title,
+                                "format": "json",
+                            },
+                        )
+                        resp.raise_for_status()
+                        data = resp.json()
+                    pages = data.get("query", {}).get("pages", {})
+                    if pages:
+                        page = list(pages.values())[0]
+                        title = page.get("title", found_title)
+                        extract = page.get("extract", "").strip()
             if not extract:
                 logger.debug(f"📚 Пустой контент для '{topic}'")
                 return None
 
-            # Фильтруем запрещенный контент для детей
             if self._contains_forbidden_content(extract):
                 logger.warning(f"⚠️ Запрещенный контент обнаружен для '{topic}'")
                 return None
 
-            # Адаптируем контент для детей
             extract = self._adapt_content_for_children(extract, user_age)
-
-            # Ограничиваем длину
             if len(extract) > max_length:
-                # Обрезаем по последнему предложению
                 sentences = re.split(r"([.!?]\s+)", extract[: max_length + 100])
                 extract = "".join(sentences[:-2]) if len(sentences) > 2 else extract[:max_length]
                 extract = extract.strip() + "..."
 
-            # Кэшируем на 24 часа
-            await cache_service.set(cache_key, extract, ttl=86400)
-
+            await cache_service.set(cache_key, json.dumps({"e": extract, "t": title}), ttl=86400)
             logger.debug(
                 f"✅ Получены данные для '{topic}' ({len(extract)} символов, возраст: {user_age or 'all'})"
             )
-            return extract
+            return (extract, title)
 
         except httpx.TimeoutException:
             logger.warning(f"⚠️ Таймаут при получении данных для '{topic}'")
@@ -618,14 +689,35 @@ class KnowledgeService:
         Returns:
             str: Проверенный контекст или None.
         """
-        # Извлекаем тему из вопроса
         topic = self._extract_topic_from_question(question)
         if not topic:
             return None
+        result = await self.get_wikipedia_summary(topic, user_age, max_length=400)
+        return result[0] if result else None
 
-        # Получаем проверенные данные
-        verified_data = await self.get_wikipedia_summary(topic, user_age, max_length=400)
-        return verified_data
+    async def get_wikipedia_educational(
+        self, question: str, user_age: int | None = None
+    ) -> EducationalContent | None:
+        """
+        Получить Wikipedia-контент в виде EducationalContent для RAG (когда база пуста).
+        """
+        topic = self._extract_topic_from_question(question)
+        if not topic:
+            return None
+        result = await self.get_wikipedia_summary(topic, user_age, max_length=400)
+        if not result:
+            return None
+        extract, title = result
+        url_title = quote(title.replace(" ", "_"), safe="")
+        return EducationalContent(
+            title=title,
+            content=extract,
+            subject="общее",
+            difficulty="средний",
+            source_url=f"https://ru.wikipedia.org/wiki/{url_title}",
+            extracted_at=datetime.now(),
+            tags=["wikipedia"],
+        )
 
     def _deduplicate_results(self, results: list) -> list:
         """Удалить дубликаты из результатов."""

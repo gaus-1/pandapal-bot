@@ -254,13 +254,13 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
         {/* Счет */}
         <div className="text-center mb-0">
           {won && (
-            <div className="mb-3">
-              <PandaReaction mood="happy" />
+            <div className="mb-2">
+              <PandaReaction mood="happy" size="small" />
             </div>
           )}
           {gameOver && (
-            <div className="mb-3">
-              <PandaReaction mood="sad" />
+            <div className="mb-2">
+              <PandaReaction mood="sad" size="small" />
             </div>
           )}
           <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-100 mb-0">

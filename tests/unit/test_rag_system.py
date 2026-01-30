@@ -413,11 +413,12 @@ class TestRAGIntegration:
             max_length=200
         )
 
-        # Wikipedia должна вернуть что-то полезное
         assert result is not None
         if result:
-            assert len(result) > 0
-            assert len(result) <= 250  # С запасом
+            extract, title = result
+            assert len(extract) > 0
+            assert len(extract) <= 250
+            assert len(title) > 0
 
 
 def test_all_rag_components_importable():

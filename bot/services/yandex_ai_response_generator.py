@@ -789,39 +789,22 @@ class YandexAIResponseGenerator:
         try:
             # Правила по запрещённым темам отключены — модерация не применяется
 
-            # Получение релевантных материалов через enhanced RAG search
+            # RAG: enhanced_search подтягивает Wikipedia при пустой базе (use_wikipedia)
             relevant_materials = await self.knowledge_service.enhanced_search(
                 user_question=user_message,
                 user_age=user_age,
-                top_k=3,  # Топ-3 после reranking
+                top_k=3,
+                use_wikipedia=self._should_use_wikipedia(user_message),
             )
             web_context = self.knowledge_service.format_knowledge_for_ai(relevant_materials)
 
-            # Context compression для экономии токенов
             if web_context:
                 compressor = ContextCompressor()
                 web_context = compressor.compress(
                     context=web_context,
                     question=user_message,
-                    max_sentences=7,  # Максимум 7 самых релевантных предложений
+                    max_sentences=7,
                 )
-
-            # Получение проверенных данных для ответа
-            verified_context = None
-            if self._should_use_wikipedia(user_message):
-                try:
-                    verified_context = (
-                        await self.knowledge_service.get_wikipedia_context_for_question(
-                            user_message, user_age
-                        )
-                    )
-                    if verified_context:
-                        logger.debug(
-                            f"📚 Проверенные данные получены для вопроса: {user_message[:50]}..."
-                        )
-                except Exception as e:
-                    logger.warning(f"⚠️ Ошибка получения проверенных данных: {e}")
-                    # Продолжаем без дополнительного контекста
 
             # Преобразуем историю в формат Yandex Cloud
             yandex_history = []
@@ -859,20 +842,8 @@ class YandexAIResponseGenerator:
                 is_auto_greeting_sent=is_auto_greeting_sent,
             )
 
-            # Добавляем контекст к промпту (проверенные данные имеют приоритет)
-            additional_context = ""
-            if verified_context:
-                additional_context += f"\n\n📖 ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ:\n{verified_context}\n\n"
-                additional_context += (
-                    "Используй эту информацию для точного и достоверного ответа. "
-                    "Адаптируй объяснение для возраста пользователя, но сохраняй точность фактов. "
-                    "КРИТИЧЕСКИ ВАЖНО: Никогда не упоминай Wikipedia, сайты, источники — отвечай от своего имени."
-                )
             if web_context:
-                additional_context += f"\n\n📚 Дополнительная информация:\n{web_context}\n\n"
-                additional_context += "Не упоминай источники в ответе."
-            if additional_context:
-                enhanced_system_prompt += additional_context
+                enhanced_system_prompt += f"\n\n📚 Дополнительная информация:\n{web_context}\n\n"
 
             # Используем Pro модель для всех пользователей (YandexGPT Pro Latest - стабильная версия)
             # Формат yandexgpt-pro/latest - Pro версия YandexGPT

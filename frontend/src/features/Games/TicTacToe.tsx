@@ -157,8 +157,8 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
         {/* Статус */}
         <div className="text-center mb-0">
           {winner && winner !== "draw" && (
-            <div className="mb-3">
-              <PandaReaction mood={winner === "user" ? "sad" : "happy"} />
+            <div className="mb-2">
+              <PandaReaction mood={winner === "user" ? "sad" : "happy"} size="small" />
             </div>
           )}
           <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-100 mb-0">
