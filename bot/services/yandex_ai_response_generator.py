@@ -91,6 +91,31 @@ def _normalize_for_dedup(s: str) -> str:
     return re.sub(r"\s+", " ", s)
 
 
+def _remove_duplicate_long_substrings(text: str, min_len: int = 70) -> str:
+    """
+    Удаляет повторяющиеся длинные подстроки (артефакт стриминга: вставка блока повторно).
+    Убирает второе и последующие вхождения блока длиной min_len+ символов.
+    """
+    if not text or len(text) < min_len * 2:
+        return text
+    result = text
+    changed = True
+    while changed:
+        changed = False
+        for length in range(min(len(result) // 2, 200), min_len - 1, -10):
+            for i in range(len(result) - length):
+                sub = result[i : i + length]
+                if sub.strip() and len(sub.strip()) >= min_len:
+                    j = result.find(sub, i + 1)
+                    if j != -1:
+                        result = result[:j] + result[j + length :]
+                        changed = True
+                        break
+            if changed:
+                break
+    return result
+
+
 def remove_duplicate_text(text: str, min_length: int = 20) -> str:
     """
     Удаляет повторяющиеся фрагменты текста (дубликаты).
@@ -404,6 +429,9 @@ def clean_ai_response(text: str) -> str:
     text = re.sub(r"\[Дай[^\]]*\]", "", text, flags=re.IGNORECASE)
     text = re.sub(r"\[(?:Кто такой|Что такое|Кто такая)[^\]]*\]", "", text, flags=re.IGNORECASE)
     text = re.sub(r"\[[^\]]{15,}\]", "", text)  # длинные скобки — инструкции/заголовки
+
+    # Удаляем повторяющиеся длинные блоки (стриминг иногда вставляет блок дважды)
+    text = _remove_duplicate_long_substrings(text, min_len=70)
 
     # LaTeX в формулах → типографский стиль: убираем \quad, \text{}, \left/\right
     text = re.sub(r"\\quad\s*", " ", text)

@@ -164,6 +164,12 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             )
             return response
 
+        # Нормализация опечаток для маршрутизации и промпта (примеры, подробнее, температура и т.д.)
+        from bot.services.typo_normalizer import normalize_common_typos
+
+        normalized_message = normalize_common_typos(user_message)
+        msg_for_routing = normalized_message
+
         # Правила по запрещённым темам отключены — не применяются ни в каком виде
 
         # Детектор запросов на генерацию изображений
@@ -180,21 +186,20 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             "сгенерируй изображение",
             "создай картинку",
         ]
-        is_image_request = any(keyword in user_message.lower() for keyword in image_keywords)
+        is_image_request = any(keyword in msg_for_routing.lower() for keyword in image_keywords)
 
         logger.debug(
-            f"🎨 Stream: Проверка детектора изображений: '{user_message[:50]}', "
+            f"🎨 Stream: Проверка детектора изображений: '{msg_for_routing[:50]}', "
             f"is_image_request={is_image_request}"
         )
 
         if is_image_request:
-            # КРИТИЧНО: Проверяем, является ли запрос учебным (визуализация)
-            # Если это визуализация - обрабатываем дальше в основном потоке
+            # КРИТИЧНО: Визуализация по нормализованному тексту («график темпереатуры» → график температуры)
             from bot.services.visualization_service import get_visualization_service
 
             viz_service = get_visualization_service()
             visualization_image, visualization_type = viz_service.detect_visualization_request(
-                user_message
+                msg_for_routing
             )
 
             # Если это НЕ визуализация (не учебный запрос) - генерируем через YandexART
@@ -206,14 +211,14 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                 logger.info(
                     f"🎨 Stream: Запрос на генерацию изображения (не учебный) от {telegram_id}: "
-                    f"'{user_message[:50]}', art_service.is_available={is_available}"
+                    f"'{msg_for_routing[:50]}', art_service.is_available={is_available}"
                 )
 
                 if is_available:
                     try:
-                        # Генерируем изображение
+                        # Генерируем по нормализованному запросу (все слова учтены)
                         image_bytes = await art_service.generate_image(
-                            prompt=user_message, style="auto", aspect_ratio="1:1"
+                            prompt=msg_for_routing, style="auto", aspect_ratio="1:1"
                         )
 
                         if image_bytes:
@@ -326,7 +331,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             context_service = MiniappChatContextService(db)
             context = context_service.prepare_context(
                 telegram_id=telegram_id,
-                user_message=user_message,
+                user_message=normalized_message,
                 skip_premium_check=True,
             )
 
@@ -363,10 +368,10 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             from bot.services.rag import ContextCompressor
 
             relevant_materials = await response_generator.knowledge_service.enhanced_search(
-                user_question=user_message,
+                user_question=normalized_message,
                 user_age=user.age,
                 top_k=3,
-                use_wikipedia=response_generator._should_use_wikipedia(user_message),
+                use_wikipedia=response_generator._should_use_wikipedia(normalized_message),
             )
             web_context = response_generator.knowledge_service.format_knowledge_for_ai(
                 relevant_materials
@@ -374,7 +379,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             if web_context:
                 compressor = ContextCompressor()
                 web_context = compressor.compress(
-                    context=web_context, question=user_message, max_sentences=7
+                    context=web_context, question=normalized_message, max_sentences=7
                 )
             if web_context:
                 enhanced_system_prompt += f"\n\n📚 Дополнительная информация:\n{web_context}\n"
@@ -399,7 +404,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 viz_service = get_visualization_service()
 
                 # Парсим весь запрос пользователя
-                intent = intent_service.parse_intent(user_message)
+                intent = intent_service.parse_intent(normalized_message)
 
                 # Детекция визуализаций через новый сервис
                 visualization_service = MiniappVisualizationService()
@@ -409,7 +414,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     general_table_request,
                     general_graph_request,
                     visualization_type,
-                ) = visualization_service.detect_visualization_request(user_message, intent)
+                ) = visualization_service.detect_visualization_request(normalized_message, intent)
 
                 # УЛУЧШЕНО: Проверяем запросы на диаграмму в тексте (например, "нарисуй задачу и покажи диаграмму")
                 has_diagram_request = False
@@ -425,7 +430,8 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         r"покажи\s+к\s+ней\s+круговую",
                     ]
                     has_diagram_request = any(
-                        re.search(pattern, user_message.lower()) for pattern in diagram_patterns
+                        re.search(pattern, normalized_message.lower())
+                        for pattern in diagram_patterns
                     )
 
                 # Если запрос на таблицу умножения, график или диаграмму - собираем весь ответ, не отправляем chunks с таблицей
@@ -439,7 +445,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 collected_chunks = []  # Для фильтрации
 
                 async for chunk in yandex_service.generate_text_response_stream(
-                    user_message=user_message,
+                    user_message=normalized_message,
                     chat_history=yandex_history,
                     system_prompt=enhanced_system_prompt,
                     temperature=temperature,
@@ -820,7 +826,8 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                 # КРИТИЧНО: Если пользователь просил «подробно» — сохраняем текст модели (очищенный)
                 user_wants_detail = (
-                    "подробно" in user_message.lower() or "подробнее" in user_message.lower()
+                    "подробно" in normalized_message.lower()
+                    or "подробнее" in normalized_message.lower()
                 )
                 if visualization_image_base64 and not user_wants_detail:
                     if intent.kind == "table":
@@ -1290,7 +1297,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 try:
                     # Fallback на не-streaming запрос
                     ai_response = await yandex_service.generate_text_response(
-                        user_message=user_message,
+                        user_message=normalized_message,
                         chat_history=yandex_history,
                         system_prompt=enhanced_system_prompt,
                         temperature=temperature,
