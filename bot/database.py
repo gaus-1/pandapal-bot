@@ -497,33 +497,16 @@ def _apply_payments_table_migration() -> None:
 
 
 def _apply_fallback_sql_migration() -> bool:
-    """Применение SQL миграции как fallback."""
-    from pathlib import Path
+    """
+    Fallback при ошибке миграций: схема управляется только через Alembic.
 
-    logger.info("🔄 Пробуем применить SQL скрипт напрямую...")
-    try:
-        project_root = Path(__file__).parent.parent
-        sql_file = project_root / "sql" / "03_add_premium_subscriptions.sql"
-        if not sql_file.exists():
-            logger.warning(f"⚠️ SQL файл не найден: {sql_file}")
-            return False
-
-        with engine.connect() as conn:
-            sql_content = sql_file.read_text(encoding="utf-8")
-            for statement in sql_content.split(";"):
-                statement = statement.strip()
-                if statement and not statement.startswith("--"):
-                    try:
-                        conn.execute(text(statement))
-                    except Exception as sql_err:
-                        if "already exists" not in str(sql_err).lower():
-                            logger.warning(f"⚠️ SQL ошибка (игнорируем): {sql_err}")
-            conn.commit()
-        logger.info("✅ SQL миграция применена успешно")
-        return True
-    except Exception as sql_err:
-        logger.error(f"❌ Не удалось применить SQL миграцию: {sql_err}")
-        return False
+    Не читаем sql/ — единый источник правды: alembic/versions.
+    """
+    logger.warning(
+        "⚠️ Миграции через Alembic не применились. "
+        "Схема БД управляется только Alembic. Выполните вручную: alembic upgrade head"
+    )
+    return False
 
 
 async def init_database() -> None:
