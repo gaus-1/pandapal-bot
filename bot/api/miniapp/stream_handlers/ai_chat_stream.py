@@ -296,6 +296,21 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             )
             return response
 
+        # Модерация: только запрещённые слова (мат). При блоке — вежливый перевод темы, не молчание.
+        from bot.services.moderation_service import ContentModerationService
+
+        moderation_service = ContentModerationService()
+        is_safe, block_reason = moderation_service.is_safe_content(user_message)
+        if not is_safe:
+            redirect_text = moderation_service.get_safe_response_alternative(block_reason or "")
+            moderation_service.log_blocked_content(
+                telegram_id, user_message, block_reason or "модерация"
+            )
+            event_data = json.dumps({"content": redirect_text}, ensure_ascii=False)
+            await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+            await response.write(b"event: done\ndata: {}\n\n")
+            return response
+
         with get_db() as db:
             user_service = UserService(db)
             history_service = ChatHistoryService(db)

@@ -344,6 +344,19 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 f"Сообщений с последнего обращения: {user_message_count}"
             )
 
+            # Модерация: только запрещённые слова (мат). При блоке — вежливый перевод темы, не молчание.
+            from bot.services.moderation_service import ContentModerationService
+
+            moderation_service = ContentModerationService()
+            is_safe, block_reason = moderation_service.is_safe_content(user_message)
+            if not is_safe:
+                redirect_text = moderation_service.get_safe_response_alternative(block_reason or "")
+                moderation_service.log_blocked_content(
+                    telegram_id, user_message, block_reason or "модерация"
+                )
+                await message.answer(text=redirect_text)
+                return
+
             # Показываем статус "Панда печатает..."
             await message.bot.send_chat_action(chat_id=message.chat.id, action="typing")
 

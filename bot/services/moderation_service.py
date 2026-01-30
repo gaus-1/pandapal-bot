@@ -217,6 +217,35 @@ class ContentModerationService(IModerationService):
         "культура и религия",
         "традиции народов",
         "обычаи народов",
+        # === ИНФОРМАТИКА, ОКРУЖАЮЩИЙ МИР, ОБЖ, ТРУД, ИЗО, МУЗЫКА, ОДНКР ===
+        "информатика",
+        "алгоритм",
+        "программирование",
+        "окружающий мир",
+        "природоведение",
+        "природа",
+        "экология",
+        "обж",
+        "основы безопасности",
+        "первая помощь",
+        "гражданская оборона",
+        "физкультура",
+        "физическая культура",
+        "спорт",
+        "технология",
+        "труд",
+        "ручной труд",
+        "конструирование",
+        "изобразительное искусство",
+        "изо",
+        "рисование",
+        "живопись",
+        "музыка",
+        "ноты",
+        "композитор",
+        "однкр",
+        "духовно-нравственная культура",
+        "культура россии",
         # === ОБЩИЕ УЧЕБНЫЕ КОНТЕКСТЫ ===
         "урок",
         "домашнее задание",
@@ -275,7 +304,7 @@ class ContentModerationService(IModerationService):
             "идиот",
         ]
 
-        # Нецензурная лексика на английском
+        # Нецензурная лексика на английском (включая распространённые фразы)
         profanity_words_en = [
             "fuck",
             "shit",
@@ -286,7 +315,14 @@ class ContentModerationService(IModerationService):
             "dick",
             "piss",
             "crap",
-            "hell",  # Используется с точным паттерном \bhell\b, чтобы не блокировать "Hello"
+            "hell",  # \bhell\b — не блокируем "Hello"
+            "wtf",
+            "stfu",
+            "bullshit",
+            "motherfucker",
+            "fucker",
+            "shitty",
+            "damned",
         ]
 
         # Нецензурная лексика на немецком
@@ -364,8 +400,14 @@ class ContentModerationService(IModerationService):
         """Проверяет, является ли вопрос провокационным. Отключено: свобода модели."""
         return False
 
-    def is_safe_content(self, text: str) -> tuple[bool, str | None]:  # noqa: ARG002
-        """Проверка, безопасен ли контент. Отключено: свобода модели, сама знает границы."""
+    def is_safe_content(self, text: str) -> tuple[bool, str | None]:
+        """Проверка, безопасен ли контент. Блокируем ненормативную лексику (все языки)."""
+        if not text or not text.strip():
+            return True, None
+        normalized = text.strip().lower()
+        # Ненормативная лексика (русский, английский, немецкий, французский, испанский)
+        if self._profanity_regex.search(normalized):
+            return False, "ненормативная лексика"
         return True, None
 
     def sanitize_ai_response(self, response: str) -> str:

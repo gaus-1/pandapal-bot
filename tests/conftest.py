@@ -12,6 +12,13 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
+# Загружаем .env первым, чтобы реальный YANDEX_CLOUD_API_KEY использовался в интеграционных тестах
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).parent.parent / ".env")
+except ImportError:
+    pass
+
 # Устанавливаем переменные окружения ДО импорта bot модулей
 # Это критично для тестов, которые не требуют реальных настроек
 if not os.environ.get("DATABASE_URL"):

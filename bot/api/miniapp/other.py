@@ -352,22 +352,14 @@ async def miniapp_get_subjects(request: web.Request) -> web.Response:
     GET /api/miniapp/subjects?telegram_id=123
     """
     try:
-        # Получаем telegram_id из query параметров (опционально)
-        telegram_id = None
+        # Валидация telegram_id из query (опционально)
         telegram_id_str = request.query.get("telegram_id")
         if telegram_id_str:
             with suppress(ValueError):
-                telegram_id = validate_telegram_id(telegram_id_str)
+                validate_telegram_id(telegram_id_str)
 
-        # Предметы (в будущем можно вынести в БД)
+        # Все предметы школьной программы (ФГОС). Доступ ко всем — бесплатно 30 запросов/мес.
         all_subjects = [
-            {
-                "id": "math",
-                "name": "Математика",
-                "icon": "🧮",
-                "description": "Арифметика, алгебра, геометрия",
-                "grade_range": [1, 11],
-            },
             {
                 "id": "russian",
                 "name": "Русский язык",
@@ -376,11 +368,67 @@ async def miniapp_get_subjects(request: web.Request) -> web.Response:
                 "grade_range": [1, 11],
             },
             {
-                "id": "english",
-                "name": "Английский язык",
-                "icon": "🇬🇧",
-                "description": "Vocabulary, grammar, conversation",
+                "id": "literature",
+                "name": "Литература",
+                "icon": "📖",
+                "description": "Чтение, анализ текста, сочинения",
                 "grade_range": [1, 11],
+            },
+            {
+                "id": "math",
+                "name": "Математика",
+                "icon": "🧮",
+                "description": "Алгебра, геометрия, вероятность и статистика",
+                "grade_range": [1, 11],
+            },
+            {
+                "id": "foreign_lang",
+                "name": "Иностранный язык",
+                "icon": "🌐",
+                "description": "Английский, немецкий, французский, испанский",
+                "grade_range": [1, 11],
+            },
+            {
+                "id": "foreign_lang_2",
+                "name": "Второй иностранный язык",
+                "icon": "🗣️",
+                "description": "По выбору школы",
+                "grade_range": [5, 11],
+            },
+            {
+                "id": "native_lang",
+                "name": "Родной язык",
+                "icon": "📜",
+                "description": "По заявлению родителей",
+                "grade_range": [1, 11],
+            },
+            {
+                "id": "native_literature",
+                "name": "Родная литература",
+                "icon": "📚",
+                "description": "По заявлению родителей",
+                "grade_range": [1, 11],
+            },
+            {
+                "id": "history",
+                "name": "История",
+                "icon": "🏛️",
+                "description": "История России, всеобщая история, история родного края",
+                "grade_range": [5, 11],
+            },
+            {
+                "id": "social_studies",
+                "name": "Обществознание",
+                "icon": "👥",
+                "description": "Общество, право, экономика, политика",
+                "grade_range": [5, 11],
+            },
+            {
+                "id": "geography",
+                "name": "География",
+                "icon": "🌍",
+                "description": "Страны, континенты, природа",
+                "grade_range": [5, 11],
             },
             {
                 "id": "physics",
@@ -404,45 +452,71 @@ async def miniapp_get_subjects(request: web.Request) -> web.Response:
                 "grade_range": [5, 11],
             },
             {
-                "id": "geography",
-                "name": "География",
-                "icon": "🌍",
-                "description": "Страны, континенты, природа",
+                "id": "informatics",
+                "name": "Информатика",
+                "icon": "💻",
+                "description": "Алгоритмы, программирование, работа с данными",
+                "grade_range": [1, 11],
+            },
+            {
+                "id": "world_around",
+                "name": "Окружающий мир / Природоведение",
+                "icon": "🌿",
+                "description": "Природа, человек, общество",
+                "grade_range": [1, 5],
+            },
+            {
+                "id": "obzh",
+                "name": "Основы безопасности жизнедеятельности (ОБЖ)",
+                "icon": "🛡️",
+                "description": "Безопасность, первая помощь, гражданская оборона",
                 "grade_range": [5, 11],
             },
             {
-                "id": "history",
-                "name": "История",
-                "icon": "📚",
-                "description": "Древний мир, средние века, новое время",
-                "grade_range": [5, 11],
+                "id": "pe",
+                "name": "Физическая культура",
+                "icon": "⚽",
+                "description": "Спорт, здоровый образ жизни",
+                "grade_range": [1, 11],
+            },
+            {
+                "id": "technology",
+                "name": "Технология (Труд)",
+                "icon": "🔧",
+                "description": "Труд, проекты, конструирование",
+                "grade_range": [1, 11],
+            },
+            {
+                "id": "art",
+                "name": "Изобразительное искусство",
+                "icon": "🎨",
+                "description": "Рисование, живопись, композиция",
+                "grade_range": [1, 7],
+            },
+            {
+                "id": "music",
+                "name": "Музыка",
+                "icon": "🎵",
+                "description": "Музыкальная грамота, пение, слушание",
+                "grade_range": [1, 7],
+            },
+            {
+                "id": "orkse",
+                "name": "Основы религиозных культур и светской этики (ОРКСЭ)",
+                "icon": "☯️",
+                "description": "Модули по выбору, 4–5 класс",
+                "grade_range": [4, 5],
+            },
+            {
+                "id": "odnkr",
+                "name": "Основы духовно-нравственной культуры России (ОДНКР)",
+                "icon": "🇷🇺",
+                "description": "Культура, традиции, нравственность",
+                "grade_range": [5, 9],
             },
         ]
 
-        # Если telegram_id указан, проверяем Premium и ограничиваем доступ
-        if telegram_id:
-            with get_db() as db:
-                from bot.services.premium_features_service import PremiumFeaturesService
-
-                premium_service = PremiumFeaturesService(db)
-                is_premium = premium_service.is_premium_active(telegram_id)
-
-                # Для бесплатных - только базовые предметы
-                if not is_premium:
-                    free_subjects_ids = ["math", "russian", "english"]
-                    subjects = [s for s in all_subjects if s["id"] in free_subjects_ids]
-                    # Добавляем информацию о premium для остальных
-                    for subject in all_subjects:
-                        if subject["id"] not in free_subjects_ids:
-                            subject["premium_required"] = True
-                            subject["locked"] = True
-                else:
-                    subjects = all_subjects
-        else:
-            # Если telegram_id не указан, возвращаем все предметы
-            subjects = all_subjects
-
-        return web.json_response({"success": True, "subjects": subjects})
+        return web.json_response({"success": True, "subjects": all_subjects})
 
     except Exception as e:
         logger.error(f"❌ Ошибка получения предметов: {e}")

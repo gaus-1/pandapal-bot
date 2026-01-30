@@ -433,6 +433,80 @@ class TestSubjectsTextRealAPI:
 
         print(f"\n[OK] Safety (text): {response[:150]}...")
 
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_formula_typographic_format_math(self):
+        """Тест: формулы по математике в типографском стиле (без *, ^, sqrt(), LaTeX)."""
+        from bot.services.ai_service_solid import get_ai_service
+
+        ai_service = get_ai_service()
+        question = "Напиши формулу корней квадратного уравнения и дискриминант. Только формулы с пояснением букв."
+
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=14,
+        )
+
+        assert response is not None, "AI не ответил"
+        assert len(response) > 80, "Ответ слишком короткий"
+
+        # Запрещённый стиль (промпт ЗАПИСЬ ФОРМУЛ)
+        forbidden = [
+            ("x^2", "степень: используй ², не ^2"),
+            ("**", "степень: не **"),
+            ("sqrt(", "корень: используй √, не sqrt()"),
+            ("\\quad", "LaTeX запрещён"),
+            ("\\text", "LaTeX запрещён"),
+            ("\\left", "LaTeX запрещён"),
+            ("\\right", "LaTeX запрещён"),
+        ]
+        for pattern, desc in forbidden:
+            assert pattern not in response, f"Формула в запрещённом стиле ({desc}): найдено '{pattern}' в ответе"
+
+        # Должен быть типографский стиль: ² или · или √ или ×
+        has_typographic = any(c in response for c in ("²", "√", "·", "×"))
+        assert has_typographic, (
+            "В ответе с формулами должен быть типографский стиль (², √, · или ×). "
+            f"Ответ: {response[:300]}..."
+        )
+
+        print(f"\n[OK] Formula format (math): типографский стиль соблюдён")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_formula_typographic_format_physics(self):
+        """Тест: формулы по физике в типографском стиле (без *, Delta t → Δt)."""
+        from bot.services.ai_service_solid import get_ai_service
+
+        ai_service = get_ai_service()
+        question = "Напиши второй закон Ньютона и формулу пути при равноускоренном движении. Только формулы."
+
+        response = await ai_service.generate_response(
+            user_message=question,
+            chat_history=[],
+            user_age=14,
+        )
+
+        assert response is not None, "AI не ответил"
+        assert len(response) > 50, "Ответ слишком короткий"
+
+        # Не должно быть программистского стиля и "Delta t"
+        assert " * " not in response or "·" in response or "×" in response, (
+            "Умножение в формулах: · или ×, не *"
+        )
+        assert "Delta t" not in response and "Delta T" not in response, (
+            "Используй Δt, не Delta t"
+        )
+
+        # Должны быть F, m, a или s, v, t (формулы движения)
+        has_physics = any(
+            x in response for x in ("F", "m", "a", "s", "v", "t", "v₀", "Δt", "·", "×")
+        )
+        assert has_physics, f"Ожидались физические формулы. Ответ: {response[:250]}..."
+
+        print(f"\n[OK] Formula format (physics): типографский стиль соблюдён")
+
 
 @pytest.mark.integration
 @pytest.mark.slow
