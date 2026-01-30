@@ -139,57 +139,56 @@ class MiniappIntentService:
                     f"(извлечено из паттернов)"
                 )
 
-        # Проверяем запросы на графики
+        # Проверяем запросы на графики — ТОЛЬКО при явном запросе визуализации
+        # «Как решать логарифмы», «расскажи про параболу» — текст, без графика
+        graph_request_words = ["график", "покажи", "нарисуй", "построй", "выведи"]
+        has_graph_request = any(w in text_lower for w in graph_request_words) or bool(
+            re.search(r"y\s*=\s*(?:sin|cos|log|exp|x\^?2|x\*\*2)", text_lower)
+        )
         graph_functions = []
 
-        # Сначала проверяем стандартные функции по ключевым словам (приоритет)
-        if "синус" in text_lower or "синусоид" in text_lower or "sin" in text_lower:
-            graph_functions.append("sin(x)")
-        if "косинус" in text_lower or "cos" in text_lower:
-            graph_functions.append("cos(x)")
-        if "тангенс" in text_lower or "tan" in text_lower:
-            graph_functions.append("tan(x)")
-        if "парабол" in text_lower or "порабол" in text_lower:
-            graph_functions.append("x**2")
-        if "экспонент" in text_lower or "exp" in text_lower:
-            graph_functions.append("exp(x)")
-        if "логарифм" in text_lower or "log" in text_lower:
-            graph_functions.append("log(x)")
+        if has_graph_request:
+            # Сначала проверяем стандартные функции по ключевым словам (приоритет)
+            if "синус" in text_lower or "синусоид" in text_lower or "sin" in text_lower:
+                graph_functions.append("sin(x)")
+            if "косинус" in text_lower or "cos" in text_lower:
+                graph_functions.append("cos(x)")
+            if "тангенс" in text_lower or "tan" in text_lower:
+                graph_functions.append("tan(x)")
+            if "парабол" in text_lower or "порабол" in text_lower:
+                graph_functions.append("x**2")
+            if "экспонент" in text_lower or "exp" in text_lower:
+                graph_functions.append("exp(x)")
+            if "логарифм" in text_lower or "log" in text_lower:
+                graph_functions.append("log(x)")
 
-        # Затем парсим паттерны для извлечения формул
-        for pattern in self.GRAPH_PATTERNS:
-            matches = re.finditer(pattern, text_lower)
-            for match in matches:
-                if match.groups():
-                    expr = match.group(1).strip()
-                    if expr:
-                        # КРИТИЧНО: Парсим несколько функций из строки (разделители: "и", ",", "и y =")
-                        # Примеры: "x² и y = x³" → ["x**2", "x**3"]
-                        #          "синуса и косинуса" → уже обработано выше через ключевые слова
-
-                        # Разделяем по "и" или ","
-                        parts = re.split(r"\s+и\s+|,\s*|\s+и\s+y\s*=\s*", expr, flags=re.IGNORECASE)
-                        for part in parts:
-                            part = part.strip()
-                            if not part:
-                                continue
-
-                            # Нормализуем выражение: убираем "y =", заменяем ², ³, ^
-                            part = re.sub(r"^y\s*=\s*", "", part, flags=re.IGNORECASE)
-                            part = part.replace("²", "**2").replace("³", "**3").replace("^", "**")
-
-                            # Проверяем, что это валидное математическое выражение
-                            # Разрешаем: x, числа, операторы, функции sin/cos/tan/exp/log/sqrt
-                            if re.match(r"^[x\s+\-*/().\d\s]+$", part) or re.match(
-                                r"^(sin|cos|tan|exp|log|sqrt|ln)\(x\)$", part, re.IGNORECASE
-                            ):
-                                # Нормализуем функции к стандартному виду
-                                part = re.sub(r"^ln\(", "log(", part, flags=re.IGNORECASE)
-                                graph_functions.append(part)
-                            # Если это просто "x²" или "x³" без "y ="
-                            elif re.match(r"^x[²³]$", part):
-                                part = part.replace("²", "**2").replace("³", "**3")
-                                graph_functions.append(part)
+        # Затем парсим паттерны для извлечения формул (только при явном «график/нарисуй/покажи»)
+        if has_graph_request:
+            for pattern in self.GRAPH_PATTERNS:
+                matches = re.finditer(pattern, text_lower)
+                for match in matches:
+                    if match.groups():
+                        expr = match.group(1).strip()
+                        if expr:
+                            parts = re.split(
+                                r"\s+и\s+|,\s*|\s+и\s+y\s*=\s*", expr, flags=re.IGNORECASE
+                            )
+                            for part in parts:
+                                part = part.strip()
+                                if not part:
+                                    continue
+                                part = re.sub(r"^y\s*=\s*", "", part, flags=re.IGNORECASE)
+                                part = (
+                                    part.replace("²", "**2").replace("³", "**3").replace("^", "**")
+                                )
+                                if re.match(r"^[x\s+\-*/().\d\s]+$", part) or re.match(
+                                    r"^(sin|cos|tan|exp|log|sqrt|ln)\(x\)$", part, re.IGNORECASE
+                                ):
+                                    part = re.sub(r"^ln\(", "log(", part, flags=re.IGNORECASE)
+                                    graph_functions.append(part)
+                                elif re.match(r"^x[²³]$", part):
+                                    part = part.replace("²", "**2").replace("³", "**3")
+                                    graph_functions.append(part)
 
         if graph_functions:
             intent.kind = "graph" if intent.kind is None else "both"

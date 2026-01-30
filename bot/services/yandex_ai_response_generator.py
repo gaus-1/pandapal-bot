@@ -521,6 +521,10 @@ def clean_ai_response(text: str) -> str:
                 unique_ordered.append(paragraphs[i])
         text = "\n\n".join(unique_ordered)
 
+    # Артефакты модели: "2dot 6" → "2·6", "х } = -2" → "х = -2"
+    text = re.sub(r"(\d+)dot\s+(\d+)", r"\1·\2", text, flags=re.IGNORECASE)
+    text = re.sub(r"(\w)\s*\}\s*=\s*", r"\1 = ", text)
+
     # Исправляем форматирование таблицы умножения
     # Паттерн 1: "1. 3 1 = 3" → "1. 3 × 1 = 3" (нумерованные списки - сначала обрабатываем их)
     text = re.sub(r"(\d+\.\s+)(\d+)\s+(\d+)\s*=\s*(\d+)", r"\1\2 × \3 = \4", text)
