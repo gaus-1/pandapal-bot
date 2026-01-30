@@ -85,3 +85,21 @@ def test_clean_removes_bracket_placeholders():
     cleaned = clean_ai_response(text)
     assert "[Кто такой" not in cleaned
     assert "Пифагор был" in cleaned
+
+
+@pytest.mark.unit
+def test_clean_fixes_glued_and_duplicate_words():
+    """Склейки вершинвершина, результатеером, Рекаких и повтор «факты факты» исправляются."""
+    text = (
+        "Вершинвершина параболы — это точка. "
+        "Некоторые факты факты о Павле I: был убит в результатеером. "
+        "Рекаких условиях поток турбулентный."
+    )
+    cleaned = clean_ai_response(text)
+    assert "вершинвершина" not in cleaned
+    assert "вершина" in cleaned
+    assert "факты факты" not in cleaned
+    assert "результатеером" not in cleaned
+    assert "результате заговора" in cleaned
+    assert "Рекаких" not in cleaned
+    assert "Re. При каких" in cleaned or "при каких" in cleaned
