@@ -15,28 +15,6 @@ import { trackButtonClick } from '../utils/analytics';
 export const Hero: React.FC = React.memo(() => {
   return (
     <section className="pt-12 sm:pt-16 md:pt-20 pb-12 sm:pb-16 md:pb-20 text-center">
-      {/* Schema.org для SEO */}
-      <script type="application/ld+json">
-        {JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          "name": "PandaPal",
-          "applicationCategory": "EducationalApplication",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "RUB"
-          },
-          "operatingSystem": "Telegram",
-          "description": "Безопасный AI-ассистент для обучения школьников 1-9 классов",
-          "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "4.9",
-            "ratingCount": "150"
-          }
-        })}
-      </script>
-
       <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
         {/* Основной заголовок (H1 для SEO) */}
         <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-gray-900 dark:text-slate-50">

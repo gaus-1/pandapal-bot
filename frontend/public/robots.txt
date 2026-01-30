@@ -16,6 +16,3 @@ Allow: /
 # Disallow admin/internal pages (если появятся)
 # Disallow: /admin/
 # Disallow: /api/
-
-# Crawl-delay (опционально, для вежливых ботов)
-Crawl-delay: 1

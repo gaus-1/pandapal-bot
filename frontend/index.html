@@ -206,13 +206,6 @@
         "@type": "ContactPoint",
         "contactType": "Customer Support",
         "availableLanguage": ["Russian", "English"]
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.9",
-        "ratingCount": "150",
-        "bestRating": "5",
-        "worstRating": "1"
       }
     }
     </script>
@@ -314,7 +307,7 @@
     }
     </script>
 
-    <!-- WebSite Schema with SearchAction -->
+    <!-- WebSite Schema (без SearchAction — поиск по сайту не реализован) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -322,14 +315,6 @@
       "name": "PandaPal",
       "alternateName": "PandaPal — Безопасный и полезный AI - друг для детей",
       "url": "https://pandapal.ru",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": {
-          "@type": "EntryPoint",
-          "urlTemplate": "https://pandapal.ru/?q={search_term_string}"
-        },
-        "query-input": "required name=search_term_string"
-      },
       "description": "PandaPal — Безопасный и полезный AI - друг для детей. Telegram Mini App с ИИ для безопасного обучения школьников 1-9 классов.",
       "inLanguage": ["ru", "en"]
     }

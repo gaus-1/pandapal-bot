@@ -14,7 +14,7 @@ describe('Hero Component', () => {
     const heading = screen.getByRole('heading', { level: 1 });
     expect(heading).toBeInTheDocument();
     expect(heading).toHaveTextContent(/безопасный/i);
-    expect(heading).toHaveTextContent(/ребенка/i);
+    expect(heading).toHaveTextContent(/друг для детей/i);
   });
 
   it('должен отображать описание продукта', () => {
@@ -43,11 +43,11 @@ describe('Hero Component', () => {
     expect(primaryCta).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('вторичная CTA должна вести на секцию #cta', () => {
+  it('вторичная CTA должна вести на секцию #benefits', () => {
     render(<Hero />);
 
     const secondaryCta = screen.getByRole('link', { name: /узнать больше/i });
-    expect(secondaryCta).toHaveAttribute('href', '#cta');
+    expect(secondaryCta).toHaveAttribute('href', '#benefits');
   });
 
   it('CTA-кнопки должны иметь data-атрибуты для аналитики', () => {
@@ -60,18 +60,12 @@ describe('Hero Component', () => {
     expect(secondaryCta).toHaveAttribute('data-cta-variant', 'secondary');
   });
 
-  it('должен содержать Schema.org разметку для SEO', () => {
+  it('должен содержать единственный H1 для SEO', () => {
     const { container } = render(<Hero />);
 
-    const schemaScript = container.querySelector('script[type="application/ld+json"]');
-    expect(schemaScript).toBeInTheDocument();
-
-    if (schemaScript) {
-      const schemaData = JSON.parse(schemaScript.textContent || '{}');
-      expect(schemaData['@type']).toBe('SoftwareApplication');
-      expect(schemaData.name).toBe('PandaPal');
-      expect(schemaData.applicationCategory).toBe('EducationalApplication');
-    }
+    const h1List = container.querySelectorAll('h1');
+    expect(h1List).toHaveLength(1);
+    expect(h1List[0]).toHaveTextContent(/PandaPal|безопасный|друг для детей/i);
   });
 
   it('должен показывать кнопки CTA', () => {
@@ -83,6 +77,6 @@ describe('Hero Component', () => {
 
     // Проверяем что есть кнопка "Узнать больше"
     const secondaryCta = screen.getByRole('link', { name: /узнать больше/i });
-    expect(secondaryCta).toHaveAttribute('href', '#cta');
+    expect(secondaryCta).toHaveAttribute('href', '#benefits');
   });
 });
