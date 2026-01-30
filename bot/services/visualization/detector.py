@@ -9,6 +9,8 @@ import re
 
 from loguru import logger
 
+from bot.config.response_rules import VISUALIZATION_TRIGGER_WORDS
+
 try:
     import matplotlib
 
@@ -50,10 +52,8 @@ class VisualizationDetector:
         """
         text_lower = text.lower().strip()
 
-        # Паттерны для вопросов "где находится" (БЕЗ слов "покажи", "нарисуй" и т.д.)
-        # Если есть "покажи" - это прямой запрос на карту, не географический вопрос
-        show_keywords = ["покажи", "нарисуй", "построй", "выведи", "отобрази", "создай", "составь"]
-        if any(kw in text_lower for kw in show_keywords):
+        # Паттерны для вопросов "где находится" (БЕЗ явного запроса визуализации)
+        if any(kw in text_lower for kw in VISUALIZATION_TRIGGER_WORDS):
             return None  # Это прямой запрос на карту
 
         # Паттерны географических вопросов
@@ -222,13 +222,8 @@ class VisualizationDetector:
         text_lower = text.lower()
 
         # КРИТИЧЕСКИ ВАЖНО: Проверяем явные запросы визуализации
-        # Слова, которые указывают на запрос визуализации
-        # УЛУЧШЕНО: Добавлены ключевые слова из примера для лучшей детекции
-        visualization_request_words = [
-            "покажи",
-            "нарисуй",
-            "выведи",
-            "отобрази",
+        # Базовые триггеры — из response_rules; остальное — детские/предметные формулировки
+        visualization_request_words = list(VISUALIZATION_TRIGGER_WORDS) + [
             "покажи мне",
             "нарисуй мне",
             "выведи мне",
@@ -236,10 +231,8 @@ class VisualizationDetector:
             "покажи как",
             "нарисуй как",
             "изобрази",
-            "создай",
             "сделай",
-            "построй",
-            # УЛУЧШЕНО: Добавлены детские формулировки из примера
+            # Детские формулировки
             "скинь",
             "дай",
             "дай мне",

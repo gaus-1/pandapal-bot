@@ -10,6 +10,7 @@ from enum import Enum
 
 from loguru import logger
 
+from bot.config.response_rules import FORMATTING_RULES_SNIPPET
 from bot.services.yandex_cloud_service import get_yandex_cloud_service
 
 
@@ -173,8 +174,7 @@ class VisionService:
 
             homework_system_prompt = (
                 "Ты PandaPal, образовательный помощник для школьников. Отвечай на «ты». "
-                "Соблюдай те же правила оформления, что в основном чате: абзацы, списки через дефис или тире, "
-                "ключевые термины жирным (**термин** с пробелами вокруг). Без повторов блоков, без инструкций в скобках. "
+                f"{FORMATTING_RULES_SNIPPET} "
                 "Проверь ДЗ, укажи ошибки и объясни. Не упоминай источники. Решай задачи полностью, не только подсказывай."
             )
             result = await self.yandex_service.analyze_image_with_text(

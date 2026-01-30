@@ -11,6 +11,8 @@ from typing import Literal
 
 from loguru import logger
 
+from bot.config.response_rules import VISUALIZATION_TRIGGER_WORDS
+
 
 @dataclass
 class VisualizationIntent:
@@ -141,8 +143,7 @@ class MiniappIntentService:
 
         # Проверяем запросы на графики — ТОЛЬКО при явном запросе визуализации
         # «Как решать логарифмы», «расскажи про параболу» — текст, без графика
-        graph_request_words = ["график", "покажи", "нарисуй", "построй", "выведи"]
-        has_graph_request = any(w in text_lower for w in graph_request_words) or bool(
+        has_graph_request = any(w in text_lower for w in VISUALIZATION_TRIGGER_WORDS) or bool(
             re.search(r"y\s*=\s*(?:sin|cos|log|exp|x\^?2|x\*\*2)", text_lower)
         )
         graph_functions = []

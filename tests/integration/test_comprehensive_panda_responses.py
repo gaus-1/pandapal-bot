@@ -4,13 +4,15 @@
 Проверяет:
 1. Визуализации (графики, таблицы, диаграммы, схемы, карты) по ВСЕМ предметам
 2. Текстовые ответы - развернутые, структурированные, подробные
-3. Обработку фото - полная обработка и проверка ДЗ
-4. Модерацию - НЕ блокирует школьные вопросы (история, география и т.д.)
+3. Запросы «подробнее», «объясни», «приведи примеры для закрепления» — структура и грамотность
+4. Обработку фото - полная обработка и проверка ДЗ
+5. Модерацию - НЕ блокирует школьные вопросы (история, география и т.д.)
 
 Использует РЕАЛЬНЫЙ API Yandex Cloud.
 """
 
 import os
+import re
 
 import pytest
 
@@ -84,6 +86,36 @@ class TestComprehensivePandaResponses:
             "total_length": len(response),
         }
 
+    def _assert_structure_and_russian(self, response: str, context: str = "") -> None:
+        """
+        Строгая проверка: структура (абзацы, списки/жирный) и грамотность (законченные предложения).
+        Промпт: СТРУКТУРА ОТВЕТА, ОТВЕТ НА «ПОДРОБНЕЕ», ГРАМОТНОСТЬ, ПРАВИЛА ПОСТРОЕНИЯ ТЕКСТА.
+        """
+        assert response and len(response.strip()) > 50, f"{context}Ответ слишком короткий или пустой"
+        paragraphs = [p.strip() for p in response.split("\n\n") if p.strip()]
+        # Длинный ответ — обязательно абзацы (запрещён сплошной текст)
+        if len(response) > 250:
+            assert len(paragraphs) >= 2, (
+                f"{context}Ответ без абзацев (должны быть \\n\\n между блоками). "
+                f"Получено абзацев: {len(paragraphs)}"
+            )
+        # Маркеры структуры: списки (- или 1. 2. 3.) или жирный (**термин**)
+        has_lists = "- " in response or "\n- " in response or re.search(r"\n\d+\.\s", response)
+        has_bold = "**" in response
+        assert has_lists or has_bold, (
+            f"{context}Нет списков (- или 1. 2. 3.) или выделений (**). "
+            "Промпт требует структурированный ответ."
+        )
+        # Грамотность: предложения должны заканчиваться точкой/вопросом/восклицанием
+        sentence_endings = response.count(".") + response.count("!") + response.count("?")
+        assert sentence_endings >= 2, (
+            f"{context}Мало законченных предложений (нужны . ! ?). Получено: {sentence_endings}"
+        )
+        # Нет склеенных слов (артефакты модели)
+        assert "УПривет" not in response and "шеПривет" not in response, (
+            f"{context}Склеенные слова в ответе (УПривет, шеПривет и т.п.)"
+        )
+
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
     async def test_moderation_not_blocks_school_questions(self):
@@ -147,9 +179,11 @@ class TestComprehensivePandaResponses:
         assert not is_safe, "Профанити должен блокироваться"
         redirect = service.get_safe_response_alternative("ненормативная лексика")
         assert redirect and len(redirect.strip()) > 20, "При блоке должен быть вежливый редирект, не пусто"
-        assert "учёб" in redirect.lower() or "школ" in redirect.lower() or "помощ" in redirect.lower(), (
-            "Редирект должен предлагать учёбу/помощь"
-        )
+        redirect_lower = redirect.lower()
+        assert (
+            "учёб" in redirect_lower or "учеб" in redirect_lower or "школ" in redirect_lower
+            or "помощ" in redirect_lower or "помог" in redirect_lower
+        ), "Редирект должен предлагать учёбу/помощь"
         print(f"\n[OK] Редирект при блоке: {redirect[:80]}...")
 
     @pytest.mark.asyncio
@@ -171,6 +205,71 @@ class TestComprehensivePandaResponses:
             "Ответ должен вежливо переводить на учёбу"
         )
         print(f"\n[OK] Мета-вопрос получил ответ: {response[:120]}...")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_podrobnee_followup_has_structure(self):
+        """ОТВЕТ НА «ПОДРОБНЕЕ»: при follow-up «Подробнее» ответ обязан быть структурирован (абзацы, списки, **)."""
+        from bot.services.ai_service_solid import get_ai_service
+
+        ai_service = get_ai_service()
+        chat_history = [
+            {"role": "user", "text": "Что такое парабола?"},
+            {"role": "assistant", "text": "Парабола — это график квадратичной функции y = x². Она симметрична и имеет вершину."},
+            {"role": "user", "text": "Расскажи подробнее"},
+        ]
+        response = await ai_service.generate_response(
+            user_message="Расскажи подробнее",
+            chat_history=chat_history,
+            user_age=12,
+        )
+        self._assert_structure_and_russian(response, context="[Подробнее] ")
+        print(f"\n[OK] Подробнее (follow-up): структура соблюдена, ответ: {len(response)} символов")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_examples_for_reinforcement_has_structure(self):
+        """При запросе «примеры для закрепления» / «задачи на закрепление» — структура обязательна (промпт ПОЛНОТА)."""
+        from bot.services.ai_service_solid import get_ai_service
+
+        ai_service = get_ai_service()
+        response = await ai_service.generate_response(
+            user_message="Приведи примеры для закрепления по теме квадратные уравнения. Задачи с пояснением.",
+            chat_history=[],
+            user_age=14,
+        )
+        self._assert_structure_and_russian(response, context="[Примеры для закрепления] ")
+        print(f"\n[OK] Примеры для закрепления: структура соблюдена, ответ: {len(response)} символов")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_obyasni_privesti_primeri_has_structure(self):
+        """Запросы «Объясни» / «приведи примеры» — структура и грамотность (русский язык)."""
+        from bot.services.ai_service_solid import get_ai_service
+
+        ai_service = get_ai_service()
+        response = await ai_service.generate_response(
+            user_message="Объясни что такое подлежащее и сказуемое. Приведи примеры предложений для закрепления.",
+            chat_history=[],
+            user_age=10,
+        )
+        self._assert_structure_and_russian(response, context="[Объясни + примеры] ")
+        print(f"\n[OK] Объясни + примеры: структура и грамотность соблюдены, ответ: {len(response)} символов")
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_obyasni_podrobnee_first_message_has_structure(self):
+        """Первый запрос «Объясни подробнее про X» — структура обязательна (триггеры промпта ОТВЕТ НА «ПОДРОБНЕЕ»)."""
+        from bot.services.ai_service_solid import get_ai_service
+
+        ai_service = get_ai_service()
+        response = await ai_service.generate_response(
+            user_message="Объясни подробнее про фотосинтез: как происходит, зачем нужен растениям.",
+            chat_history=[],
+            user_age=11,
+        )
+        self._assert_structure_and_russian(response, context="[Объясни подробнее] ")
+        print(f"\n[OK] Объясни подробнее (первый запрос): структура соблюдена, ответ: {len(response)} символов")
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")

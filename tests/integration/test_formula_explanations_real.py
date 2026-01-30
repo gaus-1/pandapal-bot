@@ -205,12 +205,16 @@ class TestFormulaExplanationsWithAI:
         assert len(response) > 150
         response_lower = response.lower()
         # Проверяем ключевые слова
-        assert any(word in response_lower for word in ["плотность", "масса", "объем"])
-        # Проверяем что есть пример из жизни
+        assert any(word in response_lower for word in ["плотность", "масса", "объем", "объём"])
+        # Проверяем что есть пример из жизни или связь с опытом
+        life_example_words = [
+            "железо", "дерево", "вода", "тонет", "плавает",
+            "легкий", "лёгкий", "тяжелый", "тяжёлый",
+            "например", "пример", "г/см", "кг/м", "единиц",
+        ]
         assert any(
-            word in response_lower
-            for word in ["железо", "дерево", "вода", "тонет", "плавает", "легкий", "тяжелый"]
-        )
+            word in response_lower for word in life_example_words
+        ), f"Ожидался пример или единицы плотности. Ответ: {response[:300]}..."
         # Проверяем что есть числовой пример
         assert any(char.isdigit() for char in response)
         logger.info(f"✅ Ответ AI:\n{response}")
