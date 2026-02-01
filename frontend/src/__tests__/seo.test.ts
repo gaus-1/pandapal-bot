@@ -40,28 +40,43 @@ describe('SEO: index.html', () => {
     expect(html).toContain('og:image');
   });
 
-  it('должен содержать hreflang для RU, EN, BY, KZ', () => {
+  it('должен содержать hreflang для RU, EN, BY, KZ, MD, RO, KG, UZ', () => {
     const html = readIndexHtml();
     expect(html).toContain('hreflang="ru"');
     expect(html).toContain('hreflang="en"');
     expect(html).toContain('hreflang="be"');
     expect(html).toContain('hreflang="kk"');
+    expect(html).toContain('hreflang="ro"');
+    expect(html).toContain('hreflang="ky"');
+    expect(html).toContain('hreflang="uz"');
     expect(html).toContain('hreflang="x-default"');
   });
 
-  it('должен содержать og:locale:alternate для be_BY и kk_KZ', () => {
+  it('должен содержать og:locale:alternate для BY, KZ, MD, RO, KG, UZ', () => {
     const html = readIndexHtml();
     expect(html).toContain('og:locale:alternate" content="be_BY"');
     expect(html).toContain('og:locale:alternate" content="kk_KZ"');
+    expect(html).toContain('og:locale:alternate" content="ro_MD"');
+    expect(html).toContain('og:locale:alternate" content="ro_RO"');
+    expect(html).toContain('og:locale:alternate" content="ky_KG"');
+    expect(html).toContain('og:locale:alternate" content="uz_UZ"');
   });
 
-  it('должен содержать geo для России, Беларуси, Казахстана', () => {
+  it('должен содержать geo для RU, BY, KZ, MD, RO, KG, UZ', () => {
     const html = readIndexHtml();
     expect(html).toContain('geo.country" content="RU"');
     expect(html).toContain('geo.country" content="BY"');
     expect(html).toContain('geo.country" content="KZ"');
+    expect(html).toContain('geo.country" content="MD"');
+    expect(html).toContain('geo.country" content="RO"');
+    expect(html).toContain('geo.country" content="KG"');
+    expect(html).toContain('geo.country" content="UZ"');
     expect(html).toContain('geo.region" content="BY"');
     expect(html).toContain('geo.region" content="KZ"');
+    expect(html).toContain('geo.region" content="MD"');
+    expect(html).toContain('geo.region" content="RO"');
+    expect(html).toContain('geo.region" content="KG"');
+    expect(html).toContain('geo.region" content="UZ"');
   });
 
   it('Organization Schema не должен содержать aggregateRating', () => {
