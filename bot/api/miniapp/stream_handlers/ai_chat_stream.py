@@ -136,6 +136,18 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 )
                 return response
 
+            # Проверка ленивости панды (как в Telegram и обычном Mini App chat)
+            from bot.services.panda_lazy_service import PandaLazyService
+
+            lazy_service = PandaLazyService(db)
+            is_lazy, lazy_message = lazy_service.check_and_update_lazy_state(telegram_id)
+            if is_lazy and lazy_message:
+                logger.info(f"😴 Mini App Stream: Панда 'ленива' для пользователя {telegram_id}")
+                event_data = json.dumps({"content": lazy_message}, ensure_ascii=False)
+                await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+                await response.write(b"event: done\ndata: {}\n\n")
+                return response
+
         # Отправляем событие начала обработки
         await response.write(b'event: start\ndata: {"status": "processing"}\n\n')
 

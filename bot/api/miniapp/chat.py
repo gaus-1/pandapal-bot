@@ -129,6 +129,15 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                     status=429,
                 )
 
+            # Проверка ленивости панды (как в Telegram-обработчике)
+            from bot.services.panda_lazy_service import PandaLazyService
+
+            lazy_service = PandaLazyService(db)
+            is_lazy, lazy_message = lazy_service.check_and_update_lazy_state(telegram_id)
+            if is_lazy and lazy_message:
+                logger.info(f"😴 Mini App: Панда 'ленива' для пользователя {telegram_id}")
+                return web.json_response({"response": lazy_message})
+
         message = validated.message or ""
         photo_base64 = validated.photo_base64
         audio_base64 = validated.audio_base64

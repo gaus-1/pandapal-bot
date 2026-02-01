@@ -1,4 +1,4 @@
-# Нормализация окончаний строк: в репозитории LF. Windows: git config core.autocrlf false
+# Нормализация окончаний строк: в репозитории LF
 * text=auto eol=lf
 *.py text eol=lf
 *.ts text eol=lf
