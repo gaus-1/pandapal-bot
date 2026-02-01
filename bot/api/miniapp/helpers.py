@@ -17,7 +17,10 @@ from bot.services.vision_service import VisionService
 
 
 async def process_audio_message(
-    audio_base64: str, telegram_id: int, message: str
+    audio_base64: str,
+    telegram_id: int,
+    message: str,
+    language_code: str | None = None,
 ) -> tuple[str | None, web.Response | None]:
     """
     Обработка голосового сообщения.
@@ -59,8 +62,9 @@ async def process_audio_message(
                 status=413,
             )
 
+        speech_lang = "en" if (language_code or "").strip().lower().startswith("en") else "ru"
         speech_service = get_speech_service()
-        transcribed_text = await speech_service.transcribe_voice(audio_bytes, language="ru")
+        transcribed_text = await speech_service.transcribe_voice(audio_bytes, language=speech_lang)
 
         if not transcribed_text or not transcribed_text.strip():
             logger.warning("⚠️ Аудио не распознано или пустое")

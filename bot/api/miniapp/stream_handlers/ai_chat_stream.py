@@ -154,7 +154,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
         # Обработка аудио (приоритетнее фото)
         if audio_base64:
             audio_service = MiniappAudioService()
-            user_message = await audio_service.process_audio(audio_base64, telegram_id, response)
+            user_message = await audio_service.process_audio(
+                audio_base64, telegram_id, response, language_code=validated.language_code
+            )
             if user_message is None:
                 # Ошибка уже отправлена через response
                 return response
@@ -175,6 +177,26 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 b'event: error\ndata: {"error": "message, photo or audio required"}\n\n'
             )
             return response
+
+        # Предложение отдыха/игры после 10 или 20 ответов подряд
+        with get_db() as db_rest:
+            user_rest = UserService(db_rest).get_user_by_telegram_id(telegram_id)
+            if user_rest:
+                from bot.services.panda_lazy_service import PandaLazyService
+
+                lazy_service = PandaLazyService(db_rest)
+                rest_response, _ = lazy_service.check_rest_offer(
+                    telegram_id, user_message, user_rest.first_name
+                )
+                if rest_response:
+                    history_service_rest = ChatHistoryService(db_rest)
+                    history_service_rest.add_message(telegram_id, user_message, "user")
+                    history_service_rest.add_message(telegram_id, rest_response, "ai")
+                    db_rest.commit()
+                    event_data = json.dumps({"content": rest_response}, ensure_ascii=False)
+                    await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+                    await response.write(b"event: done\ndata: {}\n\n")
+                    return response
 
         # Нормализация опечаток для маршрутизации и промпта (примеры, подробнее, температура и т.д.)
         from bot.services.typo_normalizer import normalize_common_typos
@@ -269,6 +291,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                                     message_type="ai",
                                     image_url=image_url,
                                 )
+                                from bot.services.panda_lazy_service import PandaLazyService
+
+                                PandaLazyService(db).increment_consecutive_after_ai(telegram_id)
                                 db.commit()
                             return response
                         else:
@@ -1229,6 +1254,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     history_service.add_message(
                         telegram_id, full_response_for_db, "ai", image_url=image_url
                     )
+                    from bot.services.panda_lazy_service import PandaLazyService
+
+                    PandaLazyService(db).increment_consecutive_after_ai(telegram_id)
 
                     # Если история была очищена и пользователь, возможно, назвал имя или класс
                     if is_history_cleared and not user.skip_name_asking:
@@ -1582,6 +1610,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                             history_service.add_message(
                                 telegram_id, cleaned_response, "ai", image_url=image_url
                             )
+                            from bot.services.panda_lazy_service import PandaLazyService
+
+                            PandaLazyService(db).increment_consecutive_after_ai(telegram_id)
                             db.commit()
                             logger.info(
                                 f"✅ Stream: Fallback успешен, ответ сохранен для {telegram_id}"

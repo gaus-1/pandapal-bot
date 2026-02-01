@@ -73,6 +73,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
           : 'http://localhost:10000/api';
 
         // Отправляем запрос на streaming endpoint через POST
+        const languageCode = telegram.getUser()?.languageCode;
         const response = await fetch(`${API_BASE_URL}/miniapp/ai/chat-stream`, {
           method: 'POST',
           headers: {
@@ -83,6 +84,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
             message,
             photo_base64: photoBase64,
             audio_base64: audioBase64,
+            ...(languageCode ? { language_code: languageCode } : {}),
           }),
         });
 

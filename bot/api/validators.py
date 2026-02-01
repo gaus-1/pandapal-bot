@@ -41,6 +41,9 @@ class AIChatRequest(BaseModel):
     message: str | None = Field(None, max_length=4000, description="Текстовое сообщение")
     photo_base64: str | None = Field(None, max_length=15 * 1024 * 1024, description="Base64 фото")
     audio_base64: str | None = Field(None, max_length=15 * 1024 * 1024, description="Base64 аудио")
+    language_code: str | None = Field(
+        None, max_length=10, description="Язык для распознавания речи (ru, en)"
+    )
 
     @field_validator("message")
     @classmethod

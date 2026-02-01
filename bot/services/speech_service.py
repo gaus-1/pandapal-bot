@@ -12,6 +12,17 @@ from loguru import logger
 
 from bot.services.yandex_cloud_service import get_yandex_cloud_service
 
+# Коды языков Yandex SpeechKit (ru-RU, en-US)
+YANDEX_SPEECH_LANGUAGE: dict[str, str] = {"ru": "ru-RU", "en": "en-US"}
+
+
+def _normalize_speech_language(language: str | None) -> str:
+    """Нормализация кода языка для SpeechKit: ru или en."""
+    if not language or not language.strip():
+        return "ru"
+    lang = language.strip().lower()
+    return "en" if lang.startswith("en") else "ru"
+
 
 class SpeechRecognitionService:
     """Сервис для распознавания речи через Yandex SpeechKit STT."""
@@ -24,7 +35,9 @@ class SpeechRecognitionService:
     async def transcribe_voice(self, voice_file_bytes: bytes, language: str = "ru") -> str | None:
         """Распознать речь из голосового сообщения через Yandex SpeechKit."""
         try:
-            logger.info(f"🎤 Распознавание речи через Yandex SpeechKit (язык: {language})")
+            lang = _normalize_speech_language(language)
+            yandex_language = YANDEX_SPEECH_LANGUAGE.get(lang, "ru-RU")
+            logger.info(f"🎤 Распознавание речи через Yandex SpeechKit (язык: {yandex_language})")
 
             # Конвертируем webm в oggopus через ffmpeg (если нужно)
             audio_data = await self._convert_audio_if_needed(voice_file_bytes)
@@ -32,10 +45,7 @@ class SpeechRecognitionService:
             # Определяем формат аудио
             audio_format = "oggopus"
 
-            # Язык в формате Yandex Cloud (ru-RU, en-US)
-            yandex_language = f"{language}-{language.upper()}"
-
-            # Распознаем речь через Yandex SpeechKit
+            # Распознаём речь через Yandex SpeechKit (ru-RU или en-US)
             recognized_text = await self.yandex_service.recognize_speech(
                 audio_data=audio_data, audio_format=audio_format, language=yandex_language
             )

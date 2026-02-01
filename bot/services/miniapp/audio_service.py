@@ -13,7 +13,7 @@ import base64
 from aiohttp import web
 from loguru import logger
 
-from bot.services.speech_service import get_speech_service
+from bot.services.speech_service import _normalize_speech_language, get_speech_service
 from bot.services.translate_service import get_translate_service
 
 
@@ -33,6 +33,7 @@ class MiniappAudioService:
         audio_base64: str,
         telegram_id: int,
         response: web.StreamResponse,
+        language_code: str | None = None,
     ) -> str | None:
         """
         Обрабатывает голосовое сообщение.
@@ -68,9 +69,9 @@ class MiniappAudioService:
                 await response.write(error_msg.encode("utf-8"))
                 return None
 
-            # Распознавание речи
+            speech_lang = _normalize_speech_language(language_code)
             transcribed_text = await self.speech_service.transcribe_voice(
-                audio_bytes, language="ru"
+                audio_bytes, language=speech_lang
             )
 
             if not transcribed_text or not transcribed_text.strip():

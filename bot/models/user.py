@@ -88,6 +88,16 @@ class User(Base):
     panda_lazy_until: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Отдых панды: предложение игры после N ответов подряд
+    consecutive_since_rest: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+    rest_offers_count: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+    last_ai_was_rest: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
+    )
 
     parent: Mapped[User | None] = relationship(
         "User",

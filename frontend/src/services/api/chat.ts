@@ -28,12 +28,13 @@ export async function sendAIMessage(
   photoBase64?: string,
   audioBase64?: string
 ): Promise<{ response: string; achievements_unlocked?: AchievementUnlocked[] }> {
+  const languageCode = telegram.getUser()?.languageCode ?? undefined;
   const requestBody = {
     telegram_id: telegramId,
-    // Отправляем message только если он есть (не пустая строка)
     ...(message && message.trim() ? { message } : {}),
     ...(photoBase64 ? { photo_base64: photoBase64 } : {}),
     ...(audioBase64 ? { audio_base64: audioBase64 } : {}),
+    ...(languageCode ? { language_code: languageCode } : {}),
   };
 
   console.log('📤 sendAIMessage вызван:', {

@@ -147,7 +147,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
         # Обработка аудио (приоритетнее фото)
         if audio_base64:
             user_message, error_response = await process_audio_message(
-                audio_base64, telegram_id, message
+                audio_base64, telegram_id, message, language_code=validated.language_code
             )
             if error_response:
                 return error_response
@@ -196,6 +196,8 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                             )
                         history_service.add_message(telegram_id, user_message, "user")
                         history_service.add_message(telegram_id, cleaned_response, "ai")
+                        lazy_service = PandaLazyService(db)
+                        lazy_service.increment_consecutive_after_ai(telegram_id)
 
                         # Геймификация
                         unlocked_achievements = []
@@ -269,6 +271,17 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                     },
                     status=429,
                 )
+
+            # Предложение отдыха/игры после 10 или 20 ответов подряд
+            lazy_service = PandaLazyService(db)
+            rest_response, _ = lazy_service.check_rest_offer(
+                telegram_id, user_message, user.first_name
+            )
+            if rest_response:
+                history_service.add_message(telegram_id, user_message, "user")
+                history_service.add_message(telegram_id, rest_response, "ai")
+                db.commit()
+                return web.json_response({"response": rest_response})
 
             # Для premium - больше истории для контекста
             history_limit = 50 if premium_service.is_premium_active(telegram_id) else 10
@@ -460,6 +473,9 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 logger.info(f"💾 Сохраняю ответ AI: {full_response[:50]}...")
                 ai_msg = history_service.add_message(telegram_id, full_response, "ai")
                 logger.info(f"✅ Ответ AI добавлен в сессию: id={ai_msg.id}")
+
+                lazy_service = PandaLazyService(db)
+                lazy_service.increment_consecutive_after_ai(telegram_id)
 
                 # Сообщение от панды в чат при достижении лимита (как при приветствии)
                 if limit_reached and limit_reached_message_text:

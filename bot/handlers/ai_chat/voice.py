@@ -99,11 +99,10 @@ async def handle_voice(message: Message):
 
         speech_service = get_speech_service()
 
-        # Распознаем речь с автоопределением языка
-        recognized_text = await speech_service.transcribe_voice(
-            audio_data,
-            language="ru",  # Русский язык
-        )
+        # Язык из настроек Telegram пользователя (ru/en)
+        lang_code = (message.from_user.language_code or "ru").strip().lower()
+        speech_lang = "en" if lang_code.startswith("en") else "ru"
+        recognized_text = await speech_service.transcribe_voice(audio_data, language=speech_lang)
 
         if not recognized_text:
             await processing_msg.edit_text(
@@ -264,11 +263,9 @@ async def handle_audio(message: Message):
 
         speech_service = get_speech_service()
 
-        # Распознаем речь
-        recognized_text = await speech_service.transcribe_voice(
-            audio_data,
-            language="ru",
-        )
+        lang_code = (message.from_user.language_code or "ru").strip().lower()
+        speech_lang = "en" if lang_code.startswith("en") else "ru"
+        recognized_text = await speech_service.transcribe_voice(audio_data, language=speech_lang)
 
         if not recognized_text:
             await processing_msg.edit_text(

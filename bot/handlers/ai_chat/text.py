@@ -357,6 +357,22 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 await message.answer(text=redirect_text)
                 return
 
+            # Предложение отдыха/игры после 10 или 20 ответов подряд; ответ «продолжаем» или «играем»
+            lazy_service = PandaLazyService(db)
+            rest_response, _ = lazy_service.check_rest_offer(
+                telegram_id, user_message, user.first_name or message.from_user.first_name
+            )
+            if rest_response:
+                history_service.add_message(
+                    telegram_id=telegram_id, message_text=user_message, message_type="user"
+                )
+                history_service.add_message(
+                    telegram_id=telegram_id, message_text=rest_response, message_type="ai"
+                )
+                db.commit()
+                await message.answer(text=rest_response)
+                return
+
             # Показываем статус "Панда печатает..."
             await message.bot.send_chat_action(chat_id=message.chat.id, action="typing")
 
@@ -1049,6 +1065,10 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
             history_service.add_message(
                 telegram_id=telegram_id, message_text=ai_response, message_type="ai"
             )
+
+            # Увеличиваем счётчик ответов подряд (для предложения отдыха/игры)
+            lazy_service = PandaLazyService(db)
+            lazy_service.increment_consecutive_after_ai(telegram_id)
 
             # Обрабатываем геймификацию (XP и достижения)
             try:

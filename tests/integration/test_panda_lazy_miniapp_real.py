@@ -166,3 +166,55 @@ class TestPandaLazyMiniappReal:
         data = json.loads(response.body.decode()) if response.body else {}
         assert "response" in data
         assert data["response"] == fake_response
+
+    @pytest.mark.asyncio
+    async def test_rest_offer_after_10_exchanges_in_miniapp(
+        self, real_db_session, test_user
+    ):
+        """
+        После 10 ответов подряд (consecutive_since_rest=10) следующий запрос
+        возвращает предложение отдыха/игры без вызова YandexGPT.
+        """
+        from bot.api.miniapp import miniapp_ai_chat
+
+        telegram_id = test_user.telegram_id
+        test_user.consecutive_since_rest = 10
+        test_user.rest_offers_count = 0
+        test_user.last_ai_was_rest = False
+        real_db_session.commit()
+
+        request = self._create_chat_request(telegram_id, "Ещё один вопрос")
+
+        with self._patch_db_and_auth(real_db_session):
+            response = await miniapp_ai_chat(request)
+
+        assert response.status == 200
+        data = json.loads(response.body.decode()) if response.body else {}
+        assert "response" in data
+        text = data["response"]
+        assert "поиграем" in text or "перерыв" in text or "отдохнуть" in text
+
+    @pytest.mark.asyncio
+    async def test_continue_after_rest_offer_in_miniapp(
+        self, real_db_session, test_user
+    ):
+        """
+        Если пользователь после предложения отдыха пишет «продолжай»,
+        панда соглашается и возвращает «Хорошо, давай продолжать!» без вызова AI.
+        """
+        from bot.api.miniapp import miniapp_ai_chat
+
+        telegram_id = test_user.telegram_id
+        test_user.last_ai_was_rest = True
+        test_user.rest_offers_count = 1
+        real_db_session.commit()
+
+        request = self._create_chat_request(telegram_id, "Продолжай, хочу учиться")
+
+        with self._patch_db_and_auth(real_db_session):
+            response = await miniapp_ai_chat(request)
+
+        assert response.status == 200
+        data = json.loads(response.body.decode()) if response.body else {}
+        assert "response" in data
+        assert "продолжать" in data["response"]
