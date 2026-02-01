@@ -40,6 +40,30 @@ describe('SEO: index.html', () => {
     expect(html).toContain('og:image');
   });
 
+  it('должен содержать hreflang для RU, EN, BY, KZ', () => {
+    const html = readIndexHtml();
+    expect(html).toContain('hreflang="ru"');
+    expect(html).toContain('hreflang="en"');
+    expect(html).toContain('hreflang="be"');
+    expect(html).toContain('hreflang="kk"');
+    expect(html).toContain('hreflang="x-default"');
+  });
+
+  it('должен содержать og:locale:alternate для be_BY и kk_KZ', () => {
+    const html = readIndexHtml();
+    expect(html).toContain('og:locale:alternate" content="be_BY"');
+    expect(html).toContain('og:locale:alternate" content="kk_KZ"');
+  });
+
+  it('должен содержать geo для России, Беларуси, Казахстана', () => {
+    const html = readIndexHtml();
+    expect(html).toContain('geo.country" content="RU"');
+    expect(html).toContain('geo.country" content="BY"');
+    expect(html).toContain('geo.country" content="KZ"');
+    expect(html).toContain('geo.region" content="BY"');
+    expect(html).toContain('geo.region" content="KZ"');
+  });
+
   it('Organization Schema не должен содержать aggregateRating', () => {
     const html = readIndexHtml();
     const orgBlock = html.includes('"@type": "Organization"')
