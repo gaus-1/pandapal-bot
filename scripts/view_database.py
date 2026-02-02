@@ -31,17 +31,11 @@ sys.path.insert(0, ".")
 
 from bot.database import engine, get_db
 from bot.models import (
-    AnalyticsAlert,
-    AnalyticsConfig,
     AnalyticsMetric,
-    AnalyticsReport,
-    AnalyticsTrend,
     ChatHistory,
     LearningSession,
     User,
-    UserEvent,
     UserProgress,
-    UserSession,
 )
 
 
@@ -59,12 +53,6 @@ def get_table_stats():
             ("learning_sessions", LearningSession),
             ("user_progress", UserProgress),
             ("analytics_metrics", AnalyticsMetric),
-            ("user_sessions", UserSession),
-            ("user_events", UserEvent),
-            ("analytics_reports", AnalyticsReport),
-            ("analytics_trends", AnalyticsTrend),
-            ("analytics_alerts", AnalyticsAlert),
-            ("analytics_config", AnalyticsConfig),
         ]
 
         stats_data = []
@@ -93,12 +81,6 @@ def show_table_data(table_name: str, limit: int = 20):
             "learning_sessions": LearningSession,
             "user_progress": UserProgress,
             "analytics_metrics": AnalyticsMetric,
-            "user_sessions": UserSession,
-            "user_events": UserEvent,
-            "analytics_reports": AnalyticsReport,
-            "analytics_trends": AnalyticsTrend,
-            "analytics_alerts": AnalyticsAlert,
-            "analytics_config": AnalyticsConfig,
         }
 
         if table_name not in table_map:
@@ -409,9 +391,9 @@ def show_recent_activity(hours: int = 24):
         new_metrics = db.query(AnalyticsMetric).filter(AnalyticsMetric.timestamp >= since).count()
         print(f"📊 Новых метрик: {new_metrics}")
 
-        # Новые события
-        new_events = db.query(UserEvent).filter(UserEvent.timestamp >= since).count()
-        print(f"📝 Новых событий: {new_events}")
+        # Новые учебные сессии
+        new_sessions = db.query(LearningSession).filter(LearningSession.session_start >= since).count()
+        print(f"📚 Новых учебных сессий: {new_sessions}")
 
         print()
 

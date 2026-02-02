@@ -23,8 +23,7 @@ classes.append((len(content), 'EOF'))
 domains = {
     'chat': ['ChatHistory', 'DailyRequestCount'],
     'learning': ['LearningSession', 'ProblemTopic', 'HomeworkSubmission'],
-    'analytics': ['AnalyticsMetric', 'UserSession', 'UserEvent', 'AnalyticsReport', 
-                  'AnalyticsTrend', 'AnalyticsAlert', 'AnalyticsConfig'],
+    'analytics': ['AnalyticsMetric'],
     'payments': ['Subscription', 'Payment'],
     'games': ['GameSession', 'GameStats'],
 }

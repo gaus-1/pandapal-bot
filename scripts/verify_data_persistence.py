@@ -21,11 +21,7 @@ from sqlalchemy.engine import Engine
 
 from bot.database import engine, get_db
 from bot.models import (
-    AnalyticsAlert,
-    AnalyticsConfig,
     AnalyticsMetric,
-    AnalyticsReport,
-    AnalyticsTrend,
     Base,
     ChatHistory,
     DailyRequestCount,
@@ -35,9 +31,7 @@ from bot.models import (
     Payment,
     Subscription,
     User,
-    UserEvent,
     UserProgress,
-    UserSession,
 )
 
 # #region agent log
@@ -94,13 +88,7 @@ def check_migrations_integrity(engine: Engine) -> bool:
                 "user_progress": UserProgress,
                 "chat_history": ChatHistory,
                 "analytics_metrics": AnalyticsMetric,
-                "user_sessions": UserSession,
-                "user_events": UserEvent,
                 "daily_request_counts": DailyRequestCount,
-                "analytics_reports": AnalyticsReport,
-                "analytics_trends": AnalyticsTrend,
-                "analytics_alerts": AnalyticsAlert,
-                "analytics_config": AnalyticsConfig,
                 "subscriptions": Subscription,
                 "payments": Payment,
                 "game_sessions": GameSession,
@@ -146,13 +134,7 @@ def check_table_columns_match_models(engine: Engine) -> dict[str, bool]:
         "user_progress": UserProgress,
         "chat_history": ChatHistory,
         "analytics_metrics": AnalyticsMetric,
-        "user_sessions": UserSession,
-        "user_events": UserEvent,
         "daily_request_counts": DailyRequestCount,
-        "analytics_reports": AnalyticsReport,
-        "analytics_trends": AnalyticsTrend,
-        "analytics_alerts": AnalyticsAlert,
-        "analytics_config": AnalyticsConfig,
         "subscriptions": Subscription,
         "payments": Payment,
         "game_sessions": GameSession,

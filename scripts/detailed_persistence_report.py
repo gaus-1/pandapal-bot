@@ -21,11 +21,7 @@ from sqlalchemy.engine import Engine
 
 from bot.database import engine, get_db
 from bot.models import (
-    AnalyticsAlert,
-    AnalyticsConfig,
     AnalyticsMetric,
-    AnalyticsReport,
-    AnalyticsTrend,
     ChatHistory,
     DailyRequestCount,
     GameSession,
@@ -34,9 +30,7 @@ from bot.models import (
     Payment,
     Subscription,
     User,
-    UserEvent,
     UserProgress,
-    UserSession,
 )
 
 # #region agent log
@@ -224,15 +218,9 @@ def check_table_write_logic(engine: Engine) -> dict[str, dict]:
         log_debug("scripts/detailed_persistence_report.py:check_table_write_logic", "user_progress table error", {"error": str(e)}, "5")
         results["user_progress"] = {"status": "ERROR", "error": str(e)}
 
-    # 10-16. Остальные таблицы (пока не используются активно)
+    # 10. Остальные таблицы (пока не используются активно)
     other_tables = {
         "learning_sessions": LearningSession,
-        "user_sessions": UserSession,
-        "user_events": UserEvent,
-        "analytics_reports": AnalyticsReport,
-        "analytics_trends": AnalyticsTrend,
-        "analytics_alerts": AnalyticsAlert,
-        "analytics_config": AnalyticsConfig,
     }
 
     print("\n🔟 Остальные таблицы (готовы к использованию):")

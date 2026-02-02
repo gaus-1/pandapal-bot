@@ -19,11 +19,7 @@ from sqlalchemy.engine import Engine
 
 from bot.database import engine
 from bot.models import (
-    AnalyticsAlert,
-    AnalyticsConfig,
     AnalyticsMetric,
-    AnalyticsReport,
-    AnalyticsTrend,
     Base,
     ChatHistory,
     DailyRequestCount,
@@ -33,9 +29,7 @@ from bot.models import (
     Payment,
     Subscription,
     User,
-    UserEvent,
     UserProgress,
-    UserSession,
 )
 
 
@@ -47,13 +41,7 @@ def get_expected_tables() -> dict[str, type]:
         "user_progress": UserProgress,
         "chat_history": ChatHistory,
         "analytics_metrics": AnalyticsMetric,
-        "user_sessions": UserSession,
-        "user_events": UserEvent,
         "daily_request_counts": DailyRequestCount,
-        "analytics_reports": AnalyticsReport,
-        "analytics_trends": AnalyticsTrend,
-        "analytics_alerts": AnalyticsAlert,
-        "analytics_config": AnalyticsConfig,
         "subscriptions": Subscription,
         "payments": Payment,
         "game_sessions": GameSession,

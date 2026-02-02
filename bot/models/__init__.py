@@ -7,15 +7,7 @@
 
 # Базовый класс
 # Модели аналитики
-from .analytics import (
-    AnalyticsAlert,
-    AnalyticsConfig,
-    AnalyticsMetric,
-    AnalyticsReport,
-    AnalyticsTrend,
-    UserEvent,
-    UserSession,
-)
+from .analytics import AnalyticsMetric
 from .base import Base
 
 # Модели чата
@@ -52,12 +44,6 @@ __all__ = [
     "HomeworkSubmission",
     # Analytics
     "AnalyticsMetric",
-    "UserSession",
-    "UserEvent",
-    "AnalyticsReport",
-    "AnalyticsTrend",
-    "AnalyticsAlert",
-    "AnalyticsConfig",
     # Payments
     "Subscription",
     "Payment",
