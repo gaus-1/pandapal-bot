@@ -376,6 +376,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             yandex_history = context["yandex_history"]
             enhanced_system_prompt = context["system_prompt"]
             is_history_cleared = context["is_history_cleared"]
+            is_educational = context.get("is_educational", False)
             premium_service = context["premium_service"]
             history_service = context["history_service"]
 
@@ -1257,6 +1258,11 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     from bot.services.panda_lazy_service import PandaLazyService
 
                     PandaLazyService(db).increment_consecutive_after_ai(telegram_id)
+
+                    if is_educational:
+                        from bot.services.learning_session_service import LearningSessionService
+
+                        LearningSessionService(db).record_educational_question(telegram_id)
 
                     # Если история была очищена и пользователь, возможно, назвал имя или класс
                     if is_history_cleared and not user.skip_name_asking:

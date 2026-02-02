@@ -378,6 +378,9 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             if is_educational:
                 # Если вопрос образовательный - сбрасываем счетчик
                 user.non_educational_questions_count = 0
+                from bot.services.learning_session_service import LearningSessionService
+
+                LearningSessionService(db).record_educational_question(telegram_id)
             else:
                 # Если непредметный - увеличиваем счетчик
                 user.non_educational_questions_count += 1
