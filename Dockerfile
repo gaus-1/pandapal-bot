@@ -1,14 +1,12 @@
 # Базовый образ Python 3.13
 FROM python:3.13-slim
 
-# Рабочая директория
 WORKDIR /app
 
-# Установка системных зависимостей (включая Node.js для frontend)
-RUN apt-get update && apt-get install -y \
+# Системные зависимости (без postgresql-client — миграции с локальной машины)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     build-essential \
-    postgresql-client \
     ffmpeg \
     curl \
     ca-certificates \
@@ -17,27 +15,22 @@ RUN apt-get update && apt-get install -y \
     && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
     && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
     && apt-get update \
-    && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/* \
-    && node --version \
-    && npm --version
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
-# Установка Python зависимостей
+# Python-зависимости (слой кэшируется при неизменном requirements.txt)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копирование исходного кода
+# Frontend: сначала только package*.json (слой кэшируется при неизменных зависимостях)
+COPY frontend/package.json frontend/package-lock.json frontend/
+RUN cd frontend && npm ci
+
+# Остальной код и сборка frontend
 COPY . .
+RUN cd frontend && npm run build
 
-# Сборка frontend
-RUN cd frontend && npm install && npm run build && cd ..
-
-# Переменные окружения для Python
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
-
-# Порт для веб-сервера
 EXPOSE 8000
-
-# Запуск веб-сервера
 CMD ["python", "web_server.py"]
