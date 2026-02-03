@@ -11,7 +11,11 @@ from loguru import logger
 
 from bot.api.validators import require_owner, validate_limit, validate_telegram_id
 from bot.database import get_db
-from bot.services import ChatHistoryService
+from bot.services import ChatHistoryService, UserService
+from bot.services.proactive_chat_service import (
+    get_proactive_message,
+    should_add_proactive_message,
+)
 
 
 async def miniapp_get_chat_history(request: web.Request) -> web.Response:
@@ -40,6 +44,26 @@ async def miniapp_get_chat_history(request: web.Request) -> web.Response:
             history_service = ChatHistoryService(db)
             messages = history_service.get_recent_history(telegram_id, limit=limit)
 
+            history_for_check = [
+                {
+                    "role": "user" if msg.message_type == "user" else "ai",
+                    "content": msg.message_text,
+                }
+                for msg in messages
+            ]
+            last_user_ts = history_service.get_last_user_message_timestamp(telegram_id)
+            add_proactive, proactive_type = should_add_proactive_message(
+                history_for_check, last_user_ts
+            )
+            if add_proactive and proactive_type:
+                user_service = UserService(db)
+                user = user_service.get_user_by_telegram_id(telegram_id)
+                user_gender = getattr(user, "gender", None) if user else None
+                proactive_text = get_proactive_message(proactive_type, user_gender)
+                history_service.add_message(telegram_id, proactive_text, "ai")
+                db.commit()
+                messages = history_service.get_recent_history(telegram_id, limit=limit)
+
             history = [
                 {
                     "role": "user" if msg.message_type == "user" else "ai",
@@ -49,9 +73,6 @@ async def miniapp_get_chat_history(request: web.Request) -> web.Response:
                 }
                 for msg in messages
             ]
-
-            # НЕ добавляем приветствие автоматически - фронтенд сам управляет временем отправки
-            # Приветствие будет отправлено через 5 секунд после показа welcome screen
 
             return web.json_response({"success": True, "history": history})
 

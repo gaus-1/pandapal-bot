@@ -168,6 +168,7 @@ class MiniappChatContextService:
         from bot.services.prompt_builder import get_prompt_builder
 
         prompt_builder = get_prompt_builder()
+        user_gender = getattr(user, "gender", None)
         enhanced_system_prompt = prompt_builder.build_system_prompt(
             user_age=user.age,
             user_grade=user.grade,
@@ -178,6 +179,7 @@ class MiniappChatContextService:
             user_message=user_message,
             non_educational_questions_count=user.non_educational_questions_count,
             is_auto_greeting_sent=is_auto_greeting_sent,
+            user_gender=user_gender,
         )
 
         # Преобразуем историю в формат Yandex

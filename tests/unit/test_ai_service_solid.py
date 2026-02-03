@@ -114,7 +114,7 @@ class TestYandexAIService:
         result = await service.generate_response("Тест")
         assert result == "Ответ через фасад"
         mock_generator_instance.generate_response.assert_called_once_with(
-            "Тест", None, None, None, None, False, 0, False, 0, False, False
+            "Тест", None, None, None, None, False, 0, False, 0, False, False, None
         )
 
         # Тест делегирования get_model_info

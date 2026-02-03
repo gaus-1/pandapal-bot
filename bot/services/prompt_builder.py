@@ -25,9 +25,10 @@ class PromptBuilder:
         user_age: int | None = None,  # noqa: ARG002
         user_grade: int | None = None,
         is_auto_greeting_sent: bool = False,
+        user_gender: str | None = None,
     ) -> str:
         """
-        Построить системный промпт: базовые правила + опциональный контекст приветствия/прощания.
+        Построить системный промпт: базовые правила + опциональный контекст приветствия/прощания и пол.
         """
         greeting = self._get_greeting_context(
             chat_history or [],
@@ -37,9 +38,18 @@ class PromptBuilder:
             user_name,
             user_grade,
         )
+        parts = [self.base_prompt]
         if greeting:
-            return f"{self.base_prompt}\n\n{greeting}"
-        return self.base_prompt
+            parts.append(greeting)
+        if user_gender:
+            g = user_gender.lower().strip()
+            gender_hint = "мужской" if g == "male" else "женский" if g == "female" else "не указан"
+            parts.append(
+                f"Пол пользователя: {gender_hint}. Учитывай при склонениях и подбадриваниях."
+            )
+        if len(parts) == 1:
+            return parts[0]
+        return "\n\n".join(parts)
 
     def _get_greeting_context(
         self,

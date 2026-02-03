@@ -95,6 +95,7 @@ class IAIService(ABC):
         non_educational_questions_count: int = 0,
         is_premium: bool = False,
         is_auto_greeting_sent: bool = False,
+        user_gender: str | None = None,
     ) -> str:
         """Генерация ответа ИИ"""
         pass

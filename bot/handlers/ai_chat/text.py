@@ -1008,6 +1008,7 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 non_educational_questions_count=user.non_educational_questions_count,
                 is_premium=is_premium,
                 is_auto_greeting_sent=is_auto_greeting_sent,
+                user_gender=getattr(user, "gender", None),
             )
 
             # Правила по запрещённым темам отключены — ответ не фильтруем

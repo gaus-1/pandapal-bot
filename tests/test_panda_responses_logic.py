@@ -132,6 +132,41 @@ class TestPromptStructure:
                 or "абзац" in system_prompt.lower()
             )
 
+    @pytest.mark.asyncio
+    async def test_prompt_contains_motivation_and_structure_unchanged(self, response_generator):
+        """Промпт содержит блок мотивации/иронии и правила структуры не отменяются."""
+        with patch.object(
+            response_generator.yandex_service, "generate_text_response", new_callable=AsyncMock
+        ) as mock_gpt:
+            mock_gpt.return_value = "Давай разберёмся."
+            await response_generator.generate_response(
+                user_message="Не хочу решать",
+                chat_history=[],
+                user_age=10,
+            )
+            system_prompt = mock_gpt.call_args.kwargs.get("system_prompt", "")
+        assert "мотивац" in system_prompt.lower() or "ирония" in system_prompt.lower()
+        assert "структур" in system_prompt.lower() or "абзац" in system_prompt.lower()
+        assert "грамматик" in system_prompt.lower() or "правил" in system_prompt.lower()
+
+    def test_prompt_builder_adds_gender_hint(self):
+        """При передаче user_gender в промпте появляется подсказка о поле пользователя."""
+        from bot.services.prompt_builder import PromptBuilder
+
+        builder = PromptBuilder()
+        prompt = builder.build_system_prompt(
+            user_message="Привет",
+            chat_history=[],
+            user_gender="male",
+        )
+        assert "мужской" in prompt or "Пол пользователя" in prompt
+        prompt_f = builder.build_system_prompt(
+            user_message="Привет",
+            chat_history=[],
+            user_gender="female",
+        )
+        assert "женский" in prompt_f or "Пол пользователя" in prompt_f
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

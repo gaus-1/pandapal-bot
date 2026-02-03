@@ -99,6 +99,9 @@ class User(Base):
         Boolean, default=False, server_default="false", nullable=False
     )
 
+    # Пол пользователя для грамматически корректных формулировок (male / female / None)
+    gender: Mapped[str | None] = mapped_column(String(10), nullable=True)
+
     parent: Mapped[User | None] = relationship(
         "User",
         remote_side=[telegram_id],

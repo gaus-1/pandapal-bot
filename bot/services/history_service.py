@@ -11,6 +11,7 @@
 - Автоматическое управление размером истории
 """
 
+from datetime import datetime
 from typing import Any
 
 from loguru import logger
@@ -116,6 +117,28 @@ class ChatHistoryService:
 
         # Возвращаем в хронологическом порядке (старые → новые)
         return list(reversed(messages))
+
+    def get_last_user_message_timestamp(self, telegram_id: int) -> datetime | None:
+        """
+        Время последнего сообщения пользователя (message_type == "user").
+
+        Используется для проактивных сообщений (24ч / 7 дней без активности).
+
+        Args:
+            telegram_id: Telegram ID пользователя.
+
+        Returns:
+            datetime | None: timestamp последнего user-сообщения или None.
+        """
+        stmt = (
+            select(ChatHistory.timestamp)
+            .where(ChatHistory.user_telegram_id == telegram_id)
+            .where(ChatHistory.message_type == "user")
+            .order_by(desc(ChatHistory.timestamp))
+            .limit(1)
+        )
+        row = self.db.execute(stmt).first()
+        return row[0] if row else None
 
     def get_conversation_context(self, telegram_id: int) -> str:
         """

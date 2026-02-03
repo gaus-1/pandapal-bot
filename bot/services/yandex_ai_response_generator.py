@@ -809,6 +809,7 @@ class YandexAIResponseGenerator:
         non_educational_questions_count: int = 0,
         is_premium: bool = False,  # noqa: ARG002
         is_auto_greeting_sent: bool = False,
+        user_gender: str | None = None,
     ) -> str:
         """
         Генерировать ответ AI на сообщение пользователя.
@@ -885,6 +886,7 @@ class YandexAIResponseGenerator:
                 user_age=user_age,
                 user_grade=user_grade,
                 is_auto_greeting_sent=is_auto_greeting_sent,
+                user_gender=user_gender,
             )
 
             if web_context:

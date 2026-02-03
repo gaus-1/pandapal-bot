@@ -413,6 +413,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 skip_name_asking=user.skip_name_asking,
                 non_educational_questions_count=user.non_educational_questions_count,
                 is_premium=is_premium,
+                user_gender=getattr(user, "gender", None),
             )
             logger.info(f"📊 Размер ответа AI: {len(ai_response)} символов")
 
