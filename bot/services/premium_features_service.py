@@ -42,7 +42,7 @@ class PremiumFeaturesService:
 
     def is_admin(self, telegram_id: int, username: str | None = None) -> bool:
         """
-        Проверка, является ли пользователь админом.
+        Проверка, является ли пользователь админом (по ID или username).
 
         Args:
             telegram_id: Telegram ID пользователя
@@ -51,8 +51,12 @@ class PremiumFeaturesService:
         Returns:
             bool: True если пользователь админ
         """
+        # Сначала проверка по Telegram ID (ADMIN_TELEGRAM_IDS в Railway)
+        admin_ids = settings.get_admin_telegram_ids_list()
+        if telegram_id in admin_ids:
+            return True
+
         if not username:
-            # Получаем username из БД
             from bot.models import User
 
             user = self.db.query(User).filter(User.telegram_id == telegram_id).first()

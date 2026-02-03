@@ -237,11 +237,16 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("REDIS_URL", "redis_url"),
     )
 
-    # ADMIN
+    # ADMIN (безлимит запросов)
     admin_usernames: str = Field(
         default="SavinVE",
         description="Список username админов через запятую",
         validation_alias=AliasChoices("ADMIN_USERNAMES", "admin_usernames"),
+    )
+    admin_telegram_ids: str = Field(
+        default="963126718,8198136020",
+        description="Список Telegram ID админов через запятую (безлимит запросов)",
+        validation_alias=AliasChoices("ADMIN_TELEGRAM_IDS", "admin_telegram_ids"),
     )
 
     def get_forbidden_topics_list(self) -> list[str]:
@@ -255,6 +260,15 @@ class Settings(BaseSettings):
             for username in self.admin_usernames.split(",")
             if username.strip()
         ]
+
+    def get_admin_telegram_ids_list(self) -> list[int]:
+        """Получить список Telegram ID админов."""
+        result = []
+        for part in self.admin_telegram_ids.split(","):
+            part = part.strip()
+            if part and part.isdigit():
+                result.append(int(part))
+        return result
 
     @field_validator("database_url")
     @classmethod
