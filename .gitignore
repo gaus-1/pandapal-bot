@@ -123,6 +123,7 @@ private/
 **/*secret*
 **/*token*
 **/*key*
+!bot/config/educational_keywords.py
 
 # Passwords and credentials
 **/password*

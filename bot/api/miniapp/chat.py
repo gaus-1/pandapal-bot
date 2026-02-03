@@ -272,6 +272,16 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                     status=429,
                 )
 
+            # Проверка взрослых тем (ЖКУ, банки и т.д.) — единая точка через сервис
+            from bot.services.adult_topics_service import get_adult_topics_service
+
+            explanation = get_adult_topics_service().try_get_adult_topic_response(user_message)
+            if explanation:
+                history_service.add_message(telegram_id, user_message, "user")
+                history_service.add_message(telegram_id, explanation, "ai")
+                db.commit()
+                return web.json_response({"response": explanation})
+
             # Предложение отдыха/игры после 10 или 20 ответов подряд
             lazy_service = PandaLazyService(db)
             rest_response, _ = lazy_service.check_rest_offer(
@@ -325,54 +335,11 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 # Нет имени - считаем все сообщения пользователя
                 user_message_count = sum(1 for msg in history if msg.get("role") == "user")
 
-            # Определяем, является ли вопрос образовательным
-            educational_keywords = [
-                "математика",
-                "алгебра",
-                "геометрия",
-                "арифметика",
-                "русский",
-                "литература",
-                "сочинение",
-                "диктант",
-                "история",
-                "география",
-                "биология",
-                "физика",
-                "химия",
-                "английский",
-                "немецкий",
-                "французский",
-                "испанский",
-                "информатика",
-                "программирование",
-                "задача",
-                "решить",
-                "решение",
-                "пример",
-                "уравнение",
-                "урок",
-                "домашнее",
-                "задание",
-                "дз",
-                "контрольная",
-                "объясни",
-                "помоги",
-                "как решить",
-                "как сделать",
-                "сколько",
-                "вычисли",
-                "посчитай",
-                "найди",
-                "таблица",
-                "умножение",
-                "деление",
-                "сложение",
-                "вычитание",
-            ]
+            # Определяем, является ли вопрос образовательным (единый список — config)
+            from bot.config.educational_keywords import EDUCATIONAL_KEYWORDS
 
             user_message_lower = user_message.lower()
-            is_educational = any(keyword in user_message_lower for keyword in educational_keywords)
+            is_educational = any(keyword in user_message_lower for keyword in EDUCATIONAL_KEYWORDS)
 
             # Обновляем счетчик непредметных вопросов
             if is_educational:

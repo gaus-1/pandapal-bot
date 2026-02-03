@@ -107,54 +107,11 @@ class MiniappChatContextService:
         else:
             user_message_count = sum(1 for msg in history if msg.get("role") == "user")
 
-        # Определяем, является ли вопрос образовательным
-        educational_keywords = [
-            "математика",
-            "алгебра",
-            "геометрия",
-            "арифметика",
-            "русский",
-            "литература",
-            "сочинение",
-            "диктант",
-            "история",
-            "география",
-            "биология",
-            "физика",
-            "химия",
-            "английский",
-            "немецкий",
-            "французский",
-            "испанский",
-            "информатика",
-            "программирование",
-            "задача",
-            "решить",
-            "решение",
-            "пример",
-            "уравнение",
-            "урок",
-            "домашнее",
-            "задание",
-            "дз",
-            "контрольная",
-            "объясни",
-            "помоги",
-            "как решить",
-            "как сделать",
-            "сколько",
-            "вычисли",
-            "посчитай",
-            "найди",
-            "таблица",
-            "умножение",
-            "деление",
-            "сложение",
-            "вычитание",
-        ]
+        # Определяем, является ли вопрос образовательным (единый список — config)
+        from bot.config.educational_keywords import EDUCATIONAL_KEYWORDS
 
         user_message_lower = user_message.lower()
-        is_educational = any(keyword in user_message_lower for keyword in educational_keywords)
+        is_educational = any(keyword in user_message_lower for keyword in EDUCATIONAL_KEYWORDS)
 
         # Обновляем счетчик непредметных вопросов
         if is_educational:

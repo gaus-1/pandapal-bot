@@ -178,6 +178,21 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             )
             return response
 
+        # Проверка взрослых тем (ЖКУ, банки и т.д.) — единая точка через сервис
+        from bot.services.adult_topics_service import get_adult_topics_service
+
+        explanation = get_adult_topics_service().try_get_adult_topic_response(user_message)
+        if explanation:
+            with get_db() as db_at:
+                hist = ChatHistoryService(db_at)
+                hist.add_message(telegram_id, user_message, "user")
+                hist.add_message(telegram_id, explanation, "ai")
+                db_at.commit()
+            event_data = json.dumps({"content": explanation}, ensure_ascii=False)
+            await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+            await response.write(b"event: done\ndata: {}\n\n")
+            return response
+
         # Предложение отдыха/игры после 10 или 20 ответов подряд
         with get_db() as db_rest:
             user_rest = UserService(db_rest).get_user_by_telegram_id(telegram_id)

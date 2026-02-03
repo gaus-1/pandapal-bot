@@ -830,6 +830,16 @@ class AdultTopicsService:
 
         return None
 
+    def try_get_adult_topic_response(self, user_message: str) -> str | None:
+        """
+        Если сообщение про взрослую тему (ЖКУ, банки и т.д.) — вернуть готовое объяснение, иначе None.
+        Единая точка для Telegram, Mini App chat и stream.
+        """
+        detected = self.detect_topic(user_message)
+        if not detected:
+            return None
+        return self.get_explanation(detected.topic_id)
+
     def get_explanation(self, topic_id: str) -> str | None:
         """
         Получить объяснение темы по ID.
