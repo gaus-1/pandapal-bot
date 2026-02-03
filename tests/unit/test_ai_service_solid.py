@@ -78,24 +78,23 @@ class TestYandexAIService:
         assert info["temperature"] == "0.7"
         mock_generator_instance.get_model_info.assert_called_once()
 
-    @patch("bot.services.ai_service_solid.YandexAIService")
-    def test_get_ai_service_singleton(self, mock_service_class):
-        """Тест singleton паттерна"""
+    def test_get_ai_service_singleton(self):
+        """Singleton: один экземпляр на процесс, класс создаётся один раз."""
+        import bot.services.ai_service_solid as ai_module
+
         mock_instance = Mock()
-        mock_service_class.return_value = mock_instance
-
-        # Первый вызов
-        service1 = get_ai_service()
-
-        # Второй вызов
-        service2 = get_ai_service()
-
-        # Должны быть одинаковые экземпляры
-        assert service1 is service2
-        assert service1 is mock_instance
-
-        # Класс должен быть вызван только один раз
-        mock_service_class.assert_called_once()
+        mock_class = Mock(return_value=mock_instance)
+        original_cache = ai_module._ai_service
+        ai_module._ai_service = None
+        try:
+            with patch.object(ai_module, "YandexAIService", mock_class):
+                service1 = get_ai_service()
+                service2 = get_ai_service()
+                assert service1 is service2, "Должен возвращаться один и тот же экземпляр"
+                assert service1 is mock_instance, "Экземпляр — подставленный мок"
+                assert mock_class.call_count == 1, "Класс должен быть вызван один раз"
+        finally:
+            ai_module._ai_service = original_cache
 
     @patch("bot.services.ai_service_solid.YandexAIResponseGenerator")
     @patch("bot.services.ai_service_solid.ContentModerator")
