@@ -151,6 +151,8 @@ Project has **comprehensive test coverage** of all critical components:
   - IntegrityChecker (checksum, JSON validation, sanitization)
   - SSRFProtection (URL whitelist, IP blocking, method validation)
   - AuditLogger (data masking, log injection protection, critical events)
+- `test_panda_lazy_continue_learn.py` — "continue learning" logic: "reшать задачи", "не хочу играть" do not route to Games
+- `test_adult_topics_service.py` — adult topics detection (utilities, banks), ready-made explanations
 
 #### Integration Tests (`tests/integration/`)
 - `test_security_crypto_integration.py` — 13 cryptography tests
@@ -192,6 +194,14 @@ hmac.compare_digest(received_hash, calculated_hash)  # Timing attack protection
 if current_time - auth_date > 86400:
     return None
 ```
+
+### Panda behavior and prompts
+
+- **Communication style**: panda can respond in a neutral, educational tone (main answer) or with friendly irony (encouragement, gentle decline from study); no irony on sensitive topics or when grading homework.
+- **Single system prompt** (`bot/config/prompts.py`): study over games ("reшать задачи" → study tasks), friendly motivation/irony without pressure, no irony on sensitive topics; adult topics (utilities, banks) explained in simple words.
+- **Rest/games** (`panda_lazy_service`): extended `CONTINUE_LEARN_PATTERNS` so "reшать задачи", "задачи по геометрии" etc. count as continuing study; panda does not send to Games.
+- **Educational requests**: single keyword list in `bot/config/educational_keywords.py` (Telegram + Mini App).
+- **Adult topics**: `try_get_adult_topic_response()` in service; one call path in Telegram, Mini App chat and stream. Homework check: friendly, honest tone, no irony in grading.
 
 ### Running Tests
 
