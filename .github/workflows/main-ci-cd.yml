@@ -2,6 +2,10 @@
 # Backend: Python 3.13 + PostgreSQL 17
 # Frontend: React 18 + TypeScript + Vite
 # Auto-deploy: Railway
+#
+# IDE: ~16 "Unable to resolve action" — false positives (resolver needs network).
+# All actions exist: actions/checkout@v4, setup-python@v5, setup-node@v4, docker/*, codecov@v4, etc.
+# Validate on GitHub: Actions tab runs successfully.
 
 name: 🐼 PandaPal CI/CD
 
@@ -241,6 +245,7 @@ jobs:
 
   # ============================================================================
   # DEPLOY: Railway подхватывает push в main и деплоит сам (GitHub integration).
+  # Важно: деплой только при push в ветку main. Push в develop → CI есть, деплоя нет.
   # Этот job только фиксирует в логах, что пайплайн готов к деплою.
   # ============================================================================
   deploy:
@@ -253,13 +258,17 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🚀 Deploy (Railway GitHub integration)
+      - name: Deploy (Railway GitHub integration)
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_AUTHOR: ${{ github.actor }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
           echo "::group::Deploy info"
           echo "Deploy: Railway auto-deploys on push to main (GitHub integration)"
-          echo "Commit: ${{ github.sha }}"
-          echo "Author: ${{ github.actor }}"
-          echo "Message: ${{ github.event.head_commit.message }}"
+          echo "Commit: $COMMIT_SHA"
+          echo "Author: $COMMIT_AUTHOR"
+          echo "Message: ${COMMIT_MSG:-n/a}"
           echo "::endgroup::"
 
       - name: ✅ Deploy ready

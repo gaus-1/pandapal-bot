@@ -50,6 +50,7 @@ coverage.xml
 htmlcov/
 .pytest_cache/
 .vitest/
+coverage_output.txt
 
 # Reports
 vulture_report.txt
