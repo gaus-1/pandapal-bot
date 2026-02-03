@@ -28,7 +28,7 @@ try:
     METRICS_AVAILABLE = True
 except ImportError:
     METRICS_AVAILABLE = False
-    logger.warning("⚠️ Prometheus метрики недоступны - модуль не найден")
+    logger.warning("Prometheus metrics unavailable - module not found")
 
 
 def safe_metrics_wrapper(func):
@@ -70,7 +70,7 @@ class MetricsIntegration:
         if self.enabled:
             try:
                 self.metrics = get_metrics()
-                logger.info("📊 Интеграция метрик инициализирована")
+                logger.info("Metrics integration initialized")
             except Exception as e:
                 logger.error(f"❌ Ошибка инициализации интеграции метрик: {e}")
                 self.enabled = False
@@ -372,9 +372,9 @@ def initialize_metrics_integration():
     try:
         integration = get_metrics_integration()
         if integration.enabled:
-            logger.info("📊 Интеграция метрик Prometheus готова к работе")
+            logger.info("Prometheus metrics integration ready")
         else:
-            logger.info("📊 Интеграция метрик отключена")
+            logger.info("Metrics integration disabled")
         return integration
     except Exception as e:
         logger.error(f"❌ Ошибка инициализации интеграции метрик: {e}")

@@ -63,9 +63,9 @@ class PrometheusMetrics:
         self._initialize_metrics()
 
         if self.config.enabled:
-            logger.info("📊 Prometheus метрики включены")
+            logger.info("Prometheus metrics enabled")
         else:
-            logger.info("📊 Prometheus метрики отключены")
+            logger.info("Prometheus metrics disabled")
 
     def _initialize_metrics(self):
         """Инициализация базовых метрик."""
@@ -392,7 +392,7 @@ def initialize_metrics():
     """
     try:
         metrics = get_metrics()
-        logger.info("📊 Система метрик Prometheus инициализирована")
+        logger.info("Prometheus metrics system initialized")
         return metrics
     except Exception as e:
         logger.error(f"❌ Ошибка инициализации метрик: {e}")

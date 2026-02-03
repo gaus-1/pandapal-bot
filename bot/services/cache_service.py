@@ -231,7 +231,7 @@ class CacheService:
             redis_url = getattr(settings, "redis_url", "")
 
             if not redis_url:
-                logger.info("📋 REDIS_URL не задан, используется in-memory кэш")
+                logger.info("REDIS_URL not set, using in-memory cache")
                 return
 
             # Инициализируем Redis клиент
