@@ -9,14 +9,14 @@ import random
 
 def _debug_log(
     *,
-    hypothesis_id: str,  # noqa: ARG001
-    location: str,  # noqa: ARG001
-    message: str,  # noqa: ARG001
-    data: dict | None = None,  # noqa: ARG001
+    hypothesis_id: str,
+    location: str,
+    message: str,
+    data: dict | None = None,
     run_id: str = "initial",
 ) -> None:
     """Записать отладочное сообщение в NDJSON-файл debug.log."""
-    _ = run_id  # Параметр для совместимости, но не используется
+    _ = (hypothesis_id, location, message, data, run_id)  # логирование отключено
     # Логирование отключено для production
     return
 

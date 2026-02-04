@@ -34,6 +34,7 @@ try:
 
     from bot.database import init_db
 
+    assert init_db is not None  # проверка импорта
     print("OK bot.database")
 
     from bot.handlers import routers

@@ -347,7 +347,7 @@ class PremiumFeaturesService:
     def can_access_subject(
         self,
         telegram_id: int,  # noqa: ARG002
-        subject_id: str,  # noqa: ARG002
+        _subject_id: str,
         username: str | None = None,  # noqa: ARG002
     ) -> tuple[bool, str | None]:
         """
