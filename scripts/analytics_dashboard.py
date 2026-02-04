@@ -78,7 +78,7 @@ def get_stats():
             print(f"   • Родители:         {parents:>6}")
             print(f"   • Учителя:          {teachers:>6}")
 
-            # ========== СООБЩЕНИЯ ==========
+            # Сообщения
             total_messages = conn.execute(text("SELECT COUNT(*) FROM chat_history")).scalar() or 0
 
             today = datetime.now().date()

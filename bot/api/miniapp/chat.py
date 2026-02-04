@@ -162,9 +162,23 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
 
             # Проверяем, дал ли Vision API готовый ответ (маркер __READY_ANSWER__)
             if photo_result and photo_result.startswith("__READY_ANSWER__"):
-                # Vision API дал готовый ответ - возвращаем его сразу
+                # Vision API дал готовый ответ - модерация перед показом ребёнку
                 photo_analysis_result = photo_result.replace("__READY_ANSWER__", "", 1)
                 user_message = message or "📷 Фото"
+
+                from bot.services.moderation_service import ContentModerationService
+
+                moderation_service = ContentModerationService()
+                is_safe, block_reason = moderation_service.is_safe_content(photo_analysis_result)
+                if not is_safe:
+                    moderation_service.log_blocked_content(
+                        telegram_id, photo_analysis_result, block_reason or "vision_response"
+                    )
+                    cleaned_response = moderation_service.get_safe_response_alternative(
+                        block_reason or ""
+                    )
+                else:
+                    cleaned_response = clean_ai_response(photo_analysis_result)
 
                 # Сохраняем в историю и возвращаем ответ
                 with get_db() as db:
@@ -175,10 +189,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                     if not user:
                         return web.json_response({"error": "User not found"}, status=404)
 
-                    # Очищаем ответ от запрещенных символов
-                    cleaned_response = clean_ai_response(photo_analysis_result)
-
-                    # Сохраняем в историю
+                    # Сохраняем в историю (cleaned_response уже пройден модерацией выше)
                     try:
                         from bot.services.premium_features_service import PremiumFeaturesService
 
@@ -211,9 +222,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                         except Exception as e:
                             logger.error(f"❌ Ошибка геймификации: {e}", exc_info=True)
 
-                        db.commit()
-
-                        # Формируем ответ
+                        # Формируем ответ (commit выполнит get_db при выходе)
                         response_data = {"success": True, "response": cleaned_response}
                         if unlocked_achievements:
                             achievement_info = format_achievements(unlocked_achievements)
@@ -279,7 +288,6 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             if explanation:
                 history_service.add_message(telegram_id, user_message, "user")
                 history_service.add_message(telegram_id, explanation, "ai")
-                db.commit()
                 return web.json_response({"response": explanation})
 
             # Предложение отдыха/игры после 10 или 20 ответов подряд
@@ -290,7 +298,6 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             if rest_response:
                 history_service.add_message(telegram_id, user_message, "user")
                 history_service.add_message(telegram_id, rest_response, "ai")
-                db.commit()
                 return web.json_response({"response": rest_response})
 
             # Для premium - больше истории для контекста
@@ -466,13 +473,8 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 except Exception as e:
                     logger.error(f"❌ Ошибка обработки геймификации: {e}", exc_info=True)
 
-                # ЯВНЫЙ КОММИТ перед отправкой ответа
-                db.commit()
-                logger.info(
-                    f"✅✅✅ ТРАНЗАКЦИЯ ЗАКОММИЧЕНА: user_msg_id={user_msg.id if user_msg else None}, ai_msg_id={ai_msg.id if ai_msg else None}, telegram_id={telegram_id}"
-                )
-
-                # ПРОВЕРКА: читаем обратно из БД для подтверждения
+                # Commit выполнит get_db при выходе из контекста
+                # ПРОВЕРКА: читаем из сессии для подтверждения перед выходом
                 check_msg = db.query(ChatHistory).filter_by(id=user_msg.id).first()
                 if check_msg:
                     logger.info(

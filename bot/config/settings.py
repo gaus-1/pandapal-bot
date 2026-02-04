@@ -48,7 +48,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("YANDEX_GPT_MODEL", "yandex_gpt_model"),
     )
 
-    # ============ YANDEX MAPS ============
+    # Yandex Maps
     yandex_maps_api_key: str | None = Field(
         default=None,
         description="API ключ для Yandex Maps Static API (для генерации карт стран)",
@@ -135,7 +135,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("SECRET_KEY", "secret_key"),
     )
 
-    # ============ FRONTEND ============
+    # Frontend
     frontend_url: str = Field(
         default="https://pandapal.ru",
         description="URL фронтенда",
@@ -230,7 +230,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("YOOKASSA_RECURRING_ENABLED", "yookassa_recurring_enabled"),
     )
 
-    # ============ REDIS (SESSION STORAGE) ============
+    # Redis (session storage)
     redis_url: str = Field(
         default="",
         description="Redis URL для хранения сессий (опционально, fallback на in-memory)",

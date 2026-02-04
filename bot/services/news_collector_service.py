@@ -164,11 +164,10 @@ class NewsCollectorService:
             news_item["grade_max"] = 9
             news_item["is_moderated"] = True
 
-            # 7. Сохранение в БД
+            # 7. Сохранение в БД (commit выполнит get_db при выходе)
             with get_db() as db:
                 repository = NewsRepository(db)
                 repository.save(news_item)
-                db.commit()
 
             logger.info(f"✅ Новость сохранена: {news_item.get('title', '')[:50]}")
             return True

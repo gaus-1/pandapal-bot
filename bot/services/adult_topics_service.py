@@ -69,7 +69,7 @@ class AdultTopicsService:
 
     def _init_topics(self):
         """Инициализация базы знаний по взрослым темам."""
-        # ==================== ДЕНЬГИ И ЭКОНОМИКА ====================
+        # Деньги и экономика
         self._add_topic(
             AdultTopicExplanation(
                 topic_id="what_are_money",
@@ -330,7 +330,7 @@ class AdultTopicsService:
             )
         )
 
-        # ==================== ДОМ И БЫТ ====================
+        # Дом и быт
         self._add_topic(
             AdultTopicExplanation(
                 topic_id="utilities",
@@ -420,7 +420,7 @@ class AdultTopicsService:
             )
         )
 
-        # ==================== ТЕХНОЛОГИИ И СВЯЗЬ ====================
+        # Технологии и связь
         self._add_topic(
             AdultTopicExplanation(
                 topic_id="internet",
@@ -497,7 +497,7 @@ class AdultTopicsService:
             )
         )
 
-        # ==================== ДОКУМЕНТЫ И ПРАВИЛА ====================
+        # Документы и правила
         self._add_topic(
             AdultTopicExplanation(
                 topic_id="passport",
@@ -557,7 +557,7 @@ class AdultTopicsService:
             )
         )
 
-        # ==================== РАБОТА И КАРЬЕРА ====================
+        # Работа и карьера
         self._add_topic(
             AdultTopicExplanation(
                 topic_id="work_life",
@@ -643,7 +643,7 @@ class AdultTopicsService:
             )
         )
 
-        # ==================== ЗДОРОВЬЕ ====================
+        # Здоровье
         self._add_topic(
             AdultTopicExplanation(
                 topic_id="health_insurance",
@@ -702,7 +702,7 @@ class AdultTopicsService:
             )
         )
 
-        # ==================== СЛОЖНЫЕ ТЕМЫ ====================
+        # Сложные темы
         self._add_topic(
             AdultTopicExplanation(
                 topic_id="adult_emotions",

@@ -1,7 +1,6 @@
 """
 Источник новостей из World News API.
 
-API ключ: 0e70d6a927c547c3878bdd85b72e3232
 Endpoint: https://api.worldnewsapi.com/search-news
 """
 
