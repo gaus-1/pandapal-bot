@@ -17,6 +17,7 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
         static_files = [
             "logo.png",
             "favicon.ico",
+            "favicon.svg",
             "robots.txt",
             "sitemap.xml",
             "security.txt",
@@ -139,8 +140,11 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
 
         app.router.add_get("/", lambda _: web.FileResponse(frontend_dist / "index.html"))
 
+        # Расширения, при которых запрос считается к несуществующему файлу — отдаём 404 (рекомендация Яндекса)
+        _STATIC_LIKE_EXTENSIONS = (".html", ".htm", ".php", ".pdf", ".asp", ".aspx")
+
         async def spa_fallback(request: web.Request) -> web.Response:
-            path = request.path
+            path = request.path.rstrip("/") or "/"
             if (
                 path.startswith("/api/")
                 or path.startswith("/assets/")
@@ -153,6 +157,9 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             ):
                 if path.startswith("/assets/"):
                     logger.warning(f"⚠️ Assets файл не найден: {path}")
+                return web.Response(status=404, text="Not Found")
+            # Запрос к несуществующей странице с расширением файла — 404 для корректной индексации
+            if any(path.endswith(ext) for ext in _STATIC_LIKE_EXTENSIONS):
                 return web.Response(status=404, text="Not Found")
             return web.FileResponse(frontend_dist / "index.html")
 
