@@ -1,4 +1,0 @@
-# Нормализация переносов строк: в репозитории всегда LF
-* text=auto eol=lf
-*.py text eol=lf
-*.{js,ts,tsx,json,html,css,md,yml,yaml} text eol=lf
