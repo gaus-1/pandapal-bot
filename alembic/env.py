@@ -37,8 +37,88 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 from bot.models import Base  # noqa: E402
+import bot.services.news_bot.user_preferences_service  # noqa: E402,F401  # регистрирует news_user_preferences в Base.metadata
 
 target_metadata = Base.metadata
+
+
+def _compare_type(context, inspected_column, metadata_column, inspected_type, metadata_type):
+    """Считать эквивалентными представления типов БД (PostgreSQL) и метаданных (SQLAlchemy)."""
+    from sqlalchemy import (
+        Boolean,
+        DateTime,
+        Float,
+        Integer,
+        BigInteger,
+        JSON,
+        String,
+        Text,
+    )
+    from sqlalchemy.dialects.postgresql import (
+        BOOLEAN,
+        DATE,
+        DOUBLE_PRECISION,
+        JSONB,
+        TIMESTAMP,
+    )
+    t1 = type(inspected_type).__name__
+    t2 = type(metadata_type).__name__
+    # Эквиваленты целых
+    if isinstance(inspected_type, (Integer, BigInteger)) and isinstance(
+        metadata_type, (Integer, BigInteger)
+    ):
+        return False
+    # JSON/JSONB
+    if isinstance(inspected_type, (JSONB, JSON)) and isinstance(metadata_type, (JSONB, JSON)):
+        return False
+    # Строки: VARCHAR(n) <-> String(n)
+    if t1 in ("VARCHAR", "String") and t2 in ("VARCHAR", "String"):
+        return False
+    # TEXT <-> Text()
+    if (t1 in ("TEXT", "Text") or isinstance(inspected_type, Text)) and (
+        t2 in ("TEXT", "Text") or isinstance(metadata_type, Text)
+    ):
+        return False
+    # TIMESTAMP(timezone=True) <-> DateTime(timezone=True)
+    if isinstance(inspected_type, (TIMESTAMP, DateTime)) and isinstance(
+        metadata_type, (TIMESTAMP, DateTime)
+    ):
+        return False
+    if isinstance(inspected_type, DATE) and isinstance(metadata_type, DateTime):
+        return False
+    # BOOLEAN <-> Boolean()
+    if isinstance(inspected_type, (BOOLEAN, Boolean)) and isinstance(
+        metadata_type, (BOOLEAN, Boolean)
+    ):
+        return False
+    # DOUBLE_PRECISION <-> Float()
+    if isinstance(inspected_type, (DOUBLE_PRECISION, Float)) and isinstance(
+        metadata_type, (DOUBLE_PRECISION, Float)
+    ):
+        return False
+    return True
+
+
+def _compare_server_default(
+    context,
+    inspected_column,
+    metadata_column,
+    inspected_default,
+    metadata_default,
+    rendered_metadata_default,
+):
+    """Считать одинаковыми логически эквивалентные server_default (например 'true' и True)."""
+    if inspected_default is None and metadata_default is None:
+        return False
+    if inspected_default is None or metadata_default is None:
+        return None
+    a = str(inspected_default).strip().lower()
+    b = str(metadata_default).strip().lower()
+    if a == b:
+        return False
+    if a in ("true", "false") and b in ("true", "false"):
+        return False
+    return None
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -64,6 +144,8 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        compare_type=_compare_type,
+        compare_server_default=_compare_server_default,
     )
 
     with context.begin_transaction():
@@ -84,7 +166,12 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_type=_compare_type,
+            compare_server_default=_compare_server_default,
+        )
 
         with context.begin_transaction():
             context.run_migrations()

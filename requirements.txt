@@ -139,6 +139,7 @@ pytest-asyncio==0.24.0         # Async тесты (asyncio_mode = auto)
 iniconfig==2.3.0                # INI парсер для pytest
 pluggy==1.6.0                   # Система плагинов
 attrs==25.4.0                   # Классы без boilerplate кода
+locust==2.43.1                  # Нагрузочное тестирование (performance tests)
 
 # Обнаружение мертвого кода (только для разработки)
 vulture==2.14                   # Поиск неиспользуемого кода
