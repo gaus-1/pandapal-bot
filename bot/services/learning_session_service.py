@@ -39,7 +39,11 @@ class LearningSessionService:
         session = self._db.execute(stmt).scalar_one_or_none()
         if session is None:
             return None
-        if session.session_start < cutoff:
+        # SQLite возвращает naive datetime — нормализуем для сравнения
+        session_start = session.session_start
+        if session_start.tzinfo is None:
+            session_start = session_start.replace(tzinfo=UTC)
+        if session_start < cutoff:
             session.is_completed = True
             session.session_end = datetime.now(UTC)
             self._db.flush()

@@ -83,6 +83,28 @@ class TestComprehensivePandaE2E:
         """Проверяет наличие Yandex API ключей"""
         return REAL_API_KEY_AVAILABLE
 
+    @pytest.fixture
+    def e2e_auth_patches(self):
+        """Патчи require_owner/verify_resource_owner только для E2E (без реального initData)."""
+        p1 = patch("bot.api.miniapp.chat.require_owner", return_value=None)
+        p2 = patch("bot.api.miniapp.progress.require_owner", return_value=None)
+        p3 = patch("bot.api.miniapp.homework.require_owner", return_value=None)
+        p4 = patch(
+            "bot.api.miniapp.auth.verify_resource_owner",
+            side_effect=lambda _req, _tid: (True, None),
+        )
+        p1.start()
+        p2.start()
+        p3.start()
+        p4.start()
+        try:
+            yield
+        finally:
+            p4.stop()
+            p3.stop()
+            p2.stop()
+            p1.stop()
+
     def _check_response_quality(self, response: str, min_sentences: int = 4) -> dict:
         """Проверка качества ответа - развернутый, структурированный, подробный."""
         issues = []
@@ -155,7 +177,7 @@ class TestComprehensivePandaE2E:
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
-    async def test_moderation_not_blocks_school_questions_e2e(self, real_db_session):
+    async def test_moderation_not_blocks_school_questions_e2e(self, real_db_session, e2e_auth_patches):
         """КРИТИЧНО: Модерация НЕ блокирует школьные вопросы через E2E."""
         telegram_id = 888999000
         test_username = "moderation_test_user"
@@ -194,11 +216,11 @@ class TestComprehensivePandaE2E:
                 # Если нет ключей - мокаем AI, но модерация РЕАЛЬНАЯ
                 ai_patch = None
                 if not REAL_API_KEY_AVAILABLE:
-                    ai_patch = patch("bot.api.miniapp_endpoints.get_ai_service")
+                    ai_patch = patch("bot.api.miniapp.chat.get_ai_service")
                     mock_ai = AsyncMock()
                     mock_ai.generate_response = AsyncMock(return_value="Тестовый ответ")
-                    ai_patch.return_value = mock_ai
-                    ai_patch.start()
+                    mock_get_ai = ai_patch.start()
+                    mock_get_ai.return_value = mock_ai
 
                 try:
                     response = await miniapp_ai_chat(request)
@@ -224,7 +246,9 @@ class TestComprehensivePandaE2E:
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
-    async def test_text_responses_all_subjects_detailed_e2e(self, real_db_session, has_yandex_keys):
+    async def test_text_responses_all_subjects_detailed_e2e(
+        self, real_db_session, has_yandex_keys, e2e_auth_patches
+    ):
         """E2E: Текстовые ответы по ВСЕМ предметам должны быть развернутыми и подробными."""
         telegram_id = 777888999
         test_username = "text_subjects_test_user"
@@ -298,7 +322,7 @@ class TestComprehensivePandaE2E:
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
     async def test_visualizations_with_detailed_explanations_e2e(
-        self, real_db_session, has_yandex_keys
+        self, real_db_session, has_yandex_keys, e2e_auth_patches
     ):
         """E2E: Визуализации должны генерироваться + подробное пояснение."""
         telegram_id = 666777888
@@ -369,7 +393,9 @@ class TestComprehensivePandaE2E:
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
-    async def test_photo_processing_all_subjects_e2e(self, real_db_session, has_yandex_keys):
+    async def test_photo_processing_all_subjects_e2e(
+        self, real_db_session, has_yandex_keys, e2e_auth_patches
+    ):
         """E2E: Обработка фото по всем предметам - полная обработка."""
         telegram_id = 555666777
         test_username = "photo_test_user"
@@ -438,7 +464,9 @@ class TestComprehensivePandaE2E:
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
-    async def test_homework_check_e2e(self, real_db_session, has_yandex_keys):
+    async def test_homework_check_e2e(
+        self, real_db_session, has_yandex_keys, e2e_auth_patches
+    ):
         """E2E: Проверка домашних заданий через homework endpoint."""
         telegram_id = 444555666
         test_username = "homework_test_user"
@@ -498,7 +526,7 @@ class TestComprehensivePandaE2E:
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
     async def test_complete_user_journey_with_all_features_e2e(
-        self, real_db_session, has_yandex_keys
+        self, real_db_session, has_yandex_keys, e2e_auth_patches
     ):
         """E2E: Полный путь пользователя со ВСЕМИ функциями - текст, фото, визуализации, ДЗ."""
         telegram_id = 333444555

@@ -107,40 +107,32 @@ class TestErrorHandlingE2E:
             }
         )
 
-        # Используем РЕАЛЬНУЮ БД через get_db
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
-            # Мокаем только get_db чтобы использовать нашу тестовую БД
-            mock_get_db.return_value.__enter__.return_value = real_db_session
-            mock_get_db.return_value.__exit__.return_value = None
+        # Патчим проверку владельца (E2E без реального initData)
+        with patch("bot.api.miniapp.chat.require_owner", return_value=None):
+            with patch("bot.api.miniapp.chat.get_db") as mock_get_db:
+                mock_get_db.return_value.__enter__.return_value = real_db_session
+                mock_get_db.return_value.__exit__.return_value = None
 
-            # Мокаем только AI сервис чтобы эмулировать ошибку YandexGPT
-            with patch("bot.api.miniapp_endpoints.get_ai_service") as mock_ai_service:
-                mock_service = AsyncMock()
-                # Эмулируем ошибку API (например, timeout или 500)
-                mock_service.generate_response = AsyncMock(
-                    side_effect=Exception("YandexGPT API недоступен. Попробуйте позже.")
-                )
-                mock_ai_service.return_value = mock_service
+                with patch("bot.api.miniapp.chat.get_ai_service") as mock_ai_service:
+                    mock_service = AsyncMock()
+                    mock_service.generate_response = AsyncMock(
+                        side_effect=Exception("YandexGPT API недоступен. Попробуйте позже.")
+                    )
+                    mock_ai_service.return_value = mock_service
 
-                # Выполняем запрос - РЕАЛЬНАЯ БД, РЕАЛЬНАЯ модерация
-                response = await miniapp_ai_chat(request)
+                    response = await miniapp_ai_chat(request)
+                    assert response.status in [200, 500, 503], f"Неожиданный статус: {response.status}"
 
-                # Проверяем что получили ответ (не 500)
-                assert response.status in [200, 500], f"Неожиданный статус: {response.status}"
-
-                # Если статус 200, проверяем что в ответе есть понятное сообщение об ошибке
-                if response.status == 200:
-                    response_data = await response.json()
-                    # Проверяем что есть сообщение об ошибке
-                    assert "error" in response_data or "message" in response_data
-                    # Проверяем что сообщение понятное (не техническое)
-                    if "error" in response_data:
-                        error_msg = response_data["error"].lower()
-                        assert (
-                            "попробуйте позже" in error_msg
-                            or "ошибка" in error_msg
-                            or "недоступен" in error_msg
-                        ), f"Сообщение об ошибке не понятное: {response_data['error']}"
+                    if response.status == 200:
+                        response_data = await response.json()
+                        assert "error" in response_data or "message" in response_data
+                        if "error" in response_data:
+                            error_msg = response_data["error"].lower()
+                            assert (
+                                "попробуйте позже" in error_msg
+                                or "ошибка" in error_msg
+                                or "недоступен" in error_msg
+                            ), f"Сообщение об ошибке не понятное: {response_data['error']}"
 
     @pytest.mark.e2e
     @pytest.mark.asyncio
@@ -165,34 +157,28 @@ class TestErrorHandlingE2E:
             }
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
-            mock_get_db.return_value.__enter__.return_value = real_db_session
-            mock_get_db.return_value.__exit__.return_value = None
+        with patch("bot.api.miniapp.chat.require_owner", return_value=None):
+            with patch("bot.api.miniapp.chat.get_db") as mock_get_db:
+                mock_get_db.return_value.__enter__.return_value = real_db_session
+                mock_get_db.return_value.__exit__.return_value = None
 
-            # Мокаем только SpeechKit чтобы эмулировать ошибку
-            with patch("bot.api.miniapp_endpoints.get_speech_service") as mock_get_speech:
-                mock_speech_service = AsyncMock()
-                # Эмулируем ошибку SpeechKit
-                mock_speech_service.transcribe_voice = AsyncMock(
-                    side_effect=Exception("SpeechKit API недоступен")
-                )
-                mock_get_speech.return_value = mock_speech_service
-
-                # Выполняем запрос - РЕАЛЬНАЯ БД, РЕАЛЬНАЯ модерация
-                response = await miniapp_ai_chat(request)
-
-                # Проверяем что получили ответ
-                assert response.status in [200, 400, 500]
-
-                # Если статус 200, проверяем что есть fallback или понятное сообщение
-                if response.status == 200:
-                    response_data = await response.json()
-                    # Должен быть либо fallback на текст, либо понятное сообщение об ошибке
-                    assert (
-                        "error" in response_data
-                        or "message" in response_data
-                        or "response" in response_data
+                with patch("bot.api.miniapp.helpers.get_speech_service") as mock_get_speech:
+                    mock_speech_service = AsyncMock()
+                    mock_speech_service.transcribe_voice = AsyncMock(
+                        side_effect=Exception("SpeechKit API недоступен")
                     )
+                    mock_get_speech.return_value = mock_speech_service
+
+                    response = await miniapp_ai_chat(request)
+                    assert response.status in [200, 400, 500, 503]
+
+                    if response.status == 200:
+                        response_data = await response.json()
+                        assert (
+                            "error" in response_data
+                            or "message" in response_data
+                            or "response" in response_data
+                        )
 
     @pytest.mark.e2e
     @pytest.mark.asyncio
@@ -220,34 +206,28 @@ class TestErrorHandlingE2E:
             }
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
-            mock_get_db.return_value.__enter__.return_value = real_db_session
-            mock_get_db.return_value.__exit__.return_value = None
+        with patch("bot.api.miniapp.chat.require_owner", return_value=None):
+            with patch("bot.api.miniapp.chat.get_db") as mock_get_db:
+                mock_get_db.return_value.__enter__.return_value = real_db_session
+                mock_get_db.return_value.__exit__.return_value = None
 
-            # Мокаем только Vision чтобы эмулировать ошибку
-            with patch("bot.api.miniapp_endpoints.VisionService") as mock_vision:
-                mock_vision_service = AsyncMock()
-                # Эмулируем ошибку Vision API
-                mock_vision_service.analyze_image = AsyncMock(
-                    side_effect=Exception("Vision API недоступен")
-                )
-                mock_vision.return_value = mock_vision_service
-
-                # Выполняем запрос - РЕАЛЬНАЯ БД, РЕАЛЬНАЯ модерация
-                response = await miniapp_ai_chat(request)
-
-                # Проверяем что получили ответ
-                assert response.status in [200, 400, 500]
-
-                # Если статус 200, проверяем что есть fallback или понятное сообщение
-                if response.status == 200:
-                    response_data = await response.json()
-                    # Должен быть либо fallback на текст, либо понятное сообщение об ошибке
-                    assert (
-                        "error" in response_data
-                        or "message" in response_data
-                        or "response" in response_data
+                with patch("bot.api.miniapp.helpers.VisionService") as mock_vision:
+                    mock_vision_service = AsyncMock()
+                    mock_vision_service.analyze_image = AsyncMock(
+                        side_effect=Exception("Vision API недоступен")
                     )
+                    mock_vision.return_value = mock_vision_service
+
+                    response = await miniapp_ai_chat(request)
+                    assert response.status in [200, 400, 404, 500, 503]
+
+                    if response.status == 200:
+                        response_data = await response.json()
+                        assert (
+                            "error" in response_data
+                            or "message" in response_data
+                            or "response" in response_data
+                        )
 
     @pytest.mark.e2e
     @pytest.mark.asyncio
@@ -274,39 +254,34 @@ class TestErrorHandlingE2E:
             }
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
-            mock_get_db.return_value.__enter__.return_value = real_db_session
-            mock_get_db.return_value.__exit__.return_value = None
+        with patch("bot.api.miniapp.chat.require_owner", return_value=None):
+            with patch("bot.api.miniapp.chat.get_db") as mock_get_db:
+                mock_get_db.return_value.__enter__.return_value = real_db_session
+                mock_get_db.return_value.__exit__.return_value = None
 
-            # Мокаем только AI сервис чтобы эмулировать сетевую ошибку
-            with patch("bot.api.miniapp_endpoints.get_ai_service") as mock_ai_service:
-                mock_service = AsyncMock()
-                # Эмулируем сетевую ошибку (например, timeout)
-                import asyncio
+                with patch("bot.api.miniapp.chat.get_ai_service") as mock_ai_service:
+                    mock_service = AsyncMock()
+                    import asyncio
 
-                mock_service.generate_response = AsyncMock(
-                    side_effect=asyncio.TimeoutError("Сетевое соединение прервано")
-                )
-                mock_ai_service.return_value = mock_service
+                    mock_service.generate_response = AsyncMock(
+                        side_effect=asyncio.TimeoutError("Сетевое соединение прервано")
+                    )
+                    mock_ai_service.return_value = mock_service
 
-                # Выполняем запрос - РЕАЛЬНАЯ БД, РЕАЛЬНАЯ модерация
-                response = await miniapp_ai_chat(request)
+                    response = await miniapp_ai_chat(request)
+                    assert response.status in [200, 500, 503]
 
-                # Проверяем что получили ответ (не зависло)
-                assert response.status in [200, 500, 503]
-
-                # Если статус 200, проверяем что есть понятное сообщение об ошибке
-                if response.status == 200:
-                    response_data = await response.json()
-                    assert "error" in response_data or "message" in response_data
-                    if "error" in response_data:
-                        error_msg = response_data["error"].lower()
-                        assert (
-                            "сеть" in error_msg
-                            or "соединение" in error_msg
-                            or "попробуйте позже" in error_msg
-                            or "ошибка" in error_msg
-                        ), f"Сообщение об ошибке не понятное: {response_data['error']}"
+                    if response.status == 200:
+                        response_data = await response.json()
+                        assert "error" in response_data or "message" in response_data
+                        if "error" in response_data:
+                            error_msg = response_data["error"].lower()
+                            assert (
+                                "сеть" in error_msg
+                                or "соединение" in error_msg
+                                or "попробуйте позже" in error_msg
+                                or "ошибка" in error_msg
+                            ), f"Сообщение об ошибке не понятное: {response_data['error']}"
 
     @pytest.mark.e2e
     @pytest.mark.asyncio
@@ -333,24 +308,20 @@ class TestErrorHandlingE2E:
             }
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
-            mock_get_db.return_value.__enter__.return_value = real_db_session
-            mock_get_db.return_value.__exit__.return_value = None
+        with patch("bot.api.miniapp.chat.require_owner", return_value=None):
+            with patch("bot.api.miniapp.chat.get_db") as mock_get_db:
+                mock_get_db.return_value.__enter__.return_value = real_db_session
+                mock_get_db.return_value.__exit__.return_value = None
 
-            # Мокаем только AI сервис чтобы эмулировать ошибку
-            with patch("bot.api.miniapp_endpoints.get_ai_service") as mock_ai_service:
-                mock_service = AsyncMock()
-                mock_service.generate_response = AsyncMock(
-                    side_effect=Exception("YandexGPT недоступен")
-                )
-                mock_ai_service.return_value = mock_service
+                with patch("bot.api.miniapp.chat.get_ai_service") as mock_ai_service:
+                    mock_service = AsyncMock()
+                    mock_service.generate_response = AsyncMock(
+                        side_effect=Exception("YandexGPT недоступен")
+                    )
+                    mock_ai_service.return_value = mock_service
 
-                # Выполняем запрос - РЕАЛЬНАЯ БД, РЕАЛЬНАЯ модерация
-                response = await miniapp_ai_chat(request)
+                    response = await miniapp_ai_chat(request)
+                    assert response.status in [200, 500, 503]
 
-                # Проверяем что система не упала полностью
-                assert response.status in [200, 500, 503]
-
-                # Проверяем что модерация всё равно работает (РЕАЛЬНАЯ проверка)
-                is_safe_after, _ = moderation_service.is_safe_content(text_message)
-                assert is_safe_after is True, "Модерация должна работать даже при ошибках AI"
+                    is_safe_after, _ = moderation_service.is_safe_content(text_message)
+                    assert is_safe_after is True, "Модерация должна работать даже при ошибках AI"

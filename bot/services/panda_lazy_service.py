@@ -73,8 +73,13 @@ class PandaLazyService:
 
         now = datetime.now(UTC)
 
+        # Нормализуем panda_lazy_until для сравнения (SQLite хранит naive UTC)
+        lazy_until = user.panda_lazy_until
+        if lazy_until is not None and lazy_until.tzinfo is None:
+            lazy_until = lazy_until.replace(tzinfo=UTC)
+
         # Проверяем, не истекла ли текущая "ленивость"
-        if user.panda_lazy_until and user.panda_lazy_until > now:
+        if lazy_until and lazy_until > now:
             # Панда все еще "ленива"
             lazy_responses = [
                 "Я объелся бамбуком и хочу отдохнуть...Напиши мне чуть-чуть попозже",
@@ -83,13 +88,13 @@ class PandaLazyService:
             return True, random.choice(lazy_responses)
 
         # Если время "ленивости" истекло, сбрасываем
-        if user.panda_lazy_until and user.panda_lazy_until <= now:
+        if lazy_until and lazy_until <= now:
             user.panda_lazy_until = None
             self.db.flush()
             logger.info(f"🐼 Панда снова активна для пользователя {telegram_id}")
 
-        # Считаем запросы за последние 20 минут
-        time_threshold = now - timedelta(minutes=self.TIME_WINDOW_MINUTES)
+        # Считаем запросы за последние 20 минут (naive UTC для совместимости с SQLite)
+        time_threshold = (now - timedelta(minutes=self.TIME_WINDOW_MINUTES)).replace(tzinfo=None)
         request_count = (
             self.db.execute(
                 select(func.count(ChatHistory.id))
