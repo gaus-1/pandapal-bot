@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Скрипт для проверки структуры базы данных PandaPal."""
+"""Проверка структуры SQLite БД (локальная разработка). Production — PostgreSQL, см. check_database.py."""
 
 import sqlite3
 import sys

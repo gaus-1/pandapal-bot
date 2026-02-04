@@ -7,7 +7,7 @@
 - Интеграцию с внешними системами мониторинга
 """
 
-# Re-export legacy функций для обратной совместимости
+# Re-export legacy (monitoring_legacy) для обратной совместимости; новый код — metrics_integration/prometheus_metrics
 # Интеграция метрик
 from bot.monitoring.metrics_integration import (
     MetricsIntegration,
