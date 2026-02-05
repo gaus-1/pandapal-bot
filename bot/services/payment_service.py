@@ -28,10 +28,9 @@ class PaymentService:
     - Поддержку чеков для самозанятых
     """
 
-    # Тарифные планы (цена в рублях)
+    # Тарифный план (только месяц 299 ₽)
     PLANS = {
         "month": {"name": "Premium на месяц", "price": 299.00, "days": 30},
-        "year": {"name": "Premium на год", "price": 2990.00, "days": 365},
     }
 
     def __init__(self):
@@ -145,7 +144,7 @@ class PaymentService:
 
         Args:
             telegram_id: Telegram ID пользователя
-            plan_id: ID тарифного плана ('month', 'year')
+            plan_id: ID тарифного плана ('month')
             user_email: Email пользователя (для чека)
             user_phone: Телефон пользователя (для чека)
 
@@ -191,10 +190,10 @@ class PaymentService:
             "merchant_customer_id": str(telegram_id),
         }
 
-        # Для подписок month и year - сохраняем метод оплаты для автоплатежа
+        # Для подписки month - сохраняем метод оплаты для автоплатежа
         # В ТЕСТОВОМ РЕЖИМЕ автоплатежи работают автоматически (без активации менеджером)
         # В ПРОДАКШН режиме автоплатежи должны быть активированы менеджером ЮKassa
-        if plan_id in ("month", "year"):
+        if plan_id == "month":
             if settings.yookassa_test_mode:
                 # В тестовом режиме автоплатежи работают автоматически
                 payment_data["save_payment_method"] = True

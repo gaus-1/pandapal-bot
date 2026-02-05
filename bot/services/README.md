@@ -21,7 +21,7 @@
 ### Платежи и Premium
 - `payment_service.py` - работа с YooKassa (продакшн режим, карты, СБП, сохранение карт, webhooks)
 - `subscription_service.py` - управление Premium подписками (активация, деактивация, проверка статуса)
-- `premium_features_service.py` — проверка Premium статуса и лимитов (30 запросов/месяц free, 500/день month, без ограничений year)
+- `premium_features_service.py` — проверка Premium статуса и лимитов (30 запросов/месяц free, 500/день Premium 299 ₽/мес)
 
 ### Игры
 - `games_service.py` — управление игровыми сессиями, сохранение прогресса, проверка игровых достижений

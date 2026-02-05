@@ -69,11 +69,8 @@ class PrioritySupportService:
         if not self.premium_service.is_premium_active(telegram_id):
             return SupportPriority.FREE
 
-        plan = self.premium_service.get_premium_plan(telegram_id)
-        if plan == "year":
-            return SupportPriority.VIP
-
-        return SupportPriority.PREMIUM
+        # Любая Premium подписка — VIP приоритет
+        return SupportPriority.VIP
 
     def add_support_request(self, telegram_id: int, message: str) -> SupportRequest:
         """

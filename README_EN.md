@@ -38,9 +38,14 @@ PandaPal is an intelligent assistant for homework help. The bot works 24/7 and h
 - Automatic translation and grammar explanations for 5 languages
 - PandaPalGo Games: Tic-Tac-Toe, Checkers with smart opponent, 2048, Erudite (word building)
 - Achievement and progress system with XP, levels, and rewards
-- Premium subscriptions via YooKassa with card saving
+- Premium: 299 RUB/month only, via YooKassa with card saving
+- **Referral program** — personal links for teachers and partners; payouts for subscriptions via link, monthly report (1st–30th/31st)
 - Multi-level content moderation for children's safety (150+ patterns)
 - Dark theme for comfortable use
+
+### Referral Program
+
+Teachers and partners get a personal link: `https://t.me/PandaPalBot?startapp=ref_<telegram_id>`. Users who open the link and pay for a subscription are tracked; the referrer receives a payout (amount configurable via `REFERRAL_PAYOUT_RUB`). Monthly report for the calendar month: `python scripts/referral_report.py [--year YYYY] [--month MM]`. Payouts to referrers are done manually from the report data.
 
 ## Quick Start
 
@@ -110,6 +115,7 @@ PandaPal/
 │   │   └── ...             # Other handlers
 │   ├── services/           # Business logic (AI, payments, games, Mini App, RAG)
 │   │   ├── rag/            # Enhanced RAG system
+│   │   ├── referral_service.py  # Referral links (ref_<id>, whitelist)
 │   │   └── visualization/  # Subject-specific visualizations
 │   ├── api/                # HTTP endpoints
 │   │   └── miniapp/        # Telegram Mini App API
@@ -215,6 +221,13 @@ pytest tests/e2e/test_comprehensive_panda_e2e.py -v
 # All tests with coverage
 pytest tests/ --cov=bot --cov-report=html
 ```
+
+## Referral Program
+
+- Personal links: `https://t.me/PandaPalBot?startapp=ref_<telegram_id>`
+- Referrer whitelist in DB; payouts recorded on payment success
+- Monthly report: `python scripts/referral_report.py [--year YYYY] [--month MM]`
+- Payout amount: `REFERRAL_PAYOUT_RUB` (default 100)
 
 ## Security
 

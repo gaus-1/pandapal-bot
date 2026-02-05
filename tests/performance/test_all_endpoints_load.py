@@ -237,7 +237,7 @@ class TestAllEndpointsLoad:
         subscription_service = SubscriptionService(real_db_session)
         subscription_service.activate_subscription(
             telegram_id=999888777,
-            plan_id="year",
+            plan_id="month",
             transaction_id="load_test_tx",
             payment_method="stars",
         )

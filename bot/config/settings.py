@@ -251,8 +251,8 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("ADMIN_USERNAMES", "admin_usernames"),
     )
     admin_telegram_ids: str = Field(
-        default="963126718,8198136020",
-        description="Список Telegram ID админов через запятую (безлимит запросов)",
+        default="963126718,8198136020,729414271",
+        description="Список Telegram ID админов через запятую (безлимит запросов); 729414271 — преподаватель-реферер",
         validation_alias=AliasChoices("ADMIN_TELEGRAM_IDS", "admin_telegram_ids"),
     )
 

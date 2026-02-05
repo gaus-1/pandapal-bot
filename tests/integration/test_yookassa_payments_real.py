@@ -93,10 +93,7 @@ class TestYooKassaPaymentsReal:
         """Проверка создания платежей для всех планов подписки"""
         payment_service = PaymentService()
 
-        plans = {
-            "month": 399.0,
-            "year": 2990.0,
-        }
+        plans = {"month": 299.0}
 
         for plan_id, expected_amount in plans.items():
             payment_data = payment_service.create_payment(

@@ -38,7 +38,7 @@ class Subscription(Base):
     Attributes:
         id: Уникальный идентификатор подписки.
         user_telegram_id: ID пользователя в Telegram.
-        plan_id: Тип плана ('month', 'year').
+        plan_id: Тип плана ('month').
         starts_at: Дата начала подписки.
         expires_at: Дата окончания подписки.
         is_active: Статус активности подписки.
@@ -131,7 +131,7 @@ class Payment(Base):
         user_telegram_id: ID пользователя в Telegram.
         subscription_id: ID подписки (если платеж успешен и создана подписка).
         payment_method: Способ оплаты ('stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other').
-        plan_id: Тип плана ('month', 'year').
+        plan_id: Тип плана ('month').
         amount: Сумма платежа.
         currency: Валюта платежа (RUB, XTR для Stars).
         status: Статус платежа ('pending', 'succeeded', 'cancelled', 'failed').

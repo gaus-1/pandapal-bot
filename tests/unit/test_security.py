@@ -213,7 +213,7 @@ class TestAuditLogger:
                 event_type=SecurityEventType.PAYMENT_CREATED,
                 user_id=12345,
                 payment_id="test_payment_123",
-                amount=599.0,
+                amount=299.0,
                 currency="RUB",
                 plan_id="month",
                 payment_method="yookassa_card",

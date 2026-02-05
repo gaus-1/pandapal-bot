@@ -448,7 +448,7 @@ class TestPremiumPaymentReal:
         # Создаём тестовый запрос
         request_data = {
             "telegram_id": 999888777,
-            "plan_id": "year",
+            "plan_id": "month",
             "transaction_id": "api_tx_123",
         }
 
@@ -489,5 +489,5 @@ class TestPremiumPaymentReal:
             assert subscription_service.is_premium_active(999888777)
 
             subscription = subscription_service.get_active_subscription(999888777)
-            assert subscription.plan_id == "year"
+            assert subscription.plan_id == "month"
             assert subscription.transaction_id == "api_tx_123"

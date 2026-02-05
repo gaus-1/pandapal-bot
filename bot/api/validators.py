@@ -117,7 +117,7 @@ class PremiumInvoiceRequest(BaseModel):
     """Валидация запроса на создание invoice."""
 
     telegram_id: int = Field(..., ge=1, description="Telegram ID пользователя")
-    plan_id: str = Field(..., pattern="^(month|year)$", description="ID тарифного плана")
+    plan_id: str = Field(..., pattern="^month$", description="ID тарифного плана (только month)")
     payment_method: str | None = Field(
         default="stars", pattern="^(stars)$", description="Способ оплаты (только stars для invoice)"
     )
@@ -127,7 +127,7 @@ class PremiumPaymentRequest(BaseModel):
     """Валидация запроса на обработку оплаты."""
 
     telegram_id: int = Field(..., ge=1, description="Telegram ID пользователя")
-    plan_id: str = Field(..., pattern="^(month|year)$", description="ID тарифного плана")
+    plan_id: str = Field(..., pattern="^month$", description="ID тарифного плана (только month)")
     transaction_id: str | None = Field(None, max_length=255, description="ID транзакции")
     payment_method: str | None = Field(
         default="stars",
@@ -142,7 +142,7 @@ class PremiumYooKassaRequest(BaseModel):
     telegram_id: int = Field(
         ..., ge=1, description="Telegram ID пользователя (требуется авторизация)"
     )
-    plan_id: str = Field(..., pattern="^(month|year)$", description="ID тарифного плана")
+    plan_id: str = Field(..., pattern="^month$", description="ID тарифного плана (только month)")
     user_email: str | None = Field(
         None, max_length=255, description="Email пользователя (для чека)"
     )

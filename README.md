@@ -71,8 +71,13 @@ npm run dev
 - Игры PandaPalGo: Крестики-нолики, Шашки с умным противником, 2048, Эрудит (составление слов)
 - Система достижений и прогресса с XP, уровнями и наградами
 - Premium подписки через YooKassa с сохранением карт
+- **Реферальная программа** — персональные ссылки для преподавателей и партнёров; начисление за оплаты по ссылке, месячный отчёт (1–30 число)
 - Многоуровневая модерация контента для безопасности детей (150+ паттернов)
 - Темная тема для комфортного использования
+
+### Реферальная программа
+
+Преподаватели и партнёры получают персональную ссылку вида `https://t.me/PandaPalBot?startapp=ref_<telegram_id>`. Пользователи, перешедшие по ссылке и оплатившие подписку, учитываются в БД; рефереру начисляется вознаграждение (сумма настраивается через `REFERRAL_PAYOUT_RUB`). Месячный отчёт за период 1–30/31 число: `python scripts/referral_report.py [--year YYYY] [--month MM]`. Выплаты реферерам производятся вручную по данным отчёта.
 
 ## Технологии
 
@@ -138,6 +143,7 @@ PandaPal/
 │   │   ├── gamification_service.py          # Достижения, уровни, XP
 │   │   ├── premium_features_service.py      # Premium лимиты и доступ
 │   │   ├── payment_service.py               # YooKassa / Telegram Stars
+│   │   ├── referral_service.py              # Реферальные ссылки (ref_<id>, whitelist)
 │   │   ├── history_service.py               # История чата (включая image_url)
 │   │   ├── adult_topics_service.py          # Объяснение взрослых тем детям (деньги, ЖКУ, документы)
 │   │   ├── yandex_art_service.py            # Генерация изображений через YandexART
@@ -243,6 +249,7 @@ graph TB
 - `moderation_service.py` — фильтрация контента (150+ паттернов, 4 языка)
 - `user_service.py` — управление пользователями
 - `payment_service.py` — интеграция с YooKassa (продакшн, сохранение карт)
+- `referral_service.py` — парсинг ref-параметра, whitelist рефереров
 - `premium_features_service.py` — проверка Premium статуса и лимитов
 - `games_service.py` — логика игр PandaPalGo (TicTacToe, Checkers, 2048, Two Dots)
 - `gamification_service.py` — достижения, уровни, XP
@@ -280,7 +287,7 @@ graph TB
 - **Content Security Policy (CSP)** — строгие CSP headers в frontend для защиты от XSS
 - Многоуровневая модерация контента (150+ паттернов, 4 языка)
 - Rate limiting: 60 req/min API, 30 req/min AI
-- Daily limits: 30 запросов в месяц (free), 500 в день (month), без ограничений (year)
+- Daily limits: 30 запросов в месяц (free), 500 в день (Premium, 299 ₽/мес)
 - CORS, CSRF защита
 - Валидация всех входных данных через Pydantic V2
 - SQLAlchemy ORM для защиты от SQL injection
@@ -454,7 +461,8 @@ pytest tests/ --cov=bot --cov-report=html
 - Сохранение карт для автоплатежей
 - Отвязка сохраненных карт через UI
 - Улучшенная обработка webhooks и подписей
-- Premium планы: Месяц (599₽) и Год (4990₽)
+- Premium: только тариф **299 ₽/месяц**
+- **Реферальная программа**: ссылки `ref_<telegram_id>`, whitelist рефереров, начисления при оплате, скрипт месячного отчёта `referral_report.py`
 
 ### Достижения и Геймификация
 

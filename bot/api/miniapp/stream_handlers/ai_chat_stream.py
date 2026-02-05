@@ -185,8 +185,13 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
         if explanation:
             with get_db() as db_at:
                 hist = ChatHistoryService(db_at)
+                prem = PremiumFeaturesService(db_at)
+                limit_reached, _ = prem.increment_request_count(telegram_id)
                 hist.add_message(telegram_id, user_message, "user")
                 hist.add_message(telegram_id, explanation, "ai")
+                if limit_reached:
+                    hist.add_message(telegram_id, prem.get_limit_reached_message_text(), "ai")
+                    asyncio.create_task(prem.send_limit_reached_notification_async(telegram_id))
                 db_at.commit()
             event_data = json.dumps({"content": explanation}, ensure_ascii=False)
             await response.write(f"event: message\ndata: {event_data}\n\n".encode())
@@ -205,8 +210,17 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 )
                 if rest_response:
                     history_service_rest = ChatHistoryService(db_rest)
+                    prem_rest = PremiumFeaturesService(db_rest)
+                    limit_reached_rest, _ = prem_rest.increment_request_count(telegram_id)
                     history_service_rest.add_message(telegram_id, user_message, "user")
                     history_service_rest.add_message(telegram_id, rest_response, "ai")
+                    if limit_reached_rest:
+                        history_service_rest.add_message(
+                            telegram_id, prem_rest.get_limit_reached_message_text(), "ai"
+                        )
+                        asyncio.create_task(
+                            prem_rest.send_limit_reached_notification_async(telegram_id)
+                        )
                     db_rest.commit()
                     event_data = json.dumps({"content": rest_response}, ensure_ascii=False)
                     await response.write(f"event: message\ndata: {event_data}\n\n".encode())

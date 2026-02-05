@@ -205,6 +205,9 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                             asyncio.create_task(
                                 premium_service.send_limit_reached_notification_async(telegram_id)
                             )
+                            history_service.add_message(
+                                telegram_id, premium_service.get_limit_reached_message_text(), "ai"
+                            )
                         history_service.add_message(telegram_id, user_message, "user")
                         history_service.add_message(telegram_id, cleaned_response, "ai")
                         lazy_service = PandaLazyService(db)
@@ -286,8 +289,18 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
 
             explanation = get_adult_topics_service().try_get_adult_topic_response(user_message)
             if explanation:
+                limit_reached, _ = premium_service.increment_request_count(telegram_id)
                 history_service.add_message(telegram_id, user_message, "user")
                 history_service.add_message(telegram_id, explanation, "ai")
+                if limit_reached:
+                    import asyncio
+
+                    asyncio.create_task(
+                        premium_service.send_limit_reached_notification_async(telegram_id)
+                    )
+                    history_service.add_message(
+                        telegram_id, premium_service.get_limit_reached_message_text(), "ai"
+                    )
                 return web.json_response({"response": explanation})
 
             # Предложение отдыха/игры после 10 или 20 ответов подряд
@@ -296,8 +309,18 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 telegram_id, user_message, user.first_name
             )
             if rest_response:
+                limit_reached, _ = premium_service.increment_request_count(telegram_id)
                 history_service.add_message(telegram_id, user_message, "user")
                 history_service.add_message(telegram_id, rest_response, "ai")
+                if limit_reached:
+                    import asyncio
+
+                    asyncio.create_task(
+                        premium_service.send_limit_reached_notification_async(telegram_id)
+                    )
+                    history_service.add_message(
+                        telegram_id, premium_service.get_limit_reached_message_text(), "ai"
+                    )
                 return web.json_response({"response": rest_response})
 
             # Для premium - больше истории для контекста

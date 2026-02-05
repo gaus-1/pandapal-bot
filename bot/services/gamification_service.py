@@ -311,7 +311,6 @@ class GamificationService:
 
         premium_service = PremiumFeaturesService(self.db)
         is_premium = premium_service.is_premium_active(telegram_id)
-        premium_plan = premium_service.get_premium_plan(telegram_id)
 
         # Получаем статистику пользователя
         stats = self.get_user_stats(telegram_id)
@@ -324,7 +323,7 @@ class GamificationService:
             )  # Все сообщения как premium запросы
             stats["premium_subjects"] = stats.get("unique_subjects", 0)
             stats["premium_days"] = stats.get("consecutive_days", 0)
-            stats["vip_status"] = 1 if premium_plan == "year" else 0
+            stats["vip_status"] = 1 if is_premium else 0
 
         for achievement in ALL_ACHIEVEMENTS:
             # Пропускаем уже разблокированные
@@ -357,8 +356,8 @@ class GamificationService:
                 continue  # Пропускаем premium достижения для бесплатных
 
             # Проверяем VIP требования
-            if achievement.id == "vip_legend" and premium_plan != "year":
-                continue  # VIP достижение только для годовой подписки
+            if achievement.id == "vip_legend" and not is_premium:
+                continue  # VIP достижение только для Premium
 
             # Проверяем условие достижения
             if self._check_achievement_condition(achievement, stats):

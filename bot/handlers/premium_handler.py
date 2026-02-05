@@ -88,10 +88,7 @@ async def cmd_premium(message: Message):
             now = datetime.now(UTC)
             days_left = (subscription.expires_at - now).days
 
-            plan_names = {
-                "month": "Месяц",
-                "year": "Год",
-            }
+            plan_names = {"month": "Месяц"}
             plan_name = plan_names.get(subscription.plan_id, subscription.plan_id)
 
             premium_text = f"""
@@ -291,10 +288,7 @@ async def cancel_remove_card_callback(callback: CallbackQuery):
             now = datetime.now(UTC)
             days_left = (subscription.expires_at - now).days
 
-            plan_names = {
-                "month": "Месяц",
-                "year": "Год",
-            }
+            plan_names = {"month": "Месяц"}
             plan_name = plan_names.get(subscription.plan_id, subscription.plan_id)
 
             premium_text = f"""

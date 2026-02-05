@@ -79,11 +79,11 @@ class TestAllServicesReal:
 
     @pytest.fixture
     def vip_user(self, real_db_session, test_user):
-        """Создаёт пользователя с VIP (годовой) подпиской"""
+        """Создаёт пользователя с Premium подпиской"""
         subscription_service = SubscriptionService(real_db_session)
         subscription_service.activate_subscription(
             telegram_id=111222333,
-            plan_id="year",
+            plan_id="month",
             transaction_id="test_vip_tx",
             payment_method="stars",
         )

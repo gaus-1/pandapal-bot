@@ -23,7 +23,7 @@ function getAuthHeaders(): HeadersInit {
 
 export async function createPremiumPayment(
   telegramId: number,
-  planId: 'month' | 'year',
+  planId: 'month',
   userEmail?: string,
   userPhone?: string
 ): Promise<{

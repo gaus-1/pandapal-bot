@@ -525,10 +525,7 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
                     bot = Bot(token=settings.telegram_bot_token)
 
                     # Определяем длительность для сообщения
-                    plan_names = {
-                        "month": "месяц",
-                        "year": "год",
-                    }
+                    plan_names = {"month": "месяц"}
                     duration = plan_names.get(plan_id, plan_id)
 
                     await bot.send_message(

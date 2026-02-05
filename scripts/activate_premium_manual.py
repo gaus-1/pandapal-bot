@@ -29,16 +29,16 @@ def activate_premium(telegram_id: int, plan: str = "month", payment_id: str = No
 
     Args:
         telegram_id: ID пользователя в Telegram
-        plan: Тип подписки (month, year)
+        plan: Тип подписки (month)
         payment_id: ID платежа YooKassa (опционально)
     """
 
     # Определяем длительность подписки
-    duration_map = {"month": 30, "year": 365}
+    duration_map = {"month": 30}
 
     if plan not in duration_map:
         print(f"❌ Неизвестный план: {plan}")
-        print(f"   Доступные: {', '.join(duration_map.keys())}")
+        print(f"   Доступные: month")
         sys.exit(1)
 
     duration_days = duration_map[plan]

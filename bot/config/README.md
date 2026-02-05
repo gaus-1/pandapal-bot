@@ -26,7 +26,7 @@ telegram_token = settings.telegram_bot_token
 - **Модель**: `yandexgpt/latest` (YandexGPT Pro для всех пользователей)
 - **Temperature**: `0.3` (баланс точности и естественности)
 - **Max tokens**: `2000` (рекомендуется для Pro модели)
-- **Лимиты**: 30 запросов/месяц (free), 500/день (month), без ограничений (year)
+- **Лимиты**: 30 запросов/месяц (free), 500/день (Premium 299 ₽/мес)
 
 ## Промпты
 

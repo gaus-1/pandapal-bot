@@ -24,10 +24,9 @@ class SubscriptionService:
     истёкших подписок и управление данными подписок.
     """
 
-    # Тарифные планы (дни доступа)
+    # Тарифный план (только месяц)
     PLANS = {
         "month": 30,
-        "year": 365,
     }
 
     def __init__(self, db: Session):
@@ -102,7 +101,7 @@ class SubscriptionService:
 
         Args:
             telegram_id: Telegram ID пользователя
-            plan_id: Тип плана ('month', 'year')
+            plan_id: Тип плана ('month')
             transaction_id: ID транзакции от Telegram (для Stars)
             invoice_payload: Payload из invoice (для Stars)
             payment_method: Способ оплаты ('stars', 'yookassa_card', 'yookassa_sbp', 'yookassa_other')
@@ -123,14 +122,10 @@ class SubscriptionService:
         expires_at = now + timedelta(days=days)
 
         # Определяем автоплатеж:
-        # - Для ЮKassa подписок month и year - включаем автоплатеж по умолчанию
+        # - Для ЮKassa подписки month - включаем автоплатеж по умолчанию
         # - Stars не используется для подписок (только для донатов)
         auto_renew = False
-        if (
-            payment_method
-            and payment_method.startswith("yookassa_")
-            and plan_id in ("month", "year")
-        ):
+        if payment_method and payment_method.startswith("yookassa_") and plan_id == "month":
             auto_renew = True
 
         # Создаем подписку

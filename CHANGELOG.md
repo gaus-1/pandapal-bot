@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - YooKassa production mode with saved cards
-- Premium subscriptions (Month 399₽, Year 2990₽)
+- Premium subscriptions (Month 299₽)
 - Auto-renewal for subscriptions
 - Games: Erudite (Scrabble), Checkers improvements
 - Dark theme for all screens
