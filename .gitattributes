@@ -1,0 +1,2 @@
+# В репозитории всегда LF. Игнорирует системный core.autocrlf=true (Git Program Files).
+* text=auto eol=lf
