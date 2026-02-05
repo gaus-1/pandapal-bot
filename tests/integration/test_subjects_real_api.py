@@ -39,6 +39,51 @@ def _check_real_api_key():
 REAL_API_KEY_AVAILABLE = _check_real_api_key()
 
 
+def _check_maps_api_key():
+    """Проверяет наличие YANDEX_MAPS_API_KEY в env или settings."""
+    env_key = os.environ.get("YANDEX_MAPS_API_KEY", "")
+    if env_key and env_key != "your_yandex_maps_api_key" and len(env_key) > 10:
+        return True
+    try:
+        from bot.config.settings import settings
+
+        key = settings.yandex_maps_api_key
+        if key and key != "your_yandex_maps_api_key" and len(key) > 10:
+            return True
+    except Exception:
+        pass
+    return False
+
+
+MAPS_API_KEY_AVAILABLE = _check_maps_api_key()
+
+
+@pytest.mark.integration
+@pytest.mark.slow
+class TestMapsRealAPI:
+    """Тесты генерации карт через Yandex Maps Static API (ключ из env)."""
+
+    @pytest.mark.skipif(not MAPS_API_KEY_AVAILABLE, reason="Требуется YANDEX_MAPS_API_KEY в env")
+    def test_map_moscow_real_api(self):
+        """Карта Москвы: генерация через реальный YANDEX_MAPS_API_KEY."""
+        from bot.services.visualization_service import get_visualization_service
+
+        viz = get_visualization_service()
+        img = viz.generate_country_map("москва")
+        assert img is not None, "Карта Москвы не сгенерирована (проверьте YANDEX_MAPS_API_KEY)"
+        assert len(img) > 1000, f"Изображение слишком маленькое: {len(img)} байт"
+
+    @pytest.mark.skipif(not MAPS_API_KEY_AVAILABLE, reason="Требуется YANDEX_MAPS_API_KEY в env")
+    def test_map_russia_real_api(self):
+        """Карта России: генерация через реальный YANDEX_MAPS_API_KEY."""
+        from bot.services.visualization_service import get_visualization_service
+
+        viz = get_visualization_service()
+        img = viz.generate_country_map("россия")
+        assert img is not None, "Карта России не сгенерирована"
+        assert len(img) > 1000, f"Изображение слишком маленькое: {len(img)} байт"
+
+
 @pytest.mark.integration
 @pytest.mark.slow
 class TestSubjectsTextRealAPI:

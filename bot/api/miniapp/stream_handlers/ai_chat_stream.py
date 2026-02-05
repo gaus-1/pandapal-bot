@@ -235,16 +235,20 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
         # Правила по запрещённым темам отключены — не применяются ни в каком виде
 
-        # Детектор запросов на генерацию изображений
+        # Детектор запросов на генерацию изображений (включая карты, графики, учебные визуализации)
         image_keywords = [
             "нарисуй",
             "нарисовать",
             "рисунок",
             "картинк",
+            "карту",
+            "карта",
+            "карт ",
             "изображени",
             "фото",
             "иллюстраци",
             "визуализируй",
+            "покажи",
             "покажи как выглядит",
             "сгенерируй изображение",
             "создай картинку",
@@ -264,6 +268,39 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             visualization_image, visualization_type = viz_service.detect_visualization_request(
                 msg_for_routing
             )
+
+            # Учебная визуализация (карта, график, таблица и т.д.) — отправляем и выходим
+            if visualization_image:
+                import base64 as b64
+
+                image_base64 = b64.b64encode(visualization_image).decode("utf-8")
+                image_data = json.dumps(
+                    {"image": image_base64, "type": visualization_type or "visualization"},
+                    ensure_ascii=False,
+                )
+                await response.write(f"event: image\ndata: {image_data}\n\n".encode())
+                caption = "Вот визуализация. Если нужны пояснения — спроси!"
+                if visualization_type == "map":
+                    caption = "Вот карта. Могу рассказать про этот регион подробнее."
+                event_data = json.dumps({"content": caption}, ensure_ascii=False)
+                await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+                await response.write(b"event: done\ndata: {}\n\n")
+                with get_db() as db:
+                    hist = ChatHistoryService(db)
+                    hist.add_message(
+                        telegram_id=telegram_id, message_text=user_message, message_type="user"
+                    )
+                    hist.add_message(
+                        telegram_id=telegram_id,
+                        message_text=caption,
+                        message_type="ai",
+                        image_url=f"data:image/png;base64,{image_base64}",
+                    )
+                    from bot.services.panda_lazy_service import PandaLazyService
+
+                    PandaLazyService(db).increment_consecutive_after_ai(telegram_id)
+                    db.commit()
+                return response
 
             # Если это НЕ визуализация (не учебный запрос) - генерируем через YandexART
             if not visualization_image:

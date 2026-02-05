@@ -795,10 +795,13 @@ class GeographyVisualization(BaseVisualizationService):
         """
         Получает статичную карту через Yandex Maps Static API.
 
+        Слой "map" — схема с дорогами и административными границами стран/городов.
+        Размер 650x450 и scale=2 дают чёткое отображение границ.
+
         Args:
             lat: Широта центра карты
             lon: Долгота центра карты
-            zoom: Уровень масштабирования (1-17)
+            zoom: Уровень масштабирования (1-21)
             label: Название для метки на карте
 
         Returns:
@@ -812,20 +815,17 @@ class GeographyVisualization(BaseVisualizationService):
         if not settings.yandex_maps_api_key:
             return None
 
-        # URL для Yandex Maps Static API (обновлено на v1 согласно документации 2026)
         base_url = "https://static-maps.yandex.ru/v1"
 
-        # Параметры запроса для Yandex Maps Static API v1
-        # Документация: https://yandex.ru/dev/staticapi/doc/ru/
-        # layer=map показывает стандартную карту с административными границами
+        # Параметры: l=map — схема с административными границами; размер макс. 650x450
         params = {
-            "apikey": settings.yandex_maps_api_key,  # Обязательный API-ключ
-            "ll": f"{lon},{lat}",  # Центр карты: долгота, широта
-            "z": str(zoom),  # Уровень масштабирования (1-21)
-            "size": "650,450",  # Размер изображения (максимум: 650x450)
-            "lang": "ru_RU",  # Локализация: русский язык
-            "l": "map",  # Тип слоя: map (схема с границами), sat (спутник), skl (гибрид)
-            "pt": f"{lon},{lat},pm2rdm",  # Метка: красная точка среднего размера
+            "apikey": settings.yandex_maps_api_key,
+            "ll": f"{lon},{lat}",
+            "z": str(min(21, max(1, zoom))),
+            "size": "650,450",
+            "lang": "ru_RU",
+            "l": "map",
+            "pt": f"{lon},{lat},pm2rdm",
         }
 
         try:
