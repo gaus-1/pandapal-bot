@@ -97,3 +97,49 @@ class TestUserService:
         assert user.age == 12
         assert user.grade == 6
         assert user.user_type == "child"
+
+    def test_get_or_create_user_with_referrer_new(self, real_db_session):
+        """Новый пользователь с ref получает referrer_telegram_id."""
+        service = UserService(real_db_session)
+        user = service.get_or_create_user(
+            telegram_id=123456,
+            username="test",
+            first_name="Test",
+            last_name="User",
+            referrer_telegram_id=729414271,
+        )
+        real_db_session.commit()
+        assert user.referrer_telegram_id == 729414271
+
+    def test_get_or_create_user_with_referrer_existing_no_ref(self, real_db_session):
+        """Существующий пользователь без реферера получает ref при следующем заходе."""
+        service = UserService(real_db_session)
+        service.get_or_create_user(telegram_id=123456, username="a", first_name="A")
+        real_db_session.commit()
+        user2 = service.get_or_create_user(
+            telegram_id=123456,
+            username="b",
+            first_name="B",
+            referrer_telegram_id=729414271,
+        )
+        real_db_session.commit()
+        assert user2.referrer_telegram_id == 729414271
+
+    def test_get_or_create_user_referrer_not_overwritten(self, real_db_session):
+        """У существующего пользователя с реферером ref не перезаписывается."""
+        service = UserService(real_db_session)
+        service.get_or_create_user(
+            telegram_id=123456,
+            username="a",
+            first_name="A",
+            referrer_telegram_id=729414271,
+        )
+        real_db_session.commit()
+        user2 = service.get_or_create_user(
+            telegram_id=123456,
+            username="b",
+            first_name="B",
+            referrer_telegram_id=999,
+        )
+        real_db_session.commit()
+        assert user2.referrer_telegram_id == 729414271

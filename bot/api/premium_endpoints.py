@@ -20,6 +20,8 @@ from bot.api.validators import (
 from bot.config import settings
 from bot.database import get_db
 from bot.models import Payment as PaymentModel
+from bot.models import ReferralPayout
+from bot.models import User as UserModel
 from bot.security.audit_logger import AuditLogger, SecurityEventType
 from bot.services import PaymentService, SubscriptionService, UserService
 
@@ -489,6 +491,32 @@ async def yookassa_webhook(request: web.Request) -> web.Response:
                     f"💰 Premium активирован через ЮKassa webhook: user={telegram_id}, "
                     f"plan={plan_id}, payment_id={payment_id}, expires={subscription.expires_at}"
                 )
+
+                # Начисление рефереру (если пользователь пришёл по реферальной ссылке)
+                user_row = db.execute(
+                    select(UserModel).where(UserModel.telegram_id == telegram_id)
+                ).scalar_one_or_none()
+                if user_row and user_row.referrer_telegram_id is not None:
+                    existing_payout = db.execute(
+                        select(ReferralPayout).where(ReferralPayout.payment_id == payment_id)
+                    ).scalar_one_or_none()
+                    if not existing_payout:
+                        payout = ReferralPayout(
+                            referrer_telegram_id=user_row.referrer_telegram_id,
+                            user_telegram_id=telegram_id,
+                            payment_id=payment_id,
+                            amount_rub=settings.referral_payout_rub,
+                            paid_at=datetime.now(UTC),
+                        )
+                        db.add(payout)
+                        db.commit()
+                        logger.info(
+                            "Referral payout recorded: referrer=%s user=%s payment_id=%s amount=%.2f RUB",
+                            user_row.referrer_telegram_id,
+                            telegram_id,
+                            payment_id,
+                            settings.referral_payout_rub,
+                        )
 
                 # Отправляем уведомление пользователю
                 try:

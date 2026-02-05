@@ -25,6 +25,9 @@ from .news import News
 # Модели платежей
 from .payments import Payment, Subscription
 
+# Модели реферальной программы
+from .referral import ReferralPayout, Referrer
+
 # Модели пользователей
 from .user import User, UserProgress
 
@@ -47,6 +50,9 @@ __all__ = [
     # Payments
     "Subscription",
     "Payment",
+    # Referral
+    "Referrer",
+    "ReferralPayout",
     # Games
     "GameSession",
     "GameStats",

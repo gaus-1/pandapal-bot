@@ -230,6 +230,13 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("YOOKASSA_RECURRING_ENABLED", "yookassa_recurring_enabled"),
     )
 
+    referral_payout_rub: float = Field(
+        default=100.0,
+        ge=0,
+        description="Сумма начисления рефереру за одну оплату (руб)",
+        validation_alias=AliasChoices("REFERRAL_PAYOUT_RUB", "referral_payout_rub"),
+    )
+
     # Redis (session storage)
     redis_url: str = Field(
         default="",

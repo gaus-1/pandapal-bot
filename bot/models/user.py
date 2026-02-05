@@ -67,6 +67,7 @@ class User(Base):
     parent_telegram_id: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("users.telegram_id", ondelete="SET NULL"), nullable=True
     )
+    referrer_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")

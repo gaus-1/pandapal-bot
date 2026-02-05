@@ -5,7 +5,7 @@
 регистрация, обновление профиля, получение данных пользователя.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from loguru import logger
 from sqlalchemy import select
@@ -40,47 +40,57 @@ class UserService(IUserService):
         username: str | None = None,
         first_name: str | None = None,
         last_name: str | None = None,
+        referrer_telegram_id: int | None = None,
     ) -> User:
         """
-        Получить существующего пользователя или создать нового
-        Используется при первом запуске бота (/start)
+        Получить существующего пользователя или создать нового.
+        Реферер привязывается один раз (первый заход по ссылке).
 
         Args:
             telegram_id: Telegram ID пользователя
             username: Username из Telegram
             first_name: Имя из Telegram
             last_name: Фамилия из Telegram
+            referrer_telegram_id: ID реферера (если заход по ref_<id>)
 
         Returns:
             User: Объект пользователя
         """
-        # Ищем существующего пользователя
         stmt = select(User).where(User.telegram_id == telegram_id)
         user = self.db.execute(stmt).scalar_one_or_none()
 
         if user:
-            # Пользователь найден — обновляем данные из Telegram (могли измениться)
             user.username = username
             user.first_name = first_name
             user.last_name = last_name
             user.is_active = True
-            user.last_activity = datetime.utcnow()  # Обновляем активность
-
+            user.last_activity = datetime.now(UTC)
+            if referrer_telegram_id is not None and user.referrer_telegram_id is None:
+                user.referrer_telegram_id = referrer_telegram_id
+                logger.info(
+                    "Referrer attached: user=%s referrer=%s",
+                    telegram_id,
+                    referrer_telegram_id,
+                )
             logger.info(f"👤 Существующий пользователь: {telegram_id} ({first_name})")
         else:
-            # Создаём нового пользователя
             user = User(
                 telegram_id=telegram_id,
                 username=username,
                 first_name=first_name,
                 last_name=last_name,
-                user_type="child",  # По умолчанию — ребёнок
+                user_type="child",
                 is_active=True,
+                referrer_telegram_id=referrer_telegram_id,
             )
-
             self.db.add(user)
-            self.db.flush()  # Получаем ID
-
+            self.db.flush()
+            if referrer_telegram_id is not None:
+                logger.info(
+                    "New user with referrer: user=%s referrer=%s",
+                    telegram_id,
+                    referrer_telegram_id,
+                )
             logger.info(f"✨ Новый пользователь зарегистрирован: {telegram_id} ({first_name})")
 
         return user
@@ -255,7 +265,7 @@ class UserService(IUserService):
 
             if user:
                 user.message_count += 1
-                user.last_activity = datetime.utcnow()
+                user.last_activity = datetime.now(UTC)
                 self.db.commit()
                 logger.debug(f"✅ Счетчик сообщений: {user.message_count} для {telegram_id}")
                 return True

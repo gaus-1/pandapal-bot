@@ -102,11 +102,11 @@ class AuthRequest(BaseModel):
     init_data: str | None = Field(
         None, min_length=10, max_length=10000, description="Telegram initData (snake_case)"
     )
+    ref: str | None = Field(None, max_length=64, description="Referral param: ref_<telegram_id>")
 
     def model_post_init(self, __context) -> None:
         """Проверка что есть хотя бы одно поле и нормализация."""
         _ = __context  # Pydantic требует этот параметр
-        # Поддержка обоих форматов для обратной совместимости
         if self.init_data and not self.initData:
             self.initData = self.init_data
         elif not self.initData and not self.init_data:

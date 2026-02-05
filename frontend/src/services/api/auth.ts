@@ -24,7 +24,8 @@ function getAuthHeaders(): HeadersInit {
 }
 
 /**
- * Аутентификация пользователя через Telegram initData
+ * Аутентификация пользователя через Telegram initData.
+ * Передаёт ref (startParam) при заходе по реферальной ссылке (ref_<telegram_id>).
  */
 export async function authenticateUser(): Promise<UserProfile> {
   const initData = telegram.getInitData();
@@ -33,12 +34,16 @@ export async function authenticateUser(): Promise<UserProfile> {
     throw new Error('Telegram initData not available');
   }
 
+  const startParam = telegram.getStartParam();
+  const body: { init_data: string; ref?: string } = { init_data: initData };
+  if (startParam?.startsWith('ref_')) {
+    body.ref = startParam;
+  }
+
   const response = await fetch(`${API_BASE_URL}/miniapp/auth`, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify({
-      init_data: initData,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {

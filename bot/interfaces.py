@@ -23,8 +23,9 @@ class IUserService(ABC):
         username: str | None = None,
         first_name: str | None = None,
         last_name: str | None = None,
+        referrer_telegram_id: int | None = None,
     ) -> User:
-        """Получить или создать пользователя"""
+        """Получить или создать пользователя."""
         pass
 
     @abstractmethod

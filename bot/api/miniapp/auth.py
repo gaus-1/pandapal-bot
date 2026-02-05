@@ -44,6 +44,7 @@ except Exception as e:
 try:
     logger.debug("🔍 [auth.py] Импорт bot.services...")
     from bot.services import UserService
+    from bot.services.referral_service import resolve_referrer_telegram_id
 
     logger.debug("✅ [auth.py] bot.services импортирован")
 except Exception as e:
@@ -58,7 +59,7 @@ async def miniapp_auth(request: web.Request) -> web.Response:
     Аутентификация пользователя Mini App.
 
     POST /api/miniapp/auth
-    Body: { "initData": "..." }
+    Body: { "initData": "...", "ref": "ref_<telegram_id>" (опционально) }
 
     Returns:
         200: { "success": true, "user": {...} }
@@ -114,17 +115,17 @@ async def miniapp_auth(request: web.Request) -> web.Response:
             logger.error(f"❌ telegram_id отсутствует в user_data: {user_data}")
             return web.json_response({"error": "No user ID in initData"}, status=400)
 
-        # Получаем или создаем пользователя
+        ref = getattr(validated, "ref", None)
         with get_db() as db:
+            referrer_telegram_id = resolve_referrer_telegram_id(db, ref) if ref else None
             user_service = UserService(db)
             user = user_service.get_or_create_user(
                 telegram_id=telegram_id,
                 username=user_data.get("username"),
                 first_name=user_data.get("first_name"),
                 last_name=user_data.get("last_name"),
+                referrer_telegram_id=referrer_telegram_id,
             )
-
-            # Вызываем to_dict() ВНУТРИ сессии
             user_dict = user.to_dict()
 
         logger.info(f"✅ Пользователь {telegram_id} успешно аутентифицирован")
