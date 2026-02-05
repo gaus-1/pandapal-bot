@@ -53,6 +53,27 @@ class TestYandexAPIReal:
         print(f"   Вопрос: {test_question}")
         print(f"   Ответ: {response[:200]}...")
 
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_panda_response_quality_no_asterisks_no_glued_real(self):
+        """
+        Проверка качества ответа панды: нет звёздочек в тексте, нет склеек (PossPossessive, ПомоПомогает).
+        Реальный API из env.
+        """
+        ai_service = get_ai_service()
+        question = (
+            "Расскажи коротко про личные местоимения в английском: I, you, he. "
+            "Дай 3 примера с переводом."
+        )
+        response = await ai_service.generate_response(
+            user_message=question, chat_history=[], user_age=12
+        )
+        assert response is not None and len(response) > 0
+        assert "*" not in response, f"В ответе не должно быть звёздочек: {response[:300]}"
+        assert "PossPossessive" not in response
+        assert "ПомоПомогает" not in response
+        assert "неодушевлённыхвлённых" not in response
+
     async def test_yandex_speechkit_audio_recognition_real(self):
         """
         CRITICAL: Проверка что SpeechKit РЕАЛЬНО распознаёт аудио.

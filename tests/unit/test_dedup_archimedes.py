@@ -4,6 +4,7 @@ import pytest
 
 from bot.services.yandex_ai_response_generator import (
     clean_ai_response,
+    fix_glued_words,
     normalize_bold_spacing,
     remove_duplicate_text,
 )
@@ -103,3 +104,22 @@ def test_clean_fixes_glued_and_duplicate_words():
     assert "результате заговора" in cleaned
     assert "Рекаких" not in cleaned
     assert "Re. При каких" in cleaned or "при каких" in cleaned
+
+
+@pytest.mark.unit
+def test_fix_glued_words_prefix_and_known():
+    """Склейки PossPossessive, ПомоПомогает, неодушевлённыхвлённых, построени- остроения исправляются."""
+    assert fix_glued_words("PossPossessive Pronouns") == "Possessive Pronouns"
+    assert fix_glued_words("ПомоПомогает задавать вопросы.") == "Помогает задавать вопросы."
+    assert fix_glued_words("для неодушевлённыхвлённых предметов") == "для неодушевлённых предметов"
+    assert fix_glued_words("для построени- остроения вопросов") == "для построения вопросов"
+
+
+@pytest.mark.unit
+def test_clean_ai_response_removes_asterisks():
+    """В ответе не остаётся звёздочек: *слово* и **термин** убираются."""
+    text = "Личные местоимения: *I* (я), *you* (ты), **ключевой** термин."
+    cleaned = clean_ai_response(text)
+    assert "*" not in cleaned
+    assert "I" in cleaned and "you" in cleaned
+    assert "ключевой" in cleaned
