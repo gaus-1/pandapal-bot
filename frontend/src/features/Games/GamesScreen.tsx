@@ -21,13 +21,6 @@ type GameType = 'tic_tac_toe' | 'checkers' | '2048' | 'erudite' | 'panda' | null
 
 const GAMES = [
   {
-    id: 'panda',
-    name: 'Моя панда',
-    icon: '🐼',
-    description: 'Заботься о панде каждый день!',
-    color: 'from-blue-200 to-blue-100',
-  },
-  {
     id: 'tic_tac_toe',
     name: 'Крестики-нолики',
     icon: '❌⭕',
@@ -53,6 +46,13 @@ const GAMES = [
     name: 'эрудит',
     icon: '📚',
     description: 'Составляй слова и набирай очки!',
+    color: 'from-blue-200 to-blue-100',
+  },
+  {
+    id: 'panda',
+    name: 'Моя панда',
+    icon: '🐼',
+    description: 'Заботься о панде каждый день!',
     color: 'from-blue-200 to-blue-100',
   },
 ] as const;
@@ -122,7 +122,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
 
   if (selectedGame === 'panda') {
     return (
-      <div className="w-full h-full bg-white dark:bg-slate-800 overflow-y-auto">
+      <div className="relative z-10 w-full h-full bg-white dark:bg-slate-800 overflow-y-auto">
         <Panda user={user} onBack={handleBack} />
       </div>
     );
