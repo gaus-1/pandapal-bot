@@ -22,6 +22,9 @@ from .learning import HomeworkSubmission, LearningSession, ProblemTopic
 # Модели новостей
 from .news import News
 
+# Модель питомца-панды (тамагочи)
+from .panda_pet import PandaPet
+
 # Модели платежей
 from .payments import Payment, Subscription
 
@@ -56,6 +59,8 @@ __all__ = [
     # Games
     "GameSession",
     "GameStats",
+    # Panda pet (tamagotchi)
+    "PandaPet",
     # News
     "News",
 ]

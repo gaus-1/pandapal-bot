@@ -11,7 +11,7 @@ interface PandaReactionProps {
 }
 
 export function PandaReaction({ mood, className = '', size = 'default' }: PandaReactionProps) {
-  const imageSrc = mood === 'happy' ? '/panda-happy.png' : '/panda-sad.png';
+  const imageSrc = mood === 'happy' ? '/panda-happy-in-game.png' : '/panda-sad-in-game.png';
   const altText = mood === 'happy' ? 'Веселая панда' : 'Грустная панда';
   const isSmall = size === 'small';
   const sizeClass = isSmall

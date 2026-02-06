@@ -11,14 +11,22 @@ import { TicTacToe } from './TicTacToe';
 import { Checkers } from './Checkers';
 import { Game2048 } from './Game2048';
 import { Erudite } from './Erudite';
+import { Panda } from './Panda';
 
 interface GamesScreenProps {
   user: UserProfile;
 }
 
-type GameType = 'tic_tac_toe' | 'checkers' | '2048' | 'erudite' | null;
+type GameType = 'tic_tac_toe' | 'checkers' | '2048' | 'erudite' | 'panda' | null;
 
 const GAMES = [
+  {
+    id: 'panda',
+    name: 'Моя панда',
+    icon: '🐼',
+    description: 'Заботься о панде каждый день!',
+    color: 'from-blue-200 to-blue-100',
+  },
   {
     id: 'tic_tac_toe',
     name: 'Крестики-нолики',
@@ -76,6 +84,12 @@ export function GamesScreen({ user }: GamesScreenProps) {
   };
 
   const handleStartGame = async (gameType: string) => {
+    if (gameType === 'panda') {
+      telegram.hapticFeedback('light');
+      setSelectedGame('panda');
+      setSessionId(null);
+      return;
+    }
     setIsLoading(true);
     setError(null);
 
@@ -105,6 +119,14 @@ export function GamesScreen({ user }: GamesScreenProps) {
   const handleGameEnd = () => {
     loadStats(); // Обновляем статистику
   };
+
+  if (selectedGame === 'panda') {
+    return (
+      <div className="w-full h-full bg-white dark:bg-slate-800 overflow-y-auto">
+        <Panda user={user} onBack={handleBack} />
+      </div>
+    );
+  }
 
   if (selectedGame && sessionId) {
     return (
@@ -172,6 +194,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
             const gameStats = stats[game.id];
             const hasStats = gameStats && gameStats.total_games > 0;
             const hasBestScore = game.id === '2048' && gameStats?.best_score;
+            const isPanda = game.id === 'panda';
             return (
               <button
                 key={game.id}
@@ -195,9 +218,9 @@ export function GamesScreen({ user }: GamesScreenProps) {
                   maxHeight: '40px'
                 }}>{game.description}</p>
 
-                {/* Статистика - всегда резервируем место */}
+                {/* Статистика - всегда резервируем место (для панды не показываем) */}
                 <div className="mt-auto min-h-[34px] flex-shrink-0">
-                  {hasStats ? (
+                  {!isPanda && hasStats ? (
                     <div className="pt-2 border-t border-blue-300/40 dark:border-slate-600/50">
                       <div className="flex justify-between text-xs leading-tight text-gray-700 dark:text-slate-200 font-medium">
                         <span>Побед: {gameStats.wins}</span>

@@ -2,16 +2,20 @@
 Сервис напоминаний для пользователей.
 
 Отправляет дружелюбные напоминания от Панды, если пользователь не был активен 7 дней.
+Отправляет напоминания о питомце-панде (тамагочи), если панда грустная или голодная — 1 раз в день.
 """
 
 from datetime import datetime, timedelta
 
 from aiogram import Bot
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from loguru import logger
 from sqlalchemy import select
 
+from bot.config import settings
 from bot.database import get_db
 from bot.models import User
+from bot.services import panda_service
 
 
 class ReminderService:
@@ -127,3 +131,56 @@ class ReminderService:
             "sent": sent,
             "failed": failed,
         }
+
+    @staticmethod
+    def get_panda_reminder_users() -> list[int]:
+        """Список user_telegram_id, у которых панда грустная или голодная."""
+        with get_db() as db:
+            return panda_service.get_users_with_sad_or_hungry_panda(db)
+
+    @staticmethod
+    async def send_panda_reminder(bot: Bot, telegram_id: int) -> bool:
+        """Отправить напоминание о панде с кнопкой открытия Mini App."""
+        try:
+            keyboard = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="🐼 Открыть панду",
+                            web_app=WebAppInfo(url=settings.frontend_url),
+                        )
+                    ]
+                ]
+            )
+            await bot.send_message(
+                chat_id=telegram_id,
+                text="🐼 Панда скучает или голодная! Зайди, покорми и поиграй с ней — она ждёт тебя!",
+                reply_markup=keyboard,
+            )
+            logger.info("✅ Напоминание о панде отправлено пользователю %s", telegram_id)
+            return True
+        except Exception as e:
+            logger.error(
+                "❌ Ошибка отправки напоминания о панде пользователю %s: %s", telegram_id, e
+            )
+            return False
+
+    @staticmethod
+    async def process_panda_reminders(bot: Bot) -> dict:
+        """Отправить напоминания о панде всем, у кого панда грустная/голодная. 1 раз в день."""
+        users = ReminderService.get_panda_reminder_users()
+        sent = 0
+        failed = 0
+        for telegram_id in users:
+            success = await ReminderService.send_panda_reminder(bot, telegram_id)
+            if success:
+                sent += 1
+            else:
+                failed += 1
+        logger.info(
+            "📨 Напоминания о панде: отправлено=%s, ошибок=%s, всего=%s",
+            sent,
+            failed,
+            len(users),
+        )
+        return {"total": len(users), "sent": sent, "failed": failed}

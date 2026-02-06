@@ -23,13 +23,21 @@ async def send_reminders_job(bot: Bot):
 
     try:
         stats = await ReminderService.process_reminders(bot)
+        panda_stats = await ReminderService.process_panda_reminders(bot)
 
         logger.info(
-            f"✅ Задача напоминаний завершена успешно: "
-            f"всего={stats['total']}, отправлено={stats['sent']}, ошибок={stats['failed']}"
+            "✅ Задача напоминаний завершена: "
+            "неактивные всего=%s отправлено=%s ошибок=%s | "
+            "панда всего=%s отправлено=%s ошибок=%s",
+            stats["total"],
+            stats["sent"],
+            stats["failed"],
+            panda_stats["total"],
+            panda_stats["sent"],
+            panda_stats["failed"],
         )
 
-        return stats
+        return {**stats, "panda": panda_stats}
 
     except Exception as e:
         logger.error(f"❌ Ошибка выполнения задачи напоминаний: {e}")
