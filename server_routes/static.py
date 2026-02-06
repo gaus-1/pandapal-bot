@@ -23,6 +23,9 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             "security.txt",
             "panda-happy-in-game.png",
             "panda-sad-in-game.png",
+            "yandex_3f9e35f6d79cfb2f.html",
+        ]
+        tamagotchi_files = [
             "panda-neutral.png",
             "panda-happy.png",
             "panda-sad.png",
@@ -38,7 +41,6 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             "panda-offended.png",
             "panda-eating.png",
             "panda-excited.png",
-            "yandex_3f9e35f6d79cfb2f.html",
         ]
         favicon_ico_path = frontend_dist / "favicon.ico"
         if not favicon_ico_path.exists():
@@ -79,6 +81,25 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
                     return web.FileResponse(fp, headers=headers)
 
                 app.router.add_get(f"/{static_file}", serve_static_file)
+
+        tamagotchi_dir = frontend_dist / "panda-tamagotchi"
+        for tf in tamagotchi_files:
+            file_path = tamagotchi_dir / tf
+            if file_path.exists():
+
+                async def serve_tamagotchi(
+                    _request: web.Request,
+                    fp=file_path,
+                ) -> web.Response:
+                    return web.FileResponse(
+                        fp,
+                        headers={
+                            "Content-Type": "image/png",
+                            "Cache-Control": "public, max-age=31536000, immutable",
+                        },
+                    )
+
+                app.router.add_get(f"/panda-tamagotchi/{tf}", serve_tamagotchi)
 
         assets_dir = frontend_dist / "assets"
         if assets_dir.exists():

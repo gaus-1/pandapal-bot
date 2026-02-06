@@ -2,8 +2,8 @@
  * Моя панда — экран питомца-тамагочи.
  * Панда по центру, шкалы справа, кнопки внизу. Светлая/тёмная тема, адаптив.
  *
- * Картинки: только 15 состояний тамагочи (panda-{state}.png). Не используем
- * panda-happy-in-game.png и panda-sad-in-game.png — они для реакций в других играх (PandaReaction).
+ * Картинки: только 15 состояний тамагочи из папки panda-tamagotchi/ (panda-{state}.png).
+ * Реакции *-in-game.png не подгружаются — они только для PandaReaction в других играх.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -16,7 +16,7 @@ interface PandaProps {
   onBack: () => void;
 }
 
-/** Только согласованные состояния тамагочи; картинки panda-{state}.png. Не *-in-game. */
+/** Состояния тамагочи; картинки в panda-tamagotchi/panda-{state}.png. */
 const PANDA_STATES = [
   'neutral', 'happy', 'sad', 'bored', 'hungry', 'full', 'played',
   'sleepy', 'sleeping', 'wants_bamboo', 'no_bamboo', 'questioning',
@@ -140,12 +140,12 @@ export function Panda({ user, onBack }: PandaProps) {
   const imgName = PANDA_STATES.includes(displayState as (typeof PANDA_STATES)[number])
     ? displayState
     : 'neutral';
-  const imgSrc = `/panda-${imgName}.png`;
+  const imgSrc = `/panda-tamagotchi/panda-${imgName}.png`;
 
   return (
     <div className="w-full h-full bg-white dark:bg-slate-800 flex flex-col overflow-y-auto">
-      {/* Шапка */}
-      <div className="flex-shrink-0 flex items-center justify-between p-2 sm:p-3 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-slate-800 dark:to-slate-800">
+      {/* Шапка: sticky + z-20 чтобы не перекрывали нативный UI / жесты Telegram */}
+      <div className="sticky top-0 z-20 flex-shrink-0 flex items-center justify-between p-2 sm:p-3 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-slate-800 dark:to-slate-800">
         <button
           type="button"
           onClick={() => { telegram.hapticFeedback('light'); onBack(); }}
