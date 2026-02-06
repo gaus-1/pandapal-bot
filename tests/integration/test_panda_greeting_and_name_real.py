@@ -234,7 +234,9 @@ class TestPandaGreetingReal:
                 assert len(response) > 100, (
                     f"Ответ слишком короткий и имя не использовано: {response[:100]}"
                 )
-                print(f"   [INFO] Name '{user_name}' not used in response (30% probability), but response is informative")
+                print(
+                    f"   [INFO] Name '{user_name}' not used in response (30% probability), but response is informative"
+                )
             else:
                 print(f"   [OK] Name '{user_name}' used in response")
 
@@ -298,8 +300,7 @@ class TestPandaResponseQualityReal:
 
         quality = self._check_response_quality(response, min_sentences=4)
         assert quality["quality_score"] >= 70, (
-            f"Низкое качество ответа: {quality['quality_score']}/100. "
-            f"Проблемы: {quality['issues']}"
+            f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
         assert quality["sentences_count"] >= 4, (
             f"Слишком мало предложений: {quality['sentences_count']} < 4"

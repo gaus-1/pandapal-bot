@@ -63,9 +63,9 @@ async def show_achievements(message: Message, state: FSMContext):  # noqa: ARG00
     achievements_text = f"""🏆 <b>Система достижений</b>
 
 👤 <b>{user.first_name}</b>
-🎯 Уровень: {progress_summary['level']}
-⭐ Опыт (XP): {progress_summary['xp']} / {progress_summary['xp'] + progress_summary['xp_for_next_level']}
-📊 Достижений: {progress_summary['achievements_unlocked']}/{progress_summary['achievements_total']}
+🎯 Уровень: {progress_summary["level"]}
+⭐ Опыт (XP): {progress_summary["xp"]} / {progress_summary["xp"] + progress_summary["xp_for_next_level"]}
+📊 Достижений: {progress_summary["achievements_unlocked"]}/{progress_summary["achievements_total"]}
 
 <b>🎮 Доступные достижения:</b>
 """
@@ -80,8 +80,8 @@ async def show_achievements(message: Message, state: FSMContext):  # noqa: ARG00
         )
 
         achievements_text += f"""
-{achievement['icon']} <b>{achievement['title']}</b> - {achievement['xp_reward']} XP
-   {achievement['description']}
+{achievement["icon"]} <b>{achievement["title"]}</b> - {achievement["xp_reward"]} XP
+   {achievement["description"]}
    <i>{status} {progress_text}</i>
 """
 

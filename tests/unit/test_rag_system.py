@@ -238,10 +238,7 @@ class TestSemanticCache:
         """Проверка расчета Jaccard similarity."""
         cache = SemanticCache(ttl_hours=1)
 
-        similarity = cache._calculate_similarity(
-            "что такое математика",
-            "что такое алгебра"
-        )
+        similarity = cache._calculate_similarity("что такое математика", "что такое алгебра")
 
         # Должна быть частичная схожесть (общие слова "что такое")
         assert similarity > 0.0
@@ -303,14 +300,18 @@ class TestContextCompressor:
         """Проверка сохранения порядка предложений."""
         compressor = ContextCompressor()
 
-        context = "Первое предложение про математику. Второе про умножение. Третье тоже про математику."
+        context = (
+            "Первое предложение про математику. Второе про умножение. Третье тоже про математику."
+        )
 
         compressed = compressor.compress(context, "математика", max_sentences=2)
 
         # Порядок должен быть сохранен
         sentences = compressed.split(". ")
         if len(sentences) >= 2:
-            assert sentences[0].strip().startswith("Первое") or sentences[0].strip().startswith("Второе")
+            assert sentences[0].strip().startswith("Первое") or sentences[0].strip().startswith(
+                "Второе"
+            )
 
     def test_split_sentences(self):
         """Проверка разбиения на предложения."""
@@ -382,21 +383,13 @@ class TestRAGIntegration:
         service = KnowledgeService()
 
         # Первый запрос - кэш пустой
-        results1 = await service.enhanced_search(
-            "что такое умножение",
-            user_age=10,
-            top_k=3
-        )
+        results1 = await service.enhanced_search("что такое умножение", user_age=10, top_k=3)
 
         # Проверяем что результаты есть (если база знаний не пустая)
         assert isinstance(results1, list)
 
         # Второй запрос - должен быть из кэша
-        results2 = await service.enhanced_search(
-            "что такое умножение",
-            user_age=10,
-            top_k=3
-        )
+        results2 = await service.enhanced_search("что такое умножение", user_age=10, top_k=3)
 
         assert isinstance(results2, list)
 
@@ -408,9 +401,7 @@ class TestRAGIntegration:
 
         # Простой запрос в Wikipedia
         result = await service.get_wikipedia_summary(
-            topic="Математика",
-            user_age=12,
-            max_length=200
+            topic="Математика", user_age=12, max_length=200
         )
 
         assert result is not None

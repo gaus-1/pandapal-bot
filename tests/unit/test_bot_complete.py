@@ -14,7 +14,6 @@ from bot.services.moderation_service import ContentModerationService
 
 
 class TestBotComponents:
-
     @pytest.mark.unit
     def test_config_all_settings(self):
         """Тест настроек конфигурации (обновлено для Yandex Cloud)"""

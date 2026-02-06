@@ -59,7 +59,7 @@ class ArithmeticVisualization(BaseVisualizationService):
             for i in range(1, 6):
                 row = []
                 for j in range(1, 11):
-                    row.append(f"{i}×{j}={i*j}")
+                    row.append(f"{i}×{j}={i * j}")
                 table_data_1.append(row)
 
             table1 = ax1.table(
@@ -98,7 +98,7 @@ class ArithmeticVisualization(BaseVisualizationService):
             for i in range(6, 11):
                 row = []
                 for j in range(1, 11):
-                    row.append(f"{i}×{j}={i*j}")
+                    row.append(f"{i}×{j}={i * j}")
                 table_data_2.append(row)
 
             table2 = ax2.table(

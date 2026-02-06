@@ -23,7 +23,7 @@ class TestSlowlorisProtection:
         # Отправляем быстрые запросы
         for i in range(10):
             allowed, reason = limiter.is_allowed(test_ip)
-            assert allowed, f"Запрос {i+1} должен быть разрешен"
+            assert allowed, f"Запрос {i + 1} должен быть разрешен"
             assert reason is None
 
         # 11-й запрос должен быть заблокирован

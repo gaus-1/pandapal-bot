@@ -109,7 +109,9 @@ class TestAdultTopicsService:
             assert topic.topic_id == topic_id
             assert len(topic.keywords) > 0, f"Тема {topic_id} не имеет ключевых слов"
             assert len(topic.title) > 0, f"Тема {topic_id} не имеет заголовка"
-            assert len(topic.explanation) > 100, f"Тема {topic_id} имеет слишком короткое объяснение"
+            assert len(topic.explanation) > 100, (
+                f"Тема {topic_id} имеет слишком короткое объяснение"
+            )
 
     def test_no_forbidden_topics(self, service):
         """Проверка что запрещенные темы не объясняются."""
@@ -153,9 +155,9 @@ class TestAdultTopicsService:
 
         for category, expected_topics in categories.items():
             for topic_id in expected_topics:
-                assert (
-                    topic_id in service.topics
-                ), f"Тема {topic_id} отсутствует в категории {category}"
+                assert topic_id in service.topics, (
+                    f"Тема {topic_id} отсутствует в категории {category}"
+                )
 
     def test_explanation_quality(self, service):
         """Проверка качества объяснений - должны быть понятны детям."""
@@ -166,15 +168,15 @@ class TestAdultTopicsService:
 
         # Должны быть простые объяснения (как для детей)
         child_friendly_words = ["как", "представь", "например", "проще", "понятно"]
-        assert any(
-            word in explanation.lower() for word in child_friendly_words
-        ), "Объяснение не адаптировано для детей"
+        assert any(word in explanation.lower() for word in child_friendly_words), (
+            "Объяснение не адаптировано для детей"
+        )
 
         # НЕ должно быть сложных терминов без объяснений
         complex_terms = ["фидуциарный", "монетарный", "эмиссия"]
-        assert not any(
-            term in explanation.lower() for term in complex_terms
-        ), "Объяснение содержит сложные термины без расшифровки"
+        assert not any(term in explanation.lower() for term in complex_terms), (
+            "Объяснение содержит сложные термины без расшифровки"
+        )
 
     def test_singleton_pattern(self):
         """Проверка паттерна Singleton."""

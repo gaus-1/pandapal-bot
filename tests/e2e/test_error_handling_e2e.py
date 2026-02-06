@@ -121,7 +121,9 @@ class TestErrorHandlingE2E:
                     mock_ai_service.return_value = mock_service
 
                     response = await miniapp_ai_chat(request)
-                    assert response.status in [200, 500, 503], f"Неожиданный статус: {response.status}"
+                    assert response.status in [200, 500, 503], (
+                        f"Неожиданный статус: {response.status}"
+                    )
 
                     if response.status == 200:
                         response_data = await response.json()

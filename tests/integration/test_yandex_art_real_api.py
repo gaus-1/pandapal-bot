@@ -43,7 +43,7 @@ class TestYandexARTRealAPI:
         assert image_bytes is not None, "Изображение не сгенерировано"
         assert len(image_bytes) > 1000, "Изображение слишком маленькое"
         # YandexART возвращает JPEG формат
-        assert image_bytes[:2] == b'\xff\xd8', "Неверный формат изображения (не JPEG)"
+        assert image_bytes[:2] == b"\xff\xd8", "Неверный формат изображения (не JPEG)"
 
     @pytest.mark.asyncio
     async def test_generate_anime_style(self, art_service):
@@ -54,7 +54,7 @@ class TestYandexARTRealAPI:
 
         assert image_bytes is not None
         assert len(image_bytes) > 1000
-        assert image_bytes[:2] == b'\xff\xd8'
+        assert image_bytes[:2] == b"\xff\xd8"
 
     @pytest.mark.asyncio
     async def test_generate_different_aspect_ratios(self, art_service):
@@ -62,9 +62,7 @@ class TestYandexARTRealAPI:
         prompt = "Красивый закат над океаном"
 
         # 16:9 пейзажная
-        image_landscape = await art_service.generate_image(
-            prompt=prompt, aspect_ratio="16:9"
-        )
+        image_landscape = await art_service.generate_image(prompt=prompt, aspect_ratio="16:9")
 
         assert image_landscape is not None
         assert len(image_landscape) > 1000
@@ -74,9 +72,7 @@ class TestYandexARTRealAPI:
         """Генерация образовательного контента."""
         prompt = "Схема строения атома с электронами, протонами и нейтронами"
 
-        image_bytes = await art_service.generate_image(
-            prompt=prompt, style="realism"
-        )
+        image_bytes = await art_service.generate_image(prompt=prompt, style="realism")
 
         assert image_bytes is not None
         assert len(image_bytes) > 1000
@@ -87,9 +83,7 @@ class TestYandexARTRealAPI:
         prompt = "Детальная иллюстрация космоса с планетами"
 
         # Короткий таймаут для проверки обработки
-        image_bytes = await art_service.generate_image(
-            prompt=prompt, timeout=120
-        )
+        image_bytes = await art_service.generate_image(prompt=prompt, timeout=120)
 
         # Может вернуть None если не успеет, это ок
         if image_bytes:

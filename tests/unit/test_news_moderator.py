@@ -31,7 +31,9 @@ def test_news_moderator_unsafe_content():
     moderator = NewsContentModerator()
 
     # Mock ContentModerationService
-    moderator.moderation_service.is_safe_content = MagicMock(return_value=(False, "Запрещенная тема"))
+    moderator.moderation_service.is_safe_content = MagicMock(
+        return_value=(False, "Запрещенная тема")
+    )
 
     news_item = {
         "title": "Небезопасная новость",

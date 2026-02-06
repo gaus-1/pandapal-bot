@@ -229,9 +229,9 @@ class TestAllComponentsResilience:
 
             # Большинство запросов должны быть ограничены
             rate_limited = [r for r in responses if isinstance(r, web.Response) and r.status == 429]
-            assert (
-                len(rate_limited) > 500
-            ), f"Rate limiting не работает: {len(rate_limited)}/1000 ограничено"
+            assert len(rate_limited) > 500, (
+                f"Rate limiting не работает: {len(rate_limited)}/1000 ограничено"
+            )
 
     # Invalid Data Handling
 

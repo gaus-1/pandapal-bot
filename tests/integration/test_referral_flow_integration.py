@@ -52,7 +52,9 @@ def test_referral_full_path(real_db_session):
     db = real_db_session
 
     # 1. Реферер в whitelist (get or create — в реальной БД уже есть из миграции)
-    existing = db.execute(select(Referrer).where(Referrer.telegram_id == 729414271)).scalar_one_or_none()
+    existing = db.execute(
+        select(Referrer).where(Referrer.telegram_id == 729414271)
+    ).scalar_one_or_none()
     if not existing:
         ref = Referrer(telegram_id=729414271, comment="Преподаватель")
         db.add(ref)

@@ -51,7 +51,7 @@ async def translate_command(message: Message, state: FSMContext):  # noqa: ARG00
     )
 
     await message.answer(
-        "🌍 <b>Переводчик PandaPal</b>\n\n" "Выбери направление перевода:",
+        "🌍 <b>Переводчик PandaPal</b>\n\nВыбери направление перевода:",
         reply_markup=keyboard,
         parse_mode="HTML",
     )

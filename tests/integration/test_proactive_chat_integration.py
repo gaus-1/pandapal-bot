@@ -75,6 +75,7 @@ class TestProactiveChatIntegration:
 
         assert response.status == 200
         import json
+
         body = response._body if hasattr(response, "_body") else b"{}"
         data = json.loads(body.decode("utf-8"))
         assert data.get("success") is True

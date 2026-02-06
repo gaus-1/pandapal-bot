@@ -1,4 +1,5 @@
 """Тесты CONTINUE_LEARN_PATTERNS: «решать задачи» и др. считаются продолжением учёбы."""
+
 import re
 
 import pytest

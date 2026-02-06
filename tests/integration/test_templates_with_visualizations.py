@@ -61,8 +61,7 @@ class TestTemplatesWithVisualizations:
 
         # Проверяем что есть упоминание графика
         has_graph_mention = any(
-            marker in response_lower
-            for marker in ["график", "парабола", "функция", "кривая"]
+            marker in response_lower for marker in ["график", "парабола", "функция", "кривая"]
         )
 
         # Проверяем структуру (несколько предложений = есть структура)
@@ -72,7 +71,16 @@ class TestTemplatesWithVisualizations:
         # Проверяем примеры (конкретные точки или числа)
         has_example = any(
             marker in response_lower
-            for marker in ["пример", "например", "если", "при", "возьмем", "подставим", "x =", "y ="]
+            for marker in [
+                "пример",
+                "например",
+                "если",
+                "при",
+                "возьмем",
+                "подставим",
+                "x =",
+                "y =",
+            ]
         )
 
         assert has_graph_mention, "Нет упоминания графика в ответе"
@@ -102,8 +110,7 @@ class TestTemplatesWithVisualizations:
 
         # Проверяем упоминание таблицы
         has_table_mention = any(
-            marker in response_lower
-            for marker in ["таблица", "умножение", "строка", "столбец"]
+            marker in response_lower for marker in ["таблица", "умножение", "строка", "столбец"]
         )
 
         # Проверяем что есть объяснение (любая структура подойдет)
@@ -179,8 +186,7 @@ class TestTemplatesWithVisualizations:
 
         # Проверяем упоминание схемы/атома
         has_scheme_mention = any(
-            marker in response_lower
-            for marker in ["схема", "атом", "ядро", "электрон", "строение"]
+            marker in response_lower for marker in ["схема", "атом", "ядро", "электрон", "строение"]
         )
 
         # Проверяем аналогии ("на пальцах")
@@ -191,8 +197,7 @@ class TestTemplatesWithVisualizations:
 
         # Проверяем объяснение
         has_explanation = any(
-            marker in response_lower
-            for marker in ["состоит", "содержит", "вращаются", "находятся"]
+            marker in response_lower for marker in ["состоит", "содержит", "вращаются", "находятся"]
         )
 
         assert has_scheme_mention, "Нет упоминания схемы/атома в ответе"

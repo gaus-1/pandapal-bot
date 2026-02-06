@@ -107,9 +107,9 @@ class TestSubjectsTextRealAPI:
 
         assert response is not None, "AI не ответил"
         assert len(response) > 50, "Ответ слишком короткий"
-        assert (
-            "5" in response or "x = 5" in response or "пять" in response.lower()
-        ), f"Ответ должен содержать решение: {response[:200]}"
+        assert "5" in response or "x = 5" in response or "пять" in response.lower(), (
+            f"Ответ должен содержать решение: {response[:200]}"
+        )
 
         print(f"\n[OK] Math (text): {response[:150]}...")
 
@@ -152,9 +152,9 @@ class TestSubjectsTextRealAPI:
 
         assert response is not None, "AI не ответил"
         assert len(response) > 50, "Ответ слишком короткий"
-        assert (
-            "пушкин" in response.lower() or "Пушкин" in response
-        ), f"Ответ должен содержать автора: {response[:200]}"
+        assert "пушкин" in response.lower() or "Пушкин" in response, (
+            f"Ответ должен содержать автора: {response[:200]}"
+        )
 
         print(f"\n[OK] Literature (text): {response[:150]}...")
 
@@ -239,9 +239,9 @@ class TestSubjectsTextRealAPI:
 
         assert response is not None, "AI не ответил"
         assert len(response) > 50, "Ответ слишком короткий"
-        assert (
-            "париж" in response.lower() or "Париж" in response
-        ), f"Ответ должен содержать столицу: {response[:200]}"
+        assert "париж" in response.lower() or "Париж" in response, (
+            f"Ответ должен содержать столицу: {response[:200]}"
+        )
 
         print(f"\n[OK] Geography (text): {response[:150]}...")
 
@@ -263,9 +263,9 @@ class TestSubjectsTextRealAPI:
 
         assert response is not None, "AI не ответил"
         assert len(response) > 50, "Ответ слишком короткий"
-        assert (
-            "1941" in response or "тысяча девятьсот сорок первый" in response.lower()
-        ), f"Ответ должен содержать год: {response[:200]}"
+        assert "1941" in response or "тысяча девятьсот сорок первый" in response.lower(), (
+            f"Ответ должен содержать год: {response[:200]}"
+        )
 
         print(f"\n[OK] History (text): {response[:150]}...")
 
@@ -509,7 +509,9 @@ class TestSubjectsTextRealAPI:
             ("\\right", "LaTeX запрещён"),
         ]
         for pattern, desc in forbidden:
-            assert pattern not in response, f"Формула в запрещённом стиле ({desc}): найдено '{pattern}' в ответе"
+            assert pattern not in response, (
+                f"Формула в запрещённом стиле ({desc}): найдено '{pattern}' в ответе"
+            )
 
         # Должен быть типографский стиль: ² или · или √ или ×
         has_typographic = any(c in response for c in ("²", "√", "·", "×"))
@@ -542,9 +544,7 @@ class TestSubjectsTextRealAPI:
         assert " * " not in response or "·" in response or "×" in response, (
             "Умножение в формулах: · или ×, не *"
         )
-        assert "Delta t" not in response and "Delta T" not in response, (
-            "Используй Δt, не Delta t"
-        )
+        assert "Delta t" not in response and "Delta T" not in response, "Используй Δt, не Delta t"
 
         # Должны быть F, m, a или s, v, t (формулы движения)
         has_physics = any(
@@ -604,15 +604,16 @@ class TestSubjectsPhotoRealAPI:
 
         # Проверка структурирования ответа (для frontend парсинга)
         has_structure = (
-            "\n\n" in analysis or
-            "Определение:" in analysis or
-            "Ключевые свойства:" in analysis or
-            "Как это работает:" in analysis or
-            "Где применяется:" in analysis or
-            "Итог:" in analysis
+            "\n\n" in analysis
+            or "Определение:" in analysis
+            or "Ключевые свойства:" in analysis
+            or "Как это работает:" in analysis
+            or "Где применяется:" in analysis
+            or "Итог:" in analysis
         )
-        assert has_structure or len(analysis.split()) > 10, \
+        assert has_structure or len(analysis.split()) > 10, (
             "Ответ должен быть структурированным (абзацы или секции)"
+        )
 
         print(f"\n[OK] Math (photo): {analysis[:150]}...")
 
@@ -1027,7 +1028,14 @@ class TestVisualizationsRealAPI:
             quality_score -= 10
 
         # 7. Проверка глубины объяснения (должны быть детали, не только поверхностный ответ)
-        detail_keywords = ["потому что", "так как", "значит", "то есть", "другими словами", "вот как"]
+        detail_keywords = [
+            "потому что",
+            "так как",
+            "значит",
+            "то есть",
+            "другими словами",
+            "вот как",
+        ]
         has_details = any(kw in response.lower() for kw in detail_keywords) or len(sentences) >= 6
         if not has_details and len(sentences) >= 4:
             issues.append("Недостаточно детального объяснения")
@@ -1076,8 +1084,7 @@ class TestVisualizationsRealAPI:
         quality = self._check_response_quality(response, min_sentences=3)
 
         assert quality["quality_score"] >= 50, (
-            f"Низкое качество ответа: {quality['quality_score']}/100. "
-            f"Проблемы: {quality['issues']}"
+            f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
         assert quality["sentences_count"] >= 3, (
             f"Слишком мало предложений: {quality['sentences_count']} < 3"
@@ -1123,8 +1130,7 @@ class TestVisualizationsRealAPI:
         quality = self._check_response_quality(response, min_sentences=4)
 
         assert quality["quality_score"] >= 70, (
-            f"Низкое качество ответа: {quality['quality_score']}/100. "
-            f"Проблемы: {quality['issues']}"
+            f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
         assert "синус" in response.lower() or "sin" in response.lower(), (
             f"Ответ должен упоминать синус или sin: {response[:200]}"
@@ -1170,8 +1176,7 @@ class TestVisualizationsRealAPI:
         # Для таблиц снижаем требования (50 вместо 70), т.к. ответ фокусируется на объяснении
         # и может быть короче, но полезным для ребенка
         assert quality["quality_score"] >= 50, (
-            f"Низкое качество ответа: {quality['quality_score']}/100. "
-            f"Проблемы: {quality['issues']}"
+            f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
 
         # Проверяем что ответ НЕ перечисляет все значения таблицы
@@ -1220,8 +1225,7 @@ class TestVisualizationsRealAPI:
 
         # Для диаграмм снижаем требования (55 вместо 70), т.к. диаграмма уже показывает информацию
         assert quality["quality_score"] >= 55, (
-            f"Низкое качество ответа: {quality['quality_score']}/100. "
-            f"Проблемы: {quality['issues']}"
+            f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
 
         print(f"\n[OK] Diagram visualization: диаграмма сгенерирована ({len(diagram_image)} байт)")
@@ -1248,7 +1252,9 @@ class TestVisualizationsRealAPI:
             pytest.skip("Схема планет не генерируется (может быть не реализовано)")
 
         assert len(scheme_image) > 1000, "Схема слишком маленькая"
-        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        assert scheme_type == "scheme", (
+            f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        )
 
         # Генерируем ответ AI на схему
         response = await ai_service.generate_response(
@@ -1264,11 +1270,12 @@ class TestVisualizationsRealAPI:
 
         # Для схем снижаем требования (55 вместо 70), т.к. схема уже показывает информацию
         assert quality["quality_score"] >= 55, (
-            f"Низкое качество ответа: {quality['quality_score']}/100. "
-            f"Проблемы: {quality['issues']}"
+            f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
 
-        print(f"\n[OK] Planets scheme visualization: схема сгенерирована ({len(scheme_image)} байт)")
+        print(
+            f"\n[OK] Planets scheme visualization: схема сгенерирована ({len(scheme_image)} байт)"
+        )
         print(f"   Quality: {quality['quality_score']}/100")
         print(f"   Response: {response[:200]}...")
 
@@ -1292,7 +1299,9 @@ class TestVisualizationsRealAPI:
             pytest.skip("Схема строения тела не генерируется (может быть не реализовано)")
 
         assert len(scheme_image) > 1000, "Схема слишком маленькая"
-        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        assert scheme_type == "scheme", (
+            f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        )
 
         # Генерируем ответ AI на схему
         response = await ai_service.generate_response(
@@ -1308,11 +1317,12 @@ class TestVisualizationsRealAPI:
 
         # Для схем снижаем требования (55 вместо 70), т.к. схема уже показывает информацию
         assert quality["quality_score"] >= 55, (
-            f"Низкое качество ответа: {quality['quality_score']}/100. "
-            f"Проблемы: {quality['issues']}"
+            f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
 
-        print(f"\n[OK] Human body scheme visualization: схема сгенерирована ({len(scheme_image)} байт)")
+        print(
+            f"\n[OK] Human body scheme visualization: схема сгенерирована ({len(scheme_image)} байт)"
+        )
         print(f"   Quality: {quality['quality_score']}/100")
         print(f"   Response: {response[:200]}...")
 
@@ -1334,7 +1344,9 @@ class TestVisualizationsRealAPI:
             pytest.skip("Схема круговорота воды не генерируется")
 
         assert len(scheme_image) > 1000, "Схема слишком маленькая"
-        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        assert scheme_type == "scheme", (
+            f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        )
 
         response = await ai_service.generate_response(
             user_message=question,
@@ -1346,8 +1358,7 @@ class TestVisualizationsRealAPI:
 
         quality = self._check_response_quality(response, min_sentences=3)
         assert quality["quality_score"] >= 55, (
-            f"Низкое качество ответа: {quality['quality_score']}/100. "
-            f"Проблемы: {quality['issues']}"
+            f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
 
         print(f"\n[OK] Water cycle scheme: схема сгенерирована ({len(scheme_image)} байт)")
@@ -1371,7 +1382,9 @@ class TestVisualizationsRealAPI:
             pytest.skip("Схема строения клетки не генерируется")
 
         assert len(scheme_image) > 1000, "Схема слишком маленькая"
-        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        assert scheme_type == "scheme", (
+            f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        )
 
         response = await ai_service.generate_response(
             user_message=question,
@@ -1383,8 +1396,7 @@ class TestVisualizationsRealAPI:
 
         quality = self._check_response_quality(response, min_sentences=3)
         assert quality["quality_score"] >= 55, (
-            f"Низкое качество ответа: {quality['quality_score']}/100. "
-            f"Проблемы: {quality['issues']}"
+            f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
 
         print(f"\n[OK] Cell structure scheme: схема сгенерирована ({len(scheme_image)} байт)")
@@ -1408,7 +1420,9 @@ class TestVisualizationsRealAPI:
             pytest.skip("Схема строения ДНК не генерируется")
 
         assert len(scheme_image) > 1000, "Схема слишком маленькая"
-        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        assert scheme_type == "scheme", (
+            f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        )
 
         response = await ai_service.generate_response(
             user_message=question,
@@ -1420,8 +1434,7 @@ class TestVisualizationsRealAPI:
 
         quality = self._check_response_quality(response, min_sentences=3)
         assert quality["quality_score"] >= 55, (
-            f"Низкое качество ответа: {quality['quality_score']}/100. "
-            f"Проблемы: {quality['issues']}"
+            f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
 
         print(f"\n[OK] DNA structure scheme: схема сгенерирована ({len(scheme_image)} байт)")
@@ -1445,7 +1458,9 @@ class TestVisualizationsRealAPI:
             pytest.skip("Схема электрической цепи не генерируется")
 
         assert len(scheme_image) > 1000, "Схема слишком маленькая"
-        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        assert scheme_type == "scheme", (
+            f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        )
 
         response = await ai_service.generate_response(
             user_message=question,
@@ -1457,8 +1472,7 @@ class TestVisualizationsRealAPI:
 
         quality = self._check_response_quality(response, min_sentences=3)
         assert quality["quality_score"] >= 55, (
-            f"Низкое качество ответа: {quality['quality_score']}/100. "
-            f"Проблемы: {quality['issues']}"
+            f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
 
         print(f"\n[OK] Electric circuit scheme: схема сгенерирована ({len(scheme_image)} байт)")
@@ -1482,7 +1496,9 @@ class TestVisualizationsRealAPI:
             pytest.skip("Блок-схема алгоритма не генерируется")
 
         assert len(scheme_image) > 1000, "Схема слишком маленькая"
-        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        assert scheme_type == "scheme", (
+            f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        )
 
         response = await ai_service.generate_response(
             user_message=question,
@@ -1494,8 +1510,7 @@ class TestVisualizationsRealAPI:
 
         quality = self._check_response_quality(response, min_sentences=3)
         assert quality["quality_score"] >= 55, (
-            f"Низкое качество ответа: {quality['quality_score']}/100. "
-            f"Проблемы: {quality['issues']}"
+            f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
 
         print(f"\n[OK] Algorithm flowchart scheme: схема сгенерирована ({len(scheme_image)} байт)")
@@ -1519,7 +1534,9 @@ class TestVisualizationsRealAPI:
             pytest.skip("Схема структуры государства не генерируется")
 
         assert len(scheme_image) > 1000, "Схема слишком маленькая"
-        assert scheme_type == "scheme", f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        assert scheme_type == "scheme", (
+            f"Тип визуализации должен быть 'scheme', получен: {scheme_type}"
+        )
 
         response = await ai_service.generate_response(
             user_message=question,
@@ -1531,8 +1548,7 @@ class TestVisualizationsRealAPI:
 
         quality = self._check_response_quality(response, min_sentences=3)
         assert quality["quality_score"] >= 55, (
-            f"Низкое качество ответа: {quality['quality_score']}/100. "
-            f"Проблемы: {quality['issues']}"
+            f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
 
         print(f"\n[OK] State structure scheme: схема сгенерирована ({len(scheme_image)} байт)")
@@ -1549,16 +1565,52 @@ class TestVisualizationsRealAPI:
         # Вопросы по разным предметам для проверки качества
         # Используем более детальные вопросы чтобы получить развернутые ответы
         test_cases = [
-            ("Математика", "Что такое квадратное уравнение? Объясни подробно с примерами и как его решать.", 12),
-            ("Русский", "Что такое подлежащее и сказуемое? Объясни подробно с примерами предложений.", 10),
-            ("История", "Когда началась Великая Отечественная война? Расскажи подробно про это событие.", 13),
-            ("География", "Какая самая длинная река в России? Расскажи подробно про неё, где протекает, какая длина.", 11),
-            ("Биология", "Что такое фотосинтез? Объясни подробно простыми словами с примерами.", 11),
-            ("Физика", "Что такое скорость в физике? Объясни подробно простыми словами для ребенка. Приведи примеры из жизни: как измеряется скорость, единицы измерения скорости, примеры быстрых и медленных объектов.", 11),
+            (
+                "Математика",
+                "Что такое квадратное уравнение? Объясни подробно с примерами и как его решать.",
+                12,
+            ),
+            (
+                "Русский",
+                "Что такое подлежащее и сказуемое? Объясни подробно с примерами предложений.",
+                10,
+            ),
+            (
+                "История",
+                "Когда началась Великая Отечественная война? Расскажи подробно про это событие.",
+                13,
+            ),
+            (
+                "География",
+                "Какая самая длинная река в России? Расскажи подробно про неё, где протекает, какая длина.",
+                11,
+            ),
+            (
+                "Биология",
+                "Что такое фотосинтез? Объясни подробно простыми словами с примерами.",
+                11,
+            ),
+            (
+                "Физика",
+                "Что такое скорость в физике? Объясни подробно простыми словами для ребенка. Приведи примеры из жизни: как измеряется скорость, единицы измерения скорости, примеры быстрых и медленных объектов.",
+                11,
+            ),
             ("Химия", "Что такое вода? Из чего она состоит? Объясни подробно с примерами.", 12),
-            ("Литература", "Кто написал 'Евгения Онегина'? О чем это произведение? Расскажи подробно.", 14),
-            ("Информатика", "Что такое алгоритм? Приведи подробные примеры и объясни как его составлять.", 12),
-            ("Обществознание", "Что такое государство? Объясни подробно простыми словами с примерами.", 13),
+            (
+                "Литература",
+                "Кто написал 'Евгения Онегина'? О чем это произведение? Расскажи подробно.",
+                14,
+            ),
+            (
+                "Информатика",
+                "Что такое алгоритм? Приведи подробные примеры и объясни как его составлять.",
+                12,
+            ),
+            (
+                "Обществознание",
+                "Что такое государство? Объясни подробно простыми словами с примерами.",
+                13,
+            ),
         ]
 
         results = {}
@@ -1582,9 +1634,11 @@ class TestVisualizationsRealAPI:
                 "issues": quality["issues"],
             }
 
-            print(f"\n[{subject}] Quality: {quality['quality_score']}/100, "
-                  f"Sentences: {quality['sentences_count']}, "
-                  f"Issues: {quality['issues']}")
+            print(
+                f"\n[{subject}] Quality: {quality['quality_score']}/100, "
+                f"Sentences: {quality['sentences_count']}, "
+                f"Issues: {quality['issues']}"
+            )
 
         # Общая проверка: средний балл должен быть >= 75
         avg_score = sum(r["quality_score"] for r in results.values()) / len(results)
@@ -1596,10 +1650,14 @@ class TestVisualizationsRealAPI:
         # (можно улучшить в будущем через улучшение промптов)
         if avg_score >= 80 and low_quality_count <= 1:
             # Логируем предупреждение, но не падаем
-            print(f"\n[WARNING] {low_quality_count} subject(s) with quality < 70, but avg score is good ({avg_score:.1f}/100)")
+            print(
+                f"\n[WARNING] {low_quality_count} subject(s) with quality < 70, but avg score is good ({avg_score:.1f}/100)"
+            )
             for subject, result in results.items():
                 if result["quality_score"] < 70:
-                    print(f"   {subject}: quality={result['quality_score']}/100, sentences={result['sentences']}")
+                    print(
+                        f"   {subject}: quality={result['quality_score']}/100, sentences={result['sentences']}"
+                    )
         else:
             assert avg_score >= 75, (
                 f"Средний балл качества ответов слишком низкий: {avg_score:.1f}/100. "

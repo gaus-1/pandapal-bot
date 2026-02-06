@@ -68,7 +68,10 @@ class TestNewTemplateResponses:
             for marker in ["шаг", "сначала", "затем", "потом", "после этого"]
         ) or ("1." in response and "2." in response and "3." in response)
         # Должен быть пример
-        has_example = any(marker in response_lower for marker in ["пример", "например", "возьмем", "допустим", "если"])
+        has_example = any(
+            marker in response_lower
+            for marker in ["пример", "например", "возьмем", "допустим", "если"]
+        )
 
         assert has_steps, "Нет пошаговых инструкций в ответе"
         assert has_example, "Нет примера в ответе"
@@ -94,10 +97,11 @@ class TestNewTemplateResponses:
 
         response_lower = response.lower()
         has_steps = any(
-            marker in response_lower
-            for marker in ["шаг", "сначала", "затем", "потом"]
+            marker in response_lower for marker in ["шаг", "сначала", "затем", "потом"]
         ) or ("1." in response and "2." in response and "3." in response)
-        has_example = any(marker in response_lower for marker in ["пример", "например", "слово", "проверим"])
+        has_example = any(
+            marker in response_lower for marker in ["пример", "например", "слово", "проверим"]
+        )
 
         assert has_steps, "Нет пошаговых инструкций в ответе"
         assert has_example, "Нет примера в ответе"
@@ -129,8 +133,7 @@ class TestNewTemplateResponses:
         )
         # Должна быть связь с жизнью
         has_life_example = any(
-            marker in response_lower
-            for marker in ["жизни", "поэтому", "благодаря", "лес", "дыши"]
+            marker in response_lower for marker in ["жизни", "поэтому", "благодаря", "лес", "дыши"]
         )
 
         assert has_analogy, "Нет аналогий/сравнений 'на пальцах' в ответе"
@@ -162,7 +165,9 @@ class TestNewTemplateResponses:
             for marker in ["потому что", "поэтому", "из-за", "причина", "привело", "вызвало"]
         )
         # Должны быть факты/даты
-        has_facts = any(marker in response_lower for marker in ["1941", "22 июня", "германия", "ссср"])
+        has_facts = any(
+            marker in response_lower for marker in ["1941", "22 июня", "германия", "ссср"]
+        )
 
         assert has_causality, "Нет причинно-следственных связей в ответе"
         assert has_facts, "Нет конкретных фактов/дат в ответе"
@@ -199,19 +204,22 @@ class TestNewTemplateResponses:
 
             # Проверка структурированности
             sentences = [s.strip() for s in response.split(".") if s.strip()]
-            assert len(sentences) >= 4, f"{subject}: Слишком мало предложений ({len(sentences)} < 4)"
+            assert len(sentences) >= 4, (
+                f"{subject}: Слишком мало предложений ({len(sentences)} < 4)"
+            )
 
             # Проверка структурирования ответа (для frontend парсинга)
             has_structure = (
-                "\n\n" in response or
-                "Определение:" in response or
-                "Ключевые свойства:" in response or
-                "Как это работает:" in response or
-                "Где применяется:" in response or
-                "Итог:" in response
+                "\n\n" in response
+                or "Определение:" in response
+                or "Ключевые свойства:" in response
+                or "Как это работает:" in response
+                or "Где применяется:" in response
+                or "Итог:" in response
             )
-            assert has_structure or len(response.split()) > 10, \
+            assert has_structure or len(response.split()) > 10, (
                 f"{subject}: Ответ должен быть структурированным (абзацы или секции)"
+            )
 
             print(f"✅ {subject}: качество OK!")
 

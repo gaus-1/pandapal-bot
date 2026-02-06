@@ -23,7 +23,7 @@ class TestDDoSProtection:
         # Отправляем 5 запросов (в пределах лимита)
         for i in range(5):
             allowed, reason = limiter.is_allowed(test_ip)
-            assert allowed, f"Запрос {i+1} должен быть разрешен"
+            assert allowed, f"Запрос {i + 1} должен быть разрешен"
             assert reason is None
 
     def test_rate_limiter_blocks_excessive_requests(self):
@@ -34,7 +34,7 @@ class TestDDoSProtection:
         # Отправляем 5 запросов (лимит)
         for i in range(5):
             allowed, reason = limiter.is_allowed(test_ip)
-            assert allowed, f"Запрос {i+1} должен быть разрешен"
+            assert allowed, f"Запрос {i + 1} должен быть разрешен"
 
         # 6-й запрос должен быть заблокирован
         allowed, reason = limiter.is_allowed(test_ip)

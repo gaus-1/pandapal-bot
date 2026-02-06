@@ -173,9 +173,9 @@ class TestTicTacToeGame:
         result = asyncio.run(games_service.tic_tac_toe_make_move(session.id, 2))
         games_service.db.commit()
         assert result["game_over"], f"Game should be over, but got: {result}"
-        assert (
-            result["winner"] == "user"
-        ), f"Winner should be 'user', but got: {result.get('winner')}"
+        assert result["winner"] == "user", (
+            f"Winner should be 'user', but got: {result.get('winner')}"
+        )
 
     def test_tic_tac_toe_invalid_move(self, games_service, test_user):
         """Невалидный ход"""

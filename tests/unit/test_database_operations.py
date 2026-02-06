@@ -11,7 +11,6 @@ from bot.database import Base, SessionLocal, engine, get_db, init_db
 
 
 class TestDatabaseOperations:
-
     @pytest.mark.unit
     def test_get_db_yields_session(self):
         with patch("bot.database.SessionLocal") as mock_session_class:

@@ -62,9 +62,9 @@ class TestDatabasePerformance:
         real_db_session.commit()
         elapsed_time = (time.time() - start_time) * 1000  # в миллисекундах
 
-        assert (
-            elapsed_time < 50
-        ), f"Создание пользователя заняло {elapsed_time}ms, должно быть < 50ms"
+        assert elapsed_time < 50, (
+            f"Создание пользователя заняло {elapsed_time}ms, должно быть < 50ms"
+        )
         assert user is not None
 
     @pytest.mark.performance

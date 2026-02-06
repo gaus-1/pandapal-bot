@@ -75,9 +75,9 @@ class TestLoadHandling:
         # Проверяем что все сообщения обработаны
         for user in test_users:
             progress = gamification_service.get_or_create_progress(user.telegram_id)
-            assert (
-                progress.points >= 10
-            ), f"Пользователь {user.telegram_id} должен иметь минимум 10 XP"
+            assert progress.points >= 10, (
+                f"Пользователь {user.telegram_id} должен иметь минимум 10 XP"
+            )
 
     @pytest.mark.performance
     def test_many_achievements_check(self, real_db_session, test_users):

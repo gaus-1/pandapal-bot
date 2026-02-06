@@ -61,9 +61,9 @@ class TestSQLInjectionProtection:
         # Проверяем что username сохранён как строка, а не выполнен как SQL
         retrieved_user = user_service.get_user_by_telegram_id(telegram_id)
         assert retrieved_user is not None
-        assert (
-            retrieved_user.username == malicious_username
-        ), "Username должен быть сохранён как строка"
+        assert retrieved_user.username == malicious_username, (
+            "Username должен быть сохранён как строка"
+        )
 
     def test_sql_injection_in_first_name(self, real_db_session):
         """Тест: SQL инъекция в first_name должна быть безопасной"""

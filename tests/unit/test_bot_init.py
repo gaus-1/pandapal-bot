@@ -11,7 +11,6 @@ from bot import __init__ as bot_init
 
 
 class TestBotInit:
-
     @pytest.mark.unit
     def test_bot_module_exists(self):
         assert bot is not None

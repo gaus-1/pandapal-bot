@@ -77,6 +77,7 @@ class TestPandaLazyMiniappReal:
     @contextmanager
     def _patch_db_and_auth(self, real_db_session):
         """Патч get_db и require_owner для вызова реального handler с тестовой БД."""
+
         def fake_get_db():
             class Ctx:
                 def __enter__(self):
@@ -88,15 +89,14 @@ class TestPandaLazyMiniappReal:
 
             return Ctx()
 
-        with patch("bot.api.miniapp.chat.get_db", fake_get_db), patch(
-            "bot.api.miniapp.chat.require_owner", return_value=None
+        with (
+            patch("bot.api.miniapp.chat.get_db", fake_get_db),
+            patch("bot.api.miniapp.chat.require_owner", return_value=None),
         ):
             yield
 
     @pytest.mark.asyncio
-    async def test_lazy_response_after_15_messages_in_miniapp(
-        self, real_db_session, test_user
-    ):
+    async def test_lazy_response_after_15_messages_in_miniapp(self, real_db_session, test_user):
         """
         После 15 сообщений пользователя за 20 минут Mini App chat
         возвращает ответ «ленивой» панды (без вызова YandexGPT).
@@ -109,7 +109,7 @@ class TestPandaLazyMiniappReal:
         for i in range(15):
             msg = ChatHistory(
                 user_telegram_id=telegram_id,
-                message_text=f"Сообщение {i+1}",
+                message_text=f"Сообщение {i + 1}",
                 message_type="user",
                 timestamp=now - timedelta(minutes=19) + timedelta(seconds=i),
             )
@@ -129,9 +129,7 @@ class TestPandaLazyMiniappReal:
         assert "бамбук" in text or "лениво" in text or "попозже" in text
 
     @pytest.mark.asyncio
-    async def test_no_lazy_before_15_messages_in_miniapp(
-        self, real_db_session, test_user
-    ):
+    async def test_no_lazy_before_15_messages_in_miniapp(self, real_db_session, test_user):
         """
         До 15 сообщений за 20 минут запрос идёт в AI; при замоканном
         generate_response возвращается обычный ответ.
@@ -143,7 +141,7 @@ class TestPandaLazyMiniappReal:
         for i in range(5):
             msg = ChatHistory(
                 user_telegram_id=telegram_id,
-                message_text=f"Вопрос {i+1}",
+                message_text=f"Вопрос {i + 1}",
                 message_type="user",
                 timestamp=now - timedelta(minutes=5) + timedelta(seconds=i),
             )
@@ -154,9 +152,10 @@ class TestPandaLazyMiniappReal:
 
         fake_response = "Тестовый ответ панды про фотосинтез."
 
-        with self._patch_db_and_auth(real_db_session), patch(
-            "bot.api.miniapp.chat.get_ai_service"
-        ) as mock_get_ai:
+        with (
+            self._patch_db_and_auth(real_db_session),
+            patch("bot.api.miniapp.chat.get_ai_service") as mock_get_ai,
+        ):
             mock_service = mock_get_ai.return_value
             mock_service.generate_response = AsyncMock(return_value=fake_response)
 
@@ -168,9 +167,7 @@ class TestPandaLazyMiniappReal:
         assert data["response"] == fake_response
 
     @pytest.mark.asyncio
-    async def test_rest_offer_after_10_exchanges_in_miniapp(
-        self, real_db_session, test_user
-    ):
+    async def test_rest_offer_after_10_exchanges_in_miniapp(self, real_db_session, test_user):
         """
         После 10 ответов подряд (consecutive_since_rest=10) следующий запрос
         возвращает предложение отдыха/игры без вызова YandexGPT.
@@ -195,9 +192,7 @@ class TestPandaLazyMiniappReal:
         assert "поиграем" in text or "перерыв" in text or "отдохнуть" in text
 
     @pytest.mark.asyncio
-    async def test_continue_after_rest_offer_in_miniapp(
-        self, real_db_session, test_user
-    ):
+    async def test_continue_after_rest_offer_in_miniapp(self, real_db_session, test_user):
         """
         Если пользователь после предложения отдыха пишет «продолжай»,
         панда соглашается и возвращает «Хорошо, давай продолжать!» без вызова AI.

@@ -73,7 +73,9 @@ def test_content_filter_quality():
     filter_service = NewsContentFilter()
 
     # Хорошая новость
-    is_good, reason = filter_service._check_quality("Длинный заголовок", "Достаточно длинный текст новости" * 10)
+    is_good, reason = filter_service._check_quality(
+        "Длинный заголовок", "Достаточно длинный текст новости" * 10
+    )
     assert is_good is True
 
     # Слишком короткая

@@ -210,9 +210,9 @@ class TestContentModerationService:
                 "полезными",
                 "безопасными",
             ]
-            assert any(
-                word in response.lower() for word in safe_words
-            ), f"Ответ не содержит безопасных слов: {response}"
+            assert any(word in response.lower() for word in safe_words), (
+                f"Ответ не содержит безопасных слов: {response}"
+            )
 
     @pytest.mark.unit
     @pytest.mark.moderation

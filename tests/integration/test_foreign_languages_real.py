@@ -315,7 +315,9 @@ class TestForeignLanguageAIChat:
             "перевод" in response.lower()
             or "столица" in response.lower()
             or "франция" in response.lower()
-        ), f"Ответ должен содержать объяснение перевода или информацию о столице Франции: {response[:200]}"
+        ), (
+            f"Ответ должен содержать объяснение перевода или информацию о столице Франции: {response[:200]}"
+        )
 
         print(f"\n[OK] Английский текст обработан:")
         print(f"   Оригинал: {english_text}")

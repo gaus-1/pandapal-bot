@@ -66,9 +66,9 @@ class TestSoakTests:
 
         # Проверяем что все сообщения созданы (limit может быть ограничен)
         messages = history_service.get_chat_history(777666555, limit=message_count + 100)
-        assert (
-            len(messages) >= message_count
-        ), f"Должно быть создано минимум {message_count} сообщений, получено {len(messages)}"
+        assert len(messages) >= message_count, (
+            f"Должно быть создано минимум {message_count} сообщений, получено {len(messages)}"
+        )
 
     @pytest.mark.performance
     @pytest.mark.slow

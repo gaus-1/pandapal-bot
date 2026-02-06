@@ -56,7 +56,7 @@ async def homework_help(message: Message, state: FSMContext):  # noqa: ARG001
     logger.info(f"📚 Пользователь {telegram_id} открыл помощь с уроками")
 
     await message.answer(
-        text="📚 <b>Помощь с уроками</b>\n\n" "Выбери предмет, с которым нужна помощь:",
+        text="📚 <b>Помощь с уроками</b>\n\nВыбери предмет, с которым нужна помощь:",
         reply_markup=get_subjects_keyboard(),
         parse_mode="HTML",
     )
@@ -96,7 +96,7 @@ async def subject_selected(callback: CallbackQuery, state: FSMContext):
     logger.info(f"Выбран предмет: {subject_name}")
 
     await callback.message.edit_text(
-        text=f"📚 <b>{subject_name}</b>\n\n" "Как я могу помочь?",
+        text=f"📚 <b>{subject_name}</b>\n\nКак я могу помочь?",
         reply_markup=get_help_type_keyboard(),
         parse_mode="HTML",
     )
@@ -174,13 +174,13 @@ async def show_progress(message: Message, state: FSMContext):  # noqa: ARG001
 
 👤 <b>Профиль:</b>
 • Имя: {user.first_name}
-• Класс: {user.grade if user.grade else 'Не указан'}
-• Возраст: {user.age if user.age else 'Не указан'}
+• Класс: {user.grade if user.grade else "Не указан"}
+• Возраст: {user.age if user.age else "Не указан"}
 
 📈 <b>Статистика:</b>
-• Всего сообщений: {analytics.get('total_messages', 0)}
-• Вопросов задано: {analytics.get('questions_asked', 0)}
-• Дней с ботом: {analytics.get('days_active', 0)}
+• Всего сообщений: {analytics.get("total_messages", 0)}
+• Вопросов задано: {analytics.get("questions_asked", 0)}
+• Дней с ботом: {analytics.get("days_active", 0)}
 
 🎯 <b>Достижения:</b>
 🚧 <i>Система достижений в разработке</i>
@@ -194,8 +194,8 @@ async def show_progress(message: Message, state: FSMContext):  # noqa: ARG001
 
 👤 <b>Профиль:</b>
 • Имя: {user.first_name}
-• Класс: {user.grade if user.grade else 'Не указан'}
-• Возраст: {user.age if user.age else 'Не указан'}
+• Класс: {user.grade if user.grade else "Не указан"}
+• Возраст: {user.age if user.age else "Не указан"}
 
 💡 <b>Продолжай учиться!</b>
 """
@@ -214,7 +214,7 @@ async def back_to_main_menu(callback: CallbackQuery, state: FSMContext):
     await state.clear()
 
     await callback.message.edit_text(
-        text="🏠 <b>Главное меню</b>\n\n" "Выбери действие из меню ниже 👇", parse_mode="HTML"
+        text="🏠 <b>Главное меню</b>\n\nВыбери действие из меню ниже 👇", parse_mode="HTML"
     )
 
     await callback.answer()

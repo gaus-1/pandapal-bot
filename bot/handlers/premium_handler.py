@@ -98,7 +98,7 @@ async def cmd_premium(message: Message):
 
 📅 <b>Информация о подписке:</b>
 • План: {plan_name}
-• Действует до: {subscription.expires_at.strftime('%d.%m.%Y %H:%M')}
+• Действует до: {subscription.expires_at.strftime("%d.%m.%Y %H:%M")}
 • Осталось дней: {days_left}
 """
 
@@ -109,7 +109,7 @@ async def cmd_premium(message: Message):
             if has_saved_card:
                 premium_text += f"""
 💳 <b>Сохраненная карта:</b>
-• Автоплатеж: {'✅ Включен' if auto_renew else '❌ Отключен'}
+• Автоплатеж: {"✅ Включен" if auto_renew else "❌ Отключен"}
 • Карта сохранена для автоматического продления
 """
                 # Добавляем кнопку отвязки карты
@@ -298,7 +298,7 @@ async def cancel_remove_card_callback(callback: CallbackQuery):
 
 📅 <b>Информация о подписке:</b>
 • План: {plan_name}
-• Действует до: {subscription.expires_at.strftime('%d.%m.%Y %H:%M')}
+• Действует до: {subscription.expires_at.strftime("%d.%m.%Y %H:%M")}
 • Осталось дней: {days_left}
 """
 
@@ -308,7 +308,7 @@ async def cancel_remove_card_callback(callback: CallbackQuery):
             if has_saved_card:
                 premium_text += f"""
 💳 <b>Сохраненная карта:</b>
-• Автоплатеж: {'✅ Включен' if auto_renew else '❌ Отключен'}
+• Автоплатеж: {"✅ Включен" if auto_renew else "❌ Отключен"}
 • Карта сохранена для автоматического продления
 """
                 keyboard = InlineKeyboardMarkup(

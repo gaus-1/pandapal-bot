@@ -275,9 +275,9 @@ class TestAIChatHandler:
             assert len(safe_response) > 0
             # Проверяем что альтернативный ответ безопасен
             is_safe_response, _ = moderation.is_safe_content(safe_response)
-            assert (
-                is_safe_response is True
-            ), f"Альтернативный ответ должен быть безопасным: {safe_response}"
+            assert is_safe_response is True, (
+                f"Альтернативный ответ должен быть безопасным: {safe_response}"
+            )
 
     def test_moderation_service_sanitizes_ai_responses(self):
         """Тест что модерация очищает ответы AI от опасного контента"""

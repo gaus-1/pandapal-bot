@@ -153,6 +153,6 @@ class TestSQLInjectionURLParams:
                 result = real_db_session.execute(
                     text("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
                 )
-                assert (
-                    result.fetchone() is not None
-                ), f"Таблица users должна существовать после {malicious_id}"
+                assert result.fetchone() is not None, (
+                    f"Таблица users должна существовать после {malicious_id}"
+                )

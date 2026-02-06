@@ -240,7 +240,7 @@ class FormulaExplainer:
         for formula_type in detected_formulas:
             explanation = self.explain_formula(formula_type, user_age)
             if explanation:
-                context += f"{explanation}\n\n{'='*50}\n\n"
+                context += f"{explanation}\n\n{'=' * 50}\n\n"
 
         context += "\n✅ ВАЖНО ДЛЯ ОТВЕТА:\n"
         context += "1. Объясни формулу ПРОСТЫМИ СЛОВАМИ для ребенка\n"

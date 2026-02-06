@@ -140,12 +140,12 @@ class TestAPIInputValidation:
                         response_data = await response.json()
                         # Проверяем что ответ безопасен (не содержит выполненного SQL/XSS)
                         response_str = str(response_data)
-                        assert (
-                            "DROP TABLE" not in response_str
-                        ), f"SQL не должен выполняться для {message[:50]}"
-                        assert (
-                            "<script>" not in response_str
-                        ), f"XSS не должен выполняться для {message[:50]}"
+                        assert "DROP TABLE" not in response_str, (
+                            f"SQL не должен выполняться для {message[:50]}"
+                        )
+                        assert "<script>" not in response_str, (
+                            f"XSS не должен выполняться для {message[:50]}"
+                        )
 
     @pytest.mark.asyncio
     async def test_empty_request_body(self, real_db_session, test_user):

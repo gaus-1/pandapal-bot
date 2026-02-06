@@ -11,7 +11,6 @@ from bot.services.cache_service import CacheService, MemoryCache
 
 
 class TestMemoryCache:
-
     @pytest.fixture
     def cache(self):
         return MemoryCache()

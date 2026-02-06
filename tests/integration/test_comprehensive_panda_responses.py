@@ -91,7 +91,9 @@ class TestComprehensivePandaResponses:
         Строгая проверка: структура (абзацы, списки/жирный) и грамотность (законченные предложения).
         Промпт: СТРУКТУРА ОТВЕТА, ОТВЕТ НА «ПОДРОБНЕЕ», ГРАМОТНОСТЬ, ПРАВИЛА ПОСТРОЕНИЯ ТЕКСТА.
         """
-        assert response and len(response.strip()) > 50, f"{context}Ответ слишком короткий или пустой"
+        assert response and len(response.strip()) > 50, (
+            f"{context}Ответ слишком короткий или пустой"
+        )
         paragraphs = [p.strip() for p in response.split("\n\n") if p.strip()]
         # Длинный ответ — обязательно абзацы (запрещён сплошной текст)
         if len(response) > 250:
@@ -178,11 +180,16 @@ class TestComprehensivePandaResponses:
         is_safe, _ = service.is_safe_content("What the fuck is this?")
         assert not is_safe, "Профанити должен блокироваться"
         redirect = service.get_safe_response_alternative("ненормативная лексика")
-        assert redirect and len(redirect.strip()) > 20, "При блоке должен быть вежливый редирект, не пусто"
+        assert redirect and len(redirect.strip()) > 20, (
+            "При блоке должен быть вежливый редирект, не пусто"
+        )
         redirect_lower = redirect.lower()
         assert (
-            "учёб" in redirect_lower or "учеб" in redirect_lower or "школ" in redirect_lower
-            or "помощ" in redirect_lower or "помог" in redirect_lower
+            "учёб" in redirect_lower
+            or "учеб" in redirect_lower
+            or "школ" in redirect_lower
+            or "помощ" in redirect_lower
+            or "помог" in redirect_lower
         ), "Редирект должен предлагать учёбу/помощь"
         print(f"\n[OK] Редирект при блоке: {redirect[:80]}...")
 
@@ -201,9 +208,12 @@ class TestComprehensivePandaResponses:
         )
         assert response is not None, "Панда должна ответить на мета-вопрос"
         assert len(response.strip()) > 30, "Ответ не должен быть пустым или односложным"
-        assert "учёб" in response.lower() or "школ" in response.lower() or "помощ" in response.lower() or "предмет" in response.lower(), (
-            "Ответ должен вежливо переводить на учёбу"
-        )
+        assert (
+            "учёб" in response.lower()
+            or "школ" in response.lower()
+            or "помощ" in response.lower()
+            or "предмет" in response.lower()
+        ), "Ответ должен вежливо переводить на учёбу"
         print(f"\n[OK] Мета-вопрос получил ответ: {response[:120]}...")
 
     @pytest.mark.asyncio
@@ -215,7 +225,10 @@ class TestComprehensivePandaResponses:
         ai_service = get_ai_service()
         chat_history = [
             {"role": "user", "text": "Что такое парабола?"},
-            {"role": "assistant", "text": "Парабола — это график квадратичной функции y = x². Она симметрична и имеет вершину."},
+            {
+                "role": "assistant",
+                "text": "Парабола — это график квадратичной функции y = x². Она симметрична и имеет вершину.",
+            },
             {"role": "user", "text": "Расскажи подробнее"},
         ]
         response = await ai_service.generate_response(
@@ -239,7 +252,9 @@ class TestComprehensivePandaResponses:
             user_age=14,
         )
         self._assert_structure_and_russian(response, context="[Примеры для закрепления] ")
-        print(f"\n[OK] Примеры для закрепления: структура соблюдена, ответ: {len(response)} символов")
+        print(
+            f"\n[OK] Примеры для закрепления: структура соблюдена, ответ: {len(response)} символов"
+        )
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
@@ -254,7 +269,9 @@ class TestComprehensivePandaResponses:
             user_age=10,
         )
         self._assert_structure_and_russian(response, context="[Объясни + примеры] ")
-        print(f"\n[OK] Объясни + примеры: структура и грамотность соблюдены, ответ: {len(response)} символов")
+        print(
+            f"\n[OK] Объясни + примеры: структура и грамотность соблюдены, ответ: {len(response)} символов"
+        )
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
@@ -269,7 +286,9 @@ class TestComprehensivePandaResponses:
             user_age=11,
         )
         self._assert_structure_and_russian(response, context="[Объясни подробнее] ")
-        print(f"\n[OK] Объясни подробнее (первый запрос): структура соблюдена, ответ: {len(response)} символов")
+        print(
+            f"\n[OK] Объясни подробнее (первый запрос): структура соблюдена, ответ: {len(response)} символов"
+        )
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
@@ -281,14 +300,34 @@ class TestComprehensivePandaResponses:
 
         # Вопросы по ВСЕМ предметам с требованием развернутого ответа
         test_cases = [
-            ("Математика", "Объясни что такое квадратное уравнение. Расскажи подробно с примерами.", 12),
-            ("Русский", "Объясни что такое подлежащее и сказуемое. Расскажи подробно с примерами предложений.", 10),
-            ("История", "Когда началась Великая Отечественная война? Расскажи подробно про это событие.", 13),
+            (
+                "Математика",
+                "Объясни что такое квадратное уравнение. Расскажи подробно с примерами.",
+                12,
+            ),
+            (
+                "Русский",
+                "Объясни что такое подлежащее и сказуемое. Расскажи подробно с примерами предложений.",
+                10,
+            ),
+            (
+                "История",
+                "Когда началась Великая Отечественная война? Расскажи подробно про это событие.",
+                13,
+            ),
             ("География", "Какая самая длинная река в России? Расскажи подробно про неё.", 11),
-            ("Биология", "Что такое фотосинтез? Объясни подробно простыми словами с примерами.", 11),
+            (
+                "Биология",
+                "Что такое фотосинтез? Объясни подробно простыми словами с примерами.",
+                11,
+            ),
             ("Физика", "Что такое скорость в физике? Объясни подробно простыми словами.", 11),
             ("Химия", "Что такое вода? Из чего она состоит? Объясни подробно с примерами.", 12),
-            ("Литература", "Кто написал 'Евгения Онегина'? О чем это произведение? Расскажи подробно.", 14),
+            (
+                "Литература",
+                "Кто написал 'Евгения Онегина'? О чем это произведение? Расскажи подробно.",
+                14,
+            ),
             ("Информатика", "Что такое алгоритм? Приведи подробные примеры и объясни.", 12),
             ("Обществознание", "Что такое государство? Объясни подробно простыми словами.", 13),
             ("Английский", "Что такое Present Simple? Объясни подробно с примерами.", 11),
@@ -304,7 +343,9 @@ class TestComprehensivePandaResponses:
             )
 
             assert response is not None, f"AI не ответил на вопрос по {subject}"
-            assert len(response) > 100, f"Ответ слишком короткий по {subject}: {len(response)} символов"
+            assert len(response) > 100, (
+                f"Ответ слишком короткий по {subject}: {len(response)} символов"
+            )
 
             # Проверка качества ответа
             quality = self._check_response_quality(response, min_sentences=4)
@@ -316,9 +357,11 @@ class TestComprehensivePandaResponses:
                 "issues": quality["issues"],
             }
 
-            print(f"\n[{subject}] Quality: {quality['quality_score']}/100, "
-                  f"Sentences: {quality['sentences_count']}, "
-                  f"Length: {quality['total_length']}")
+            print(
+                f"\n[{subject}] Quality: {quality['quality_score']}/100, "
+                f"Sentences: {quality['sentences_count']}, "
+                f"Length: {quality['total_length']}"
+            )
 
         # Проверка: все ответы должны быть качественными
         avg_score = sum(r["quality_score"] for r in results.values()) / len(results)
@@ -343,7 +386,11 @@ class TestComprehensivePandaResponses:
         test_cases = [
             ("График", "Покажи график функции y = x²", "graph"),
             ("Таблица", "Покажи таблицу умножения на 7", "table"),
-            ("Диаграмма", "Покажи столбчатую диаграмму: Математика 30, Русский 25, История 20", "diagram"),
+            (
+                "Диаграмма",
+                "Покажи столбчатую диаграмму: Математика 30, Русский 25, История 20",
+                "diagram",
+            ),
             ("Карта", "Покажи карту Москвы", "map"),
             ("Схема", "Покажи схему строения клетки", "scheme"),
         ]
@@ -354,7 +401,9 @@ class TestComprehensivePandaResponses:
             viz_image, viz_type_detected = viz_service.detect_visualization_request(question)
 
             if viz_image is None:
-                print(f"[WARNING] {viz_type}: визуализация не сгенерирована (может быть не реализовано)")
+                print(
+                    f"[WARNING] {viz_type}: визуализация не сгенерирована (может быть не реализовано)"
+                )
                 results[viz_type] = {"generated": False}
                 continue
 
@@ -373,21 +422,27 @@ class TestComprehensivePandaResponses:
             # Проверка качества ответа (для визуализаций может быть короче, но структурированным)
             quality = self._check_response_quality(response, min_sentences=3)
 
-            results[viz_type].update({
-                "quality_score": quality["quality_score"],
-                "sentences": quality["sentences_count"],
-                "length": quality["total_length"],
-            })
+            results[viz_type].update(
+                {
+                    "quality_score": quality["quality_score"],
+                    "sentences": quality["sentences_count"],
+                    "length": quality["total_length"],
+                }
+            )
 
-            print(f"\n[{viz_type}] Generated: OK, Size: {len(viz_image)} байт, "
-                  f"Quality: {quality['quality_score']}/100, "
-                  f"Sentences: {quality['sentences_count']}")
+            print(
+                f"\n[{viz_type}] Generated: OK, Size: {len(viz_image)} байт, "
+                f"Quality: {quality['quality_score']}/100, "
+                f"Sentences: {quality['sentences_count']}"
+            )
 
         # Проверка: хотя бы большинство визуализаций должны генерироваться
         generated_count = sum(1 for r in results.values() if r.get("generated"))
         assert generated_count >= 3, f"Слишком мало визуализаций генерируется: {generated_count}/5"
 
-        print(f"\n[OK] Визуализации протестированы! Сгенерировано: {generated_count}/{len(test_cases)}")
+        print(
+            f"\n[OK] Визуализации протестированы! Сгенерировано: {generated_count}/{len(test_cases)}"
+        )
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
@@ -448,13 +503,17 @@ class TestComprehensivePandaResponses:
                     "analysis_length": len(analysis),
                 }
 
-                print(f"\n[{subject}] Photo processed: OK, Analysis length: {len(analysis)} символов")
+                print(
+                    f"\n[{subject}] Photo processed: OK, Analysis length: {len(analysis)} символов"
+                )
             except Exception as e:
                 print(f"\n[{subject}] Photo processing failed: {e}")
                 results[subject] = {"processed": False, "error": str(e)}
 
         # Проверка: большинство фото должны обрабатываться
         processed_count = sum(1 for r in results.values() if r.get("processed"))
-        assert processed_count >= 3, f"Слишком мало фото обработано: {processed_count}/{len(test_cases)}"
+        assert processed_count >= 3, (
+            f"Слишком мало фото обработано: {processed_count}/{len(test_cases)}"
+        )
 
         print(f"\n[OK] Фото протестированы! Обработано: {processed_count}/{len(test_cases)}")

@@ -55,7 +55,9 @@ class TestRAGRealAPI:
         ), "Не объяснена причина (ПОЧЕМУ)"
 
         # Проверяем что ответ достаточно глубокий
-        assert len(response) > 300, f"Ответ слишком короткий ({len(response)} символов), должен быть глубже"
+        assert len(response) > 300, (
+            f"Ответ слишком короткий ({len(response)} символов), должен быть глубже"
+        )
 
         # Проверяем структуру - должны быть абзацы
         paragraphs = [p.strip() for p in response.split("\n\n") if p.strip()]
@@ -78,11 +80,14 @@ class TestRAGRealAPI:
 
         # Проверяем что объяснён механизм (КАК работает)
         assert any(
-            word in response.lower() for word in ["процесс", "работает", "происходит", "свет", "вода"]
+            word in response.lower()
+            for word in ["процесс", "работает", "происходит", "свет", "вода"]
         ), "Не объяснён механизм фотосинтеза"
 
         # Проверяем глубину ответа
-        assert len(response) > 500, f"Ответ слишком короткий для сложного вопроса ({len(response)} символов)"
+        assert len(response) > 500, (
+            f"Ответ слишком короткий для сложного вопроса ({len(response)} символов)"
+        )
 
     @pytest.mark.asyncio
     async def test_multiple_questions_in_one(self, ai_service):
@@ -108,8 +113,7 @@ class TestRAGRealAPI:
 
         # 3. ЗАЧЕМ нужно
         assert any(
-            word in response.lower()
-            for word in ["свет", "приборы", "нужно", "использу", "работа"]
+            word in response.lower() for word in ["свет", "приборы", "нужно", "использу", "работа"]
         ), "Не объяснено ЗАЧЕМ нужно электричество"
 
         # Проверяем структуру - должны быть разделы для каждого вопроса
@@ -146,9 +150,9 @@ class TestRAGRealAPI:
 
         if wiki_context:  # Wikipedia может быть недоступна
             assert len(wiki_context) > 0, "Wikipedia контекст пустой"
-            assert any(
-                word in wiki_context.lower() for word in ["солнце", "планет", "систем"]
-            ), "Wikipedia контекст не релевантен"
+            assert any(word in wiki_context.lower() for word in ["солнце", "планет", "систем"]), (
+                "Wikipedia контекст не релевантен"
+            )
 
     @pytest.mark.asyncio
     async def test_prompt_builder_extracts_keywords(self):

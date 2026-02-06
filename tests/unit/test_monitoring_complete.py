@@ -10,7 +10,6 @@ from bot.monitoring import log_user_activity, monitor_performance
 
 
 class TestMonitoringComplete:
-
     @pytest.mark.unit
     def test_log_user_activity_success(self):
         with patch("bot.monitoring_legacy.logger") as mock_logger:

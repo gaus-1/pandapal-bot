@@ -49,7 +49,7 @@ class PaymentService:
         Configuration.secret_key = secret_key
 
         mode_text = "ТЕСТОВЫЙ" if settings.yookassa_test_mode else "ПРОДАКШН"
-        logger.info(f"💳 ЮKassa инициализирован в режиме {mode_text}: " f"shop_id={shop_id}")
+        logger.info(f"💳 ЮKassa инициализирован в режиме {mode_text}: shop_id={shop_id}")
 
         if not shop_id or not secret_key:
             logger.error(

@@ -28,9 +28,9 @@ class TestCheckersCritical:
                 # Игра окончена - проверяем что действительно нет ходов у проигравшего
                 loser = 1 if game.winner == 2 else 2
                 loser_moves = game.get_valid_moves(loser)
-                assert (
-                    len(loser_moves) == 0
-                ), f"Игра окончена, но у проигравшего ({loser}) есть ходы!"
+                assert len(loser_moves) == 0, (
+                    f"Игра окончена, но у проигравшего ({loser}) есть ходы!"
+                )
                 break
 
             current_player = game.current_player
@@ -44,16 +44,14 @@ class TestCheckersCritical:
 
             if len(valid_moves) == 0:
                 # Нет ходов - должен быть победитель
-                assert (
-                    game.winner is not None
-                ), f"Итерация {iteration}: Нет ходов, но победитель не определён!"
+                assert game.winner is not None, (
+                    f"Итерация {iteration}: Нет ходов, но победитель не определён!"
+                )
                 break
 
             # Делаем случайный ход
             move = random.choice(valid_moves)
-            success = game.make_move(
-                move["from"][0], move["from"][1], move["to"][0], move["to"][1]
-            )
+            success = game.make_move(move["from"][0], move["from"][1], move["to"][0], move["to"][1])
             assert success, f"Итерация {iteration}: Ход не удался, хотя был в списке валидных!"
 
     def test_checkers_user_can_always_move_or_game_over(self):
@@ -67,9 +65,7 @@ class TestCheckersCritical:
             # Ход пользователя (белые, player=1)
             if game.current_player == 1:
                 user_moves = game.get_valid_moves(1)
-                assert (
-                    len(user_moves) > 0
-                ), "Пользователь не может сходить, но игра не окончена!"
+                assert len(user_moves) > 0, "Пользователь не может сходить, но игра не окончена!"
 
                 # Делаем первый возможный ход
                 move = user_moves[0]
@@ -140,9 +136,9 @@ class TestCheckersCritical:
         valid_moves = game.get_valid_moves(1)
 
         # Все ходы должны быть взятиями
-        assert all(
-            move["capture"] is not None for move in valid_moves
-        ), "Когда есть взятие, все ходы должны быть взятиями!"
+        assert all(move["capture"] is not None for move in valid_moves), (
+            "Когда есть взятие, все ходы должны быть взятиями!"
+        )
 
         # Должно быть хотя бы одно взятие
         assert len(valid_moves) > 0, "Нет доступных взятий, хотя враг рядом!"

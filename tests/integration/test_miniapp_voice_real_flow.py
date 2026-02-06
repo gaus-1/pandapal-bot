@@ -123,14 +123,14 @@ class TestMiniAppVoiceRealFlow:
                     # ПРОВЕРКА 2: SpeechService был вызван с правильными параметрами
                     mock_speech_service.transcribe_voice.assert_called_once()
                     call_args = mock_speech_service.transcribe_voice.call_args
-                    assert (
-                        call_args is not None
-                    ), "SpeechService.transcribe_voice должен быть вызван"
+                    assert call_args is not None, (
+                        "SpeechService.transcribe_voice должен быть вызван"
+                    )
                     # Проверяем что передали байты аудио
                     audio_bytes_arg = call_args[0][0] if call_args[0] else None
-                    assert (
-                        audio_bytes_arg is not None
-                    ), "Должны передать байты аудио в SpeechService"
+                    assert audio_bytes_arg is not None, (
+                        "Должны передать байты аудио в SpeechService"
+                    )
                     assert isinstance(audio_bytes_arg, bytes), "Аудио должно быть в формате bytes"
 
                     # ПРОВЕРКА 3: AI сервис был вызван с распознанным текстом
@@ -152,25 +152,26 @@ class TestMiniAppVoiceRealFlow:
                         import json
 
                         response_data = json.loads(response._body.decode("utf-8"))
-                        assert (
-                            "response" in response_data or "error" in response_data
-                        ), "Ответ должен содержать response или error"
+                        assert "response" in response_data or "error" in response_data, (
+                            "Ответ должен содержать response или error"
+                        )
 
                         # ПРОВЕРКА 5: Ответ структурирован (для frontend парсинга)
                         if "response" in response_data:
                             ai_response = response_data["response"]
                             # Проверяем что ответ можно разбить на блоки (есть абзацы или структурированные секции)
                             has_structure = (
-                                "\n\n" in ai_response or
-                                "Определение:" in ai_response or
-                                "Ключевые свойства:" in ai_response or
-                                "Как это работает:" in ai_response or
-                                "Где применяется:" in ai_response or
-                                "Итог:" in ai_response
+                                "\n\n" in ai_response
+                                or "Определение:" in ai_response
+                                or "Ключевые свойства:" in ai_response
+                                or "Как это работает:" in ai_response
+                                or "Где применяется:" in ai_response
+                                or "Итог:" in ai_response
                             )
                             # Ответ должен быть структурированным (хотя бы по абзацам)
-                            assert has_structure or len(ai_response.split()) > 10, \
+                            assert has_structure or len(ai_response.split()) > 10, (
                                 "Ответ должен быть структурированным (абзацы или секции)"
+                            )
                     else:
                         # Если нет _body, проверяем только статус
                         assert response.status == 200, "Ответ должен быть успешным"
@@ -365,9 +366,9 @@ class TestMiniAppVoiceRealFlow:
                     )
 
                     # Должны быть сохранены: вопрос пользователя и ответ AI
-                    assert (
-                        len(history) >= 2
-                    ), f"Должно быть минимум 2 сообщения в истории, получено: {len(history)}"
+                    assert len(history) >= 2, (
+                        f"Должно быть минимум 2 сообщения в истории, получено: {len(history)}"
+                    )
 
                     user_messages = [h for h in history if h.message_type == "user"]
                     ai_messages = [h for h in history if h.message_type == "ai"]

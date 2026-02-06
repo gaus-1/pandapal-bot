@@ -281,8 +281,7 @@ class SubscriptionService:
         self.db.flush()
 
         logger.info(
-            f"✅ Сохраненный способ оплаты удален: user={telegram_id}, "
-            f"подписок обновлено={count}"
+            f"✅ Сохраненный способ оплаты удален: user={telegram_id}, подписок обновлено={count}"
         )
 
         return True

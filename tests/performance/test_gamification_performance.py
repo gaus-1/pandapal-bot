@@ -60,9 +60,9 @@ class TestGamificationPerformance:
         real_db_session.commit()
         elapsed_time = (time.time() - start_time) * 1000  # в миллисекундах
 
-        assert (
-            elapsed_time < 100
-        ), f"Обработка сообщения заняла {elapsed_time}ms, должно быть < 100ms"
+        assert elapsed_time < 100, (
+            f"Обработка сообщения заняла {elapsed_time}ms, должно быть < 100ms"
+        )
 
     @pytest.mark.performance
     def test_batch_messages_performance(self, real_db_session, test_user):
@@ -98,9 +98,9 @@ class TestGamificationPerformance:
         achievements = gamification_service.get_achievements_with_progress(test_user.telegram_id)
         elapsed_time = (time.time() - start_time) * 1000  # в миллисекундах
 
-        assert (
-            elapsed_time < 50
-        ), f"Получение достижений заняло {elapsed_time}ms, должно быть < 50ms"
+        assert elapsed_time < 50, (
+            f"Получение достижений заняло {elapsed_time}ms, должно быть < 50ms"
+        )
         assert len(achievements) > 0, "Должны быть достижения"
 
     @pytest.mark.performance
@@ -122,7 +122,7 @@ class TestGamificationPerformance:
         stats = gamification_service.get_user_stats(test_user.telegram_id)
         elapsed_time = (time.time() - start_time) * 1000  # в миллисекундах
 
-        assert (
-            elapsed_time < 100
-        ), f"Получение статистики заняло {elapsed_time}ms, должно быть < 100ms"
+        assert elapsed_time < 100, (
+            f"Получение статистики заняло {elapsed_time}ms, должно быть < 100ms"
+        )
         assert "total_messages" in stats, "Статистика должна содержать total_messages"

@@ -276,9 +276,9 @@ class TestRealModerationWorkflows:
         for category, samples in blocked_samples.items():
             for sample in samples:
                 is_safe, reason = service.is_safe_content(sample)
-                assert (
-                    is_safe is False
-                ), f"Контент категории {category} должен быть заблокирован: {sample}"
+                assert is_safe is False, (
+                    f"Контент категории {category} должен быть заблокирован: {sample}"
+                )
                 assert reason is not None
 
     def test_real_moderation_mixed_content(self):

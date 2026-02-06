@@ -106,9 +106,9 @@ class TestAPIAuthorization:
                 response = await miniapp_get_user(request)
 
                 # Должна вернуться ошибка (400 для валидации, 500 для SQLite overflow)
-                assert (
-                    response.status == expected_status
-                ), f"Должен быть статус {expected_status} для {invalid_id}"
+                assert response.status == expected_status, (
+                    f"Должен быть статус {expected_status} для {invalid_id}"
+                )
 
     @pytest.mark.asyncio
     async def test_update_user_validation(self, real_db_session, test_users):

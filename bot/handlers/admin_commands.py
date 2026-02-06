@@ -51,7 +51,7 @@ async def cmd_status(message: Message):
         response = f"""🤖 <b>Статус PandaPal Bot</b>
 
 📊 <b>Основная информация:</b>
-• Здоровье системы: {'✅ Активна' if status.healthy else '❌ Проблемы'}
+• Здоровье системы: {"✅ Активна" if status.healthy else "❌ Проблемы"}
 • CPU: <code>{status.cpu_percent}%</code>
 • Память: <code>{status.memory_percent}%</code>
 
@@ -59,7 +59,7 @@ async def cmd_status(message: Message):
 • Активных пользователей: <code>{status.active_users}</code>
 • Сообщений сегодня: <code>{status.messages_today}</code>
 
-⏰ Последнее обновление: <code>{status.last_update.strftime('%H:%M:%S')}</code>"""
+⏰ Последнее обновление: <code>{status.last_update.strftime("%H:%M:%S")}</code>"""
 
         await message.answer(response)
 
@@ -106,10 +106,10 @@ async def cmd_ai_status(message: Message):
 
         response = f"""🤖 <b>Статус AI</b>
 
-📦 <b>Модель:</b> <code>{model_info['model']}</code>
-🎯 <b>Температура:</b> <code>{model_info['temperature']}</code>
-📊 <b>Max токенов:</b> <code>{model_info['max_tokens']}</code>
-✅ <b>Публичное имя:</b> <code>{model_info['public_name']}</code>"""
+📦 <b>Модель:</b> <code>{model_info["model"]}</code>
+🎯 <b>Температура:</b> <code>{model_info["temperature"]}</code>
+📊 <b>Max токенов:</b> <code>{model_info["max_tokens"]}</code>
+✅ <b>Публичное имя:</b> <code>{model_info["public_name"]}</code>"""
 
         await message.answer(response)
 
@@ -129,7 +129,7 @@ async def cmd_errors(message: Message):
         response = f"""📊 <b>Статистика системы</b>
 
 🔢 <b>Общая информация:</b>
-• Здоровье системы: {'✅ Активна' if status.healthy else '❌ Проблемы'}
+• Здоровье системы: {"✅ Активна" if status.healthy else "❌ Проблемы"}
 • CPU: <code>{status.cpu_percent}%</code>
 • Память: <code>{status.memory_percent}%</code>
 
@@ -137,7 +137,7 @@ async def cmd_errors(message: Message):
 • Активных пользователей: <code>{status.active_users}</code>
 • Сообщений сегодня: <code>{status.messages_today}</code>
 
-⏰ Последнее обновление: <code>{status.last_update.strftime('%H:%M:%S')}</code>"""
+⏰ Последнее обновление: <code>{status.last_update.strftime("%H:%M:%S")}</code>"""
 
         await message.answer(response)
 
@@ -221,13 +221,13 @@ async def cmd_system_info(message: Message):
 • Использовано: <code>{psutil.virtual_memory().percent}%</code>
 
 💽 <b>Диск:</b>
-• Свободно: <code>{psutil.disk_usage('/').free // (1024**3)} GB</code>
-• Использовано: <code>{psutil.disk_usage('/').percent}%</code>
+• Свободно: <code>{psutil.disk_usage("/").free // (1024**3)} GB</code>
+• Использовано: <code>{psutil.disk_usage("/").percent}%</code>
 
 🌐 <b>Среда:</b>
 • Python: <code>{platform.python_version()}</code>
-• Render: <code>{'Да' if os.getenv('RENDER') else 'Нет'}</code>
-• PORT: <code>{os.getenv('PORT', 'Не установлен')}</code>"""
+• Render: <code>{"Да" if os.getenv("RENDER") else "Нет"}</code>
+• PORT: <code>{os.getenv("PORT", "Не установлен")}</code>"""
 
         await message.answer(system_info)
 

@@ -414,9 +414,7 @@ class ContentModerationService(IModerationService):
         is_safe, reason = self.is_safe_content(response)
         if not is_safe:
             logger.error(f"⚠️ AI сгенерировал небезопасный контент! Причина: {reason}")
-            return (
-                "Извини, я не могу ответить на этот вопрос. " "Давай лучше поговорим об учёбе! 📚"
-            )
+            return "Извини, я не могу ответить на этот вопрос. Давай лучше поговорим об учёбе! 📚"
         return response
 
     def get_safe_response_alternative(self, detected_topic: str = "") -> str:  # noqa: ARG002

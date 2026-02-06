@@ -106,15 +106,16 @@ class TestFormulaExplanationsWithAI:
 
         # Проверка структурирования ответа (для frontend парсинга)
         has_structure = (
-            "\n\n" in response or
-            "Определение:" in response or
-            "Ключевые свойства:" in response or
-            "Как это работает:" in response or
-            "Где применяется:" in response or
-            "Итог:" in response
+            "\n\n" in response
+            or "Определение:" in response
+            or "Ключевые свойства:" in response
+            or "Как это работает:" in response
+            or "Где применяется:" in response
+            or "Итог:" in response
         )
-        assert has_structure or len(response.split()) > 10, \
+        assert has_structure or len(response.split()) > 10, (
             "Ответ должен быть структурированным (абзацы или секции)"
+        )
 
         logger.info(f"✅ Ответ AI:\n{response}")
 
@@ -208,13 +209,24 @@ class TestFormulaExplanationsWithAI:
         assert any(word in response_lower for word in ["плотность", "масса", "объем", "объём"])
         # Проверяем что есть пример из жизни или связь с опытом
         life_example_words = [
-            "железо", "дерево", "вода", "тонет", "плавает",
-            "легкий", "лёгкий", "тяжелый", "тяжёлый",
-            "например", "пример", "г/см", "кг/м", "единиц",
+            "железо",
+            "дерево",
+            "вода",
+            "тонет",
+            "плавает",
+            "легкий",
+            "лёгкий",
+            "тяжелый",
+            "тяжёлый",
+            "например",
+            "пример",
+            "г/см",
+            "кг/м",
+            "единиц",
         ]
-        assert any(
-            word in response_lower for word in life_example_words
-        ), f"Ожидался пример или единицы плотности. Ответ: {response[:300]}..."
+        assert any(word in response_lower for word in life_example_words), (
+            f"Ожидался пример или единицы плотности. Ответ: {response[:300]}..."
+        )
         # Проверяем что есть числовой пример
         assert any(char.isdigit() for char in response)
         logger.info(f"✅ Ответ AI:\n{response}")

@@ -71,9 +71,9 @@ async def show_settings(message: Message):
         profile_info = f"""
 ⚙️ <b>Настройки профиля</b>
 
-👤 Имя: {user.first_name or 'Не указано'}
-🎂 Возраст: {user.age or 'Не указан'}
-🎓 Класс: {user.grade or 'Не указан'}
+👤 Имя: {user.first_name or "Не указано"}
+🎂 Возраст: {user.age or "Не указан"}
+🎓 Класс: {user.grade or "Не указан"}
 📊 Тип: {user_type_display}
 
 Выбери, что хочешь изменить:
@@ -95,7 +95,7 @@ async def settings_age(callback: CallbackQuery, state: FSMContext):
         state: FSM состояние
     """
     await callback.message.edit_text(
-        text="🎂 <b>Сколько тебе лет?</b>\n\n" "Напиши свой возраст цифрами (например: 10)",
+        text="🎂 <b>Сколько тебе лет?</b>\n\nНапиши свой возраст цифрами (например: 10)",
         parse_mode="HTML",
     )
 
@@ -118,7 +118,7 @@ async def process_age(message: Message, state: FSMContext):
 
         # Валидация возраста
         if age < 6 or age > 18:
-            await message.answer("❌ Возраст должен быть от 6 до 18 лет.\n" "Попробуй ещё раз:")
+            await message.answer("❌ Возраст должен быть от 6 до 18 лет.\nПопробуй ещё раз:")
             return
 
         # Сохраняем возраст в БД
@@ -127,7 +127,7 @@ async def process_age(message: Message, state: FSMContext):
             user_service.update_user_profile(telegram_id=message.from_user.id, age=age)
 
         await message.answer(
-            text=f"✅ Отлично! Запомнил, что тебе {age} лет.\n\n" "Теперь укажи свой класс:",
+            text=f"✅ Отлично! Запомнил, что тебе {age} лет.\n\nТеперь укажи свой класс:",
             reply_markup=get_grade_selection_keyboard(),
         )
 

@@ -71,6 +71,8 @@ class TestPandaMotivationReal:
             user_age=10,
         )
         assert response is not None
-        sentences = [s.strip() for s in response.replace("!", ".").replace("?", ".").split(".") if s.strip()]
+        sentences = [
+            s.strip() for s in response.replace("!", ".").replace("?", ".").split(".") if s.strip()
+        ]
         assert len(sentences) >= 1, "Ответ должен содержать законченные предложения"
         assert "?" in response or "." in response, "Знаки препинания обязательны"

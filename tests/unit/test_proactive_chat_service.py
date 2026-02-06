@@ -27,9 +27,7 @@ class TestShouldAddProactiveMessage:
 
     def test_last_user_ts_none_no_add(self):
         """Нет последнего сообщения пользователя — не добавлять."""
-        add, msg_type = should_add_proactive_message(
-            [{"role": "user", "content": "привет"}], None
-        )
+        add, msg_type = should_add_proactive_message([{"role": "user", "content": "привет"}], None)
         assert add is False
         assert msg_type is None
 
@@ -48,9 +46,7 @@ class TestShouldAddProactiveMessage:
     def test_last_user_25h_add_missed_24h(self):
         """Последнее от user, прошло 25ч — добавлять missed_24h."""
         last_ts = datetime.now(UTC) - timedelta(hours=25)
-        add, msg_type = should_add_proactive_message(
-            [{"role": "user", "content": "пока"}], last_ts
-        )
+        add, msg_type = should_add_proactive_message([{"role": "user", "content": "пока"}], last_ts)
         assert add is True
         assert msg_type == "missed_24h"
 
@@ -66,18 +62,14 @@ class TestShouldAddProactiveMessage:
     def test_last_user_8d_add_reminder_7d(self):
         """Последнее от user, прошло 8 дней — добавлять reminder_7d."""
         last_ts = datetime.now(UTC) - timedelta(days=8)
-        add, msg_type = should_add_proactive_message(
-            [{"role": "user", "content": "пока"}], last_ts
-        )
+        add, msg_type = should_add_proactive_message([{"role": "user", "content": "пока"}], last_ts)
         assert add is True
         assert msg_type == "reminder_7d"
 
     def test_last_user_25h_prefer_missed_24h_not_reminder(self):
         """При 25ч возвращаем missed_24h, не reminder_7d."""
         last_ts = datetime.now(UTC) - timedelta(hours=25)
-        add, msg_type = should_add_proactive_message(
-            [{"role": "user", "content": "х"}], last_ts
-        )
+        add, msg_type = should_add_proactive_message([{"role": "user", "content": "х"}], last_ts)
         assert msg_type == "missed_24h"
 
 

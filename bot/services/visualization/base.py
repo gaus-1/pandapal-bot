@@ -686,7 +686,7 @@ class BaseVisualizationService(BaseSchemeMixin):
                 labels = list(data.keys())
                 data_list = list(data.values())
             else:
-                labels = [f"Группа {i+1}" for i in range(len(data))]
+                labels = [f"Группа {i + 1}" for i in range(len(data))]
                 data_list = data
 
             bp = ax.boxplot(data_list, labels=labels, patch_artist=True)
@@ -860,9 +860,9 @@ class BaseVisualizationService(BaseSchemeMixin):
             else:
                 data_matrix = np.array(data)
                 if not row_labels:
-                    row_labels = [f"Строка {i+1}" for i in range(len(data_matrix))]
+                    row_labels = [f"Строка {i + 1}" for i in range(len(data_matrix))]
                 if not col_labels:
-                    col_labels = [f"Столбец {i+1}" for i in range(len(data_matrix[0]))]
+                    col_labels = [f"Столбец {i + 1}" for i in range(len(data_matrix[0]))]
 
             fig, ax = plt.subplots(
                 figsize=(max(10, len(col_labels) * 1.2), max(8, len(row_labels) * 0.8))

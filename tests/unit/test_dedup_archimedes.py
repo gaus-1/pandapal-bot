@@ -79,6 +79,7 @@ def test_clean_formula_dedup_and_notation():
     assert " × " in cleaned or " · " in cleaned
     assert "Q_Для" not in cleaned
 
+
 @pytest.mark.unit
 def test_clean_removes_bracket_placeholders():
     """Удаляются артефакты в скобках: [Кто такой...], [Приложить изображение...]."""

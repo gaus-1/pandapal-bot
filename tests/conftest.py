@@ -15,6 +15,7 @@ import pytest
 # Загружаем .env первым, чтобы реальный YANDEX_CLOUD_API_KEY использовался в интеграционных тестах
 try:
     from dotenv import load_dotenv
+
     load_dotenv(Path(__file__).parent.parent / ".env")
 except ImportError:
     pass
