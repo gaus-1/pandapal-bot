@@ -103,6 +103,9 @@ class User(Base):
     # Пол пользователя для грамматически корректных формулировок (male / female / None)
     gender: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
+    # Предпочтение по эмодзи в ответах: None = по умолчанию (иногда), False = не использовать, True = использовать
+    emoji_in_chat: Mapped[bool | None] = mapped_column(Boolean, nullable=True, default=None)
+
     parent: Mapped[User | None] = relationship(
         "User",
         remote_side=[telegram_id],

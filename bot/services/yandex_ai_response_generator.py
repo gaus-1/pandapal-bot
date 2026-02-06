@@ -822,6 +822,7 @@ class YandexAIResponseGenerator:
         is_premium: bool = False,  # noqa: ARG002
         is_auto_greeting_sent: bool = False,
         user_gender: str | None = None,
+        emoji_in_chat: bool | None = None,
     ) -> str:
         """
         Генерировать ответ AI на сообщение пользователя.
@@ -888,6 +889,9 @@ class YandexAIResponseGenerator:
                             is_auto_greeting_sent = True
                             break
 
+            from bot.services.emoji_preference import compute_allow_emoji_this_turn
+
+            allow_emoji_this_turn = compute_allow_emoji_this_turn(chat_history or [])
             enhanced_system_prompt = prompt_builder.build_system_prompt(
                 user_message=user_message,
                 user_name=user_name,
@@ -899,6 +903,8 @@ class YandexAIResponseGenerator:
                 user_grade=user_grade,
                 is_auto_greeting_sent=is_auto_greeting_sent,
                 user_gender=user_gender,
+                emoji_in_chat=emoji_in_chat,
+                allow_emoji_this_turn=allow_emoji_this_turn,
             )
 
             if web_context:

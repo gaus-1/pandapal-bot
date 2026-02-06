@@ -97,6 +97,7 @@ class IAIService(ABC):
         is_premium: bool = False,
         is_auto_greeting_sent: bool = False,
         user_gender: str | None = None,
+        emoji_in_chat: bool | None = None,
     ) -> str:
         """Генерация ответа ИИ"""
         pass

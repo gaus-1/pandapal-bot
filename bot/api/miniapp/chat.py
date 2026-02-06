@@ -397,6 +397,14 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 )
                 return web.json_response({"response": redirect_text})
 
+            # Предпочтение по эмодзи: парсим из сообщения и сохраняем в профиль
+            from bot.services.emoji_preference import parse_emoji_preference_from_message
+
+            emoji_pref = parse_emoji_preference_from_message(user_message)
+            if emoji_pref is not None:
+                user.emoji_in_chat = emoji_pref
+                db.commit()
+
             # Генерируем ответ AI
             ai_service = get_ai_service()
             ai_response = await ai_service.generate_response(
@@ -411,6 +419,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                 non_educational_questions_count=user.non_educational_questions_count,
                 is_premium=is_premium,
                 user_gender=getattr(user, "gender", None),
+                emoji_in_chat=getattr(user, "emoji_in_chat", None),
             )
             logger.info(f"📊 Размер ответа AI: {len(ai_response)} символов")
 

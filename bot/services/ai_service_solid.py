@@ -53,6 +53,7 @@ class YandexAIService:
         is_premium: bool = False,
         is_auto_greeting_sent: bool = False,
         user_gender: str | None = None,
+        emoji_in_chat: bool | None = None,
     ) -> str:
         """Генерация ответа через YandexGPT."""
         return await self.response_generator.generate_response(
@@ -68,6 +69,7 @@ class YandexAIService:
             is_premium,
             is_auto_greeting_sent,
             user_gender,
+            emoji_in_chat,
         )
 
     def get_model_info(self) -> dict[str, str]:

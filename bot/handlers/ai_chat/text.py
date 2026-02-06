@@ -540,6 +540,14 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                         "В конце ответа задай один вовлекающий вопрос. Минимум 5–6 предложений с примерами и пояснениями."
                     )
 
+            # Предпочтение по эмодзи: парсим из сообщения и сохраняем в профиль
+            from bot.services.emoji_preference import parse_emoji_preference_from_message
+
+            emoji_pref = parse_emoji_preference_from_message(user_message)
+            if emoji_pref is not None:
+                user.emoji_in_chat = emoji_pref
+                db.commit()
+
             ai_response = await ai_service.generate_response(
                 user_message=enhanced_user_message,
                 chat_history=history,
@@ -553,6 +561,7 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 is_premium=is_premium,
                 is_auto_greeting_sent=is_auto_greeting_sent,
                 user_gender=getattr(user, "gender", None),
+                emoji_in_chat=getattr(user, "emoji_in_chat", None),
             )
 
             # Правила по запрещённым темам отключены — ответ не фильтруем

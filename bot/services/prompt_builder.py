@@ -1,11 +1,12 @@
 """
 Модуль для формирования системных промптов для YandexGPT.
 
-Добавляет динамический контекст (имя, статус приветствия, редирект на учебу)
-к базовому системному промпту.
+Добавляет динамический контекст (имя, статус приветствия, редирект на учебу,
+предпочтение по эмодзи) к базовому системному промпту.
 """
 
 from bot.config.prompts import AI_SYSTEM_PROMPT
+from bot.services.emoji_preference import get_emoji_prompt_snippet
 
 
 class PromptBuilder:
@@ -26,9 +27,12 @@ class PromptBuilder:
         user_grade: int | None = None,
         is_auto_greeting_sent: bool = False,
         user_gender: str | None = None,
+        emoji_in_chat: bool | None = None,
+        allow_emoji_this_turn: bool = False,
     ) -> str:
         """
-        Построить системный промпт: базовые правила + опциональный контекст приветствия/прощания и пол.
+        Построить системный промпт: базовые правила + опциональный контекст
+        (приветствие/прощание, пол, предпочтение по эмодзи).
         """
         greeting = self._get_greeting_context(
             chat_history or [],
@@ -47,6 +51,9 @@ class PromptBuilder:
             parts.append(
                 f"Пол пользователя: {gender_hint}. Учитывай при склонениях и подбадриваниях."
             )
+        emoji_snippet = get_emoji_prompt_snippet(emoji_in_chat, allow_emoji_this_turn)
+        if emoji_snippet:
+            parts.append(f"Эмодзи: {emoji_snippet}")
         if len(parts) == 1:
             return parts[0]
         return "\n\n".join(parts)

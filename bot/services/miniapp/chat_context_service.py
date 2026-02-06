@@ -121,6 +121,19 @@ class MiniappChatContextService:
 
         # Получаем веб-контекст будем снаружи через ai_service, здесь только бизнес-контекст
 
+        # Предпочтение по эмодзи: парсим из сообщения и сохраняем в профиль
+        from bot.services.emoji_preference import (
+            compute_allow_emoji_this_turn,
+            parse_emoji_preference_from_message,
+        )
+
+        emoji_pref = parse_emoji_preference_from_message(user_message)
+        if emoji_pref is not None:
+            user.emoji_in_chat = emoji_pref
+            self.db.commit()
+
+        allow_emoji_this_turn = compute_allow_emoji_this_turn(history)
+
         # Формируем системный промпт
         from bot.services.prompt_builder import get_prompt_builder
 
@@ -137,6 +150,8 @@ class MiniappChatContextService:
             non_educational_questions_count=user.non_educational_questions_count,
             is_auto_greeting_sent=is_auto_greeting_sent,
             user_gender=user_gender,
+            emoji_in_chat=getattr(user, "emoji_in_chat", None),
+            allow_emoji_this_turn=allow_emoji_this_turn,
         )
 
         # Преобразуем историю в формат Yandex
