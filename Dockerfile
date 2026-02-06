@@ -3,13 +3,13 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-# Системные зависимости (без postgresql-client — миграции с локальной машины)
+# Системные зависимости: gcc для Python-пакетов, nodejs. ffmpeg — статический бинарник (apt ffmpeg тянет 270+ пакетов).
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     build-essential \
-    ffmpeg \
     curl \
     ca-certificates \
+    xz-utils \
     gnupg \
     && mkdir -p /etc/apt/keyrings \
     && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
@@ -17,6 +17,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get update \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
+
+# Статический ffmpeg (для speech_service: WebM -> OGG). Без apt — иначе mesa/x11/wayland и долгая сборка.
+RUN curl -sL "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz" | tar -xJ -C /tmp \
+    && cp /tmp/ffmpeg-*-amd64-static/ffmpeg /usr/local/bin/ \
+    && chmod +x /usr/local/bin/ffmpeg \
+    && rm -rf /tmp/ffmpeg-*
 
 # Python-зависимости (слой кэшируется при неизменном requirements.txt)
 COPY requirements.txt .
