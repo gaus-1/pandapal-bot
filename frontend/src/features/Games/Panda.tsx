@@ -1,6 +1,9 @@
 /**
  * Моя панда — экран питомца-тамагочи.
  * Панда по центру, шкалы справа, кнопки внизу. Светлая/тёмная тема, адаптив.
+ *
+ * Картинки: только 15 состояний тамагочи (panda-{state}.png). Не используем
+ * panda-happy-in-game.png и panda-sad-in-game.png — они для реакций в других играх (PandaReaction).
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -13,6 +16,7 @@ interface PandaProps {
   onBack: () => void;
 }
 
+/** Только согласованные состояния тамагочи; картинки panda-{state}.png. Не *-in-game. */
 const PANDA_STATES = [
   'neutral', 'happy', 'sad', 'bored', 'hungry', 'full', 'played',
   'sleepy', 'sleeping', 'wants_bamboo', 'no_bamboo', 'questioning',
