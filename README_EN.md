@@ -120,19 +120,32 @@ Required variables are described in `config/env.template`. Copy to `.env` and fi
 PandaPal/
 ├── bot/                    # Backend logic
 │   ├── handlers/           # Telegram command handlers
-│   │   ├── ai_chat/        # Modular chat structure (text, voice, image, document)
+│   │   ├── ai_chat/        # Modular chat structure
+│   │   │   ├── text.py     # Text messages (orchestrator pipeline)
+│   │   │   ├── voice.py    # Voice and audio
+│   │   │   ├── image.py    # Image analysis
+│   │   │   ├── document.py # Document handling
+│   │   │   └── helpers.py  # Helpers (Premium, viz, translation, sending, feedback)
 │   │   └── ...             # Other handlers
 │   ├── services/           # Business logic (AI, payments, games, Mini App, RAG)
 │   │   ├── rag/            # Enhanced RAG system
+│   │   ├── cache/          # Caching package (Redis + Memory LRU, SOLID SRP)
 │   │   ├── referral_service.py  # Referral links (ref_<id>, whitelist)
 │   │   └── visualization/  # Subject-specific visualizations
+│   │       ├── detector.py      # Detection orchestrator
+│   │       └── detectors/       # Detection modules (SRP split)
+│   ├── news_bot/           # News bot (extracted from web_server.py)
 │   ├── api/                # HTTP endpoints
 │   │   └── miniapp/        # Telegram Mini App API
 │   ├── config/             # Settings, prompts, moderation patterns
 │   ├── security/           # Middleware, validation, rate limiting
 │   ├── monitoring/         # Metrics, monitoring
 │   ├── models.py           # SQLAlchemy DB models
-│   └── database.py         # PostgreSQL connection
+│   └── database/            # PostgreSQL connection (package)
+│       ├── engine.py        # Engine, SessionLocal, get_db()
+│       ├── alembic_utils.py # Alembic migrations
+│       ├── sql_migrations.py # SQL migrations (premium, payments)
+│       └── service.py       # DatabaseService
 ├── frontend/               # React web application
 │   ├── src/
 │   │   ├── components/     # UI components
@@ -153,8 +166,8 @@ PandaPal/
 Project has **comprehensive test coverage** of all critical components:
 
 **Test Statistics:**
-- 🧪 **Total tests: 100+**
-- ✅ **Unit tests: 16** (security, SSRF, audit logging)
+- 🧪 **Total tests: 525+**
+- ✅ **Unit tests: 60+** (security, SSRF, audit logging, DB, cache, moderation)
 - ✅ **Integration tests: 30+** (API, payments, cryptography)
 - ✅ **E2E tests: 20+** (complete user scenarios)
 - ✅ **Security tests: 30+** (OWASP, authorization, moderation)
@@ -232,6 +245,16 @@ pytest tests/ --cov=bot --cov-report=html
 ```
 
 ## Recent changes (2025–2026)
+
+### SOLID SRP refactoring (February 2026)
+
+- **`bot/database.py`** (633 lines) → package `bot/database/`: `engine.py`, `alembic_utils.py`, `sql_migrations.py`, `service.py`; backward-compatible re-exports via `__init__.py`
+- **`bot/services/cache_service.py`** (652 lines) → package `bot/services/cache/`: `memory.py`, `service.py`, `specialized.py`; compatibility shim preserved
+- **`bot/services/visualization/detector.py`** (1809 lines) → 300-line orchestrator + 7 detector modules in `detectors/`: `request_words`, `schemes`, `diagrams`, `maps`, `physics`, `math_graphs`, `tables_and_diagrams`
+- **`bot/handlers/ai_chat/text.py`** (775 lines) → 509 lines; 6 helpers extracted to `helpers.py` (Premium limits, translation, visualization, response sending, feedback)
+- **`bot/services/adult_topics_service.py`** (919 lines) → 190 lines; 26 topics extracted to `bot/config/adult_topics_data.py`
+- **`web_server.py`** (996 lines) → 591 lines; news bot methods delegated to `bot/news_bot/server_integration.py`
+- Added SOLID/PEP 20 architecture rules to prevent regressions
 
 ### Architecture and code quality (2026)
 
