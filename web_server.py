@@ -218,7 +218,14 @@ class PandaPalBotServer:
 
         try:
             bot_info = await self.bot.get_me()
-            return "ok", {"bot": "ok", "bot_info": bot_info}
+            return "ok", {
+                "bot": "ok",
+                "bot_info": {
+                    "id": bot_info.id,
+                    "username": bot_info.username,
+                    "first_name": bot_info.first_name,
+                },
+            }
         except Exception as bot_error:
             logger.warning("⚠️ Не удалось получить информацию о боте: %s", bot_error)
             return "degraded", {"bot": "error"}
