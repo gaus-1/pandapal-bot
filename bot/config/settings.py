@@ -54,6 +54,11 @@ class Settings(BaseSettings):
         description="API ключ для Yandex Maps Static API (для генерации карт стран)",
         validation_alias=AliasChoices("YANDEX_MAPS_API_KEY", "yandex_maps_api_key"),
     )
+    yandex_geocoder_api_key: str | None = Field(
+        default=None,
+        description="API ключ для Yandex Geocoder HTTP API (отдельный от Maps)",
+        validation_alias=AliasChoices("YANDEX_GEOCODER_API_KEY", "yandex_geocoder_api_key"),
+    )
 
     # AI SETTINGS
     ai_temperature: float = Field(

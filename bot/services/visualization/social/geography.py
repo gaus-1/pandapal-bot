@@ -2,6 +2,7 @@
 
 from loguru import logger
 
+from bot.config.geo_objects_data import GEO_TYPE_PREFIXES, NATURAL_OBJECTS_COORDS
 from bot.config.settings import Settings
 from bot.services.visualization.base import BaseVisualizationService
 
@@ -11,6 +12,22 @@ try:
     REQUESTS_AVAILABLE = True
 except ImportError:
     REQUESTS_AVAILABLE = False
+
+
+def _strip_geo_prefix(query: str) -> str:
+    """Убирает типовой префикс: 'реку обь' -> 'обь'."""
+    parts = query.split(maxsplit=1)
+    if len(parts) == 2 and parts[0] in GEO_TYPE_PREFIXES:
+        return parts[1]
+    return query
+
+
+def _normalize_geo_prefix(query: str) -> str:
+    """Нормализует падеж префикса: 'реку обь' -> 'река обь'."""
+    parts = query.split(maxsplit=1)
+    if len(parts) == 2 and parts[0] in GEO_TYPE_PREFIXES:
+        return f"{GEO_TYPE_PREFIXES[parts[0]]} {parts[1]}"
+    return query
 
 
 class GeographyVisualization(BaseVisualizationService):
@@ -774,17 +791,27 @@ class GeographyVisualization(BaseVisualizationService):
                     country_data = countries_coords[key]
                     break
 
+        # Проверяем природные объекты (реки, моря, горы, озёра и т.д.)
         if not country_data:
+            country_data = self._lookup_natural_object(country_lower)
+
+        # Геокодер — fallback для всего, что не нашлось в справочниках
+        if not country_data:
+            geocoded = self._geocode(country_name)
+            if geocoded:
+                lat, lon, name, zoom = geocoded
+                try:
+                    return self._get_yandex_map(lat, lon, zoom, name)
+                except Exception as e:
+                    logger.error(f"❌ Ошибка генерации карты: {e}")
+                    return None
             logger.warning(
-                f"🗺️ Страна/район '{country_name}' не найдена в списке. "
-                f"Доступные: {', '.join(sorted(list(countries_coords.keys())[:5] + list(spb_districts.keys())[:5]))}..."
+                f"🗺️ Объект '{country_name}' не найден ни в справочнике, ни через геокодер"
             )
             return None
 
         lat, lon, name, zoom = country_data
 
-        # Генерируем карту через Yandex Maps Static API
-        # УЛУЧШЕНО: Для районов используем больший zoom для показа границ
         try:
             return self._get_yandex_map(lat, lon, zoom, name)
         except Exception as e:
@@ -893,6 +920,144 @@ class GeographyVisualization(BaseVisualizationService):
                 f"❌ Неожиданная ошибка запроса к Yandex Maps Static API: {e}", exc_info=True
             )
             return None
+
+    def _lookup_natural_object(self, query: str) -> tuple[float, float, str, int] | None:
+        """Поиск в справочнике природных объектов с нормализацией падежей."""
+        # 1. Прямое совпадение
+        if query in NATURAL_OBJECTS_COORDS:
+            return NATURAL_OBJECTS_COORDS[query]
+
+        # 2. Нормализуем падеж префикса: "реку обь" -> "река обь"
+        normalized = _normalize_geo_prefix(query)
+        if normalized != query and normalized in NATURAL_OBJECTS_COORDS:
+            return NATURAL_OBJECTS_COORDS[normalized]
+
+        # 3. Убираем префикс: "реку обь" -> "обь"
+        stripped = _strip_geo_prefix(query)
+        if stripped != query and stripped in NATURAL_OBJECTS_COORDS:
+            return NATURAL_OBJECTS_COORDS[stripped]
+
+        # 4. Частичное совпадение (ключ содержит запрос или наоборот, min 5 chars)
+        if len(query) >= 5:
+            for key, coords in NATURAL_OBJECTS_COORDS.items():
+                if len(key) >= 5 and (key in query or query in key):
+                    return coords
+
+        # 5. Fuzzy: обрезаем окончания падежей (камчатку->камчатк, арктику->арктик)
+        for trim in (1, 2):
+            stem = query[:-trim] if len(query) > trim + 2 else None
+            if not stem:
+                continue
+            for key in NATURAL_OBJECTS_COORDS:
+                if len(key) > 3 and key.startswith(stem):
+                    return NATURAL_OBJECTS_COORDS[key]
+
+        # 6. Fuzzy для multi-word: "средиземного моря" -> stem каждого слова
+        words = query.split()
+        if len(words) >= 2:
+            for key, coords in NATURAL_OBJECTS_COORDS.items():
+                key_words = key.split()
+                if len(key_words) < 2:
+                    continue
+                # Совпадение по основам (min 3 chars совпадения)
+                matched = 0
+                for qw in words:
+                    if len(qw) < 3:
+                        continue
+                    stem = qw[:3]
+                    if any(kw.startswith(stem) for kw in key_words if len(kw) >= 3):
+                        matched += 1
+                if matched >= 2:
+                    return coords
+
+        return None
+
+    def _geocode(self, query: str) -> tuple[float, float, str, int] | None:
+        """Геокодирование через Yandex Geocoder API (отдельный ключ от Static Maps)."""
+        if not REQUESTS_AVAILABLE:
+            return None
+
+        settings = Settings()
+        api_key = settings.yandex_geocoder_api_key or settings.yandex_maps_api_key
+        if not api_key:
+            return None
+
+        try:
+            response = requests.get(
+                "https://geocode-maps.yandex.ru/1.x/",
+                params={
+                    "apikey": api_key,
+                    "geocode": query,
+                    "format": "json",
+                    "lang": "ru_RU",
+                    "results": "1",
+                },
+                timeout=5,
+            )
+
+            if response.status_code != 200:
+                logger.warning(f"Geocoder API: status {response.status_code}")
+                return None
+
+            data = response.json()
+            members = (
+                data.get("response", {}).get("GeoObjectCollection", {}).get("featureMember", [])
+            )
+            if not members:
+                logger.debug(f"Geocoder: '{query}' — нет результатов")
+                return None
+
+            geo_obj = members[0]["GeoObject"]
+            pos = geo_obj["Point"]["pos"].split()
+            lon, lat = float(pos[0]), float(pos[1])
+            name = geo_obj.get("name", query)
+
+            # Zoom из bounding box
+            envelope = geo_obj.get("boundedBy", {}).get("Envelope", {})
+            lower = envelope.get("lowerCorner", "0 0").split()
+            upper = envelope.get("upperCorner", "0 0").split()
+            lon_span = abs(float(upper[0]) - float(lower[0]))
+            lat_span = abs(float(upper[1]) - float(lower[1]))
+            max_span = max(lat_span, lon_span)
+            zoom = self._span_to_zoom(max_span)
+
+            logger.info(f"🗺️ Geocoded '{query}' -> {name} ({lat:.2f}, {lon:.2f}), zoom={zoom}")
+            return (lat, lon, name, zoom)
+
+        except Exception as e:
+            logger.warning(f"Geocoder error for '{query}': {e}")
+            return None
+
+    @staticmethod
+    def _span_to_zoom(span: float) -> int:
+        """Конвертация географического охвата в zoom level."""
+        if span > 100:
+            return 2
+        if span > 50:
+            return 3
+        if span > 20:
+            return 4
+        if span > 10:
+            return 5
+        if span > 5:
+            return 6
+        if span > 2:
+            return 7
+        if span > 1:
+            return 8
+        if span > 0.5:
+            return 9
+        if span > 0.2:
+            return 10
+        if span > 0.1:
+            return 11
+        if span > 0.05:
+            return 12
+        if span > 0.02:
+            return 13
+        if span > 0.01:
+            return 14
+        return 15
 
     def generate_climatogram(self, zone: str = "тайга") -> bytes | None:
         """
