@@ -77,7 +77,9 @@ def setup_health_routes(app: web.Application, server: Any) -> None:
                 "status": overall_status,
                 "mode": "webhook",
                 "webhook_url": webhook_url,
-                "bot_username": bot_info.username if bot_info else None,
+                "bot_username": bot_info.get("username")
+                if isinstance(bot_info, dict)
+                else (bot_info.username if bot_info else None),
                 "components": components,
             },
             status=status_code,
