@@ -391,12 +391,22 @@ def normalize_bold_spacing(text: str) -> str:
     return text
 
 
+def _strip_invisible_unicode(text: str) -> str:
+    """Удаляет невидимые Unicode-символы, которые ломают regex-дедупликацию."""
+    # Zero-width chars, soft hyphen, BOM, invisible separators
+    return re.sub(
+        r"[\u200b\u200c\u200d\u200e\u200f\u00ad\ufeff\u2060\u2028\u2029\u202a-\u202e]", "", text
+    )
+
+
 def fix_glued_words(text: str) -> str:
     """
     Исправляет склеенные слова и артефакты модели: УПривет, PossPossessive, ПомоПомогает и т.п.
     """
     if not text or len(text) < 4:
         return text
+    # Невидимые Unicode-символы ломают word boundary — убираем первым делом
+    text = _strip_invisible_unicode(text)
     # Известные склейки (артефакты модели)
     glued_fixes = [
         (r"\bУПривет\b", "Привет"),
@@ -433,6 +443,9 @@ def clean_ai_response(text: str) -> str:
     """
     if not text:
         return text
+
+    # Невидимые Unicode-символы от модели ломают regex — убираем сразу
+    text = _strip_invisible_unicode(text)
 
     # Исправляем склеенные слова в начале
     text = fix_glued_words(text)
