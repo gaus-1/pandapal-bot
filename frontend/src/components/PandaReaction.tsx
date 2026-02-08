@@ -17,7 +17,7 @@ export function PandaReaction({ mood, className = '', size = 'default' }: PandaR
   const altText = mood === 'happy' ? 'Веселая панда' : 'Грустная панда';
   const isSmall = size === 'small';
   const sizeClass = isSmall
-    ? 'max-w-[100px] sm:max-w-[120px]'
+    ? 'max-w-[120px] sm:max-w-[140px]'
     : 'max-w-[200px] sm:max-w-[250px] md:max-w-[300px]';
   const animDuration = isSmall ? '0.2s' : '0.25s';
 
@@ -30,8 +30,8 @@ export function PandaReaction({ mood, className = '', size = 'default' }: PandaR
         style={{ animation: `fadeInScale ${animDuration} ease-out` }}
         loading="eager"
         fetchPriority="high"
-        width={isSmall ? 120 : 300}
-        height={isSmall ? 120 : 300}
+        width={isSmall ? 140 : 300}
+        height={isSmall ? 140 : 300}
         onError={(e) => {
           const target = e.target as HTMLImageElement;
           target.style.display = 'none';

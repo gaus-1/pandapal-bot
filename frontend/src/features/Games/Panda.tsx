@@ -145,11 +145,11 @@ export function Panda({ user, onBack }: PandaProps) {
   return (
     <div className="w-full h-full bg-white dark:bg-slate-800 flex flex-col overflow-y-auto">
       {/* Шапка: sticky + z-20 чтобы не перекрывали нативный UI / жесты Telegram */}
-      <div className="sticky top-0 z-20 flex-shrink-0 flex items-center justify-between p-2 sm:p-3 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-slate-800 dark:to-slate-800">
+      <div className="sticky top-0 z-20 flex-shrink-0 flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-slate-800 dark:to-slate-800">
         <button
           type="button"
           onClick={() => { telegram.hapticFeedback('light'); onBack(); }}
-          className="p-2 rounded-lg bg-white/80 dark:bg-slate-700/80 hover:bg-white dark:hover:bg-slate-600 text-gray-800 dark:text-slate-200"
+          className="p-2 rounded-lg bg-white/80 dark:bg-slate-700/80 hover:bg-white dark:hover:bg-slate-600 text-gray-800 dark:text-slate-200 min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
           aria-label="Назад"
         >
           ← Назад
@@ -166,13 +166,13 @@ export function Panda({ user, onBack }: PandaProps) {
         </div>
       )}
 
-      {/* Контент: панда + шкалы + кнопки */}
-      <div className="flex-1 flex flex-col sm:flex-row min-h-0 p-3 sm:p-4 gap-4">
+      {/* Контент: панда + шкалы */}
+      <div className="flex-1 flex flex-col sm:flex-row min-h-0 px-3 py-2 sm:p-4 gap-3 sm:gap-4">
         {/* Панда по центру */}
-        <div className="flex-1 flex items-center justify-center min-h-[200px] sm:min-h-0">
+        <div className="flex-1 flex items-center justify-center min-h-[180px] sm:min-h-0">
           <div
             className={`
-              relative w-full max-w-[280px] sm:max-w-[320px] aspect-square
+              relative w-[clamp(200px,65vw,320px)] sm:w-full sm:max-w-[340px] md:max-w-[400px] lg:max-w-[440px] aspect-square
               flex items-center justify-center
               ${actionFeedback === 'feed' ? 'animate-panda-feed' : ''}
               ${actionFeedback === 'play' ? 'animate-panda-play' : ''}
@@ -201,51 +201,21 @@ export function Panda({ user, onBack }: PandaProps) {
           </div>
         </div>
 
-        {/* Шкалы справа */}
-        <div className="flex-shrink-0 w-full sm:w-48 flex flex-row sm:flex-col gap-3 sm:gap-4 justify-center sm:justify-start">
+        {/* Шкалы */}
+        <div className="flex-shrink-0 w-full sm:w-52 flex flex-row sm:flex-col gap-2.5 sm:gap-4 justify-center sm:justify-start">
           <Bar label="Голод" value={state?.hunger ?? 0} icon="🎋" color="bg-amber-500" />
           <Bar label="Настроение" value={state?.mood ?? 0} icon="💚" color="bg-emerald-500" />
           <Bar label="Энергия" value={state?.energy ?? 0} icon="⚡" color="bg-blue-500" />
         </div>
       </div>
 
-      {/* Кнопки действий */}
-      <div className="flex-shrink-0 p-3 sm:p-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
-        <div className="max-w-md mx-auto flex flex-wrap gap-2 sm:gap-3 justify-center">
-          <button
-            type="button"
-            onClick={handleFeed}
-            disabled={!state?.can_feed || !!actionLoading}
-            className="flex-1 min-w-[100px] py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 active:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium shadow-lg transition-all touch-manipulation"
-          >
-            🎋 Покормить
-          </button>
-          <button
-            type="button"
-            onClick={handlePlay}
-            disabled={!state?.can_play || !!actionLoading}
-            className="flex-1 min-w-[100px] py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium shadow-lg transition-all touch-manipulation"
-          >
-            🎾 Поиграть
-          </button>
-          <button
-            type="button"
-            onClick={handleSleep}
-            disabled={!!actionLoading}
-            className="flex-1 min-w-[100px] py-3 px-4 rounded-xl bg-blue-500 hover:bg-blue-600 active:bg-blue-700 disabled:opacity-50 text-white font-medium shadow-lg transition-all touch-manipulation"
-          >
-            😴 Уложить спать
-          </button>
-        </div>
-      </div>
-
-      {/* Достижения */}
+      {/* Достижения (перед кнопками, чтобы кнопки всегда внизу) */}
       {state && state.achievements.length > 0 && (
-        <div className="flex-shrink-0 p-3 border-t border-gray-200 dark:border-slate-700">
-          <h2 className="text-sm font-bold text-gray-700 dark:text-slate-300 mb-2">
+        <div className="flex-shrink-0 px-3 pb-2 sm:px-4">
+          <h2 className="text-sm font-bold text-gray-700 dark:text-slate-300 mb-1.5">
             🏆 Достижения
           </h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {state.achievements.map((a) => (
               <span
                 key={a.id}
@@ -257,6 +227,36 @@ export function Panda({ user, onBack }: PandaProps) {
           </div>
         </div>
       )}
+
+      {/* Кнопки действий — всегда прижаты к низу */}
+      <div className="flex-shrink-0 px-3 pt-3 pb-3 sm:px-4 sm:pt-4 sm:pb-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50 safe-area-inset-bottom">
+        <div className="max-w-md mx-auto grid grid-cols-3 gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={handleFeed}
+            disabled={!state?.can_feed || !!actionLoading}
+            className="py-3 px-2 sm:px-4 rounded-xl bg-amber-500 hover:bg-amber-600 active:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium shadow-lg transition-all touch-manipulation text-sm sm:text-base min-h-[48px]"
+          >
+            🎋 Покормить
+          </button>
+          <button
+            type="button"
+            onClick={handlePlay}
+            disabled={!state?.can_play || !!actionLoading}
+            className="py-3 px-2 sm:px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium shadow-lg transition-all touch-manipulation text-sm sm:text-base min-h-[48px]"
+          >
+            🎾 Поиграть
+          </button>
+          <button
+            type="button"
+            onClick={handleSleep}
+            disabled={!!actionLoading}
+            className="py-3 px-2 sm:px-4 rounded-xl bg-blue-500 hover:bg-blue-600 active:bg-blue-700 disabled:opacity-50 text-white font-medium shadow-lg transition-all touch-manipulation text-sm sm:text-base min-h-[48px]"
+          >
+            😴 Уложить
+          </button>
+        </div>
+      </div>
 
       <style>{`
         @keyframes panda-feed {
@@ -287,18 +287,18 @@ function Bar({
 }) {
   const pct = Math.max(0, Math.min(100, value));
   return (
-    <div className="flex flex-col gap-1 min-w-[80px] sm:min-w-0">
-      <div className="flex items-center gap-1.5">
-        <span className="text-lg" aria-hidden>{icon}</span>
-        <span className="text-xs font-medium text-gray-600 dark:text-slate-400">{label}</span>
+    <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0 flex-1 sm:flex-none">
+      <div className="flex items-center gap-1">
+        <span className="text-base sm:text-lg" aria-hidden>{icon}</span>
+        <span className="text-[11px] sm:text-xs font-medium text-gray-600 dark:text-slate-400 truncate">{label}</span>
+        <span className="text-[11px] sm:text-xs text-gray-500 dark:text-slate-500 ml-auto tabular-nums">{pct}%</span>
       </div>
-      <div className="h-3 sm:h-4 rounded-full bg-gray-200 dark:bg-slate-600 overflow-hidden">
+      <div className="h-2.5 sm:h-3.5 rounded-full bg-gray-200 dark:bg-slate-600 overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-300 ${color}`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-xs text-gray-500 dark:text-slate-500">{pct}%</span>
     </div>
   );
 }

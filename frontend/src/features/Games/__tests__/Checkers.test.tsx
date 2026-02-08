@@ -58,10 +58,13 @@ describe('Checkers', () => {
   });
 
   it('запрашивает valid-moves и отображает доску при ходе пользователя', async () => {
-    vi.mocked(api.getCheckersValidMoves).mockResolvedValue([
-      { from: [5, 1], to: [4, 0], capture: null },
-      { from: [5, 1], to: [4, 2], capture: null },
-    ]);
+    vi.mocked(api.getCheckersValidMoves).mockResolvedValue({
+      valid_moves: [
+        { from: [5, 1], to: [4, 0], capture: null },
+        { from: [5, 1], to: [4, 2], capture: null },
+      ],
+      current_player: 1,
+    });
 
     render(
       <Checkers

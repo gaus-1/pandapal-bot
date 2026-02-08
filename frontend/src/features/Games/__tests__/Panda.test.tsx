@@ -63,7 +63,7 @@ describe('Panda', () => {
     });
 
     expect(screen.getByRole('button', { name: /Поиграть/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Уложить спать/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Уложить/ })).toBeInTheDocument();
   });
 
   it('при клике Назад вызывает onBack', async () => {
