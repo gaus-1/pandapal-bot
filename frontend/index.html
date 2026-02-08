@@ -17,26 +17,29 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png" />
 
-    <!-- Поддержка светлой и темной темы -->
-    <meta name="color-scheme" content="light dark" />
+    <!-- Тема по умолчанию — светлая; переключается через JS при выборе dark -->
+    <meta name="color-scheme" content="light" />
     <script>
       (function() {
         // Ранняя инициализация темы для предотвращения мигания
         // ВСЕГДА светлая тема по умолчанию при первом открытии
         try {
+          var meta = document.querySelector('meta[name="color-scheme"]');
           // Принудительно устанавливаем светлую тему по умолчанию
           document.documentElement.classList.remove('dark');
           document.documentElement.classList.add('light');
 
           // Читаем сохраненную тему только если она явно установлена пользователем
-          const savedTheme = localStorage.getItem('theme');
+          var savedTheme = localStorage.getItem('theme');
           if (savedTheme === 'dark') {
             // Пользователь выбрал темную тему - применяем её
             document.documentElement.classList.add('dark');
             document.documentElement.classList.remove('light');
+            if (meta) meta.content = 'dark';
           } else {
             // По умолчанию светлая тема - сохраняем в localStorage
             localStorage.setItem('theme', 'light');
+            if (meta) meta.content = 'light';
           }
         } catch (e) {
           // Если localStorage недоступен - используем светлую тему

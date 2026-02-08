@@ -17,15 +17,18 @@ export const MiniAppThemeToggle: React.FC = () => {
 
     // Функция для применения темы (синхронно)
     const applyTheme = (dark: boolean, saveToStorage: boolean = true) => {
+      const meta = document.querySelector('meta[name="color-scheme"]');
       if (dark) {
         document.documentElement.classList.add('dark');
         document.documentElement.classList.remove('light');
+        if (meta) meta.setAttribute('content', 'dark');
         if (saveToStorage) {
           localStorage.setItem('theme', 'dark');
         }
       } else {
         document.documentElement.classList.remove('dark');
         document.documentElement.classList.add('light');
+        if (meta) meta.setAttribute('content', 'light');
         if (saveToStorage) {
           localStorage.setItem('theme', 'light');
         }
@@ -61,18 +64,21 @@ export const MiniAppThemeToggle: React.FC = () => {
   // Переключение темы
   const toggleTheme = () => {
     const newTheme = !isDark;
+    const meta = document.querySelector('meta[name="color-scheme"]');
 
     // Применяем тему синхронно
     if (newTheme) {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.remove('light');
       localStorage.setItem('theme', 'dark');
+      if (meta) meta.setAttribute('content', 'dark');
       setIsDark(true);
       logger.debug('Dark theme enabled');
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('light');
       localStorage.setItem('theme', 'light');
+      if (meta) meta.setAttribute('content', 'light');
       setIsDark(false);
       logger.debug('Light theme enabled');
     }

@@ -92,12 +92,12 @@ Required variables are described in `config/env.template`. Copy to `.env` and fi
 
 ### Backend
 
-- Python 3.13, aiogram 3.23, aiohttp 3.13
+- Python 3.13, aiogram 3.24, aiohttp 3.13
 - SQLAlchemy 2.0, PostgreSQL 17, Alembic
-- Redis 6.4 for sessions (Upstash)
+- Redis 7.1 for sessions (Upstash)
 - Yandex Cloud: YandexGPT Pro, SpeechKit STT, Vision OCR, Translate API
 - YooKassa 3.9.0 for payments (production mode)
-- Generation parameters: temperature=0.3, max_tokens=2000
+- Generation parameters: temperature=0.4, max_tokens=8192
 
 ### Frontend
 
@@ -118,45 +118,75 @@ Required variables are described in `config/env.template`. Copy to `.env` and fi
 
 ```
 PandaPal/
-├── bot/                    # Backend logic
-│   ├── handlers/           # Telegram command handlers
-│   │   ├── ai_chat/        # Modular chat structure
-│   │   │   ├── text.py     # Text messages (orchestrator pipeline)
-│   │   │   ├── voice.py    # Voice and audio
-│   │   │   ├── image.py    # Image analysis
-│   │   │   ├── document.py # Document handling
-│   │   │   └── helpers.py  # Helpers (Premium, viz, translation, sending, feedback)
-│   │   └── ...             # Other handlers
-│   ├── services/           # Business logic (AI, payments, games, Mini App, RAG)
-│   │   ├── rag/            # Enhanced RAG system
-│   │   ├── cache/          # Caching package (Redis + Memory LRU, SOLID SRP)
-│   │   ├── referral_service.py  # Referral links (ref_<id>, whitelist)
-│   │   └── visualization/  # Subject-specific visualizations
-│   │       ├── detector.py      # Detection orchestrator
-│   │       └── detectors/       # Detection modules (SRP split)
-│   ├── news_bot/           # News bot (extracted from web_server.py)
-│   ├── api/                # HTTP endpoints
-│   │   └── miniapp/        # Telegram Mini App API
-│   ├── config/             # Settings, prompts, moderation patterns
-│   ├── security/           # Middleware, validation, rate limiting
-│   ├── monitoring/         # Metrics, monitoring
-│   ├── models.py           # SQLAlchemy DB models
+├── bot/                     # Backend logic
+│   ├── handlers/            # Telegram command handlers
+│   │   ├── ai_chat/         # Modular chat structure
+│   │   │   ├── text.py      # Text messages (orchestrator pipeline)
+│   │   │   ├── voice.py     # Voice and audio
+│   │   │   ├── image.py     # Image analysis
+│   │   │   ├── document.py  # Document handling
+│   │   │   └── helpers.py   # Helpers (Premium, viz, translation, sending, feedback)
+│   │   ├── news_bot/        # News bot handlers
+│   │   └── ...              # Other handlers
+│   ├── services/            # Business logic (AI, payments, games, Mini App, RAG)
+│   │   ├── rag/             # Enhanced RAG system
+│   │   ├── cache/           # Caching package (Redis + Memory LRU, SOLID SRP)
+│   │   ├── miniapp/         # Mini App services (package)
+│   │   │   ├── chat_context_service.py  # Chat context
+│   │   │   ├── intent_service.py        # Intent detection
+│   │   │   ├── audio_service.py         # Audio processing
+│   │   │   ├── photo_service.py         # Photo/homework processing
+│   │   │   └── visualization_service.py # Visualization detection
+│   │   ├── games_service/   # PandaPalGo games (package, mixin architecture)
+│   │   │   ├── session.py   # Session CRUD, stats, achievements
+│   │   │   ├── tic_tac_toe.py, checkers.py, game_2048.py, erudite.py
+│   │   │   └── __init__.py  # Facade combining mixins
+│   │   ├── game_engines/    # Game engines (TicTacToe, Checkers, 2048, Erudite)
+│   │   ├── visualization/   # Subject-specific visualizations
+│   │   │   ├── detector.py       # Detection orchestrator
+│   │   │   ├── detectors/        # Detection modules (SRP split)
+│   │   │   ├── math/, sciences/, social/, languages/, other/
+│   │   │   └── base.py, schemes.py
+│   │   ├── news/            # News service (sources, adapters, moderators)
+│   │   ├── referral_service.py   # Referral links (ref_<id>, whitelist)
+│   │   └── ...              # Other services (moderation, payment, user, etc.)
+│   ├── news_bot/            # News bot (extracted from web_server.py)
+│   ├── api/                 # HTTP endpoints
+│   │   ├── miniapp/         # Telegram Mini App API
+│   │   │   ├── chat_stream.py    # Streaming AI chat (SSE) — entry point
+│   │   │   ├── stream_handlers/  # Streaming modules (package)
+│   │   │   │   ├── ai_chat_stream.py  # Main SSE orchestrator
+│   │   │   │   ├── _pre_checks.py, _media.py, _routing.py
+│   │   │   │   ├── _visualization.py, _fallback.py, _history.py
+│   │   │   │   └── _utils.py
+│   │   │   ├── homework.py, chat.py, progress.py, other.py
+│   │   │   └── helpers.py
+│   │   ├── games_endpoints.py, premium_endpoints.py
+│   │   ├── panda_endpoints.py, auth_endpoints.py
+│   │   └── validators.py
+│   ├── config/              # Settings, prompts, moderation patterns
+│   ├── security/            # Middleware, validation, rate limiting, crypto
+│   ├── monitoring/          # Metrics (Prometheus), Sentry
+│   ├── models.py            # SQLAlchemy DB models
 │   └── database/            # PostgreSQL connection (package)
-│       ├── engine.py        # Engine, SessionLocal, get_db()
-│       ├── alembic_utils.py # Alembic migrations
-│       ├── sql_migrations.py # SQL migrations (premium, payments)
-│       └── service.py       # DatabaseService
-├── frontend/               # React web application
+│       ├── engine.py, alembic_utils.py, sql_migrations.py, service.py
+├── frontend/                # React web application
 │   ├── src/
-│   │   ├── components/     # UI components
-│   │   ├── features/       # Main features (AIChat, Premium, Games)
-│   │   └── services/       # API clients
-│   └── public/             # Static files
-├── tests/                  # Tests (unit, integration, e2e, security, performance)
-├── alembic/                # DB migrations (Alembic)
-├── scripts/                # Utilities
-├── server_routes/          # Route registration (health, api, static, middleware)
-└── web_server.py           # Entry point (aiohttp + aiogram webhook + frontend)
+│   │   ├── components/      # UI components
+│   │   ├── features/        # Main features (AIChat, Premium, Games)
+│   │   └── services/        # API clients
+│   └── public/              # Static files
+├── tests/                   # Tests (1000+)
+│   ├── unit/                # Unit tests (~60 files)
+│   ├── integration/         # Integration tests (~38 files)
+│   ├── e2e/                 # End-to-end tests
+│   ├── security/            # Security tests (OWASP, SQL injection, DDoS)
+│   ├── resilience/          # Service resilience tests
+│   └── performance/         # Performance and load tests
+├── alembic/                 # DB migrations (Alembic)
+├── scripts/                 # Utilities
+├── server_routes/           # Route registration (health, api, static, middleware)
+└── web_server.py            # Entry point (aiohttp + aiogram webhook + frontend)
 ```
 
 ## Testing
@@ -166,11 +196,13 @@ PandaPal/
 Project has **comprehensive test coverage** of all critical components:
 
 **Test Statistics:**
-- 🧪 **Total tests: 525+**
-- ✅ **Unit tests: 60+** (security, SSRF, audit logging, DB, cache, moderation)
-- ✅ **Integration tests: 30+** (API, payments, cryptography)
-- ✅ **E2E tests: 20+** (complete user scenarios)
-- ✅ **Security tests: 30+** (OWASP, authorization, moderation)
+- 🧪 **Total tests: 1000+**
+- ✅ **Unit tests: 60+ files** (security, SSRF, audit logging, DB, cache, moderation, games, news, services)
+- ✅ **Integration tests: 38+ files** (API, payments, cryptography, real Yandex Cloud API)
+- ✅ **E2E tests: 5 files** (complete user scenarios)
+- ✅ **Security tests: 6 files** (OWASP, SQL injection, DDoS, authorization)
+- ✅ **Resilience tests: 5 files** (service resilience, degradation)
+- ✅ **Performance tests: 7 files** (endpoint load, DB, payments)
 
 ### Test Categories
 
@@ -200,9 +232,8 @@ Project has **comprehensive test coverage** of all critical components:
 
 **✅ ALL SECURITY WORKS REAL, NOT SIMULATION!**
 
-**Executed: 33 tests**
-- ✅ Passed: 29 tests (88%)
-- ⚠️ "Failed" (due to protection): 4 tests (12%) — **proof that A01 works!**
+**Example (security tests):**
+- ✅ Authorization tests correctly return 403 — **proof that A01 protection works**
 
 **Logs from tests show:**
 ```
@@ -248,6 +279,8 @@ pytest tests/ --cov=bot --cov-report=html
 
 ### SOLID SRP refactoring (February 2026)
 
+- **`bot/services/games_service.py`** (1025 lines) → package `bot/services/games_service/`: `session.py`, `tic_tac_toe.py`, `checkers.py`, `game_2048.py`, `erudite.py`; mixin architecture with `GamesServiceBase` + game-specific mixins; facade via `__init__.py`
+- **`bot/api/miniapp/stream_handlers/ai_chat_stream.py`** (1743 lines) → orchestrator + 7 modules: `_pre_checks.py`, `_media.py`, `_routing.py`, `_visualization.py`, `_fallback.py`, `_history.py`, `_utils.py`
 - **`bot/database.py`** (633 lines) → package `bot/database/`: `engine.py`, `alembic_utils.py`, `sql_migrations.py`, `service.py`; backward-compatible re-exports via `__init__.py`
 - **`bot/services/cache_service.py`** (652 lines) → package `bot/services/cache/`: `memory.py`, `service.py`, `specialized.py`; compatibility shim preserved
 - **`bot/services/visualization/detector.py`** (1809 lines) → 300-line orchestrator + 7 detector modules in `detectors/`: `request_words`, `schemes`, `diagrams`, `maps`, `physics`, `math_graphs`, `tables_and_diagrams`

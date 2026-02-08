@@ -39,15 +39,18 @@ export const DarkModeToggle: React.FC<DarkModeToggleProps> = ({ isInline = false
 
       // Переключение темы
       const toggleTheme = () => {
+        const meta = document.querySelector('meta[name="color-scheme"]');
         if (isDark) {
           document.documentElement.classList.remove('dark');
           document.documentElement.classList.add('light');
           localStorage.setItem('theme', 'light');
+          if (meta) meta.setAttribute('content', 'light');
           setIsDark(false);
         } else {
           document.documentElement.classList.add('dark');
           document.documentElement.classList.remove('light');
           localStorage.setItem('theme', 'dark');
+          if (meta) meta.setAttribute('content', 'dark');
           setIsDark(true);
         }
       };
