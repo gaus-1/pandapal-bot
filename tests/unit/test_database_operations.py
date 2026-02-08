@@ -13,7 +13,7 @@ from bot.database import Base, SessionLocal, engine, get_db, init_db
 class TestDatabaseOperations:
     @pytest.mark.unit
     def test_get_db_yields_session(self):
-        with patch("bot.database.SessionLocal") as mock_session_class:
+        with patch("bot.database.engine.SessionLocal") as mock_session_class:
             mock_session = Mock(spec=Session)
             mock_session_class.return_value = mock_session
 
@@ -24,7 +24,7 @@ class TestDatabaseOperations:
 
     @pytest.mark.unit
     def test_get_db_closes_on_exception(self):
-        with patch("bot.database.SessionLocal") as mock_session_class:
+        with patch("bot.database.engine.SessionLocal") as mock_session_class:
             mock_session = Mock(spec=Session)
             mock_session_class.return_value = mock_session
 
@@ -38,7 +38,9 @@ class TestDatabaseOperations:
 
     @pytest.mark.unit
     def test_init_db_creates_tables(self):
-        with patch("bot.database.Base") as mock_base, patch("bot.database.engine") as mock_engine:
+        with patch("bot.database.engine.Base") as mock_base, patch(
+            "bot.database.engine.engine"
+        ) as mock_engine:
             init_db()
             mock_base.metadata.create_all.assert_called_once_with(bind=mock_engine)
 
