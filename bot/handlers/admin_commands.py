@@ -22,27 +22,24 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from loguru import logger
 
+from bot.config.settings import settings
 from bot.services.ai_service_solid import get_ai_service
 from bot.services.simple_monitor import get_simple_monitor
 
-router = Router()
+router = Router(name="admin")
+
+
+def _is_admin(user_id: int) -> bool:
+    """Проверка, является ли пользователь администратором."""
+    admin_ids = settings.get_admin_telegram_ids_list()
+    return user_id in admin_ids
 
 
 @router.message(Command("status"))
 async def cmd_status(message: Message):
-    """
-    Команда проверки полного статуса системы PandaPal Bot.
-
-    Предоставляет администраторам детальную информацию о состоянии всех
-    компонентов системы, включая время работы, статистику сообщений,
-    состояние очереди, подключения и системные ресурсы.
-
-    Args:
-        message (Message): Сообщение от администратора с командой /status.
-
-    Returns:
-        None: Отправляет детальный отчет о статусе системы.
-    """
+    """Полный статус системы."""
+    if not _is_admin(message.from_user.id):
+        return
     try:
         # Получаем статус через SimpleMonitor
         monitor = get_simple_monitor()
@@ -70,7 +67,9 @@ async def cmd_status(message: Message):
 
 @router.message(Command("health"))
 async def cmd_health(message: Message):
-    """Команда проверки здоровья сервисов (SOLID)"""
+    """Проверка здоровья сервисов."""
+    if not _is_admin(message.from_user.id):
+        return
     try:
         monitor = get_simple_monitor()
         status = monitor.get_current_status()
@@ -99,7 +98,9 @@ async def cmd_health(message: Message):
 
 @router.message(Command("ai_status"))
 async def cmd_ai_status(message: Message):
-    """Команда проверки статуса AI (SOLID)"""
+    """Статус AI сервисов."""
+    if not _is_admin(message.from_user.id):
+        return
     try:
         ai_service = get_ai_service()
         model_info = ai_service.get_model_info()
@@ -120,7 +121,9 @@ async def cmd_ai_status(message: Message):
 
 @router.message(Command("errors"))
 async def cmd_errors(message: Message):
-    """Команда просмотра статистики ошибок"""
+    """Статистика ошибок."""
+    if not _is_admin(message.from_user.id):
+        return
     try:
         # Используем SimpleMonitor для получения статистики ошибок
         monitor = get_simple_monitor()
@@ -148,7 +151,9 @@ async def cmd_errors(message: Message):
 
 @router.message(Command("restart_ai"))
 async def cmd_restart_ai(message: Message):
-    """Команда перезапуска AI (SOLID)"""
+    """Перезапуск AI сервиса."""
+    if not _is_admin(message.from_user.id):
+        return
     try:
         # В SOLID архитектуре AI сервис управляется через singleton
         get_ai_service()
@@ -163,7 +168,9 @@ async def cmd_restart_ai(message: Message):
 
 @router.message(Command("clear_errors"))
 async def cmd_clear_errors(message: Message):
-    """Команда очистки истории ошибок (заглушка для совместимости)"""
+    """Очистка истории ошибок."""
+    if not _is_admin(message.from_user.id):
+        return
     try:
         logger.info("🧹 Команда очистки ошибок (в SOLID архитектуре не требуется)")
         await message.answer("✅ В текущей архитектуре очистка не требуется")
@@ -175,7 +182,9 @@ async def cmd_clear_errors(message: Message):
 
 @router.message(Command("force_check"))
 async def cmd_force_check(message: Message):
-    """Команда принудительной проверки здоровья (SOLID)"""
+    """Принудительная проверка здоровья."""
+    if not _is_admin(message.from_user.id):
+        return
     try:
         # Проверка AI
         ai_service = get_ai_service()
@@ -201,7 +210,9 @@ async def cmd_force_check(message: Message):
 
 @router.message(Command("system_info"))
 async def cmd_system_info(message: Message):
-    """Команда получения полной информации о системе"""
+    """Информация о системе."""
+    if not _is_admin(message.from_user.id):
+        return
     try:
         import os
         import platform
@@ -239,7 +250,9 @@ async def cmd_system_info(message: Message):
 # Добавляем обработчик для всех административных команд
 @router.message(Command("admin"))
 async def cmd_admin_help(message: Message):
-    """Справка по административным командам"""
+    """Справка по административным командам."""
+    if not _is_admin(message.from_user.id):
+        return
     help_text = """🛡️ <b>Административные команды PandaPal</b>
 
 📊 <b>Мониторинг:</b>

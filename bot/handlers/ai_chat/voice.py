@@ -8,8 +8,10 @@ from loguru import logger
 
 from bot.monitoring import log_user_activity
 
-from .helpers import read_file_safely
+from .helpers import check_premium_limit, read_file_safely
 from .text import handle_ai_message
+
+MAX_AUDIO_SIZE = 20 * 1024 * 1024  # 20MB
 
 
 def register_handlers(router: Router) -> None:
@@ -18,325 +20,141 @@ def register_handlers(router: Router) -> None:
     router.message.register(handle_audio, F.audio)
 
 
-async def handle_voice(message: Message):
+async def _process_audio_input(message: Message, file_id: str, media_type: str) -> None:
     """
-    Обработка голосовых сообщений
-
-    ВАЖНО: Интеграция с Yandex SpeechKit для распознавания речи.
-    Стабильная версия с проверенными параметрами.
-
-    Параметры распознавания:
-    - Формат: OGG Opus (Telegram стандарт)
-    - Язык: ru-RU
-    - API: Yandex Cloud SpeechKit STT
+    Общая логика обработки голосовых/аудио сообщений.
 
     Args:
-        message: Голосовое сообщение от пользователя
+        message: Сообщение от пользователя
+        file_id: ID файла в Telegram
+        media_type: "voice" или "audio" (для логов и UI)
     """
     telegram_id = message.from_user.id
+    emoji = "🎤" if media_type == "voice" else "🎵"
+    label = "Голосовое сообщение" if media_type == "voice" else "Аудиофайл"
+    activity_prefix = "voice" if media_type == "voice" else "audio"
 
     try:
-        logger.info(f"🎤 Получено голосовое сообщение от {telegram_id}")
+        logger.info(f"{emoji} Получен {media_type} от {telegram_id}")
 
-        # КРИТИЧНО: Проверка лимита ДО скачивания и транскрипции (SpeechKit)
-        from bot.database import get_db
-        from bot.services import UserService
-        from bot.services.premium_features_service import PremiumFeaturesService
+        # Проверка Premium-лимитов ДО скачивания
+        if not await check_premium_limit(telegram_id, message.from_user.username, message):
+            return
 
-        with get_db() as db:
-            user_service = UserService(db)
-            premium_service = PremiumFeaturesService(db)
-            user = user_service.get_user_by_telegram_id(telegram_id)
-            if user:
-                can_request, limit_reason = premium_service.can_make_ai_request(
-                    telegram_id, username=message.from_user.username
-                )
-                if not can_request:
-                    logger.warning(f"🚫 Голос: AI запрос заблокирован для user={telegram_id}")
-                    from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+        processing_msg = await message.answer(
+            f"{emoji} Слушаю {label.lower()}... Пожалуйста, подожди! 🐼"
+        )
 
-                    keyboard = InlineKeyboardMarkup(
-                        inline_keyboard=[
-                            [
-                                InlineKeyboardButton(
-                                    text="💎 Узнать о Premium", callback_data="premium:info"
-                                )
-                            ]
-                        ]
-                    )
-                    await message.answer(limit_reason, reply_markup=keyboard, parse_mode="HTML")
-                    return
+        # Скачиваем файл
+        tg_file = await message.bot.get_file(file_id)
+        file_stream = await message.bot.download_file(tg_file.file_path)
 
-        # Показываем что обрабатываем
-        processing_msg = await message.answer("🎤 Слушаю твоё сообщение... Пожалуйста, подожди! 🐼")
-
-        # Скачиваем голосовое сообщение
-        voice_file = await message.bot.get_file(message.voice.file_id)
-        voice_bytes = await message.bot.download_file(voice_file.file_path)
-
-        # Проверяем размер голосового сообщения (Telegram лимит обычно 1MB, но может быть больше)
-        max_voice_size = 20 * 1024 * 1024  # 20MB для безопасности
-        if voice_file.file_size and voice_file.file_size > max_voice_size:
+        # Проверяем размер
+        if tg_file.file_size and tg_file.file_size > MAX_AUDIO_SIZE:
             await processing_msg.edit_text(
-                f"🎤 Голосовое сообщение слишком большое! "
-                f"Максимум {max_voice_size / (1024 * 1024):.0f}MB. "
+                f"{emoji} {label} слишком большой! "
+                f"Максимум {MAX_AUDIO_SIZE / (1024 * 1024):.0f}MB. "
                 f"Попробуй записать короче! 📏"
             )
             return
 
-        # Читаем байты потоково с ограничением размера
+        # Читаем байты потоково
         try:
-            audio_data = read_file_safely(voice_bytes, max_size=max_voice_size)
+            audio_data = read_file_safely(file_stream, max_size=MAX_AUDIO_SIZE)
         except ValueError as e:
-            logger.warning(f"⚠️ Голосовое сообщение превышает лимит: {e}")
+            logger.warning(f"⚠️ {label} превышает лимит: {e}")
             await processing_msg.edit_text(
-                "🎤 Голосовое сообщение слишком большое! Попробуй записать короче! 📏"
+                f"{emoji} {label} слишком большой! Попробуй записать короче! 📏"
             )
             return
 
-        # Получаем сервис распознавания речи
+        # Распознавание речи
         from bot.services.speech_service import get_speech_service
 
         speech_service = get_speech_service()
-
-        # Язык из настроек Telegram пользователя (ru/en)
         lang_code = (message.from_user.language_code or "ru").strip().lower()
         speech_lang = "en" if lang_code.startswith("en") else "ru"
         recognized_text = await speech_service.transcribe_voice(audio_data, language=speech_lang)
 
         if not recognized_text:
             await processing_msg.edit_text(
-                "🎤 Не удалось распознать речь.\nПопробуй говорить четче или напиши текстом! 📝"
+                f"{emoji} Не удалось распознать речь.\n"
+                "Попробуй говорить четче или напиши текстом! 📝"
             )
-            log_user_activity(telegram_id, "voice_recognition_failed", False, "SpeechKit failed")
+            log_user_activity(
+                telegram_id, f"{activity_prefix}_recognition_failed", False, "SpeechKit failed"
+            )
             return
 
-        # Удаляем сообщение "Слушаю..."
         await processing_msg.delete()
 
-        # Определяем язык текста и переводим если не русский
+        # Перевод иностранного языка
         from bot.services.translate_service import get_translate_service
 
         translate_service = get_translate_service()
         detected_lang = await translate_service.detect_language(recognized_text)
 
-        # Если язык определен и это не русский, но поддерживаемый язык
         if (
             detected_lang
             and detected_lang != "ru"
             and detected_lang in translate_service.SUPPORTED_LANGUAGES
         ):
             lang_name = translate_service.get_language_name(detected_lang)
-            logger.info(f"🌍 Аудио: Обнаружен иностранный язык: {detected_lang}")
-            # Переводим текст
+            logger.info(f"🌍 {media_type}: Обнаружен иностранный язык: {detected_lang}")
+
             translated_text = await translate_service.translate_text(
                 recognized_text, target_language="ru", source_language=detected_lang
             )
             if translated_text:
-                # Показываем что было распознано и переведено
                 await message.answer(
-                    f'🎤 <i>Я услышал на {lang_name}:</i> "{recognized_text}"\n'
+                    f'{emoji} <i>Я услышал на {lang_name}:</i> "{recognized_text}"\n'
                     f'🇷🇺 <i>Перевод:</i> "{translated_text}"\n\n'
                     f"Сейчас объясню перевод и подумаю над ответом... 🐼",
                     parse_mode="HTML",
                 )
-                # Формируем сообщение с переводом и объяснением
                 recognized_text = (
                     f"🌍 Вижу, что ты сказал на {lang_name}!\n\n"
                     f"📝 Оригинал: {recognized_text}\n"
                     f"🇷🇺 Перевод: {translated_text}\n\n"
                     f"Объясни этот перевод и помоги понять грамматику простыми словами для ребенка."
                 )
-                logger.info(f"✅ Аудио переведено: {detected_lang} → ru")
+                logger.info(f"✅ {media_type} переведено: {detected_lang} → ru")
             else:
                 await message.answer(
-                    f'🎤 <i>Я услышал:</i> "{recognized_text}"\n\nСейчас подумаю над ответом... 🐼',
+                    f'{emoji} <i>Я услышал:</i> "{recognized_text}"\n\nСейчас подумаю над ответом... 🐼',
                     parse_mode="HTML",
                 )
         else:
-            # Показываем что было распознано
             await message.answer(
-                f'🎤 <i>Я услышал:</i> "{recognized_text}"\n\nСейчас подумаю над ответом... 🐼',
+                f'{emoji} <i>Я услышал:</i> "{recognized_text}"\n\nСейчас подумаю над ответом... 🐼',
                 parse_mode="HTML",
             )
 
         logger.info(f"✅ Речь распознана: {recognized_text[:100]}")
+        log_user_activity(telegram_id, f"{activity_prefix}_message_sent", True)
 
-        # Логируем успешную активность
-        log_user_activity(telegram_id, "voice_message_sent", True)
-
-        # Обрабатываем как обычное текстовое сообщение (передаем оригинальный message с bot)
-        # Временно сохраняем текст в message для обработки
+        # Обрабатываем как текстовое сообщение
         original_text = message.text
         try:
-            # Используем __dict__ для обхода frozen instance
             object.__setattr__(message, "text", recognized_text)
             await handle_ai_message(message, None)
         finally:
-            # Восстанавливаем оригинальный текст
             if original_text is not None:
                 object.__setattr__(message, "text", original_text)
 
     except Exception as e:
-        logger.error(f"❌ Ошибка обработки голосового сообщения: {e}")
+        logger.error(f"❌ Ошибка обработки {media_type}: {e}")
         await message.answer(
-            "😔 Произошла ошибка при обработке голосового сообщения.\nПопробуй написать текстом! 📝"
+            f"😔 Произошла ошибка при обработке {label.lower()}.\nПопробуй написать текстом! 📝"
         )
-        log_user_activity(telegram_id, "voice_processing_error", False, str(e))
+        log_user_activity(telegram_id, f"{activity_prefix}_processing_error", False, str(e))
+
+
+async def handle_voice(message: Message):
+    """Обработка голосовых сообщений."""
+    await _process_audio_input(message, message.voice.file_id, "voice")
 
 
 async def handle_audio(message: Message):
-    """
-    Обработка аудиофайлов (музыка, треки)
-
-    ВАЖНО: Использует ту же логику распознавания что и голосовые сообщения.
-    Yandex SpeechKit STT с параметрами (voice_file_bytes, language).
-
-    Args:
-        message: Аудиофайл от пользователя
-    """
-    telegram_id = message.from_user.id
-
-    try:
-        logger.info(f"🎵 Получен аудиофайл от {telegram_id}")
-
-        # КРИТИЧНО: Проверка лимита ДО скачивания и транскрипции (SpeechKit)
-        from bot.database import get_db
-        from bot.services import UserService
-        from bot.services.premium_features_service import PremiumFeaturesService
-
-        with get_db() as db:
-            user_service = UserService(db)
-            premium_service = PremiumFeaturesService(db)
-            user = user_service.get_user_by_telegram_id(telegram_id)
-            if user:
-                can_request, limit_reason = premium_service.can_make_ai_request(
-                    telegram_id, username=message.from_user.username
-                )
-                if not can_request:
-                    logger.warning(f"🚫 Аудио: AI запрос заблокирован для user={telegram_id}")
-                    from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
-                    keyboard = InlineKeyboardMarkup(
-                        inline_keyboard=[
-                            [
-                                InlineKeyboardButton(
-                                    text="💎 Узнать о Premium", callback_data="premium:info"
-                                )
-                            ]
-                        ]
-                    )
-                    await message.answer(limit_reason, reply_markup=keyboard, parse_mode="HTML")
-                    return
-
-        # Показываем что обрабатываем
-        processing_msg = await message.answer("🎵 Слушаю аудиофайл... Пожалуйста, подожди! 🐼")
-
-        # Скачиваем аудиофайл
-        audio_file = await message.bot.get_file(message.audio.file_id)
-        audio_bytes = await message.bot.download_file(audio_file.file_path)
-
-        # Проверяем размер аудиофайла
-        max_audio_size = 20 * 1024 * 1024  # 20MB лимит
-        if audio_file.file_size and audio_file.file_size > max_audio_size:
-            await processing_msg.edit_text(
-                f"🎵 Аудиофайл слишком большой! "
-                f"Максимум {max_audio_size / (1024 * 1024):.0f}MB. "
-                f"Попробуй другой файл! 📏"
-            )
-            return
-
-        # Читаем байты потоково с ограничением размера
-        try:
-            audio_data = read_file_safely(audio_bytes, max_size=max_audio_size)
-        except ValueError as e:
-            logger.warning(f"⚠️ Аудиофайл превышает лимит: {e}")
-            await processing_msg.edit_text("🎵 Аудиофайл слишком большой! Попробуй другой файл! 📏")
-            return
-
-        # Получаем сервис распознавания речи
-        from bot.services.speech_service import get_speech_service
-
-        speech_service = get_speech_service()
-
-        lang_code = (message.from_user.language_code or "ru").strip().lower()
-        speech_lang = "en" if lang_code.startswith("en") else "ru"
-        recognized_text = await speech_service.transcribe_voice(audio_data, language=speech_lang)
-
-        if not recognized_text:
-            await processing_msg.edit_text(
-                "🎵 Не удалось распознать речь из аудио.\n"
-                "Попробуй голосовое сообщение или напиши текстом! 📝"
-            )
-            log_user_activity(telegram_id, "audio_recognition_failed", False, "SpeechKit failed")
-            return
-
-        # Удаляем сообщение "Слушаю..."
-        await processing_msg.delete()
-
-        # Определяем язык текста и переводим если не русский
-        from bot.services.translate_service import get_translate_service
-
-        translate_service = get_translate_service()
-        detected_lang = await translate_service.detect_language(recognized_text)
-
-        # Если язык определен и это не русский, но поддерживаемый язык
-        if (
-            detected_lang
-            and detected_lang != "ru"
-            and detected_lang in translate_service.SUPPORTED_LANGUAGES
-        ):
-            lang_name = translate_service.get_language_name(detected_lang)
-            logger.info(f"🌍 Аудио: Обнаружен иностранный язык: {detected_lang}")
-            # Переводим текст
-            translated_text = await translate_service.translate_text(
-                recognized_text, target_language="ru", source_language=detected_lang
-            )
-            if translated_text:
-                # Показываем что было распознано и переведено
-                await message.answer(
-                    f'🎵 <i>Я услышал на {lang_name}:</i> "{recognized_text}"\n'
-                    f'🇷🇺 <i>Перевод:</i> "{translated_text}"\n\n'
-                    f"Сейчас объясню перевод и подумаю над ответом... 🐼",
-                    parse_mode="HTML",
-                )
-                # Формируем сообщение с переводом и объяснением
-                recognized_text = (
-                    f"🌍 Вижу, что ты сказал на {lang_name}!\n\n"
-                    f"📝 Оригинал: {recognized_text}\n"
-                    f"🇷🇺 Перевод: {translated_text}\n\n"
-                    f"Объясни этот перевод и помоги понять грамматику простыми словами для ребенка."
-                )
-                logger.info(f"✅ Аудио переведено: {detected_lang} → ru")
-            else:
-                await message.answer(
-                    f'🎵 <i>Я услышал:</i> "{recognized_text}"\n\nСейчас подумаю над ответом... 🐼',
-                    parse_mode="HTML",
-                )
-        else:
-            # Показываем что было распознано
-            await message.answer(
-                f'🎵 <i>Я услышал:</i> "{recognized_text}"\n\nСейчас подумаю над ответом... 🐼',
-                parse_mode="HTML",
-            )
-
-        logger.info(f"✅ Речь из аудио распознана: {recognized_text[:100]}")
-
-        # Логируем успешную активность
-        log_user_activity(telegram_id, "audio_message_sent", True)
-
-        # Обрабатываем как обычное текстовое сообщение
-        original_text = message.text
-        try:
-            object.__setattr__(message, "text", recognized_text)
-            await handle_ai_message(message, None)
-        finally:
-            if original_text is not None:
-                object.__setattr__(message, "text", original_text)
-
-    except Exception as e:
-        logger.error(f"❌ Ошибка обработки аудиофайла: {e}")
-        await message.answer(
-            "😔 Произошла ошибка при обработке аудиофайла.\nПопробуй написать текстом! 📝"
-        )
-        log_user_activity(telegram_id, "audio_processing_error", False, str(e))
+    """Обработка аудиофайлов."""
+    await _process_audio_input(message, message.audio.file_id, "audio")

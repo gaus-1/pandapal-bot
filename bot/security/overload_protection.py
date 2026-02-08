@@ -8,7 +8,6 @@
 - Мониторинг нагрузки
 """
 
-import asyncio
 import time
 
 from aiohttp import web
@@ -45,13 +44,9 @@ class OverloadProtection:
 
         # Текущая нагрузка
         self._active_requests = 0
-        self._request_times: list[float] = []  # Времена обработки запросов
+        self._request_times: list[float] = []
         self._request_count = 0
         self._last_reset = time.time()
-
-        # Очередь запросов
-        self._queue: asyncio.Queue = asyncio.Queue(maxsize=500)
-        self._queue_processor_task: asyncio.Task | None = None
 
         # Статистика
         self._stats = {
@@ -159,7 +154,7 @@ class OverloadProtection:
             **self._stats,
             "current_load": self.get_current_load(),
             "active_requests": self._active_requests,
-            "queue_size": self._queue.qsize(),
+            "queue_size": 0,
             "is_overloaded": self.is_overloaded(),
         }
 

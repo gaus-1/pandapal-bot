@@ -8,7 +8,7 @@ import asyncio
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from loguru import logger
@@ -78,7 +78,7 @@ class MemoryCache:
         cache_item = self._cache[key]
 
         # Проверяем TTL
-        if cache_item.get("expires_at") and datetime.utcnow() > datetime.fromisoformat(
+        if cache_item.get("expires_at") and datetime.now(UTC) > datetime.fromisoformat(
             cache_item["expires_at"]
         ):
             del self._cache[key]
@@ -86,7 +86,7 @@ class MemoryCache:
             return None
 
         # Обновляем время доступа
-        self._access_times[key] = datetime.utcnow()
+        self._access_times[key] = datetime.now(UTC)
 
         return cache_item["value"]
 
@@ -108,14 +108,14 @@ class MemoryCache:
 
         expires_at = None
         if ttl:
-            expires_at = (datetime.utcnow() + timedelta(seconds=ttl)).isoformat()
+            expires_at = (datetime.now(UTC) + timedelta(seconds=ttl)).isoformat()
 
         self._cache[key] = {
             "value": value,
             "expires_at": expires_at,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
         }
-        self._access_times[key] = datetime.utcnow()
+        self._access_times[key] = datetime.now(UTC)
 
         return True
 
@@ -150,7 +150,7 @@ class MemoryCache:
 
         # Проверяем TTL
         cache_item = self._cache[key]
-        if cache_item.get("expires_at") and datetime.utcnow() > datetime.fromisoformat(
+        if cache_item.get("expires_at") and datetime.now(UTC) > datetime.fromisoformat(
             cache_item["expires_at"]
         ):
             del self._cache[key]
@@ -190,7 +190,7 @@ class MemoryCache:
         Returns:
             Dict[str, Any]: Словарь со статистикой (размер, истекшие, активные записи).
         """
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         expired_count = 0
 
         for item in self._cache.values():

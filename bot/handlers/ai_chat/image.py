@@ -72,7 +72,8 @@ async def handle_image(message: Message, state: FSMContext):  # noqa: ARG001
                 await processing_msg.edit_text("❌ Сначала зарегистрируйся командой /start")
                 return
 
-            # КРИТИЧНО: Проверка Premium для неограниченных запросов
+            # Проверка Premium-лимитов
+            from bot.handlers.ai_chat.helpers import PREMIUM_KEYBOARD
             from bot.services.premium_features_service import PremiumFeaturesService
 
             premium_service = PremiumFeaturesService(db)
@@ -82,22 +83,10 @@ async def handle_image(message: Message, state: FSMContext):  # noqa: ARG001
 
             if not can_request:
                 logger.warning(
-                    f"🚫 AI запрос (изображение) заблокирован для user={message.from_user.id}: {limit_reason}"
+                    f"🚫 AI запрос (изображение) заблокирован для user={message.from_user.id}"
                 )
-                from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
-                keyboard = InlineKeyboardMarkup(
-                    inline_keyboard=[
-                        [
-                            InlineKeyboardButton(
-                                text="💎 Узнать о Premium", callback_data="premium:info"
-                            )
-                        ]
-                    ]
-                )
-
                 await processing_msg.edit_text(
-                    limit_reason, reply_markup=keyboard, parse_mode="HTML"
+                    limit_reason, reply_markup=PREMIUM_KEYBOARD, parse_mode="HTML"
                 )
                 return
 

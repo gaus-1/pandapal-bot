@@ -78,7 +78,7 @@ export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
             // Вызываем callback
             onAuth(data.user);
 
-            console.log('✅ Авторизация через Telegram успешна:', data.user);
+            // Авторизация через Telegram успешна
           } else {
             throw new Error(data.error || 'Неизвестная ошибка');
           }

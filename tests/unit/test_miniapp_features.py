@@ -8,7 +8,7 @@
 - Скролл
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -93,7 +93,7 @@ async def test_reminder_service_get_inactive_users():
             last_name="User",
             user_type="child",
             is_active=True,
-            last_activity=datetime.utcnow() - timedelta(days=8),
+            last_activity=datetime.now(UTC) - timedelta(days=8),
             reminder_sent_at=None,
         )
 
@@ -124,7 +124,7 @@ async def test_reminder_service_send_reminder():
         first_name="Test",
         user_type="child",
         is_active=True,
-        last_activity=datetime.utcnow() - timedelta(days=8),
+        last_activity=datetime.now(UTC) - timedelta(days=8),
         reminder_sent_at=None,
     )
 
@@ -148,7 +148,9 @@ async def test_reminder_service_send_reminder():
         # Проверяем параметры вызова
         call_args = mock_bot.send_message.call_args
         assert call_args.kwargs["chat_id"] == 123456
-        assert "Привет" in call_args.kwargs["text"]
+        # Проверяем, что текст совпадает с одним из шаблонов напоминаний
+        sent_text = call_args.kwargs["text"]
+        assert any(msg in sent_text for msg in ReminderService.REMINDER_MESSAGES)
 
 
 @pytest.mark.asyncio

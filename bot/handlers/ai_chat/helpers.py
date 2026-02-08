@@ -4,6 +4,42 @@
 
 import re
 
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from loguru import logger
+
+# Клавиатура для перехода к Premium
+PREMIUM_KEYBOARD = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="💎 Узнать о Premium", callback_data="premium:info")]
+    ]
+)
+
+
+async def check_premium_limit(telegram_id: int, username: str | None, message: Message) -> bool:
+    """
+    Проверка Premium-лимитов перед AI-запросом.
+
+    Returns:
+        True если запрос разрешен, False если заблокирован (ответ уже отправлен).
+    """
+    from bot.database import get_db
+    from bot.services import UserService
+    from bot.services.premium_features_service import PremiumFeaturesService
+
+    with get_db() as db:
+        user_service = UserService(db)
+        premium_service = PremiumFeaturesService(db)
+        user = user_service.get_user_by_telegram_id(telegram_id)
+        if user:
+            can_request, limit_reason = premium_service.can_make_ai_request(
+                telegram_id, username=username
+            )
+            if not can_request:
+                logger.warning(f"🚫 AI запрос заблокирован для user={telegram_id}: {limit_reason}")
+                await message.answer(limit_reason, reply_markup=PREMIUM_KEYBOARD, parse_mode="HTML")
+                return False
+    return True
+
 
 def read_file_safely(
     file_obj, max_size: int = 20 * 1024 * 1024, chunk_size: int = 64 * 1024

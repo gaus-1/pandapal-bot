@@ -6,6 +6,7 @@ import { useMutation } from '@tanstack/react-query';
 import { authenticateUser } from '../services/api';
 import { useAppStore } from '../store/appStore';
 import { telegram } from '../services/telegram';
+import { logger } from '../utils/logger';
 
 /**
  * Hook для аутентификации пользователя через Telegram Mini App
@@ -17,7 +18,7 @@ export function useAuth() {
   const mutation = useMutation({
     mutationFn: authenticateUser,
     onSuccess: (userProfile) => {
-      console.log('✅ Аутентификация успешна:', userProfile);
+      logger.debug('Auth success:', userProfile.telegram_id);
       setUser(userProfile);
       setIsLoading(false);
       setError(null);

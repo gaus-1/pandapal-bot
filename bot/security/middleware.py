@@ -10,6 +10,7 @@ Security middleware для aiohttp приложения.
 OWASP Top 10 2021 compliance.
 """
 
+import ipaddress
 import time
 import uuid
 from collections import defaultdict
@@ -242,13 +243,19 @@ async def security_middleware(request: web.Request, handler) -> web.Response:
     request_id = str(uuid.uuid4())
     request["request_id"] = request_id
 
-    # Получаем IP адрес
-    # Проверяем X-Forwarded-For (для прокси/Cloudflare)
-    ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
-    if not ip:
-        ip = request.headers.get("X-Real-IP", "")
-    if not ip:
-        ip = request.remote
+    # Получаем IP адрес с валидацией формата
+    raw_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+    if not raw_ip:
+        raw_ip = request.headers.get("X-Real-IP", "")
+    if not raw_ip:
+        raw_ip = request.remote or "0.0.0.0"
+
+    # Валидация IP: отбрасываем невалидные значения
+    try:
+        ipaddress.ip_address(raw_ip)
+        ip = raw_ip
+    except (ValueError, TypeError):
+        ip = request.remote or "0.0.0.0"
 
     request["client_ip"] = ip
 

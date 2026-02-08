@@ -423,9 +423,27 @@ pytest tests/ --cov=bot --cov-report=html
 
 Сообщить об уязвимости: см. [SECURITY.md](.github/SECURITY.md)
 
-## Последние изменения (2025)
+## Переменные окружения (Railway / локально)
 
-### Архитектура и Рефакторинг
+Обязательные переменные для запуска описаны в `config/env.template`. Скопируйте в `.env` и заполните:
+
+- `DATABASE_URL`, `TELEGRAM_BOT_TOKEN` — обязательны
+- `YANDEX_CLOUD_API_KEY`, `YANDEX_CLOUD_FOLDER_ID` — для YandexGPT, SpeechKit, Vision
+- `SECRET_KEY` — для сессий и шифрования
+- Для Premium: `YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY` и др. (см. шаблон)
+
+## Последние изменения (2025–2026)
+
+### Архитектура и качество кода (2026)
+
+- **Безопасность**: проверка доступа к admin-командам по `admin_telegram_ids`; валидация суммы платежей (1–10000 Stars); проверка `auth_date` из будущего в Telegram initData; валидация IP из заголовков (ipaddress)
+- **Производительность**: `FORBIDDEN_PATTERNS` и `EDUCATIONAL_KEYWORDS` переведены на `frozenset` (O(1) lookup); удалён неиспользуемый код очереди в overload_protection
+- **Современность**: везде `datetime.now(UTC)` вместо устаревшего `utcnow()`; убраны хардкод секретов в defaults настроек (значения только из env)
+- **Код**: общий хелпер проверки Premium-лимитов в `ai_chat/helpers.py`; объединена логика голоса и аудио в `voice.py`; делегирование `memoize` в `cache_result` в decorators; лидерборд достижений использует реальные XP/уровень из GamificationService
+- **Frontend**: централизованный `logger` (debug-логи только в dev); убраны отладочные `console.log` из продакшн-кода
+- **Тесты**: исправлен flaky тест напоминаний; конфигурация pytest зафиксирована (основной файл — корневой `pytest.ini`)
+
+### Архитектура и Рефакторинг (2025)
 
 - Разбит монолитный `ai_chat.py` (1406 строк) на модульную структуру:
   - `text.py` — текстовые сообщения

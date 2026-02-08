@@ -37,14 +37,6 @@ export async function sendAIMessage(
     ...(languageCode ? { language_code: languageCode } : {}),
   };
 
-  console.log('📤 sendAIMessage вызван:', {
-    telegramId,
-    hasMessage: !!message,
-    hasPhoto: !!photoBase64,
-    hasAudio: !!audioBase64,
-    audioLength: audioBase64?.length || 0,
-  });
-
   const response = await fetch(`${API_BASE_URL}/miniapp/ai/chat`, {
     method: 'POST',
     headers: getAuthHeaders(),

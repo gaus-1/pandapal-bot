@@ -75,11 +75,16 @@ class TelegramWebAppAuth:
                 logger.debug(f"Expected: {calculated_hash}, Got: {received_hash}")
                 return None
 
-            # Проверяем auth_date (не старше 24 часов)
+            # Проверяем auth_date (не старше 24 часов, не из будущего)
             auth_date = int(parsed.get("auth_date", "0"))
             current_time = int(time.time())
 
-            # 86400 секунд = 24 часа
+            if auth_date > current_time + 60:
+                logger.warning(
+                    f"🚫 initData из будущего: auth_date={auth_date}, now={current_time}"
+                )
+                return None
+
             if current_time - auth_date > 86400:
                 logger.warning(f"🚫 initData устарел: {current_time - auth_date} секунд назад")
                 return None

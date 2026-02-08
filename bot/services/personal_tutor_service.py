@@ -5,7 +5,7 @@
 его успехов и предпочтений.
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -64,13 +64,13 @@ class PersonalTutorService:
             "weak_subjects": weak_subjects,
             "recommendations": recommendations,
             "weekly_goals": self._generate_weekly_goals(activity, user),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
         }
 
     def _analyze_user_activity(self, telegram_id: int) -> dict:
         """Анализ активности пользователя."""
         # Подсчет сообщений за последние 7 дней
-        week_ago = datetime.utcnow() - timedelta(days=7)
+        week_ago = datetime.now(UTC) - timedelta(days=7)
 
         messages_count = (
             self.db.scalar(

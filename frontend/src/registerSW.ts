@@ -88,13 +88,11 @@ export function registerServiceWorker(): void {
  */
 export function setupOfflineDetection(): void {
   window.addEventListener('online', () => {
-    console.log('🌐 Подключение восстановлено');
-    // Можно показать уведомление
+    // Подключение восстановлено
   });
 
   window.addEventListener('offline', () => {
-    console.log('📡 Подключение потеряно');
-    // Можно показать уведомление
+    // Подключение потеряно
   });
 }
 

@@ -11,7 +11,7 @@
 - Система уровней
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from loguru import logger
 from sqlalchemy import and_, func, select
@@ -363,7 +363,7 @@ class GamificationService:
             if self._check_achievement_condition(achievement, stats):
                 # Разблокируем достижение
                 unlocked_achievements[achievement.id] = {
-                    "unlocked_at": datetime.utcnow().isoformat(),
+                    "unlocked_at": datetime.now(UTC).isoformat(),
                     "xp_reward": achievement.xp_reward,
                 }
 
@@ -531,7 +531,7 @@ class GamificationService:
 
         # Подсчитываем дни подряд
         consecutive = 1
-        today = datetime.utcnow().date()
+        today = datetime.now(UTC).date()
 
         # Если последнее сообщение не сегодня, начинаем с вчера
         if dates[0] != today:

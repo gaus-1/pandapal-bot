@@ -4,6 +4,7 @@
  */
 
 import WebApp from "@twa-dev/sdk";
+import { logger } from "../utils/logger";
 
 export interface TelegramUser {
   id: number;
@@ -38,13 +39,7 @@ export class TelegramService {
       // Включаем плавные анимации (60 FPS)
       this.enableSmoothAnimations();
 
-      console.log("✅ Telegram Mini App инициализирован");
-      console.log("📱 Платформа:", this.webApp.platform);
-      console.log("📦 Версия:", this.webApp.version);
-      console.log("🌓 Тема:", this.webApp.colorScheme);
-      console.log("🔐 InitData длина:", this.webApp.initData?.length || 0);
-      console.log("🔑 InitData (полный):", this.webApp.initData);
-      console.log("👤 Пользователь:", this.webApp.initDataUnsafe.user);
+      logger.debug("Telegram Mini App init:", this.webApp.platform, this.webApp.version);
 
       // Проверка доступности initData (только если точно в Telegram)
       const isTelegramUA = typeof window !== 'undefined' &&

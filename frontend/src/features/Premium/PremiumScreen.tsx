@@ -8,6 +8,7 @@ import { telegram } from '../../services/telegram';
 import { useAppStore } from '../../store/appStore';
 import type { UserProfile } from '../../services/api';
 import { removeSavedPaymentMethod } from '../../services/api';
+import { logger } from '../../utils/logger';
 
 interface PremiumScreenProps {
   user: UserProfile | null;
@@ -78,9 +79,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
           if (response.ok) {
             const data = await response.json();
             if (data.success && data.user) {
-              console.log('🔍 Обновленные данные пользователя:', data.user);
-              console.log('🔍 Active subscription:', data.user.active_subscription);
-              console.log('🔍 has_saved_payment_method:', data.user.active_subscription?.has_saved_payment_method);
+              logger.debug('Premium: обновлены данные пользователя');
               setUser(data.user);
               // Убираем payment_id из URL
               window.history.replaceState({}, '', window.location.pathname);
@@ -98,11 +97,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
   // Логирование для отладки
   useEffect(() => {
     if (currentUser) {
-      console.log('🔍 Premium Screen - currentUser:', currentUser);
-      console.log('🔍 is_premium:', currentUser.is_premium);
-      console.log('🔍 active_subscription:', (currentUser as UserProfile).active_subscription);
-      console.log('🔍 has_saved_payment_method:', (currentUser as UserProfile).active_subscription?.has_saved_payment_method);
-      console.log('🔍 auto_renew:', (currentUser as UserProfile).active_subscription?.auto_renew);
+      logger.debug('Premium Screen:', currentUser.is_premium, (currentUser as UserProfile).active_subscription);
     }
   }, [currentUser]);
 

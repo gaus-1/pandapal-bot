@@ -433,7 +433,7 @@ class ContentModerationService(IModerationService):
     async def _save_moderation_log(self, telegram_id: int, content: str, reason: str) -> None:
         """Сохранить лог модерации в базу данных"""
         try:
-            from datetime import datetime
+            from datetime import UTC, datetime
 
             from sqlalchemy import select
 
@@ -454,7 +454,7 @@ class ContentModerationService(IModerationService):
                         telegram_id,
                         reason,
                         content[:100] + "..." if len(content) > 100 else content,
-                        datetime.utcnow().isoformat(),
+                        datetime.now(UTC).isoformat(),
                     )
         except Exception as e:
             logger.error(f"Ошибка сохранения лога модерации: {e}")

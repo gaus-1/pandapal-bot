@@ -38,7 +38,7 @@ class TestBotComponents:
     def test_forbidden_patterns_complete(self):
         assert FORBIDDEN_PATTERNS is not None
         assert len(FORBIDDEN_PATTERNS) > 50
-        assert isinstance(FORBIDDEN_PATTERNS, list)
+        assert isinstance(FORBIDDEN_PATTERNS, (list, frozenset, set))
 
     @pytest.mark.unit
     def test_user_model_all_fields(self):

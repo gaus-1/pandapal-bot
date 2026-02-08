@@ -44,7 +44,6 @@ class SettingsStates(StatesGroup):
     """Состояния диалога настроек"""
 
     waiting_for_age = State()  # Ожидание ввода возраста
-    waiting_for_name = State()  # Ожидание ввода имени
 
 
 @router.message(F.text == "⚙️ Настройки")

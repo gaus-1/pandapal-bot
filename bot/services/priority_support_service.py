@@ -4,7 +4,7 @@
 Обеспечивает приоритетную обработку запросов поддержки для Premium пользователей.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 
 from loguru import logger
@@ -88,7 +88,7 @@ class PrioritySupportService:
             telegram_id=telegram_id,
             message=message,
             priority=priority,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
         )
 
         # Добавляем в очередь с учетом приоритета

@@ -5,6 +5,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { logger } from '../utils/logger';
 
 export const MiniAppThemeToggle: React.FC = () => {
   const [isDark, setIsDark] = useState(false);
@@ -36,7 +37,7 @@ export const MiniAppThemeToggle: React.FC = () => {
     // ВСЕГДА светлая тема по умолчанию
     try {
       const savedTheme = localStorage.getItem('theme');
-      console.log('🔍 MiniAppThemeToggle: Чтение темы из localStorage:', savedTheme);
+      logger.debug('ThemeToggle: saved theme:', savedTheme);
 
       // Принудительно устанавливаем светлую тему по умолчанию
       applyTheme(false, false);
@@ -44,11 +45,11 @@ export const MiniAppThemeToggle: React.FC = () => {
       // Если пользователь явно выбрал темную тему - применяем её
       if (savedTheme === 'dark') {
         applyTheme(true, false); // Не сохраняем, т.к. уже есть в localStorage
-        console.log('🌙 MiniAppThemeToggle: Применена темная тема из localStorage');
+        logger.debug('ThemeToggle: dark theme applied');
       } else {
         // Светлая тема по умолчанию - сохраняем
         localStorage.setItem('theme', 'light');
-        console.log('☀️ MiniAppThemeToggle: Установлена светлая тема по умолчанию');
+        logger.debug('ThemeToggle: light theme default');
       }
     } catch (error) {
       // Если localStorage недоступен (например, в приватном режиме)
@@ -67,18 +68,16 @@ export const MiniAppThemeToggle: React.FC = () => {
       document.documentElement.classList.remove('light');
       localStorage.setItem('theme', 'dark');
       setIsDark(true);
-      console.log('🌙 Темная тема включена');
+      logger.debug('Dark theme enabled');
     } else {
       document.documentElement.classList.remove('dark');
       document.documentElement.classList.add('light');
       localStorage.setItem('theme', 'light');
       setIsDark(false);
-      console.log('☀️ Светлая тема включена');
+      logger.debug('Light theme enabled');
     }
 
-    // Дополнительная проверка - убеждаемся что тема сохранилась
-    const verifyTheme = localStorage.getItem('theme');
-    console.log('✅ Тема сохранена в localStorage:', verifyTheme);
+    logger.debug('Theme saved:', localStorage.getItem('theme'));
   };
 
   // Не показываем кнопку до монтирования

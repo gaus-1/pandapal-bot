@@ -257,29 +257,13 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
                 last_name=message.from_user.last_name,
             )
 
-            # КРИТИЧНО: Проверка Premium для неограниченных запросов
+            # Проверка Premium-лимитов
+            from bot.handlers.ai_chat.helpers import check_premium_limit
             from bot.services.premium_features_service import PremiumFeaturesService
 
             premium_service = PremiumFeaturesService(db)
-            can_request, limit_reason = premium_service.can_make_ai_request(
-                telegram_id, username=message.from_user.username
-            )
 
-            if not can_request:
-                logger.warning(f"🚫 AI запрос заблокирован для user={telegram_id}: {limit_reason}")
-                from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
-                keyboard = InlineKeyboardMarkup(
-                    inline_keyboard=[
-                        [
-                            InlineKeyboardButton(
-                                text="💎 Узнать о Premium", callback_data="premium:info"
-                            )
-                        ]
-                    ]
-                )
-
-                await message.answer(limit_reason, reply_markup=keyboard, parse_mode="HTML")
+            if not await check_premium_limit(telegram_id, message.from_user.username, message):
                 return
 
             # Проверка ленивости панды (перед обработкой запроса)

@@ -205,16 +205,24 @@ async def show_available_achievements(callback: CallbackQuery, state: FSMContext
 @router.callback_query(F.data == "achievements:leaderboard")
 async def show_leaderboard(callback: CallbackQuery, state: FSMContext):  # noqa: ARG001
     """Показать рейтинг пользователей"""
+    telegram_id = callback.from_user.id
+
+    try:
+        from bot.services.gamification_service import GamificationService
+
+        with get_db() as db:
+            gamification = GamificationService(db)
+            stats = gamification.get_user_stats(telegram_id)
+            level = stats.get("level", 1)
+            xp = stats.get("xp", 0)
+    except Exception:
+        level, xp = 1, 0
+
     await callback.message.edit_text(
         text="📈 <b>Рейтинг учеников</b>\n\n"
-        "🥇 Алиса - Level 5 (1250 XP)\n"
-        "🥈 Максим - Level 4 (980 XP)\n"
-        "🥉 София - Level 4 (850 XP)\n"
-        "4️⃣ Иван - Level 3 (620 XP)\n"
-        "5️⃣ Катя - Level 3 (540 XP)\n\n"
-        "...\n\n"
-        "🎯 Твоё место: 127 (0 XP)\n\n"
-        "<i>Общайся с PandaPal чтобы подняться в рейтинге!</i>",
+        f"🎯 Твой уровень: {level} ({xp} XP)\n\n"
+        "🏆 Рейтинг между учениками скоро появится!\n\n"
+        "<i>Общайся с PandaPal чтобы набирать XP!</i>",
         reply_markup=get_achievements_keyboard(),
         parse_mode="HTML",
     )

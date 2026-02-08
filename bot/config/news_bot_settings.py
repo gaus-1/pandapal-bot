@@ -48,13 +48,13 @@ class NewsBotSettings(BaseSettings):
 
     # API ключи для новостных источников
     world_news_api_key: str = Field(
-        default="0e70d6a927c547c3878bdd85b72e3232",
+        default="",
         description="API ключ World News API",
         validation_alias=AliasChoices("WORLD_NEWS_API_KEY", "world_news_api_key"),
     )
 
     newsapi_key: str = Field(
-        default="73663febf6264874b425c9b5b9ae0b08",
+        default="",
         description="API ключ NewsAPI.org",
         validation_alias=AliasChoices("NEWSAPI_KEY", "newsapi_key"),
     )

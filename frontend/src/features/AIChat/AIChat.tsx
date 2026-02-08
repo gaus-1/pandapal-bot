@@ -11,6 +11,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { telegram } from '../../services/telegram';
 import { useChat, type ChatMessage } from '../../hooks/useChat';
 import { useAppStore } from '../../store/appStore';
+import { logger } from '../../utils/logger';
 import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
 import { usePhotoUpload } from '../../hooks/usePhotoUpload';
 import { useScrollManagement } from '../../hooks/useScrollManagement';
@@ -160,19 +161,19 @@ export function AIChat({ user }: AIChatProps) {
       if (messages.length === 0) {
         // История пустая - показываем приветствие и сбрасываем флаг отправки
         // Это происходит при первом открытии или после очистки истории
-        console.log('📋 [Welcome] История пустая, показываем welcome screen');
+        logger.debug('[Welcome] История пустая, показываем welcome screen');
         setShowWelcome(true);
         setHasShownWelcomeMessage(false);
       } else {
         // Есть сообщения - скрываем приветствие
-        console.log('📋 [Welcome] Есть сообщения, скрываем welcome screen');
+        logger.debug('[Welcome] Есть сообщения, скрываем welcome screen');
         setShowWelcome(false);
         setHasShownWelcomeMessage(true);
       }
     } else {
       // Пока история загружается, показываем welcome screen если еще не установлено
       if (!showWelcome && messages.length === 0) {
-        console.log('📋 [Welcome] История загружается, но показываем welcome screen');
+        logger.debug('[Welcome] История загружается, но показываем welcome screen');
         setShowWelcome(true);
         setHasShownWelcomeMessage(false);
       }
@@ -213,37 +214,25 @@ export function AIChat({ user }: AIChatProps) {
       messages.length === 0;
 
     if (shouldSendWelcome) {
-      console.log('⏰ [Welcome] Запускаем таймер для приветствия через 5 секунд...', {
-        showWelcome,
-        hasShownWelcomeMessage,
-        isLoadingHistory,
-        messagesLength: messages.length,
-      });
+      logger.debug('[Welcome] Запускаем таймер для приветствия...');
 
       const timer = setTimeout(async () => {
-        console.log('⏰ [Welcome] Таймер сработал! Проверяем условия...', {
-          messagesLength: messages.length,
-          hasShownWelcomeMessage,
-          showWelcome,
-        });
+        logger.debug('[Welcome] Таймер сработал, проверяем условия...');
 
         // Проверяем еще раз перед отправкой (на случай, если состояние изменилось)
         if (messages.length === 0 && !hasShownWelcomeMessage && showWelcome) {
           try {
-            console.log('✅ [Welcome] Условия выполнены, добавляем приветствие...');
             // Добавляем приветственное сообщение от бота напрямую в историю (без отправки через AI)
             const greetings = ['Привет, начнем?', 'Привет! Чем могу помочь?'];
             const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-            console.log('🐼 [Welcome] Отправляем запрос:', randomGreeting, 'to', `/api/miniapp/chat/greeting/${user.telegram_id}`);
 
             const result = await addGreetingMessage(user.telegram_id, randomGreeting);
-            console.log('✅ [Welcome] Приветствие добавлено:', result);
+            logger.debug('[Welcome] Приветствие добавлено:', result);
 
             // Обновляем историю чата после добавления приветствия
             await queryClient.invalidateQueries({
               queryKey: queryKeys.chatHistory(user.telegram_id, 20),
             });
-            console.log('✅ [Welcome] История чата обновлена');
 
             setHasShownWelcomeMessage(true);
             setShowWelcome(false);
@@ -254,12 +243,12 @@ export function AIChat({ user }: AIChatProps) {
             setShowWelcome(false);
           }
         } else {
-          console.log('⚠️ [Welcome] Условия не выполнены, приветствие не отправлено');
+          logger.debug('[Welcome] Условия не выполнены, приветствие не отправлено');
         }
       }, 3000); // 3 секунды задержка
 
       return () => {
-        console.log('🧹 [Welcome] Очистка таймера приветствия');
+        logger.debug('[Welcome] Очистка таймера');
         clearTimeout(timer);
       };
     }

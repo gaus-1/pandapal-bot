@@ -171,13 +171,13 @@ class Settings(BaseSettings):
     )
 
     yookassa_shop_id: str = Field(
-        default="1240345",
+        default="",
         description="Идентификатор магазина ЮKassa (shop_id) - продакшн",
         validation_alias=AliasChoices("YOOKASSA_SHOP_ID", "yookassa_shop_id"),
     )
 
     yookassa_test_shop_id: str = Field(
-        default="1242170",
+        default="",
         description="Идентификатор тестового магазина ЮKassa (Test, pandapal.ru)",
         validation_alias=AliasChoices("YOOKASSA_TEST_SHOP_ID", "yookassa_test_shop_id"),
     )
@@ -213,7 +213,7 @@ class Settings(BaseSettings):
     )
 
     yookassa_inn: str = Field(
-        default="371104743407",
+        default="",
         description="ИНН самозанятого для чеков",
         validation_alias=AliasChoices("YOOKASSA_INN", "yookassa_inn"),
     )
@@ -246,13 +246,13 @@ class Settings(BaseSettings):
 
     # ADMIN (безлимит запросов)
     admin_usernames: str = Field(
-        default="SavinVE",
+        default="",
         description="Список username админов через запятую",
         validation_alias=AliasChoices("ADMIN_USERNAMES", "admin_usernames"),
     )
     admin_telegram_ids: str = Field(
-        default="963126718,8198136020,729414271",
-        description="Список Telegram ID админов через запятую (безлимит запросов); 729414271 — преподаватель-реферер",
+        default="",
+        description="Список Telegram ID админов через запятую (безлимит запросов)",
         validation_alias=AliasChoices("ADMIN_TELEGRAM_IDS", "admin_telegram_ids"),
     )
 

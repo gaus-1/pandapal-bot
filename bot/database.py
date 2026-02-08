@@ -54,7 +54,6 @@ engine = create_engine(
     settings.database_url,
     poolclass=pool_class,
     echo=False,  # True для отладки SQL-запросов
-    future=True,
     connect_args=connect_args,
     **pool_kwargs,
 )
@@ -204,8 +203,8 @@ def _apply_alembic_migration_for_existing_tables(alembic_cfg, current_revision: 
                         try:
                             command.stamp(alembic_cfg, "51eec1cc4ab3")
                             logger.info("✅ Миграция 51eec1cc4ab3 помечена как примененная")
-                        except Exception:
-                            pass
+                        except Exception as stamp_err:
+                            logger.debug(f"Не удалось пометить миграцию: {stamp_err}")
                     except Exception as img_err:
                         logger.warning(f"⚠️ Не удалось добавить image_url: {img_err}")
 

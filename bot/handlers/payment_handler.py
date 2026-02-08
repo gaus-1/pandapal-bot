@@ -25,6 +25,16 @@ async def pre_checkout_handler(query: PreCheckoutQuery):
         query: Объект PreCheckoutQuery от Telegram
     """
     try:
+        # Валидация суммы: минимум 1 Star, максимум 10000 Stars
+        if query.total_amount is not None and (
+            query.total_amount < 1 or query.total_amount > 10000
+        ):
+            logger.warning(
+                f"⚠️ Подозрительная сумма платежа: {query.total_amount} от user={query.from_user.id}"
+            )
+            await query.answer(ok=False, error_message="Некорректная сумма платежа")
+            return
+
         # Разрешаем донаты (payload начинается с "donation_")
         if query.invoice_payload and query.invoice_payload.startswith("donation_"):
             logger.info(f"💝 PreCheckout для доната: user={query.from_user.id}")

@@ -5,10 +5,11 @@
 """
 
 import asyncio
-import logging
 import os
 import sys
 from pathlib import Path
+
+from loguru import logger
 
 from bot.config import settings
 from bot.database import init_database
@@ -16,12 +17,6 @@ from bot.database import init_database
 # Добавляем корневую папку в PYTHONPATH
 root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir))
-
-# Настройка логирования
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
 
 
 async def main():
@@ -59,7 +54,7 @@ async def main():
 
             test_host = os.getenv("TEST_SERVER_HOST", "127.0.0.1")
             test_port = int(os.getenv("TEST_SERVER_PORT", "8000"))
-            logger.info("🌐 Запуск тестового HTTP сервера на %s:%s...", test_host, test_port)
+            logger.info(f"🌐 Запуск тестового HTTP сервера на {test_host}:{test_port}...")
             await uvicorn.run(app, host=test_host, port=test_port, log_level="info")
 
         else:

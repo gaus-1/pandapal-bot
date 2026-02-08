@@ -5,7 +5,7 @@
 Отправляет напоминания о питомце-панде (тамагочи), если панда грустная или голодная — 1 раз в день.
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from aiogram import Bot
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
@@ -43,7 +43,7 @@ class ReminderService:
         Returns:
             Список пользователей для напоминания
         """
-        threshold_date = datetime.utcnow() - timedelta(days=ReminderService.INACTIVITY_DAYS)
+        threshold_date = datetime.now(UTC) - timedelta(days=ReminderService.INACTIVITY_DAYS)
 
         with get_db() as db:
             stmt = (
@@ -88,7 +88,7 @@ class ReminderService:
                 db_user = db.execute(stmt).scalar_one_or_none()
 
                 if db_user:
-                    db_user.reminder_sent_at = datetime.utcnow()
+                    db_user.reminder_sent_at = datetime.now(UTC)
                     db.commit()
 
             logger.info(f"✅ Напоминание отправлено пользователю {user.telegram_id}")

@@ -205,15 +205,5 @@ def singleton(cls):
 
 
 def memoize(func: F) -> F:
-    """Декоратор для мемоизации функций."""
-    cache: dict[str, Any] = {}
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):  # type: ignore
-        key = str(args) + str(sorted(kwargs.items()))
-        if key not in cache:
-            cache[key] = func(*args, **kwargs)
-        return cache[key]
-
-    wrapper.cache_clear = lambda: cache.clear()  # type: ignore[attr-defined]
-    return wrapper  # type: ignore[return-value]
+    """Кэширование без TTL. Алиас для cache_result()."""
+    return cache_result()(func)

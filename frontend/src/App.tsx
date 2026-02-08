@@ -11,6 +11,7 @@ import { telegram } from './services/telegram';
 import { MiniApp } from './MiniApp';
 import { PremiumScreen } from './features/Premium/PremiumScreen';
 import { DonationScreen } from './features/Donation/DonationScreen';
+import { logger } from './utils/logger';
 import './index.css';
 
 /**
@@ -77,11 +78,7 @@ const App: React.FC = () => {
     setIsInTelegram(inTelegram);
     setIsChecking(false);
 
-    console.log('🤖 Приложение запущено в:', inTelegram ? 'Telegram Mini App' : 'Браузере');
-    console.log('🔍 InitData доступен:', hasInitData);
-    console.log('🔍 Telegram User Agent:', isTelegramUserAgent);
-    console.log('🔍 Telegram WebApp доступен:', hasTelegramWebApp);
-    console.log('🔍 tgaddr в URL:', hasTgaddr);
+    logger.debug('App started:', inTelegram ? 'Telegram' : 'Browser');
   }, []);
 
   // Роутинг через URL pathname (history-based routing)

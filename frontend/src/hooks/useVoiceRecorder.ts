@@ -91,7 +91,7 @@ export function useVoiceRecorder({
     setIsRecording(true);
 
     try {
-      console.log('🎤 Запрос микрофона...');
+      // Запрос доступа к микрофону
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
@@ -162,7 +162,7 @@ export function useVoiceRecorder({
 
       recordingStartTimeRef.current = Date.now();
       mediaRecorder.start();
-      console.log('✅ Запись начата');
+      // Запись начата
     } catch (error) {
       console.error('❌ Ошибка handleVoiceStart:', error);
       telegram.notifyError();

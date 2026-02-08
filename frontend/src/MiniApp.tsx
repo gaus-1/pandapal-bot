@@ -10,6 +10,7 @@ import { queryClient } from './lib/queryClient';
 import { useAppStore, selectUser, selectCurrentScreen, selectIsLoading, selectError, type Screen } from './store/appStore';
 import { useAuth } from './hooks/useAuth';
 import { telegram } from './services/telegram';
+import { logger } from './utils/logger';
 
 // Lazy loading экранов для оптимизации
 const AIChat = lazy(() => import('./features/AIChat/AIChat').then(m => ({ default: m.AIChat })));
@@ -45,11 +46,7 @@ function MiniAppContent() {
     // Инициализация Telegram Mini App
     telegram.init();
 
-    // Отладочная информация
-    console.log('🔍 DEBUG: Telegram initData:', telegram.getInitData());
-    console.log('🔍 DEBUG: Telegram user:', telegram.getUser());
-    console.log('🔍 DEBUG: Telegram platform:', telegram.getPlatform());
-    console.log('🔍 DEBUG: Is Telegram WebApp:', telegram.isTelegramWebApp());
+    logger.debug('Telegram init:', telegram.getPlatform(), telegram.isTelegramWebApp());
 
     // Проверяем что initData доступен
     const initData = telegram.getInitData();
@@ -61,7 +58,7 @@ function MiniAppContent() {
       const checkInitData = () => {
         const currentInitData = telegram.getInitData();
         if (currentInitData) {
-          console.log('✅ initData появился, продолжаем инициализацию');
+          logger.debug('initData появился, продолжаем инициализацию');
           authenticate();
 
           // Проверяем startParam из initData (теперь доступен)

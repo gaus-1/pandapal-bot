@@ -43,8 +43,9 @@ class TestAdminCommands:
         )
         return monitor
 
+    @patch("bot.handlers.admin_commands._is_admin", return_value=True)
     @patch("bot.handlers.admin_commands.get_simple_monitor")
-    async def test_cmd_status_success(self, mock_get_monitor, mock_message, mock_simple_monitor):
+    async def test_cmd_status_success(self, mock_get_monitor, _mock_admin, mock_message, mock_simple_monitor):
         """Тест успешного выполнения команды /status"""
         from bot.handlers.admin_commands import cmd_status
 
@@ -63,9 +64,10 @@ class TestAdminCommands:
                 answer_text = call_args[1]["text"]
         assert "Статус PandaPal Bot" in answer_text or "Статус PandaPal Bot" in str(call_args)
 
+    @patch("bot.handlers.admin_commands._is_admin", return_value=True)
     @patch("bot.handlers.admin_commands.get_simple_monitor")
     @patch("bot.handlers.admin_commands.logger")
-    async def test_cmd_status_error(self, mock_logger, mock_get_monitor, mock_message):
+    async def test_cmd_status_error(self, mock_logger, mock_get_monitor, _mock_admin, mock_message):
         """Тест обработки ошибки в команде /status"""
         from bot.handlers.admin_commands import cmd_status
 
@@ -84,8 +86,9 @@ class TestAdminCommands:
                 answer_text = call_args[1]["text"]
         assert "Ошибка" in answer_text or "Ошибка" in str(call_args)
 
+    @patch("bot.handlers.admin_commands._is_admin", return_value=True)
     @patch("bot.handlers.admin_commands.get_simple_monitor")
-    async def test_cmd_health_success(self, mock_get_monitor, mock_message, mock_simple_monitor):
+    async def test_cmd_health_success(self, mock_get_monitor, _mock_admin, mock_message, mock_simple_monitor):
         """Тест успешного выполнения команды /health"""
         from bot.handlers.admin_commands import cmd_health
 
@@ -95,9 +98,10 @@ class TestAdminCommands:
 
         mock_message.answer.assert_called_once()
 
+    @patch("bot.handlers.admin_commands._is_admin", return_value=True)
     @patch("bot.handlers.admin_commands.get_simple_monitor")
     @patch("bot.handlers.admin_commands.logger")
-    async def test_cmd_health_error(self, mock_logger, mock_get_monitor, mock_message):
+    async def test_cmd_health_error(self, mock_logger, mock_get_monitor, _mock_admin, mock_message):
         """Тест обработки ошибки в команде /health"""
         from bot.handlers.admin_commands import cmd_health
 
@@ -107,8 +111,9 @@ class TestAdminCommands:
 
         mock_logger.error.assert_called_once()
 
+    @patch("bot.handlers.admin_commands._is_admin", return_value=True)
     @patch("bot.handlers.admin_commands.get_ai_service")
-    async def test_cmd_ai_status_success(self, mock_get_ai, mock_message):
+    async def test_cmd_ai_status_success(self, mock_get_ai, _mock_admin, mock_message):
         """Тест успешного выполнения команды /ai_status"""
         from bot.handlers.admin_commands import cmd_ai_status
 
@@ -136,8 +141,9 @@ class TestAdminCommands:
         assert hasattr(admin_commands, "cmd_health")
         assert hasattr(admin_commands, "cmd_ai_status")
 
+    @patch("bot.handlers.admin_commands._is_admin", return_value=True)
     @patch("bot.handlers.admin_commands.get_simple_monitor")
-    async def test_cmd_status_unhealthy_system(self, mock_get_monitor, mock_message):
+    async def test_cmd_status_unhealthy_system(self, mock_get_monitor, _mock_admin, mock_message):
         """Тест команды /status с нездоровой системой"""
         from bot.handlers.admin_commands import cmd_status
 
@@ -165,3 +171,12 @@ class TestAdminCommands:
             if call_args[1] and "text" in call_args[1]:
                 answer_text = call_args[1]["text"]
         assert "Проблемы" in answer_text or "❌" in answer_text or "Проблемы" in str(call_args)
+
+    @patch("bot.handlers.admin_commands._is_admin", return_value=False)
+    async def test_cmd_status_non_admin_rejected(self, _mock_admin, mock_message):
+        """Тест что не-админ не получает ответ."""
+        from bot.handlers.admin_commands import cmd_status
+
+        await cmd_status(mock_message)
+
+        mock_message.answer.assert_not_called()

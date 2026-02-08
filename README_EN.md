@@ -79,6 +79,15 @@ npm run dev
 
 Full installation and configuration documentation: see [docs/](docs/)
 
+### Environment variables (Railway / local)
+
+Required variables are described in `config/env.template`. Copy to `.env` and fill in:
+
+- `DATABASE_URL`, `TELEGRAM_BOT_TOKEN` — required
+- `YANDEX_CLOUD_API_KEY`, `YANDEX_CLOUD_FOLDER_ID` — for YandexGPT, SpeechKit, Vision
+- `SECRET_KEY` — for sessions and encryption
+- For Premium: `YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY`, etc. (see template)
+
 ## Technologies
 
 ### Backend
@@ -222,6 +231,17 @@ pytest tests/e2e/test_comprehensive_panda_e2e.py -v
 pytest tests/ --cov=bot --cov-report=html
 ```
 
+## Recent changes (2025–2026)
+
+### Architecture and code quality (2026)
+
+- **Security**: admin command access restricted to `admin_telegram_ids`; payment amount validation (1–10000 Stars); Telegram initData `auth_date` future check; IP validation from headers (ipaddress)
+- **Performance**: `FORBIDDEN_PATTERNS` and `EDUCATIONAL_KEYWORDS` converted to `frozenset` (O(1) lookup); removed unused queue code in overload_protection
+- **Modernization**: `datetime.now(UTC)` everywhere instead of deprecated `utcnow()`; no hardcoded secrets in config defaults (values from env only)
+- **Code**: shared Premium limit helper in `ai_chat/helpers.py`; unified voice/audio logic in `voice.py`; memoize delegates to cache_result in decorators; achievements leaderboard uses real XP/level from GamificationService
+- **Frontend**: centralized `logger` (debug logs only in dev); removed debug `console.log` from production code
+- **Tests**: fixed flaky reminder test; pytest config consolidated (root `pytest.ini` as main)
+
 ## Referral Program
 
 - Personal links: `https://t.me/PandaPalBot?startapp=ref_<telegram_id>`
@@ -239,7 +259,7 @@ pytest tests/ --cov=bot --cov-report=html
 - HTTPS via Cloudflare Full Strict
 - Secrets only in environment variables
 
-Report vulnerabilities: see [SECURITY.md](SECURITY.md)
+Report vulnerabilities: see [SECURITY.md](.github/SECURITY.md)
 
 ## License
 
