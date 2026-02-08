@@ -51,42 +51,73 @@ async def handle_show_map_callback(callback: CallbackQuery):
     """
     Обработчик callback для кнопки "Показать карту".
 
-    Генерирует и отправляет карту страны/города по запросу пользователя.
+    Генерирует карту и образовательное пояснение через AI.
     """
     try:
-        # Извлекаем название локации из callback_data
         location = callback.data.replace("show_map:", "")
-
-        # Отвечаем на callback чтобы убрать "часики"
         await callback.answer("Загружаю карту...")
 
-        # Получаем сервис визуализации
         from bot.services.visualization_service import get_visualization_service
 
         viz_service = get_visualization_service()
-
-        # Генерируем карту
         map_image = viz_service.generate_country_map(location)
 
         if map_image:
             from aiogram.types import BufferedInputFile
 
             photo = BufferedInputFile(map_image, filename="map.png")
-
-            # Формируем описание для карты
             location_title = location.capitalize()
-            caption = f"🗺️ Карта: {location_title}"
 
-            await callback.message.answer_photo(photo=photo, caption=caption)
-            logger.info(f"🗺️ Показана карта для: {location}")
+            # Генерируем образовательное пояснение через AI
+            caption = await _generate_map_explanation(callback.from_user.id, location_title)
+
+            await callback.message.answer_photo(photo=photo, caption=caption[:1024])
+            if len(caption) > 1024:
+                await callback.message.answer(text=caption[1024:])
+            logger.info(f"🗺️ Показана карта с пояснением для: {location}")
         else:
             await callback.message.answer(
-                f"К сожалению, не удалось найти карту для '{location}'. Попробуй уточнить название."
+                f"К сожалению, не удалось найти карту для '{location}'. "
+                "Попробуй уточнить название."
             )
 
     except Exception as e:
         logger.error(f"Ошибка показа карты: {e}")
         await callback.message.answer("Не удалось загрузить карту. Попробуй позже.")
+
+
+async def _generate_map_explanation(telegram_id: int, location: str) -> str:
+    """Генерирует образовательное пояснение к карте через AI."""
+    try:
+        ai_service = get_ai_service()
+
+        # Получаем возраст пользователя для адаптации пояснения
+        user_age = None
+        with get_db() as db:
+            user_service = UserService(db)
+            user = user_service.get_user(telegram_id)
+            if user:
+                user_age = user.age
+
+        prompt = (
+            f"Покажи карту {location}\n\n"
+            f"Дай краткое образовательное пояснение к карте «{location}»: "
+            "где находится объект (часть света, страна/регион), "
+            "основные географические особенности (рельеф, климат, водные объекты), "
+            "соседние территории, интересные факты для школьника. "
+            "Опирайся на уже показанную карту: «На карте выше показан(а)…». "
+            "3–5 предложений, структурированно."
+        )
+
+        response = await ai_service.generate_response(
+            user_message=prompt,
+            user_age=user_age,
+        )
+        return response if response else f"🗺️ Карта: {location}"
+
+    except Exception as e:
+        logger.warning(f"Не удалось сгенерировать пояснение к карте: {e}")
+        return f"🗺️ Карта: {location}"
 
 
 @monitor_performance

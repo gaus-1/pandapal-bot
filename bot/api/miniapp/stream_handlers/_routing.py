@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import re
 
 from aiohttp import web
 from loguru import logger
@@ -9,6 +10,52 @@ from loguru import logger
 from bot.database import get_db
 from bot.services import ChatHistoryService
 from bot.services.premium_features_service import PremiumFeaturesService
+
+
+def _build_quick_viz_caption(viz_type: str | None, user_message: str) -> str:
+    """Формирует образовательную подпись для быстрой визуализации."""
+    from bot.api.miniapp.stream_handlers._visualization import get_diagram_explanation
+
+    if viz_type == "map":
+        # Извлекаем название объекта из запроса
+        location = _extract_location_from_message(user_message)
+        if location:
+            return (
+                f"🗺️ На карте выше показан(а) **{location}**. "
+                "Обрати внимание на масштаб и метку — они помогают понять расположение объекта. "
+                "Хочешь узнать подробнее про этот регион? Спроси!"
+            )
+        return (
+            "🗺️ Вот карта! Обрати внимание на масштаб и метку — "
+            "они показывают расположение объекта. "
+            "Хочешь узнать подробнее? Спроси!"
+        )
+
+    explanation = get_diagram_explanation(viz_type) if viz_type else None
+    if explanation:
+        return explanation
+
+    return "Вот визуализация. Если нужны пояснения — спроси!"
+
+
+def _extract_location_from_message(text: str) -> str | None:
+    """Извлекает название локации из пользовательского запроса."""
+    text_lower = text.lower().strip()
+    patterns = [
+        r"карт[аеыу]\s+(.+?)(?:\s*$)",
+        r"покажи\s+на\s+карте\s+(.+?)(?:\s*$)",
+        r"покажи\s+карт[аеыу]\s+(.+?)(?:\s*$)",
+        r"(?:покажи|нарисуй|выведи)\s+(.+?)\s+на\s+карте",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text_lower)
+        if match:
+            loc = match.group(1).strip()
+            loc = re.sub(r"\s*(?:пожалуйста|плиз|плз|пож)\s*$", "", loc).strip()
+            if 2 <= len(loc) <= 60:
+                # "реки волга" -> "Реки Волга"
+                return " ".join(w.capitalize() for w in loc.split())
+    return None
 
 
 async def try_adult_topics(
@@ -123,9 +170,7 @@ async def try_image_request(
             ensure_ascii=False,
         )
         await response.write(f"event: image\ndata: {image_data}\n\n".encode())
-        caption = "Вот визуализация. Если нужны пояснения — спроси!"
-        if visualization_type == "map":
-            caption = "Вот карта. Могу рассказать про этот регион подробнее."
+        caption = _build_quick_viz_caption(visualization_type, user_message)
         event_data = json.dumps({"content": caption}, ensure_ascii=False)
         await response.write(f"event: message\ndata: {event_data}\n\n".encode())
         await response.write(b"event: done\ndata: {}\n\n")
