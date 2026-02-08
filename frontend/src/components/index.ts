@@ -15,3 +15,5 @@ export { DarkModeToggle } from './DarkModeToggle';
 export { CallToAction } from './CallToAction';
 export { ChatBackground } from './ChatBackground';
 export { DateSeparator } from './DateSeparator';
+export { ErrorBoundary } from './ErrorBoundary';
+export { NetworkStatusBar } from './NetworkStatusBar';

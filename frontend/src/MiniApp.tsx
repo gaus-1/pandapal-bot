@@ -11,6 +11,8 @@ import { useAppStore, selectUser, selectCurrentScreen, selectIsLoading, selectEr
 import { useAuth } from './hooks/useAuth';
 import { telegram } from './services/telegram';
 import { logger } from './utils/logger';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { NetworkStatusBar } from './components/NetworkStatusBar';
 
 // Lazy loading экранов для оптимизации
 const AIChat = lazy(() => import('./features/AIChat/AIChat').then(m => ({ default: m.AIChat })));
@@ -23,7 +25,10 @@ const GamesScreen = lazy(() => import('./features/Games/GamesScreen').then(m => 
 export function MiniApp() {
   return (
     <QueryClientProvider client={queryClient}>
-      <MiniAppContent />
+      <ErrorBoundary>
+        <NetworkStatusBar />
+        <MiniAppContent />
+      </ErrorBoundary>
       {/* DevTools только в development */}
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>

@@ -39,6 +39,7 @@ from bot.config import settings  # noqa: E402
 from bot.config.news_bot_settings import news_bot_settings  # noqa: E402
 from bot.database import init_database  # noqa: E402
 from bot.handlers import routers  # noqa: E402
+from bot.middleware import setup_error_handler  # noqa: E402
 from server_routes import (  # noqa: E402
     setup_api_routes,
     setup_frontend_static,
@@ -124,6 +125,9 @@ class PandaPalBotServer:
             # Fallback на MemoryStorage если Redis недоступен
             storage = await self._create_fsm_storage()
             self.dp = Dispatcher(storage=storage)
+
+            # Регистрируем error handler middleware (до роутеров)
+            setup_error_handler(self.dp)
 
             # Регистрируем все роутеры
             for router in routers:

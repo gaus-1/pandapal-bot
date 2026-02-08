@@ -12,9 +12,21 @@ from typing import Any
 
 import httpx
 from loguru import logger
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from bot.config import settings
 from bot.services.ai_request_queue import get_ai_request_queue
+from bot.services.circuit_breaker import (
+    CircuitOpenError,
+    yandex_gpt_circuit,
+    yandex_stt_circuit,
+    yandex_vision_circuit,
+)
 
 
 class YandexCloudService:
@@ -256,6 +268,15 @@ class YandexCloudService:
             )
 
             # Внутренняя функция для выполнения запроса (оборачивается в очередь)
+            @retry(
+                stop=stop_after_attempt(3),
+                wait=wait_exponential(multiplier=1, min=1, max=8),
+                retry=retry_if_exception_type((httpx.TimeoutException, httpx.RequestError)),
+                before_sleep=lambda rs: logger.warning(
+                    f"🔄 YandexGPT retry {rs.attempt_number}/3: {rs.outcome.exception()}"
+                ),
+                reraise=True,
+            )
             async def _execute_request():
                 # Добавляем динамический request ID для диагностики
                 request_headers = {
@@ -270,8 +291,11 @@ class YandexCloudService:
                     result = response.json()
                     return result
 
-            # Выполняем запрос через очередь для контроля параллелизма
-            result = await self.request_queue.process(_execute_request)
+            # Выполняем запрос через Circuit Breaker + очередь
+            async def _cb_request():
+                return await self.request_queue.process(_execute_request)
+
+            result = await yandex_gpt_circuit.call(_cb_request)
 
             # Извлекаем ответ
             ai_response = result["result"]["alternatives"][0]["message"]["text"]
@@ -279,6 +303,9 @@ class YandexCloudService:
             logger.info(f"✅ YandexGPT ответ: {len(ai_response)} символов")
             return ai_response
 
+        except CircuitOpenError as e:
+            logger.warning(f"⚡ YandexGPT Circuit Breaker: {e}")
+            return "Сервис временно перегружен. Попробуй через минуту 🐼"
         except httpx.HTTPStatusError as e:
             logger.error(f"❌ Ошибка YandexGPT API (HTTP {e.response.status_code}): {e}")
             if e.response is not None:
@@ -477,6 +504,15 @@ class YandexCloudService:
                 params["sampleRateHertz"] = "16000"
 
             # Внутренняя функция для выполнения запроса (оборачивается в очередь)
+            @retry(
+                stop=stop_after_attempt(2),
+                wait=wait_exponential(multiplier=1, min=2, max=10),
+                retry=retry_if_exception_type((httpx.TimeoutException, httpx.RequestError)),
+                before_sleep=lambda rs: logger.warning(
+                    f"🔄 SpeechKit retry {rs.attempt_number}/2: {rs.outcome.exception()}"
+                ),
+                reraise=True,
+            )
             async def _execute_request():
                 # Увеличенный таймаут для SpeechKit (60 секунд)
                 stt_timeout = httpx.Timeout(60.0, connect=10.0)
@@ -492,8 +528,11 @@ class YandexCloudService:
                     response.raise_for_status()
                     return response.json()
 
-            # Выполняем запрос через очередь для контроля параллелизма
-            result = await self.request_queue.process(_execute_request)
+            # Выполняем запрос через Circuit Breaker + очередь
+            async def _cb_request():
+                return await self.request_queue.process(_execute_request)
+
+            result = await yandex_stt_circuit.call(_cb_request)
 
             # Извлекаем текст
             recognized_text = result.get("result", "")
@@ -501,6 +540,9 @@ class YandexCloudService:
             logger.info(f"✅ SpeechKit STT: '{recognized_text}'")
             return recognized_text
 
+        except CircuitOpenError as e:
+            logger.warning(f"⚡ SpeechKit Circuit Breaker: {e}")
+            raise
         except httpx.HTTPStatusError as e:
             logger.error(f"❌ Ошибка SpeechKit STT (HTTP {e.response.status_code}): {e}")
             raise
@@ -559,6 +601,15 @@ class YandexCloudService:
             }
 
             # Внутренняя функция для выполнения запроса (оборачивается в очередь)
+            @retry(
+                stop=stop_after_attempt(2),
+                wait=wait_exponential(multiplier=1, min=1, max=8),
+                retry=retry_if_exception_type((httpx.TimeoutException, httpx.RequestError)),
+                before_sleep=lambda rs: logger.warning(
+                    f"🔄 Vision retry {rs.attempt_number}/2: {rs.outcome.exception()}"
+                ),
+                reraise=True,
+            )
             async def _execute_request():
                 async with httpx.AsyncClient(timeout=self.timeout) as client:
                     response = await client.post(
@@ -567,8 +618,11 @@ class YandexCloudService:
                     response.raise_for_status()
                     return response.json()
 
-            # Выполняем запрос через очередь для контроля параллелизма
-            vision_result = await self.request_queue.process(_execute_request)
+            # Выполняем запрос через Circuit Breaker + очередь
+            async def _cb_request():
+                return await self.request_queue.process(_execute_request)
+
+            vision_result = await yandex_vision_circuit.call(_cb_request)
 
             # 🔍 ДЕТАЛЬНОЕ ЛОГИРОВАНИЕ для отладки
             logger.info(f"📊 Vision API response keys: {list(vision_result.keys())}")
