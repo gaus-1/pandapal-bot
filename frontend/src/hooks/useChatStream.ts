@@ -221,6 +221,9 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                   const imageType = data.type === 'generated_image' ? 'jpeg' : 'png';
                   const imageUrl = `data:image/${imageType};base64,${imageBase64}`;
 
+                  // Координаты для интерактивной карты (если есть)
+                  const mapData = data.mapData || undefined;
+
                   // Обновляем последнее сообщение AI, добавляя изображение
                   queryClient.setQueryData<ChatMessage[]>(
                     queryKeys.chatHistory(telegramId, limit),
@@ -234,6 +237,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                         updated[updated.length - 1] = {
                           ...lastMessage,
                           imageUrl: imageUrl,
+                          ...(mapData ? { mapData } : {}),
                         };
                       } else {
                         // Если нет сообщения AI, создаем новое без подписи
@@ -241,6 +245,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                           role: 'ai',
                           content: '',
                           imageUrl: imageUrl,
+                          ...(mapData ? { mapData } : {}),
                           timestamp: new Date().toISOString(),
                         });
                       }

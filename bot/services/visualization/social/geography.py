@@ -33,6 +33,17 @@ def _normalize_geo_prefix(query: str) -> str:
 class GeographyVisualization(BaseVisualizationService):
     """Визуализация для географии: часовые пояса, страны, природные зоны, карты."""
 
+    def __init__(self):
+        super().__init__()
+        # Координаты последней сгенерированной карты (для интерактивного режима miniapp)
+        self._last_map_coords: dict | None = None
+
+    def get_last_map_coordinates(self) -> dict | None:
+        """Возвращает координаты последней сгенерированной карты."""
+        coords = self._last_map_coords
+        self._last_map_coords = None
+        return coords
+
     def generate_time_zones_table(self) -> bytes | None:
         """Генерирует таблицу часовых поясов России."""
         headers = ["Часовой пояс", "Смещение (UTC)", "Города"]
@@ -852,6 +863,12 @@ class GeographyVisualization(BaseVisualizationService):
             geocoded = self._geocode(country_name)
             if geocoded:
                 lat, lon, name, zoom = geocoded
+                self._last_map_coords = {
+                    "lat": lat,
+                    "lon": lon,
+                    "zoom": zoom,
+                    "label": name,
+                }
                 try:
                     return self._get_yandex_map(lat, lon, zoom, name)
                 except Exception as e:
@@ -863,6 +880,7 @@ class GeographyVisualization(BaseVisualizationService):
             return None
 
         lat, lon, name, zoom = country_data
+        self._last_map_coords = {"lat": lat, "lon": lon, "zoom": zoom, "label": name}
 
         try:
             return self._get_yandex_map(lat, lon, zoom, name)

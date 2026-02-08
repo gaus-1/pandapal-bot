@@ -282,6 +282,10 @@ class VisualizationService(BaseVisualizationService):
         """Генерирует схематичную карту страны."""
         return self.geography.generate_country_map(country_name)
 
+    def get_last_map_coordinates(self) -> dict | None:
+        """Возвращает координаты последней сгенерированной карты (для интерактивного режима)."""
+        return self.geography.get_last_map_coordinates()
+
     def generate_climatogram(self, zone: str = "тайга") -> bytes | None:
         """Генерирует климатограмму для природной зоны или города."""
         return self.geography.generate_climatogram(zone)

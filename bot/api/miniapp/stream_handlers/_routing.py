@@ -165,10 +165,18 @@ async def try_image_request(
         import base64 as b64
 
         image_base64 = b64.b64encode(visualization_image).decode("utf-8")
-        image_data = json.dumps(
-            {"image": image_base64, "type": visualization_type or "visualization"},
-            ensure_ascii=False,
-        )
+        event_payload: dict = {
+            "image": image_base64,
+            "type": visualization_type or "visualization",
+        }
+
+        # Для карт передаём координаты — фронтенд покажет интерактивную карту
+        if visualization_type == "map":
+            map_coords = viz_service.get_last_map_coordinates()
+            if map_coords:
+                event_payload["mapData"] = map_coords
+
+        image_data = json.dumps(event_payload, ensure_ascii=False)
         await response.write(f"event: image\ndata: {image_data}\n\n".encode())
         caption = _build_quick_viz_caption(visualization_type, user_message)
         event_data = json.dumps({"content": caption}, ensure_ascii=False)

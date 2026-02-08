@@ -19,11 +19,19 @@ interface UseChatOptions {
   useStreaming?: boolean; // Использовать streaming ответы (по умолчанию false - старый код)
 }
 
+export type MapData = {
+  lat: number;
+  lon: number;
+  zoom: number;
+  label: string;
+};
+
 export type ChatMessage = {
   role: 'user' | 'ai';
   content: string;
   timestamp: string;
   imageUrl?: string; // URL изображения визуализации (для AI сообщений)
+  mapData?: MapData; // Координаты для интерактивной карты
 };
 
 /**

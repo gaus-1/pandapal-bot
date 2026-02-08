@@ -19,6 +19,7 @@ import { haptic } from '../../utils/hapticFeedback';
 import { MiniAppThemeToggle } from '../../components/MiniAppThemeToggle';
 import { ChatBackground } from '../../components/ChatBackground';
 import { DateSeparator } from '../../components/DateSeparator';
+import { InteractiveMap } from '../../components/InteractiveMap';
 import { addGreetingMessage } from '../../services/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../lib/queryClient';
@@ -436,13 +437,18 @@ export function AIChat({ user }: AIChatProps) {
                         : 'bg-white/95 dark:bg-slate-800/95 text-gray-900 dark:text-slate-100 border border-gray-200/50 dark:border-slate-700/50'
                     }`}
                   >
-                    {msg.imageUrl && msg.role === 'ai' && (
+                    {msg.role === 'ai' && msg.mapData ? (
+                      <InteractiveMap
+                        mapData={msg.mapData}
+                        fallbackImageUrl={msg.imageUrl}
+                      />
+                    ) : msg.imageUrl && msg.role === 'ai' ? (
                       <img
                         src={msg.imageUrl}
                         alt="Визуализация"
                         className="w-full rounded-xl mb-2 shadow-md"
                       />
-                    )}
+                    ) : null}
                     <MessageContent content={msg.content} role={msg.role} isGreeting={isGreeting} />
                     <div className="flex items-center justify-end mt-1.5 sm:mt-2 gap-1.5">
                       <time
