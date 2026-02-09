@@ -1,68 +1,54 @@
 /**
- * Интерактивная карта Yandex Maps (iframe widget).
+ * Карта с кнопкой открытия в Яндекс.Картах.
  *
- * Показывает карту с маркером — можно двигать, зумить.
- * Не требует npm-зависимостей и API-ключа на фронтенде.
+ * Telegram Mini App блокирует iframe через CSP,
+ * поэтому показываем статичную карту + кнопку для интерактивного просмотра.
  */
 
-import { useState, useCallback } from 'react';
 import type { MapData } from '../hooks/useChat';
 
 interface InteractiveMapProps {
   mapData: MapData;
-  /** Статичная картинка как fallback (base64 data URL) */
+  /** Статичная картинка (base64 data URL) */
   fallbackImageUrl?: string;
 }
 
 export function InteractiveMap({ mapData, fallbackImageUrl }: InteractiveMapProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
-
-  const handleLoad = useCallback(() => setIsLoaded(true), []);
-  const handleError = useCallback(() => setHasError(true), []);
-
-  // Yandex Maps embed widget — интерактивная карта без API ключа
   const { lat, lon, zoom, label } = mapData;
-  const mapUrl =
-    `https://yandex.ru/map-widget/v1/?ll=${lon},${lat}&z=${zoom}` +
-    `&pt=${lon},${lat},pm2rdm` +
-    `&l=map`;
 
-  // Если iframe не загрузился — показываем статичную картинку
-  if (hasError && fallbackImageUrl) {
-    return (
-      <img
-        src={fallbackImageUrl}
-        alt={`Карта: ${label}`}
-        className="w-full rounded-xl mb-2 shadow-md"
-      />
-    );
-  }
+  // Ссылка на Яндекс.Карты с координатами и маркером
+  const yandexMapsUrl =
+    `https://yandex.ru/maps/?ll=${lon},${lat}&z=${zoom}` +
+    `&pt=${lon},${lat},pm2rdm`;
+
+  const handleOpenMap = () => {
+    window.open(yandexMapsUrl, '_blank');
+  };
 
   return (
-    <div className="relative w-full rounded-xl overflow-hidden mb-2 shadow-md">
-      {/* Skeleton / loading state */}
-      {!isLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 animate-pulse">
-          <div className="text-center text-gray-400 dark:text-gray-500">
-            <span className="text-2xl">🗺️</span>
-            <p className="text-xs mt-1">Загрузка карты...</p>
-          </div>
-        </div>
+    <div className="relative w-full rounded-xl overflow-hidden mb-2 shadow-md group">
+      {/* Статичная карта */}
+      {fallbackImageUrl && (
+        <img
+          src={fallbackImageUrl}
+          alt={`Карта: ${label}`}
+          className="w-full block rounded-xl"
+        />
       )}
 
-      <iframe
-        src={mapUrl}
-        title={`Карта: ${label}`}
-        width="100%"
-        height="300"
-        frameBorder="0"
-        allowFullScreen
-        onLoad={handleLoad}
-        onError={handleError}
-        className="w-full block"
-        style={{ minHeight: '280px', border: 'none' }}
-      />
+      {/* Кнопка "Открыть карту" поверх изображения */}
+      <button
+        onClick={handleOpenMap}
+        className="absolute bottom-2 right-2 flex items-center gap-1.5 px-3 py-1.5
+          bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm
+          text-xs font-medium text-blue-600 dark:text-blue-400
+          rounded-lg shadow-md border border-gray-200/50 dark:border-slate-600/50
+          hover:bg-white dark:hover:bg-slate-700 active:scale-95
+          transition-all"
+      >
+        <span>🗺️</span>
+        <span>Открыть карту</span>
+      </button>
     </div>
   );
 }
