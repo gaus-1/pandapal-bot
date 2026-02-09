@@ -121,6 +121,31 @@ async def try_rest_offer(user_message: str, telegram_id: int, response: web.Stre
     return True
 
 
+def _extract_location_from_history(telegram_id: int) -> str | None:
+    """Извлекает название локации из последних сообщений (для follow-up 'покажи на карте')."""
+    with get_db() as db:
+        history = ChatHistoryService(db).get_chat_history(telegram_id, limit=6)
+
+    geo_patterns = [
+        r"где\s+(?:находится|расположен[аоы]?)\s+(.+?)(?:\?|\s*$)",
+        r"расскажи\s+(?:про|о|об)\s+(.+?)(?:\?|\s*$)",
+        r"что\s+(?:такое|за\s+страна|за\s+город)\s+(.+?)(?:\?|\s*$)",
+        r"^([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁа-яё]+){0,3})$",
+    ]
+    for msg in history:
+        if msg.get("role") != "user":
+            continue
+        text = msg.get("content", "").strip()
+        for pattern in geo_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                loc = match.group(1).strip()
+                loc = re.sub(r"\s*(?:пожалуйста|плиз|плз)\s*$", "", loc).strip()
+                if 2 <= len(loc) <= 60:
+                    return loc
+    return None
+
+
 async def try_image_request(
     msg_for_routing: str, user_message: str, telegram_id: int, response: web.StreamResponse
 ) -> bool:
@@ -130,19 +155,19 @@ async def try_image_request(
         "нарисовать",
         "рисунок",
         "картинк",
-        "карту",
-        "карта",
-        "карт ",
         "изображени",
         "фото",
         "иллюстраци",
-        "визуализируй",
-        "покажи",
         "покажи как выглядит",
         "сгенерируй изображение",
         "создай картинку",
     ]
-    is_image_request = any(keyword in msg_for_routing.lower() for keyword in image_keywords)
+    # Исключаем карты и визуализации — они обрабатываются отдельно
+    map_exclusions = ["карт", "на карте", "график", "таблиц", "диаграмм", "схем"]
+    msg_lower = msg_for_routing.lower()
+    is_image_request = any(keyword in msg_lower for keyword in image_keywords) and not any(
+        excl in msg_lower for excl in map_exclusions
+    )
 
     logger.debug(
         f"🎨 Stream: Проверка детектора изображений: '{msg_for_routing[:50]}', "
@@ -159,6 +184,16 @@ async def try_image_request(
     visualization_image, visualization_type = viz_service.detect_visualization_request(
         msg_for_routing
     )
+
+    # Follow-up: "покажи на карте" без локации — ищем в истории чата
+    if not visualization_image and re.search(r"покажи\s+на\s+карте", msg_lower):
+        location = _extract_location_from_history(telegram_id)
+        if location:
+            logger.info(f"🗺️ Контекст из истории: '{location}' для '{msg_for_routing[:40]}'")
+            enriched = f"покажи на карте {location}"
+            visualization_image, visualization_type = viz_service.detect_visualization_request(
+                enriched
+            )
 
     # Учебная визуализация (карта, график, таблица и т.д.)
     if visualization_image:

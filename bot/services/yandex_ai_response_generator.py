@@ -110,7 +110,13 @@ def _remove_duplicate_long_substrings(text: str, min_len: int = 70) -> str:
                 if sub.strip() and len(sub.strip()) >= min_len:
                     j = result.find(sub, i + 1)
                     if j != -1:
-                        result = result[:j] + result[j + length :]
+                        before = result[:j]
+                        after = result[j + length :]
+                        # Не склеиваем слова: если на стыке буквы — вставляем пробел
+                        if before and after and before[-1].isalpha() and after[0].isalpha():
+                            result = before + " " + after
+                        else:
+                            result = before + after
                         changed = True
                         break
             if changed:
