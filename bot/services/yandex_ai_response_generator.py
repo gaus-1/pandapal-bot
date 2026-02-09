@@ -550,9 +550,8 @@ def clean_ai_response(text: str) -> str:
                 unique_ordered.append(paragraphs[i])
         text = "\n\n".join(unique_ordered)
 
-    # Артефакты модели: "2dot 6" → "2·6", "х } = -2" → "х = -2"
+    # Артефакты модели: "2dot 6" → "2·6"
     text = re.sub(r"(\d+)dot\s+(\d+)", r"\1·\2", text, flags=re.IGNORECASE)
-    text = re.sub(r"(\w)\s*\}\s*=\s*", r"\1 = ", text)
 
     # Исправляем форматирование таблицы умножения
     # Паттерн 1: "1. 3 1 = 3" → "1. 3 × 1 = 3" (нумерованные списки - сначала обрабатываем их)
@@ -572,79 +571,175 @@ def clean_ai_response(text: str) -> str:
         text,
     )
 
-    # Степень в формулах: ^2 ^3 ^4 ^5 → ² ³ ⁴ ⁵ (типографский стиль)
-    text = re.sub(r"(\w)\^2\b", r"\1²", text)
-    text = re.sub(r"(\w)\^3\b", r"\1³", text)
-    text = re.sub(r"(\w)\^4\b", r"\1⁴", text)
-    text = re.sub(r"(\w)\^5\b", r"\1⁵", text)
-
-    # Обрезка мусора в конце: склеенные «Q_Для решения…», «t_Для…» — убираем до конца строки
-    text = re.sub(r"\s+[A-Za-z]_[А-Яа-яё]\S*(?:\s+\S+)*\s*$", "", text)
-
-    # Убираем знак доллара (ограничители формул в Telegram/Markdown)
+    # ФАЗА 1: Убираем $ и LaTeX-артефакты
     text = text.replace("$", "")
+    text = text.replace("{,}", ",")  # LaTeX числовая запятая: 9{,}8 → 9,8
 
-    # Убираем все звёздочки из ответа: маркеры *слово* и **термин** → слово, термин (без маркеров)
-    text = re.sub(r"\*\*([^*]*)\*\*", r"\1", text)
-    text = re.sub(r"\*([^*]+)\*", r"\1", text)
-    # Маркер списка в начале строки «* пункт» → «- пункт»
-    text = re.sub(r"(?m)^\s*\*\s+", "- ", text)
-
-    # Заменяем LaTeX команды на типографский стиль (как в промпте: √, не sqrt())
+    # ФАЗА 2: LaTeX конструкции → типографский стиль
+    # Порядок важен: сначала внутренние (\text, \sqrt), потом внешние (\frac)
+    text = re.sub(r"\\text\s*\{([^}]*)\}", r"\1", text)
     text = re.sub(r"\\sqrt\s*\{([^}]*)\}", r"√(\1)", text)
-    # \vec{v} → v (векторная величина в формулах)
-    text = re.sub(r"\\vec\s*\{([^}]*)\}", r"\1", text, flags=re.IGNORECASE)
-    # \nabla → ∇, \partial → ∂ (символы для физики/математики)
-    text = re.sub(r"\\nabla\b", "∇", text, flags=re.IGNORECASE)
-    text = re.sub(r"\\partial\b", "∂", text, flags=re.IGNORECASE)
-    # Остальные LaTeX команды
-    latex_to_text = {
+    text = re.sub(r"\\vec\s*\{([^}]*)\}", r"\1→", text, flags=re.IGNORECASE)
+    text = re.sub(r"\\overline\s*\{([^}]*)\}", r"\1", text)
+    # Дроби (после очистки вложенных конструкций)
+    text = re.sub(r"\\frac\s*\{([^}]+)\}\{([^}]+)\}", r"(\1)/(\2)", text)
+    text = re.sub(r"\bfrac\s*\{([^}]+)\}\{([^}]+)\}", r"(\1)/(\2)", text)
+
+    # ФАЗА 3: LaTeX команды → Unicode
+    _latex_unicode = {
+        r"\\nabla": "∇",
+        r"\\partial": "∂",
+        r"\\alpha": "α",
+        r"\\beta": "β",
+        r"\\gamma": "γ",
+        r"\\delta": "δ",
+        r"\\epsilon": "ε",
+        r"\\zeta": "ζ",
+        r"\\eta": "η",
+        r"\\theta": "θ",
+        r"\\lambda": "λ",
+        r"\\mu": "μ",
+        r"\\nu": "ν",
+        r"\\xi": "ξ",
+        r"\\rho": "ρ",
+        r"\\sigma": "σ",
+        r"\\tau": "τ",
+        r"\\phi": "φ",
+        r"\\omega": "ω",
+        r"\\Omega": "Ω",
+        r"\\Delta": "Δ",
+        r"\\Sigma": "Σ",
+        r"\\pi": "π",
+        r"\\Pi": "Π",
+        r"\\times": "×",
+        r"\\cdot": "·",
+        r"\\div": "÷",
+        r"\\pm": "±",
+        r"\\mp": "∓",
+        r"\\leq": "≤",
+        r"\\geq": "≥",
+        r"\\neq": "≠",
+        r"\\approx": "≈",
+        r"\\infty": "∞",
+        r"\\sum": "∑",
+        r"\\int": "∫",
+        r"\\prod": "∏",
+        r"\\forall": "∀",
+        r"\\exists": "∃",
+        r"\\in": "∈",
         r"\\log": "log",
         r"\\ln": "ln",
+        r"\\lg": "lg",
         r"\\sin": "sin",
         r"\\cos": "cos",
         r"\\tan": "tan",
         r"\\cot": "cot",
-        r"\\sqrt": "√",
-        r"\\sum": "sum",
-        r"\\int": "integral",
+        r"\\arcsin": "arcsin",
+        r"\\arccos": "arccos",
+        r"\\arctan": "arctan",
         r"\\lim": "lim",
-        r"\\infty": "infinity",
-        r"\\alpha": "alpha",
-        r"\\beta": "beta",
-        r"\\gamma": "gamma",
-        r"\\pi": "pi",
-        r"\\times": "×",
-        r"\\cdot": "×",
-        r"\\div": "÷",
-        r"\\pm": "+-",
-        r"\\leq": "<=",
-        r"\\geq": ">=",
-        r"\\neq": "!=",
-        r"\\approx": "~",
+        r"\\sqrt": "√",
     }
-    for latex, replacement in latex_to_text.items():
+    for latex, replacement in _latex_unicode.items():
         text = re.sub(latex, replacement, text, flags=re.IGNORECASE)
 
-    # Убираем оставшиеся LaTeX окружения и скобки
-    latex_patterns = [
-        r"\\begin\{[^}]+\}.*?\\end\{[^}]+\}",  # Окружения
-        r"\\frac\{([^}]+)\}\{([^}]+)\}",  # \frac{a}{b} → (a)/(b)
-        r"\\\[",  # \[
-        r"\\\]",  # \]
-        r"\\\{",  # \{
-        r"\\\}",  # \}
-        r"\\\(",  # \(
-        r"\\\)",  # \)
-    ]
-    # Специальная обработка дробей
-    text = re.sub(r"\\frac\{([^}]+)\}\{([^}]+)\}", r"(\1)/(\2)", text)
-    # Удаляем оставшиеся LaTeX конструкции
-    for pattern in latex_patterns:
-        text = re.sub(pattern, "", text, flags=re.IGNORECASE | re.DOTALL)
-    # Удаляем неизвестные LaTeX команды (но сохраняем подчеркивания после них)
-    text = re.sub(r"\\([a-zA-Z]+)(?=_)", r"\1", text)  # \log_a → log_a
-    text = re.sub(r"\\([a-zA-Z]+)", r"\1", text)  # \unknown → unknown
+    # LaTeX пробелы: \, \; \: \! → обычный пробел
+    text = re.sub(r"\\[,;:!]", " ", text)
+    # LaTeX окружения
+    text = re.sub(r"\\begin\{[^}]+\}.*?\\end\{[^}]+\}", "", text, flags=re.DOTALL)
+    # Экранирование скобок: \[ \] \{ \} \( \)
+    text = re.sub(r"\\([\[\]{}()])", r"\1", text)
+    # Остаточные \quad, \left, \right
+    text = re.sub(r"\\(?:quad|qquad|hspace|vspace)\s*(?:\{[^}]*\})?", " ", text)
+    text = re.sub(r"\\(?:left|right)\s*([|()\[\]])", r"\1", text)
+    # Неизвестные LaTeX команды (сохраняем подчёркивания)
+    text = re.sub(r"\\([a-zA-Z]+)(?=_)", r"\1", text)
+    text = re.sub(r"\\([a-zA-Z]+)", r"\1", text)
+
+    # ФАЗА 4: Superscripts/subscripts (ПОСЛЕ полной очистки LaTeX)
+    _superscript_map = {
+        "0": "⁰",
+        "1": "¹",
+        "2": "²",
+        "3": "³",
+        "4": "⁴",
+        "5": "⁵",
+        "6": "⁶",
+        "7": "⁷",
+        "8": "⁸",
+        "9": "⁹",
+        "n": "ⁿ",
+        "m": "ᵐ",
+        "i": "ⁱ",
+        "k": "ᵏ",
+        "x": "ˣ",
+        "+": "⁺",
+        "-": "⁻",
+        "(": "⁽",
+        ")": "⁾",
+    }
+
+    def _to_superscript(m: re.Match) -> str:
+        base = m.group(1)
+        exp = m.group(2)
+        return base + "".join(_superscript_map.get(c, c) for c in exp)
+
+    text = re.sub(r"([\w)])\^\{([^}]+)\}", _to_superscript, text)
+    text = re.sub(r"([\w)])\^(\d+)\b", _to_superscript, text)
+    text = re.sub(r"([\w)])\^([a-zA-Z])\b", _to_superscript, text)
+
+    _subscript_map = {
+        "0": "₀",
+        "1": "₁",
+        "2": "₂",
+        "3": "₃",
+        "4": "₄",
+        "5": "₅",
+        "6": "₆",
+        "7": "₇",
+        "8": "₈",
+        "9": "₉",
+        "a": "ₐ",
+        "e": "ₑ",
+        "i": "ᵢ",
+        "n": "ₙ",
+        "m": "ₘ",
+        "o": "ₒ",
+        "p": "ₚ",
+        "r": "ᵣ",
+        "s": "ₛ",
+        "t": "ₜ",
+        "x": "ₓ",
+        "k": "ₖ",
+        "+": "₊",
+        "-": "₋",
+    }
+
+    def _to_subscript(m: re.Match) -> str:
+        base = m.group(1)
+        sub = m.group(2)
+        return base + "".join(_subscript_map.get(c, c) for c in sub)
+
+    # _{выражение} — x_{общ} → xобщ (кириллица не в subscript map → остаётся текстом)
+    text = re.sub(r"(\w)_\{([^}]+)\}", _to_subscript, text)
+    # _цифра — x_1 → x₁
+    text = re.sub(r"(\w)_(\d)\b", _to_subscript, text)
+    # _буква (латинская) — a_n → aₙ
+    text = re.sub(r"(\w)_([a-z])\b", _to_subscript, text)
+
+    # Обрезка мусора в конце
+    text = re.sub(r"\s+[A-Za-z]_[А-Яа-яё]\S*(?:\s+\S+)*\s*$", "", text)
+
+    # Артефакт: одиночные } перед = (после Phase 4 все _{} уже обработаны)
+    text = re.sub(r"(\w)\s*\}\s*=\s*", r"\1 = ", text)
+    # Удаляем оставшиеся одиночные { и }
+    text = re.sub(r"(?<!\*)\{(?!\*)", "", text)
+    text = re.sub(r"(?<!\*)\}(?!\*)", "", text)
+
+    # Маркер списка «* пункт» → «- пункт» (НЕ трогаем **bold**)
+    text = re.sub(r"(?m)^\s*\*\s+", "- ", text)
+    # Одиночные *italic* → без звёздочек (но сохраняем **bold**)
+    text = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"\1", text)
 
     # Удаляем формулировки про «визуализацию/график/таблицу, которые будут показаны автоматически».
     # Важно: делаем это централизованно, чтобы такие фразы не проскакивали

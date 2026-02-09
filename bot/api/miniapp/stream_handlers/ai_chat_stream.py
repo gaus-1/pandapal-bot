@@ -292,7 +292,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 )
 
                 # Ограничиваем размер ответа
-                MAX_RESPONSE_LENGTH = 4000
+                MAX_RESPONSE_LENGTH = 8000
                 full_response_for_db = full_response
                 if len(full_response) > MAX_RESPONSE_LENGTH:
                     full_response = full_response[:MAX_RESPONSE_LENGTH] + "\n\n... (ответ обрезан)"
