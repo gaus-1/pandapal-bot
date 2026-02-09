@@ -399,10 +399,10 @@ def normalize_bold_spacing(text: str) -> str:
 
 def _strip_invisible_unicode(text: str) -> str:
     """Удаляет невидимые Unicode-символы, которые ломают regex-дедупликацию."""
-    # Zero-width chars, soft hyphen, BOM, invisible separators
-    return re.sub(
-        r"[\u200b\u200c\u200d\u200e\u200f\u00ad\ufeff\u2060\u2028\u2029\u202a-\u202e]", "", text
-    )
+    # LINE SEPARATOR / PARAGRAPH SEPARATOR → обычные переносы (не удаляем!)
+    text = text.replace("\u2028", "\n").replace("\u2029", "\n\n")
+    # Zero-width chars, soft hyphen, BOM, invisible formatting
+    return re.sub(r"[\u200b\u200c\u200d\u200e\u200f\u00ad\ufeff\u2060\u202a-\u202e]", "", text)
 
 
 def fix_glued_words(text: str) -> str:

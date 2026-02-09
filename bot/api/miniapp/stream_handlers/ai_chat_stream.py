@@ -233,7 +233,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     or has_diagram_request
                     or specific_visualization_image is not None
                 )
-                collected_chunks = []
+                chunk_count = 0
 
                 async for chunk in yandex_service.generate_text_response_stream(
                     user_message=normalized_message,
@@ -243,8 +243,24 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     max_tokens=max_tokens,
                     model=model_name,
                 ):
-                    full_response += chunk
-                    collected_chunks.append(chunk)
+                    chunk_count += 1
+
+                    # YandexGPT streaming возвращает кумулятивный текст:
+                    # каждый chunk содержит ВЕСЬ сгенерированный текст на данный момент.
+                    # Используем последний chunk как полный ответ (не +=).
+                    is_cumulative = (
+                        chunk_count > 1 and full_response and chunk.startswith(full_response[:50])
+                    )
+                    if is_cumulative:
+                        full_response = chunk
+                    else:
+                        full_response += chunk
+
+                    if chunk_count <= 3:
+                        logger.debug(
+                            f"🔍 Stream chunk #{chunk_count}: cumulative={is_cumulative}, "
+                            f"len={len(chunk)}, preview={repr(chunk[:80])}"
+                        )
 
                     if not will_have_visualization:
                         chunk_data = json.dumps({"chunk": chunk}, ensure_ascii=False)
@@ -270,10 +286,16 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                 # Отправляем изображение если есть
                 if visualization_image_base64:
-                    image_data = json.dumps(
-                        {"image": visualization_image_base64, "type": "visualization"},
-                        ensure_ascii=False,
-                    )
+                    event_payload: dict = {
+                        "image": visualization_image_base64,
+                        "type": visualization_type or "visualization",
+                    }
+                    # Для карт передаём координаты — фронтенд покажет InteractiveMap
+                    if visualization_type == "map":
+                        map_coords = viz_service.get_last_map_coordinates()
+                        if map_coords:
+                            event_payload["mapData"] = map_coords
+                    image_data = json.dumps(event_payload, ensure_ascii=False)
                     await response.write(f"event: image\ndata: {image_data}\n\n".encode())
                     logger.info(
                         f"📊 Stream: Изображение визуализации отправлено "
