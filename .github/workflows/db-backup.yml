@@ -16,15 +16,12 @@ jobs:
   backup:
     name: PostgreSQL Backup
     runs-on: ubuntu-latest
+    container:
+      image: postgres:17
+      options: --user root
     timeout-minutes: 15
 
     steps:
-      - name: Install PostgreSQL client
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq postgresql-client-17 2>/dev/null || \
-          sudo apt-get install -y -qq postgresql-client
-
       - name: Create database dump
         env:
           DATABASE_URL: ${{ secrets.DATABASE_PUBLIC_URL }}
