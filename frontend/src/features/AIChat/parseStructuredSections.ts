@@ -164,3 +164,32 @@ export function isNumberedList(content: string): boolean {
   const numberedLines = lines.filter(l => /^\d+[.)]\s+/.test(l.trim()));
   return numberedLines.length >= lines.length * 0.5;
 }
+
+const MARKDOWN_TABLE_ROW = /^\|.+\|$/;
+
+export function isMarkdownTable(content: string): boolean {
+  const lines = content.split('\n').filter(l => l.trim());
+  if (lines.length < 2) return false;
+  const tableLines = lines.filter(l => MARKDOWN_TABLE_ROW.test(l.trim()));
+  return tableLines.length >= 2 && tableLines.length >= lines.length * 0.5;
+}
+
+/** Парсит markdown-таблицу (| A | B | C |) в заголовки и строки. */
+export function parseMarkdownTable(content: string): { headers: string[]; rows: string[][] } | null {
+  const lines = content.split('\n').filter(l => l.trim()).filter(l => MARKDOWN_TABLE_ROW.test(l.trim()));
+  if (lines.length < 2) return null;
+  const parseRow = (line: string): string[] =>
+    line.split('|').map(c => c.trim()).filter((_, i, arr) => i > 0 && i < arr.length - 1);
+  const firstRow = parseRow(lines[0]);
+  const colCount = firstRow.length;
+  if (colCount === 0) return null;
+  const isSeparator = (cells: string[]) => cells.every(c => /^:?-+:?$/.test(c) || c === '');
+  const secondParsed = parseRow(lines[1]);
+  const dataStart = isSeparator(secondParsed) ? 2 : 1;
+  const rows: string[][] = [];
+  for (let i = dataStart; i < lines.length; i++) {
+    const cells = parseRow(lines[i]);
+    if (cells.length === colCount) rows.push(cells);
+  }
+  return { headers: firstRow, rows };
+}

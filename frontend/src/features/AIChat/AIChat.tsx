@@ -575,6 +575,8 @@ import {
   parseListItems,
   isList,
   isNumberedList,
+  isMarkdownTable,
+  parseMarkdownTable,
 } from './parseStructuredSections';
 
 interface MessageContentProps {
@@ -624,6 +626,40 @@ function renderSectionContent(content: string) {
         ))}
       </ul>
     );
+  }
+
+  if (isMarkdownTable(content)) {
+    const table = parseMarkdownTable(content);
+    if (table && (table.headers.length > 0 || table.rows.length > 0)) {
+      return (
+        <div className="overflow-x-auto my-2 rounded border border-gray-200 dark:border-slate-600">
+          <table className="w-full text-[11px] sm:text-xs border-collapse text-gray-900 dark:text-slate-100">
+            {table.headers.length > 0 && (
+              <thead>
+                <tr>
+                  {table.headers.map((h, i) => (
+                    <th key={i} className="px-2 py-1.5 text-left font-semibold border-b border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50">
+                      {renderTextWithBold(h)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+            )}
+            <tbody>
+              {table.rows.map((row, ri) => (
+                <tr key={ri}>
+                  {row.map((cell, ci) => (
+                    <td key={ci} className="px-2 py-1.5 border-b border-gray-100 dark:border-slate-700/50 whitespace-normal break-words">
+                      {renderTextWithBold(cell)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
   }
 
   // Обычный текст с поддержкой жирного
