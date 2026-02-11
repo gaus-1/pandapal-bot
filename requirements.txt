@@ -38,7 +38,7 @@ fakeredis==2.33.0               # Redis mock для тестов
 cachetools==6.2.4               # In-memory кеш утилиты
 
 # Безопасность и шифрование
-cryptography==46.0.3            # Криптографическая библиотека
+cryptography==46.0.5            # Криптографическая библиотека
 cffi==2.0.0                     # C Foreign Function Interface
 pycparser==2.23                 # C парсер для cffi
 rsa==4.9.1                      # RSA шифрование
