@@ -65,7 +65,7 @@ npm run dev
 - **Генерация изображений** — создание картинок по описанию через YandexART
 - **Объяснение взрослых тем** — деньги, банки, налоги, ЖКУ, документы, здоровье простыми словами для подготовки к взрослой жизни
 - **Адаптивное обучение** — отслеживание проблемных тем, автоматическая адаптация сложности под уровень ученика
-- **Enhanced RAG система** — умный поиск по базе знаний с векторным семантическим кешем (pgvector + Yandex Embeddings API, cosine similarity) и контекстной компрессией (сокращение объёма контекста 75–90%)
+- **Enhanced RAG система** — профессиональный RAG с семантикой и векторами: гибридный поиск (векторный pgvector + keyword), таблица `knowledge_embeddings`, VectorSearchService, контекстная компрессия (75–90%), семантический кеш
 - Streaming ответы через Server-Sent Events для мгновенной генерации
 - Автоматический перевод и объяснение грамматики для 5 языков
 - Игры PandaPalGo: Крестики-нолики, Шашки с умным противником, 2048, Эрудит (составление слов)
@@ -84,7 +84,7 @@ npm run dev
 ### Backend
 
 - Python 3.13, aiogram 3.24, aiohttp 3.13
-- SQLAlchemy 2.0, PostgreSQL 17, Alembic
+- SQLAlchemy 2.0, PostgreSQL 17 + pgvector, Alembic
 - Redis 7.1 для сессий (Upstash)
 - Yandex Cloud: YandexGPT Pro, SpeechKit STT, Vision OCR, Translate API, Embeddings API (text-search-doc/query)
 - YooKassa 3.9.0 для платежей (продакшн режим)
@@ -99,7 +99,7 @@ npm run dev
 
 ### Инфраструктура
 
-- Railway.app для хостинга (webhook режим, 24/7)
+- Railway.app для хостинга (webhook режим, 24/7): web-сервис + pgvector (PostgreSQL с расширением)
 - Cloudflare для DNS, SSL, CDN
 - GitHub Actions для CI/CD
 - Upstash Redis для сессий
@@ -126,6 +126,7 @@ PandaPal/
 │   │   ├── yandex_cloud_service.py      # Низкоуровневый Yandex Cloud клиент
 │   │   ├── yandex_ai_response_generator.py  # Генерация AI ответов с RAG
 │   │   ├── rag/                         # Enhanced RAG система
+│   │   │   ├── vector_search.py         # Семантический поиск (pgvector, knowledge_embeddings)
 │   │   │   ├── query_expander.py        # Расширение запросов (multi-query)
 │   │   │   ├── reranker.py              # Переранжирование результатов
 │   │   │   ├── semantic_cache.py        # Семантическое кеширование
@@ -231,6 +232,7 @@ PandaPal/
 │   └── performance/        # Тесты производительности и нагрузки
 ├── alembic/                # Миграции БД (Alembic)
 ├── scripts/                # Утилиты (см. scripts/README.md)
+│   └── update_knowledge_base.py  # Скрапинг nsportal.ru, school203.spb.ru + индексация в knowledge_embeddings
 ├── config/                 # Конфигурация (см. config/README.md)
 ├── server_routes/          # Регистрация роутов (health, api, static, middleware)
 └── web_server.py           # Entry point (aiohttp + aiogram webhook + frontend)
@@ -292,9 +294,10 @@ graph TB
 - `yandex_cloud_service.py` — низкоуровневая работа с Yandex Cloud API
 - `yandex_ai_response_generator.py` — генерация ответов с RAG и Dependency Injection
 - **`rag/`** — Enhanced RAG система для умного поиска:
+  - `vector_search.py` — семантический поиск по `knowledge_embeddings` (pgvector, cosine similarity, Yandex Embeddings API)
   - `query_expander.py` — multi-query RAG, расширение синонимами (список, квадратные корни и др.)
   - `reranker.py` — переранжирование по relevance, age, recency, source quality
-  - `semantic_cache.py` — векторный семантический кеш (pgvector + Yandex Embeddings API, cosine similarity)
+  - `semantic_cache.py` — векторный семантический кеш (pgvector + Yandex Embeddings API)
   - `compressor.py` — контекстная компрессия (сокращение объёма контекста 75–90%, защита списков при запросах «список»/«таблица»)
 - `knowledge_service.py` — база знаний с enhanced_search и дедупликацией
 - `speech_service.py` — распознавание голоса через Yandex SpeechKit STT
@@ -483,6 +486,18 @@ pytest tests/ --cov=bot --cov-report=html
 
 Сообщить об уязвимости: см. [SECURITY.md](.github/SECURITY.md)
 
+## Наполнение базы знаний (RAG)
+
+Для семантического поиска нужно один раз проиндексировать материалы в `knowledge_embeddings`:
+
+```bash
+# Локально (с Railway DATABASE_URL — через railway run)
+railway link   # выбрать проект PandaPal
+railway run python scripts/update_knowledge_base.py
+```
+
+Скрипт скачивает материалы с nsportal.ru, school203.spb.ru, индексирует в pgvector.
+
 ## Переменные окружения (Railway / локально)
 
 Обязательные переменные для запуска описаны в `config/env.template`. Скопируйте в `.env` и заполните:
@@ -494,8 +509,10 @@ pytest tests/ --cov=bot --cov-report=html
 
 ## Последние изменения (2025–2026)
 
-### RAG, визуализации, голос, embeddings (февраль 2026)
+### RAG, pgvector, Railway, визуализации (февраль 2026)
 
+- **RAG с pgvector**: таблица `knowledge_embeddings`, VectorSearchService, гибридный поиск (векторный + keyword), скрипт `update_knowledge_base.py` для индексации (nsportal.ru, school203.spb.ru, Wikipedia)
+- **Railway deployment**: pgvector на Railway, DATABASE_URL через `pgvector.railway.internal` (private network), SSL disable для внутренней сети
 - **Визуализация**: таблица значений квадратных корней √1–√50 (algebra.py), паттерн для «список/таблица квадратных корней» в detectors
 - **RAG**: расширены паттерны `_extract_topic_from_question` для «список», «таблица значений», «все значения»; лимит `format_knowledge_for_ai` 300→1000 символов; защита списков в ContextCompressor
 - **Промпты**: правила для запросов «список»/«таблица значений» — 10–15 конкретных примеров
@@ -658,4 +675,4 @@ pytest tests/ --cov=bot --cov-report=html
 
 ## GitHub Topics
 
-`telegram-bot` `education` `ai-assistant` `yandex-cloud` `react` `typescript` `python` `postgresql` `educational-platform` `kids-learning` `homework-helper` `aiogram` `mini-app`
+`telegram-bot` `education` `ai-assistant` `yandex-cloud` `react` `typescript` `python` `postgresql` `pgvector` `rag` `educational-platform` `kids-learning` `homework-helper` `aiogram` `mini-app`

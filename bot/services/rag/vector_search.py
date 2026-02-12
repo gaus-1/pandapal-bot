@@ -164,7 +164,7 @@ class VectorSearchService:
                         """
                         INSERT INTO knowledge_embeddings (title, content, subject, source_url, embedding, source_hash)
                         VALUES (:title, :content, :subject, :source_url, CAST(:vec AS vector), :source_hash)
-                        ON CONFLICT (source_hash) DO UPDATE SET
+                        ON CONFLICT (source_hash) WHERE source_hash IS NOT NULL DO UPDATE SET
                             content = EXCLUDED.content,
                             embedding = EXCLUDED.embedding,
                             created_at = now()

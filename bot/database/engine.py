@@ -28,13 +28,15 @@ if not is_sqlite:
     # Определяем режим SSL:
     # - localhost: prefer
     # - railway.internal (private network): disable — pgvector не поддерживает SSL
+    # - proxy.rlwy.net (Railway TCP Proxy): disable — прокси не поддерживает SSL
     # - публичные хосты: require
     db_url = settings.database_url
     is_localhost = "localhost" in db_url or "127.0.0.1" in db_url
     is_private_network = "railway.internal" in db_url
+    is_railway_tcp_proxy = "proxy.rlwy.net" in db_url
     if is_localhost:
         ssl_mode = "prefer"
-    elif is_private_network:
+    elif is_private_network or is_railway_tcp_proxy:
         ssl_mode = "disable"
     else:
         ssl_mode = "require"

@@ -33,7 +33,7 @@ PandaPal is an intelligent assistant for homework help. The bot works 24/7 and h
 - **Image generation** — create pictures from descriptions via YandexART
 - **Adult topics explained** — money, banks, taxes, utilities, documents, health in simple words for life preparation
 - **Adaptive learning** — tracking problematic topics, automatic difficulty adaptation to student level
-- **Enhanced RAG system** — intelligent knowledge base search with vector semantic cache (pgvector + Yandex Embeddings API, cosine similarity) and context compression (75-90% context reduction)
+- **Enhanced RAG system** — Professional RAG with semantics and vectors: hybrid search (pgvector vector + keyword), `knowledge_embeddings` table, VectorSearchService, context compression (75–90%), semantic cache
 - Streaming responses via Server-Sent Events for instant generation
 - Automatic translation and grammar explanations for 5 languages
 - PandaPalGo Games: Tic-Tac-Toe, Checkers with smart opponent, 2048, Erudite (word building)
@@ -79,6 +79,17 @@ npm run dev
 
 Full installation and configuration documentation: see [docs/](docs/)
 
+### Knowledge base indexing (RAG)
+
+For semantic search, index materials into `knowledge_embeddings` once:
+
+```bash
+railway link   # select PandaPal project
+railway run python scripts/update_knowledge_base.py
+```
+
+Script scrapes nsportal.ru, school203.spb.ru and indexes into pgvector.
+
 ### Environment variables (Railway / local)
 
 Required variables are described in `config/env.template`. Copy to `.env` and fill in:
@@ -93,7 +104,7 @@ Required variables are described in `config/env.template`. Copy to `.env` and fi
 ### Backend
 
 - Python 3.13, aiogram 3.24, aiohttp 3.13
-- SQLAlchemy 2.0, PostgreSQL 17, Alembic
+- SQLAlchemy 2.0, PostgreSQL 17 + pgvector, Alembic
 - Redis 7.1 for sessions (Upstash)
 - Yandex Cloud: YandexGPT Pro, SpeechKit STT, Vision OCR, Translate API, Embeddings API (text-search-doc/query)
 - YooKassa 3.9.0 for payments (production mode)
@@ -109,7 +120,7 @@ Required variables are described in `config/env.template`. Copy to `.env` and fi
 
 ### Infrastructure
 
-- Railway.app for hosting (webhook mode, 24/7)
+- Railway.app for hosting (webhook mode, 24/7): web service + pgvector (PostgreSQL with extension)
 - Cloudflare for DNS, SSL, CDN
 - GitHub Actions for CI/CD
 - Upstash Redis for sessions
@@ -129,7 +140,12 @@ PandaPal/
 │   │   │   └── helpers.py   # Helpers (Premium, viz, translation, sending, feedback)
 │   │   └── ...              # Other handlers
 │   ├── services/            # Business logic (AI, payments, games, Mini App, RAG)
-│   │   ├── rag/             # Enhanced RAG system (query_expander, reranker, semantic_cache pgvector, compressor)
+│   │   ├── rag/             # Enhanced RAG system
+│   │   │   ├── vector_search.py  # Semantic search (pgvector, knowledge_embeddings)
+│   │   │   ├── query_expander.py # Multi-query expansion
+│   │   │   ├── reranker.py       # Result reranking
+│   │   │   ├── semantic_cache.py # Semantic cache
+│   │   │   └── compressor.py     # Context compression (75-90%)
 │   │   ├── embeddings_service.py  # Vector embeddings (Yandex Embeddings API)
 │   │   ├── cache/           # Caching package (Redis + Memory LRU, SOLID SRP)
 │   │   ├── miniapp/         # Mini App services (package)
@@ -276,8 +292,10 @@ pytest tests/ --cov=bot --cov-report=html
 
 ## Recent changes (2025–2026)
 
-### RAG, visualizations, voice, embeddings (February 2026)
+### RAG, pgvector, Railway, visualizations (February 2026)
 
+- **RAG with pgvector**: `knowledge_embeddings` table, VectorSearchService, hybrid search (vector + keyword), `update_knowledge_base.py` script for indexing (nsportal.ru, school203.spb.ru, Wikipedia)
+- **Railway deployment**: pgvector on Railway, DATABASE_URL via `pgvector.railway.internal` (private network), SSL disable for internal network
 - **Visualization**: square roots values table √1–√50 (algebra.py), pattern for "list/table of square roots" in detectors
 - **RAG**: extended `_extract_topic_from_question` patterns for "list", "table of values", "all values"; `format_knowledge_for_ai` limit 300→1000 chars; list protection in ContextCompressor
 - **Prompts**: rules for "list"/"table of values" requests — 10–15 concrete examples
@@ -347,4 +365,4 @@ Details: see [LICENSE](LICENSE)
 
 ## GitHub Topics
 
-`telegram-bot` `education` `ai-assistant` `yandex-cloud` `react` `typescript` `python` `postgresql` `educational-platform` `kids-learning` `homework-helper` `aiogram` `mini-app`
+`telegram-bot` `education` `ai-assistant` `yandex-cloud` `react` `typescript` `python` `postgresql` `pgvector` `rag` `educational-platform` `kids-learning` `homework-helper` `aiogram` `mini-app`
