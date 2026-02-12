@@ -17,6 +17,7 @@ from bot.services.rag import (
     QueryExpander,
     ResultReranker,
     SemanticCache,
+    VectorSearchService,
 )
 
 
@@ -343,6 +344,17 @@ class TestContextCompressor:
         assert relevance > 0.0
         assert relevance <= 1.2  # Макс = 1.0 + 0.2 бонус за длину
 
+    def test_compress_skips_educational_phrases(self):
+        """Для «что такое», «объясни» контекст не сжимается."""
+        compressor = ContextCompressor()
+        context = "Важный контекст. Ещё один пункт. Третий пункт."
+
+        result = compressor.compress(context, "что такое умножение", max_sentences=1)
+        assert result == context
+
+        result = compressor.compress(context, "объясни теорему Пифагора", max_sentences=1)
+        assert result == context
+
 
 class TestKnowledgeServiceRAG:
     """Тесты интеграции RAG в KnowledgeService."""
@@ -356,9 +368,11 @@ class TestKnowledgeServiceRAG:
         assert hasattr(service, "query_expander")
         assert hasattr(service, "reranker")
         assert hasattr(service, "semantic_cache")
+        assert hasattr(service, "vector_search")
         assert isinstance(service.query_expander, QueryExpander)
         assert isinstance(service.reranker, ResultReranker)
         assert isinstance(service.semantic_cache, SemanticCache)
+        assert isinstance(service.vector_search, VectorSearchService)
 
     def test_deduplicate_results(self):
         """Проверка дедупликации результатов."""
@@ -427,6 +441,7 @@ def test_all_rag_components_importable():
         QueryExpander,
         ResultReranker,
         SemanticCache,
+        VectorSearchService,
     )
 
     # Создаем экземпляры
@@ -434,11 +449,13 @@ def test_all_rag_components_importable():
     reranker = ResultReranker()
     cache = SemanticCache(ttl_hours=24)
     compressor = ContextCompressor()
+    vector_search = VectorSearchService()
 
     assert expander is not None
     assert reranker is not None
     assert cache is not None
     assert compressor is not None
+    assert vector_search is not None
 
     print("✅ Все RAG компоненты успешно импортированы и инициализированы")
 

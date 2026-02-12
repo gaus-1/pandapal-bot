@@ -31,7 +31,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
+        image: pgvector/pgvector:pg17
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: pandapal_test
@@ -79,6 +79,11 @@ jobs:
           pip install isort
           isort --check-only bot
         continue-on-error: true
+
+      - name: 📦 Apply migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pandapal_test
+        run: alembic upgrade head
 
       - name: 🧪 Run tests
         env:

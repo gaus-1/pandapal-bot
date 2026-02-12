@@ -32,8 +32,8 @@ def upgrade() -> None:
     # Шаг 1: Обновить всех учителей на родителей (если есть)
     op.execute("UPDATE users SET user_type = 'parent' WHERE user_type = 'teacher'")
 
-    # Шаг 2: Удалить старый constraint
-    op.drop_constraint("ck_users_user_type", "users", type_="check")
+    # Шаг 2: Удалить старый constraint (если есть — в initial schema его нет)
+    op.execute("ALTER TABLE users DROP CONSTRAINT IF EXISTS ck_users_user_type")
 
     # Шаг 3: Создать новый constraint без 'teacher'
     op.create_check_constraint("ck_users_user_type", "users", "user_type IN ('child', 'parent')")

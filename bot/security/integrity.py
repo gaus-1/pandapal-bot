@@ -171,6 +171,10 @@ class SSRFProtection:
         "mel.fm",
         "deti.mail.ru",
         "umorashka.ru",
+        "nsportal.ru",
+        "school203.spb.ru",
+        "ru.wikipedia.org",
+        "wikipedia.org",
     ]
 
     # Запрещенные IP диапазоны (внутренние сети)

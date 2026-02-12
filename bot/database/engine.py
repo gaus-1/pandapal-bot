@@ -25,13 +25,22 @@ pool_class = NullPool  # По умолчанию NullPool для SQLite
 
 if not is_sqlite:
     # PostgreSQL: используем QueuePool для высокой нагрузки
-    # Определяем режим SSL: для localhost - prefer, для Railway/Render - require
+    # Определяем режим SSL:
+    # - localhost: prefer
+    # - railway.internal (private network): disable — pgvector не поддерживает SSL
+    # - публичные хосты: require
     db_url = settings.database_url
     is_localhost = "localhost" in db_url or "127.0.0.1" in db_url
-    ssl_mode = "prefer" if is_localhost else "require"
+    is_private_network = "railway.internal" in db_url
+    if is_localhost:
+        ssl_mode = "prefer"
+    elif is_private_network:
+        ssl_mode = "disable"
+    else:
+        ssl_mode = "require"
 
     connect_args = {
-        "sslmode": ssl_mode,  # prefer для localhost, require для Railway/Render
+        "sslmode": ssl_mode,
         "connect_timeout": 10,  # Таймаут подключения 10 секунд
     }
     pool_class = QueuePool

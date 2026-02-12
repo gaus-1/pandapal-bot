@@ -15,7 +15,7 @@ import httpx
 from loguru import logger
 
 from bot.services.cache_service import cache_service
-from bot.services.rag import QueryExpander, ResultReranker, SemanticCache
+from bot.services.rag import QueryExpander, ResultReranker, SemanticCache, VectorSearchService
 from bot.services.web_scraper import EducationalContent, WebScraperService
 
 
@@ -42,6 +42,7 @@ class KnowledgeService:
         self.query_expander = QueryExpander()
         self.reranker = ResultReranker()
         self.semantic_cache = SemanticCache(ttl_hours=24)
+        self.vector_search = VectorSearchService()
 
         # Запрещенные паттерны для детей (ТОЛЬКО опасный контент, НЕ образовательный)
         # "война", "смерть" и т.д. - это учебные темы истории, их НЕ блокируем
@@ -120,21 +121,27 @@ class KnowledgeService:
             logger.debug(f"📚 Semantic cache hit: {user_question[:50]}")
             return cached_result
 
+        # 1. Векторный поиск (semantic)
+        vector_results = await self.vector_search.search(user_question, top_k=5)
+
+        # 2. Keyword поиск
         expanded_query = self.query_expander.expand(user_question)
         logger.debug(f"📚 Expanded query: {expanded_query}")
-
         query_variations = self.query_expander.generate_variations(user_question)
-        all_results = []
+        keyword_results = []
         for variation in query_variations:
             results = await self.get_helpful_content(variation, user_age)
-            all_results.extend(results)
+            keyword_results.extend(results)
 
+        all_results = vector_results + keyword_results
         unique_results = self._deduplicate_results(all_results)
 
+        # 3. Wikipedia fallback; при получении — индексируем для будущего семантического поиска
         if not unique_results and use_wikipedia:
             wiki_content = await self.get_wikipedia_educational(user_question, user_age)
             if wiki_content:
                 unique_results = [wiki_content]
+                await self.vector_search.index_content(wiki_content)
 
         ranked_results = self.reranker.rerank(user_question, unique_results, user_age, top_k=top_k)
 
@@ -698,7 +705,7 @@ class KnowledgeService:
         topic = self._extract_topic_from_question(question)
         if not topic:
             return None
-        result = await self.get_wikipedia_summary(topic, user_age, max_length=400)
+        result = await self.get_wikipedia_summary(topic, user_age, max_length=1200)
         return result[0] if result else None
 
     async def get_wikipedia_educational(
@@ -710,7 +717,7 @@ class KnowledgeService:
         topic = self._extract_topic_from_question(question)
         if not topic:
             return None
-        result = await self.get_wikipedia_summary(topic, user_age, max_length=400)
+        result = await self.get_wikipedia_summary(topic, user_age, max_length=1200)
         if not result:
             return None
         extract, title = result

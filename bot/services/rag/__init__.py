@@ -12,10 +12,12 @@ from .compressor import ContextCompressor
 from .query_expander import QueryExpander
 from .reranker import ResultReranker
 from .semantic_cache import SemanticCache
+from .vector_search import VectorSearchService
 
 __all__ = [
     "QueryExpander",
     "ResultReranker",
     "SemanticCache",
     "ContextCompressor",
+    "VectorSearchService",
 ]

@@ -3,8 +3,24 @@
 import re
 
 _LIST_TABLE_PATTERNS = frozenset(
-    {"список", "таблица", "таблиц", "значений", "значения", "перечень"}
+    {
+        "список",
+        "таблица",
+        "таблиц",
+        "значений",
+        "значения",
+        "перечень",
+        "объясни",
+        "расскажи",
+        "русский",
+        "литература",
+        "орфография",
+        "пунктуация",
+        "разбор",
+    }
 )
+
+_EDUCATIONAL_FULL_PHRASES = ("что такое", "кто такой", "расскажи про")
 
 
 class ContextCompressor:
@@ -30,9 +46,12 @@ class ContextCompressor:
         if not context:
             return ""
 
-        # Для запросов списка/таблицы — не сжимать, чтобы не потерять перечисления
-        q_words = set(question.lower().split())
+        # Для запросов списка/таблицы, объяснений, русского/литературы — не сжимать
+        q_lower = question.lower()
+        q_words = set(q_lower.split())
         if q_words & _LIST_TABLE_PATTERNS:
+            return context
+        if any(phrase in q_lower for phrase in _EDUCATIONAL_FULL_PHRASES):
             return context
 
         # Разбиваем на предложения

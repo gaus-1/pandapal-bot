@@ -62,10 +62,10 @@ class Settings(BaseSettings):
 
     # AI SETTINGS
     ai_temperature: float = Field(
-        default=0.4,
+        default=0.35,
         ge=0.0,
         le=1.0,
-        description="Температура для Pro модели (рекомендуется 0.4 для баланса точности и естественности)",
+        description="Температура для Pro модели (0.35 для стабильных точных ответов)",
         validation_alias=AliasChoices("AI_TEMPERATURE", "ai_temperature"),
     )
 
@@ -79,10 +79,10 @@ class Settings(BaseSettings):
 
     # Настройки для Pro модели (для обратной совместимости, используются как основные)
     ai_temperature_pro: float = Field(
-        default=0.4,
+        default=0.35,
         ge=0.0,
         le=1.0,
-        description="Температура для Pro модели (рекомендуется 0.4 для баланса точности и естественности)",
+        description="Температура для Pro модели (0.35 для стабильных точных ответов)",
         validation_alias=AliasChoices("AI_TEMPERATURE_PRO", "ai_temperature_pro"),
     )
 

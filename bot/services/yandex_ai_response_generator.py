@@ -34,11 +34,9 @@ def add_random_engagement_question(response: str) -> str:
         return response
 
     # Варианты вопросов для вовлечения (тон в духе панды: дружеский, без давления)
+    # Без «Объяснить подробнее?» — промпт запрещает приглашать подробнее, даём полный ответ сразу
     engagement_questions = [
-        "Понятно? Могу объяснить подробнее?",
-        "Объяснить подробнее?",
         "Спроси меня ещё что-нибудь, мне нравится с тобой общаться!",
-        "Хочешь, объясню подробнее...",
         "Есть вопросы посложнее?",
         "Что ещё разберём?",
         "Какой следующий вопрос?",
@@ -998,12 +996,12 @@ class YandexAIResponseGenerator:
             if web_context:
                 compressor = ContextCompressor()
                 max_sent = (
-                    15
+                    25
                     if any(
                         w in user_message.lower()
                         for w in ("список", "таблица значений", "все значения")
                     )
-                    else 7
+                    else 15
                 )
                 web_context = compressor.compress(
                     context=web_context,

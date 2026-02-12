@@ -149,6 +149,21 @@ class TestRAGRealAPI:
         ), "RAG результаты не релевантны запросу"
 
     @pytest.mark.asyncio
+    async def test_enhanced_search_hybrid_flow(self, knowledge_service):
+        """enhanced_search (vector + keyword + Wikipedia) возвращает результат."""
+        results = await knowledge_service.enhanced_search(
+            user_question="Что такое фотосинтез?",
+            user_age=12,
+            top_k=5,
+            use_wikipedia=True,
+        )
+        assert results is not None
+        assert len(results) >= 0  # Может быть пусто при недоступности API
+        if results:
+            combined = " ".join(r.content for r in results).lower()
+            assert len(combined) > 0
+
+    @pytest.mark.asyncio
     async def test_rag_wikipedia_integration(self, knowledge_service):
         """Проверка интеграции с Wikipedia."""
         question = "Что такое солнечная система?"

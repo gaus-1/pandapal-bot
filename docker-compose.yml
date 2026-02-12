@@ -3,9 +3,9 @@
 version: '3.8'
 
 services:
-  # База данных PostgreSQL 17
+  # База данных PostgreSQL 17 с pgvector
   postgres:
-    image: postgres:17-alpine
+    image: pgvector/pgvector:pg17
     environment:
       POSTGRES_DB: pandapal
       POSTGRES_USER: pandapal_user
@@ -13,9 +13,10 @@ services:
       # Оптимизация для высокой нагрузки
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
     ports:
-      - "5432:5432"
+      - "5433:5432"  # 5433 на хосте: локальный postgres использует 5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_pgvector.sql:/docker-entrypoint-initdb.d/01_init_pgvector.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U pandapal_user -d pandapal"]
       interval: 10s
