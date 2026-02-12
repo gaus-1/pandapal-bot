@@ -1052,7 +1052,11 @@ class YandexAIResponseGenerator:
             )
 
             if web_context:
-                enhanced_system_prompt += f"\n\n📚 Дополнительная информация:\n{web_context}\n\n"
+                from bot.config.prompts import RAG_FORMAT_REMINDER
+
+                enhanced_system_prompt += (
+                    f"\n\n📚 Дополнительная информация:\n{web_context}\n\n{RAG_FORMAT_REMINDER}\n\n"
+                )
 
             # Используем Pro модель для всех пользователей (YandexGPT Pro Latest - стабильная версия)
             # Формат yandexgpt-pro/latest - Pro версия YandexGPT

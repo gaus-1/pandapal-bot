@@ -398,6 +398,29 @@ class KnowledgeService:
 
         return stats
 
+    @staticmethod
+    def _paragraphize_snippet(text: str, max_chars: int = 1000) -> str:
+        """Разбить сплошной текст на абзацы (по 1–2 предложения), чтобы модель не копировала стену текста."""
+        if not text or len(text) > max_chars:
+            text = (text or "")[:max_chars]
+        if "\n\n" in text:
+            return text.strip()
+        sentences = re.split(r"(?<=[.!?])\s+", text)
+        sentences = [s.strip() for s in sentences if s.strip()]
+        if len(sentences) <= 1:
+            return text.strip()
+        parts = []
+        buf = []
+        for sent in sentences:
+            buf.append(sent)
+            if len(buf) >= 2:
+                parts.append(" ".join(buf))
+                buf = []
+        if buf:
+            parts.append(" ".join(buf))
+        result = "\n\n".join(parts)
+        return result[:max_chars] if len(result) > max_chars else result
+
     def format_knowledge_for_ai(self, materials: list[EducationalContent]) -> str:
         """
         Форматировать материалы для передачи в AI.
@@ -417,7 +440,8 @@ class KnowledgeService:
         for i, material in enumerate(materials[:3], 1):  # Берем топ-3 материала
             formatted_content += f"\n{i}. {material.title}\n"
             formatted_content += f"   Предмет: {material.subject}\n"
-            content_snippet = material.content[:content_limit]
+            raw = material.content[:content_limit]
+            content_snippet = self._paragraphize_snippet(raw) if raw else ""
             suffix = "..." if len(material.content) > content_limit else ""
             formatted_content += f"   Содержание: {content_snippet}{suffix}\n"
             formatted_content += f"   Источник: {material.source_url}\n"

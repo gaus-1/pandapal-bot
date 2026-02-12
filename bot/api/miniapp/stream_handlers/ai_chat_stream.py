@@ -179,7 +179,11 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     context=web_context, question=normalized_message, max_sentences=7
                 )
             if web_context:
-                enhanced_system_prompt += f"\n\n📚 Дополнительная информация:\n{web_context}\n"
+                from bot.config.prompts import RAG_FORMAT_REMINDER
+
+                enhanced_system_prompt += (
+                    f"\n\n📚 Дополнительная информация:\n{web_context}\n\n{RAG_FORMAT_REMINDER}\n\n"
+                )
 
             model_name = settings.yandex_gpt_model
             temperature = settings.ai_temperature

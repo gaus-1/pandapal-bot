@@ -67,7 +67,8 @@ class ContextCompressor:
         # Восстанавливаем порядок
         top_sentences.sort(key=lambda s: sentences.index(s))
 
-        return " ".join(top_sentences)
+        # Абзацы (пустая строка между предложениями), чтобы модель не копировала сплошной текст
+        return "\n\n".join(top_sentences)
 
     def _split_sentences(self, text: str) -> list[str]:
         """Разбить текст на предложения."""
