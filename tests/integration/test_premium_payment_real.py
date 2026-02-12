@@ -399,23 +399,17 @@ class TestPremiumPaymentReal:
 
     @pytest.mark.asyncio
     async def test_premium_endpoint_activation(self, real_db_session, test_user):
-        """КРИТИЧНО: Проверка активации через API endpoint"""
+        """Endpoint payment-success возвращает статус: без подписки — ожидание, с подпиской — expires_at"""
         from contextlib import contextmanager
         from unittest.mock import patch
 
         from bot.api.premium_endpoints import handle_successful_payment
 
-        # Мокаем get_db чтобы использовать нашу SQLite сессию
         @contextmanager
         def mock_get_db():
             yield real_db_session
 
-        # Создаём тестовый запрос
-        request_data = {
-            "telegram_id": 999888777,
-            "plan_id": "month",
-            "transaction_id": "api_tx_123",
-        }
+        request_data = {"telegram_id": 999888777, "plan_id": "month", "transaction_id": "api_tx_123"}
 
         class MockRequest:
             async def json(self):
@@ -424,35 +418,37 @@ class TestPremiumPaymentReal:
         request = MockRequest()
 
         with patch("bot.api.premium_endpoints.get_db", mock_get_db):
-            # Вызываем endpoint
             response = await handle_successful_payment(request)
 
-            # aiohttp Response имеет метод json() который возвращает корутину
-            # Но в тестах response может быть уже разобранным
-            if hasattr(response, "_body"):
-                import json
+            import json
 
+            if hasattr(response, "_body") and response._body:
                 response_data = json.loads(response._body.decode("utf-8"))
-            elif hasattr(response, "text"):
-                import json
-
-                response_data = json.loads(await response.text())
             else:
-                # Если это уже dict
-                response_data = response if isinstance(response, dict) else {}
+                response_data = await response.json() if hasattr(response, "json") else {}
 
-            # Коммитим изменения
-            real_db_session.commit()
-
-            # Проверяем результат
             assert response.status == 200
             assert response_data["success"] is True
-            assert "expires_at" in response_data
 
-            # Проверяем что подписка активирована в БД
+            # Без подписки — ожидание
             subscription_service = SubscriptionService(real_db_session)
-            assert subscription_service.is_premium_active(999888777)
+            assert not subscription_service.is_premium_active(999888777)
+            assert "expires_at" not in response_data
 
-            subscription = subscription_service.get_active_subscription(999888777)
-            assert subscription.plan_id == "month"
-            assert subscription.transaction_id == "api_tx_123"
+            # Активируем подписку вручную (endpoint только возвращает статус, активация — через webhook)
+            subscription_service.activate_subscription(
+                telegram_id=999888777,
+                plan_id="month",
+                transaction_id="api_tx_123",
+                invoice_payload="premium_month_999888777",
+            )
+            real_db_session.commit()
+
+            # Повторный запрос — уже с подпиской
+            response2 = await handle_successful_payment(request)
+            if hasattr(response2, "_body") and response2._body:
+                response_data2 = json.loads(response2._body.decode("utf-8"))
+            else:
+                response_data2 = await response2.json()
+            assert response_data2["is_premium"] is True
+            assert "expires_at" in response_data2
