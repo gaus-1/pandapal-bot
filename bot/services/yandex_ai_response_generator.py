@@ -979,7 +979,12 @@ class YandexAIResponseGenerator:
             str: Сгенерированный ответ AI.
         """
         try:
-            # Правила по запрещённым темам отключены — модерация не применяется
+            # Модерация: блокируем запрещённые темы до вызова API
+            is_safe, block_reason = self.moderator.moderate(user_message)
+            if not is_safe:
+                from bot.services.moderation_service import ContentModerationService
+
+                return ContentModerationService().get_safe_response_alternative(block_reason)
 
             # RAG: enhanced_search подтягивает Wikipedia при пустой базе (use_wikipedia)
             relevant_materials = await self.knowledge_service.enhanced_search(

@@ -23,6 +23,7 @@ Single Responsibility. Проверяет текстовые сообщения 
 - Interface Segregation: минимальный интерфейс IModerator
 """
 
+from bot.services.moderation_service import ContentModerationService
 from bot.services.yandex_ai_response_generator import IModerator
 
 
@@ -35,9 +36,12 @@ class ContentModerator(IModerator):
     - единственная задача: модерация контента.
     """
 
-    def moderate(self, text: str) -> tuple[bool, str]:  # noqa: ARG002
-        """
-        Проверка контента на безопасность.
-        Отключено: свобода модели, сама знает границы.
-        """
-        return True, ""
+    def __init__(self) -> None:
+        self._moderation_service = ContentModerationService()
+
+    def moderate(self, text: str) -> tuple[bool, str]:
+        """Проверка контента на безопасность через ContentModerationService."""
+        is_safe, reason = self._moderation_service.is_safe_content(text)
+        if is_safe:
+            return True, "контент безопасен"
+        return False, f"запрещен: {reason or 'запрещённая тема'}"
