@@ -4,7 +4,14 @@
 Проверяет работу formula_explainer и интеграцию с AI сервисом.
 """
 
+import os
+
 import pytest
+
+# Тесты с AI требуют реальный Yandex API ключ (не test_api_key, не AQVTEST_*)
+def _has_real_api_key():
+    k = os.getenv("YANDEX_CLOUD_API_KEY", "") or ""
+    return k and k != "test_api_key" and "AQVTEST" not in k and len(k) > 20
 from loguru import logger
 
 from bot.services.ai_service_solid import get_ai_service
@@ -78,6 +85,7 @@ class TestFormulaExplainer:
 
 @pytest.mark.asyncio
 @pytest.mark.integration
+@pytest.mark.skipif(not _has_real_api_key(), reason="Требуется реальный Yandex API ключ")
 class TestFormulaExplanationsWithAI:
     """Интеграционные тесты объяснения формул с реальным AI."""
 

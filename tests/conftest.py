@@ -7,7 +7,6 @@ import asyncio
 import os
 import sys
 from pathlib import Path
-from typing import Generator
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -69,14 +68,6 @@ except ImportError:
 from bot.models import ChatHistory, User
 from bot.services.ai_service_solid import YandexAIService
 from bot.services.moderation_service import ContentModerationService
-
-
-@pytest.fixture(scope="session")
-def event_loop() -> Generator:
-    """Создание event loop для async тестов"""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture

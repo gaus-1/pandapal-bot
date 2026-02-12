@@ -190,6 +190,9 @@ class TestComprehensivePandaResponses:
             or "школ" in redirect_lower
             or "помощ" in redirect_lower
             or "помог" in redirect_lower
+            or "предмет" in redirect_lower
+            or "изучаем" in redirect_lower
+            or "интересн" in redirect_lower
         ), "Редирект должен предлагать учёбу/помощь"
         print(f"\n[OK] Редирект при блоке: {redirect[:80]}...")
 

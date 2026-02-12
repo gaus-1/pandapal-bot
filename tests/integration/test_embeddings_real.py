@@ -12,11 +12,13 @@ import pytest
 from bot.services.embeddings_service import get_embedding_service
 
 
+def _has_real_embeddings_api():
+    k = os.getenv("YANDEX_CLOUD_API_KEY", "") or ""
+    return k and k not in ("test_api_key", "AQVTEST_KEY_FOR_CI") and len(k) > 20
+
+
 @pytest.mark.integration
-@pytest.mark.skipif(
-    not os.getenv("YANDEX_CLOUD_API_KEY") or not os.getenv("YANDEX_CLOUD_FOLDER_ID"),
-    reason="Требуется YANDEX_CLOUD_API_KEY и YANDEX_CLOUD_FOLDER_ID",
-)
+@pytest.mark.skipif(not _has_real_embeddings_api(), reason="Требуется реальный Yandex API ключ")
 class TestEmbeddingsReal:
     """Тесты EmbeddingService с реальным API."""
 
