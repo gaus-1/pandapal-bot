@@ -437,6 +437,25 @@ def fix_glued_words(text: str) -> str:
     return text
 
 
+def _ensure_paragraph_breaks(text: str, min_length: int = 300, sentences_per_para: int = 2) -> str:
+    """
+    Если текст длинный и без абзацев (нет \\n\\n) — вставить разбивку по предложениям.
+    Страховка от «полотна» текста от модели.
+    """
+    if not text or "\n\n" in text or len(text) < min_length:
+        return text
+    # Разбиваем по границам предложений (. ! ? с последующим пробелом)
+    parts = re.split(r"(?<=[.!?])\s+", text)
+    parts = [p.strip() for p in parts if p.strip() and len(p.strip()) > 15]
+    if len(parts) < 2:
+        return text
+    paragraphs = []
+    for i in range(0, len(parts), sentences_per_para):
+        chunk = parts[i : i + sentences_per_para]
+        paragraphs.append(" ".join(chunk))
+    return "\n\n".join(paragraphs)
+
+
 def clean_ai_response(text: str) -> str:
     """
     Очищает ответ AI от LaTeX, сложных математических символов и повторяющихся фрагментов.
@@ -789,6 +808,9 @@ def clean_ai_response(text: str) -> str:
     text = re.sub(r"\n\s*\n\s*\n+", "\n\n", text)  # Множественные переносы строк в два
     text = text.strip()
 
+    # Страховка: длинный сплошной текст без абзацев — разбиваем по предложениям (каждые 2)
+    text = _ensure_paragraph_breaks(text)
+
     return text
 
 
@@ -1057,6 +1079,9 @@ class YandexAIResponseGenerator:
                 enhanced_system_prompt += (
                     f"\n\n📚 Дополнительная информация:\n{web_context}\n\n{RAG_FORMAT_REMINDER}\n\n"
                 )
+            from bot.config.prompts import STRUCTURE_REMINDER_ALWAYS
+
+            enhanced_system_prompt += f"\n\n{STRUCTURE_REMINDER_ALWAYS}\n\n"
 
             # Используем Pro модель для всех пользователей (YandexGPT Pro Latest - стабильная версия)
             # Формат yandexgpt-pro/latest - Pro версия YandexGPT

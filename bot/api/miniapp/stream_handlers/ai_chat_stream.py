@@ -184,6 +184,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 enhanced_system_prompt += (
                     f"\n\n📚 Дополнительная информация:\n{web_context}\n\n{RAG_FORMAT_REMINDER}\n\n"
                 )
+            from bot.config.prompts import STRUCTURE_REMINDER_ALWAYS
+
+            enhanced_system_prompt += f"\n\n{STRUCTURE_REMINDER_ALWAYS}\n\n"
 
             model_name = settings.yandex_gpt_model
             temperature = settings.ai_temperature
