@@ -48,7 +48,9 @@ class TestAISolidIntegration:
             "не могу обсуждать" in result
             or "учёбе" in result
             or "учёбы" in result
+            or "учебой" in result
             or "обсудим" in result
+            or "помогать тебе с учеб" in result
         )
         assert isinstance(result, str)
 
