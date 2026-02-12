@@ -106,12 +106,8 @@ class TestDonationReal:
 
     @pytest.mark.asyncio
     async def test_donation_pre_checkout(self, real_db_session, test_user):
-        """КРИТИЧНО: Проверка PreCheckoutQuery для доната"""
+        """КРИТИЧНО: Проверка PreCheckoutQuery для доната (handler не использует БД)"""
         from bot.handlers.payment_handler import pre_checkout_handler
-
-        @contextmanager
-        def mock_get_db():
-            yield real_db_session
 
         mock_answer = AsyncMock()
         query = MagicMock(spec=PreCheckoutQuery)
@@ -122,8 +118,7 @@ class TestDonationReal:
         query.invoice_payload = "donation_888777666_100"
         query.answer = mock_answer
 
-        with patch("bot.handlers.payment_handler.get_db", mock_get_db):
-            await pre_checkout_handler(query)
+        await pre_checkout_handler(query)
 
         # Должен разрешить донат
         mock_answer.assert_called_once()
@@ -131,12 +126,8 @@ class TestDonationReal:
 
     @pytest.mark.asyncio
     async def test_donation_successful_payment(self, real_db_session, test_user):
-        """КРИТИЧНО: Проверка что донат НЕ активирует Premium"""
+        """КРИТИЧНО: Проверка что донат НЕ активирует Premium (handler не использует БД)"""
         from bot.handlers.payment_handler import successful_payment_handler
-
-        @contextmanager
-        def mock_get_db():
-            yield real_db_session
 
         successful_payment = SuccessfulPayment(
             currency="XTR",
@@ -156,21 +147,20 @@ class TestDonationReal:
         # Проверяем что premium НЕ активен до доната
         assert not subscription_service.is_premium_active(888777666)
 
-        with patch("bot.handlers.payment_handler.get_db", mock_get_db):
-            await successful_payment_handler(message_mock)
+        await successful_payment_handler(message_mock)
 
-            # КРИТИЧНО: Premium НЕ должен быть активирован
-            assert not subscription_service.is_premium_active(888777666)
+        # КРИТИЧНО: Premium НЕ должен быть активирован
+        assert not subscription_service.is_premium_active(888777666)
 
-            # Проверяем что НЕТ подписки
-            subscription = subscription_service.get_active_subscription(888777666)
-            assert subscription is None
+        # Проверяем что НЕТ подписки
+        subscription = subscription_service.get_active_subscription(888777666)
+        assert subscription is None
 
-            # Проверяем что отправлено сообщение благодарности
-            message_mock.answer.assert_called_once()
-            call_args = message_mock.answer.call_args
-            message_text = call_args[0][0]
-            assert "Спасибо" in message_text or "поддержку" in message_text.lower()
+        # Проверяем что отправлено сообщение благодарности
+        message_mock.answer.assert_called_once()
+        call_args = message_mock.answer.call_args
+        message_text = call_args[0][0]
+        assert "Спасибо" in message_text or "поддержку" in message_text.lower()
 
     @pytest.mark.asyncio
     async def test_donation_minimum_amount(self, real_db_session, test_user):
@@ -205,12 +195,8 @@ class TestDonationReal:
 
     @pytest.mark.asyncio
     async def test_donation_vs_premium_separation(self, real_db_session, test_user):
-        """КРИТИЧНО: Проверка что донат и Premium разделены"""
+        """КРИТИЧНО: Проверка что донат и Premium разделены (handler не использует БД)"""
         from bot.handlers.payment_handler import successful_payment_handler
-
-        @contextmanager
-        def mock_get_db():
-            yield real_db_session
 
         subscription_service = SubscriptionService(real_db_session)
 
@@ -227,13 +213,12 @@ class TestDonationReal:
         donation_message_mock.successful_payment = donation_payment
         donation_message_mock.answer = AsyncMock()
 
-        with patch("bot.handlers.payment_handler.get_db", mock_get_db):
-            await successful_payment_handler(donation_message_mock)
+        await successful_payment_handler(donation_message_mock)
 
         # Premium НЕ должен быть активен
         assert not subscription_service.is_premium_active(888777666)
 
-        # Теперь делаем Premium платеж
+        # Теперь делаем Premium Stars платеж — handler его игнорирует (Premium только через ЮKassa)
         premium_payment = SuccessfulPayment(
             currency="XTR",
             total_amount=150,
@@ -246,14 +231,9 @@ class TestDonationReal:
         premium_message_mock.successful_payment = premium_payment
         premium_message_mock.answer = AsyncMock()
 
-        with patch("bot.handlers.payment_handler.get_db", mock_get_db):
-            await successful_payment_handler(premium_message_mock)
+        await successful_payment_handler(premium_message_mock)
 
-        # Теперь Premium должен быть активен
-        assert subscription_service.is_premium_active(888777666)
-
-        # Проверяем что подписка создана
+        # Stars с premium_* НЕ активируют Premium (только 299 ₽ через ЮKassa)
+        assert not subscription_service.is_premium_active(888777666)
         subscription = subscription_service.get_active_subscription(888777666)
-        assert subscription is not None
-        assert subscription.plan_id == "month"
-        assert subscription.payment_method == "stars"
+        assert subscription is None
