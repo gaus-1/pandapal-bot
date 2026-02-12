@@ -64,7 +64,7 @@ class TestHealthCheck:
             mock_engine.connect.return_value.__enter__.return_value = mock_conn
             mock_engine.connect.return_value.__exit__.return_value = None
 
-            with patch("bot.api.metrics_endpoint.get_ai_service") as mock_ai:
+            with patch("bot.services.ai_service_solid.get_ai_service") as mock_ai:
                 mock_ai.return_value = MagicMock()
 
                 response = await endpoint.health_check(request)
@@ -87,7 +87,7 @@ class TestHealthCheck:
         with patch("bot.database.engine") as mock_engine:
             mock_engine.connect.side_effect = Exception("Database connection failed")
 
-            with patch("bot.api.metrics_endpoint.get_ai_service") as mock_ai:
+            with patch("bot.services.ai_service_solid.get_ai_service") as mock_ai:
                 mock_ai.return_value = MagicMock()
 
                 response = await endpoint.health_check(request)
@@ -111,11 +111,12 @@ class TestHealthCheck:
             mock_engine.connect.return_value.__enter__.return_value = mock_conn
             mock_engine.connect.return_value.__exit__.return_value = None
 
-            with patch("bot.api.metrics_endpoint.get_ai_service") as mock_ai:
+            with patch("bot.services.ai_service_solid.get_ai_service") as mock_ai:
                 mock_ai.return_value = None
 
                 response = await endpoint.health_check(request)
-                assert response.status == 200
+                # AI unavailable → degraded → 503
+                assert response.status == 503
 
                 import json
 

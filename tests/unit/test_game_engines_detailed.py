@@ -136,11 +136,10 @@ class TestGame2048Detailed:
         result = game.move("left")
         assert result is True
 
-        # Должно быть слияние: [2, 2, 0, 0] -> [4, 0, 0, 0]
+        # Должно быть слияние: [2, 2, 0, 0] -> [4, ..., ...] (+ add_new_tile)
         assert game.board[0][0] == 4
-        assert game.board[0][1] == 0
-
-        # Счет должен увеличиться
+        # После merge добавляется новая плитка в случайную пустую ячейку
+        assert 4 in [game.board[r][c] for r in range(4) for c in range(4)]
         assert game.score >= 4
 
     def test_move_all_directions(self):

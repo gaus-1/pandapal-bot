@@ -66,11 +66,13 @@ class TestAPIAuthorization:
             match_info={"telegram_id": "222222222"},
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+        with patch("bot.api.miniapp.auth.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await miniapp_get_user(request)
+            with patch("bot.api.miniapp.auth.verify_resource_owner") as mock_verify:
+                mock_verify.return_value = (True, None)
+                response = await miniapp_get_user(request)
 
             # API должен возвращать данные пользователя (нет проверки auth в endpoint)
             # Но мы проверяем что endpoint работает корректно
@@ -89,7 +91,7 @@ class TestAPIAuthorization:
             ("-123", 400),
             ("0", 400),
             ("", 400),
-            ("999999999999999999999999", 500),  # Слишком большое число - SQLite ошибка
+            ("999999999999999999999999", (403, 500)),  # 403 (no initData) или 500 (SQLite overflow)
         ]
 
         for invalid_id, expected_status in invalid_ids:
@@ -99,15 +101,20 @@ class TestAPIAuthorization:
                 match_info={"telegram_id": invalid_id},
             )
 
-            with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+            with patch("bot.api.miniapp.auth.get_db") as mock_get_db:
                 mock_get_db.return_value.__enter__.return_value = real_db_session
                 mock_get_db.return_value.__exit__.return_value = None
 
                 response = await miniapp_get_user(request)
 
-                # Должна вернуться ошибка (400 для валидации, 500 для SQLite overflow)
-                assert response.status == expected_status, (
-                    f"Должен быть статус {expected_status} для {invalid_id}"
+                # Должна вернуться ошибка (400 для валидации, 403/500 для остальных)
+                ok = (
+                    response.status in expected_status
+                    if isinstance(expected_status, tuple)
+                    else response.status == expected_status
+                )
+                assert ok, (
+                    f"Должен быть статус {expected_status} для {invalid_id}, получено {response.status}"
                 )
 
     @pytest.mark.asyncio
@@ -124,11 +131,13 @@ class TestAPIAuthorization:
 
         mock_request = MockRequest()
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+        with patch("bot.api.miniapp.auth.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await miniapp_update_user(mock_request)
+            with patch("bot.api.miniapp.auth.verify_resource_owner") as mock_verify:
+                mock_verify.return_value = (True, None)
+                response = await miniapp_update_user(mock_request)
 
             # Должна вернуться ошибка валидации 400
             assert response.status == 400, "Должна быть ошибка валидации для невалидных данных"
@@ -144,11 +153,13 @@ class TestAPIAuthorization:
             match_info={"telegram_id": "999999999"},
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+        with patch("bot.api.miniapp.auth.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await miniapp_get_user(request)
+            with patch("bot.api.miniapp.auth.verify_resource_owner") as mock_verify:
+                mock_verify.return_value = (True, None)
+                response = await miniapp_get_user(request)
 
             # Должен вернуться 404
             assert response.status == 404, "Должен вернуться 404 для несуществующего пользователя"

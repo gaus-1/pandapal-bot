@@ -56,11 +56,11 @@ class TestMiniAppEndpoints:
 
         request = MockRequest()
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+        with patch("bot.api.miniapp.auth.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            with patch("bot.api.miniapp_endpoints.TelegramWebAppAuth") as mock_auth:
+            with patch("bot.api.miniapp.auth.TelegramWebAppAuth") as mock_auth:
                 mock_auth_instance = MagicMock()
                 mock_auth_instance.validate_init_data.return_value = None
                 mock_auth.return_value = mock_auth_instance
@@ -77,11 +77,13 @@ class TestMiniAppEndpoints:
             match_info={"telegram_id": "999999"},
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+        with patch("bot.api.miniapp.auth.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await miniapp_get_user(request)
+            with patch("bot.api.miniapp.auth.verify_resource_owner") as mock_verify:
+                mock_verify.return_value = (True, None)
+                response = await miniapp_get_user(request)
             assert response.status == 404
 
     @pytest.mark.asyncio
@@ -102,11 +104,12 @@ class TestMiniAppEndpoints:
             match_info={"telegram_id": "123456"},
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+        with patch("bot.api.miniapp.progress.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await miniapp_get_progress(request)
+            with patch("bot.api.miniapp.progress.require_owner", return_value=None):
+                response = await miniapp_get_progress(request)
             assert response.status == 200
 
             # web.json_response возвращает Response, читаем body напрямую
@@ -135,11 +138,12 @@ class TestMiniAppEndpoints:
             match_info={"telegram_id": "123456"},
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+        with patch("bot.api.miniapp.progress.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await miniapp_get_achievements(request)
+            with patch("bot.api.miniapp.progress.require_owner", return_value=None):
+                response = await miniapp_get_achievements(request)
             assert response.status == 200
 
             # web.json_response возвращает Response, читаем body напрямую
@@ -168,11 +172,12 @@ class TestMiniAppEndpoints:
             match_info={"telegram_id": "123456"},
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+        with patch("bot.api.miniapp.progress.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await miniapp_get_dashboard(request)
+            with patch("bot.api.miniapp.progress.require_owner", return_value=None):
+                response = await miniapp_get_dashboard(request)
             assert response.status == 200
 
             import json
@@ -200,11 +205,12 @@ class TestMiniAppEndpoints:
             match_info={"telegram_id": "123456"},
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+        with patch("bot.api.miniapp.other.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await miniapp_get_chat_history(request)
+            with patch("bot.api.miniapp.other.require_owner", return_value=None):
+                response = await miniapp_get_chat_history(request)
             assert response.status == 200
 
             import json
@@ -222,7 +228,10 @@ class TestMiniAppEndpoints:
         response = await miniapp_get_subjects(request)
         assert response.status == 200
 
-        data = await response.json()
+        import json
+
+        body = response._body if hasattr(response, "_body") else b"{}"
+        data = json.loads(body.decode("utf-8"))
         assert data["success"] is True
         assert "subjects" in data
         assert isinstance(data["subjects"], list)
@@ -249,11 +258,13 @@ class TestMiniAppEndpoints:
 
         request = MockRequest()
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+        with patch("bot.api.miniapp.auth.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await miniapp_update_user(request)
+            with patch("bot.api.miniapp.auth.verify_resource_owner") as mock_verify:
+                mock_verify.return_value = (True, None)
+                response = await miniapp_update_user(request)
             assert response.status == 200
 
             import json
@@ -326,12 +337,14 @@ class TestMetricsEndpoint:
         endpoint = MetricsEndpoint()
         request = MagicMock()
 
-        with patch("bot.api.metrics_endpoint.engine") as mock_engine:
+        with patch("bot.database.engine") as mock_engine:
             mock_conn = MagicMock()
             mock_engine.connect.return_value.__enter__.return_value = mock_conn
             mock_engine.connect.return_value.__exit__.return_value = None
 
-            response = await endpoint.health_check(request)
+            with patch("bot.services.ai_service_solid.get_ai_service") as mock_ai:
+                mock_ai.return_value = MagicMock()
+                response = await endpoint.health_check(request)
             assert response.status == 200
 
             import json
@@ -348,10 +361,12 @@ class TestMetricsEndpoint:
         endpoint = MetricsEndpoint()
         request = MagicMock()
 
-        with patch("bot.api.metrics_endpoint.engine") as mock_engine:
+        with patch("bot.database.engine") as mock_engine:
             mock_engine.connect.side_effect = Exception("Database connection failed")
 
-            response = await endpoint.health_check(request)
+            with patch("bot.services.ai_service_solid.get_ai_service") as mock_ai:
+                mock_ai.return_value = MagicMock()
+                response = await endpoint.health_check(request)
             assert response.status == 503
 
             import json

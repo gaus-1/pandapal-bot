@@ -61,11 +61,13 @@ class TestSQLInjectionURLParams:
             match_info={"telegram_id": malicious_id},
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+        with patch("bot.api.miniapp.auth.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await miniapp_get_user(request)
+            with patch("bot.api.miniapp.auth.verify_resource_owner") as mock_verify:
+                mock_verify.return_value = (True, None)
+                response = await miniapp_get_user(request)
 
             # Должна вернуться ошибка валидации, а не данные
             assert response.status in [400, 404], "Должна вернуться ошибка валидации"
@@ -83,11 +85,13 @@ class TestSQLInjectionURLParams:
             match_info={"telegram_id": malicious_id},
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+        with patch("bot.api.miniapp.auth.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await miniapp_get_user(request)
+            with patch("bot.api.miniapp.auth.verify_resource_owner") as mock_verify:
+                mock_verify.return_value = (True, None)
+                response = await miniapp_get_user(request)
 
             # Должна вернуться ошибка валидации
             assert response.status in [400, 404]
@@ -105,11 +109,13 @@ class TestSQLInjectionURLParams:
             match_info={"telegram_id": malicious_id},
         )
 
-        with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+        with patch("bot.api.miniapp.auth.get_db") as mock_get_db:
             mock_get_db.return_value.__enter__.return_value = real_db_session
             mock_get_db.return_value.__exit__.return_value = None
 
-            response = await miniapp_get_user(request)
+            with patch("bot.api.miniapp.auth.verify_resource_owner") as mock_verify:
+                mock_verify.return_value = (True, None)
+                response = await miniapp_get_user(request)
 
             # Должна вернуться ошибка валидации
             assert response.status in [400, 404]
@@ -134,7 +140,7 @@ class TestSQLInjectionURLParams:
                 match_info={"telegram_id": malicious_id},
             )
 
-            with patch("bot.api.miniapp_endpoints.get_db") as mock_get_db:
+            with patch("bot.api.miniapp.auth.get_db") as mock_get_db:
                 mock_get_db.return_value.__enter__.return_value = real_db_session
                 mock_get_db.return_value.__exit__.return_value = None
 

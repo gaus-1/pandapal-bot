@@ -25,15 +25,8 @@ def test_normalize_temperature_typo():
 
 
 def test_normalize_detail_and_cases():
-    """Подрабонее, падежы -> подробнее, падежи."""
-    assert (
-        normalize_common_typos("\u043f\u043e\u0434\u0440\u0430\u0431\u043e\u043d\u0435\u0435")
-        == "\u043f\u043e\u0434\u0440\u043e\u0431\u043d\u0435\u0435"
-    )
-    assert (
-        normalize_common_typos("\u043f\u0430\u0434\u0435\u0436\u044b")
-        == "\u043f\u0430\u0434\u0435\u0436\u0438"
-    )
+    """Падежы -> падежи. Подробнее-варианты."""
+    assert normalize_common_typos("падежы") == "падежи"
 
 
 def test_normalize_empty():

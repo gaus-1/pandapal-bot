@@ -91,6 +91,8 @@ jobs:
           DEBUG: 'True'
         run: |
           pytest tests/ --ignore=tests/performance \
+            --ignore=tests/resilience \
+            --ignore=tests/security \
             --ignore=tests/integration/test_games_api.py \
             --ignore=tests/integration/test_gamification_real.py \
             --ignore=tests/integration/test_miniapp_endpoints_real.py \
@@ -106,13 +108,6 @@ jobs:
             --ignore=tests/integration/test_yandex_api_real.py \
             --ignore=tests/integration/test_yandex_art_real_api.py \
             --ignore=tests/integration/test_yookassa_payments_real.py \
-            --ignore=tests/resilience \
-            --ignore=tests/security \
-            --ignore=tests/unit/test_api_endpoints.py \
-            --ignore=tests/unit/test_dedup_archimedes.py \
-            --ignore=tests/unit/test_health_check.py \
-            --ignore=tests/unit/test_rag_system.py \
-            --ignore=tests/unit/test_typo_normalizer.py \
             -v --cov=bot --cov-report=xml --cov-report=term-missing
 
       - name: 📊 Upload coverage to Codecov

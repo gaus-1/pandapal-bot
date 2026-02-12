@@ -209,29 +209,44 @@ class TestAllComponentsResilience:
         from contextlib import contextmanager
         from unittest.mock import patch
 
+        from bot.services import UserService
+
+        user_service = UserService(real_db_session)
+        user_service.get_or_create_user(
+            telegram_id=999888777,
+            username="load_test",
+            first_name="Load",
+        )
+        real_db_session.commit()
+
         @contextmanager
         def mock_get_db():
             yield real_db_session
 
-        with patch("bot.api.miniapp_endpoints.get_db", mock_get_db):
-            # Создаём 1000 запросов с одного IP
-            async def make_request():
-                request = make_mocked_request(
-                    "POST",
-                    "/api/miniapp/ai/chat",
-                    json={"message": "Тест", "telegram_id": 999888777},
-                    headers={"X-Forwarded-For": "192.168.1.100"},
-                )
-                return await miniapp_ai_chat(request)
+        with patch("bot.api.miniapp.chat.get_db", mock_get_db):
+            with patch("bot.api.miniapp.chat.require_owner", return_value=None):
+                class MockRequest:
+                    method = "POST"
+                    path = "/api/miniapp/ai/chat"
+                    headers = {"X-Forwarded-For": "192.168.1.100"}
 
-            tasks = [make_request() for _ in range(1000)]
-            responses = await asyncio.gather(*tasks, return_exceptions=True)
+                    async def json(self):
+                        return {"message": "Тест", "telegram_id": 999888777}
 
-            # Большинство запросов должны быть ограничены
-            rate_limited = [r for r in responses if isinstance(r, web.Response) and r.status == 429]
-            assert len(rate_limited) > 500, (
-                f"Rate limiting не работает: {len(rate_limited)}/1000 ограничено"
-            )
+                async def make_request():
+                    return await miniapp_ai_chat(MockRequest())
+
+                mock_ai = MagicMock()
+                mock_ai.generate_response = AsyncMock(return_value="Тест")
+                with patch("bot.api.miniapp.chat.get_ai_service", return_value=mock_ai):
+                    tasks = [make_request() for _ in range(100)]
+                    responses = await asyncio.gather(*tasks, return_exceptions=True)
+
+                    # После лимита бесплатного тира (30/мес) должны быть 429
+                    rate_limited = [r for r in responses if isinstance(r, web.Response) and r.status == 429]
+                    assert len(rate_limited) >= 70, (
+                        f"Rate limiting: ожидалось >=70 из 100 ограничено, получено {len(rate_limited)}"
+                    )
 
     # Invalid Data Handling
 
@@ -275,16 +290,19 @@ class TestAllComponentsResilience:
         def mock_get_db():
             yield real_db_session
 
-        with patch("bot.api.miniapp_endpoints.get_db", mock_get_db):
-            # Запрос без обязательных полей
-            request = make_mocked_request(
-                "POST",
-                "/api/miniapp/ai/chat",
-                json={},  # Пустой JSON
-            )
+        with patch("bot.api.miniapp.chat.get_db", mock_get_db):
+            with patch("bot.api.miniapp.chat.require_owner", return_value=None):
+                class MockRequest:
+                    method = "POST"
+                    path = "/api/miniapp/ai/chat"
 
-            response = await miniapp_ai_chat(request)
-            assert response.status in [400, 422], "Должна быть ошибка валидации"
+                    async def json(self):
+                        return {}
+
+                request = MockRequest()
+
+                response = await miniapp_ai_chat(request)
+                assert response.status in [400, 422], "Должна быть ошибка валидации"
 
     # Service Degradation
 
@@ -312,25 +330,39 @@ class TestAllComponentsResilience:
         from contextlib import contextmanager
         from unittest.mock import patch
 
+        from bot.services import UserService
+
+        user_service = UserService(real_db_session)
+        user_service.get_or_create_user(
+            telegram_id=999888777,
+            username="test_user",
+            first_name="Test",
+        )
+        real_db_session.commit()
+
         @contextmanager
         def mock_get_db():
             yield real_db_session
 
-        with patch("bot.api.miniapp_endpoints.get_db", mock_get_db):
-            # AI сервис недоступен
-            with patch(
-                "bot.api.miniapp_endpoints.yandex_cloud_service.generate_text_response",
-                side_effect=Exception("AI unavailable"),
-            ):
-                request = make_mocked_request(
-                    "POST",
-                    "/api/miniapp/ai/chat",
-                    json={"message": "Тест", "telegram_id": 999888777},
-                )
+        with patch("bot.api.miniapp.chat.get_db", mock_get_db):
+            with patch("bot.api.miniapp.chat.require_owner", return_value=None):
+                # AI сервис недоступен
+                with patch(
+                    "bot.api.miniapp.chat.get_ai_service",
+                    side_effect=Exception("AI unavailable"),
+                ):
+                    class MockRequest:
+                        method = "POST"
+                        path = "/api/miniapp/ai/chat"
 
-                response = await miniapp_ai_chat(request)
-                # Должна быть ошибка, но не краш
-                assert response.status in [500, 503]
+                        async def json(self):
+                            return {"message": "Тест", "telegram_id": 999888777}
+
+                    request = MockRequest()
+
+                    response = await miniapp_ai_chat(request)
+                    # Должна быть ошибка, но не краш
+                    assert response.status in [500, 503]
 
     # Memory and Resource Leaks
 

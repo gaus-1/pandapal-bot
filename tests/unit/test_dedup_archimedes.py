@@ -118,9 +118,11 @@ def test_fix_glued_words_prefix_and_known():
 
 @pytest.mark.unit
 def test_clean_ai_response_removes_asterisks():
-    """В ответе не остаётся звёздочек: *слово* и **термин** убираются."""
+    """*italic* убирается; **bold** может остаться (фронтенд поддерживает)."""
     text = "Личные местоимения: *I* (я), *you* (ты), **ключевой** термин."
     cleaned = clean_ai_response(text)
-    assert "*" not in cleaned
     assert "I" in cleaned and "you" in cleaned
     assert "ключевой" in cleaned
+    # *italic* должен быть убран
+    assert "*I*" not in cleaned
+    assert "*you*" not in cleaned
