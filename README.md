@@ -505,6 +505,9 @@ pytest tests/ --cov=bot --cov-report=html
 - **SemanticCache**: полная переработка — pgvector + Yandex Embeddings API (cosine similarity), без Jaccard
 - **QueryExpander**: синонимы для «список», «квадратные корни»
 - **Тесты**: `test_embeddings_real.py`, `test_semantic_cache_real.py`, `test_panda_responses_real.py` (E2E)
+- **Chain-of-Thought (CoT)**: правила и few-shot примеры в prompts.py; Zero-shot триггер «Давайте решать пошагово» для задач с вычислениями
+- **Русский язык**: строгие правила грамматики, запрет англицизмов (апдейт→обновление, фидбек→обратная связь)
+- **E2E валидация ответов**: ResponseQualityValidator, негативные тесты, проверки на пустые/нерелевантные ответы, CoT-задачи (яблоки, мячи, щенки)
 
 ### SOLID SRP рефакторинг (февраль 2026)
 
@@ -583,7 +586,7 @@ pytest tests/ --cov=bot --cov-report=html
 - Улучшенная обработка аудио (WebM → OGG конвертация)
 - Пастельные цвета и мягкие тени для блоков Premium и Donation
 - Оптимизация производительности: lazy loading, code splitting, preload
-- Улучшенная адаптивность для всех устройств (280px+)
+- **Адаптивность для всех устройств**: viewport 280px+ (складные телефоны Galaxy Fold), 375px (мобильные), 768px (планшеты), 1920px (десктоп); E2E тесты `website.responsive.spec.ts`
 
 ### Инфраструктура
 

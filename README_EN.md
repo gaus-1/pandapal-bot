@@ -105,6 +105,7 @@ Required variables are described in `config/env.template`. Copy to `.env` and fi
 - TanStack Query 5, Zustand 5
 - Tailwind CSS 3
 - Telegram Mini App SDK 8.0
+- **Responsive design**: 280px+ (foldable phones), 375px (mobile), 768px (tablet), 1920px (desktop); E2E `website.responsive.spec.ts`
 
 ### Infrastructure
 
@@ -286,6 +287,9 @@ pytest tests/ --cov=bot --cov-report=html
 - **SemanticCache**: full rewrite — pgvector + Yandex Embeddings API (cosine similarity), Jaccard removed
 - **QueryExpander**: synonyms for "list", "square roots"
 - **Tests**: `test_embeddings_real.py`, `test_semantic_cache_real.py`, `test_panda_responses_real.py` (E2E)
+- **Chain-of-Thought (CoT)**: rules and few-shot examples in prompts.py; Zero-shot trigger for calculation tasks
+- **Russian language**: strict grammar rules, no anglicisms (apdeyt→obnovleniye, fidbek→obratnaya svyaz)
+- **E2E response validation**: ResponseQualityValidator, negative tests, empty/irrelevant checks, CoT word problems
 
 ### SOLID SRP refactoring (February 2026)
 
