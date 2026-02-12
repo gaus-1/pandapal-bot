@@ -148,12 +148,6 @@ class TestPremiumPaymentReal:
 
         from bot.handlers.payment_handler import pre_checkout_handler
 
-        # Мокаем get_db чтобы использовать нашу тестовую БД
-        @contextmanager
-        def mock_get_db():
-            yield real_db_session
-
-        # Мокаем метод answer через MagicMock (обход frozen модели)
         mock_answer = AsyncMock()
         query = MagicMock(spec=PreCheckoutQuery)
         query.id = "test_query_123"
@@ -163,14 +157,12 @@ class TestPremiumPaymentReal:
         query.invoice_payload = "premium_month_999888777"
         query.answer = mock_answer
 
-        # Вызываем обработчик с моком get_db
-        with patch("bot.handlers.payment_handler.get_db", mock_get_db):
-            await pre_checkout_handler(query)
+        await pre_checkout_handler(query)
 
-        # Проверяем что ответ был отправлен с ok=True
+        # Stars с premium_* отклоняются (Premium только через ЮKassa)
         mock_answer.assert_called_once()
         call_args = mock_answer.call_args
-        assert call_args[1]["ok"] is True
+        assert call_args[1]["ok"] is False
 
     @pytest.mark.asyncio
     async def test_pre_checkout_query_invalid_payload(self, real_db_session, test_user):
@@ -226,48 +218,21 @@ class TestPremiumPaymentReal:
         subscription_service = SubscriptionService(real_db_session)
         assert not subscription_service.is_premium_active(999888777)
 
-        # Мокаем get_db и message.answer
-        from contextlib import contextmanager
-
-        @contextmanager
-        def mock_get_db():
-            yield real_db_session
-
-        # Создаём mock для message.answer (не можем патчить frozen объект)
         mock_answer = AsyncMock()
         message_mock = MagicMock()
         message_mock.successful_payment = successful_payment
         message_mock.answer = mock_answer
 
-        # Вызываем обработчик с моком get_db
-        with patch("bot.handlers.payment_handler.get_db", mock_get_db):
-            await successful_payment_handler(message_mock)
+        await successful_payment_handler(message_mock)
 
-            # Проверяем что подписка активирована
-            assert subscription_service.is_premium_active(999888777)
+        # Stars с premium_* НЕ активируют Premium (только 299 ₽ через ЮKassa)
+        assert not subscription_service.is_premium_active(999888777)
+        subscription = subscription_service.get_active_subscription(999888777)
+        assert subscription is None
 
-            # Проверяем запись в БД
-            subscription = subscription_service.get_active_subscription(999888777)
-            assert subscription is not None
-            assert subscription.plan_id == "month"
-            assert subscription.is_active is True
-            assert subscription.transaction_id == "test_charge_123"
-
-            # Убеждаемся что expires_at timezone-aware для сравнения
-            expires_at = subscription.expires_at
-            if expires_at.tzinfo is None:
-                expires_at = expires_at.replace(tzinfo=timezone.utc)
-            assert expires_at > datetime.now(timezone.utc)
-
-            # Проверяем что premium_until обновлен в User
-            user = real_db_session.query(User).filter_by(telegram_id=999888777).first()
-            assert user.premium_until is not None
-            assert user.premium_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc)
-
-            # Проверяем что отправлено сообщение об активации
-            mock_answer.assert_called_once()
-            call_args = mock_answer.call_args
-            assert "Premium активирован" in call_args[0][0]
+        mock_answer.assert_called_once()
+        call_args = mock_answer.call_args
+        assert "Premium по Stars" in call_args[0][0] or "не активируется" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_subscription_service_activate_subscription(self, real_db_session, test_user):

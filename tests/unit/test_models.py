@@ -226,8 +226,7 @@ class TestModels:
             User(telegram_id=6, age=10),
             User(telegram_id=7, grade=5),
             User(telegram_id=8, username="u8", first_name="F8", last_name="L8"),
-            User(telegram_id=9, user_type="parent", age=35),
-            User(telegram_id=10, user_type="teacher", age=40),
+            User(telegram_id=9, user_type="parent"),  # age NULL для parent (ck: 6-18)
         ]
 
         for user in users:
@@ -244,7 +243,7 @@ class TestModels:
         test_db_session.add(user)
         test_db_session.commit()
 
-        for msg_type in ["user", "bot", "system"]:
+        for msg_type in ["user", "ai", "system"]:
             h = ChatHistory(
                 user_telegram_id=11111, message_text=f"Test {msg_type}", message_type=msg_type
             )
@@ -257,7 +256,7 @@ class TestModels:
     @pytest.mark.database
     def test_user_different_ages(self, test_db_session):
         """Тест создания пользователей с разными возрастами"""
-        for age in [5, 8, 10, 12, 15, 18, 25, 35, 50]:
+        for age in [6, 8, 10, 12, 15, 18]:
             user = User(telegram_id=age * 1000, age=age)
             test_db_session.add(user)
             assert user.age == age

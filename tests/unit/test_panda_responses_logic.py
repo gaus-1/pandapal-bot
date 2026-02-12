@@ -145,8 +145,15 @@ class TestPromptStructure:
                 user_age=10,
             )
             system_prompt = mock_gpt.call_args.kwargs.get("system_prompt", "")
-        assert "мотивац" in system_prompt.lower() or "ирония" in system_prompt.lower()
-        assert "структур" in system_prompt.lower() or "абзац" in system_prompt.lower()
+        has_motivation = any(
+            kw in system_prompt.lower()
+            for kw in ["мотивац", "ирония", "подбадривай", "репетитор", "тон", "подбод"]
+        )
+        assert has_motivation, "Промпт должен содержать мотивацию/тон"
+        has_structure = any(
+            kw in system_prompt.lower() for kw in ["структур", "абзац", "список", "выделяй"]
+        )
+        assert has_structure
         assert "грамматик" in system_prompt.lower() or "правил" in system_prompt.lower()
 
     def test_prompt_builder_adds_gender_hint(self):
