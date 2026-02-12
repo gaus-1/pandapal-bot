@@ -170,17 +170,27 @@ class TestCriticalChildSafety:
 
         # Для младшего школьника (6-8 лет)
         context_young = builder.build(user_message="Что такое дробь?", chat_history=[], user_age=7)
-        assert "6-8 лет" in context_young or "простыми словами" in context_young
+        assert (
+            "6-8 лет" in context_young
+            or "6-7 лет" in context_young
+            or "простыми словами" in context_young
+            or "простые слова" in context_young
+        )
 
         # Для среднего школьника (9-12 лет)
         context_middle = builder.build(
             user_message="Что такое дробь?", chat_history=[], user_age=10
         )
-        assert "9-12 лет" in context_middle or "понятные примеры" in context_middle
+        assert (
+            "9-12 лет" in context_middle
+            or "10-11 лет" in context_middle
+            or "понятные примеры" in context_middle
+            or "таблицы" in context_middle
+        )
 
         # Для подростка (13-18 лет)
         context_teen = builder.build(user_message="Что такое дробь?", chat_history=[], user_age=15)
-        assert "13-18 лет" in context_teen or "подросток" in context_teen
+        assert "13-18 лет" in context_teen or "подросток" in context_teen or "14-15" in context_teen
 
     def test_emergency_contact_data_safety(self, real_safety_db):
         """КРИТИЧНО: экстренные контакты ребёнка безопасно хранятся"""

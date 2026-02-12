@@ -400,13 +400,21 @@ class ContentModerationService(IModerationService):
         return False
 
     def is_safe_content(self, text: str) -> tuple[bool, str | None]:
-        """Проверка, безопасен ли контент. Блокируем ненормативную лексику (все языки)."""
+        """Проверка, безопасен ли контент. Блокируем ненормативную лексику и запрещённые темы."""
         if not text or not text.strip():
             return True, None
         normalized = text.strip().lower()
         # Ненормативная лексика (русский, английский, немецкий, французский, испанский)
         if self._profanity_regex.search(normalized):
             return False, "ненормативная лексика"
+        # Запрещённые паттерны (наркотики, оружие, насилие и т.д.)
+        for pattern in self._forbidden_regexes:
+            if pattern.search(normalized):
+                return False, "запрещённая тема"
+        # Запрещённые темы из настроек
+        for regex in self._topic_regexes:
+            if regex.search(normalized):
+                return False, "запрещённая тема"
         return True, None
 
     def sanitize_ai_response(self, response: str) -> str:
