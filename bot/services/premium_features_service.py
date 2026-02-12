@@ -80,6 +80,34 @@ class PremiumFeaturesService:
         """
         return self.subscription_service.is_premium_active(telegram_id)
 
+    def has_unlimited_ai(self, telegram_id: int) -> bool:
+        """Premium: 500 запросов/день вместо 30/месяц."""
+        return self.is_premium_active(telegram_id)
+
+    def has_all_subjects_access(self, telegram_id: int) -> bool:  # noqa: ARG002
+        """Все предметы доступны (лимит в can_make_ai_request)."""
+        return True
+
+    def has_personal_tutor(self, telegram_id: int) -> bool:
+        """Персональный план обучения — только Premium."""
+        return self.is_premium_active(telegram_id)
+
+    def has_detailed_analytics(self, telegram_id: int) -> bool:
+        """Детальная аналитика — только Premium."""
+        return self.can_access_detailed_analytics(telegram_id)
+
+    def has_exclusive_achievements(self, telegram_id: int) -> bool:
+        """Эксклюзивные достижения — только Premium."""
+        return self.can_access_exclusive_achievements(telegram_id)
+
+    def has_priority_support(self, telegram_id: int) -> bool:
+        """Приоритетная поддержка — только Premium."""
+        return self.can_access_priority_support(telegram_id)
+
+    def has_bonus_lessons(self, telegram_id: int) -> bool:
+        """Бонусные уроки — Premium с планом."""
+        return self.can_access_bonus_lessons(telegram_id)
+
     def get_premium_plan(self, telegram_id: int) -> str | None:
         """
         Получить тип активной Premium подписки.

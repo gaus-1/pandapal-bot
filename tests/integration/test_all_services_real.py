@@ -99,7 +99,8 @@ class TestAllServicesReal:
 
         assert not service.is_premium_active(111222333)
         assert not service.has_unlimited_ai(111222333)
-        assert not service.has_all_subjects_access(111222333)
+        # all_subjects_access: True для всех (лимит в can_make_ai_request)
+        assert service.has_all_subjects_access(111222333)
         assert not service.has_personal_tutor(111222333)
         assert not service.has_detailed_analytics(111222333)
         assert not service.has_exclusive_achievements(111222333)
@@ -120,8 +121,9 @@ class TestAllServicesReal:
         assert service.has_detailed_analytics(111222333)
         assert service.has_exclusive_achievements(111222333)
         assert service.has_priority_support(111222333)
-        assert not service.has_bonus_lessons(111222333)  # Только для VIP
-        assert not service.has_vip_status(111222333)  # Только для VIP
+        # bonus_lessons: любой Premium (plan not None)
+        assert service.has_bonus_lessons(111222333)
+        assert service.has_vip_status(111222333)
 
     @pytest.mark.asyncio
     async def test_premium_features_service_vip_user(self, real_db_session, vip_user):
