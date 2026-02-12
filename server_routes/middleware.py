@@ -38,11 +38,6 @@ def setup_middleware(app: web.Application) -> None:
                 f"📥 [EARLY] Webhook запрос: {request.method} {request.path}, IP={ip}, "
                 f"Content-Type={content_type}, UA={user_agent[:50]}"
             )
-            if request.path == "/webhook/news":
-                logger.info(
-                    f"📰 [EARLY] News bot webhook request: {request.method} {request.path}, IP={ip}"
-                )
-                logger.debug(f"📰 News bot headers: {dict(request.headers)}")
 
         try:
             response = await handler(request)

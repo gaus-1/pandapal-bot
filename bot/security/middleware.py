@@ -301,7 +301,6 @@ async def security_middleware(request: web.Request, handler) -> web.Response:
     # Здесь применяем только базовый IP-based rate limiting для защиты от DDoS
     excluded_paths = [
         "/webhook",  # Telegram webhook
-        "/webhook/news",  # News bot webhook
         "/ai/chat",  # AI chat (своя логика rate limiting)
         "/health",  # Health check
         "/metrics",  # Metrics endpoint

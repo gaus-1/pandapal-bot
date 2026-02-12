@@ -117,7 +117,6 @@ PandaPal/
 │   │   │   ├── image.py     # Изображения
 │   │   │   ├── document.py  # Документы
 │   │   │   └── helpers.py   # Вспомогательные функции (Premium, визуализации, отправка)
-│   │   ├── news_bot/        # Обработчики новостного бота
 │   │   ├── start.py         # Команда /start
 │   │   ├── payment_handler.py   # Обработка платежей
 │   │   ├── premium_handler.py   # Premium-подписки
@@ -187,8 +186,6 @@ PandaPal/
 │   │   ├── knowledge_service.py             # База знаний с enhanced_search
 │   │   ├── user_service.py                  # Управление пользователями
 │   │   └── panda_lazy_service.py            # Логика отдыха/продолжения учёбы
-│   ├── news_bot/            # Новостной бот (выделен из web_server.py)
-│   │   └── server_integration.py  # Инициализация, webhook, сбор новостей
 │   ├── api/                # HTTP endpoints
 │   │   ├── miniapp/        # API для Telegram Mini App
 │   │   │   ├── chat_stream.py   # Streaming AI чат (SSE) — точка входа
@@ -509,7 +506,7 @@ pytest tests/ --cov=bot --cov-report=html
 - **`bot/services/visualization/detector.py`** (1809 строк) → оркестратор 300 строк + 7 модулей в `detectors/`: `request_words`, `schemes`, `diagrams`, `maps`, `physics`, `math_graphs`, `tables_and_diagrams`
 - **`bot/handlers/ai_chat/text.py`** (775 строк) → 509 строк; 6 хелперов извлечены в `helpers.py` (Premium-лимиты, перевод, визуализация, отправка, фидбек)
 - **`bot/services/adult_topics_service.py`** (919 строк) → 190 строк; 26 топиков вынесены в `bot/config/adult_topics_data.py`
-- **`web_server.py`** (996 строк) → 591 строк; методы новостного бота делегированы в `bot/news_bot/server_integration.py`
+- **`web_server.py`** — entry point, webhook, healthcheck
 - Добавлены архитектурные правила SOLID/PEP 20 для защиты от регрессий
 
 ### Архитектура и качество кода (2026)

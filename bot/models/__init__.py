@@ -19,9 +19,6 @@ from .games import GameSession, GameStats
 # Модели обучения
 from .learning import HomeworkSubmission, LearningSession, ProblemTopic
 
-# Модели новостей
-from .news import News
-
 # Модель питомца-панды (тамагочи)
 from .panda_pet import PandaPet
 
@@ -61,6 +58,4 @@ __all__ = [
     "GameStats",
     # Panda pet (tamagotchi)
     "PandaPet",
-    # News
-    "News",
 ]

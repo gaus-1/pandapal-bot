@@ -37,7 +37,6 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 from bot.models import Base  # noqa: E402
-import bot.services.news_bot.user_preferences_service  # noqa: E402,F401  # регистрирует news_user_preferences в Base.metadata
 
 target_metadata = Base.metadata
 

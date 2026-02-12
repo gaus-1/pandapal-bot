@@ -126,7 +126,6 @@ PandaPal/
 │   │   │   ├── image.py     # Image analysis
 │   │   │   ├── document.py  # Document handling
 │   │   │   └── helpers.py   # Helpers (Premium, viz, translation, sending, feedback)
-│   │   ├── news_bot/        # News bot handlers
 │   │   └── ...              # Other handlers
 │   ├── services/            # Business logic (AI, payments, games, Mini App, RAG)
 │   │   ├── rag/             # Enhanced RAG system
@@ -150,7 +149,6 @@ PandaPal/
 │   │   ├── news/            # News service (sources, adapters, moderators)
 │   │   ├── referral_service.py   # Referral links (ref_<id>, whitelist)
 │   │   └── ...              # Other services (moderation, payment, user, etc.)
-│   ├── news_bot/            # News bot (extracted from web_server.py)
 │   ├── api/                 # HTTP endpoints
 │   │   ├── miniapp/         # Telegram Mini App API
 │   │   │   ├── chat_stream.py    # Streaming AI chat (SSE) — entry point
@@ -286,7 +284,7 @@ pytest tests/ --cov=bot --cov-report=html
 - **`bot/services/visualization/detector.py`** (1809 lines) → 300-line orchestrator + 7 detector modules in `detectors/`: `request_words`, `schemes`, `diagrams`, `maps`, `physics`, `math_graphs`, `tables_and_diagrams`
 - **`bot/handlers/ai_chat/text.py`** (775 lines) → 509 lines; 6 helpers extracted to `helpers.py` (Premium limits, translation, visualization, response sending, feedback)
 - **`bot/services/adult_topics_service.py`** (919 lines) → 190 lines; 26 topics extracted to `bot/config/adult_topics_data.py`
-- **`web_server.py`** (996 lines) → 591 lines; news bot methods delegated to `bot/news_bot/server_integration.py`
+- **`web_server.py`** — entry point, webhook, healthcheck
 - Added SOLID/PEP 20 architecture rules to prevent regressions
 
 ### Architecture and code quality (2026)

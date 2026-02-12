@@ -36,7 +36,6 @@ from aiohttp import web  # noqa: E402
 from redis.asyncio import Redis  # noqa: E402
 
 from bot.config import settings  # noqa: E402
-from bot.config.news_bot_settings import news_bot_settings  # noqa: E402
 from bot.database import init_database  # noqa: E402
 from bot.handlers import routers  # noqa: E402
 from bot.middleware import setup_error_handler  # noqa: E402
@@ -47,11 +46,6 @@ from server_routes import (  # noqa: E402
     setup_middleware,
 )
 
-# Отключить новостной бот и сбор новостей (Mini App и сайт не трогаем)
-NEWS_BOT_DISABLED = (
-    True  # True = выключено, False = по env NEWS_BOT_ENABLED / NEWS_COLLECTION_ENABLED
-)
-
 
 class PandaPalBotServer:
     """Сервер для запуска PandaPal Telegram бота через webhook."""
@@ -60,43 +54,10 @@ class PandaPalBotServer:
         """Инициализация сервера."""
         self.bot: Bot | None = None
         self.dp: Dispatcher | None = None
-        self.news_bot: Bot | None = None
-        self.news_dp: Dispatcher | None = None
         self.app: web.Application | None = None
         self.runner: web.AppRunner | None = None
         self.site: web.TCPSite | None = None
         self.settings = settings
-        # Новостной бот: включен ли Telegram-бот и webhook
-        env_enabled = os.getenv("NEWS_BOT_ENABLED", "false").lower() in ("true", "1", "yes")
-        settings_enabled = news_bot_settings.news_bot_enabled
-        self.news_bot_enabled = env_enabled or settings_enabled
-
-        # Сбор новостей в БД: работает при NEWS_BOT_ENABLED или NEWS_COLLECTION_ENABLED
-        env_collection = os.getenv("NEWS_COLLECTION_ENABLED", "false").lower() in (
-            "true",
-            "1",
-            "yes",
-        )
-        self.news_collection_enabled = (
-            self.news_bot_enabled or env_collection or news_bot_settings.news_collection_enabled
-        )
-        if NEWS_BOT_DISABLED:
-            self.news_bot_enabled = False
-            self.news_collection_enabled = False
-            logger.info("📰 Новостной бот отключен по флагу NEWS_BOT_DISABLED")
-
-        if self.news_bot_enabled:
-            logger.info(
-                f"📰 Новостной бот включен (env={env_enabled}, settings={settings_enabled})"
-            )
-        else:
-            logger.info("📰 Новостной бот отключен")
-        if self.news_collection_enabled:
-            logger.info("📰 Сбор новостей в БД включен")
-        else:
-            logger.info(
-                "📰 Сбор новостей в БД отключен (NEWS_BOT_ENABLED или NEWS_COLLECTION_ENABLED=true чтобы включить)"
-            )
         self._shutdown_in_progress = False
 
         # Создаем приложение и добавляем ВСЕ роуты сразу (до запуска сервера)
@@ -260,34 +221,10 @@ class PandaPalBotServer:
 
     def _setup_webhook_handler(self) -> None:
         """Настройка webhook handler после инициализации бота."""
-        # Основной бот
         webhook_path = "/webhook"
         webhook_handler = SimpleRequestHandler(dispatcher=self.dp, bot=self.bot)
         webhook_handler.register(self.app, path=webhook_path)
         logger.info(f"📡 Webhook handler зарегистрирован на пути: {webhook_path}")
-
-        # Новостной бот (если включен)
-        if self.news_bot_enabled and self.news_bot and self.news_dp:
-            news_webhook_path = "/webhook/news"
-
-            news_webhook_handler = SimpleRequestHandler(dispatcher=self.news_dp, bot=self.news_bot)
-            news_webhook_handler.register(self.app, path=news_webhook_path)
-            logger.info(f"📡 News bot webhook handler зарегистрирован на пути: {news_webhook_path}")
-            logger.info(f"📋 News bot token: {news_bot_settings.news_bot_token[:15]}...")
-
-            # Проверяем, что роут действительно зарегистрирован
-            routes = [str(route) for route in self.app.router.routes()]
-            news_routes = [r for r in routes if "/webhook/news" in r]
-            if news_routes:
-                logger.info(f"✅ Роут /webhook/news найден в зарегистрированных: {news_routes}")
-            else:
-                logger.error("❌ Роут /webhook/news НЕ найден в зарегистрированных роутах!")
-                logger.info(f"📋 Все webhook роуты: {[r for r in routes if 'webhook' in r]}")
-        else:
-            logger.warning(
-                f"⚠️ News bot webhook handler НЕ зарегистрирован: "
-                f"enabled={self.news_bot_enabled}, bot={self.news_bot is not None}, dp={self.news_dp is not None}"
-            )
 
     async def start_early_server(self) -> None:
         """
@@ -413,18 +350,8 @@ class PandaPalBotServer:
         # Обновляем bot в app context (был None при создании app в __init__)
         self.app["bot"] = self.bot
 
-        # Инициализация новостного бота (если включен)
-        if self.news_bot_enabled:
-            await self.init_news_bot()
-
         # Добавляем webhook handlers (ДО запуска сервера, чтобы роутер не был заморожен)
         self._setup_webhook_handler()
-
-    async def init_news_bot(self) -> None:
-        """Инициализация новостного бота."""
-        from bot.news_bot.server_integration import init_news_bot
-
-        await init_news_bot(self)
 
     async def startup_services(self) -> None:
         """Инициализация сервисов (вызывается ПОСЛЕ запуска сервера)."""
@@ -436,65 +363,12 @@ class PandaPalBotServer:
             await self.engagement_service.start()
             logger.info("⏰ SimpleEngagementService запущен")
 
-        # Запуск автоматического сбора новостей (если включен бот или только сбор)
-        if self.news_collection_enabled:
-            asyncio.create_task(self._check_and_collect_news_on_startup())
-            asyncio.create_task(self._news_collection_loop())
-            logger.info("📰 Автоматический сбор новостей запущен")
-
         # Настройка webhook основного бота
         webhook_url = await self.setup_webhook()
 
-        # Настройка webhook новостного бота (если включен)
-        if self.news_bot_enabled and self.news_bot:
-            try:
-                # Пробуем установить webhook с повторными попытками
-                max_retries = 3
-                for attempt in range(1, max_retries + 1):
-                    try:
-                        await self.setup_news_bot_webhook()
-                        # Проверяем, что webhook действительно установлен
-                        webhook_info = await self.news_bot.get_webhook_info()
-                        if webhook_info.url:
-                            logger.info(
-                                f"✅ Webhook новостного бота успешно установлен (попытка {attempt})"
-                            )
-                            break
-                        else:
-                            logger.warning(
-                                f"⚠️ Webhook не установлен после попытки {attempt}, повторяем..."
-                            )
-                            if attempt < max_retries:
-                                await asyncio.sleep(2)
-                    except Exception as e:
-                        logger.warning(
-                            f"⚠️ Ошибка установки webhook (попытка {attempt}/{max_retries}): {e}"
-                        )
-                        if attempt < max_retries:
-                            await asyncio.sleep(2)
-                        else:
-                            raise
-            except Exception as e:
-                logger.error(
-                    f"❌ Критическая ошибка установки webhook новостного бота после {max_retries} попыток: {e}",
-                    exc_info=True,
-                )
-                # НЕ отключаем бот - возможно webhook установится позже
-                logger.warning(
-                    "⚠️ Новостной бот будет работать, но webhook нужно установить вручную"
-                )
-
         logger.info("✅ Сервер готов к работе")
         logger.info(f"🌐 Webhook URL: {webhook_url}")
-        if self.news_bot_enabled:
-            logger.info(f"📰 News bot webhook: https://{self.settings.webhook_domain}/webhook/news")
         logger.info(f"🏥 Health check: https://{self.settings.webhook_domain}/health")
-
-    async def setup_news_bot_webhook(self) -> str:
-        """Настройка webhook для новостного бота."""
-        from bot.news_bot.server_integration import setup_news_bot_webhook
-
-        return await setup_news_bot_webhook(self)
 
     async def shutdown(self) -> None:
         """Остановка сервера - очистка ресурсов."""
@@ -547,28 +421,13 @@ class PandaPalBotServer:
                 except Exception as e:
                     logger.warning(f"⚠️ Ошибка удаления webhook: {e}")
 
-            # Удаляем webhook новостного бота
-            if self.news_bot:
-                try:
-                    await self.news_bot.delete_webhook(drop_pending_updates=False)
-                    logger.info("✅ Webhook новостного бота удален")
-                except Exception as e:
-                    logger.warning(f"⚠️ Ошибка удаления webhook новостного бота: {e}")
-
-            # Закрываем сессии ботов
+            # Закрываем сессию бота
             if self.bot:
                 try:
                     await self.bot.session.close()
                     logger.info("✅ Сессия бота закрыта")
                 except Exception as e:
                     logger.warning(f"⚠️ Ошибка закрытия сессии бота: {e}")
-
-            if self.news_bot:
-                try:
-                    await self.news_bot.session.close()
-                    logger.info("✅ Сессия новостного бота закрыта")
-                except Exception as e:
-                    logger.warning(f"⚠️ Ошибка закрытия сессии новостного бота: {e}")
 
             logger.info("✅ Сервер остановлен")
 
@@ -601,10 +460,10 @@ class PandaPalBotServer:
 
             logger.info("📡 Ожидание обновлений от Telegram...")
 
-            # Запускаем keep-alive пинг в фоне (для Railway Free)
+            # Keep-alive пинг в фоне (для Railway Free)
             keep_alive_task = asyncio.create_task(self._keep_alive_ping(port))
 
-            # Создаем Event для graceful shutdown
+            # Event для graceful shutdown
             shutdown_event = asyncio.Event()
 
             # Обработка сигналов для graceful shutdown
@@ -648,10 +507,6 @@ class PandaPalBotServer:
 
         logger.info("🔄 Keep-alive пинг запущен (каждые 4 минуты)")
 
-        # Запускаем проверку webhook новостного бота в фоне
-        if self.news_bot_enabled and self.news_bot:
-            asyncio.create_task(self._check_news_bot_webhook_periodically())
-
         while True:
             try:
                 await asyncio.sleep(240)  # 4 минуты
@@ -671,30 +526,6 @@ class PandaPalBotServer:
             except Exception as e:
                 logger.warning(f"⚠️ Keep-alive ping error: {e}")
                 await asyncio.sleep(60)  # При ошибке ждем 1 минуту и пробуем снова
-
-    async def _check_news_bot_webhook_periodically(self) -> None:
-        """Периодическая проверка и переустановка webhook новостного бота."""
-        from bot.news_bot.server_integration import check_news_bot_webhook_periodically
-
-        await check_news_bot_webhook_periodically(self)
-
-    async def _check_and_collect_news_on_startup(self) -> None:
-        """При старте всегда запускаем сбор, чтобы бот был с новостями."""
-        from bot.news_bot.server_integration import check_and_collect_news_on_startup
-
-        await check_and_collect_news_on_startup(self)
-
-    async def _news_collection_loop(self) -> None:
-        """Фоновая задача: первый сбор через 5 мин, далее каждые 15 мин."""
-        from bot.news_bot.server_integration import news_collection_loop
-
-        await news_collection_loop(self)
-
-    async def _collect_news_now(self) -> None:
-        """Выполнить сбор новостей прямо сейчас."""
-        from bot.news_bot.server_integration import collect_news_now
-
-        await collect_news_now(self)
 
 
 async def main() -> None:
