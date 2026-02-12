@@ -55,7 +55,7 @@ class TestAIChatHandler:
             assert "Режим общения с AI" in answer_text or "AI" in answer_text
 
     @pytest.mark.asyncio
-    @patch("bot.handlers.ai_chat.get_ai_service")  # Мокаем только внешний AI API
+    @patch("bot.handlers.ai_chat.text.get_ai_service")
     async def test_handle_ai_message_safe_content_real_services(
         self, mock_get_ai, mock_message, mock_state
     ):
@@ -100,7 +100,7 @@ class TestAIChatHandler:
             return real_session
 
         try:
-            with patch("bot.handlers.ai_chat.get_db", side_effect=lambda: mock_get_db_real()):
+            with patch("bot.handlers.ai_chat.text.get_db", side_effect=lambda: mock_get_db_real()):
                 await handle_ai_message(mock_message, mock_state)
 
             # Проверяем результат работы - может быть несколько вызовов (достижение + ответ AI)
@@ -144,7 +144,7 @@ class TestAIChatHandler:
         assert is_safe_response is True
 
     @pytest.mark.asyncio
-    @patch("bot.handlers.ai_chat.get_ai_service")  # Мокаем только внешний AI API
+    @patch("bot.handlers.ai_chat.text.get_ai_service")
     async def test_handle_ai_message_error_real_services(
         self, mock_get_ai, mock_message, mock_state
     ):
@@ -183,7 +183,7 @@ class TestAIChatHandler:
             return real_session
 
         try:
-            with patch("bot.handlers.ai_chat.get_db", side_effect=lambda: mock_get_db_real()):
+            with patch("bot.handlers.ai_chat.text.get_db", side_effect=lambda: mock_get_db_real()):
                 await handle_ai_message(mock_message, mock_state)
 
             # Проверяем что пользователю отправлен ответ об ошибке

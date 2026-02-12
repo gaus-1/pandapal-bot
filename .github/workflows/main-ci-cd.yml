@@ -108,7 +108,6 @@ jobs:
             --ignore=tests/integration/test_yookassa_payments_real.py \
             --ignore=tests/resilience \
             --ignore=tests/security \
-            --ignore=tests/unit/test_ai_chat_handler.py \
             --ignore=tests/unit/test_api_endpoints.py \
             --ignore=tests/unit/test_dedup_archimedes.py \
             --ignore=tests/unit/test_health_check.py \
