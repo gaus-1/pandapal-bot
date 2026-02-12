@@ -42,6 +42,7 @@ class YandexCloudService:
         self.gpt_url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
         self.stt_url = "https://stt.api.cloud.yandex.net/speech/v1/stt:recognize"
         self.vision_url = "https://vision.api.cloud.yandex.net/vision/v1/batchAnalyze"
+        self.embedding_url = "https://llm.api.cloud.yandex.net/foundationModels/v1/textEmbedding"
 
         # Заголовки для всех запросов
         self.headers = {
@@ -252,6 +253,9 @@ class YandexCloudService:
             # Название модели уже содержит /latest или /rc (например: yandexgpt/latest или yandexgpt/rc)
             # Итоговый формат: gpt://folder_id/yandexgpt/latest (как в примере Yandex Cloud Console)
             model_uri = f"gpt://{self.folder_id}/{model_name}"
+            # reasoningOptions (ENABLED_HIDDEN, reasoningEffort) — только для gpt-oss-120b.
+            # yandexgpt/rc не поддерживает: "The model does not support reasoning".
+            # CoT реализован через промпты (prompts.py + "Давайте решать пошагово" для задач).
             payload = {
                 "modelUri": model_uri,
                 "completionOptions": {
@@ -555,6 +559,41 @@ class YandexCloudService:
         except Exception as e:
             logger.error(f"❌ Неожиданная ошибка SpeechKit: {e}")
             raise
+
+    # Embeddings API - векторные представления текста
+
+    async def get_embedding(self, text: str, text_type: str = "doc") -> list[float] | None:
+        """
+        Получить вектор эмбеддинга текста через Yandex Embeddings API.
+
+        Args:
+            text: Текст для эмбеддинга
+            text_type: "doc" (документы) или "query" (запросы)
+
+        Returns:
+            list[float]: Вектор эмбеддинга или None при ошибке
+        """
+        if not text or not self.api_key or not self.folder_id:
+            return None
+        model = "text-search-query/latest" if text_type == "query" else "text-search-doc/latest"
+        model_uri = f"emb://{self.folder_id}/{model}"
+        payload = {"modelUri": model_uri, "text": text[:8000]}  # лимит API
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    self.embedding_url,
+                    headers=self.headers,
+                    json=payload,
+                )
+                response.raise_for_status()
+                data = response.json()
+                embedding = data.get("embedding")
+                if embedding and isinstance(embedding, list):
+                    return [float(x) for x in embedding]
+                return None
+        except Exception as e:
+            logger.warning(f"⚠️ Embeddings API недоступен: {e}")
+            return None
 
     # Vision OCR - анализ изображений
 
