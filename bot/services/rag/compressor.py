@@ -2,6 +2,10 @@
 
 import re
 
+_LIST_TABLE_PATTERNS = frozenset(
+    {"список", "таблица", "таблиц", "значений", "значения", "перечень"}
+)
+
 
 class ContextCompressor:
     """Сжатие контекста для уменьшения токенов в промпте."""
@@ -25,6 +29,11 @@ class ContextCompressor:
         """
         if not context:
             return ""
+
+        # Для запросов списка/таблицы — не сжимать, чтобы не потерять перечисления
+        q_words = set(question.lower().split())
+        if q_words & _LIST_TABLE_PATTERNS:
+            return context
 
         # Разбиваем на предложения
         sentences = self._split_sentences(context)
@@ -62,6 +71,12 @@ class ContextCompressor:
             return 0.0
 
         relevance = len(matches) / len(question_words)
+
+        # Бонус за числовые паттерны (√, ≈, цифры) при запросах корней/таблиц
+        if re.search(r"(?:√|≈|\d+[,.]?\d*)", sentence) and re.search(
+            r"(?:корн|таблиц|значен)", question_lower
+        ):
+            relevance += 0.3
 
         # Бонус за длину предложения (больше информации)
         length_bonus = min(len(sentence) / 200, 0.2)  # Макс 0.2

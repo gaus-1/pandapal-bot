@@ -2,7 +2,7 @@
 Enhanced RAG (Retrieval-Augmented Generation) система.
 
 Компоненты:
-- semantic_search: векторный поиск
+- SemanticCache: кеш с pgvector + Yandex Embeddings API
 - reranker: переранжирование результатов
 - query_expander: расширение запросов
 - compressor: сжатие контекста

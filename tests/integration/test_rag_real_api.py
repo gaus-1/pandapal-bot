@@ -120,6 +120,16 @@ class TestRAGRealAPI:
         assert len(response) > 600, "Ответ слишком короткий для трёх вопросов"
 
     @pytest.mark.asyncio
+    async def test_rag_list_square_roots(self, knowledge_service):
+        """enhanced_search для «список квадратных корней» возвращает непустой результат."""
+        results = await knowledge_service.enhanced_search(
+            user_question="список квадратных корней", user_age=12, top_k=5, use_wikipedia=True
+        )
+        assert results is not None and len(results) > 0, "RAG не нашёл контент для списка корней"
+        combined = " ".join(r.content for r in results).lower()
+        assert any(p in combined for p in ["√", "корн", "1.41", "1.73", "2"]) or len(combined) > 100
+
+    @pytest.mark.asyncio
     async def test_rag_knowledge_integration(self, knowledge_service):
         """Проверка что RAG находит релевантную информацию."""
         question = "Объясни теорему Пифагора"

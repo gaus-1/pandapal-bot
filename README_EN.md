@@ -26,14 +26,14 @@ PandaPal is an intelligent assistant for homework help. The bot works 24/7 and h
 
 - **Premium quality intelligent assistant** — deep structured responses powered by YandexGPT Pro considering ALL query words, detailed explanations like the best tutors
 - **Help with ALL school subjects** — math, algebra, geometry, Russian, literature, English, German, French, Spanish, history, social studies, geography, physics, chemistry, biology, computer science, natural science
-- **Visualizations for all subjects** — function graphs, multiplication/addition/division tables, country and city maps with borders, climatograms of natural zones, algorithm flowcharts, melting and heating graphs, Mendeleev's periodic table
+- **Visualizations for all subjects** — function graphs, multiplication/addition/division tables, square roots values table (√1–√50), country and city maps with borders, climatograms of natural zones, algorithm flowcharts, melting and heating graphs, Mendeleev's periodic table
 - **Homework checking** — photo of task + your solution → panda will check, find errors, correct and explain
 - **Photo tasks** — text recognition from textbooks and notebooks via Vision API with solution explanation
-- **Voice questions** — speech recognition via SpeechKit STT with detailed text response
+- **Voice questions** — speech recognition via SpeechKit STT with confirmation ("Send" / "Edit") before sending to AI
 - **Image generation** — create pictures from descriptions via YandexART
 - **Adult topics explained** — money, banks, taxes, utilities, documents, health in simple words for life preparation
 - **Adaptive learning** — tracking problematic topics, automatic difficulty adaptation to student level
-- **Enhanced RAG system** — intelligent knowledge base search with semantic caching and context compression (75-90% context reduction)
+- **Enhanced RAG system** — intelligent knowledge base search with vector semantic cache (pgvector + Yandex Embeddings API, cosine similarity) and context compression (75-90% context reduction)
 - Streaming responses via Server-Sent Events for instant generation
 - Automatic translation and grammar explanations for 5 languages
 - PandaPalGo Games: Tic-Tac-Toe, Checkers with smart opponent, 2048, Erudite (word building)
@@ -84,7 +84,7 @@ Full installation and configuration documentation: see [docs/](docs/)
 Required variables are described in `config/env.template`. Copy to `.env` and fill in:
 
 - `DATABASE_URL`, `TELEGRAM_BOT_TOKEN` — required
-- `YANDEX_CLOUD_API_KEY`, `YANDEX_CLOUD_FOLDER_ID` — for YandexGPT, SpeechKit, Vision
+- `YANDEX_CLOUD_API_KEY`, `YANDEX_CLOUD_FOLDER_ID` — for YandexGPT, SpeechKit, Vision, Embeddings API
 - `SECRET_KEY` — for sessions and encryption
 - For Premium: `YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY`, etc. (see template)
 
@@ -95,7 +95,7 @@ Required variables are described in `config/env.template`. Copy to `.env` and fi
 - Python 3.13, aiogram 3.24, aiohttp 3.13
 - SQLAlchemy 2.0, PostgreSQL 17, Alembic
 - Redis 7.1 for sessions (Upstash)
-- Yandex Cloud: YandexGPT Pro, SpeechKit STT, Vision OCR, Translate API
+- Yandex Cloud: YandexGPT Pro, SpeechKit STT, Vision OCR, Translate API, Embeddings API (text-search-doc/query)
 - YooKassa 3.9.0 for payments (production mode)
 - Generation parameters: temperature=0.4, max_tokens=8192
 
@@ -122,13 +122,14 @@ PandaPal/
 │   ├── handlers/            # Telegram command handlers
 │   │   ├── ai_chat/         # Modular chat structure
 │   │   │   ├── text.py      # Text messages (orchestrator pipeline)
-│   │   │   ├── voice.py     # Voice and audio
+│   │   │   ├── voice.py     # Voice and audio (FSM confirmation before sending to AI)
 │   │   │   ├── image.py     # Image analysis
 │   │   │   ├── document.py  # Document handling
 │   │   │   └── helpers.py   # Helpers (Premium, viz, translation, sending, feedback)
 │   │   └── ...              # Other handlers
 │   ├── services/            # Business logic (AI, payments, games, Mini App, RAG)
-│   │   ├── rag/             # Enhanced RAG system
+│   │   ├── rag/             # Enhanced RAG system (query_expander, reranker, semantic_cache pgvector, compressor)
+│   │   ├── embeddings_service.py  # Vector embeddings (Yandex Embeddings API)
 │   │   ├── cache/           # Caching package (Redis + Memory LRU, SOLID SRP)
 │   │   ├── miniapp/         # Mini App services (package)
 │   │   │   ├── chat_context_service.py  # Chat context
@@ -143,10 +144,9 @@ PandaPal/
 │   │   ├── game_engines/    # Game engines (TicTacToe, Checkers, 2048, Erudite)
 │   │   ├── visualization/   # Subject-specific visualizations
 │   │   │   ├── detector.py       # Detection orchestrator
-│   │   │   ├── detectors/        # Detection modules (SRP split)
+│   │   │   ├── detectors/        # request_words, schemes, diagrams, maps, physics, math_graphs, tables_and_diagrams (√1–√50)
 │   │   │   ├── math/, sciences/, social/, languages/, other/
 │   │   │   └── base.py, schemes.py
-│   │   ├── news/            # News service (sources, adapters, moderators)
 │   │   ├── referral_service.py   # Referral links (ref_<id>, whitelist)
 │   │   └── ...              # Other services (moderation, payment, user, etc.)
 │   ├── api/                 # HTTP endpoints
@@ -195,7 +195,7 @@ Project has **comprehensive test coverage** of all critical components:
 
 **Test Statistics:**
 - 🧪 **Total tests: 1000+**
-- ✅ **Unit tests: 60+ files** (security, SSRF, audit logging, DB, cache, moderation, games, news, services)
+- ✅ **Unit tests: 60+ files** (security, SSRF, audit logging, DB, cache, moderation, games, services)
 - ✅ **Integration tests: 38+ files** (API, payments, cryptography, real Yandex Cloud API)
 - ✅ **E2E tests: 5 files** (complete user scenarios)
 - ✅ **Security tests: 6 files** (OWASP, SQL injection, DDoS, authorization)
@@ -274,6 +274,18 @@ pytest tests/ --cov=bot --cov-report=html
 ```
 
 ## Recent changes (2025–2026)
+
+### RAG, visualizations, voice, embeddings (February 2026)
+
+- **Visualization**: square roots values table √1–√50 (algebra.py), pattern for "list/table of square roots" in detectors
+- **RAG**: extended `_extract_topic_from_question` patterns for "list", "table of values", "all values"; `format_knowledge_for_ai` limit 300→1000 chars; list protection in ContextCompressor
+- **Prompts**: rules for "list"/"table of values" requests — 10–15 concrete examples
+- **Feedback form**: `offer_feedback_form` uses `total_requests` instead of `message_count`
+- **Voice (FSM)**: confirmation of recognized text — inline buttons "Send" / "Edit" before sending to AI
+- **Embeddings API**: `get_embedding` in YandexCloudService, EmbeddingService, `embedding_cache` table (pgvector)
+- **SemanticCache**: full rewrite — pgvector + Yandex Embeddings API (cosine similarity), Jaccard removed
+- **QueryExpander**: synonyms for "list", "square roots"
+- **Tests**: `test_embeddings_real.py`, `test_semantic_cache_real.py`, `test_panda_responses_real.py` (E2E)
 
 ### SOLID SRP refactoring (February 2026)
 

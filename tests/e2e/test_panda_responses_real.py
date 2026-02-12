@@ -286,6 +286,88 @@ class TestPandaResponsesReal:
         assert result["sentences"] >= 4
         assert result["length"] >= 150
 
+    # --- Русский язык ---
+
+    @pytest.mark.asyncio
+    async def test_russian_response_no_anglicisms(self, ai_service):
+        """
+        Ответ на русском не должен содержать американизмов и кальки.
+        Литературная норма русского языка.
+        """
+        response = await ai_service.generate_response(
+            user_message="Что такое скорость? Объясни простыми словами.",
+            chat_history=[],
+            user_age=11,
+        )
+        ResponseQualityValidator.assert_not_empty(response, "Русский язык")
+        lower = response.lower()
+        # Не должно быть распространённых англицизмов вместо русских эквивалентов
+        anglicisms = ["апдейт", "фидбек", "краш", "респект", "вайб"]
+        found = [a for a in anglicisms if a in lower]
+        assert not found, (
+            f"Ответ содержит англицизмы вместо русских слов: {found}. "
+            f"Используй литературную норму русского языка."
+        )
+
+    # --- Chain-of-Thought (пошаговое рассуждение) ---
+
+    @pytest.mark.asyncio
+    async def test_cot_word_problem_apples(self, ai_service):
+        """
+        CoT: задача про яблоки (23 - 20 + 6 = 9).
+        Ответ должен содержать пошаговое рассуждение и правильный ответ 9.
+        """
+        response = await ai_service.generate_response(
+            user_message="В кафе было 23 яблока. 20 ушло на обед, купили ещё 6. Сколько всего яблок?",
+            chat_history=[],
+            user_age=10,
+        )
+        ResponseQualityValidator.assert_not_empty(response, "CoT яблоки")
+        ResponseQualityValidator.assert_no_placeholder_or_error(response, "CoT яблоки")
+        # Должно быть пошаговое рассуждение
+        has_steps = any(
+            p in response.lower()
+            for p in ["сначала", "значит", "осталось", "23", "20", "6", "итого"]
+        )
+        assert has_steps, f"Нет пошагового рассуждения: {response[:300]}"
+        # Правильный ответ 9
+        assert "9" in response, f"Ответ должен содержать 9, получено: {response[:400]}"
+
+    @pytest.mark.asyncio
+    async def test_cot_word_problem_balls(self, ai_service):
+        """
+        CoT: задача про мячи (5 + 2×3 = 11).
+        Ответ должен содержать шаги и правильный ответ 11.
+        """
+        response = await ai_service.generate_response(
+            user_message="У Ромы было 5 мячей. Он купил 2 упаковки по 3 мяча. Сколько всего мячей?",
+            chat_history=[],
+            user_age=10,
+        )
+        ResponseQualityValidator.assert_not_empty(response, "CoT мячи")
+        # Пошаговое рассуждение (CoT): начало с шага, упоминание данных задачи
+        has_steps = any(
+            p in response.lower()
+            for p in ["сначала", "упаковк", "умнож", "сложим", "значит", "итого"]
+        )
+        assert has_steps, f"Нет пошагового рассуждения: {response[:300]}"
+
+    @pytest.mark.asyncio
+    async def test_cot_response_has_reasoning_format(self, ai_service):
+        """CoT: ответ на задачу с числами содержит формат рассуждения (шаги, вывод)."""
+        response = await ai_service.generate_response(
+            user_message="В зоомагазине было 64 щенка. Продали 28. Остальных по 4 в клетку. Сколько клеток?",
+            chat_history=[],
+            user_age=11,
+        )
+        ResponseQualityValidator.assert_not_empty(response, "CoT клетки")
+        # Пошаговое рассуждение: 64-28, деление на 4
+        has_reasoning = any(
+            w in response.lower()
+            for w in ["сначала", "осталось", "значит", "итого", "ответ", "клеток", "64", "28"]
+        )
+        assert has_reasoning, f"Нет рассуждения: {response[:300]}"
+
     # --- Расширенное покрытие по предметам ---
 
     @pytest.mark.asyncio

@@ -4,6 +4,8 @@
 Степени, формулы сокращенного умножения, свойства степеней и корней.
 """
 
+import math
+
 from bot.services.visualization.base import BaseVisualizationService
 
 
@@ -109,3 +111,13 @@ class AlgebraVisualization(BaseVisualizationService):
         for i in range(1, 21):
             rows.append([str(i), str(i**2), str(i**3)])
         return self.generate_table(headers, rows, "Таблица квадратов и кубов")
+
+    def generate_square_roots_values_table(self) -> bytes | None:
+        """Генерирует таблицу значений квадратных корней для чисел 1-50."""
+        headers = ["Число n", "√n", "Приближённое значение"]
+        rows = []
+        for n in range(1, 51):
+            val = math.sqrt(n)
+            approx = f"{val:.4f}".rstrip("0").rstrip(".")
+            rows.append([str(n), f"√{n}", approx])
+        return self.generate_table(headers, rows, "Таблица значений квадратных корней")

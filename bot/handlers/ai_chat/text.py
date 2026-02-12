@@ -516,9 +516,6 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
             except Exception as e:
                 logger.debug(f"⚠️ Не удалось записать метрику образования: {e}")
 
-            # Сохраняем количество сообщений для проверки
-            message_count = user.message_count
-
         # Удаляем упоминания про автоматическую генерацию из ответа
         if visualization_image:
             ai_response = clean_auto_generation_mentions(ai_response)
@@ -528,8 +525,8 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
             message, ai_response, visualization_image, visualization_type, user_message
         )
 
-        # Предлагаем форму обратной связи
-        await offer_feedback_form(message, message_count)
+        # Предлагаем форму обратной связи (total_requests из increment_request_count)
+        await offer_feedback_form(message, total_requests)
 
     except Exception as e:
         logger.error(f"Ошибка обработки сообщения: {e}")

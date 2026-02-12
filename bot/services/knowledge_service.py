@@ -115,7 +115,7 @@ class KnowledgeService:
         Returns:
             Топ-K переранжированных результатов
         """
-        cached_result = self.semantic_cache.get(user_question)
+        cached_result = await self.semantic_cache.get(user_question)
         if cached_result:
             logger.debug(f"📚 Semantic cache hit: {user_question[:50]}")
             return cached_result
@@ -139,7 +139,7 @@ class KnowledgeService:
         ranked_results = self.reranker.rerank(user_question, unique_results, user_age, top_k=top_k)
 
         if ranked_results:
-            self.semantic_cache.set(user_question, ranked_results)
+            await self.semantic_cache.set(user_question, ranked_results)
 
         return ranked_results
 
@@ -406,10 +406,13 @@ class KnowledgeService:
 
         formatted_content = "\n\n📚 РЕЛЕВАНТНЫЕ МАТЕРИАЛЫ ИЗ ОБРАЗОВАТЕЛЬНЫХ ИСТОЧНИКОВ:\n"
 
+        content_limit = 1000
         for i, material in enumerate(materials[:3], 1):  # Берем топ-3 материала
             formatted_content += f"\n{i}. {material.title}\n"
             formatted_content += f"   Предмет: {material.subject}\n"
-            formatted_content += f"   Содержание: {material.content[:300]}...\n"
+            content_snippet = material.content[:content_limit]
+            suffix = "..." if len(material.content) > content_limit else ""
+            formatted_content += f"   Содержание: {content_snippet}{suffix}\n"
             formatted_content += f"   Источник: {material.source_url}\n"
 
         formatted_content += (
@@ -643,6 +646,9 @@ class KnowledgeService:
 
         # Паттерны для извлечения темы
         patterns = [
+            r"список\s+(.+?)(?:\?|\.|$)",
+            r"таблиц[аеы]?\s+(?:значений?\s+)?(.+?)(?:\?|\.|$)",
+            r"все\s+значения\s+(.+?)(?:\?|\.|$)",
             r"что такое\s+(.+?)(?:\?|\.|$)",
             r"кто такой\s+(.+?)(?:\?|\.|$)",
             r"кто такая\s+(.+?)(?:\?|\.|$)",

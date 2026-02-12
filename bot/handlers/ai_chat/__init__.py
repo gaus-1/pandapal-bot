@@ -17,9 +17,9 @@ from .text import handle_ai_message, start_ai_chat
 # Создаём роутер для AI чата
 router = Router(name="ai_chat")
 
-# Регистрируем handlers на router
-text.register_handlers(router)
+# Регистрируем handlers на router (voice до text — для FSM voice confirmation)
 voice.register_handlers(router)
+text.register_handlers(router)
 image.register_handlers(router)
 document.register_handlers(router)
 

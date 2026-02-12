@@ -922,6 +922,25 @@ class YandexAIResponseGenerator:
         # - любые образовательные вопросы - да!
         return all(not re.search(pattern, message_lower) for pattern in exclude_patterns)
 
+    def _is_calculation_task(self, message: str) -> bool:
+        """
+        Определить, нужно ли использовать Zero-shot CoT (пошаговое рассуждение).
+        Задачи с числами и многошаговой логикой — добавляем «Давайте решать пошагово».
+        """
+        ml = message.lower().strip()
+        cot_triggers = [
+            r"сколько\s+(всего|осталось|получилось|было|стало)",
+            r"реши\s+(задачу|уравнение|пример)",
+            r"вычисли|посчитай",
+            r"задача",
+            r"\d+\s*[\+\-\*\/×÷]\s*\d+",  # Числа и операции
+            r"было\s+\d+",  # «Было 23 яблока»
+            r"купил[ио]?\s+\d+",
+            r"ушло\s+\d+",
+            r"осталось\s+\d+",
+        ]
+        return any(re.search(p, ml) for p in cot_triggers)
+
     async def generate_response(
         self,
         user_message: str,
@@ -973,10 +992,18 @@ class YandexAIResponseGenerator:
 
             if web_context:
                 compressor = ContextCompressor()
+                max_sent = (
+                    15
+                    if any(
+                        w in user_message.lower()
+                        for w in ("список", "таблица значений", "все значения")
+                    )
+                    else 7
+                )
                 web_context = compressor.compress(
                     context=web_context,
                     question=user_message,
-                    max_sentences=7,
+                    max_sentences=max_sent,
                 )
 
             # Преобразуем историю в формат Yandex Cloud
@@ -1030,10 +1057,16 @@ class YandexAIResponseGenerator:
             temperature = settings.ai_temperature  # Основной параметр для всех пользователей
             max_tokens = settings.ai_max_tokens  # Основной параметр для всех пользователей
 
+            # Zero-shot CoT: для задач с вычислениями добавляем триггер пошагового рассуждения
+            message_for_api = user_message
+            if self._is_calculation_task(user_message):
+                message_for_api = f"{user_message.rstrip()} Давайте решать пошагово."
+                logger.debug("CoT: добавлен триггер пошагового рассуждения")
+
             # Генерация ответа через Yandex Cloud
             logger.info("📤 Отправка запроса в YandexGPT Pro...")
             response = await self.yandex_service.generate_text_response(
-                user_message=user_message,  # Передаем чистое сообщение пользователя
+                user_message=message_for_api,
                 chat_history=yandex_history,
                 system_prompt=enhanced_system_prompt,
                 temperature=temperature,

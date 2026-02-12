@@ -375,6 +375,7 @@ class VisualizationDetector:
                 r"график\s+функци[ии]",
                 r"график\s+y\s*=",
                 r"периодическая\s+табл[иы]ц[аеы]?\s*менделеева",
+                r"(?:список|таблиц[аеы]?)\s*(?:значений?\s+)?квадратн\w*\s*корн",
             ]
             has_context_pattern = any(
                 re.search(p, text_lower) for p in context_visualization_patterns

@@ -156,6 +156,10 @@ class VisualizationService(BaseVisualizationService):
         """Генерирует таблицу квадратов и кубов."""
         return self.algebra.generate_squares_and_cubes_table()
 
+    def generate_square_roots_values_table(self) -> bytes | None:
+        """Генерирует таблицу значений квадратных корней (√1–√50)."""
+        return self.algebra.generate_square_roots_values_table()
+
     # Делегируем методы геометрии
     def generate_geometry_area_formulas_table(self) -> bytes | None:
         """Генерирует таблицу формул площадей."""
