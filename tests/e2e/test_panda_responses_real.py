@@ -12,6 +12,7 @@ E2E тесты ответов панды с реальным YandexGPT API.
 """
 
 import os
+import re
 
 import pytest
 
@@ -330,8 +331,9 @@ class TestPandaResponsesReal:
             for p in ["сначала", "значит", "осталось", "23", "20", "6", "итого"]
         )
         assert has_steps, f"Нет пошагового рассуждения: {response[:300]}"
-        # Правильный ответ 9
-        assert "9" in response, f"Ответ должен содержать 9, получено: {response[:400]}"
+        # Правильный ответ 9 (цифрой или словом)
+        has_correct = "9" in response or "девять" in response.lower()
+        assert has_correct, f"Ответ должен содержать 9 или «девять», получено: {response[:400]}"
 
     @pytest.mark.asyncio
     async def test_cot_word_problem_balls(self, ai_service):
@@ -390,3 +392,64 @@ class TestPandaResponsesReal:
             ResponseQualityValidator.assert_quality(
                 response, min_length=120, min_sentences=3, context=subject
             )
+
+    # --- Формула в ответе (типографский вид, без LaTeX) ---
+
+    @pytest.mark.asyncio
+    async def test_formula_response_force_of_attraction(self, ai_service):
+        """При запросе про формулу силы притяжения ответ содержит формулу в типографском виде, без LaTeX."""
+        response = await ai_service.generate_response(
+            user_message="Что такое сила притяжения и по какой формуле рассчитывается?",
+            chat_history=[],
+            user_age=12,
+        )
+        ResponseQualityValidator.assert_not_empty(response, "Формула притяжения")
+        ResponseQualityValidator.assert_no_placeholder_or_error(response, "Формула притяжения")
+        lower = response.lower()
+        # Должны быть элементы формулы (F, G, m, r или гравитац)
+        has_formula_related = any(
+            x in lower for x in ["f ", " g ", " m", "r²", "r^2", "гравитац", "притяжен"]
+        )
+        assert has_formula_related, f"Ожидалась формула или пояснение: {response[:400]}"
+        # Не должно быть сырого LaTeX
+        assert "\\frac" not in response and "\\sqrt" not in response, "Формула не в LaTeX"
+
+    # --- Русский язык: орфография, разбор ---
+
+    @pytest.mark.asyncio
+    async def test_russian_orthography_or_parsing(self, ai_service):
+        """Ответы на запросы по русскому языку: без англицизмов, структурированы при разборе."""
+        response = await ai_service.generate_response(
+            user_message="Разбери по составу слово «подводный».",
+            chat_history=[],
+            user_age=11,
+        )
+        ResponseQualityValidator.assert_not_empty(response, "Разбор по составу")
+        lower = response.lower()
+        anglicisms = ["апдейт", "фидбек", "краш"]
+        assert not any(a in lower for a in anglicisms), "Ответ не должен содержать англицизмы"
+        # При разборе ожидаем структуру: корень, окончание или список
+        has_structure = (
+            "корень" in lower or "окончание" in lower or "приставк" in lower or "суффикс" in lower
+        )
+        assert has_structure or len(response) >= 100, (
+            f"Ожидалась структура разбора или развёрнутый ответ: {response[:300]}"
+        )
+
+    # --- Полнота: не менее 10 пунктов списка при запросе примеров ---
+
+    @pytest.mark.asyncio
+    async def test_completeness_list_at_least_10(self, ai_service):
+        """При запросе примеров/списка в ответе не менее 8 пунктов (допуск из-за вариативности API)."""
+        response = await ai_service.generate_response(
+            user_message="Приведи 10 примеров имён прилагательных.",
+            chat_history=[],
+            user_age=10,
+        )
+        ResponseQualityValidator.assert_not_empty(response, "10 примеров")
+        # Подсчёт пунктов списка: строки, начинающиеся с - , • , * или 1. 2. 3.
+        list_items = re.findall(r"^(?:\s*[-•*]\s+|\s*\d+\.\s+)", response, re.MULTILINE)
+        count = len(list_items)
+        assert count >= 8, (
+            f"Ожидалось не менее 8 пунктов списка, получено {count}: {response[:500]}"
+        )

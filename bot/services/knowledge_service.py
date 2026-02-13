@@ -7,6 +7,7 @@
 """
 
 import json
+import os
 import re
 from datetime import datetime, timedelta
 from urllib.parse import quote
@@ -32,7 +33,7 @@ class KnowledgeService:
         self.knowledge_base: dict[str, list[EducationalContent]] = {}
         self.last_update: datetime | None = None
         self.update_interval = timedelta(days=7)  # Обновляем раз в неделю
-        self.auto_update_enabled = False  # Отключено для быстрых ответов
+        self.auto_update_enabled = os.getenv("KNOWLEDGE_AUTO_UPDATE", "false").lower() == "true"
 
         # Wikipedia API (БЕЗ ключа - открытый API)
         self.wikipedia_url = "https://ru.wikipedia.org/w/api.php"
@@ -63,7 +64,9 @@ class KnowledgeService:
             "эротическ",
         }
 
-        logger.info("📚 KnowledgeService инициализирован (RAG: ON, авто-обновление: ВЫКЛ)")
+        logger.info(
+            f"📚 KnowledgeService инициализирован (RAG: ON, авто-обновление: {'ВКЛ' if self.auto_update_enabled else 'ВЫКЛ'})"
+        )
 
     async def get_knowledge_for_subject(
         self, subject: str, query: str = ""
@@ -381,6 +384,19 @@ class KnowledgeService:
                 logger.info(
                     f"✅ База знаний обновлена: {len(all_materials)} материалов по {len(self.knowledge_base)} предметам"
                 )
+
+                # Индексация в pgvector для семантического поиска
+                indexed = 0
+                for material in all_materials:
+                    try:
+                        if await self.vector_search.index_content(material):
+                            indexed += 1
+                    except Exception as idx_err:
+                        logger.warning(
+                            f"⚠️ Не удалось проиндексировать материал «{material.title[:50]}»: {idx_err}"
+                        )
+                if indexed:
+                    logger.info(f"📚 Проиндексировано в векторы: {indexed} материалов")
 
         except Exception as e:
             logger.error(f"❌ Ошибка обновления базы знаний: {e}")

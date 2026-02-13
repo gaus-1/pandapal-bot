@@ -17,7 +17,10 @@ from bot.database import get_db
 from bot.services import ChatHistoryService, UserService
 from bot.services.ai_service_solid import get_ai_service
 from bot.services.miniapp.visualization_service import MiniappVisualizationService
-from bot.services.yandex_ai_response_generator import clean_ai_response
+from bot.services.yandex_ai_response_generator import (
+    add_random_engagement_question,
+    clean_ai_response,
+)
 
 from ._history import save_and_notify
 from ._media import process_media
@@ -274,6 +277,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
 
                 full_response = clean_ai_response(full_response)
+                full_response = add_random_engagement_question(full_response)
 
                 # Генерация визуализаций
                 visualization_image_base64, visualization_type, multiplication_number = (

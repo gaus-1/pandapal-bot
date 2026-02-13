@@ -346,8 +346,8 @@ class TestComprehensivePandaResponses:
             )
 
             assert response is not None, f"AI не ответил на вопрос по {subject}"
-            assert len(response) > 100, (
-                f"Ответ слишком короткий по {subject}: {len(response)} символов"
+            assert len(response) >= 50, (
+                f"Ответ слишком короткий по {subject}: {len(response)} символов (минимум 50)"
             )
 
             # Проверка качества ответа

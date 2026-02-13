@@ -49,3 +49,18 @@ def test_clean_ai_response_long_wall_gets_paragraphs():
     cleaned = clean_ai_response(wall)
     # Страховка срабатывает при длине >= 300 символов
     assert "\n\n" in cleaned, f"expected paragraph breaks in cleaned ({len(cleaned)} chars)"
+
+
+def test_clean_ai_response_list_and_bold_breaks():
+    """clean_ai_response разбивает длинную строку по маркерам списка (-) и после жирного (**)."""
+    long_line = (
+        "Основные принципы: - Чем больше масса, тем сильнее притяжение. "
+        "- Чем больше расстояние, тем слабее сила. "
+        "**Как работает формула:** F = G·(m₁·m₂)/r². Это закон Ньютона."
+    )
+    assert len(long_line) >= 130
+    cleaned = clean_ai_response(long_line)
+    # Должны появиться переносы (между пунктами или после **)
+    assert "\n" in cleaned
+    lines = [ln.strip() for ln in cleaned.split("\n") if ln.strip()]
+    assert len(lines) >= 2, "ожидалась разбивка на несколько строк"

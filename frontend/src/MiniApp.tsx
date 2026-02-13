@@ -83,6 +83,18 @@ function MiniAppContent() {
             useAppStore.getState().setError(
               'Не удалось загрузить данные. Попробуйте перезапустить Mini App через кнопку в боте.'
             );
+          } else if (import.meta.env.DEV && typeof window !== 'undefined' &&
+            (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+            // Локальная разработка без Telegram — mock-пользователь для просмотра Mini App
+            const { setUser, setIsLoading, setError } = useAppStore.getState();
+            setUser({
+              telegram_id: 0,
+              first_name: 'Локальный',
+              user_type: 'child',
+              is_premium: false,
+            });
+            setError(null);
+            setIsLoading(false);
           }
           useAppStore.getState().setIsLoading(false);
         }

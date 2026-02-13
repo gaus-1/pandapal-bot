@@ -163,19 +163,19 @@ export function DonationScreen({ user }: DonationScreenProps) {
             <label className="block text-xs sm:text-sm font-medium text-gray-900 dark:text-slate-100 mb-1.5 sm:mb-2 md:mb-2.5">
               Или введите свою сумму (от 50 ⭐):
             </label>
-            <div className="flex gap-1.5 sm:gap-2 md:gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 md:gap-3">
               <input
                 type="number"
                 min="50"
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
                 placeholder="50"
-                className="flex-1 px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-400/50"
+                className="flex-1 min-w-0 px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-400/50"
               />
               <button
                 onClick={handleCustomDonate}
                 disabled={isProcessing || !customAmount}
-                className="px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base bg-blue-500 dark:bg-blue-600 text-white font-semibold disabled:opacity-50 active:opacity-80 transition-opacity touch-manipulation min-h-[44px] whitespace-nowrap flex items-center justify-center gap-2"
+                className="w-full sm:w-auto sm:flex-shrink-0 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base bg-blue-500 dark:bg-blue-600 text-white font-semibold disabled:opacity-50 active:opacity-80 transition-opacity touch-manipulation min-h-[44px] flex items-center justify-center gap-2"
               >
                 {/* Иконка замка (вне мини-аппа или когда не авторизован) */}
                 {(!inTelegram || !isAuthenticated) && (

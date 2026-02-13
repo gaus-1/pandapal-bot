@@ -261,6 +261,27 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
             if unique_parts:
                 result = "\n\n".join(unique_parts)
 
+        # Если всё ещё один длинный абзац — режем по маркерам списка (-, •, *, 1. 2. 3.)
+        if len(result) > 300 and "\n\n" not in result:
+            list_parts = re.split(r"(?=\s*[-•*]\s+|\s*\d+\.\s+)", result)
+            merged = []
+            buf = []
+            for seg in list_parts:
+                seg = seg.strip()
+                if not seg:
+                    continue
+                if len(seg) < 30 and buf:
+                    buf.append(seg)
+                else:
+                    if buf:
+                        merged.append(" ".join(buf))
+                        buf = []
+                    merged.append(seg)
+            if buf:
+                merged.append(" ".join(buf))
+            if len(merged) >= 2:
+                result = "\n\n".join(merged)
+
     # Шаг 5: Удаляем повторяющиеся абзацы (похожесть 50%, подстрока, блок с префиксом)
     raw_paragraphs = [p.strip() for p in result.split("\n\n") if p.strip()]
     if len(raw_paragraphs) == 1 and "\n" in result:
@@ -437,6 +458,30 @@ def fix_glued_words(text: str) -> str:
     return text
 
 
+def _ensure_list_and_bold_breaks(text: str, line_threshold: int = 130) -> str:
+    """
+    В длинных строках вставляет переносы перед маркерами списка и после закрывающего **,
+    чтобы списки и подзаголовки не сливались в сплошной текст.
+    """
+    if not text or len(text) < line_threshold:
+        return text
+    lines = text.split("\n")
+    result_lines = []
+    for line in lines:
+        if len(line) <= line_threshold:
+            result_lines.append(line)
+            continue
+        # Перед маркерами списка (с пробелом после) вставляем перенос
+        line = re.sub(r"\s+(-\s+)", r"\n\1", line, count=0)
+        line = re.sub(r"\s+(•\s+)", r"\n\1", line, count=0)
+        # * как маркер списка только когда не часть ** (жирное)
+        line = re.sub(r"(?<!\*)\s+\*\s+(?!\*)", "\n* ", line, count=0)
+        # После полной фразы жирным **...**, если следом буква/цифра — перенос (подзаголовок)
+        line = re.sub(r"(\*\*[^*]*\*\*)(\s*)([A-Za-zА-Яа-я0-9])", r"\1\n\n\2\3", line, count=0)
+        result_lines.append(line)
+    return "\n".join(result_lines)
+
+
 def _ensure_paragraph_breaks(text: str, min_length: int = 300, sentences_per_para: int = 2) -> str:
     """
     Если текст длинный и без абзацев (нет \\n\\n) — вставить разбивку по предложениям.
@@ -473,6 +518,9 @@ def clean_ai_response(text: str) -> str:
     # Исправляем склеенные слова в начале
     text = fix_glued_words(text)
 
+    # Разбивка длинных строк по маркерам списка и после жирного (до дедупликации)
+    text = _ensure_list_and_bold_breaks(text)
+
     # Удаляем вставки в квадратных скобках (артефакты модели)
     text = re.sub(r"\[Приложить изображение[^\]]*\]", "", text, flags=re.IGNORECASE)
     text = re.sub(r"\[Дай[^\]]*\]", "", text, flags=re.IGNORECASE)
@@ -492,6 +540,10 @@ def clean_ai_response(text: str) -> str:
     # Без слэша: left( / right) → ( / )
     text = re.sub(r"\bleft\s*\(\s*", "(", text, flags=re.IGNORECASE)
     text = re.sub(r"\s*right\s*\)", ")", text, flags=re.IGNORECASE)
+
+    # Умножение в формулах: G. и F. между буквами/скобками → G·, F· (не точка как умножение)
+    text = re.sub(r"(\bG)\.(\s*)(?=[\(\w])", r"\1·\2", text)
+    text = re.sub(r"(\bF)\.(\s*)(?=[\(\w])", r"\1·\2", text)
 
     # Пробелы вокруг ** для корректного отображения жирного
     text = normalize_bold_spacing(text)
