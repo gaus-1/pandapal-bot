@@ -234,15 +234,67 @@ async def try_image_request(
             db.commit()
         return True
 
-    # Не визуализация - генерируем через YandexART
+    # Не учебная визуализация — для запросов «нарисуй что угодно» не генерируем, только текст
     if not visualization_image:
+        _edu = (
+            "таблиц",
+            "график",
+            "диаграмм",
+            "схем",
+            "карт",
+            "формул",
+            "парабол",
+            "синус",
+            "косинус",
+            "математик",
+            "физик",
+            "хими",
+            "биолог",
+            "географ",
+            "истори",
+            "русск",
+            "литератур",
+            "информатик",
+            "умножен",
+            "делен",
+            "уравнен",
+            "функци",
+            "геометр",
+            "периодическ",
+            "менделеев",
+            "клетк",
+            "орган",
+            "реакци",
+            "оптик",
+            "механик",
+        )
+        msg_lower_r = msg_for_routing.lower()
+        is_educational_request = any(kw in msg_lower_r for kw in _edu)
+        if not is_educational_request:
+            caption = "Могу показать что-то по школьным предметам! 📚"
+            event_data = json.dumps({"content": caption}, ensure_ascii=False)
+            await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+            await response.write(b"event: done\ndata: {}\n\n")
+            with get_db() as db:
+                hist = ChatHistoryService(db)
+                hist.add_message(telegram_id, user_message, "user")
+                hist.add_message(telegram_id, caption, "ai")
+                from bot.services.panda_lazy_service import PandaLazyService
+
+                PandaLazyService(db).increment_consecutive_after_ai(telegram_id)
+                db.commit()
+            logger.info(
+                "🎨 Stream: Запрос не по школьной теме — отправлен только текст (без генерации)"
+            )
+            return True
+
         from bot.services.yandex_art_service import get_yandex_art_service
 
         art_service = get_yandex_art_service()
         is_available = art_service.is_available()
 
         logger.info(
-            f"🎨 Stream: Запрос на генерацию изображения (не учебный) от {telegram_id}: "
+            f"🎨 Stream: Запрос на генерацию изображения (учебный контекст) от {telegram_id}: "
             f"'{msg_for_routing[:50]}', art_service.is_available={is_available}"
         )
 
