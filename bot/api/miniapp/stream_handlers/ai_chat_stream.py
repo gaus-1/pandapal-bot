@@ -345,10 +345,10 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     response=response,
                 )
 
-                # Отправляем финальное сообщение
+                # Финальный контент (очищенный + вовлечение) — одним событием, без подмены «другая версия»
                 if full_response:
-                    msg_data = json.dumps({"content": full_response}, ensure_ascii=False)
-                    await response.write(f"event: message\ndata: {msg_data}\n\n".encode())
+                    final_data = json.dumps({"content": full_response}, ensure_ascii=False)
+                    await response.write(f"event: final\ndata: {final_data}\n\n".encode())
 
                 # Сообщение при достижении лимита
                 if limit_reached:

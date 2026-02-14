@@ -214,6 +214,28 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                     }
                   );
                   currentResponseRef.current = messageContent;
+                } else if (eventType === 'final' && data.content) {
+                  // Финальный контент (очищенный + вовлечение) — одна подстановка, без мигания
+                  const finalContent = data.content;
+                  currentResponseRef.current = finalContent;
+                  queryClient.setQueryData<ChatMessage[]>(
+                    queryKeys.chatHistory(telegramId, limit),
+                    (old) => {
+                      if (!old) return old;
+                      const updated = [...old];
+                      const lastMessage = updated[updated.length - 1];
+                      if (lastMessage && lastMessage.role === 'ai') {
+                        updated[updated.length - 1] = { ...lastMessage, content: finalContent };
+                      } else if (lastMessage && lastMessage.role === 'user') {
+                        updated.push({
+                          role: 'ai',
+                          content: finalContent,
+                          timestamp: new Date().toISOString(),
+                        });
+                      }
+                      return updated;
+                    }
+                  );
                 } else if (eventType === 'image' && data.image) {
                   // Получено изображение (визуализация или сгенерированное)
                   const imageBase64 = data.image;

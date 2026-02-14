@@ -52,9 +52,9 @@ export default {
         },
       },
       fontFamily: {
-        // Единые шрифты для сайта и мини-апп
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         display: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        chat: ['Literata', 'Georgia', 'serif'],
       },
       // Адаптивная типографика под все устройства
       fontSize: {

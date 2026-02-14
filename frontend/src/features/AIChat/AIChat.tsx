@@ -655,10 +655,11 @@ function renderParagraphWithSubheadingBold(content: string): React.ReactNode {
 }
 
 function renderSectionContent(content: string) {
+  const chatTextClass = 'text-xs sm:text-sm leading-relaxed text-gray-900 dark:text-slate-100 font-chat';
   if (isNumberedList(content)) {
     const items = parseListItems(content);
     return (
-      <ol className="list-decimal list-inside space-y-1 ml-2 text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
+      <ol className={`list-decimal list-inside space-y-1 ml-2 ${chatTextClass}`}>
         {items.map((item, i) => (
           <li key={i} className="whitespace-pre-wrap break-words mb-1">
             {renderLineWithOptionalSubheadingBold(item)}
@@ -671,7 +672,7 @@ function renderSectionContent(content: string) {
   if (isList(content)) {
     const items = parseListItems(content);
     return (
-      <ul className="list-disc list-inside space-y-1 ml-2 text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
+      <ul className={`list-disc list-inside space-y-1 ml-2 ${chatTextClass}`}>
         {items.map((item, i) => (
           <li key={i} className="whitespace-pre-wrap break-words mb-1">
             {renderLineWithOptionalSubheadingBold(item)}
@@ -686,7 +687,7 @@ function renderSectionContent(content: string) {
     if (table && (table.headers.length > 0 || table.rows.length > 0)) {
       return (
         <div className="overflow-x-auto my-2 rounded border border-gray-200 dark:border-slate-600">
-          <table className="w-full text-[11px] sm:text-xs border-collapse text-gray-900 dark:text-slate-100">
+          <table className={`w-full border-collapse ${chatTextClass}`}>
             {table.headers.length > 0 && (
               <thead>
                 <tr>
@@ -715,9 +716,9 @@ function renderSectionContent(content: string) {
     }
   }
 
-  // Обычный текст: жирный через ** и подзаголовки (строки/фразы, оканчивающиеся на «:»)
+  // Обычный текст: жирный через ** и подзаголовки
   return (
-    <p className="whitespace-pre-wrap break-words text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
+    <p className={`whitespace-pre-wrap break-words ${chatTextClass}`}>
       {renderParagraphWithSubheadingBold(content)}
     </p>
   );
@@ -733,7 +734,7 @@ function MessageContent({ content, role, isGreeting }: MessageContentProps) {
   }
 
   const wrapperClass = isGreeting
-    ? 'whitespace-pre-wrap break-words text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100 font-semibold'
+    ? 'whitespace-pre-wrap break-words text-xs sm:text-sm leading-relaxed text-gray-900 dark:text-slate-100 font-semibold font-chat'
     : '';
 
   // Исправляем форматирование таблицы умножения перед парсингом
@@ -752,7 +753,7 @@ function MessageContent({ content, role, isGreeting }: MessageContentProps) {
           className="py-2 first:pt-0 last:pb-0"
         >
           {section.title && (
-            <h3 className="font-semibold text-xs sm:text-sm mb-1.5 text-gray-900 dark:text-slate-100">
+            <h3 className="font-chat font-semibold text-xs sm:text-sm mb-1.5 text-gray-900 dark:text-slate-100">
               {renderTextWithBold(section.title)}
             </h3>
           )}
