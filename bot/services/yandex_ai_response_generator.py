@@ -458,6 +458,47 @@ def fix_glued_words(text: str) -> str:
     return text
 
 
+def _is_digit_only_line(line: str) -> bool:
+    """
+    Строка считается «только цифры», если после нормализации это цифры и опционально [.)] в конце.
+    Не считаем нумерованный пункт вида «1. Текст» или «1) Текст».
+    """
+    stripped = line.strip().replace("\r", "")
+    if not stripped:
+        return False
+    # Только цифры и пробелы, или цифры + одна точка/скобка в конце (артефакт модели: 1. 8. 3.)
+    return bool(re.match(r"^\s*\d+[.)]?\s*$", stripped))
+
+
+def _merge_digit_only_lines(text: str) -> str:
+    """
+    Склеивает строки из одних цифр (артефакт модели: год 1837 как 1\\n8\\n3\\n7) в одну строку.
+    Убирает «цифры в столбик» в ответах. Учитывает варианты 1\\n8\\n3 и 1.\\n8.\\n3.
+    """
+    if not text or "\n" not in text:
+        return text
+    lines = text.split("\n")
+    result = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if _is_digit_only_line(line):
+            digit_lines = [line]
+            j = i + 1
+            while j < len(lines) and _is_digit_only_line(lines[j]):
+                digit_lines.append(lines[j])
+                j += 1
+            # Из каждой строки оставляем только цифры (убираем пробелы, точку, скобку)
+            merged = "".join(re.sub(r"\D", "", ln) for ln in digit_lines)
+            if merged:
+                result.append(merged)
+            i = j
+        else:
+            result.append(line)
+            i += 1
+    return "\n".join(result)
+
+
 def _ensure_list_and_bold_breaks(text: str, line_threshold: int = 130) -> str:
     """
     В длинных строках вставляет переносы перед маркерами списка и после закрывающего **,
@@ -517,6 +558,9 @@ def clean_ai_response(text: str) -> str:
 
     # Исправляем склеенные слова в начале
     text = fix_glued_words(text)
+
+    # Склеиваем строки из одних цифр (1\n8\n3 → 183), убираем «цифры в столбик»
+    text = _merge_digit_only_lines(text)
 
     # Разбивка длинных строк по маркерам списка и после жирного (до дедупликации)
     text = _ensure_list_and_bold_breaks(text)

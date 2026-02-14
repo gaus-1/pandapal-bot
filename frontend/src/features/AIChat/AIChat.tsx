@@ -662,6 +662,39 @@ function renderParagraphWithSubheadingBold(content: string): React.ReactNode {
 const AI_MESSAGE_TEXT_CLASS =
   'text-sm sm:text-base leading-relaxed text-gray-900 dark:text-slate-100 font-chat';
 
+/** Строка — только цифры (или цифры + точка/скобка в конце), не нумерованный пункт «1. Текст». */
+function isDigitOnlyLine(line: string): boolean {
+  const t = line.trim().replace(/\r/g, '');
+  if (!t) return false;
+  return /^\s*\d+[.)]?\s*$/.test(t);
+}
+
+/** Склеивает столбик цифр (1\\n8\\n3 → 183) для отображения. Страховка для истории и стрима. */
+function mergeDigitOnlyLines(text: string): string {
+  if (!text || !text.includes('\n')) return text;
+  const lines = text.split('\n');
+  const result: string[] = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (isDigitOnlyLine(line)) {
+      const digitLines: string[] = [line];
+      let j = i + 1;
+      while (j < lines.length && isDigitOnlyLine(lines[j])) {
+        digitLines.push(lines[j]);
+        j += 1;
+      }
+      const merged = digitLines.map((ln) => ln.replace(/\D/g, '')).join('');
+      if (merged) result.push(merged);
+      i = j;
+    } else {
+      result.push(line);
+      i += 1;
+    }
+  }
+  return result.join('\n');
+}
+
 function renderSectionContent(content: string) {
   const chatTextClass = AI_MESSAGE_TEXT_CLASS;
   if (isNumberedList(content)) {
@@ -745,8 +778,8 @@ function MessageContent({ content, role, isGreeting }: MessageContentProps) {
     ? `whitespace-pre-wrap break-words ${AI_MESSAGE_TEXT_CLASS} font-semibold`
     : '';
 
-  // Исправляем форматирование таблицы умножения перед парсингом
-  const cleanedContent = content
+  // Убираем «цифры в столбик» (год 1837 как 1\n8\n3\n7), затем форматирование таблицы умножения
+  const cleanedContent = mergeDigitOnlyLines(content)
     // Исправляем "3 3 = 9" на "3 × 3 = 9"
     .replace(/(\d+)\s+(\d+)\s*=\s*(\d+)/g, '$1 × $2 = $3')
     // Исправляем "3*3=9" на "3 × 3 = 9"

@@ -1,8 +1,12 @@
-"""Тест страховки от сплошного текста: _ensure_paragraph_breaks и clean_ai_response."""
+"""Тест страховки от сплошного текста: _ensure_paragraph_breaks, _merge_digit_only_lines, clean_ai_response."""
 
 import pytest
 
-from bot.services.yandex_ai_response_generator import _ensure_paragraph_breaks, clean_ai_response
+from bot.services.yandex_ai_response_generator import (
+    _ensure_paragraph_breaks,
+    _merge_digit_only_lines,
+    clean_ai_response,
+)
 
 
 def test_ensure_paragraph_breaks_adds_newlines_for_long_wall():
@@ -32,6 +36,36 @@ def test_ensure_paragraph_breaks_short_text_unchanged():
     """Короткий текст без \\n\\n не меняем."""
     short = "Краткий ответ."
     assert _ensure_paragraph_breaks(short) == short
+
+
+def test_merge_digit_only_lines_merges_column_of_digits():
+    """Строки из одних цифр (1\\n8\\n3) склеиваются в одно число 183."""
+    text = "Годы жизни: 1799 —\n1\n8\n3\n7\nВклад в литературу:"
+    out = _merge_digit_only_lines(text)
+    assert "1\n8\n3\n7" not in out
+    assert "1837" in out
+    assert "Годы жизни:" in out and "Вклад в литературу:" in out
+
+
+def test_merge_digit_only_lines_keeps_normal_lines_unchanged():
+    """Обычные строки и нумерованные пункты (1. текст) не трогаем."""
+    text = "Первый пункт.\n1. Один\n2. Два"
+    assert _merge_digit_only_lines(text) == text
+
+
+def test_merge_digit_only_lines_merges_digit_with_dot_artifact():
+    """Артефакт модели 1.\\n8.\\n3. (год) склеивается в 183."""
+    text = "Годы жизни: 1799 —\n1.\n8.\n3.\n7\nВклад в литературу:"
+    out = _merge_digit_only_lines(text)
+    assert "1.\n8.\n3.\n7" not in out
+    assert "1837" in out
+
+
+def test_merge_digit_only_lines_handles_crlf():
+    """Строки с \\r не ломают склейку."""
+    text = "Даты:\n1\r\n8\r\n3\n7\nТекст"
+    out = _merge_digit_only_lines(text)
+    assert "1837" in out
 
 
 def test_clean_ai_response_long_wall_gets_paragraphs():
