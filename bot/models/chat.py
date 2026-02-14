@@ -72,6 +72,9 @@ class ChatHistory(Base):
     # URL изображения визуализации (base64 data URL для графиков/таблиц)
     image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # Реакция панды на фидбек пользователя (happy, eating, offended, questioning)
+    panda_reaction: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
     # Relationship
     user: Mapped["User"] = relationship("User", back_populates="messages")
 

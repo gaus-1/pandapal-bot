@@ -70,6 +70,7 @@ async def miniapp_get_chat_history(request: web.Request) -> web.Response:
                     "content": msg.message_text,
                     "timestamp": msg.timestamp.isoformat() if msg.timestamp else None,
                     "imageUrl": msg.image_url if msg.image_url else None,
+                    "pandaReaction": getattr(msg, "panda_reaction", None) or None,
                 }
                 for msg in messages
             ]

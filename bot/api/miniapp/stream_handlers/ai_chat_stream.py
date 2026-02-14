@@ -331,7 +331,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 if len(full_response) > MAX_RESPONSE_LENGTH:
                     full_response = full_response[:MAX_RESPONSE_LENGTH] + "\n\n... (ответ обрезан)"
 
-                # Сохраняем в историю
+                panda_reaction = get_chat_reaction(normalized_message)
+
+                # Сохраняем в историю (с реакцией панды для отображения при повторном заходе)
                 limit_reached, total_requests = await save_and_notify(
                     db=db,
                     premium_service=premium_service,
@@ -344,11 +346,11 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                     is_history_cleared=is_history_cleared,
                     user=user,
                     response=response,
+                    panda_reaction=panda_reaction,
                 )
 
                 # Финальный контент (очищенный + вовлечение) — одним событием, без подмены «другая версия»
                 if full_response:
-                    panda_reaction = get_chat_reaction(normalized_message)
                     if panda_reaction is not None:
                         full_response = add_continue_after_reaction(full_response)
                     final_payload = {"content": full_response}

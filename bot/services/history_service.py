@@ -41,7 +41,12 @@ class ChatHistoryService:
         self.history_limit = settings.chat_history_limit  # Лимит сообщений для контекста
 
     def add_message(
-        self, telegram_id: int, message_text: str, message_type: str, image_url: str | None = None
+        self,
+        telegram_id: int,
+        message_text: str,
+        message_type: str,
+        image_url: str | None = None,
+        panda_reaction: str | None = None,
     ) -> ChatHistory:
         """
         Добавить сообщение в историю.
@@ -51,6 +56,7 @@ class ChatHistoryService:
             message_text: Текст сообщения
             message_type: Тип сообщения ('user', 'ai', 'system')
             image_url: URL изображения визуализации (опционально)
+            panda_reaction: Реакция панды на фидбек (опционально, только для ai)
 
         Returns:
             ChatHistory: Созданная запись
@@ -68,6 +74,7 @@ class ChatHistoryService:
             message_text=message_text,
             message_type=message_type,
             image_url=image_url,
+            panda_reaction=panda_reaction,
         )
 
         try:

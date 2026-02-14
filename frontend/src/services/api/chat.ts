@@ -63,7 +63,15 @@ export async function sendAIMessage(
 export async function getChatHistory(
   telegramId: number,
   limit: number = 50
-): Promise<Array<{ role: 'user' | 'ai'; content: string; timestamp: string; imageUrl?: string }>> {
+): Promise<
+  Array<{
+    role: 'user' | 'ai';
+    content: string;
+    timestamp: string;
+    imageUrl?: string;
+    pandaReaction?: 'happy' | 'eating' | 'offended' | 'questioning';
+  }>
+> {
   const response = await fetch(
     `${API_BASE_URL}/miniapp/chat/history/${telegramId}?limit=${limit}`,
     { headers: getAuthHeaders() }

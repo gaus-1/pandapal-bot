@@ -24,6 +24,7 @@ async def save_and_notify(
     is_history_cleared: bool,
     user,
     response: web.StreamResponse,
+    panda_reaction: str | None = None,
 ) -> tuple[bool, int]:
     """Сохранить в историю, проверить достижения, отправить уведомления. Возвращает (limit_reached, total_requests)."""
     limit_reached = False
@@ -44,7 +45,13 @@ async def save_and_notify(
         image_url = None
         if visualization_image_base64:
             image_url = f"data:image/png;base64,{visualization_image_base64}"
-        history_service.add_message(telegram_id, full_response_for_db, "ai", image_url=image_url)
+        history_service.add_message(
+            telegram_id,
+            full_response_for_db,
+            "ai",
+            image_url=image_url,
+            panda_reaction=panda_reaction,
+        )
 
         from bot.services.panda_lazy_service import PandaLazyService
 
