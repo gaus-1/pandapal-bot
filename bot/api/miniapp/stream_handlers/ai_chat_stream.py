@@ -17,7 +17,7 @@ from bot.database import get_db
 from bot.services import ChatHistoryService, UserService
 from bot.services.ai_service_solid import get_ai_service
 from bot.services.miniapp.visualization_service import MiniappVisualizationService
-from bot.services.panda_chat_reactions import get_chat_reaction
+from bot.services.panda_chat_reactions import add_continue_after_reaction, get_chat_reaction
 from bot.services.yandex_ai_response_generator import (
     add_random_engagement_question,
     clean_ai_response,
@@ -348,8 +348,10 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
                 # Финальный контент (очищенный + вовлечение) — одним событием, без подмены «другая версия»
                 if full_response:
-                    final_payload = {"content": full_response}
                     panda_reaction = get_chat_reaction(normalized_message)
+                    if panda_reaction is not None:
+                        full_response = add_continue_after_reaction(full_response)
+                    final_payload = {"content": full_response}
                     if panda_reaction is not None:
                         final_payload["pandaReaction"] = panda_reaction
                     final_data = json.dumps(final_payload, ensure_ascii=False)

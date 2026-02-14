@@ -10,6 +10,7 @@ import random
 from loguru import logger
 
 from bot.config.panda_chat_reactions_data import (
+    CONTINUE_AFTER_REACTION,
     NEGATIVE_PHRASES,
     POSITIVE_PHRASES,
     REACTIONS_NEGATIVE,
@@ -49,3 +50,26 @@ def get_chat_reaction(message: str) -> str | None:
         logger.debug(f"Реакция чата: негатив -> {reaction}")
         return reaction
     return None
+
+
+def add_continue_after_reaction(response: str) -> str:
+    """
+    После реакции панды добавить предложение продолжить (отдельно от основного текста).
+
+    Добавляет одну из фраз CONTINUE_AFTER_REACTION, если в конце ответа ещё нет
+    явного приглашения (вопрос, «спроси», «что ещё» и т.п.).
+    """
+    if not response or not response.strip():
+        return response
+    text = response.strip()
+    lower = text.lower()
+    # Уже есть приглашение в последних ~120 символах
+    tail = lower[-120:] if len(lower) > 120 else lower
+    if "?" in tail or "спроси" in tail or "что ещё" in tail or "следующ" in tail:
+        return response
+    suffix = random.choice(CONTINUE_AFTER_REACTION)
+    if not text.endswith("\n\n"):
+        text = text.rstrip()
+        if text and not text.endswith("\n"):
+            text += "\n\n"
+    return text + suffix
