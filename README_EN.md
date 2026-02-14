@@ -273,7 +273,7 @@ if current_time - auth_date > 86400:
 
 - **Communication style**: panda can respond in a neutral, educational tone (main answer) or with friendly irony (encouragement, gentle decline from study); no irony on sensitive topics or when grading homework.
 - **Single system prompt** (`bot/config/prompts.py`): study over games ("reшать задачи" → study tasks), friendly motivation/irony without pressure, no irony on sensitive topics; adult topics (utilities, banks) explained in simple words.
-- **Rest/games** (`panda_lazy_service`): extended `CONTINUE_LEARN_PATTERNS` so "reшать задачи", "задачи по геометрии" etc. count as continuing study; panda does not send to Games.
+- **Rest/games** (`panda_lazy_service`): extended `CONTINUE_LEARN_PATTERNS` so "решать задачи", "задачи по геометрии" etc. count as continuing study; panda does not send to Games.
 - **Educational requests**: single keyword list in `bot/config/educational_keywords.py` (Telegram + Mini App).
 - **Adult topics**: `try_get_adult_topic_response()` in service; one call path in Telegram, Mini App chat and stream. Homework check: friendly, honest tone, no irony in grading.
 
@@ -291,6 +291,13 @@ pytest tests/ --cov=bot --cov-report=html
 ```
 
 ## Recent changes (2025–2026)
+
+### Fixes and improvements (February 2026)
+
+- **RAG semantic_cache**: `embedding_cache` queries use `CAST(:vec AS vector)` instead of `:vec::vector` to avoid PostgreSQL syntax errors with bound parameters.
+- **Digit column artifact**: post-processing `_merge_digit_only_lines` merges lines that are only digits (model artifact: year 1837 as 1\\n8\\n3\\n7) into one line.
+- **Streaming**: final response sent as `event: final`; frontend substitutes it into the last AI message to prevent UI flash.
+- **Frontend**: Literata font (font-chat) for all Panda response text, size text-sm/sm:text-base.
 
 ### RAG, pgvector, Railway, visualizations (February 2026)
 
@@ -343,7 +350,7 @@ pytest tests/ --cov=bot --cov-report=html
 - SQLAlchemy ORM for SQL injection protection
 - CSP headers for XSS protection
 - Moderation: 150+ patterns, profanity filters in 4 languages
-- Rate limiting for overload protection
+- Rate limiting: 300 req/min API, 100 req/min AI, 20 req/min auth
 - HTTPS via Cloudflare Full Strict
 - Secrets only in environment variables
 

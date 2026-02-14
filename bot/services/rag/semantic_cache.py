@@ -98,10 +98,10 @@ class SemanticCache:
                 row = db.execute(
                     text(
                         """
-                        SELECT query_text, result_json, 1 - (embedding <=> :vec::vector) as sim
+                        SELECT query_text, result_json, 1 - (embedding <=> CAST(:vec AS vector)) as sim
                         FROM embedding_cache
                         WHERE embedding IS NOT NULL
-                        ORDER BY embedding <=> :vec::vector
+                        ORDER BY embedding <=> CAST(:vec AS vector)
                         LIMIT 1
                         """
                     ),
@@ -144,7 +144,7 @@ class SemanticCache:
                     text(
                         """
                         INSERT INTO embedding_cache (query_text, embedding, result_json)
-                        VALUES (:query_text, :vec::vector, :result_json::jsonb)
+                        VALUES (:query_text, CAST(:vec AS vector), CAST(:result_json AS jsonb))
                         """
                     ),
                     {

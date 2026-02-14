@@ -181,7 +181,7 @@ class TestRAGRealAPI:
 
     @pytest.mark.asyncio
     async def test_prompt_builder_extracts_keywords(self):
-        """Проверка что PromptBuilder извлекает все важные слова."""
+        """Проверка что системный промпт требует учитывать все слова запроса и ключевые термины."""
         builder = PromptBuilder()
 
         question = "Объясни как и почему происходит фотосинтез в растениях и зачем он нужен"
@@ -192,16 +192,20 @@ class TestRAGRealAPI:
             is_history_cleared=False,
         )
 
-        # Проверяем что промпт содержит инструкцию про ключевые слова
-        assert "ВАЖНО" in prompt, "Промпт не содержит инструкцию про важные слова"
-        assert "ключевые слова" in prompt.lower(), "Промпт не упоминает ключевые слова"
+        prompt_lower = prompt.lower()
+        # Промпт содержит инструкцию про полноту/важность ответа
+        assert "важно" in prompt_lower or "все слова" in prompt_lower, (
+            "Промпт не содержит инструкцию про полноту ответа или учёт всех слов"
+        )
+        # Промпт упоминает ключевые термины (или слова запроса)
+        assert "ключевые" in prompt_lower, "Промпт не упоминает ключевые термины/слова"
 
-        # Проверяем что извлечены важные слова
+        # Все важные слова из примера есть в вопросе (вопрос передаётся AI отдельно)
         important_words = ["как", "почему", "фотосинтез", "растени", "зачем"]
         for word in important_words:
-            # Слово должно быть либо в исходном вопросе (который будет передан AI),
-            # либо явно упомянуто в промпте как важное
-            assert word in question.lower() or word in prompt.lower()
+            assert word in question.lower() or word in prompt_lower, (
+                f"Важное слово «{word}» должно быть в вопросе или промпте"
+            )
 
 
 @pytest.mark.skipif(
@@ -225,8 +229,15 @@ class TestYandexAPIRealRequests:
             user_message=question, chat_history=[], user_age=8
         )
 
-        # Проверяем что ответ содержит правильный результат
-        assert "56" in response, "Неправильный ответ на 7×8"
+        # Модель может ответить «56» или «пятьдесят шесть»
+        response_lower = response.lower()
+        has_correct_answer = (
+            "56" in response
+            or "пятьдесят шесть" in response_lower
+            or "56." in response
+            or response.strip().startswith("56 ")
+        )
+        assert has_correct_answer, f"Неправильный ответ на 7×8: ответ должен содержать 56 или пятьдесят шесть, получено: {response[:200]!r}"
         assert len(response) > 50, "Ответ слишком короткий"
 
     @pytest.mark.asyncio

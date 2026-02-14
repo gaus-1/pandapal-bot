@@ -348,7 +348,7 @@ graph TB
 - **OWASP A10: SSRF Protection** — валидация всех внешних URL через whitelist доменов, блокировка внутренних IP и localhost
 - **Content Security Policy (CSP)** — строгие CSP headers в frontend для защиты от XSS
 - Многоуровневая модерация контента (150+ паттернов, 4 языка)
-- Rate limiting: 60 req/min API, 30 req/min AI
+- Rate limiting: 300 req/min API, 100 req/min AI, 20 req/min auth
 - Daily limits: 30 запросов в месяц (free), 500 в день (Premium, 299 ₽/мес)
 - CORS, CSRF защита
 - Валидация всех входных данных через Pydantic V2
@@ -458,7 +458,7 @@ pytest tests/ --cov=bot --cov-report=html
 - **SQL Injection**: SQLAlchemy ORM, параметризованные запросы
 - **XSS Protection**: Content Security Policy (CSP) headers в frontend
 - **Модерация контента**: 150+ паттернов, фильтры на 4 языках (русский, английский, немецкий, французский)
-- **Rate Limiting**: 60 req/min для API, 30 req/min для AI запросов
+- **Rate Limiting**: 300 req/min для API, 100 req/min для AI, 20 req/min для auth
 - **HTTPS**: Cloudflare Full Strict, принудительное перенаправление на HTTPS
 - **Секреты**: только в переменных окружения, никогда в коде
 - **Аудит логирование**: все критичные операции логируются через loguru
@@ -473,7 +473,8 @@ pytest tests/ --cov=bot --cov-report=html
 - `GET /api/miniapp/dashboard/{telegram_id}` — статистика дашборда
 - `GET/DELETE /api/miniapp/chat/history/{telegram_id}` — история чата
 - `POST /api/miniapp/chat/greeting/{telegram_id}` — приветствие
-- `POST /api/miniapp/ai/chat` — AI чат (telegram_id в body)
+- `POST /api/miniapp/ai/chat` — AI чат без streaming (telegram_id в body)
+- `POST /api/miniapp/ai/chat-stream` — AI чат со streaming (SSE, telegram_id в body)
 - `POST /api/miniapp/games/{telegram_id}/create` — создание игры
 - `GET /api/miniapp/games/{telegram_id}/stats` — статистика игр
 - `GET /api/miniapp/homework/history/{telegram_id}` — история ДЗ
@@ -508,6 +509,13 @@ railway run python scripts/update_knowledge_base.py
 - Для Premium: `YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY` и др. (см. шаблон)
 
 ## Последние изменения (2025–2026)
+
+### Исправления и доработки (февраль 2026)
+
+- **RAG semantic_cache**: запросы к `embedding_cache` переведены с `:vec::vector` на `CAST(:vec AS vector)` во избежание синтаксической ошибки PostgreSQL при подстановке параметров.
+- **Цифры в столбик**: постобработка `_merge_digit_only_lines` склеивает строки из одних цифр (артефакт модели: год 1837 как 1\\n8\\n3\\n7) в одну строку.
+- **Streaming**: финальный ответ отправляется как `event: final`; фронтенд подставляет его в последнее сообщение AI, убирая мигание.
+- **Frontend**: шрифт Literata (font-chat) для всего текста ответов Панды, размер text-sm/sm:text-base.
 
 ### RAG, pgvector, Railway, визуализации (февраль 2026)
 
@@ -574,7 +582,7 @@ railway run python scripts/update_knowledge_base.py
   - Динамическая адаптация инструкций под тип контента
   - Запрет дублирования значений таблиц умножения/сложения
 - Очистка AI ответов от повторяющихся фрагментов (агрессивная дедупликация для точных последовательных дубликатов)
-- Удаление markdown форматирования для человекочитаемых ответов
+- Сохранение markdown (жирный **, списки, заголовки) для структуры ответов; фронтенд парсит их в AIChat.tsx
 - Добавлены подписи для необразовательных изображений и детальные объяснения для визуализаций
 
 ### Платежи
