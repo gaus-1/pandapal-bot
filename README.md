@@ -209,9 +209,13 @@ PandaPal/
 │   ├── config/             # Настройки, промпты, паттерны модерации
 │   ├── security/           # Middleware, валидация, rate limiting, криптография
 │   ├── monitoring/         # Метрики (Prometheus), Sentry
+│   ├── keyboards/          # Клавиатуры бота (в т.ч. news_bot)
+│   ├── localization/       # Локализация (locales)
+│   ├── middleware/         # Middleware aiogram
+│   ├── news_bot/           # Отдельный news-бот (handlers, сервисы)
 │   ├── interfaces.py       # Интерфейсы сервисов (SOLID)
 │   ├── decorators.py       # Декораторы для логирования
-│   ├── models.py           # SQLAlchemy модели БД
+│   ├── models/             # SQLAlchemy модели БД (пакет: user, chat, games, payments, referral и др.)
 │   └── database/           # Подключение к PostgreSQL (пакет)
 │       ├── engine.py        # Engine, SessionLocal, get_db()
 │       ├── alembic_utils.py # Alembic миграции
@@ -220,19 +224,26 @@ PandaPal/
 ├── frontend/               # React веб-приложение
 │   ├── src/
 │   │   ├── components/     # UI компоненты
-│   │   ├── features/       # Основные фичи (AIChat, Premium, Games)
-│   │   └── services/       # API клиенты
-│   └── public/             # Статические файлы
+│   │   ├── features/       # AIChat, Premium, Games, Achievements, Donation, Emergency
+│   │   ├── services/       # API клиенты
+│   │   ├── hooks/          # useChatStream и др.
+│   │   ├── store/          # Zustand
+│   │   ├── config/         # Конфиг приложения
+│   │   ├── lib/            # Утилиты
+│   │   └── types/          # TypeScript типы
+│   └── public/             # Статика: logo, favicon, panda-chat-reactions, panda-tamagotchi
 ├── tests/                  # Тесты (1000+)
 │   ├── unit/               # Unit тесты (~60 файлов)
 │   ├── integration/        # Интеграционные тесты (~38 файлов)
 │   ├── e2e/                # End-to-end тесты полных сценариев
 │   ├── security/           # Тесты безопасности (OWASP, SQL injection, DDoS)
 │   ├── resilience/         # Тесты устойчивости сервисов
-│   └── performance/        # Тесты производительности и нагрузки
+│   ├── performance/        # Тесты производительности и нагрузки
+│   └── fixtures/           # Общие фикстуры
 ├── alembic/                # Миграции БД (Alembic)
 ├── scripts/                # Утилиты (см. scripts/README.md)
-│   └── update_knowledge_base.py  # Скрапинг nsportal.ru, school203.spb.ru + индексация в knowledge_embeddings
+│   ├── update_knowledge_base.py  # Скрапинг nsportal.ru, school203.spb.ru + индексация в knowledge_embeddings
+│   └── ...                 # referral_report, check_*, view_*, и др.
 ├── config/                 # Конфигурация (см. config/README.md)
 ├── server_routes/          # Регистрация роутов (health, api, static, middleware)
 └── web_server.py           # Entry point (aiohttp + aiogram webhook + frontend)

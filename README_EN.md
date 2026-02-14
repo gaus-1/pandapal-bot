@@ -182,24 +182,33 @@ PandaPal/
 │   ├── config/              # Settings, prompts, moderation patterns
 │   ├── security/            # Middleware, validation, rate limiting, crypto
 │   ├── monitoring/          # Metrics (Prometheus), Sentry
-│   ├── models.py            # SQLAlchemy DB models
+│   ├── keyboards/           # Bot keyboards (incl. news_bot)
+│   ├── localization/       # Localization (locales)
+│   ├── middleware/          # aiogram middleware
+│   ├── news_bot/            # Standalone news bot (handlers, services)
+│   ├── models/              # SQLAlchemy DB models (package: user, chat, games, payments, referral, etc.)
 │   └── database/            # PostgreSQL connection (package)
 │       ├── engine.py, alembic_utils.py, sql_migrations.py, service.py
 ├── frontend/                # React web application
 │   ├── src/
 │   │   ├── components/      # UI components
-│   │   ├── features/        # Main features (AIChat, Premium, Games)
-│   │   └── services/        # API clients
-│   └── public/              # Static files
+│   │   ├── features/        # AIChat, Premium, Games, Achievements, Donation, Emergency
+│   │   ├── services/        # API clients
+│   │   ├── hooks/           # useChatStream, etc.
+│   │   ├── store/           # Zustand
+│   │   ├── config/          # App config
+│   │   └── types/           # TypeScript types
+│   └── public/              # Static: logo, favicon, panda-chat-reactions, panda-tamagotchi
 ├── tests/                   # Tests (1000+)
 │   ├── unit/                # Unit tests (~60 files)
 │   ├── integration/         # Integration tests (~38 files)
 │   ├── e2e/                 # End-to-end tests
 │   ├── security/            # Security tests (OWASP, SQL injection, DDoS)
 │   ├── resilience/          # Service resilience tests
-│   └── performance/         # Performance and load tests
+│   ├── performance/         # Performance and load tests
+│   └── fixtures/            # Shared fixtures
 ├── alembic/                 # DB migrations (Alembic)
-├── scripts/                 # Utilities
+├── scripts/                 # Utilities (update_knowledge_base.py, referral_report, check_*, etc.)
 ├── server_routes/           # Route registration (health, api, static, middleware)
 └── web_server.py            # Entry point (aiohttp + aiogram webhook + frontend)
 ```
