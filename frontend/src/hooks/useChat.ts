@@ -26,12 +26,15 @@ export type MapData = {
   label: string;
 };
 
+export type PandaChatReactionType = 'happy' | 'eating' | 'offended' | 'questioning';
+
 export type ChatMessage = {
   role: 'user' | 'ai';
   content: string;
   timestamp: string;
   imageUrl?: string; // URL изображения визуализации (для AI сообщений)
   mapData?: MapData; // Координаты для интерактивной карты
+  pandaReaction?: PandaChatReactionType; // Реакция панды по фидбеку (чат, не игры)
 };
 
 /**

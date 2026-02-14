@@ -42,6 +42,12 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             "panda-eating.png",
             "panda-excited.png",
         ]
+        panda_chat_reactions_files = [
+            "panda-happy.png",
+            "panda-eating.png",
+            "panda-offended.png",
+            "panda-questioning.png",
+        ]
         favicon_ico_path = frontend_dist / "favicon.ico"
         if not favicon_ico_path.exists():
             logo_png_path = frontend_dist / "logo.png"
@@ -100,6 +106,25 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
                     )
 
                 app.router.add_get(f"/panda-tamagotchi/{tf}", serve_tamagotchi)
+
+        panda_chat_reactions_dir = frontend_dist / "panda-chat-reactions"
+        for pcrf in panda_chat_reactions_files:
+            pcr_path = panda_chat_reactions_dir / pcrf
+            if pcr_path.exists():
+
+                async def serve_chat_reaction(
+                    _request: web.Request,
+                    fp=pcr_path,
+                ) -> web.Response:
+                    return web.FileResponse(
+                        fp,
+                        headers={
+                            "Content-Type": "image/png",
+                            "Cache-Control": "public, max-age=31536000, immutable",
+                        },
+                    )
+
+                app.router.add_get(f"/panda-chat-reactions/{pcrf}", serve_chat_reaction)
 
         assets_dir = frontend_dist / "assets"
         if assets_dir.exists():

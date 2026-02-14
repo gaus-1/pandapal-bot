@@ -20,6 +20,7 @@ import { MiniAppThemeToggle } from '../../components/MiniAppThemeToggle';
 import { ChatBackground } from '../../components/ChatBackground';
 import { DateSeparator } from '../../components/DateSeparator';
 import { InteractiveMap } from '../../components/InteractiveMap';
+import { PandaChatReaction } from '../../components/PandaChatReaction';
 import { addGreetingMessage } from '../../services/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../../lib/queryClient';
@@ -449,6 +450,9 @@ export function AIChat({ user }: AIChatProps) {
                         className="w-full rounded-xl mb-2 shadow-md"
                       />
                     ) : null}
+                    {msg.role === 'ai' && msg.pandaReaction ? (
+                      <PandaChatReaction reaction={msg.pandaReaction} />
+                    ) : null}
                     <MessageContent content={msg.content} role={msg.role} isGreeting={isGreeting} />
                     <div className="flex items-center justify-end mt-1.5 sm:mt-2 gap-1.5">
                       <time
@@ -637,7 +641,7 @@ function renderParagraphWithSubheadingBold(content: string): React.ReactNode {
         const key = `line-${i}`;
         if (isSubheadingLine(line)) {
           return (
-            <span key={key} className="block">
+            <span key={key} className="block font-chat">
               <strong className="font-semibold">{line.trim()}</strong>
               {i < lines.length - 1 ? '\n' : null}
             </span>
@@ -654,8 +658,12 @@ function renderParagraphWithSubheadingBold(content: string): React.ReactNode {
   );
 }
 
+/** Единый класс для всего текста ответов Панды: Literata везде, размер чуть крупнее. */
+const AI_MESSAGE_TEXT_CLASS =
+  'text-sm sm:text-base leading-relaxed text-gray-900 dark:text-slate-100 font-chat';
+
 function renderSectionContent(content: string) {
-  const chatTextClass = 'text-xs sm:text-sm leading-relaxed text-gray-900 dark:text-slate-100 font-chat';
+  const chatTextClass = AI_MESSAGE_TEXT_CLASS;
   if (isNumberedList(content)) {
     const items = parseListItems(content);
     return (
@@ -734,7 +742,7 @@ function MessageContent({ content, role, isGreeting }: MessageContentProps) {
   }
 
   const wrapperClass = isGreeting
-    ? 'whitespace-pre-wrap break-words text-xs sm:text-sm leading-relaxed text-gray-900 dark:text-slate-100 font-semibold font-chat'
+    ? `whitespace-pre-wrap break-words ${AI_MESSAGE_TEXT_CLASS} font-semibold`
     : '';
 
   // Исправляем форматирование таблицы умножения перед парсингом
@@ -753,7 +761,7 @@ function MessageContent({ content, role, isGreeting }: MessageContentProps) {
           className="py-2 first:pt-0 last:pb-0"
         >
           {section.title && (
-            <h3 className="font-chat font-semibold text-xs sm:text-sm mb-1.5 text-gray-900 dark:text-slate-100">
+            <h3 className={`font-chat font-semibold mb-1.5 text-gray-900 dark:text-slate-100 ${AI_MESSAGE_TEXT_CLASS}`}>
               {renderTextWithBold(section.title)}
             </h3>
           )}

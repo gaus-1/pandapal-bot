@@ -217,6 +217,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                 } else if (eventType === 'final' && data.content) {
                   // Финальный контент (очищенный + вовлечение) — одна подстановка, без мигания
                   const finalContent = data.content;
+                  const pandaReaction = data.pandaReaction as ChatMessage['pandaReaction'] | undefined;
                   currentResponseRef.current = finalContent;
                   queryClient.setQueryData<ChatMessage[]>(
                     queryKeys.chatHistory(telegramId, limit),
@@ -225,12 +226,17 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                       const updated = [...old];
                       const lastMessage = updated[updated.length - 1];
                       if (lastMessage && lastMessage.role === 'ai') {
-                        updated[updated.length - 1] = { ...lastMessage, content: finalContent };
+                        updated[updated.length - 1] = {
+                          ...lastMessage,
+                          content: finalContent,
+                          ...(pandaReaction ? { pandaReaction } : {}),
+                        };
                       } else if (lastMessage && lastMessage.role === 'user') {
                         updated.push({
                           role: 'ai',
                           content: finalContent,
                           timestamp: new Date().toISOString(),
+                          ...(pandaReaction ? { pandaReaction } : {}),
                         });
                       }
                       return updated;
