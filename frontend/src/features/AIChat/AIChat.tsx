@@ -601,6 +601,59 @@ function renderTextWithBold(text: string): React.ReactNode {
   );
 }
 
+/** Строка — только подзаголовок (заканчивается на «:», без **, не слишком длинная). */
+function isSubheadingLine(line: string): boolean {
+  const t = line.trim();
+  if (!t.endsWith(':') || t.includes('**') || t.length > 120) return false;
+  return true;
+}
+
+/** В строке вида «— Подзаголовок: текст» или «Подзаголовок: текст» выделить жирным часть до «:». */
+function renderLineWithOptionalSubheadingBold(line: string): React.ReactNode {
+  const t = line.trim();
+  if (t.includes('**')) return renderTextWithBold(line);
+  const colonIdx = t.indexOf(':');
+  if (colonIdx > 0 && colonIdx <= 80) {
+    const beforeColon = t.slice(0, colonIdx + 1);
+    const afterColon = t.slice(colonIdx + 1).trim();
+    if (afterColon.length > 0) {
+      return (
+        <>
+          <strong className="font-semibold">{beforeColon}</strong>
+          {afterColon ? ` ${afterColon}` : null}
+        </>
+      );
+    }
+  }
+  return renderTextWithBold(line);
+}
+
+/** Рендер абзаца: подзаголовочные строки (оканчиваются на «:») — жирным, остальное с ** или подзаголовок в начале строки. */
+function renderParagraphWithSubheadingBold(content: string): React.ReactNode {
+  const lines = content.split('\n');
+  return (
+    <>
+      {lines.map((line, i) => {
+        const key = `line-${i}`;
+        if (isSubheadingLine(line)) {
+          return (
+            <span key={key} className="block">
+              <strong className="font-semibold">{line.trim()}</strong>
+              {i < lines.length - 1 ? '\n' : null}
+            </span>
+          );
+        }
+        return (
+          <span key={key} className="block">
+            {renderLineWithOptionalSubheadingBold(line)}
+            {i < lines.length - 1 ? '\n' : null}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
 function renderSectionContent(content: string) {
   if (isNumberedList(content)) {
     const items = parseListItems(content);
@@ -608,7 +661,7 @@ function renderSectionContent(content: string) {
       <ol className="list-decimal list-inside space-y-1 ml-2 text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
         {items.map((item, i) => (
           <li key={i} className="whitespace-pre-wrap break-words mb-1">
-            {renderTextWithBold(item)}
+            {renderLineWithOptionalSubheadingBold(item)}
           </li>
         ))}
       </ol>
@@ -621,7 +674,7 @@ function renderSectionContent(content: string) {
       <ul className="list-disc list-inside space-y-1 ml-2 text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
         {items.map((item, i) => (
           <li key={i} className="whitespace-pre-wrap break-words mb-1">
-            {renderTextWithBold(item)}
+            {renderLineWithOptionalSubheadingBold(item)}
           </li>
         ))}
       </ul>
@@ -639,7 +692,7 @@ function renderSectionContent(content: string) {
                 <tr>
                   {table.headers.map((h, i) => (
                     <th key={i} className="px-2 py-1.5 text-left font-semibold border-b border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/50">
-                      {renderTextWithBold(h)}
+                      {renderLineWithOptionalSubheadingBold(h)}
                     </th>
                   ))}
                 </tr>
@@ -650,7 +703,7 @@ function renderSectionContent(content: string) {
                 <tr key={ri}>
                   {row.map((cell, ci) => (
                     <td key={ci} className="px-2 py-1.5 border-b border-gray-100 dark:border-slate-700/50 whitespace-normal break-words">
-                      {renderTextWithBold(cell)}
+                      {renderLineWithOptionalSubheadingBold(cell)}
                     </td>
                   ))}
                 </tr>
@@ -662,10 +715,10 @@ function renderSectionContent(content: string) {
     }
   }
 
-  // Обычный текст с поддержкой жирного
+  // Обычный текст: жирный через ** и подзаголовки (строки/фразы, оканчивающиеся на «:»)
   return (
     <p className="whitespace-pre-wrap break-words text-[11px] sm:text-xs leading-relaxed text-gray-900 dark:text-slate-100">
-      {renderTextWithBold(content)}
+      {renderParagraphWithSubheadingBold(content)}
     </p>
   );
 }
