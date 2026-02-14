@@ -18,6 +18,16 @@ from bot.config.panda_chat_reactions_data import (
 )
 
 
+def _phrase_in_text(phrase: str, text: str) -> bool:
+    """Проверка вхождения фразы как отдельного фрагмента (границы слов)."""
+    idx = text.find(phrase)
+    if idx == -1:
+        return False
+    before_ok = idx == 0 or not text[idx - 1].isalpha()
+    after_ok = idx + len(phrase) == len(text) or not text[idx + len(phrase)].isalpha()
+    return before_ok and after_ok
+
+
 def get_chat_reaction(message: str) -> str | None:
     """
     Определить реакцию панды по тексту сообщения пользователя.
@@ -38,8 +48,8 @@ def get_chat_reaction(message: str) -> str | None:
     if not text:
         return None
 
-    has_positive = any(phrase in text for phrase in POSITIVE_PHRASES)
-    has_negative = any(phrase in text for phrase in NEGATIVE_PHRASES)
+    has_positive = any(_phrase_in_text(phrase, text) for phrase in POSITIVE_PHRASES)
+    has_negative = any(_phrase_in_text(phrase, text) for phrase in NEGATIVE_PHRASES)
 
     if has_positive and not has_negative:
         reaction = random.choice(REACTIONS_POSITIVE)
