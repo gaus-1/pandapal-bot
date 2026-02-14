@@ -105,11 +105,11 @@ class ChatHistoryService:
         if limit is None:
             limit = self.history_limit
 
-        # Выбираем последние N сообщений
+        # Выбираем последние N сообщений (при равном timestamp порядок по id — вопрос всегда перед ответом)
         stmt = (
             select(ChatHistory)
             .where(ChatHistory.user_telegram_id == telegram_id)
-            .order_by(desc(ChatHistory.timestamp))
+            .order_by(desc(ChatHistory.timestamp), desc(ChatHistory.id))
             .limit(limit)
         )
 

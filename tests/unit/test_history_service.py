@@ -145,3 +145,15 @@ class TestHistoryService:
 
         history = service.get_recent_history(123456, limit=10)
         assert len(history) == 0
+
+    def test_get_recent_history_user_before_ai_order(self, real_db_session, test_user):
+        """Порядок: вопрос пользователя всегда перед ответом AI (ORDER BY timestamp, id)."""
+        service = ChatHistoryService(real_db_session)
+        service.add_message(telegram_id=123456, message_text="Вопрос?", message_type="user")
+        service.add_message(telegram_id=123456, message_text="Ответ.", message_type="ai")
+        real_db_session.commit()
+
+        history = service.get_recent_history(123456, limit=10)
+        assert len(history) == 2
+        assert history[0].message_type == "user" and history[0].message_text == "Вопрос?"
+        assert history[1].message_type == "ai" and history[1].message_text == "Ответ."
