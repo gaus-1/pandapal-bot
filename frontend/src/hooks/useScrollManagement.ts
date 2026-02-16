@@ -33,12 +33,20 @@ export function useScrollManagement(
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messagesCount]);
 
-  // После завершения отправки (ответ пришёл) — скролл вниз, чтобы видеть ответ (фикс «увеличивается чат»)
+  // После завершения отправки (ответ пришёл) — скролл вниз (фикс «увеличивается чат»)
+  // Два таймаута: после мержа финального сообщения и после отрисовки
   useEffect(() => {
     if (prevSendingRef.current && !isSending) {
-      setTimeout(() => {
+      const t1 = setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
+      const t2 = setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 350);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     }
     prevSendingRef.current = !!isSending;
   }, [isSending]);

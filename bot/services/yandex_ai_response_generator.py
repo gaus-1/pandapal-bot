@@ -700,6 +700,12 @@ def clean_ai_response(text: str) -> str:
     text = re.sub(r"\\sqrt\s*\{([^}]*)\}", r"√(\1)", text)
     text = re.sub(r"\\vec\s*\{([^}]*)\}", r"\1→", text, flags=re.IGNORECASE)
     text = re.sub(r"\\overline\s*\{([^}]*)\}", r"\1", text)
+    # Градусы: \circ, ^\circ, ^{\circ} → ° (до общего сноса LaTeX)
+    text = re.sub(r"\^\\circ\b", "°", text)
+    text = re.sub(r"\^\{?\\circ\}?", "°", text)
+    text = re.sub(r"\\circ\b", "°", text)
+    # Текстовый артефакт "circ" после числа (модель иногда выдаёт 30^circ)
+    text = re.sub(r"(\d+)\s*\^?\s*circ\b", r"\1°", text, flags=re.IGNORECASE)
     # Дроби (после очистки вложенных конструкций)
     text = re.sub(r"\\frac\s*\{([^}]+)\}\{([^}]+)\}", r"(\1)/(\2)", text)
     text = re.sub(r"\bfrac\s*\{([^}]+)\}\{([^}]+)\}", r"(\1)/(\2)", text)
@@ -841,10 +847,8 @@ def clean_ai_response(text: str) -> str:
 
     # _{выражение} — x_{общ} → xобщ (кириллица не в subscript map → остаётся текстом)
     text = re.sub(r"(\w)_\{([^}]+)\}", _to_subscript, text)
-    # _цифра — x_1 → x₁
-    text = re.sub(r"(\w)_(\d)\b", _to_subscript, text)
-    # _буква (латинская) — a_n → aₙ
-    text = re.sub(r"(\w)_([a-z])\b", _to_subscript, text)
+    # _буквы/цифры (одна или несколько) — a_1 → a₁, log_2 → log₂, C_nk → Cₙₖ
+    text = re.sub(r"(\w)_([a-z0-9]+)\b", _to_subscript, text)
 
     # Обрезка мусора в конце
     text = re.sub(r"\s+[A-Za-z]_[А-Яа-яё]\S*(?:\s+\S+)*\s*$", "", text)
@@ -857,6 +861,8 @@ def clean_ai_response(text: str) -> str:
 
     # Маркер списка «* пункт» → «- пункт» (НЕ трогаем **bold**)
     text = re.sub(r"(?m)^\s*\*\s+", "- ", text)
+    # Сдвоенная нумерация «5. 6. Текст» или «5. 6.» → «6. Текст» / «6. » (оставляем второй номер)
+    text = re.sub(r"(?m)^\s*\d+\.\s+(\d+)\.\s*", r"\1. ", text)
     # Одиночные *italic* → без звёздочек (но сохраняем **bold**)
     text = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"\1", text)
 

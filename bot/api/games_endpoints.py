@@ -140,7 +140,17 @@ async def create_game(request: web.Request) -> web.Response:
         if validated.game_type not in ["tic_tac_toe", "checkers", "2048", "erudite"]:
             return web.json_response({"error": "Invalid game_type"}, status=400)
 
-        initial_state = _initialize_game_state(validated.game_type)
+        try:
+            initial_state = _initialize_game_state(validated.game_type)
+        except Exception as init_err:
+            logger.error(
+                f"❌ Ошибка инициализации игры {validated.game_type}: {init_err}",
+                exc_info=True,
+            )
+            return web.json_response(
+                {"error": "Не удалось создать игру. Попробуйте позже."},
+                status=500,
+            )
 
         with get_db() as db:
             games_service = GamesService(db)

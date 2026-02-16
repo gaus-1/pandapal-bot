@@ -98,3 +98,19 @@ def test_clean_ai_response_list_and_bold_breaks():
     assert "\n" in cleaned
     lines = [ln.strip() for ln in cleaned.split("\n") if ln.strip()]
     assert len(lines) >= 2, "ожидалась разбивка на несколько строк"
+
+
+def test_clean_ai_response_degree_symbol():
+    """Градусы: 30^circ, 30\\circ, текст 30^circ заменяются на 30°."""
+    text = "Упростить sin² 30^circ + cos² 30^circ. Решение: sin² 30^circ + cos² 30^circ = 1."
+    cleaned = clean_ai_response(text)
+    assert "circ" not in cleaned or "°" in cleaned
+    assert "30°" in cleaned
+
+
+def test_clean_ai_response_duplicate_numbering():
+    """Сдвоенная нумерация «5. 6. Текст» заменяется на «6. Текст»."""
+    text = "Формулы:\n5. 6. Сумма кубов: a³ + b³ = (a + b)(a² - ab + b²)."
+    cleaned = clean_ai_response(text)
+    assert "5. 6." not in cleaned
+    assert "6." in cleaned

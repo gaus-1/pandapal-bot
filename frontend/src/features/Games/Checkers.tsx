@@ -267,7 +267,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
           </div>
         )}
         <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100 mb-1">
-          {gameOver
+          {gameOver || winner
             ? winner === "user"
               ? "🎉 Ты победил!"
               : winner === "ai"
