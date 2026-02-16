@@ -67,10 +67,19 @@ export const createTelegramMock = (options: {
       button_color: '#0088cc',
       button_text_color: '#ffffff',
       secondary_bg_color: '#f4f4f4',
+      header_bg_color: '#ffffff',
+      bottom_bar_bg_color: '#f4f4f4',
+      accent_text_color: '#0088cc',
+      section_bg_color: '#f4f4f4',
+      section_header_text_color: '#000000',
+      section_separator_color: '#e0e0e0',
+      subtitle_text_color: '#666666',
+      destructive_text_color: '#d32f2f',
     },
     isExpanded: true,
     viewportHeight: 600,
     viewportStableHeight: 600,
+    safeAreaInset: { top: 0, bottom: 0, left: 0, right: 0 },
     headerColor: '#ffffff',
     backgroundColor: '#ffffff',
     isClosingConfirmationEnabled: false,
@@ -168,6 +177,9 @@ export const createTelegramMock = (options: {
       return Promise.resolve(true);
     }),
 
+    setHeaderColor: vi.fn(),
+    setBackgroundColor: vi.fn(),
+
     // Events
     onEvent: vi.fn(),
     offEvent: vi.fn(),
@@ -198,6 +210,7 @@ export const createTelegramServiceMock = (webApp = createTelegramMock()) => ({
   getInitData: vi.fn(() => webApp.initData),
   getUser: vi.fn(() => webApp.initDataUnsafe.user),
   getPlatform: vi.fn(() => webApp.platform),
+  getStartParam: vi.fn(() => (webApp.initDataUnsafe as { start_param?: string | null })?.start_param ?? null),
   isTelegramWebApp: vi.fn(() => true),
   isInTelegram: vi.fn(() => true),
   showBackButton: vi.fn((callback?: () => void) => {

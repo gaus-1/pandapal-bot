@@ -36,6 +36,12 @@ export class TelegramService {
       // Адаптируем тему под Telegram (с динамическим обновлением)
       this.applyTelegramTheme();
 
+      // Safe area для полноэкранного режима (Bot API 8.0+)
+      this.applySafeAreaInsets();
+      if (typeof this.webApp.onEvent === "function") {
+        this.webApp.onEvent("safeAreaChanged", () => this.applySafeAreaInsets());
+      }
+
       // Включаем плавные анимации (60 FPS)
       this.enableSmoothAnimations();
 
@@ -62,7 +68,8 @@ export class TelegramService {
 
   /**
    * Установить правильный viewport height для мобильных устройств
-   * Решает проблему с адресной строкой браузера на iOS/Android
+   * Решает проблему с адресной строкой браузера на iOS/Android.
+   * Дополнительно выставляет --tg-viewport-* из API для привязки к низу экрана.
    */
   private setViewportHeight(): void {
     const setVH = () => {
@@ -70,9 +77,27 @@ export class TelegramService {
       document.documentElement.style.setProperty("--vh", `${vh}px`);
     };
 
+    const setTgViewport = () => {
+      const vh = (this.webApp as { viewportHeight?: number }).viewportHeight;
+      const stable = (this.webApp as { viewportStableHeight?: number }).viewportStableHeight;
+      if (typeof vh === "number") {
+        document.documentElement.style.setProperty("--tg-viewport-height", `${vh}px`);
+      }
+      if (typeof stable === "number") {
+        document.documentElement.style.setProperty("--tg-viewport-stable-height", `${stable}px`);
+      }
+    };
+
     setVH();
+    setTgViewport();
     window.addEventListener("resize", setVH);
     window.addEventListener("orientationchange", setVH);
+
+    if (typeof this.webApp.onEvent === "function") {
+      this.webApp.onEvent("viewportChanged", (e: { isStateStable?: boolean }) => {
+        if (e?.isStateStable) setTgViewport();
+      });
+    }
   }
 
   /**
@@ -107,64 +132,99 @@ export class TelegramService {
   }
 
   /**
-   * Применить тему Telegram к приложению
-   * Поддерживает динамическое обновление при смене темы
-   * Учитывает выбор пользователя из localStorage (для мини-апп)
+   * Применить тему Telegram к приложению (только CSS-переменные и data-theme).
+   * Подписка на themeChanged для обновления переменных при смене темы в Telegram.
+   * Класс .dark по-прежнему управляется только MiniAppThemeToggle.
    */
   private applyTelegramTheme(): void {
     const applyTheme = () => {
-      const { themeParams } = this.webApp;
-
+      const themeParams = this.webApp.themeParams ?? {};
       if (themeParams.bg_color) {
-        document.documentElement.style.setProperty(
-          "--tg-theme-bg-color",
-          themeParams.bg_color,
-        );
+        document.documentElement.style.setProperty("--tg-theme-bg-color", themeParams.bg_color);
       }
       if (themeParams.text_color) {
-        document.documentElement.style.setProperty(
-          "--tg-theme-text-color",
-          themeParams.text_color,
-        );
+        document.documentElement.style.setProperty("--tg-theme-text-color", themeParams.text_color);
       }
       if (themeParams.hint_color) {
-        document.documentElement.style.setProperty(
-          "--tg-theme-hint-color",
-          themeParams.hint_color,
-        );
+        document.documentElement.style.setProperty("--tg-theme-hint-color", themeParams.hint_color);
       }
       if (themeParams.link_color) {
-        document.documentElement.style.setProperty(
-          "--tg-theme-link-color",
-          themeParams.link_color,
-        );
+        document.documentElement.style.setProperty("--tg-theme-link-color", themeParams.link_color);
       }
       if (themeParams.button_color) {
-        document.documentElement.style.setProperty(
-          "--tg-theme-button-color",
-          themeParams.button_color,
-        );
+        document.documentElement.style.setProperty("--tg-theme-button-color", themeParams.button_color);
       }
       if (themeParams.button_text_color) {
-        document.documentElement.style.setProperty(
-          "--tg-theme-button-text-color",
-          themeParams.button_text_color,
-        );
+        document.documentElement.style.setProperty("--tg-theme-button-text-color", themeParams.button_text_color);
+      }
+      const optional = themeParams as unknown as Record<string, string | undefined>;
+      if (optional.secondary_bg_color) {
+        document.documentElement.style.setProperty("--tg-theme-secondary-bg-color", optional.secondary_bg_color);
+      }
+      if (optional.header_bg_color) {
+        document.documentElement.style.setProperty("--tg-theme-header-bg-color", optional.header_bg_color);
+      }
+      if (optional.bottom_bar_bg_color) {
+        document.documentElement.style.setProperty("--tg-theme-bottom-bar-bg-color", optional.bottom_bar_bg_color);
+      }
+      if (optional.accent_text_color) {
+        document.documentElement.style.setProperty("--tg-theme-accent-text-color", optional.accent_text_color);
+      }
+      if (optional.section_bg_color) {
+        document.documentElement.style.setProperty("--tg-theme-section-bg-color", optional.section_bg_color);
+      }
+      if (optional.section_header_text_color) {
+        document.documentElement.style.setProperty("--tg-theme-section-header-text-color", optional.section_header_text_color);
+      }
+      if (optional.section_separator_color) {
+        document.documentElement.style.setProperty("--tg-theme-section-separator-color", optional.section_separator_color);
+      }
+      if (optional.subtitle_text_color) {
+        document.documentElement.style.setProperty("--tg-theme-subtitle-text-color", optional.subtitle_text_color);
+      }
+      if (optional.destructive_text_color) {
+        document.documentElement.style.setProperty("--tg-theme-destructive-text-color", optional.destructive_text_color);
       }
 
-      // Устанавливаем цветовую схему для CSS
-      const colorScheme = "light";
+      const colorScheme = this.webApp.colorScheme ?? "light";
       document.documentElement.setAttribute("data-theme", colorScheme);
-
-      // НЕ устанавливаем тему здесь - это делает index.html и MiniAppThemeToggle
-      // Этот метод только устанавливает CSS переменные Telegram
     };
 
-    // Применяем тему сразу
     applyTheme();
 
-    // НЕ подписываемся на изменения темы Telegram - всегда светлая по умолчанию
-    // Пользователь может переключить тему вручную через MiniAppThemeToggle
+    if (typeof this.webApp.onEvent === "function") {
+      this.webApp.onEvent("themeChanged", applyTheme);
+    }
+
+    const themeParams = this.webApp.themeParams ?? {};
+    if (typeof this.webApp.isVersionAtLeast === "function" && this.webApp.isVersionAtLeast("6.1")) {
+      try {
+        const opt = themeParams as unknown as Record<string, string | undefined>;
+        const bg = themeParams.bg_color ?? "bg_color";
+        const header = opt.header_bg_color ?? themeParams.bg_color ?? "bg_color";
+        if (typeof this.webApp.setBackgroundColor === "function") {
+          this.webApp.setBackgroundColor(bg as "bg_color" | "secondary_bg_color" | `#${string}`);
+        }
+        if (typeof this.webApp.setHeaderColor === "function") {
+          this.webApp.setHeaderColor(header as "bg_color" | "secondary_bg_color" | `#${string}`);
+        }
+      } catch (e) {
+        logger.debug("setHeaderColor/setBackgroundColor:", e);
+      }
+    }
+  }
+
+  /**
+   * Применить safe area insets из API (Bot API 8.0+) в CSS-переменные.
+   */
+  private applySafeAreaInsets(): void {
+    const inset = (this.webApp as { safeAreaInset?: { top?: number; bottom?: number; left?: number; right?: number } }).safeAreaInset;
+    if (!inset) return;
+    const root = document.documentElement.style;
+    if (typeof inset.top === "number") root.setProperty("--tg-safe-area-inset-top", `${inset.top}px`);
+    if (typeof inset.bottom === "number") root.setProperty("--tg-safe-area-inset-bottom", `${inset.bottom}px`);
+    if (typeof inset.left === "number") root.setProperty("--tg-safe-area-inset-left", `${inset.left}px`);
+    if (typeof inset.right === "number") root.setProperty("--tg-safe-area-inset-right", `${inset.right}px`);
   }
 
   /**

@@ -43,6 +43,7 @@ vi.mock('../services/telegram', () => ({
     notifyError: vi.fn(),
     getInitData: vi.fn(() => createMockInitData()),
     getUser: vi.fn(() => ({ id: 123, first_name: 'Test' })),
+    getStartParam: vi.fn(() => null),
     isTelegramWebApp: vi.fn(() => true),
     getPlatform: vi.fn(() => 'tdesktop'),
   },
