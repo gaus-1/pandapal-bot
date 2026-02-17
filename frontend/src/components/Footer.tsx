@@ -68,41 +68,46 @@ export const Footer: React.FC = React.memo(() => {
         </span>
       </div>
 
-      {/* Ссылки на документы (РКН) */}
-      <nav className="flex flex-wrap justify-center gap-x-3 gap-y-0.5 sm:gap-y-2 text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-6" aria-label="Документы">
-        <a
-          href={LEGAL_ROUTES.privacy}
-          onClick={(e) => {
-            e.preventDefault();
-            navigateTo(LEGAL_ROUTES.privacy);
-          }}
-          className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+      {/* Ссылки на документы (РКН) — в карточке для мобильных */}
+      <div className="max-w-2xl mx-auto mb-6">
+        <nav
+          className="rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 p-4 sm:px-5 sm:py-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-center gap-2 sm:gap-x-2 sm:gap-y-1 text-xs sm:text-sm text-gray-600 dark:text-slate-400"
+          aria-label="Документы"
         >
-          Политика конфиденциальности
-        </a>
-        <span className="text-gray-400 dark:text-slate-500" aria-hidden="true">·</span>
-        <a
-          href={LEGAL_ROUTES.personalData}
-          onClick={(e) => {
-            e.preventDefault();
-            navigateTo(LEGAL_ROUTES.personalData);
-          }}
-          className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-        >
-          Обработка персональных данных
-        </a>
-        <span className="text-gray-400 dark:text-slate-500" aria-hidden="true">·</span>
-        <a
-          href={LEGAL_ROUTES.offer}
-          onClick={(e) => {
-            e.preventDefault();
-            navigateTo(LEGAL_ROUTES.offer);
-          }}
-          className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-        >
-          Договор оферты
-        </a>
-      </nav>
+          <a
+            href={LEGAL_ROUTES.privacy}
+            onClick={(e) => {
+              e.preventDefault();
+              navigateTo(LEGAL_ROUTES.privacy);
+            }}
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5"
+          >
+            Политика конфиденциальности
+          </a>
+          <span className="hidden sm:inline text-gray-400 dark:text-slate-500" aria-hidden="true">·</span>
+          <a
+            href={LEGAL_ROUTES.personalData}
+            onClick={(e) => {
+              e.preventDefault();
+              navigateTo(LEGAL_ROUTES.personalData);
+            }}
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5"
+          >
+            Обработка персональных данных
+          </a>
+          <span className="hidden sm:inline text-gray-400 dark:text-slate-500" aria-hidden="true">·</span>
+          <a
+            href={LEGAL_ROUTES.offer}
+            onClick={(e) => {
+              e.preventDefault();
+              navigateTo(LEGAL_ROUTES.offer);
+            }}
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5"
+          >
+            Договор оферты
+          </a>
+        </nav>
+      </div>
 
       {/* Кнопка обратной связи */}
       <div className="mb-6">

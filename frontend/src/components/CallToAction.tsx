@@ -13,8 +13,9 @@ export const CallToAction: React.FC = React.memo(() => {
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(SITE_CONFIG.botUrl)}`;
 
   return (
-    <section id="cta" className="py-16 bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-slate-800/60 dark:via-slate-900 dark:to-slate-800/60 rounded-3xl my-16 border border-gray-100 dark:border-slate-700 dark:border-slate-600/50 scroll-mt-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 text-center">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
+      <section id="cta" className="py-16 bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-slate-800/60 dark:via-slate-900 dark:to-slate-800/60 rounded-3xl my-16 border border-gray-100 dark:border-slate-700 dark:border-slate-600/50 scroll-mt-20">
+        <div className="px-4 sm:px-6 md:px-8 text-center">
         {/* Заголовок */}
         <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold mb-4 text-gray-900 dark:text-slate-50">
           Начни общение прямо сейчас! 🚀
@@ -151,8 +152,9 @@ export const CallToAction: React.FC = React.memo(() => {
             </p>
           </div>
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
   );
 });
 
