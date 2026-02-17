@@ -18,70 +18,70 @@ export const PersonalDataPage: React.FC = React.memo(() => {
         Настоящий документ определяет политику оператора в отношении обработки персональных данных в рамках сервиса {SITE_CONFIG.name} в соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных».
       </p>
 
-      <h2 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-50 mt-5">
+      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
         1. Оператор
       </h2>
       <p>
         {OPERATOR.display}
       </p>
 
-      <h2 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-50 mt-5">
+      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
         2. Цели обработки персональных данных
       </h2>
       <p>
         Оказание услуг клиентам; установление обратной связи с клиентами; заключение и исполнение договора по инициативе субъекта персональных данных (пользователя Сервиса).
       </p>
 
-      <h2 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-50 mt-5">
+      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
         3. Категории субъектов персональных данных
       </h2>
       <p>
         Клиенты; учащиеся (пользователи Сервиса); законные представители несовершеннолетних.
       </p>
 
-      <h2 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-50 mt-5">
+      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
         4. Категории обрабатываемых персональных данных
       </h2>
       <p>
         Персональные данные, необходимые для оказания услуг: идентификатор в мессенджере, имя, имя пользователя (username), данные для обратной связи; при оплате — реквизиты, необходимые для проведения платежа (обработка платёжным провайдером). Иные данные — только при их сообщении пользователем (например, пол, возраст в рамках настройки Сервиса).
       </p>
 
-      <h2 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-50 mt-5">
+      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
         5. Правовое основание обработки
       </h2>
       <p>
         Обработка персональных данных необходима для исполнения договора, стороной которого или выгодоприобретателем по которому является субъект персональных данных, а также для заключения договора по инициативе субъекта персональных данных. Обработка осуществляется с согласия субъекта персональных данных в случаях, когда это предусмотрено законодательством.
       </p>
 
-      <h2 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-50 mt-5">
+      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
         6. Действия с персональными данными
       </h2>
       <p>
         Сбор, запись, систематизация, накопление, хранение, уточнение, извлечение, использование, передача (предоставление) в объёме, необходимом для оказания услуг и обратной связи, обезличивание, блокирование, удаление, уничтожение.
       </p>
 
-      <h2 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-50 mt-5">
+      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
         7. Местонахождение базы данных
       </h2>
       <p>
         База данных, содержащая персональные данные граждан РФ, располагается на территории Российской Федерации. Трансграничная передача персональных данных не осуществляется.
       </p>
 
-      <h2 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-50 mt-5">
+      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
         8. Срок обработки
       </h2>
       <p>
         Обработка персональных данных осуществляется до достижения целей обработки или до отзыва согласия субъектом, а также в случаях, предусмотренных законодательством РФ. Прекращение обработки возможно при прекращении деятельности проекта.
       </p>
 
-      <h2 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-50 mt-5">
+      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
         9. Права субъекта персональных данных
       </h2>
       <p>
         Субъект вправе получать сведения об обработке его персональных данных, требовать их уточнения, блокирования или уничтожения в случаях, предусмотренных законом, а также обжаловать действия оператора в уполномоченный орган. Запрос направляется оператору по контактам, указанным в п. 1.
       </p>
 
-      <h2 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-50 mt-5">
+      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
         10. Дата начала обработки
       </h2>
       <p>
