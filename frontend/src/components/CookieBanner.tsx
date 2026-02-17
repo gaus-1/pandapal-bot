@@ -1,31 +1,35 @@
 /**
  * Баннер согласия на использование cookie (требование РКН).
  * Показывается при первом заходе, после «Принять» скрывается (localStorage).
+ * По умолчанию показываем баннер, затем в useLayoutEffect скрываем только если уже принято —
+ * так баннер гарантированно виден при первом заходе (localStorage может быть ещё недоступен при инициализации).
  */
 
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import { LEGAL_ROUTES } from '../config/legal';
 
 const STORAGE_KEY = 'cookie_consent_pandapal';
 
-function getInitialVisible(): boolean {
-  try {
-    return localStorage.getItem(STORAGE_KEY) !== 'accepted';
-  } catch {
-    return true;
-  }
-}
-
 export const CookieBanner: React.FC = React.memo(() => {
-  const [visible, setVisible] = useState(getInitialVisible);
+  const [visible, setVisible] = useState(true);
+
+  useLayoutEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY) === 'accepted') {
+        setVisible(false);
+      }
+    } catch {
+      // оставляем visible true
+    }
+  }, []);
 
   const handleAccept = () => {
     try {
       localStorage.setItem(STORAGE_KEY, 'accepted');
+      setVisible(false);
     } catch {
-      // ignore
+      // localStorage недоступен (приватный режим и т.п.) — баннер остаётся, пользователь может попробовать снова
     }
-    setVisible(false);
   };
 
   if (!visible) return null;
