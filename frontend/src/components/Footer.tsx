@@ -1,25 +1,34 @@
 /**
  * Компонент Footer (подвал сайта)
- * Содержит логотип, кнопку обратной связи и копирайт
+ * Содержит логотип, ссылки на документы (РКН), кнопку обратной связи и копирайт
  * @module components/Footer
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { SITE_CONFIG } from '../config/constants';
+import { LEGAL_ROUTES, FEEDBACK_FORM_URL } from '../config/legal';
 import { trackButtonClick } from '../utils/analytics';
+import { FeedbackConsentModal } from './FeedbackConsentModal';
 
-const FEEDBACK_FORM_URL = 'https://forms.yandex.ru/cloud/695ba5a6068ff07700f0029a';
+const navigateTo = (path: string) => {
+  window.history.pushState(null, '', path);
+  window.dispatchEvent(new Event('popstate'));
+};
 
 /**
  * Подвал сайта с автообновляемым годом
  * Отображается внизу каждой страницы
  */
 export const Footer: React.FC = React.memo(() => {
-  // Получаем текущий год автоматически (не нужно обновлять вручную)
   const currentYear = new Date().getFullYear();
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
 
   const handleFeedbackClick = () => {
     trackButtonClick('footer_feedback');
+    setFeedbackModalOpen(true);
+  };
+
+  const handleOpenForm = () => {
     window.open(FEEDBACK_FORM_URL, '_blank', 'noopener,noreferrer');
   };
 
@@ -59,6 +68,42 @@ export const Footer: React.FC = React.memo(() => {
         </span>
       </div>
 
+      {/* Ссылки на документы (РКН) */}
+      <nav className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-6" aria-label="Документы">
+        <a
+          href={LEGAL_ROUTES.privacy}
+          onClick={(e) => {
+            e.preventDefault();
+            navigateTo(LEGAL_ROUTES.privacy);
+          }}
+          className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        >
+          Политика конфиденциальности
+        </a>
+        <span className="text-gray-400 dark:text-slate-500" aria-hidden="true">·</span>
+        <a
+          href={LEGAL_ROUTES.personalData}
+          onClick={(e) => {
+            e.preventDefault();
+            navigateTo(LEGAL_ROUTES.personalData);
+          }}
+          className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        >
+          Обработка персональных данных
+        </a>
+        <span className="text-gray-400 dark:text-slate-500" aria-hidden="true">·</span>
+        <a
+          href={LEGAL_ROUTES.offer}
+          onClick={(e) => {
+            e.preventDefault();
+            navigateTo(LEGAL_ROUTES.offer);
+          }}
+          className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        >
+          Договор оферты
+        </a>
+      </nav>
+
       {/* Кнопка обратной связи */}
       <div className="mb-6">
         <button
@@ -70,6 +115,13 @@ export const Footer: React.FC = React.memo(() => {
           <span>Оставь отзыв</span>
         </button>
       </div>
+
+      {feedbackModalOpen && (
+        <FeedbackConsentModal
+          onClose={() => setFeedbackModalOpen(false)}
+          onOpenForm={handleOpenForm}
+        />
+      )}
 
       {/* Копирайт */}
       <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">

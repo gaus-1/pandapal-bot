@@ -11,6 +11,8 @@ import { telegram } from './services/telegram';
 import { MiniApp } from './MiniApp';
 import { PremiumScreen } from './features/Premium/PremiumScreen';
 import { DonationScreen } from './features/Donation/DonationScreen';
+import { PrivacyPage, PersonalDataPage, OfferPage } from './features/Legal';
+import { CookieBanner } from './components/CookieBanner';
 import { logger } from './utils/logger';
 import './index.css';
 
@@ -91,6 +93,12 @@ const App: React.FC = () => {
           setCurrentRoute('premium');
         } else if (pathname === '/donation' || pathname === '/support') {
           setCurrentRoute('donation');
+        } else if (pathname === '/privacy') {
+          setCurrentRoute('privacy');
+        } else if (pathname === '/personal-data') {
+          setCurrentRoute('personal-data');
+        } else if (pathname === '/offer') {
+          setCurrentRoute('offer');
         } else {
           setCurrentRoute('');
         }
@@ -132,6 +140,7 @@ const App: React.FC = () => {
           <PremiumScreen user={null} />
         </main>
         <Footer />
+        <CookieBanner />
       </div>
     );
   }
@@ -145,6 +154,36 @@ const App: React.FC = () => {
           <DonationScreen user={null} />
         </main>
         <Footer />
+        <CookieBanner />
+      </div>
+    );
+  }
+
+  // Юридические страницы (РКН)
+  if (currentRoute === 'privacy') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <PrivacyPage />
+        <Footer />
+        <CookieBanner />
+      </div>
+    );
+  }
+  if (currentRoute === 'personal-data') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <PersonalDataPage />
+        <Footer />
+        <CookieBanner />
+      </div>
+    );
+  }
+  if (currentRoute === 'offer') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <OfferPage />
+        <Footer />
+        <CookieBanner />
       </div>
     );
   }
@@ -174,6 +213,7 @@ const App: React.FC = () => {
 
       {/* Подвал */}
       <Footer />
+      <CookieBanner />
     </div>
   );
 };
