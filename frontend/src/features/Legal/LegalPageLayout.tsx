@@ -20,20 +20,20 @@ export const LegalPageLayout: React.FC<LegalPageLayoutProps> = React.memo(
         <Header />
         <main className="max-w-3xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12">
           <article className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 dark:border-slate-600/50 shadow-lg dark:shadow-xl p-6 sm:p-8 md:p-10">
-            <header className="mb-6 sm:mb-8">
-              <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-50">
+            <header className="mb-5 sm:mb-6">
+              <h1 className="font-display text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-50">
                 {title}
               </h1>
               {subtitle && (
-                <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-slate-400">
+                <p className="mt-1.5 text-xs sm:text-sm text-gray-600 dark:text-slate-400">
                   {subtitle}
                 </p>
               )}
-              <p className="mt-2 text-xs text-gray-500 dark:text-slate-500">
+              <p className="mt-1 text-[11px] sm:text-xs text-gray-500 dark:text-slate-500">
                 {SITE_CONFIG.name} · актуально с 03.01.2026
               </p>
             </header>
-            <div className="prose prose-sm sm:prose-base max-w-none text-gray-700 dark:text-slate-200 leading-relaxed space-y-4">
+            <div className="font-sans text-xs sm:text-sm text-gray-700 dark:text-slate-200 leading-relaxed space-y-3 max-w-none">
               {children}
             </div>
           </article>

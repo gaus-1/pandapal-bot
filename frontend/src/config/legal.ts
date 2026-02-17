@@ -4,8 +4,8 @@
  */
 
 export const OPERATOR = {
-  /** Краткое указание для публичных документов: ФИО и почта */
-  display: 'Савин В.Е. 79516625803@ya.ru',
+  /** Указание для публичных документов: ФИО и почта */
+  display: 'Савин Вячеслав Евгеньевич Pandapal.ru@yandex.ru',
 } as const;
 
 export const LEGAL_ROUTES = {
