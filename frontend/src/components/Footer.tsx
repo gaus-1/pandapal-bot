@@ -69,7 +69,7 @@ export const Footer: React.FC = React.memo(() => {
       </div>
 
       {/* Ссылки на документы (РКН) */}
-      <nav className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-6" aria-label="Документы">
+      <nav className="flex flex-wrap justify-center gap-x-3 gap-y-0.5 sm:gap-y-2 text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-6" aria-label="Документы">
         <a
           href={LEGAL_ROUTES.privacy}
           onClick={(e) => {
