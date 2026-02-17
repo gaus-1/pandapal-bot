@@ -18,49 +18,49 @@ export const OfferPage: React.FC = React.memo(() => {
         Настоящий документ является официальным предложением (публичной офертой) {OPERATOR.display} (далее — Исполнитель) заключить договор на оказание платных услуг в рамках сервиса {SITE_CONFIG.name} (далее — Сервис) на условиях, изложенных ниже.
       </p>
 
-      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
+      <h2 className="font-display font-bold text-xs sm:text-sm text-gray-900 dark:text-slate-50 mt-4">
         1. Общие положения
       </h2>
       <p>
         Акцептом оферты признаётся совершение Пользователем действий по оплате Premium-подписки в интерфейсе Сервиса (в том числе через Telegram-бота или сайт). С момента акцепта договор считается заключённым. Условия договора не могут содержать положений, ограничивающих права и свободы субъекта персональных данных, либо допускающих в качестве условия заключения договора бездействие субъекта персональных данных.
       </p>
 
-      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
+      <h2 className="font-display font-bold text-xs sm:text-sm text-gray-900 dark:text-slate-50 mt-4">
         2. Исполнитель
       </h2>
       <p>
         {OPERATOR.display}
       </p>
 
-      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
+      <h2 className="font-display font-bold text-xs sm:text-sm text-gray-900 dark:text-slate-50 mt-4">
         3. Предмет договора
       </h2>
       <p>
         Исполнитель оказывает Пользователю услуги по предоставлению доступа к расширенным возможностям Сервиса (Premium-подписка): увеличенные лимиты запросов, дополнительные функции в соответствии с описанием на сайте и в интерфейсе Сервиса.
       </p>
 
-      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
+      <h2 className="font-display font-bold text-xs sm:text-sm text-gray-900 dark:text-slate-50 mt-4">
         4. Стоимость и порядок оплаты
       </h2>
       <p>
         Стоимость подписки указывается в интерфейсе Сервиса на момент оплаты (в том числе 299 ₽/мес). Оплата производится способами, доступными в интерфейсе (банковская карта через платёжного провайдера). Рекуррентные платежи возможны при согласии Пользователя и в соответствии с условиями платёжного провайдера.
       </p>
 
-      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
+      <h2 className="font-display font-bold text-xs sm:text-sm text-gray-900 dark:text-slate-50 mt-4">
         5. Персональные данные
       </h2>
       <p>
         Обработка персональных данных Пользователя осуществляется в соответствии с Политикой обработки персональных данных, размещённой на сайте Сервиса. Оплата может потребовать передачи данных платёжному провайдеру в объёме, необходимом для проведения платежа.
       </p>
 
-      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
+      <h2 className="font-display font-bold text-xs sm:text-sm text-gray-900 dark:text-slate-50 mt-4">
         6. Срок действия и отказ
       </h2>
       <p>
         Подписка действует в течение оплаченного периода. Пользователь вправе отказаться от продления; условия возврата средств определяются правилами платёжного провайдера и применимым законодательством.
       </p>
 
-      <h2 className="font-display font-bold text-sm sm:text-base text-gray-900 dark:text-slate-50 mt-4">
+      <h2 className="font-display font-bold text-xs sm:text-sm text-gray-900 dark:text-slate-50 mt-4">
         7. Заключительные положения
       </h2>
       <p>
