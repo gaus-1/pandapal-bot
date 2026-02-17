@@ -45,8 +45,8 @@ export const CookieBanner: React.FC = React.memo(() => {
       role="dialog"
       aria-label="Уведомление об использовании cookie"
     >
-      <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
-        <p className="font-sans text-xs text-gray-700 dark:text-slate-200 leading-snug">
+      <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+        <p className="font-sans text-xs text-gray-700 dark:text-slate-200 leading-snug sm:flex-1 min-w-0">
           Мы используем cookie и метрику, чтобы сайт работал удобнее и мы понимали, как им пользуются. Продолжая пользоваться сайтом, ты соглашаешься с нашей политикой. Подробнее:{' '}
           <a
             href={LEGAL_ROUTES.privacy}
@@ -73,13 +73,16 @@ export const CookieBanner: React.FC = React.memo(() => {
           </a>
           .
         </p>
-        <button
-          type="button"
-          onClick={handleAccept}
-          className="flex-shrink-0 inline-flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600 text-white font-semibold text-xs sm:text-sm min-h-[40px] sm:min-h-[44px] hover:scale-105 active:scale-100 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
-        >
-          Принять
-        </button>
+        <div className="w-full sm:flex-1 flex justify-center shrink-0">
+          <button
+            type="button"
+            onClick={handleAccept}
+            className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600 text-white font-semibold text-xs sm:text-sm min-h-[40px] sm:min-h-[44px] hover:scale-105 active:scale-100 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
+          >
+            Принять
+          </button>
+        </div>
+        <div className="hidden sm:block sm:flex-1 min-w-0" aria-hidden="true" />
       </div>
     </div>
   );
