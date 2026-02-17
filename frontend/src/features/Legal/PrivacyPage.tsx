@@ -22,7 +22,7 @@ export const PrivacyPage: React.FC = React.memo(() => {
         1. Оператор персональных данных
       </h2>
       <p>
-        Оператор: {OPERATOR.fullName}. Адрес: {OPERATOR.address}. Электронная почта: {OPERATOR.email}. Телефон: {OPERATOR.phone}.
+        Оператор: {OPERATOR.display}
       </p>
 
       <h2 className="font-display font-bold text-lg text-gray-900 dark:text-slate-50 mt-6">

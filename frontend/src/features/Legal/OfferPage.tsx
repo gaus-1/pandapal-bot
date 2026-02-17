@@ -15,7 +15,7 @@ export const OfferPage: React.FC = React.memo(() => {
       subtitle="Условия подключения Premium-подписки"
     >
       <p>
-        Настоящий документ является официальным предложением (публичной офертой) {OPERATOR.fullName} (далее — Исполнитель) заключить договор на оказание платных услуг в рамках сервиса {SITE_CONFIG.name} (далее — Сервис) на условиях, изложенных ниже.
+        Настоящий документ является официальным предложением (публичной офертой) {OPERATOR.display} (далее — Исполнитель) заключить договор на оказание платных услуг в рамках сервиса {SITE_CONFIG.name} (далее — Сервис) на условиях, изложенных ниже.
       </p>
 
       <h2 className="font-display font-bold text-lg text-gray-900 dark:text-slate-50 mt-6">
@@ -29,7 +29,7 @@ export const OfferPage: React.FC = React.memo(() => {
         2. Исполнитель
       </h2>
       <p>
-        {OPERATOR.fullName}. Адрес: {OPERATOR.address}. ИНН {OPERATOR.inn}. Контакты: {OPERATOR.email}, {OPERATOR.phone}.
+        {OPERATOR.display}
       </p>
 
       <h2 className="font-display font-bold text-lg text-gray-900 dark:text-slate-50 mt-6">

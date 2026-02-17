@@ -22,7 +22,7 @@ export const PersonalDataPage: React.FC = React.memo(() => {
         1. Оператор
       </h2>
       <p>
-        {OPERATOR.fullName}, ИНН {OPERATOR.inn}. Адрес: {OPERATOR.address}. Контакты: {OPERATOR.email}, {OPERATOR.phone}.
+        {OPERATOR.display}
       </p>
 
       <h2 className="font-display font-bold text-lg text-gray-900 dark:text-slate-50 mt-6">
