@@ -113,7 +113,7 @@ export function EmergencyScreen() {
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold text-gray-900 dark:text-slate-100 mb-2 sm:mb-3">
           🚨 Экстренные номера
         </h1>
-        <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
+        <p className="font-sans text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
           В опасности? Звони сразу! Все звонки бесплатные 24/7
         </p>
       </div>
@@ -133,7 +133,7 @@ export function EmergencyScreen() {
                   <h3 className="text-sm sm:text-base md:text-lg font-display font-bold text-gray-900 dark:text-slate-100">
                     {emergency.title}
                   </h3>
-                  <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
+                  <p className="font-sans text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
                     {emergency.description}
                   </p>
                 </div>
@@ -142,14 +142,14 @@ export function EmergencyScreen() {
 
             {/* Когда звонить */}
             <div className="mb-3 sm:mb-4">
-              <p className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2 sm:mb-3">
+              <p className="font-display text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2 sm:mb-3">
                 Звони, если:
               </p>
               <ul className="space-y-2.5 xs:space-y-3 sm:space-y-3.5 md:space-y-4">
                 {emergency.when.map((reason, idx) => (
                   <li
                     key={idx}
-                    className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 flex items-baseline gap-2.5 xs:gap-3 sm:gap-3.5 md:gap-4"
+                    className="font-sans text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 flex items-baseline gap-2.5 xs:gap-3 sm:gap-3.5 md:gap-4"
                   >
                     <span
                       className="text-blue-500 dark:text-blue-400 font-bold flex-shrink-0 leading-none"
@@ -181,7 +181,7 @@ export function EmergencyScreen() {
 
       {/* Предупреждение */}
       <div className="mt-6 sm:mt-8 bg-yellow-500/10 dark:bg-yellow-500/20 border-2 border-yellow-500/30 dark:border-yellow-500/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6">
-        <p className="text-sm sm:text-base md:text-lg text-gray-900 dark:text-slate-100 text-center">
+        <p className="font-sans text-sm sm:text-base md:text-lg text-gray-900 dark:text-slate-100 text-center">
           <span className="font-bold">⚠️ Важно:</span> Не паникуй! Говори четко и спокойно. Назови
           свой адрес и опиши ситуацию.
         </p>

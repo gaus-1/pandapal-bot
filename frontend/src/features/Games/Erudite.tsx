@@ -161,7 +161,7 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
     <div className="flex flex-col h-full bg-white dark:bg-gray-900 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-2 py-1 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <h1 className="text-sm font-bold text-gray-900 dark:text-slate-100">📚 эрудит</h1>
+        <h1 className="font-display text-sm font-bold text-gray-900 dark:text-slate-100">📚 эрудит</h1>
         <button
           onClick={onBack}
           className="px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
@@ -304,7 +304,7 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
       {state.game_over && (
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg text-center">
-            <div className="text-2xl font-bold mb-2">
+            <div className="font-display text-2xl font-bold mb-2">
               {state.player_score > state.ai_score ? 'Победа!' : 'Поражение'}
             </div>
             <div className="text-gray-600 dark:text-gray-400 mb-4">

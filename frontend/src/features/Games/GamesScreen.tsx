@@ -173,10 +173,10 @@ export function GamesScreen({ user }: GamesScreenProps) {
         <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Заголовок */}
         <div className="text-center mb-3">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-1">
+          <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-1">
             🎮 PandaPalGo
           </h1>
-          <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400 leading-tight">
+          <p className="font-sans text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400 leading-tight">
             Играй с пандой и зарабатывай достижения!
           </p>
         </div>
@@ -209,7 +209,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
                 `}
               >
                 <div className="text-2xl sm:text-3xl mb-1.5 flex-shrink-0 leading-none">{game.icon}</div>
-                <h3 className="text-sm sm:text-base font-bold mb-1 flex-shrink-0 leading-tight">{game.name}</h3>
+                <h3 className="font-display text-sm sm:text-base font-bold mb-1 flex-shrink-0 leading-tight">{game.name}</h3>
                 <p className="text-xs sm:text-sm opacity-90 mb-2 overflow-hidden leading-tight" style={{
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
@@ -246,7 +246,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
         {/* Общая статистика */}
         {Object.keys(stats).length > 0 && (
           <div className="mt-4 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
-            <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">
+            <h2 className="font-display text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">
               📊 Твоя статистика
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">

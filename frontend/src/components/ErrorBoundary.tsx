@@ -52,10 +52,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       <div className="flex items-center justify-center min-h-screen min-h-dvh bg-gray-50 dark:bg-slate-800 p-4">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-4">🐼</div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">
+          <h2 className="font-display text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">
             Что-то пошло не так
           </h2>
-          <p className="text-gray-600 dark:text-slate-400 mb-6 text-sm">
+          <p className="font-sans text-gray-600 dark:text-slate-400 mb-6 text-sm">
             Произошла непредвиденная ошибка. Попробуй обновить страницу.
           </p>
           <div className="flex gap-3 justify-center">

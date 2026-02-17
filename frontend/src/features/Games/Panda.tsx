@@ -154,7 +154,7 @@ export function Panda({ user, onBack }: PandaProps) {
         >
           ← Назад
         </button>
-        <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100">
+        <h1 className="font-display text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100">
           Моя панда
         </h1>
         <div className="w-10" />
@@ -212,7 +212,7 @@ export function Panda({ user, onBack }: PandaProps) {
       {/* Достижения (перед кнопками, чтобы кнопки всегда внизу) */}
       {state && state.achievements.length > 0 && (
         <div className="flex-shrink-0 px-3 pb-2 sm:px-4">
-          <h2 className="text-sm font-bold text-gray-700 dark:text-slate-300 mb-1.5">
+          <h2 className="font-display text-sm font-bold text-gray-700 dark:text-slate-300 mb-1.5">
             🏆 Достижения
           </h2>
           <div className="flex flex-wrap gap-1.5">

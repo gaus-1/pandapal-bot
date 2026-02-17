@@ -3,24 +3,21 @@
  * Показывается при первом заходе, после «Принять» скрывается (localStorage).
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { LEGAL_ROUTES } from '../config/legal';
 
 const STORAGE_KEY = 'cookie_consent_pandapal';
 
-export const CookieBanner: React.FC = React.memo(() => {
-  const [visible, setVisible] = useState(false);
+function getInitialVisible(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_KEY) !== 'accepted';
+  } catch {
+    return true;
+  }
+}
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored !== 'accepted') {
-        setVisible(true);
-      }
-    } catch {
-      setVisible(true);
-    }
-  }, []);
+export const CookieBanner: React.FC = React.memo(() => {
+  const [visible, setVisible] = useState(getInitialVisible);
 
   const handleAccept = () => {
     try {
@@ -40,7 +37,7 @@ export const CookieBanner: React.FC = React.memo(() => {
       aria-label="Уведомление об использовании cookie"
     >
       <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <p className="text-sm text-gray-700 dark:text-slate-200">
+        <p className="font-sans text-sm text-gray-700 dark:text-slate-200">
           Мы используем cookie и метрику, чтобы сайт работал удобнее и мы понимали, как им пользуются. Продолжая пользоваться сайтом, ты соглашаешься с нашей политикой. Подробнее:{' '}
           <a
             href={LEGAL_ROUTES.privacy}

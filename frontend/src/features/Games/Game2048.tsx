@@ -263,7 +263,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
               <PandaReaction mood="sad" size="small" />
             </div>
           )}
-          <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-100 mb-0">
+          <div className="font-display text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-100 mb-0">
             {score}
           </div>
           {won && (
