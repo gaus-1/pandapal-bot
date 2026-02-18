@@ -72,13 +72,15 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
           ? 'https://pandapal.ru/api'
           : 'http://localhost:10000/api';
 
-        // Отправляем запрос на streaming endpoint через POST
+        // Отправляем запрос на streaming endpoint через POST (OWASP A01: initData обязателен)
         const languageCode = telegram.getUser()?.languageCode;
+        const initData = telegram.getInitData();
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (initData) headers['X-Telegram-Init-Data'] = initData;
+
         const response = await fetch(`${API_BASE_URL}/miniapp/ai/chat-stream`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           body: JSON.stringify({
             telegram_id: telegramId,
             message,

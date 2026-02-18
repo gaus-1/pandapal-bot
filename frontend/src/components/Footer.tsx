@@ -69,9 +69,9 @@ export const Footer: React.FC = React.memo(() => {
       </div>
 
       {/* Ссылки на документы (РКН) — в карточке для мобильных */}
-      <div className="max-w-2xl mx-auto mb-6">
+      <div className="max-w-2xl mx-auto mb-5">
         <nav
-          className="rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 p-4 sm:px-5 sm:py-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-center gap-2 sm:gap-x-2 sm:gap-y-1 text-xs sm:text-sm text-gray-600 dark:text-slate-400"
+          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-center gap-0.5 sm:gap-x-2 sm:gap-y-1 text-xs sm:text-sm text-gray-600 dark:text-slate-400"
           aria-label="Документы"
         >
           <a
@@ -80,7 +80,7 @@ export const Footer: React.FC = React.memo(() => {
               e.preventDefault();
               navigateTo(LEGAL_ROUTES.privacy);
             }}
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5 leading-tight"
           >
             Политика конфиденциальности
           </a>
@@ -91,7 +91,7 @@ export const Footer: React.FC = React.memo(() => {
               e.preventDefault();
               navigateTo(LEGAL_ROUTES.personalData);
             }}
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5 leading-tight"
           >
             Обработка персональных данных
           </a>
@@ -102,7 +102,7 @@ export const Footer: React.FC = React.memo(() => {
               e.preventDefault();
               navigateTo(LEGAL_ROUTES.offer);
             }}
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5 leading-tight"
           >
             Договор оферты
           </a>
