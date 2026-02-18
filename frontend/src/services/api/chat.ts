@@ -69,6 +69,7 @@ export async function getChatHistory(
     content: string;
     timestamp: string;
     imageUrl?: string;
+    videoUrl?: string;
     pandaReaction?: 'happy' | 'eating' | 'offended' | 'questioning';
   }>
 > {

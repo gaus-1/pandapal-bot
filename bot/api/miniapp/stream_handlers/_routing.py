@@ -85,6 +85,9 @@ async def try_adult_topics(
     return True
 
 
+BAMBOO_VIDEO_PATH = "/video/panda_eats.mp4"
+
+
 async def try_rest_offer(user_message: str, telegram_id: int, response: web.StreamResponse) -> bool:
     """Предложение отдыха после длинной сессии. Возвращает True если обработано."""
     with get_db() as db_rest:
@@ -97,7 +100,7 @@ async def try_rest_offer(user_message: str, telegram_id: int, response: web.Stre
         from bot.services.panda_lazy_service import PandaLazyService
 
         lazy_service = PandaLazyService(db_rest)
-        rest_response, _ = lazy_service.check_rest_offer(
+        rest_response, _skip_ai, show_bamboo_video = lazy_service.check_rest_offer(
             telegram_id, user_message, user_rest.first_name
         )
         if not rest_response:
@@ -107,7 +110,12 @@ async def try_rest_offer(user_message: str, telegram_id: int, response: web.Stre
         prem_rest = PremiumFeaturesService(db_rest)
         limit_reached_rest, _ = prem_rest.increment_request_count(telegram_id)
         history_service_rest.add_message(telegram_id, user_message, "user")
-        history_service_rest.add_message(telegram_id, rest_response, "ai")
+        history_service_rest.add_message(
+            telegram_id,
+            rest_response,
+            "ai",
+            video_url=BAMBOO_VIDEO_PATH if show_bamboo_video else None,
+        )
         if limit_reached_rest:
             history_service_rest.add_message(
                 telegram_id, prem_rest.get_limit_reached_message_text(), "ai"
@@ -115,6 +123,9 @@ async def try_rest_offer(user_message: str, telegram_id: int, response: web.Stre
             asyncio.create_task(prem_rest.send_limit_reached_notification_async(telegram_id))
         db_rest.commit()
 
+    if show_bamboo_video:
+        video_data = json.dumps({"videoUrl": BAMBOO_VIDEO_PATH}, ensure_ascii=False)
+        await response.write(f"event: video\ndata: {video_data}\n\n".encode())
     event_data = json.dumps({"content": rest_response}, ensure_ascii=False)
     await response.write(f"event: message\ndata: {event_data}\n\n".encode())
     await response.write(b"event: done\ndata: {}\n\n")

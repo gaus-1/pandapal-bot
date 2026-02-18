@@ -74,6 +74,8 @@ class ChatHistory(Base):
 
     # Реакция панды на фидбек пользователя (happy, eating, offended, questioning)
     panda_reaction: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # URL видео перерыва на бамбук (например /video/panda_eats.mp4)
+    video_url: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationship
     user: Mapped["User"] = relationship("User", back_populates="messages")

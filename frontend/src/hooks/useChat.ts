@@ -33,6 +33,7 @@ export type ChatMessage = {
   content: string;
   timestamp: string;
   imageUrl?: string; // URL изображения визуализации (для AI сообщений)
+  videoUrl?: string; // URL видео перерыва на бамбук (для AI сообщений)
   mapData?: MapData; // Координаты для интерактивной карты
   pandaReaction?: PandaChatReactionType; // Реакция панды по фидбеку (чат, не игры)
 };

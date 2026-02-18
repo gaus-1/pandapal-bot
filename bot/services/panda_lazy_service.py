@@ -134,34 +134,38 @@ class PandaLazyService:
     # Пороги для предложения отдыха и игры
     REST_OFFER_AFTER_FIRST = 10  # первый отдых после 10 ответов подряд
     REST_OFFER_AFTER_SECOND = 20  # второй отдых ещё через 20 ответов
+    REST_OFFER_AFTER_THIRD = 20  # третий перерыв ещё через 20 ответов
+    BAMBOO_VIDEO_MAX_PER_DAY = 3  # макс. показов видео перерыва на бамбук в сутки
 
     def check_rest_offer(
         self, telegram_id: int, user_message: str, user_first_name: str | None
-    ) -> tuple[str | None, bool]:
+    ) -> tuple[str | None, bool, bool]:
         """
         Проверка: нужно ли предложить отдых/игру или ответ «продолжаем/играем».
 
         Returns:
-            (response_text, skip_ai): если response_text не None — отправить его и не вызывать AI.
-            skip_ai=True — не увеличивать consecutive_since_rest (ответ был отдых/ок продолжать).
+            (response_text, skip_ai, show_bamboo_video): если response_text не None — отправить
+            и не вызывать AI. show_bamboo_video=True — отправить event: video и текст «ПРОДОЛЖИМ?».
         """
         user = self.db.execute(
             select(User).where(User.telegram_id == telegram_id)
         ).scalar_one_or_none()
         if not user:
-            return None, False
+            return None, False, False
 
         # Поддержка старых миграций: поля могут отсутствовать
         consecutive = getattr(user, "consecutive_since_rest", 0)
         rest_offers = getattr(user, "rest_offers_count", 0)
         last_was_rest = getattr(user, "last_ai_was_rest", False)
+        bamboo_break_date = getattr(user, "bamboo_break_date", None)
+        bamboo_breaks_today = getattr(user, "bamboo_breaks_today", 0)
 
         name = (user_first_name or user.first_name or "").strip() or "друг"
         msg_lower = (user_message or "").strip().lower()
 
         # Поля отдыха могут отсутствовать до применения миграции
         if not hasattr(user, "last_ai_was_rest"):
-            return None, False
+            return None, False, False
 
         # Пользователь отвечает на предложение отдыха/игры
         if last_was_rest:
@@ -182,19 +186,19 @@ class PandaLazyService:
                     "Я объелся бамбуком и хочу отдохнуть... Напиши мне чуть-чуть попозже",
                     "Как-то лениво мне...пойду немного покувыркаюсь и поем бамбука...",
                 ]
-                return random.choice(lazy_msgs), True
+                return random.choice(lazy_msgs), True, False
 
             if wants_continue:
                 user.consecutive_since_rest = 0
                 self.db.flush()
-                return "Хорошо, давай продолжать! Чем могу помочь?", True
+                return "Хорошо, давай продолжать! Чем могу помочь?", True, False
 
             # Явный отказ от игры (нет, не хочу, не сейчас и т.д.) — не приглашаем в Игры
             wants_refuse = bool(REFUSE_PLAY_PATTERNS.search(msg_lower))
             if wants_refuse:
                 user.consecutive_since_rest = 0
                 self.db.flush()
-                return "Хорошо, тогда давай продолжать! Чем могу помочь?", True
+                return "Хорошо, тогда давай продолжать! Чем могу помочь?", True, False
 
             # Согласие играть или нейтральная фраза — приглашаем в Игры
             user.consecutive_since_rest = 0
@@ -202,23 +206,49 @@ class PandaLazyService:
             return (
                 "Отлично! Заходи в раздел Игры — там крестики-нолики, 2048, шашки и другие игры.",
                 True,
+                False,
             )
 
         # Проверка: пора ли предложить отдых
         need_first_rest = rest_offers == 0 and consecutive >= self.REST_OFFER_AFTER_FIRST
         need_second_rest = rest_offers == 1 and consecutive >= self.REST_OFFER_AFTER_SECOND
+        need_third_rest = rest_offers == 2 and consecutive >= self.REST_OFFER_AFTER_THIRD
 
-        if need_first_rest or need_second_rest:
+        if need_first_rest or need_second_rest or need_third_rest:
+            now = datetime.now(UTC)
+            today_utc = now.date()
+
+            # Смена дня (UTC): сбросить счётчики бамбука и цикл предложений отдыха
+            if hasattr(user, "bamboo_break_date") and bamboo_break_date != today_utc:
+                user.bamboo_breaks_today = 0
+                user.bamboo_break_date = today_utc
+                user.rest_offers_count = 0
+                rest_offers = 0
+                bamboo_breaks_today = 0
+                need_first_rest = consecutive >= self.REST_OFFER_AFTER_FIRST
+                need_second_rest = False
+                need_third_rest = False
+                self.db.flush()
+
             user.rest_offers_count = rest_offers + 1
             user.last_ai_was_rest = True
-            self.db.flush()
+
+            # Видео перерыва на бамбук: не более 3 раз в сутки
+            if bamboo_breaks_today < self.BAMBOO_VIDEO_MAX_PER_DAY:
+                user.bamboo_breaks_today = bamboo_breaks_today + 1
+                if not getattr(user, "bamboo_break_date", None):
+                    user.bamboo_break_date = today_utc
+                self.db.flush()
+                return "ПРОДОЛЖИМ?", True, True
+
             rest_phrases = [
                 f"Я хочу отдохнуть, {name}, может поиграем?",
                 "Может сделаем перерыв и поиграем?",
             ]
-            return random.choice(rest_phrases), True
+            self.db.flush()
+            return random.choice(rest_phrases), True, False
 
-        return None, False
+        return None, False, False
 
     def increment_consecutive_after_ai(self, telegram_id: int) -> None:
         """Увеличить счётчик ответов подряд после сохранения обычного ответа AI."""

@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -12,6 +12,7 @@ from sqlalchemy import (
     BigInteger,
     Boolean,
     CheckConstraint,
+    Date,
     DateTime,
     Float,
     ForeignKey,
@@ -98,6 +99,11 @@ class User(Base):
     )
     last_ai_was_rest: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default="false", nullable=False
+    )
+    # Перерыв на бамбук (видео): суточный лимит 3 показа
+    bamboo_break_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    bamboo_breaks_today: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
     )
 
     # Пол пользователя для грамматически корректных формулировок (male / female / None)

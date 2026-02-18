@@ -443,6 +443,13 @@ export function AIChat({ user }: AIChatProps) {
                         mapData={msg.mapData}
                         fallbackImageUrl={msg.imageUrl}
                       />
+                    ) : msg.videoUrl && msg.role === 'ai' ? (
+                      <video
+                        src={msg.videoUrl}
+                        muted
+                        playsInline
+                        className="max-w-[280px] sm:max-w-[320px] w-full aspect-video object-contain rounded-xl mb-2 shadow-md"
+                      />
                     ) : msg.imageUrl && msg.role === 'ai' ? (
                       <img
                         src={msg.imageUrl}

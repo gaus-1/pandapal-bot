@@ -186,8 +186,30 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                       return updated;
                     }
                   );
+                } else if (eventType === 'video' && data.videoUrl) {
+                  // Перерыв на бамбук: видео приходит первым, затем event: message с текстом «ПРОДОЛЖИМ?»
+                  const videoUrl = data.videoUrl as string;
+                  queryClient.setQueryData<ChatMessage[]>(
+                    queryKeys.chatHistory(telegramId, limit),
+                    (old) => {
+                      if (!old) return old;
+                      const updated = [...old];
+                      const lastMessage = updated[updated.length - 1];
+                      if (lastMessage && lastMessage.role === 'user') {
+                        updated.push({
+                          role: 'ai',
+                          content: '',
+                          videoUrl,
+                          timestamp: new Date().toISOString(),
+                        });
+                      } else if (lastMessage && lastMessage.role === 'ai') {
+                        updated[updated.length - 1] = { ...lastMessage, videoUrl };
+                      }
+                      return updated;
+                    }
+                  );
                 } else if (eventType === 'message' && data.content) {
-                  // Получено полное сообщение (например, секретное сообщение)
+                  // Получено полное сообщение (например, секретное или «ПРОДОЛЖИМ?» после видео)
                   const messageContent = data.content;
 
                   // Обновляем или добавляем сообщение AI
@@ -206,7 +228,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                           timestamp: new Date().toISOString(),
                         });
                       } else if (lastMessage && lastMessage.role === 'ai') {
-                        // Обновляем существующее сообщение AI
+                        // Обновляем существующее сообщение AI (в т.ч. после event: video)
                         updated[updated.length - 1] = {
                           ...lastMessage,
                           content: messageContent,

@@ -1,9 +1,10 @@
-"""Тесты CONTINUE_LEARN_PATTERNS и REFUSE_PLAY_PATTERNS в panda_lazy_service."""
+"""Тесты CONTINUE_LEARN_PATTERNS, REFUSE_PLAY_PATTERNS и порогов отдыха в panda_lazy_service."""
 
 import pytest
 
 from bot.services.panda_lazy_service import (
     CONTINUE_LEARN_PATTERNS,
+    PandaLazyService,
     REFUSE_PLAY_PATTERNS,
 )
 
@@ -45,3 +46,15 @@ def test_refuse_play_patterns(message: str, expected: bool) -> None:
     """Отказ от игры после предложения «может поиграем?» — не приглашаем в Игры."""
     got = bool(REFUSE_PLAY_PATTERNS.search(message.strip().lower()))
     assert got == expected, f"{message!r} -> {got}, expected {expected}"
+
+
+def test_rest_offer_after_third_constant() -> None:
+    """Третий перерыв задаётся константой REST_OFFER_AFTER_THIRD = 20."""
+    assert hasattr(PandaLazyService, "REST_OFFER_AFTER_THIRD")
+    assert PandaLazyService.REST_OFFER_AFTER_THIRD == 20
+
+
+def test_bamboo_video_max_per_day_constant() -> None:
+    """Макс. показов видео в сутки — BAMBOO_VIDEO_MAX_PER_DAY = 3."""
+    assert hasattr(PandaLazyService, "BAMBOO_VIDEO_MAX_PER_DAY")
+    assert PandaLazyService.BAMBOO_VIDEO_MAX_PER_DAY == 3

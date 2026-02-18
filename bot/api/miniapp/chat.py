@@ -305,7 +305,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
 
             # Предложение отдыха/игры после 10 или 20 ответов подряд
             lazy_service = PandaLazyService(db)
-            rest_response, _ = lazy_service.check_rest_offer(
+            rest_response, _skip_ai, _show_video = lazy_service.check_rest_offer(
                 telegram_id, user_message, user.first_name
             )
             if rest_response:

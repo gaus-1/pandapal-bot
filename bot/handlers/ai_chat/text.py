@@ -283,7 +283,7 @@ async def handle_ai_message(message: Message, state: FSMContext):  # noqa: ARG00
 
             # Предложение отдыха/игры после 10 или 20 ответов подряд; ответ «продолжаем» или «играем»
             lazy_service = PandaLazyService(db)
-            rest_response, _ = lazy_service.check_rest_offer(
+            rest_response, _skip_ai, _show_video = lazy_service.check_rest_offer(
                 telegram_id, user_message, user.first_name or message.from_user.first_name
             )
             if rest_response:

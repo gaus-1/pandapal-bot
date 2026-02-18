@@ -189,7 +189,8 @@ class TestPandaLazyMiniappReal:
         data = json.loads(response.body.decode()) if response.body else {}
         assert "response" in data
         text = data["response"]
-        assert "поиграем" in text or "перерыв" in text or "отдохнуть" in text
+        # Первые 3 раза в сутки — «ПРОДОЛЖИМ?», иначе фраза про перерыв/игру
+        assert "ПРОДОЛЖИМ?" in text or "поиграем" in text or "перерыв" in text or "отдохнуть" in text
 
     @pytest.mark.asyncio
     async def test_continue_after_rest_offer_in_miniapp(self, real_db_session, test_user):
@@ -239,3 +240,33 @@ class TestPandaLazyMiniappReal:
         text = data["response"]
         assert "продолжать" in text
         assert "Игры" not in text
+
+    @pytest.mark.asyncio
+    async def test_bamboo_video_capped_at_three_per_day(
+        self, real_db_session, test_user
+    ):
+        """
+        После 3 показов видео в сутки следующий перерыв — только текст, без «ПРОДОЛЖИМ?».
+        """
+        from bot.api.miniapp import miniapp_ai_chat
+        from datetime import UTC, datetime
+
+        telegram_id = test_user.telegram_id
+        test_user.consecutive_since_rest = 10
+        test_user.rest_offers_count = 0
+        test_user.last_ai_was_rest = False
+        test_user.bamboo_breaks_today = 3
+        test_user.bamboo_break_date = datetime.now(UTC).date()
+        real_db_session.commit()
+
+        request = self._create_chat_request(telegram_id, "Ещё вопрос")
+
+        with self._patch_db_and_auth(real_db_session):
+            response = await miniapp_ai_chat(request)
+
+        assert response.status == 200
+        data = json.loads(response.body.decode()) if response.body else {}
+        assert "response" in data
+        text = data["response"]
+        assert "ПРОДОЛЖИМ?" not in text
+        assert "поиграем" in text or "перерыв" in text

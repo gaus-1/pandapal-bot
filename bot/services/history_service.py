@@ -47,6 +47,7 @@ class ChatHistoryService:
         message_type: str,
         image_url: str | None = None,
         panda_reaction: str | None = None,
+        video_url: str | None = None,
     ) -> ChatHistory:
         """
         Добавить сообщение в историю.
@@ -57,6 +58,7 @@ class ChatHistoryService:
             message_type: Тип сообщения ('user', 'ai', 'system')
             image_url: URL изображения визуализации (опционально)
             panda_reaction: Реакция панды на фидбек (опционально, только для ai)
+            video_url: URL видео перерыва на бамбук (опционально)
 
         Returns:
             ChatHistory: Созданная запись
@@ -75,6 +77,7 @@ class ChatHistoryService:
             message_type=message_type,
             image_url=image_url,
             panda_reaction=panda_reaction,
+            video_url=video_url,
         )
 
         try:
