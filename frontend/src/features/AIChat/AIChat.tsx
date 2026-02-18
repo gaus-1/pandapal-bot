@@ -453,24 +453,16 @@ export function AIChat({ user }: AIChatProps) {
                               ? `${window.location.origin}${videoUrl}`
                               : videoUrl;
                         return (
-                          <div className="mb-2">
-                            <video
-                              src={fullUrl}
-                              muted
-                              playsInline
-                              controls
-                              autoPlay
-                              preload="auto"
-                              className="max-w-[280px] sm:max-w-[320px] w-full aspect-video object-contain rounded-xl shadow-md"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => telegram.openLink(fullUrl)}
-                              className="mt-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                            >
-                              Открыть видео в браузере
-                            </button>
-                          </div>
+                          <video
+                            key={fullUrl}
+                            src={fullUrl}
+                            muted
+                            playsInline
+                            controls
+                            autoPlay
+                            preload="auto"
+                            className="max-w-[280px] sm:max-w-[320px] w-full aspect-video object-contain rounded-xl mb-2 shadow-md"
+                          />
                         );
                       })()
                     ) : msg.imageUrl && msg.role === 'ai' ? (
