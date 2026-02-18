@@ -151,6 +151,30 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
                     f"📦 JS файлы: {', '.join(js_files[:5])}{'...' if len(js_files) > 5 else ''}"
                 )
 
+        video_dir = frontend_dist / "video"
+        if video_dir.exists() and video_dir.is_dir():
+
+            async def serve_video(request: web.Request) -> web.Response:
+                filename = request.match_info.get("filename", "").lstrip("/")
+                if not filename or "/" in filename or filename.startswith("."):
+                    return web.Response(status=404, text="Not Found")
+                file_path = video_dir / filename
+                if not file_path.exists() or not file_path.is_file():
+                    return web.Response(status=404, text="Not Found")
+                content_type = (
+                    "video/mp4" if filename.lower().endswith(".mp4") else "application/octet-stream"
+                )
+                return web.FileResponse(
+                    file_path,
+                    headers={
+                        "Content-Type": content_type,
+                        "Cache-Control": "public, max-age=86400",
+                    },
+                )
+
+            app.router.add_get("/video/{filename:.*}", serve_video)
+            logger.info("✅ Видео зарегистрировано: /video/")
+
         security_txt_path = frontend_dist / "security.txt"
         if security_txt_path.exists():
 
@@ -173,6 +197,7 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             if (
                 path.startswith("/api/")
                 or path.startswith("/assets/")
+                or path.startswith("/video/")
                 or path == "/webhook"
                 or path.startswith("/webhook/")
                 or path == "/health"
