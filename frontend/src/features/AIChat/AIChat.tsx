@@ -125,7 +125,7 @@ export function AIChat({ user }: AIChatProps) {
       setInputText('');
     },
     onError: (error) => {
-      console.error('Ошибка загрузки фото:', error);
+      logger.error('Ошибка загрузки фото:', error);
     },
   });
 
@@ -145,7 +145,7 @@ export function AIChat({ user }: AIChatProps) {
       setInputText('');
     },
     onError: (error) => {
-      console.error('Ошибка записи голоса:', error);
+      logger.error('Ошибка записи голоса:', error);
     },
   });
 
@@ -239,7 +239,7 @@ export function AIChat({ user }: AIChatProps) {
             setHasShownWelcomeMessage(true);
             setShowWelcome(false);
           } catch (error) {
-            console.error('❌ [Welcome] Ошибка добавления приветствия:', error);
+            logger.error('❌ [Welcome] Ошибка добавления приветствия:', error);
             // Если не удалось добавить приветствие, просто скрываем welcome screen
             setHasShownWelcomeMessage(true);
             setShowWelcome(false);
@@ -294,7 +294,7 @@ export function AIChat({ user }: AIChatProps) {
         setHasShownWelcomeMessage(false);
         setShowWelcome(true);
       } catch (error) {
-        console.error('Ошибка очистки истории:', error);
+        logger.error('Ошибка очистки истории:', error);
         telegram.showAlert('Ошибка при очистке истории');
       }
     }
@@ -307,7 +307,7 @@ export function AIChat({ user }: AIChatProps) {
       // Используем showAlert вместо showPopup для совместимости с версией 6.0
       await telegram.showAlert('Скопировано!');
     } catch (error) {
-      console.error('Ошибка копирования:', error);
+      logger.error('Ошибка копирования:', error);
       // При ошибке показываем alert
       await telegram.showAlert('Не удалось скопировать');
     }

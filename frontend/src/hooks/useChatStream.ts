@@ -12,6 +12,7 @@ import { useState, useCallback, useRef } from 'react';
 import { queryKeys } from '../lib/queryClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { telegram } from '../services/telegram';
+import { logger } from '../utils/logger';
 import type { ChatMessage } from './useChat';
 
 interface UseChatStreamOptions {
@@ -141,7 +142,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                   setStreamStatus((prev) => ({ ...prev, status: 'transcribing' }));
                 } else if (data.status === 'analyzing_photo') {
                   setStreamStatus((prev) => ({ ...prev, status: 'analyzing_photo' }));
-                } else if (data.status === 'generating') {
+                } else if (data.status === 'generating' || data.status === 'processing') {
                   setStreamStatus((prev) => ({ ...prev, status: 'generating' }));
                 } else if (eventType === 'chunk' && data.chunk) {
                   // Получен chunk текста
@@ -294,7 +295,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                 }
             } catch (parseError) {
               // Игнорируем ошибки парсинга отдельных событий
-              console.debug('Ошибка парсинга SSE event:', parseError);
+              logger.debug('Ошибка парсинга SSE event:', parseError);
             }
           }
         }
@@ -307,7 +308,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
         // Инвалидация приведет к дублированию сообщения пользователя
 
       } catch (error) {
-        console.error('❌ Ошибка streaming:', error);
+        logger.error('❌ Ошибка streaming:', error);
 
         // Rollback оптимистичного обновления
         if (previousMessages) {
