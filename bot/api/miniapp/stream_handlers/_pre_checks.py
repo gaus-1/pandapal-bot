@@ -12,6 +12,55 @@ from bot.services import UserService
 from bot.services.premium_features_service import PremiumFeaturesService
 
 
+async def parse_and_validate_request_early(
+    request: web.Request,
+) -> tuple[dict | None, web.Response | None]:
+    """
+    Парсинг и валидация тела запроса до открытия SSE.
+    Возвращает (parsed_dict, None) при успехе или (None, error_response) при ошибке.
+    Используется для возврата 400/403 до response.prepare().
+    """
+    try:
+        data = await request.json()
+        logger.info(
+            f"📦 Stream: получен JSON запрос: telegram_id={data.get('telegram_id')}, "
+            f"has_message={bool(data.get('message'))}, "
+            f"has_photo={bool(data.get('photo_base64'))}, "
+            f"has_audio={bool(data.get('audio_base64'))}"
+        )
+    except Exception as json_error:
+        err_str = str(json_error)
+        logger.error(f"❌ Stream: ошибка парсинга JSON: {json_error}", exc_info=True)
+        if "Content Too Large" in err_str or "too large" in err_str.lower():
+            return (
+                None,
+                web.json_response(
+                    {
+                        "error": "Фото или аудио слишком большие. Уменьши размер фото или длину голосового."
+                    },
+                    status=413,
+                ),
+            )
+        return (None, web.json_response({"error": "Invalid JSON"}, status=400))
+
+    try:
+        validated = AIChatRequest(**data)
+    except ValidationError as e:
+        logger.warning(f"⚠️ Stream: Invalid request: {e}")
+        return (None, web.json_response({"error": "Invalid request data"}, status=400))
+
+    return (
+        {
+            "telegram_id": validated.telegram_id,
+            "message": validated.message or "",
+            "photo_base64": validated.photo_base64,
+            "audio_base64": validated.audio_base64,
+            "language_code": validated.language_code,
+        },
+        None,
+    )
+
+
 async def parse_and_validate_request(
     request: web.Request, response: web.StreamResponse
 ) -> dict | None:

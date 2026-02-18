@@ -26,7 +26,7 @@ from bot.services.yandex_ai_response_generator import (
 
 from ._history import save_and_notify
 from ._media import process_media
-from ._pre_checks import check_premium_and_lazy, parse_and_validate_request
+from ._pre_checks import check_premium_and_lazy, parse_and_validate_request_early
 from ._routing import (
     try_adult_topics,
     try_image_request,
@@ -62,7 +62,26 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
         f"📨 Mini App AI Chat Stream запрос от IP: {client_ip}, метод: {request.method}, путь: {request.path_qs}"
     )
 
-    # Создаем SSE response
+    # Парсинг и валидация до открытия stream (A01: при ошибке — 400/403, не 200+SSE)
+    parsed, err_response = await parse_and_validate_request_early(request)
+    if err_response is not None:
+        return err_response
+
+    telegram_id = parsed["telegram_id"]
+    message = parsed["message"]
+    photo_base64 = parsed["photo_base64"]
+    audio_base64 = parsed["audio_base64"]
+    language_code = parsed["language_code"]
+
+    # A01: проверка владельца ресурса (X-Telegram-Init-Data); 403 до prepare
+    allowed, error_msg = verify_resource_owner(request, telegram_id)
+    if not allowed:
+        return web.json_response(
+            {"error": error_msg or "Authorization required"},
+            status=403,
+        )
+
+    # Создаем SSE response и открываем stream
     response = web.StreamResponse()
     response.headers["Content-Type"] = "text/event-stream"
     response.headers["Cache-Control"] = "no-cache"
@@ -71,24 +90,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
     try:
         await response.prepare(request)
-
-        # Парсинг и валидация запроса
-        parsed = await parse_and_validate_request(request, response)
-        if parsed is None:
-            return response
-
-        telegram_id = parsed["telegram_id"]
-        message = parsed["message"]
-        photo_base64 = parsed["photo_base64"]
-        audio_base64 = parsed["audio_base64"]
-        language_code = parsed["language_code"]
-
-        # A01: проверка владельца ресурса (X-Telegram-Init-Data)
-        allowed, error_msg = verify_resource_owner(request, telegram_id)
-        if not allowed:
-            err_payload = json.dumps({"error": error_msg or "Authorization required"})
-            await response.write(f"event: error\ndata: {err_payload}\n\n".encode())
-            return response
 
         # Проверка лимитов и ленивости
         if not await check_premium_and_lazy(telegram_id, response):
