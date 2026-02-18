@@ -91,7 +91,8 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
     try:
         await response.prepare(request)
 
-        # Проверка лимитов и ленивости
+        # Проверка лимитов и ленивости (ранний выход до тяжёлой работы).
+        # Повторная проверка лимита — после prepare_context ниже; при изменении правил лимита обновлять оба места.
         if not await check_premium_and_lazy(telegram_id, response):
             return response
 
@@ -154,7 +155,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             premium_service = context["premium_service"]
             history_service = context["history_service"]
 
-            # Проверка Premium
+            # Проверка Premium (вторая: после формирования контекста, см. check_premium_and_lazy выше).
             can_request, limit_reason = premium_service.can_make_ai_request(
                 telegram_id, username=user.username
             )
