@@ -163,10 +163,35 @@ class PandaLazyService:
         name = (user_first_name or user.first_name or "").strip() or "друг"
         msg_lower = (user_message or "").strip().lower()
 
-        # Поля отдыха могут отсутствовать до применения миграции
-        if not hasattr(user, "last_ai_was_rest"):
+        # Поля отдыха могут отсутствовать в БД до применения миграции — не падаем
+        try:
+            return self._check_rest_offer_impl(
+                user,
+                consecutive,
+                rest_offers,
+                last_was_rest,
+                bamboo_break_date,
+                bamboo_breaks_today,
+                name,
+                msg_lower,
+                telegram_id,
+            )
+        except Exception as e:
+            logger.debug(f"check_rest_offer skip (колонки отдыха?): {e}")
             return None, False, False
 
+    def _check_rest_offer_impl(
+        self,
+        user,
+        consecutive: int,
+        rest_offers: int,
+        last_was_rest: bool,
+        bamboo_break_date,
+        bamboo_breaks_today: int,
+        name: str,
+        msg_lower: str,
+        telegram_id: int,
+    ) -> tuple[str | None, bool, bool]:
         # Пользователь отвечает на предложение отдыха/игры
         if last_was_rest:
             user.last_ai_was_rest = False
@@ -175,7 +200,6 @@ class PandaLazyService:
             wants_continue = bool(CONTINUE_LEARN_PATTERNS.search(msg_lower))
 
             if wants_continue and rest_offers >= 2:
-                # Второй раз попросил продолжать — включаем ленивую панду
                 now = datetime.now(UTC)
                 user.panda_lazy_until = now + timedelta(minutes=self.LAZY_DURATION_MINUTES)
                 user.rest_offers_count = 0
@@ -193,14 +217,12 @@ class PandaLazyService:
                 self.db.flush()
                 return "Хорошо, давай продолжать! Чем могу помочь?", True, False
 
-            # Явный отказ от игры (нет, не хочу, не сейчас и т.д.) — не приглашаем в Игры
             wants_refuse = bool(REFUSE_PLAY_PATTERNS.search(msg_lower))
             if wants_refuse:
                 user.consecutive_since_rest = 0
                 self.db.flush()
                 return "Хорошо, тогда давай продолжать! Чем могу помочь?", True, False
 
-            # Согласие играть или нейтральная фраза — приглашаем в Игры
             user.consecutive_since_rest = 0
             self.db.flush()
             return (
@@ -209,7 +231,6 @@ class PandaLazyService:
                 False,
             )
 
-        # Проверка: пора ли предложить отдых
         need_first_rest = rest_offers == 0 and consecutive >= self.REST_OFFER_AFTER_FIRST
         need_second_rest = rest_offers == 1 and consecutive >= self.REST_OFFER_AFTER_SECOND
         need_third_rest = rest_offers == 2 and consecutive >= self.REST_OFFER_AFTER_THIRD
@@ -218,7 +239,6 @@ class PandaLazyService:
             now = datetime.now(UTC)
             today_utc = now.date()
 
-            # Смена дня (UTC): сбросить счётчики бамбука и цикл предложений отдыха
             if hasattr(user, "bamboo_break_date") and bamboo_break_date != today_utc:
                 user.bamboo_breaks_today = 0
                 user.bamboo_break_date = today_utc
@@ -233,7 +253,6 @@ class PandaLazyService:
             user.rest_offers_count = rest_offers + 1
             user.last_ai_was_rest = True
 
-            # Видео перерыва на бамбук: не более 3 раз в сутки
             if bamboo_breaks_today < self.BAMBOO_VIDEO_MAX_PER_DAY:
                 user.bamboo_breaks_today = bamboo_breaks_today + 1
                 if not getattr(user, "bamboo_break_date", None):
@@ -250,12 +269,51 @@ class PandaLazyService:
 
         return None, False, False
 
+    def try_show_bamboo_eat_on_request(self, telegram_id: int) -> tuple[bool, str]:
+        """
+        Запрос пользователя «поешь»/«отдохни»: показать видео бамбука, если лимит не исчерпан.
+
+        Returns:
+            (show_video, response_text): show_video=True — отправить event: video и текст;
+            иначе response_text — сообщение типа «Я уже объелся сегодня».
+        """
+        user = self.db.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        ).scalar_one_or_none()
+        if not user:
+            return False, "Продолжим?"
+        try:
+            now = datetime.now(UTC)
+            today_utc = now.date()
+            bamboo_break_date = getattr(user, "bamboo_break_date", None)
+            bamboo_breaks_today = getattr(user, "bamboo_breaks_today", 0) or 0
+            if (
+                getattr(user, "bamboo_break_date", None) is not None
+                and bamboo_break_date != today_utc
+            ):
+                user.bamboo_breaks_today = 0
+                user.bamboo_break_date = today_utc
+                bamboo_breaks_today = 0
+                self.db.flush()
+            if bamboo_breaks_today < self.BAMBOO_VIDEO_MAX_PER_DAY:
+                user.bamboo_breaks_today = bamboo_breaks_today + 1
+                if not getattr(user, "bamboo_break_date", None):
+                    user.bamboo_break_date = today_utc
+                self.db.flush()
+                return True, "ПРОДОЛЖИМ?"
+            return False, "Я уже объелся бамбуком сегодня — завтра снова поем!"
+        except Exception:
+            return False, "Продолжим?"
+
     def increment_consecutive_after_ai(self, telegram_id: int) -> None:
         """Увеличить счётчик ответов подряд после сохранения обычного ответа AI."""
         user = self.db.execute(
             select(User).where(User.telegram_id == telegram_id)
         ).scalar_one_or_none()
-        if not user or not hasattr(user, "consecutive_since_rest"):
+        if not user:
             return
-        user.consecutive_since_rest = (user.consecutive_since_rest or 0) + 1
-        self.db.flush()
+        try:
+            user.consecutive_since_rest = (getattr(user, "consecutive_since_rest", 0) or 0) + 1
+            self.db.flush()
+        except Exception:
+            pass

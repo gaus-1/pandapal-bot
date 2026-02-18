@@ -106,6 +106,22 @@ async def miniapp_clear_chat_history(request: web.Request) -> web.Response:
             history_service = ChatHistoryService(db)
             deleted_count = history_service.clear_history(telegram_id)
 
+            # Сброс счётчиков отдыха панды — после очистки первое видео снова после 10 ответов
+            try:
+                from sqlalchemy import select
+
+                from bot.models import User
+
+                row = db.execute(
+                    select(User).where(User.telegram_id == telegram_id)
+                ).scalar_one_or_none()
+                if row and getattr(row, "consecutive_since_rest", None) is not None:
+                    row.consecutive_since_rest = 0
+                    row.rest_offers_count = 0
+                    row.last_ai_was_rest = False
+            except Exception:
+                pass
+
             db.commit()
 
             logger.info(f"🗑️ Очищена история для {telegram_id}: {deleted_count} сообщений")

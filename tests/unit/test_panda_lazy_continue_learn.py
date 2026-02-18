@@ -58,3 +58,27 @@ def test_bamboo_video_max_per_day_constant() -> None:
     """Макс. показов видео в сутки — BAMBOO_VIDEO_MAX_PER_DAY = 3."""
     assert hasattr(PandaLazyService, "BAMBOO_VIDEO_MAX_PER_DAY")
     assert PandaLazyService.BAMBOO_VIDEO_MAX_PER_DAY == 3
+
+
+@pytest.mark.parametrize(
+    "message,expected",
+    [
+        ("поешь", True),
+        ("Отдохни", True),
+        ("покушай", True),
+        ("давай поешь", True),
+        ("иди отдохни", True),
+        ("съешь бамбук", True),
+        ("отдохни немного", True),
+        ("сделай перерыв", True),
+        ("привет", False),
+        ("расскажи про бамбук", False),
+        ("не поешь", False),
+    ],
+)
+def test_bamboo_eat_pattern(message: str, expected: bool) -> None:
+    """Запросы «поешь»/«отдохни» совпадают с BAMBOO_EAT_PATTERN."""
+    from bot.api.miniapp.stream_handlers._routing import BAMBOO_EAT_PATTERN
+
+    got = bool(BAMBOO_EAT_PATTERN.search(message.strip()))
+    assert got == expected, f"{message!r} -> {got}, expected {expected}"

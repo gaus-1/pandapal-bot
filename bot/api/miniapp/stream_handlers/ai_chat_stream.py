@@ -29,6 +29,7 @@ from ._media import process_media
 from ._pre_checks import check_premium_and_lazy, parse_and_validate_request_early
 from ._routing import (
     try_adult_topics,
+    try_bamboo_eat_request,
     try_image_request,
     try_moderation,
     try_rest_offer,
@@ -111,6 +112,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             return response
 
         if await try_rest_offer(user_message, telegram_id, response):
+            return response
+
+        if await try_bamboo_eat_request(user_message, telegram_id, response):
             return response
 
         # Нормализация опечаток

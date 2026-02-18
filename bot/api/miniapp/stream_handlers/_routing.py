@@ -87,6 +87,60 @@ async def try_adult_topics(
 
 BAMBOO_VIDEO_PATH = "/video/panda_eats.mp4"
 
+# Запросы «поешь»/«отдохни» — показываем видео с бамбуком (в рамках суточного лимита)
+BAMBOO_EAT_PATTERN = re.compile(
+    r"^(?:(?:давай\s+)?(?:поешь|поедим|отдохни|покушай|перекуси|съешь|пожуй)|"
+    r"иди\s+поешь|иди\s+отдохни|иди\s+покушай|иди\s+по[её]сть|"
+    r"по[её]шь\s+бамбук|съешь\s+бамбук|отдохни\s+немного|сделай\s+перерыв)"
+    r"\s*[!?.]?\s*$",
+    re.IGNORECASE,
+)
+
+
+async def try_bamboo_eat_request(
+    user_message: str, telegram_id: int, response: web.StreamResponse
+) -> bool:
+    """По запросу «поешь»/«отдохни» показать видео с бамбуком (лимит 3 в сутки)."""
+    msg_stripped = (user_message or "").strip()
+    if not msg_stripped or not BAMBOO_EAT_PATTERN.search(msg_stripped):
+        return False
+
+    with get_db() as db_bamboo:
+        from bot.services import UserService
+        from bot.services.panda_lazy_service import PandaLazyService
+
+        user_bamboo = UserService(db_bamboo).get_user_by_telegram_id(telegram_id)
+        if not user_bamboo:
+            return False
+        lazy_service = PandaLazyService(db_bamboo)
+        show_video, response_text = lazy_service.try_show_bamboo_eat_on_request(telegram_id)
+
+        history_bamboo = ChatHistoryService(db_bamboo)
+        prem_bamboo = PremiumFeaturesService(db_bamboo)
+        limit_reached, _ = prem_bamboo.increment_request_count(telegram_id)
+        history_bamboo.add_message(telegram_id, user_message, "user")
+        history_bamboo.add_message(
+            telegram_id,
+            response_text,
+            "ai",
+            video_url=BAMBOO_VIDEO_PATH if show_video else None,
+        )
+        if limit_reached:
+            history_bamboo.add_message(
+                telegram_id, prem_bamboo.get_limit_reached_message_text(), "ai"
+            )
+            asyncio.create_task(prem_bamboo.send_limit_reached_notification_async(telegram_id))
+        db_bamboo.commit()
+
+    if show_video:
+        video_data = json.dumps({"videoUrl": BAMBOO_VIDEO_PATH}, ensure_ascii=False)
+        await response.write(f"event: video\ndata: {video_data}\n\n".encode())
+    event_data = json.dumps({"content": response_text}, ensure_ascii=False)
+    await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+    await response.write(b"event: done\ndata: {}\n\n")
+    logger.info(f"🎋 Stream: Запрос «поешь/отдохни» от {telegram_id}, show_video={show_video}")
+    return True
+
 
 async def try_rest_offer(user_message: str, telegram_id: int, response: web.StreamResponse) -> bool:
     """Предложение отдыха после длинной сессии. Возвращает True если обработано."""
@@ -289,6 +343,7 @@ async def try_image_request(
             "реакци",
             "оптик",
             "механик",
+            "школ",  # «нарисуй пуделя в школе» — учебный контекст
         )
         msg_lower_r = msg_for_routing.lower()
         is_educational_request = any(kw in msg_lower_r for kw in _edu)
