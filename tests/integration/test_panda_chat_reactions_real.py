@@ -140,6 +140,10 @@ class TestPandaChatReactionsStream:
             patch("bot.api.miniapp.stream_handlers._pre_checks.get_db", fake_get_db),
             patch("bot.api.miniapp.stream_handlers.ai_chat_stream.get_db", fake_get_db),
             patch(
+                "bot.api.miniapp.stream_handlers.ai_chat_stream.verify_resource_owner",
+                return_value=(True, None),
+            ),
+            patch(
                 "bot.services.panda_lazy_service.PandaLazyService.check_and_update_lazy_state",
                 return_value=(False, None),
             ),
