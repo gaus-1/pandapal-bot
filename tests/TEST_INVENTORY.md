@@ -4,55 +4,103 @@
 
 ### Unit тесты (tests/unit/)
 1. `test_admin_commands_handler.py` - Обработчик админ команд
-2. `test_ai_chat_handler.py` - Обработчик AI чата
-3. `test_ai_context_builder.py` - Построитель контекста AI
-4. `test_ai_moderator.py` - Модератор контента
-5. `test_ai_response_generator_solid.py` - Генератор ответов AI
-6. `test_ai_service_solid.py` - AI сервис (SOLID)
-7. `test_analytics_service.py` - Сервис аналитики ✅ НОВЫЙ
-8. `test_api_endpoints.py` - API endpoints (miniapp, premium, location, metrics) ✅ НОВЫЙ
-9. `test_bot_complete.py` - Полная проверка бота
-10. `test_bot_init.py` - Инициализация бота
-11. `test_coverage_50_percent.py` - Тесты для покрытия 50%
-12. `test_database_operations.py` - Операции с БД
-13. `test_database_real.py` - Реальные тесты БД
-14. `test_decorators_real.py` - Декораторы
-15. `test_emergency_handler.py` - Обработчик экстренных ситуаций ✅ НОВЫЙ
-16. `test_final_push_to_50.py` - Финальные тесты для покрытия
-17. `test_health_check.py` - Health check endpoints ✅ НОВЫЙ
-18. `test_history_service.py` - Сервис истории чата ✅ НОВЫЙ
-19. `test_knowledge_service.py` - Сервис базы знаний ✅ НОВЫЙ
-20. `test_location_handler.py` - Обработчик локации
-21. `test_localization_coverage.py` - Локализация
-22. `test_massive_coverage_3.py` - Массовые тесты покрытия
-23. `test_menu_handler.py` - Обработчик меню ✅ НОВЫЙ
-24. `test_models.py` - Модели БД
-25. `test_moderation_service.py` - Сервис модерации
-26. `test_monitoring_complete.py` - Мониторинг
-28. `test_real_coverage_boost.py` - Реальные тесты для покрытия
-29. `test_security.py` - Безопасность
-30. `test_services_cache.py` - Кэш сервисы
-32. `test_settings_handler.py` - Обработчик настроек ✅ НОВЫЙ
-33. `test_simple_coverage_boost.py` - Простые тесты покрытия
-34. `test_subscription_service.py` - Сервис подписок ✅ НОВЫЙ
-35. `test_user_service.py` - Сервис пользователей ✅ НОВЫЙ
-36. `test_web_scraper_service.py` - Веб-скрапер
-37. `test_yandex_vision.py` - Yandex Vision
+2. `test_adult_topics_service.py` - Взрослые темы (ЖКУ, банки)
+3. `test_ai_chat_handler.py` - Обработчик AI чата
+4. `test_ai_context_builder.py` - Построитель контекста AI
+5. `test_ai_moderator.py` - Модератор контента
+6. `test_ai_response_generator_solid.py` - Генератор ответов AI
+7. `test_ai_service_solid.py` - AI сервис (SOLID)
+8. `test_analytics_service.py` - Сервис аналитики
+9. `test_api_endpoints.py` - API endpoints (miniapp, premium, location, metrics)
+10. `test_bot_complete.py` - Полная проверка бота
+11. `test_bot_init.py` - Инициализация бота
+12. `test_checkers_fix.py` - Шашки (исправления)
+13. `test_checkers_game.py` - Шашки
+14. `test_database_operations.py` - Операции с БД
+15. `test_database_real.py` - Реальные тесты БД
+16. `test_dedup_archimedes.py` - Дедупликация ответов
+17. `test_decorators_real.py` - Декораторы
+18. `test_emoji_preference.py` - Эмодзи
+19. `test_emergency_handler.py` - Обработчик экстренных ситуаций
+20. `test_ensure_paragraphs.py` - Параграфы в ответах
+21. `test_erudite_game.py` - Эрудит
+22. `test_feedback.py` - Обратная связь
+23. `test_game_engines_critical.py` - Движки игр (критичные)
+24. `test_game_engines_detailed.py` - Движки игр (детально)
+25. `test_games_service.py` - Сервис игр
+26. `test_health_check.py` - Health check endpoints
+27. `test_history_service.py` - Сервис истории чата
+28. `test_knowledge_service.py` - Сервис базы знаний
+29. `test_localization_coverage.py` - Локализация
+30. `test_main.py` - Точка входа
+31. `test_menu_handler.py` - Обработчик меню
+32. `test_miniapp_features.py` - Mini App
+33. `test_models.py` - Модели БД
+34. `test_moderation_service.py` - Сервис модерации
+35. `test_monitoring_complete.py` - Мониторинг
+36. `test_panda_chat_reactions.py` - Реакции панды
+37. `test_panda_lazy_continue_learn.py` - Продолжить учёбу
+38. `test_panda_responses_logic.py` - Логика ответов панды
+39. `test_panda_service.py` - Сервис панды
+40. `test_premium_limit.py` - Лимит 30 запросов/месяц (free)
+41. `test_proactive_chat_service.py` - Проактивный чат
+42. `test_prometheus_metrics.py` - Метрики Prometheus
+43. `test_rag_system.py` - RAG система
+44. `test_referral_service.py` - Реферальная программа
+45. `test_reminder_service.py` - Напоминания
+46. `test_recurring_payment_service.py` - Подписки
+47. `test_security.py` - Безопасность
+48. `test_session_service.py` - Сессии игр
+49. `test_services_cache.py` - Кэш сервисы
+50. `test_settings_handler.py` - Обработчик настроек
+51. `test_subscription_service.py` - Сервис подписок
+52. `test_translate.py` - Перевод
+53. `test_user_service.py` - Сервис пользователей
+54. `test_web_scraper_service.py` - Веб-скрапер
+55. `test_yandex_vision.py` - Yandex Vision
 
 ### Integration тесты (tests/integration/)
 1. `test_ai_chat_real.py` - Реальные тесты AI чата
 2. `test_ai_solid_integration.py` - Интеграция AI (SOLID)
-3. `test_critical_child_safety.py` - Критичная безопасность детей
-4. `test_gamification_real.py` - Реальные тесты геймификации
-5. `test_handlers_with_aiogram.py` - Handlers с aiogram
-6. `test_miniapp_endpoints_real.py` - Реальные тесты Mini App endpoints
-7. `test_parent_dashboard_real.py` - Реальные тесты dashboard родителей
-8. `test_premium_payment_real.py` - Реальные тесты оплаты Premium
-9. `test_real_additional_coverage.py` - Дополнительные тесты покрытия
-10. `test_real_database_integration.py` - Реальная интеграция БД
-11. `test_real_handlers.py` - Реальные тесты handlers
-12. `test_security_crypto_integration.py` - Интеграция безопасности/крипто
-13. `test_yandex_api_real.py` - Реальные тесты Yandex API
+3. `test_all_services_real.py` - Все сервисы (real)
+4. `test_comprehensive_panda_responses.py` - Ответы панды
+5. `test_critical_child_safety.py` - Критичная безопасность детей
+6. `test_donation_real.py` - Донации
+7. `test_embeddings_real.py` - Эмбеддинги
+8. `test_formula_explanations_real.py` - Формулы
+9. `test_foreign_languages_image_audio_real.py` - Языки, фото, аудио
+10. `test_foreign_languages_real.py` - Иностранные языки
+11. `test_gamification_real.py` - Реальные тесты геймификации
+12. `test_games_api.py` - API игр
+13. `test_handlers_with_aiogram.py` - Handlers с aiogram
+14. `test_homework_api_real.py` - API проверки ДЗ
+15. `test_miniapp_endpoints_real.py` - Реальные тесты Mini App endpoints
+16. `test_miniapp_voice_real_flow.py` - Голос Mini App
+17. `test_moderation_and_yandex_real.py` - Модерация и Yandex
+18. `test_new_template_responses.py` - Шаблоны ответов
+19. `test_panda_api.py` - Panda API
+20. `test_panda_greeting_and_name_real.py` - Приветствие и имя
+21. `test_panda_lazy_miniapp_real.py` - Panda lazy (Mini App)
+22. `test_panda_motivation_real.py` - Мотивация панды
+23. `test_panda_chat_reactions_real.py` - Реакции панды (real)
+24. `test_payments_integration_real.py` - Платежи
+25. `test_premium_payment_real.py` - Реальные тесты оплаты Premium
+26. `test_proactive_chat_integration.py` - Проактивный чат
+27. `test_rag_real_api.py` - RAG (real API)
+28. `test_real_additional_coverage.py` - Дополнительные тесты покрытия
+29. `test_real_database_integration.py` - Реальная интеграция БД
+30. `test_real_handlers.py` - Реальные тесты handlers
+31. `test_referral_flow_integration.py` - Реферальный поток
+32. `test_security_crypto_integration.py` - Интеграция безопасности/крипто
+33. `test_semantic_cache_real.py` - Семантический кеш
+34. `test_subjects_real_api.py` - Предметы (real API)
+35. `test_templates_with_visualizations.py` - Визуализации
+36. `test_telegram_auth_real.py` - Telegram auth
+37. `test_webhook_and_security_real.py` - Webhook и безопасность
+38. `test_yandex_api_real.py` - Реальные тесты Yandex API
+39. `test_yandex_art_real_api.py` - YandexART
+40. `test_yookassa_payments_real.py` - YooKassa
+41. `test_vector_search_real.py` - Векторный поиск
 
 ### Performance тесты (tests/performance/)
 1. `test_gamification_performance.py` - Производительность геймификации

@@ -13,6 +13,7 @@ import httpx
 from aiohttp import web
 from loguru import logger
 
+from bot.api.validators import verify_resource_owner
 from bot.database import get_db
 from bot.services import ChatHistoryService, UserService
 from bot.services.ai_service_solid import get_ai_service
@@ -81,6 +82,13 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
         photo_base64 = parsed["photo_base64"]
         audio_base64 = parsed["audio_base64"]
         language_code = parsed["language_code"]
+
+        # A01: проверка владельца ресурса (X-Telegram-Init-Data)
+        allowed, error_msg = verify_resource_owner(request, telegram_id)
+        if not allowed:
+            err_payload = json.dumps({"error": error_msg or "Authorization required"})
+            await response.write(f"event: error\ndata: {err_payload}\n\n".encode())
+            return response
 
         # Проверка лимитов и ленивости
         if not await check_premium_and_lazy(telegram_id, response):

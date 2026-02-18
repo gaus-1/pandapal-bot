@@ -165,6 +165,16 @@ describe('SEO: index.html', () => {
     expect(webSiteBlock).not.toContain('SearchAction');
     expect(webSiteBlock).not.toContain('potentialAction');
   });
+
+  it('FAQ Schema: ответ про стоимость должен содержать «30» и «месяц»/«мес», не «в день»', () => {
+    const html = readIndexHtml();
+    const faqBlock = html.includes('"@type": "FAQPage"')
+      ? html.slice(html.indexOf('"@type": "FAQPage"'), html.indexOf('</script>', html.indexOf('"@type": "FAQPage"')))
+      : '';
+    expect(faqBlock).toContain('30');
+    expect(faqBlock).toMatch(/месяц|мес/);
+    expect(faqBlock).not.toMatch(/30\s*запросов\s*в\s*день/);
+  });
 });
 
 describe('SEO: robots.txt', () => {
