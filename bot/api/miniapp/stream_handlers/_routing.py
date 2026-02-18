@@ -212,13 +212,13 @@ async def try_image_request(
                 event_payload["mapData"] = map_coords
 
         image_data = json.dumps(event_payload, ensure_ascii=False)
-        await response.write(f"event: image\ndata: {image_data}\n\n".encode())
         caption = _build_quick_viz_caption(visualization_type, user_message)
-        event_data = json.dumps({"content": caption}, ensure_ascii=False)
-        await response.write(f"event: message\ndata: {event_data}\n\n".encode())
-        await response.write(b"event: done\ndata: {}\n\n")
+        limit_reached_viz = False
+        limit_msg_viz = ""
         with get_db() as db:
             hist = ChatHistoryService(db)
+            prem = PremiumFeaturesService(db)
+            limit_reached_viz, _ = prem.increment_request_count(telegram_id)
             hist.add_message(
                 telegram_id=telegram_id, message_text=user_message, message_type="user"
             )
@@ -228,10 +228,21 @@ async def try_image_request(
                 message_type="ai",
                 image_url=f"data:image/png;base64,{image_base64}",
             )
+            if limit_reached_viz:
+                limit_msg_viz = prem.get_limit_reached_message_text()
+                hist.add_message(telegram_id, limit_msg_viz, "ai")
+                asyncio.create_task(prem.send_limit_reached_notification_async(telegram_id))
             from bot.services.panda_lazy_service import PandaLazyService
 
             PandaLazyService(db).increment_consecutive_after_ai(telegram_id)
             db.commit()
+        await response.write(f"event: image\ndata: {image_data}\n\n".encode())
+        event_data = json.dumps({"content": caption}, ensure_ascii=False)
+        await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+        if limit_reached_viz:
+            limit_data = json.dumps({"content": limit_msg_viz}, ensure_ascii=False)
+            await response.write(f"event: message\ndata: {limit_data}\n\n".encode())
+        await response.write(b"event: done\ndata: {}\n\n")
         return True
 
     # Не учебная визуализация — для запросов «нарисуй что угодно» не генерируем, только текст
@@ -272,17 +283,28 @@ async def try_image_request(
         is_educational_request = any(kw in msg_lower_r for kw in _edu)
         if not is_educational_request:
             caption = "Могу показать что-то по школьным предметам! 📚"
-            event_data = json.dumps({"content": caption}, ensure_ascii=False)
-            await response.write(f"event: message\ndata: {event_data}\n\n".encode())
-            await response.write(b"event: done\ndata: {}\n\n")
+            limit_reached_edu = False
+            limit_msg_edu = ""
             with get_db() as db:
                 hist = ChatHistoryService(db)
+                prem = PremiumFeaturesService(db)
+                limit_reached_edu, _ = prem.increment_request_count(telegram_id)
                 hist.add_message(telegram_id, user_message, "user")
                 hist.add_message(telegram_id, caption, "ai")
+                if limit_reached_edu:
+                    limit_msg_edu = prem.get_limit_reached_message_text()
+                    hist.add_message(telegram_id, limit_msg_edu, "ai")
+                    asyncio.create_task(prem.send_limit_reached_notification_async(telegram_id))
                 from bot.services.panda_lazy_service import PandaLazyService
 
                 PandaLazyService(db).increment_consecutive_after_ai(telegram_id)
                 db.commit()
+            event_data = json.dumps({"content": caption}, ensure_ascii=False)
+            await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+            if limit_reached_edu:
+                limit_data = json.dumps({"content": limit_msg_edu}, ensure_ascii=False)
+                await response.write(f"event: message\ndata: {limit_data}\n\n".encode())
+            await response.write(b"event: done\ndata: {}\n\n")
             logger.info(
                 "🎨 Stream: Запрос не по школьной теме — отправлен только текст (без генерации)"
             )
@@ -312,19 +334,13 @@ async def try_image_request(
                         {"image": image_base64, "type": "generated_image"},
                         ensure_ascii=False,
                     )
-                    await response.write(f"event: image\ndata: {image_data}\n\n".encode())
-
                     caption = "Могу нарисовать что-то по школьным предметам! 📚"
-                    event_data = json.dumps({"content": caption}, ensure_ascii=False)
-                    await response.write(f"event: message\ndata: {event_data}\n\n".encode())
-                    await response.write(b"event: done\ndata: {}\n\n")
-
-                    logger.info(
-                        f"🎨 Stream: Изображение сгенерировано для пользователя {telegram_id}"
-                    )
-
+                    limit_reached_art = False
+                    limit_msg_art = ""
                     with get_db() as db:
                         history_service = ChatHistoryService(db)
+                        prem = PremiumFeaturesService(db)
+                        limit_reached_art, _ = prem.increment_request_count(telegram_id)
                         history_service.add_message(
                             telegram_id=telegram_id,
                             message_text=user_message,
@@ -337,10 +353,26 @@ async def try_image_request(
                             message_type="ai",
                             image_url=image_url,
                         )
+                        if limit_reached_art:
+                            limit_msg_art = prem.get_limit_reached_message_text()
+                            history_service.add_message(telegram_id, limit_msg_art, "ai")
+                            asyncio.create_task(
+                                prem.send_limit_reached_notification_async(telegram_id)
+                            )
                         from bot.services.panda_lazy_service import PandaLazyService
 
                         PandaLazyService(db).increment_consecutive_after_ai(telegram_id)
                         db.commit()
+                    await response.write(f"event: image\ndata: {image_data}\n\n".encode())
+                    event_data = json.dumps({"content": caption}, ensure_ascii=False)
+                    await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+                    if limit_reached_art:
+                        limit_data = json.dumps({"content": limit_msg_art}, ensure_ascii=False)
+                        await response.write(f"event: message\ndata: {limit_data}\n\n".encode())
+                    await response.write(b"event: done\ndata: {}\n\n")
+                    logger.info(
+                        f"🎨 Stream: Изображение сгенерировано для пользователя {telegram_id}"
+                    )
                     return True
                 else:
                     logger.warning(
