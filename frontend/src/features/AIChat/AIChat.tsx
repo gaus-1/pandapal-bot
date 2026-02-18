@@ -444,12 +444,35 @@ export function AIChat({ user }: AIChatProps) {
                         fallbackImageUrl={msg.imageUrl}
                       />
                     ) : msg.videoUrl && msg.role === 'ai' ? (
-                      <video
-                        src={msg.videoUrl}
-                        muted
-                        playsInline
-                        className="max-w-[280px] sm:max-w-[320px] w-full aspect-video object-contain rounded-xl mb-2 shadow-md"
-                      />
+                      (() => {
+                        const videoUrl = msg.videoUrl;
+                        const fullUrl =
+                          videoUrl.startsWith('http')
+                            ? videoUrl
+                            : typeof window !== 'undefined'
+                              ? `${window.location.origin}${videoUrl}`
+                              : videoUrl;
+                        return (
+                          <div className="mb-2">
+                            <video
+                              src={fullUrl}
+                              muted
+                              playsInline
+                              controls
+                              autoPlay
+                              preload="auto"
+                              className="max-w-[280px] sm:max-w-[320px] w-full aspect-video object-contain rounded-xl shadow-md"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => telegram.openLink(fullUrl)}
+                              className="mt-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              Открыть видео в браузере
+                            </button>
+                          </div>
+                        );
+                      })()
                     ) : msg.imageUrl && msg.role === 'ai' ? (
                       <img
                         src={msg.imageUrl}
