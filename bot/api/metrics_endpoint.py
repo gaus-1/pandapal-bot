@@ -238,10 +238,10 @@ async def metrics_middleware(request: Request, handler):
         return response
 
     except Exception as e:
-        # Записываем ошибку
-        # response_time вычисляется для будущего логирования
+        # Записываем ошибку (экранируем скобки в сообщении, чтобы не ломать format)
         _ = asyncio.get_event_loop().time() - start_time
-        logger.error("Ошибка в metrics endpoint: %s", e, exc_info=True)
+        safe_msg = str(e).replace("{", "{{").replace("}", "}}")
+        logger.error("Ошибка в metrics endpoint: %s", safe_msg, exc_info=True)
 
         # metrics.increment_counter('http_requests_total', {
         #     'method': request.method,

@@ -136,7 +136,8 @@ class OverloadProtection:
                 status=504,
             )
         except Exception as e:
-            logger.error(f"❌ Ошибка обработки {request.path}: {e}")
+            err_msg = str(e).replace("{", "{{").replace("}", "}}")
+            logger.error(f"❌ Ошибка обработки {request.path}: {err_msg}")
             return web.json_response(
                 {"error": "Internal server error", "message": str(e)}, status=500
             )
