@@ -25,23 +25,6 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             "panda-sad-in-game.png",
             "yandex_3f9e35f6d79cfb2f.html",
         ]
-        tamagotchi_files = [
-            "panda-neutral.png",
-            "panda-happy.png",
-            "panda-sad.png",
-            "panda-bored.png",
-            "panda-hungry.png",
-            "panda-full.png",
-            "panda-played.png",
-            "panda-sleepy.png",
-            "panda-sleeping.png",
-            "panda-wants_bamboo.png",
-            "panda-no_bamboo.png",
-            "panda-questioning.png",
-            "panda-offended.png",
-            "panda-eating.png",
-            "panda-excited.png",
-        ]
         panda_chat_reactions_files = [
             "panda-happy.png",
             "panda-eating.png",
@@ -87,25 +70,6 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
                     return web.FileResponse(fp, headers=headers)
 
                 app.router.add_get(f"/{static_file}", serve_static_file)
-
-        tamagotchi_dir = frontend_dist / "panda-tamagotchi"
-        for tf in tamagotchi_files:
-            file_path = tamagotchi_dir / tf
-            if file_path.exists():
-
-                async def serve_tamagotchi(
-                    _request: web.Request,
-                    fp=file_path,
-                ) -> web.Response:
-                    return web.FileResponse(
-                        fp,
-                        headers={
-                            "Content-Type": "image/png",
-                            "Cache-Control": "public, max-age=31536000, immutable",
-                        },
-                    )
-
-                app.router.add_get(f"/panda-tamagotchi/{tf}", serve_tamagotchi)
 
         panda_chat_reactions_dir = frontend_dist / "panda-chat-reactions"
         for pcrf in panda_chat_reactions_files:

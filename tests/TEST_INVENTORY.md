@@ -41,8 +41,7 @@
 36. `test_panda_chat_reactions.py` - Реакции панды
 37. `test_panda_lazy_continue_learn.py` - Продолжить учёбу
 38. `test_panda_responses_logic.py` - Логика ответов панды
-39. `test_panda_service.py` - Сервис панды
-40. `test_premium_limit.py` - Лимит 30 запросов/месяц (free)
+39. `test_premium_limit.py` - Лимит 30 запросов/месяц (free)
 41. `test_proactive_chat_service.py` - Проактивный чат
 42. `test_prometheus_metrics.py` - Метрики Prometheus
 43. `test_rag_system.py` - RAG система
@@ -78,8 +77,7 @@
 16. `test_miniapp_voice_real_flow.py` - Голос Mini App
 17. `test_moderation_and_yandex_real.py` - Модерация и Yandex
 18. `test_new_template_responses.py` - Шаблоны ответов
-19. `test_panda_api.py` - Panda API
-20. `test_panda_greeting_and_name_real.py` - Приветствие и имя
+19. `test_panda_greeting_and_name_real.py` - Приветствие и имя
 21. `test_panda_lazy_miniapp_real.py` - Panda lazy (Mini App)
 22. `test_panda_motivation_real.py` - Мотивация панды
 23. `test_panda_chat_reactions_real.py` - Реакции панды (real)

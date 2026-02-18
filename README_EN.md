@@ -177,7 +177,7 @@ PandaPal/
 │   │   │   ├── homework.py, chat.py, progress.py, other.py
 │   │   │   └── helpers.py
 │   │   ├── games_endpoints.py, premium_endpoints.py
-│   │   ├── panda_endpoints.py, auth_endpoints.py
+│   │   ├── auth_endpoints.py
 │   │   └── validators.py
 │   ├── config/              # Settings, prompts, moderation patterns
 │   ├── security/            # Middleware, validation, rate limiting, crypto
@@ -198,7 +198,7 @@ PandaPal/
 │   │   ├── store/           # Zustand
 │   │   ├── config/          # App config
 │   │   └── types/           # TypeScript types
-│   └── public/              # Static: logo, favicon, panda-chat-reactions, panda-tamagotchi
+│   └── public/              # Static: logo, favicon, panda-chat-reactions
 ├── tests/                   # Tests (1000+)
 │   ├── unit/                # Unit tests (~60 files)
 │   ├── integration/         # Integration tests (~38 files)

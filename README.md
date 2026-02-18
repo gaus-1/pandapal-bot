@@ -203,8 +203,7 @@ PandaPal/
 │   │   │   └── helpers.py       # Общие хелперы Mini App API
 │   │   ├── games_endpoints.py   # API для игр
 │   │   ├── premium_endpoints.py # Премиум и платежи
-│   │   ├── panda_endpoints.py   # Panda API (приветствия, предложения)
-│   │   ├── auth_endpoints.py    # Telegram Login / auth API
+│   │   ├── auth_endpoints.py   # Telegram Login / auth API
 │   │   └── validators.py        # Валидация запросов, проверка владельца ресурса
 │   ├── config/             # Настройки, промпты, паттерны модерации
 │   ├── security/           # Middleware, валидация, rate limiting, криптография
@@ -231,7 +230,7 @@ PandaPal/
 │   │   ├── config/         # Конфиг приложения
 │   │   ├── lib/            # Утилиты
 │   │   └── types/          # TypeScript типы
-│   └── public/             # Статика: logo, favicon, panda-chat-reactions, panda-tamagotchi
+│   └── public/             # Статика: logo, favicon, panda-chat-reactions
 ├── tests/                  # Тесты (1000+)
 │   ├── unit/               # Unit тесты (~60 файлов)
 │   ├── integration/        # Интеграционные тесты (~38 файлов)
@@ -352,7 +351,6 @@ graph TB
 - `bot/api/miniapp/other.py` — история чата, предметы, логирование Mini App
 - `premium_endpoints.py` — обработка платежей YooKassa, webhooks, сохранение карт
 - `games_endpoints.py` — API для игр (создание сессий, ходы, завершение)
-- `panda_endpoints.py` — Panda API (приветствия, предложения)
 - `auth_endpoints.py` — Telegram Login Widget для сайта
 
 ### Security

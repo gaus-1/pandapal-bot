@@ -33,8 +33,9 @@ describe('GamesScreen', () => {
     await waitFor(() => {
       expect(screen.getByText('🎮 PandaPalGo')).toBeInTheDocument();
       expect(screen.getByText('Крестики-нолики')).toBeInTheDocument();
-      expect(screen.getByText('Виселица')).toBeInTheDocument();
+      expect(screen.getByText('Шашки')).toBeInTheDocument();
       expect(screen.getByText('2048')).toBeInTheDocument();
+      expect(screen.getByText('эрудит')).toBeInTheDocument();
     });
   });
 

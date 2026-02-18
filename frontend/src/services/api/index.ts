@@ -48,15 +48,6 @@ export {
   getGameSession,
 } from './games';
 
-// Panda (tamagotchi)
-export {
-  getPandaState,
-  pandaFeed,
-  pandaPlay,
-  pandaSleep,
-} from './panda';
-export type { PandaState } from './panda';
-
 // Premium
 export {
   createPremiumPayment,
