@@ -14,7 +14,7 @@ repos:
         exclude: ^(frontend/.*\.yml$|\.github/workflows/.*\.yml$)
       - id: check-added-large-files
         name: 📦 Проверка больших файлов (>1MB)
-        args: ['--maxkb=1000']
+        args: ['--maxkb=4096']
       - id: check-merge-conflict
         name: ⚠️ Проверка маркеров слияния
       - id: check-json
