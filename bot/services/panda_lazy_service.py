@@ -27,6 +27,13 @@ CONTINUE_LEARN_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
+# Явный отказ от игры после предложения «может поиграем?» — не приглашаем в Игры
+REFUSE_PLAY_PATTERNS = re.compile(
+    r"(^нет\b|^не\s+хочу|^не\s+буду|не\s+сейчас|потом|не\s+надо|не\s+пойду|"
+    r"откажусь|не\s+буду\s+играть|не\s+поиграем|отказываюсь)",
+    re.IGNORECASE,
+)
+
 
 class PandaLazyService:
     """
@@ -182,7 +189,14 @@ class PandaLazyService:
                 self.db.flush()
                 return "Хорошо, давай продолжать! Чем могу помочь?", True
 
-            # Хочет играть или просто написал что-то ещё
+            # Явный отказ от игры (нет, не хочу, не сейчас и т.д.) — не приглашаем в Игры
+            wants_refuse = bool(REFUSE_PLAY_PATTERNS.search(msg_lower))
+            if wants_refuse:
+                user.consecutive_since_rest = 0
+                self.db.flush()
+                return "Хорошо, тогда давай продолжать! Чем могу помочь?", True
+
+            # Согласие играть или нейтральная фраза — приглашаем в Игры
             user.consecutive_since_rest = 0
             self.db.flush()
             return (

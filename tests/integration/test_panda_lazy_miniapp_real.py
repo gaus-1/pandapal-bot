@@ -213,3 +213,29 @@ class TestPandaLazyMiniappReal:
         data = json.loads(response.body.decode()) if response.body else {}
         assert "response" in data
         assert "продолжать" in data["response"]
+
+    @pytest.mark.asyncio
+    async def test_refuse_after_rest_offer_returns_continue_not_games(
+        self, real_db_session, test_user
+    ):
+        """
+        После предложения отдыха ответ «Нет» даёт «давай продолжать», не «Заходи в Игры».
+        """
+        from bot.api.miniapp import miniapp_ai_chat
+
+        telegram_id = test_user.telegram_id
+        test_user.last_ai_was_rest = True
+        test_user.rest_offers_count = 1
+        real_db_session.commit()
+
+        request = self._create_chat_request(telegram_id, "Нет")
+
+        with self._patch_db_and_auth(real_db_session):
+            response = await miniapp_ai_chat(request)
+
+        assert response.status == 200
+        data = json.loads(response.body.decode()) if response.body else {}
+        assert "response" in data
+        text = data["response"]
+        assert "продолжать" in text
+        assert "Игры" not in text
