@@ -180,7 +180,6 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             yandex_service = response_generator.yandex_service
 
             from bot.config import settings
-            from bot.services.rag import ContextCompressor
 
             relevant_materials = await response_generator.knowledge_service.enhanced_search(
                 user_question=normalized_message,
@@ -188,14 +187,9 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 top_k=3,
                 use_wikipedia=response_generator._should_use_wikipedia(normalized_message),
             )
-            web_context = response_generator.knowledge_service.format_knowledge_for_ai(
-                relevant_materials
+            web_context = response_generator.knowledge_service.format_and_compress_knowledge_for_ai(
+                relevant_materials, normalized_message, max_sentences=7
             )
-            if web_context:
-                compressor = ContextCompressor()
-                web_context = compressor.compress(
-                    context=web_context, question=normalized_message, max_sentences=7
-                )
             if web_context:
                 from bot.config.prompts import RAG_FORMAT_REMINDER
 

@@ -14,7 +14,6 @@ from loguru import logger
 from bot.config import settings
 from bot.services.knowledge_service import get_knowledge_service
 from bot.services.prompt_builder import get_prompt_builder
-from bot.services.rag import ContextCompressor
 from bot.services.yandex_cloud_service import get_yandex_cloud_service
 
 
@@ -1115,23 +1114,17 @@ class YandexAIResponseGenerator:
                 top_k=3,
                 use_wikipedia=self._should_use_wikipedia(user_message),
             )
-            web_context = self.knowledge_service.format_knowledge_for_ai(relevant_materials)
-
-            if web_context:
-                compressor = ContextCompressor()
-                max_sent = (
-                    25
-                    if any(
-                        w in user_message.lower()
-                        for w in ("список", "таблица значений", "все значения")
-                    )
-                    else 15
+            max_sent = (
+                25
+                if any(
+                    w in user_message.lower()
+                    for w in ("список", "таблица значений", "все значения")
                 )
-                web_context = compressor.compress(
-                    context=web_context,
-                    question=user_message,
-                    max_sentences=max_sent,
-                )
+                else 15
+            )
+            web_context = self.knowledge_service.format_and_compress_knowledge_for_ai(
+                relevant_materials, user_message, max_sentences=max_sent
+            )
 
             # Преобразуем историю в формат Yandex Cloud
             yandex_history = []

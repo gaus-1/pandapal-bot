@@ -69,6 +69,34 @@ class TestKnowledgeService:
         assert "Тест" in formatted
         assert "matematika" in formatted
 
+    def test_format_and_compress_knowledge_for_ai(self):
+        """format_and_compress_knowledge_for_ai: пустой список — '', с материалом — непустая строка."""
+        service = KnowledgeService()
+
+        assert service.format_and_compress_knowledge_for_ai([], "вопрос", max_sentences=5) == ""
+
+        from datetime import datetime
+
+        from bot.services.web_scraper import EducationalContent
+
+        materials = [
+            EducationalContent(
+                title="Фотосинтез",
+                content="Фотосинтез — процесс образования органических веществ. Растения используют свет.",
+                subject="биология",
+                difficulty="средний",
+                source_url="https://example.com",
+                extracted_at=datetime.now(),
+                tags=["биология"],
+            )
+        ]
+        result = service.format_and_compress_knowledge_for_ai(
+            materials, "что такое фотосинтез", max_sentences=10
+        )
+        assert result != ""
+        assert "Фотосинтез" in result
+        assert "фотосинтез" in result.lower() or "Фотосинтез" in result
+
     def test_get_knowledge_service_singleton(self):
         """Тест получения singleton экземпляра"""
         service1 = get_knowledge_service()

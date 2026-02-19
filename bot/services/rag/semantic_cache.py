@@ -5,7 +5,7 @@
 """
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from loguru import logger
@@ -67,6 +67,19 @@ class SemanticCache:
                 logger.debug(f"EmbeddingService недоступен: {e}")
         return self._embedding_service
 
+    def _evict_expired(self, db) -> None:
+        """Удалить устаревшие записи (created_at старше ttl_hours)."""
+        try:
+            from sqlalchemy import text
+
+            cutoff = datetime.now(UTC) - timedelta(hours=self.ttl_hours)
+            db.execute(
+                text("DELETE FROM embedding_cache WHERE created_at < :cutoff"),
+                {"cutoff": cutoff},
+            )
+        except Exception as e:
+            logger.debug(f"Semantic cache evict_expired: {e}")
+
     async def get(
         self, query: str, threshold: float | None = None
     ) -> list[EducationalContent] | None:
@@ -90,6 +103,7 @@ class SemanticCache:
 
         th = threshold if threshold is not None else self.threshold
         vec_str = "[" + ",".join(str(x) for x in embedding) + "]"
+        cutoff = datetime.now(UTC) - timedelta(hours=self.ttl_hours)
 
         try:
             with get_db() as db:
@@ -100,12 +114,12 @@ class SemanticCache:
                         """
                         SELECT query_text, result_json, 1 - (embedding <=> CAST(:vec AS vector)) as sim
                         FROM embedding_cache
-                        WHERE embedding IS NOT NULL
+                        WHERE embedding IS NOT NULL AND created_at > :cutoff
                         ORDER BY embedding <=> CAST(:vec AS vector)
                         LIMIT 1
                         """
                     ),
-                    {"vec": vec_str},
+                    {"vec": vec_str, "cutoff": cutoff},
                 ).fetchone()
 
                 if not row:
@@ -139,6 +153,9 @@ class SemanticCache:
         try:
             with get_db() as db:
                 from sqlalchemy import text
+
+                self._evict_expired(db)
+                db.commit()
 
                 db.execute(
                     text(

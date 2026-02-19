@@ -39,6 +39,7 @@ def mock_knowledge_service():
     service = Mock(spec=KnowledgeService)
     service.get_helpful_content = AsyncMock(return_value=[])
     service.format_knowledge_for_ai = Mock(return_value="")
+    service.format_and_compress_knowledge_for_ai = Mock(return_value="")
     return service
 
 

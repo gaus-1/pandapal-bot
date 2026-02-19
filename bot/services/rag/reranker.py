@@ -1,6 +1,6 @@
 """Result reranking для улучшения качества RAG."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 
 class ResultReranker:
@@ -116,24 +116,22 @@ class ResultReranker:
         return 0.5  # По умолчанию
 
     def _calculate_recency(self, result) -> float:
-        """Рассчитать актуальность по времени."""
-        # Если есть timestamp, используем его
-        timestamp = getattr(result, "timestamp", None)
-        if not timestamp:
+        """Рассчитать актуальность по времени (extracted_at или timestamp)."""
+        ts = getattr(result, "extracted_at", None) or getattr(result, "timestamp", None)
+        if not ts:
             return 0.5  # Нейтральный score
 
         try:
-            # Рассчитываем давность (в днях)
-            if isinstance(timestamp, datetime):
-                age_days = (datetime.now() - timestamp).days
-            else:
+            if not isinstance(ts, datetime):
                 return 0.5
-
-            # Экспоненциальное затухание: свежие = 1.0, старые = 0.0
-            # Полураспад: 180 дней
+            # Naive datetime трактуем как UTC для вычитания
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=UTC)
+            now_utc = datetime.now(UTC)
+            age_days = (now_utc - ts).days
+            # Экспоненциальное затухание: свежие = 1.0, старые = 0.0. Полураспад: 180 дней
             recency = 2 ** (-age_days / 180)
-            return recency
-
+            return min(max(recency, 0.0), 1.0)
         except Exception:
             return 0.5
 

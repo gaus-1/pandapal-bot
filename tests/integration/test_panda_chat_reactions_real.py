@@ -122,6 +122,9 @@ class TestPandaChatReactionsStream:
         mock_knowledge = AsyncMock()
         mock_knowledge.enhanced_search = AsyncMock(return_value=[])
         mock_knowledge.format_knowledge_for_ai = lambda materials: ""
+        mock_knowledge.format_and_compress_knowledge_for_ai = (
+            lambda materials, question, max_sentences=15: ""
+        )
 
         class MockResponseGenerator:
             yandex_service = mock_yandex

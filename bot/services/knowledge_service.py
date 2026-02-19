@@ -16,7 +16,13 @@ import httpx
 from loguru import logger
 
 from bot.services.cache_service import cache_service
-from bot.services.rag import QueryExpander, ResultReranker, SemanticCache, VectorSearchService
+from bot.services.rag import (
+    ContextCompressor,
+    QueryExpander,
+    ResultReranker,
+    SemanticCache,
+    VectorSearchService,
+)
 from bot.services.web_scraper import EducationalContent, WebScraperService
 
 
@@ -468,6 +474,22 @@ class KnowledgeService:
         )
 
         return formatted_content
+
+    def format_and_compress_knowledge_for_ai(
+        self,
+        materials: list[EducationalContent],
+        question: str,
+        max_sentences: int = 15,
+    ) -> str:
+        """
+        Форматировать материалы и сжать контекст для промпта (единая точка для stream и generate_response).
+        """
+        formatted = self.format_knowledge_for_ai(materials)
+        if not formatted:
+            return ""
+        return ContextCompressor().compress(
+            context=formatted, question=question, max_sentences=max_sentences
+        )
 
     async def _wikipedia_search_title(self, topic: str) -> str | None:
         """
