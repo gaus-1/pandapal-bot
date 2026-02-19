@@ -25,6 +25,17 @@ from bot.services.rag import (
 )
 from bot.services.web_scraper import EducationalContent, WebScraperService
 
+# Языки Википедии (совпадают с SUPPORTED_LANGUAGES в translate_service)
+WIKIPEDIA_LANGUAGES = frozenset({"ru", "en", "de", "fr", "es"})
+
+
+def _normalize_wikipedia_lang(language_code: str | None) -> str:
+    """Нормализация кода языка для Wikipedia API (ru, en, de, fr, es)."""
+    if not language_code or not str(language_code).strip():
+        return "ru"
+    code = str(language_code).strip().lower()[:2]
+    return code if code in WIKIPEDIA_LANGUAGES else "ru"
+
 
 class KnowledgeService:
     """
@@ -41,8 +52,7 @@ class KnowledgeService:
         self.update_interval = timedelta(days=7)  # Обновляем раз в неделю
         self.auto_update_enabled = os.getenv("KNOWLEDGE_AUTO_UPDATE", "false").lower() == "true"
 
-        # Wikipedia API (БЕЗ ключа - открытый API)
-        self.wikipedia_url = "https://ru.wikipedia.org/w/api.php"
+        # Wikipedia API (БЕЗ ключа - открытый API); URL по языку в методах
         self.wikipedia_timeout = httpx.Timeout(10.0, connect=5.0)
 
         # RAG компоненты
@@ -73,6 +83,16 @@ class KnowledgeService:
         logger.info(
             f"📚 KnowledgeService инициализирован (RAG: ON, авто-обновление: {'ВКЛ' if self.auto_update_enabled else 'ВЫКЛ'})"
         )
+
+    @staticmethod
+    def _wikipedia_api_url(lang: str) -> str:
+        """URL API Википедии для языка (ru, en, de, fr, es)."""
+        return f"https://{lang}.wikipedia.org/w/api.php"
+
+    @staticmethod
+    def _wikipedia_wiki_base_url(lang: str) -> str:
+        """Базовый URL статей Википедии для языка."""
+        return f"https://{lang}.wikipedia.org"
 
     async def get_knowledge_for_subject(
         self, subject: str, query: str = ""
@@ -111,6 +131,7 @@ class KnowledgeService:
         user_age: int | None = None,
         top_k: int = 3,
         use_wikipedia: bool = True,
+        language_code: str | None = None,
     ) -> list[EducationalContent]:
         """
         Улучшенный поиск с RAG компонентами.
@@ -121,6 +142,7 @@ class KnowledgeService:
             user_age: Возраст для адаптации
             top_k: Количество результатов
             use_wikipedia: Подтянуть Wikipedia при отсутствии результатов из базы
+            language_code: Код языка для Wikipedia (ru, en, de, fr, es); по умолчанию ru
 
         Returns:
             Топ-K переранжированных результатов
@@ -147,7 +169,9 @@ class KnowledgeService:
 
         # 3. Wikipedia fallback; при получении — индексируем для будущего семантического поиска
         if not unique_results and use_wikipedia:
-            wiki_content = await self.get_wikipedia_educational(user_question, user_age)
+            wiki_content = await self.get_wikipedia_educational(
+                user_question, user_age, language_code=language_code
+            )
             if wiki_content:
                 unique_results = [wiki_content]
                 await self.vector_search.index_content(wiki_content)
@@ -491,10 +515,12 @@ class KnowledgeService:
             context=formatted, question=question, max_sentences=max_sentences
         )
 
-    async def _wikipedia_search_title(self, topic: str) -> str | None:
+    async def _wikipedia_search_title(self, topic: str, language_code: str = "ru") -> str | None:
         """
         Найти заголовок страницы по поисковому запросу (fallback при отсутствии точного titles).
         """
+        lang = _normalize_wikipedia_lang(language_code)
+        api_url = self._wikipedia_api_url(lang)
         try:
             params = {
                 "action": "query",
@@ -508,7 +534,7 @@ class KnowledgeService:
                 "Accept": "application/json",
             }
             async with httpx.AsyncClient(timeout=self.wikipedia_timeout, headers=headers) as client:
-                response = await client.get(self.wikipedia_url, params=params)
+                response = await client.get(api_url, params=params)
                 response.raise_for_status()
                 data = response.json()
             search = data.get("query", {}).get("search", [])
@@ -519,7 +545,11 @@ class KnowledgeService:
         return None
 
     async def get_wikipedia_summary(
-        self, topic: str, user_age: int | None = None, max_length: int = 500
+        self,
+        topic: str,
+        user_age: int | None = None,
+        max_length: int = 500,
+        language_code: str | None = None,
     ) -> tuple[str, str] | None:
         """
         Получить краткое описание темы из проверенного источника.
@@ -530,6 +560,7 @@ class KnowledgeService:
             topic: Название темы для поиска.
             user_age: Возраст пользователя для адаптации контента.
             max_length: Максимальная длина ответа (символов).
+            language_code: Код языка Википедии (ru, en, de, fr, es).
 
         Returns:
             (extract, title) или None при ошибке.
@@ -537,8 +568,10 @@ class KnowledgeService:
         if not topic or not topic.strip():
             return None
 
+        lang = _normalize_wikipedia_lang(language_code)
+        api_url = self._wikipedia_api_url(lang)
         topic_normalized = topic.strip().lower()
-        cache_key = f"wikipedia:{topic_normalized}:{user_age or 'all'}"
+        cache_key = f"wikipedia:{lang}:{topic_normalized}:{user_age or 'all'}"
 
         cached = await cache_service.get(cache_key)
         if cached:
@@ -564,7 +597,7 @@ class KnowledgeService:
                 "format": "json",
             }
             async with httpx.AsyncClient(timeout=self.wikipedia_timeout, headers=headers) as client:
-                response = await client.get(self.wikipedia_url, params=params)
+                response = await client.get(api_url, params=params)
                 response.raise_for_status()
                 data = response.json()
 
@@ -577,13 +610,13 @@ class KnowledgeService:
             title = page.get("title", topic)
 
             if page.get("missing") or page.get("invalid"):
-                found_title = await self._wikipedia_search_title(topic)
+                found_title = await self._wikipedia_search_title(topic, language_code=lang)
                 if found_title:
                     async with httpx.AsyncClient(
                         timeout=self.wikipedia_timeout, headers=headers
                     ) as client:
                         resp = await client.get(
-                            self.wikipedia_url,
+                            api_url,
                             params={
                                 "action": "query",
                                 "prop": "extracts",
@@ -606,13 +639,13 @@ class KnowledgeService:
 
             extract = page.get("extract", "").strip()
             if not extract:
-                found_title = await self._wikipedia_search_title(topic)
+                found_title = await self._wikipedia_search_title(topic, language_code=lang)
                 if found_title and found_title != title:
                     async with httpx.AsyncClient(
                         timeout=self.wikipedia_timeout, headers=headers
                     ) as client:
                         resp = await client.get(
-                            self.wikipedia_url,
+                            api_url,
                             params={
                                 "action": "query",
                                 "prop": "extracts",
@@ -752,7 +785,10 @@ class KnowledgeService:
         return None
 
     async def get_wikipedia_context_for_question(
-        self, question: str, user_age: int | None = None
+        self,
+        question: str,
+        user_age: int | None = None,
+        language_code: str | None = None,
     ) -> str | None:
         """
         Получить проверенный контекст для вопроса пользователя.
@@ -760,6 +796,7 @@ class KnowledgeService:
         Args:
             question: Вопрос пользователя.
             user_age: Возраст пользователя.
+            language_code: Код языка Википедии (ru, en, de, fr, es).
 
         Returns:
             str: Проверенный контекст или None.
@@ -767,11 +804,16 @@ class KnowledgeService:
         topic = self._extract_topic_from_question(question)
         if not topic:
             return None
-        result = await self.get_wikipedia_summary(topic, user_age, max_length=1200)
+        result = await self.get_wikipedia_summary(
+            topic, user_age, max_length=1200, language_code=language_code
+        )
         return result[0] if result else None
 
     async def get_wikipedia_educational(
-        self, question: str, user_age: int | None = None
+        self,
+        question: str,
+        user_age: int | None = None,
+        language_code: str | None = None,
     ) -> EducationalContent | None:
         """
         Получить Wikipedia-контент в виде EducationalContent для RAG (когда база пуста).
@@ -779,17 +821,21 @@ class KnowledgeService:
         topic = self._extract_topic_from_question(question)
         if not topic:
             return None
-        result = await self.get_wikipedia_summary(topic, user_age, max_length=1200)
+        lang = _normalize_wikipedia_lang(language_code)
+        result = await self.get_wikipedia_summary(
+            topic, user_age, max_length=1200, language_code=language_code
+        )
         if not result:
             return None
         extract, title = result
         url_title = quote(title.replace(" ", "_"), safe="")
+        base_url = self._wikipedia_wiki_base_url(lang)
         return EducationalContent(
             title=title,
             content=extract,
             subject="общее",
             difficulty="средний",
-            source_url=f"https://ru.wikipedia.org/wiki/{url_title}",
+            source_url=f"{base_url}/wiki/{url_title}",
             extracted_at=datetime.now(),
             tags=["wikipedia"],
         )

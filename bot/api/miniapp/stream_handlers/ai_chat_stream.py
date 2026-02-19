@@ -186,6 +186,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 user_age=user.age,
                 top_k=3,
                 use_wikipedia=response_generator._should_use_wikipedia(normalized_message),
+                language_code=language_code,
             )
             web_context = response_generator.knowledge_service.format_and_compress_knowledge_for_ai(
                 relevant_materials, normalized_message, max_sentences=7

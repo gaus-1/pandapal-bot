@@ -174,6 +174,10 @@ class SSRFProtection:
         "nsportal.ru",
         "school203.spb.ru",
         "ru.wikipedia.org",
+        "en.wikipedia.org",
+        "de.wikipedia.org",
+        "fr.wikipedia.org",
+        "es.wikipedia.org",
         "wikipedia.org",
     ]
 
