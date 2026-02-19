@@ -728,6 +728,16 @@ Username: @pandapal_bot
 
 ---
 
+## Wikidata (AEO / ИИ-поиск)
+
+Для повышения цитируемости в ИИ-поиске (Perplexity, Google AI Overviews, ChatGPT) рекомендуется создать или оформить сущность PandaPal в Wikidata: https://www.wikidata.org
+
+- Тип: продукт/сервис или организация (по правилам WikiProject Companies).
+- Указать: название (RU/EN), описание, сайт (pandapal.ru), Telegram-бот (t.me/PandaPalBot), категория образования.
+- Ресурсы: [WikiProject Companies](https://www.wikidata.org/wiki/Wikidata:WikiProject_Companies), [new company items](https://www.wikidata.org/wiki/Wikidata:WikiProject_Companies/new_company_items).
+
+---
+
 ## 📞 Контакты для SEO-команды
 
 **SEO Manager:** seo@pandapal.ru

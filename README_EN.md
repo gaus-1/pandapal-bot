@@ -20,7 +20,7 @@ Educational platform for schoolchildren grades 1-9 with Telegram bot and web app
 
 ## About the Project
 
-PandaPal is an intelligent assistant for homework help. The bot works 24/7 and helps children with homework, explains complex topics, and supports foreign language learning.
+PandaPal is a safe AI assistant and tutor bot for students in grades 1–9 as a Telegram Mini App. It helps with homework in all subjects, uses YandexGPT, processes photos and voice, and works 24/7. Content moderation and parental controls.
 
 ### Key Features
 

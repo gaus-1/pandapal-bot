@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { SITE_CONFIG } from '../config/constants';
+import { HERO_TAGLINE_RU } from '../config/seo-text';
 import { trackButtonClick } from '../utils/analytics';
 
 /**
@@ -16,14 +17,14 @@ export const Hero: React.FC = React.memo(() => {
   return (
     <section className="pt-12 sm:pt-16 md:pt-20 pb-12 sm:pb-16 md:pb-20 text-center">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
-        {/* Основной заголовок (H1 для SEO) */}
+        {/* Основной заголовок (H1 для SEO, entity PandaPal в первом заголовке) */}
         <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-gray-900 dark:text-slate-50">
-          Безопасный и полезный AI - друг для детей
+          PandaPal: безопасный и полезный AI-друг для детей
         </h1>
 
-        {/* Описание продукта */}
+        {/* Описание продукта (канонический слоган из seo-text) */}
         <p className="mt-3 sm:mt-4 md:mt-5 text-sm sm:text-base md:text-lg text-gray-700 dark:text-slate-200 max-w-2xl mx-auto">
-          Адаптивное, игровое, безопасное обучение и общение для детей 1–9 классов
+          {HERO_TAGLINE_RU}
         </p>
 
         {/* CTA кнопки */}

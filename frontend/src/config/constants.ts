@@ -12,7 +12,7 @@ import type { Feature, Section, SiteConfig } from '../types';
  */
 export const SITE_CONFIG: SiteConfig = {
   name: 'PandaPal',
-  description: 'Безопасный и полезный AI - друг для детей',
+  description: 'Безопасный и полезный AI-друг для детей',
   url: 'https://pandapal.ru',
   botUrl: 'https://t.me/PandaPalBot', // Ссылка на Telegram-бота
   logo: {

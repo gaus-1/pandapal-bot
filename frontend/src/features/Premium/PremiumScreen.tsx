@@ -272,6 +272,9 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
           <p className="text-xs xs:text-sm sm:text-base md:text-base text-gray-600 dark:text-slate-400">
             Получи максимум от обучения
           </p>
+          <p className="mt-1 text-xs text-gray-500 dark:text-slate-500">
+            В бесплатной версии PandaPal — 30 запросов в месяц. Premium: 299 ₽/мес, безлимитные запросы и все возможности.
+          </p>
           {currentUser?.is_premium && (
             <div className="mt-1.5 xs:mt-2 px-2.5 xs:px-3 py-1 xs:py-1.5 bg-green-500/20 rounded-lg border border-green-500/50">
               <p className="text-xs xs:text-sm sm:text-sm text-green-600 dark:text-green-400 font-medium">
