@@ -71,7 +71,7 @@ export const Footer: React.FC = React.memo(() => {
       {/* Ссылки на документы (РКН) — в карточке для мобильных */}
       <div className="max-w-2xl mx-auto mb-5">
         <nav
-          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-3 py-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-center gap-0.5 sm:gap-x-2 sm:gap-y-1 text-xs sm:text-sm text-gray-600 dark:text-slate-400"
+          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-3 py-2 sm:px-4 sm:py-3 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-center gap-y-0.5 sm:gap-x-3 sm:gap-y-0 text-xs sm:text-sm text-gray-600 dark:text-slate-400"
           aria-label="Документы"
         >
           <a
@@ -80,29 +80,27 @@ export const Footer: React.FC = React.memo(() => {
               e.preventDefault();
               navigateTo(LEGAL_ROUTES.privacy);
             }}
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5 leading-tight"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5 leading-snug"
           >
             Политика конфиденциальности
           </a>
-          <span className="hidden sm:inline text-gray-400 dark:text-slate-500" aria-hidden="true">·</span>
           <a
             href={LEGAL_ROUTES.personalData}
             onClick={(e) => {
               e.preventDefault();
               navigateTo(LEGAL_ROUTES.personalData);
             }}
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5 leading-tight"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5 leading-snug"
           >
             Обработка персональных данных
           </a>
-          <span className="hidden sm:inline text-gray-400 dark:text-slate-500" aria-hidden="true">·</span>
           <a
             href={LEGAL_ROUTES.offer}
             onClick={(e) => {
               e.preventDefault();
               navigateTo(LEGAL_ROUTES.offer);
             }}
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5 leading-tight"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center sm:text-left py-0.5 leading-snug"
           >
             Договор оферты
           </a>

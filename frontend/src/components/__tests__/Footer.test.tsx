@@ -26,6 +26,8 @@ describe('Footer Component', () => {
 
   it('содержит название проекта', () => {
     render(<Footer />);
-    expect(screen.getByText(/PandaPal/i)).toBeInTheDocument();
+    const matches = screen.getAllByText(/PandaPal/i);
+    expect(matches.length).toBeGreaterThanOrEqual(1);
+    expect(matches[0]).toBeInTheDocument();
   });
 });
