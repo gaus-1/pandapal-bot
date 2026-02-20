@@ -47,10 +47,13 @@ class TestRAGRealAPI:
         )
 
         # Проверяем что ответ содержит объяснения ДЛЯ ОБОИХ аспектов
-        assert "как" in question.lower() or "процесс" in response.lower(), (
+        assert any(
+            token in response.lower()
+            for token in ["процесс", "испар", "нагрев", "температур", "переходит"]
+        ), (
             "Не объяснён процесс (КАК)"
         )
-        assert "почему" in question.lower() or any(
+        assert any(
             word in response.lower() for word in ["потому", "причина", "из-за", "энергия"]
         ), "Не объяснена причина (ПОЧЕМУ)"
 
@@ -158,10 +161,9 @@ class TestRAGRealAPI:
             use_wikipedia=True,
         )
         assert results is not None
-        assert len(results) >= 0  # Может быть пусто при недоступности API
-        if results:
-            combined = " ".join(r.content for r in results).lower()
-            assert len(combined) > 0
+        assert len(results) > 0, "Hybrid flow не вернул результаты для базового учебного вопроса"
+        combined = " ".join(r.content for r in results).lower()
+        assert len(combined) > 0
 
     @pytest.mark.asyncio
     async def test_rag_wikipedia_integration(self, knowledge_service):

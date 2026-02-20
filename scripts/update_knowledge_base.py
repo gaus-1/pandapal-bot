@@ -46,23 +46,10 @@ async def main():
         for subject, count in stats.items():
             logger.info(f"  • {subject}: {count} материалов")
 
-        # Индексируем в knowledge_embeddings для векторного поиска
-        all_materials = []
-        for materials in knowledge_service.knowledge_base.values():
-            all_materials.extend(materials)
-
-        if all_materials:
-            logger.info(f"\n📐 Индексация {len(all_materials)} материалов в knowledge_embeddings...")
-            indexed = 0
-            for i, material in enumerate(all_materials):
-                ok = await knowledge_service.vector_search.index_content(material)
-                if ok:
-                    indexed += 1
-                if (i + 1) % 20 == 0:
-                    logger.info(f"  Обработано {i + 1}/{len(all_materials)}")
-            logger.info(f"  ✅ Проиндексировано: {indexed}/{len(all_materials)}")
-        else:
-            logger.warning("  Нет материалов для индексации")
+        # update_knowledge_base() уже выполняет индексацию в knowledge_embeddings.
+        # Здесь только показываем итоговую статистику, чтобы избежать двойной индексации.
+        vec_stats = knowledge_service.vector_search.stats()
+        logger.info(f"\n📐 Индексация в knowledge_embeddings: {vec_stats.get('indexed_count', 0)} записей")
 
         logger.info("\n✅ Обновление завершено успешно!")
 

@@ -127,7 +127,18 @@ class SemanticCache:
                 _query_text, result_json, sim = row[0], row[1], float(row[2])
                 if sim < th:
                     return None
-                items = json.loads(result_json)
+                # PostgreSQL driver can return JSONB either as str or already-decoded Python object.
+                if isinstance(result_json, str):
+                    items = json.loads(result_json)
+                elif isinstance(result_json, list):
+                    items = result_json
+                elif isinstance(result_json, dict):
+                    items = [result_json]
+                else:
+                    logger.debug(
+                        f"Semantic cache get unexpected result_json type: {type(result_json)}"
+                    )
+                    return None
                 return [_dict_to_content(item) for item in items]
         except Exception as e:
             logger.debug(f"Semantic cache get error: {e}")

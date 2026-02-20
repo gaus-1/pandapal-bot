@@ -16,6 +16,58 @@ from bot.services.knowledge_service import get_knowledge_service
 from bot.services.prompt_builder import get_prompt_builder
 from bot.services.yandex_cloud_service import get_yandex_cloud_service
 
+_FAREWELL_KEYWORDS = frozenset(
+    {
+        "пока",
+        "до свидания",
+        "до свиданья",
+        "прощай",
+        "прощайте",
+        "bye",
+        "goodbye",
+        "see you",
+        "увидимся",
+    }
+)
+
+
+def _is_probably_russian_message(text: str) -> bool:
+    """Определить, что сообщение в основном русскоязычное (для RU-вовлечения)."""
+    if not text:
+        return False
+    has_cyrillic = bool(re.search(r"[а-яё]", text.lower()))
+    has_latin = bool(re.search(r"[a-z]", text.lower()))
+    if has_cyrillic:
+        return True
+    # Для нейтральных/коротких сообщений без явной латиницы оставляем поведение RU по умолчанию.
+    return not has_latin
+
+
+def _is_farewell_message(text: str) -> bool:
+    """Проверка, что пользователь явно прощается (без вопроса)."""
+    if not text:
+        return False
+    normalized = text.lower().strip()
+    if "?" in normalized:
+        return False
+    return any(keyword in normalized for keyword in _FAREWELL_KEYWORDS)
+
+
+def finalize_ai_response(raw_text: str, user_message: str = "") -> str:
+    """
+    Единый финальный postprocess:
+    - очистка формата/дубликатов
+    - вовлекающий вопрос только для RU-диалога и не в farewell-кейсах
+    """
+    cleaned = clean_ai_response((raw_text or "").strip())
+    if not cleaned:
+        return cleaned
+    if _is_farewell_message(user_message):
+        return cleaned
+    if not _is_probably_russian_message(user_message):
+        return cleaned
+    return add_random_engagement_question(cleaned)
+
 
 def add_random_engagement_question(response: str) -> str:
     """
@@ -1202,11 +1254,7 @@ class YandexAIResponseGenerator:
             )
 
             if response:
-                # Очищаем ответ от запрещенных символов и LaTeX
-                cleaned_response = clean_ai_response(response.strip())
-                # Добавляем случайный вопрос для вовлечения
-                final_response = add_random_engagement_question(cleaned_response)
-                return final_response
+                return finalize_ai_response(response, user_message=user_message)
             else:
                 return "Извините, не смог сгенерировать ответ. Попробуйте переформулировать вопрос."
 
@@ -1274,10 +1322,7 @@ class YandexAIResponseGenerator:
                 response_parts.append(f"🎓 <b>Разбор задания:</b>\n{cleaned_analysis}")
 
             result = "\n".join(response_parts)
-            # Финальная очистка всего ответа
-            cleaned_result = clean_ai_response(result)
-            # Добавляем случайный вопрос для вовлечения
-            return add_random_engagement_question(cleaned_result)
+            return finalize_ai_response(result, user_message=user_message or "")
 
         except Exception as e:
             logger.error(f"❌ Ошибка анализа изображения (Yandex): {e}")

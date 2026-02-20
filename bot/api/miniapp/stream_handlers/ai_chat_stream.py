@@ -20,8 +20,7 @@ from bot.services.ai_service_solid import get_ai_service
 from bot.services.miniapp.visualization_service import MiniappVisualizationService
 from bot.services.panda_chat_reactions import add_continue_after_reaction, get_chat_reaction
 from bot.services.yandex_ai_response_generator import (
-    add_random_engagement_question,
-    clean_ai_response,
+    finalize_ai_response,
 )
 
 from ._history import save_and_notify
@@ -188,8 +187,16 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 use_wikipedia=response_generator._should_use_wikipedia(normalized_message),
                 language_code=language_code,
             )
+            max_sent = (
+                25
+                if any(
+                    w in normalized_message.lower()
+                    for w in ("список", "таблица значений", "все значения")
+                )
+                else 15
+            )
             web_context = response_generator.knowledge_service.format_and_compress_knowledge_for_ai(
-                relevant_materials, normalized_message, max_sentences=7
+                relevant_materials, normalized_message, max_sentences=max_sent
             )
             if web_context:
                 from bot.config.prompts import RAG_FORMAT_REMINDER
@@ -205,6 +212,12 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
             temperature = settings.ai_temperature
             max_tokens = settings.ai_max_tokens
             logger.info(f"💎 Stream: Используем Pro модель для пользователя {telegram_id}")
+
+            # Zero-shot CoT: выравниваем с non-stream режимом для вычислительных задач.
+            message_for_api = normalized_message
+            if response_generator._is_calculation_task(normalized_message):
+                message_for_api = f"{normalized_message.rstrip()} Давайте решать пошагово."
+                logger.debug("Stream CoT: добавлен триггер пошагового рассуждения")
 
             # Streaming + визуализации
             full_response = ""
@@ -256,7 +269,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                 chunk_count = 0
 
                 async for chunk in yandex_service.generate_text_response_stream(
-                    user_message=normalized_message,
+                    user_message=message_for_api,
                     chat_history=yandex_history,
                     system_prompt=enhanced_system_prompt,
                     temperature=temperature,
@@ -286,8 +299,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         chunk_data = json.dumps({"chunk": chunk}, ensure_ascii=False)
                         await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
 
-                full_response = clean_ai_response(full_response)
-                full_response = add_random_engagement_question(full_response)
+                full_response = finalize_ai_response(full_response, user_message=normalized_message)
 
                 # Генерация визуализаций
                 visualization_image_base64, visualization_type, multiplication_number = (
@@ -396,6 +408,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
                         response=response,
                         yandex_service=yandex_service,
                         normalized_message=normalized_message,
+                        model_user_message=message_for_api,
                         yandex_history=yandex_history,
                         enhanced_system_prompt=enhanced_system_prompt,
                         temperature=temperature,

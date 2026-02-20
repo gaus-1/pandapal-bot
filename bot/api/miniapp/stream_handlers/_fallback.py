@@ -7,7 +7,7 @@ import re
 from aiohttp import web
 from loguru import logger
 
-from bot.services.yandex_ai_response_generator import clean_ai_response
+from bot.services.yandex_ai_response_generator import finalize_ai_response
 
 from ._utils import format_visualization_explanation as _format_visualization_explanation
 from ._utils import is_refusal_like as _is_refusal_like
@@ -17,6 +17,7 @@ async def run_fallback(
     response: web.StreamResponse,
     yandex_service,
     normalized_message: str,
+    model_user_message: str | None,
     yandex_history: list,
     enhanced_system_prompt: str,
     temperature: float,
@@ -31,7 +32,7 @@ async def run_fallback(
 ) -> bool:
     """Fallback на не-streaming запрос. Возвращает True если успешно."""
     ai_response = await yandex_service.generate_text_response(
-        user_message=normalized_message,
+        user_message=model_user_message or normalized_message,
         chat_history=yandex_history,
         system_prompt=enhanced_system_prompt,
         temperature=temperature,
@@ -42,7 +43,7 @@ async def run_fallback(
     if not ai_response:
         raise ValueError("AI response is empty")
 
-    cleaned_response = clean_ai_response(ai_response)
+    cleaned_response = finalize_ai_response(ai_response, user_message=normalized_message)
 
     # Визуализация в fallback
     visualization_image_base64 = None

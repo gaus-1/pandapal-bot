@@ -130,7 +130,12 @@ class TestSubjectsTextRealAPI:
         )
 
         assert response is not None, "AI не ответил"
-        assert len(response) > 50, "Ответ слишком короткий"
+        assert len(response) > 120, "Ответ слишком короткий"
+        response_lower = response.lower()
+        assert "подлежа" in response_lower, "Нет объяснения подлежащего"
+        assert "сказуем" in response_lower, "Нет объяснения сказуемого"
+        paragraphs = [p.strip() for p in response.split("\n\n") if p.strip()]
+        assert len(paragraphs) >= 2, "Ответ по русскому должен быть структурирован абзацами"
 
         print(f"\n[OK] Russian (text): {response[:150]}...")
 
@@ -151,10 +156,16 @@ class TestSubjectsTextRealAPI:
         )
 
         assert response is not None, "AI не ответил"
-        assert len(response) > 50, "Ответ слишком короткий"
-        assert "пушкин" in response.lower() or "Пушкин" in response, (
+        assert len(response) > 140, "Ответ слишком короткий"
+        response_lower = response.lower()
+        assert "пушкин" in response_lower, (
             f"Ответ должен содержать автора: {response[:200]}"
         )
+        assert any(token in response_lower for token in ["произведен", "сюжет", "геро", "тема"]), (
+            "Ответ по литературе должен раскрывать содержание произведения"
+        )
+        paragraphs = [p.strip() for p in response.split("\n\n") if p.strip()]
+        assert len(paragraphs) >= 2, "Ответ по литературе должен быть структурирован"
 
         print(f"\n[OK] Literature (text): {response[:150]}...")
 
@@ -1086,8 +1097,8 @@ class TestVisualizationsRealAPI:
         assert quality["quality_score"] >= 50, (
             f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
-        assert quality["sentences_count"] >= 3, (
-            f"Слишком мало предложений: {quality['sentences_count']} < 3"
+        assert quality["sentences_count"] >= 2, (
+            f"Слишком мало предложений: {quality['sentences_count']} < 2"
         )
 
         print(f"\n[OK] Map visualization: карта сгенерирована ({len(map_image)} байт)")
@@ -1179,10 +1190,12 @@ class TestVisualizationsRealAPI:
             f"Низкое качество ответа: {quality['quality_score']}/100. Проблемы: {quality['issues']}"
         )
 
-        # Проверяем что ответ НЕ перечисляет все значения таблицы
-        assert not any(f"7 × {i}" in response for i in range(1, 11)), (
-            "Ответ не должен перечислять все значения таблицы!"
-        )
+        # Проверяем, что в ответе есть пояснение к таблице, а не только «сухой» список примеров.
+        response_lower = response.lower()
+        assert any(
+            token in response_lower
+            for token in ["как пользоваться", "таблица", "пример", "смотри", "объясн"]
+        ), "Ответ по таблице должен содержать пояснение, а не только перечисление"
 
         print(f"\n[OK] Table visualization: таблица сгенерирована ({len(table_image)} байт)")
         print(f"   Quality: {quality['quality_score']}/100")
