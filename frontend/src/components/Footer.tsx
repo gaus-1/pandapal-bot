@@ -107,6 +107,27 @@ export const Footer: React.FC = React.memo(() => {
         </nav>
       </div>
 
+      {/* Внутренние SEO-ссылки по ключевым интентам */}
+      <div className="max-w-3xl mx-auto mb-6">
+        <nav
+          className="rounded-xl border border-gray-100 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 px-3 py-2 sm:px-4 sm:py-3 flex flex-wrap items-center justify-center gap-2 text-xs sm:text-sm"
+          aria-label="Полезные страницы"
+        >
+          <a href="/bezopasnyy-ai-dlya-detey" className="text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            Безопасный ИИ для детей
+          </a>
+          <a href="/pomoshch-s-domashkoy-v-telegram" className="text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            Помощь с домашкой в Telegram
+          </a>
+          <a href="/safe-ai-for-kids" className="text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            Safe AI tutor for kids
+          </a>
+          <a href="/homework-help-telegram-bot" className="text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            Telegram homework help bot
+          </a>
+        </nav>
+      </div>
+
       {/* Кнопка обратной связи */}
       <div className="mb-6">
         <button

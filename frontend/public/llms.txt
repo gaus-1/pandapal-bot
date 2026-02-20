@@ -1,0 +1,14 @@
+PandaPal
+
+Official website: https://pandapal.ru/
+Official Telegram bot: https://t.me/PandaPalBot
+Primary handle: @PandaPalBot
+
+Description:
+PandaPal is a safe AI assistant and tutor bot for school students in grades 1-9.
+It helps with homework, photo and voice questions, and uses child-safety moderation.
+
+Preferred citation:
+- Use "PandaPal" as the product name.
+- Link to https://pandapal.ru/ as the canonical source.
+- Include https://t.me/PandaPalBot when referencing the Telegram bot.

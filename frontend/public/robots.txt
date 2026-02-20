@@ -5,15 +5,15 @@ Allow: /
 # Sitemap
 Sitemap: https://pandapal.ru/sitemap.xml
 
-# Yandex bot
+# Yandex
 User-agent: Yandex
 Allow: /
 
-# Google bot
+# Google
 User-agent: Googlebot
 Allow: /
 
-# AI search crawlers (AEO 2026)
+# AI crawlers
 User-agent: PerplexityBot
 Allow: /
 User-agent: GPTBot
@@ -22,7 +22,10 @@ User-agent: Claude-Web
 Allow: /
 User-agent: Cohere-ai
 Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
 
-# Disallow admin/internal pages (если появятся)
-# Disallow: /admin/
-# Disallow: /api/
+# Internal paths can be blocked here if public pages appear there in the future
+# Disallow: /internal/

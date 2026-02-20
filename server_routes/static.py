@@ -18,9 +18,18 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             "logo.png",
             "favicon.ico",
             "favicon.svg",
+            "favicon-16.png",
+            "favicon-32.png",
+            "favicon-48.png",
+            "favicon-192.png",
+            "favicon-512.png",
             "robots.txt",
             "sitemap.xml",
             "security.txt",
+            "llms.txt",
+            "manifest.json",
+            "sw.js",
+            "offline.html",
             "panda-happy-in-game.png",
             "panda-sad-in-game.png",
             "yandex_3f9e35f6d79cfb2f.html",
@@ -50,13 +59,13 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
                 elif static_file.endswith(".json"):
                     content_type = "application/json"
                 elif static_file.endswith(".txt"):
-                    content_type = "text/plain"
+                    content_type = "text/plain; charset=utf-8"
                 elif static_file.endswith(".xml"):
-                    content_type = "text/xml; charset=utf-8"
+                    content_type = "application/xml; charset=utf-8"
                 elif static_file.endswith(".js"):
                     content_type = "application/javascript"
                 elif static_file.endswith(".html"):
-                    content_type = "text/html"
+                    content_type = "text/html; charset=utf-8"
 
                 async def serve_static_file(
                     _request: web.Request,
@@ -65,7 +74,9 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
                     sf=static_file,
                 ) -> web.Response:
                     headers = {"Content-Type": ct}
-                    if not sf.endswith(".html"):
+                    if sf in {"robots.txt", "sitemap.xml", "security.txt", "llms.txt"}:
+                        headers["Cache-Control"] = "public, max-age=3600"
+                    elif not sf.endswith(".html"):
                         headers["Cache-Control"] = "public, max-age=31536000, immutable"
                     return web.FileResponse(fp, headers=headers)
 
@@ -233,6 +244,21 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             app.router.add_get("/.well-known/security.txt", serve_security_txt)
             logger.info("✅ Security.txt зарегистрирован по пути /.well-known/security.txt")
 
+        llms_txt_path = frontend_dist / "llms.txt"
+        if llms_txt_path.exists():
+
+            async def serve_llms_txt(_request: web.Request) -> web.Response:
+                return web.FileResponse(
+                    llms_txt_path,
+                    headers={
+                        "Content-Type": "text/plain; charset=utf-8",
+                        "Cache-Control": "public, max-age=3600",
+                    },
+                )
+
+            app.router.add_get("/.well-known/llms.txt", serve_llms_txt)
+            logger.info("✅ llms.txt зарегистрирован по пути /.well-known/llms.txt")
+
         app.router.add_get("/", lambda _: web.FileResponse(frontend_dist / "index.html"))
 
         # Расширения, при которых запрос считается к несуществующему файлу — отдаём 404 (рекомендация Яндекса)
@@ -250,6 +276,11 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             ".gif",
             ".svg",
             ".ico",
+            ".js",
+            ".json",
+            ".txt",
+            ".xml",
+            ".webmanifest",
         )
 
         async def spa_fallback(request: web.Request) -> web.Response:

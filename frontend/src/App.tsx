@@ -5,13 +5,14 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Header, Hero, Features, Section, Footer, CallToAction } from './components';
+import { Header, Hero, Features, Section, Footer, CallToAction, SeoHead } from './components';
 import { SECTIONS } from './config/constants';
 import { telegram } from './services/telegram';
 import { MiniApp } from './MiniApp';
 import { PremiumScreen } from './features/Premium/PremiumScreen';
 import { DonationScreen } from './features/Donation/DonationScreen';
 import { PrivacyPage, PersonalDataPage, OfferPage } from './features/Legal';
+import { IntentPage } from './features/Discoverability';
 import { CookieBanner } from './components/CookieBanner';
 import { logger } from './utils/logger';
 import './index.css';
@@ -99,6 +100,14 @@ const App: React.FC = () => {
           setCurrentRoute('personal-data');
         } else if (pathname === '/offer') {
           setCurrentRoute('offer');
+        } else if (pathname === '/bezopasnyy-ai-dlya-detey') {
+          setCurrentRoute('safe-ai-ru');
+        } else if (pathname === '/safe-ai-for-kids') {
+          setCurrentRoute('safe-ai-en');
+        } else if (pathname === '/pomoshch-s-domashkoy-v-telegram') {
+          setCurrentRoute('homework-ru');
+        } else if (pathname === '/homework-help-telegram-bot') {
+          setCurrentRoute('homework-en');
         } else {
           setCurrentRoute('');
         }
@@ -135,6 +144,11 @@ const App: React.FC = () => {
   if (currentRoute === 'premium') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <SeoHead
+          title="PandaPal Premium - расширенные возможности"
+          description="Premium-подписка PandaPal: больше возможностей для безопасной помощи в учебе."
+          canonicalPath="/premium"
+        />
         <Header />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
           <PremiumScreen user={null} />
@@ -149,6 +163,11 @@ const App: React.FC = () => {
   if (currentRoute === 'donation') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <SeoHead
+          title="Поддержать PandaPal"
+          description="Поддержите развитие PandaPal - безопасного AI-помощника для школьников."
+          canonicalPath="/donation"
+        />
         <Header />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
           <DonationScreen user={null} />
@@ -163,6 +182,11 @@ const App: React.FC = () => {
   if (currentRoute === 'privacy') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <SeoHead
+          title="Политика конфиденциальности PandaPal"
+          description="Политика конфиденциальности сервиса PandaPal."
+          canonicalPath="/privacy"
+        />
         <PrivacyPage />
         <Footer />
         <CookieBanner />
@@ -172,6 +196,11 @@ const App: React.FC = () => {
   if (currentRoute === 'personal-data') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <SeoHead
+          title="Обработка персональных данных PandaPal"
+          description="Правила обработки персональных данных в PandaPal."
+          canonicalPath="/personal-data"
+        />
         <PersonalDataPage />
         <Footer />
         <CookieBanner />
@@ -181,7 +210,112 @@ const App: React.FC = () => {
   if (currentRoute === 'offer') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <SeoHead
+          title="Договор оферты PandaPal"
+          description="Публичная оферта сервиса PandaPal."
+          canonicalPath="/offer"
+        />
         <OfferPage />
+        <Footer />
+        <CookieBanner />
+      </div>
+    );
+  }
+
+  if (currentRoute === 'safe-ai-ru') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <SeoHead
+          title="Безопасный ИИ для детей - PandaPal"
+          description="PandaPal - безопасный AI-помощник для школьников: помощь с учебой, модерация и родительский контроль."
+          canonicalPath="/bezopasnyy-ai-dlya-detey"
+        />
+        <IntentPage
+          title="Безопасный ИИ для детей: PandaPal"
+          subtitle="Помощь с учебой для школьников 1-9 классов в безопасной среде"
+          description="PandaPal помогает детям с уроками по основным школьным предметам, поддерживает текст, фото и голосовые вопросы и использует модерацию контента для безопасного общения."
+          botCta="Открыть @PandaPalBot"
+          faq={[
+            { question: 'Подходит ли PandaPal для младших школьников?', answer: 'Да, ответы адаптируются под возраст и уровень обучения.' },
+            { question: 'Чем PandaPal полезен родителям?', answer: 'Сервис делает помощь с учебой более понятной и безопасной за счет встроенной модерации.' },
+            { question: 'Где начать?', answer: 'Откройте официальный Telegram-бот @PandaPalBot или зайдите на pandapal.ru.' },
+          ]}
+        />
+        <Footer />
+        <CookieBanner />
+      </div>
+    );
+  }
+
+  if (currentRoute === 'safe-ai-en') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <SeoHead
+          title="Safe AI tutor for kids - PandaPal"
+          description="PandaPal is a safe AI tutor for school students with moderation, homework help, and Telegram access."
+          canonicalPath="/safe-ai-for-kids"
+        />
+        <IntentPage
+          title="Safe AI Tutor for Kids: PandaPal"
+          subtitle="Homework help and learning support for grades 1-9"
+          description="PandaPal is a child-safe AI assistant that helps with school subjects, supports text/photo/voice input, and keeps educational interactions moderated."
+          botCta="Open @PandaPalBot"
+          faq={[
+            { question: 'Is PandaPal safe for children?', answer: 'Yes. The service uses moderation and educational-first responses.' },
+            { question: 'What can students ask?', answer: 'Students can ask homework and school-topic questions by text, photo, or voice.' },
+            { question: 'How do I start?', answer: 'Use the official bot @PandaPalBot or visit pandapal.ru.' },
+          ]}
+        />
+        <Footer />
+        <CookieBanner />
+      </div>
+    );
+  }
+
+  if (currentRoute === 'homework-ru') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <SeoHead
+          title="Помощь с домашкой в Telegram - PandaPal"
+          description="PandaPal помогает с домашним заданием в Telegram: текст, фото и голосовые вопросы."
+          canonicalPath="/pomoshch-s-domashkoy-v-telegram"
+        />
+        <IntentPage
+          title="Помощь с домашним заданием в Telegram"
+          subtitle="Быстрые объяснения по школьным предметам в формате Telegram-бота"
+          description="PandaPal объясняет решения понятным языком, помогает разобрать ошибки и поддерживает вопросы в формате текста, фото задания и голосовых сообщений."
+          botCta="Перейти в @PandaPalBot"
+          faq={[
+            { question: 'Можно ли отправить фото задания?', answer: 'Да, можно отправить фото и получить пошаговое объяснение.' },
+            { question: 'По каким предметам работает бот?', answer: 'По основным школьным предметам для 1-9 классов.' },
+            { question: 'Нужно ли что-то устанавливать?', answer: 'Нет, достаточно открыть @PandaPalBot в Telegram.' },
+          ]}
+        />
+        <Footer />
+        <CookieBanner />
+      </div>
+    );
+  }
+
+  if (currentRoute === 'homework-en') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <SeoHead
+          title="Telegram homework help bot - PandaPal"
+          description="PandaPal is a Telegram homework help bot with text, photo, and voice support."
+          canonicalPath="/homework-help-telegram-bot"
+        />
+        <IntentPage
+          title="Telegram Homework Help Bot"
+          subtitle="School help for students with text, photo, and voice input"
+          description="PandaPal helps students understand homework step by step and supports multiple input formats directly in Telegram."
+          botCta="Open PandaPal bot"
+          faq={[
+            { question: 'Can I send homework photos?', answer: 'Yes. PandaPal can process a photo and explain the solution.' },
+            { question: 'Is it suitable for school students?', answer: 'Yes, it is designed for grades 1-9 educational support.' },
+            { question: 'Where can I access it?', answer: 'Use the official Telegram bot @PandaPalBot.' },
+          ]}
+        />
         <Footer />
         <CookieBanner />
       </div>
@@ -191,6 +325,11 @@ const App: React.FC = () => {
   // Лендинг (главная страница)
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+      <SeoHead
+        title="PandaPal - безопасный и полезный AI-друг для детей"
+        description="PandaPal - безопасный AI-помощник и робот-репетитор для школьников 1-9 класса в формате Telegram Mini App."
+        canonicalPath="/"
+      />
       {/* Шапка сайта (включает DarkModeToggle внутри) */}
       <Header />
 

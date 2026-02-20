@@ -16,6 +16,7 @@
     <!-- Для поисковых систем - круглые фавиконы -->
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png" />
+    <link rel="manifest" href="/manifest.json" />
 
     <!-- Тема по умолчанию — светлая; переключается через JS при выборе dark -->
     <meta name="color-scheme" content="light" />
@@ -98,6 +99,7 @@
 
     <!-- Canonical URL -->
     <link rel="canonical" href="https://pandapal.ru/">
+    <link rel="alternate" type="text/plain" href="/.well-known/llms.txt" title="LLMs Policy" />
 
     <!-- Language alternates (RU, EN, BY, KZ, MD, RO, KG, UZ, TJ + диаспора: US, GB, IL, DE, FR, LV, LT, EE, CA, AU, AR, BR, MX, NZ, UY) -->
     <link rel="alternate" hreflang="ru" href="https://pandapal.ru/">
@@ -127,17 +129,14 @@
 
     <!-- SEO Meta Tags (Russian, каноническое определение) -->
     <meta name="description" content="PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса в формате Telegram Mini App. Обработка текста фото и аудио. Помогает с уроками по всем предметам, работает 24/7. Модерация и родительский контроль.">
-    <meta name="keywords" content="AI помощник для детей, робот-репетитор, PandaPal, Telegram Mini App, ИИ для детей, образование, дети, обучение, школа, 1-9 класс, безопасность, Telegram бот, Yandex Cloud, SpeechKit, Vision OCR, AI для детей, образовательный бот, помощь с уроками, онлайн репетитор, безопасный AI, AI учитель, адаптивное обучение, голосовой помощник, чат-бот репетитор, искусственный интеллект для школьников, умный помощник для детей">
     <meta name="author" content="PandaPal Team">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="yandex" content="index, follow">
     <meta name="language" content="Russian, English">
-    <meta name="revisit-after" content="7 days">
 
     <!-- SEO Meta Tags (English, canonical) -->
     <meta name="description" lang="en" content="PandaPal is a safe AI assistant and tutor bot for students in grades 1–9 as a Telegram Mini App. Text, photo and voice processing. Homework help in all subjects, 24/7. Content moderation and parental controls.">
-    <meta name="keywords" lang="en" content="PandaPal, Telegram Mini App, AI for kids, education, children, learning, school, grades 1-9, safety, Telegram bot, Yandex Cloud, SpeechKit, Vision OCR, AI tutor, educational bot, homework help, online tutor, safe AI, AI teacher, adaptive learning, voice assistant, chatbot tutor">
 
     <!-- Open Graph (VK, Telegram, OK) -->
     <meta property="og:title" content="PandaPal — Безопасный и полезный AI - друг для детей | Safe and Useful AI Friend for Children">
@@ -174,60 +173,19 @@
     <meta property="og:locale:alternate" content="en_NZ">
     <meta property="og:locale:alternate" content="es_UY">
 
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PandaPal — Safe AI tutor for school kids">
+    <meta name="twitter:description" content="Safe AI assistant for students in grades 1-9: homework help, photo and voice support, moderation and parental controls.">
+    <meta name="twitter:image" content="https://pandapal.ru/favicon-512.png">
+
     <!-- Yandex Webmaster -->
     <meta name="yandex-verification" content="3f9e35f6d79cfb2f" />
 
-    <!-- Географическая привязка: РФ, СНГ/соседи + страны русской диаспоры (без UA) -->
+    <!-- Географическая привязка -->
     <meta name="geo.region" content="RU-SPE" />
     <meta name="geo.placename" content="Санкт-Петербург" />
-    <meta name="geo.position" content="59.934280;30.335098" />
-    <meta name="ICBM" content="59.934280, 30.335098" />
-    <meta name="geo.region" content="RU" />
     <meta name="geo.country" content="RU" />
-    <meta name="geo.region" content="BY" />
-    <meta name="geo.country" content="BY" />
-    <meta name="geo.region" content="KZ" />
-    <meta name="geo.country" content="KZ" />
-    <meta name="geo.region" content="MD" />
-    <meta name="geo.country" content="MD" />
-    <meta name="geo.region" content="RO" />
-    <meta name="geo.country" content="RO" />
-    <meta name="geo.region" content="KG" />
-    <meta name="geo.country" content="KG" />
-    <meta name="geo.region" content="UZ" />
-    <meta name="geo.country" content="UZ" />
-    <meta name="geo.region" content="TJ" />
-    <meta name="geo.country" content="TJ" />
-    <meta name="geo.region" content="US" />
-    <meta name="geo.country" content="US" />
-    <meta name="geo.region" content="GB" />
-    <meta name="geo.country" content="GB" />
-    <meta name="geo.region" content="IL" />
-    <meta name="geo.country" content="IL" />
-    <meta name="geo.region" content="DE" />
-    <meta name="geo.country" content="DE" />
-    <meta name="geo.region" content="LV" />
-    <meta name="geo.country" content="LV" />
-    <meta name="geo.region" content="FR" />
-    <meta name="geo.country" content="FR" />
-    <meta name="geo.region" content="LT" />
-    <meta name="geo.country" content="LT" />
-    <meta name="geo.region" content="EE" />
-    <meta name="geo.country" content="EE" />
-    <meta name="geo.region" content="CA" />
-    <meta name="geo.country" content="CA" />
-    <meta name="geo.region" content="AU" />
-    <meta name="geo.country" content="AU" />
-    <meta name="geo.region" content="AR" />
-    <meta name="geo.country" content="AR" />
-    <meta name="geo.region" content="BR" />
-    <meta name="geo.country" content="BR" />
-    <meta name="geo.region" content="MX" />
-    <meta name="geo.country" content="MX" />
-    <meta name="geo.region" content="NZ" />
-    <meta name="geo.country" content="NZ" />
-    <meta name="geo.region" content="UY" />
-    <meta name="geo.country" content="UY" />
 
     <!-- Structured Data (JSON-LD) - Russian -->
     <script type="application/ld+json">
@@ -428,41 +386,6 @@
     }
     </script>
 
-    <!-- Structured Data (JSON-LD) - English -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "PandaPal",
-      "alternateName": "PandaPal — Safe and Useful AI Friend for Children",
-      "applicationCategory": "EducationalApplication",
-      "operatingSystem": "Telegram",
-      "url": "https://pandapal.ru",
-      "mainEntityOfPage": { "@type": "WebPage", "@id": "https://pandapal.ru/" },
-      "datePublished": "2024-01-01",
-      "dateModified": "2026-02-19",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "description": "PandaPal is a safe AI assistant and tutor bot for students in grades 1–9 as a Telegram Mini App. Text, photo and voice processing. Homework help in all subjects, 24/7. Content moderation and parental controls.",
-      "featureList": [
-        "AI chat",
-        "Photo processing via Yandex Vision",
-        "Speech recognition via Yandex SpeechKit",
-        "Emergency numbers for Russia",
-        "Age adaptation (grades 1-9)"
-      ],
-      "author": {
-        "@type": "Organization",
-        "name": "PandaPal Team"
-      },
-      "inLanguage": ["en", "ru"],
-      "keywords": "PandaPal, Telegram Mini App, AI for kids, education, children, learning, school, safety, AI tutor, educational bot, homework help, online tutor"
-    }
-    </script>
-
     <!-- WebSite Schema (без SearchAction — поиск по сайту не реализован) -->
     <script type="application/ld+json">
     {
@@ -486,10 +409,6 @@
       "name": "PandaPal — безопасный AI-друг для детей",
       "url": "https://pandapal.ru/",
       "description": "PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса. Telegram Mini App, помощь с уроками по всем предметам, 24/7.",
-      "speakable": {
-        "@type": "SpeakableSpecification",
-        "cssSelector": ["#seo-content p"]
-      },
       "dateModified": "2026-02-19"
     }
     </script>
@@ -524,17 +443,6 @@
     <!-- /Yandex.Metrika counter -->
   </head>
   <body>
-    <!-- AEO: answer-first контент для краулеров и ИИ-поиска (визуально скрыт, в DOM) -->
-    <section id="seo-content" aria-hidden="true" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">
-      <p>PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса в формате Telegram Mini App. Обработка текста фото и аудио. Помогает с уроками по всем предметам, работает 24/7. Модерация контента и родительский контроль.</p>
-      <p>PandaPal is a safe AI assistant and tutor bot for students in grades 1–9 as a Telegram Mini App. Text, photo and voice processing. Homework help in all subjects, 24/7. Content moderation and parental controls.</p>
-      <p>Вопрос: Что такое PandaPal? Ответ: PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса в формате Telegram Mini App. Обработка текста фото и аудио. Помогает с уроками по всем предметам, работает 24/7. Модерация контента и родительский контроль.</p>
-      <p>Вопрос: Безопасен ли PandaPal для детей? Ответ: Да, PandaPal абсолютно безопасен. Используется продвинутая система модерации контента (150+ фильтров), родительский контроль, адаптация ответов под возраст ребенка.</p>
-      <p>Вопрос: Сколько стоит PandaPal? Ответ: Базовая версия бесплатна — 30 запросов в месяц. Premium подписка от 299 руб/месяц. Сайт pandapal.ru, бот @PandaPalBot в Telegram.</p>
-      <p>Вопрос: Как начать использовать PandaPal? Ответ: Откройте бота @PandaPalBot в Telegram, нажмите /start, укажите возраст и класс ребенка. Можно сразу задавать вопросы текстом, голосом или фото задания.</p>
-      <p>Question: Best Telegram bot for homework help? Answer: PandaPal is a safe AI tutor for grades 1–9: text, photo and voice processing, homework help in all subjects, 30 free requests/month, Premium from 299 RUB/month. Start at t.me/PandaPalBot or pandapal.ru.</p>
-      <p>Question: How much does PandaPal cost? Answer: PandaPal is free for 30 requests per month. Premium subscription is 299 RUB/month with unlimited requests. Visit pandapal.ru or open @PandaPalBot in Telegram.</p>
-    </section>
     <noscript><img src="https://mc.yandex.ru/watch/104525544" style="position:absolute; left:-9999px;" alt="" /></noscript>
 
     <!-- Яндекс.Вебмастер: Счетчик ИКС (Индекс Качества Сайта) -->
