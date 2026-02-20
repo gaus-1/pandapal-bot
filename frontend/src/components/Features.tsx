@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { FeatureCard } from './FeatureCard';
+import { MiniAppScreenshotsCarousel } from './MiniAppScreenshotsCarousel';
 import { FEATURES } from '../config/constants';
 
 /**
@@ -33,6 +34,8 @@ export const Features: React.FC = React.memo(() => {
             </div>
           ))}
         </div>
+
+        <MiniAppScreenshotsCarousel />
       </div>
     </section>
   );
