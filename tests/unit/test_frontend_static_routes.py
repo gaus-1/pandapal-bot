@@ -26,7 +26,7 @@ def _prepare_dist(root_dir: Path) -> None:
         '<?xml version="1.0" encoding="UTF-8"?><urlset><url><loc>https://pandapal.ru/</loc></url></urlset>',
         encoding="utf-8",
     )
-    (dist_dir / "security.txt").write_text("Contact: mailto:test@pandapal.ru\n", encoding="utf-8")
+    (dist_dir / "security.txt").write_text("Contact: mailto:Pandapal.ru@yandex.ru\n", encoding="utf-8")
     (dist_dir / "llms.txt").write_text(
         "Official website: https://pandapal.ru/\nOfficial Telegram bot: https://t.me/PandaPalBot\n",
         encoding="utf-8",
