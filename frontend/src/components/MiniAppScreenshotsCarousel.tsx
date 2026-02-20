@@ -63,24 +63,35 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
             ←
           </button>
 
-          <div className="mx-auto w-full sm:w-auto sm:max-w-[22rem] md:max-w-[23rem] lg:max-w-[24rem] rounded-xl overflow-hidden border border-gray-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
-            <div className="relative aspect-[9/16] max-h-[520px]">
-              {broken[current.id] ? (
-                <div className="w-full h-full flex flex-col items-center justify-center text-center p-5">
-                  <p className="font-medium text-gray-700 dark:text-slate-200 mb-2">{current.title}</p>
-                  <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
-                    Добавь файл: <code>{current.src}</code>
-                  </p>
-                </div>
-              ) : (
-                <img
-                  src={current.src}
-                  alt={current.title}
-                  loading="lazy"
-                  className="absolute inset-0 m-auto block max-w-full max-h-full w-auto h-auto object-contain object-center"
-                  onError={() => setBroken((prev) => ({ ...prev, [current.id]: true }))}
-                />
-              )}
+          <div className="mx-auto w-full sm:w-[22rem] md:w-[23rem] lg:w-[24rem] max-w-[calc(100%-5.5rem)] rounded-xl overflow-hidden border border-gray-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+            <div className="relative w-full aspect-[9/16] max-h-[520px] overflow-hidden">
+              <div
+                className="flex h-full transition-transform duration-500 ease-out"
+                style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+              >
+                {MINIAPP_SCREENSHOTS.map((item) => (
+                  <div key={item.id} className="relative h-full w-full flex-shrink-0">
+                    {broken[item.id] ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-center p-5">
+                        <p className="font-medium text-gray-700 dark:text-slate-200 mb-2">
+                          {item.title}
+                        </p>
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                          Добавь файл: <code>{item.src}</code>
+                        </p>
+                      </div>
+                    ) : (
+                      <img
+                        src={item.src}
+                        alt={item.title}
+                        loading="lazy"
+                        className="absolute inset-0 m-auto block max-w-full max-h-full w-auto h-auto object-contain object-center"
+                        onError={() => setBroken((prev) => ({ ...prev, [item.id]: true }))}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
