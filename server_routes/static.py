@@ -175,6 +175,52 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             app.router.add_get("/video/{filename:.*}", serve_video)
             logger.info("✅ Видео зарегистрировано: /video/")
 
+        screenshots_dir = frontend_dist / "screenshots"
+        if screenshots_dir.exists() and screenshots_dir.is_dir():
+
+            async def serve_screenshot(request: web.Request) -> web.Response:
+                filename = request.match_info.get("filename", "").lstrip("/")
+                if not filename:
+                    return web.Response(status=404, text="Not Found")
+
+                try:
+                    requested_path = Path(filename)
+                    if requested_path.is_absolute() or ".." in requested_path.parts:
+                        return web.Response(status=404, text="Not Found")
+
+                    file_path = (screenshots_dir / requested_path).resolve()
+                    if not str(file_path).startswith(str(screenshots_dir.resolve())):
+                        return web.Response(status=404, text="Not Found")
+                except (RuntimeError, OSError, ValueError):
+                    return web.Response(status=404, text="Not Found")
+
+                if not file_path.exists() or not file_path.is_file():
+                    return web.Response(status=404, text="Not Found")
+
+                content_type = "application/octet-stream"
+                suffix = file_path.suffix.lower()
+                if suffix == ".webp":
+                    content_type = "image/webp"
+                elif suffix == ".png":
+                    content_type = "image/png"
+                elif suffix in (".jpg", ".jpeg"):
+                    content_type = "image/jpeg"
+                elif suffix == ".gif":
+                    content_type = "image/gif"
+                elif suffix == ".svg":
+                    content_type = "image/svg+xml"
+
+                return web.FileResponse(
+                    file_path,
+                    headers={
+                        "Content-Type": content_type,
+                        "Cache-Control": "public, max-age=31536000, immutable",
+                    },
+                )
+
+            app.router.add_get("/screenshots/{filename:.*}", serve_screenshot)
+            logger.info("✅ Скриншоты зарегистрированы: /screenshots/")
+
         security_txt_path = frontend_dist / "security.txt"
         if security_txt_path.exists():
 
@@ -190,7 +236,21 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
         app.router.add_get("/", lambda _: web.FileResponse(frontend_dist / "index.html"))
 
         # Расширения, при которых запрос считается к несуществующему файлу — отдаём 404 (рекомендация Яндекса)
-        _STATIC_LIKE_EXTENSIONS = (".html", ".htm", ".php", ".pdf", ".asp", ".aspx")
+        _STATIC_LIKE_EXTENSIONS = (
+            ".html",
+            ".htm",
+            ".php",
+            ".pdf",
+            ".asp",
+            ".aspx",
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".webp",
+            ".gif",
+            ".svg",
+            ".ico",
+        )
 
         async def spa_fallback(request: web.Request) -> web.Response:
             path = request.path.rstrip("/") or "/"
@@ -198,6 +258,7 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
                 path.startswith("/api/")
                 or path.startswith("/assets/")
                 or path.startswith("/video/")
+                or path.startswith("/screenshots/")
                 or path == "/webhook"
                 or path.startswith("/webhook/")
                 or path == "/health"
