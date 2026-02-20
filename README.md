@@ -9,12 +9,14 @@
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript)](https://www.typescriptlang.org/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Code style: Ruff](https://img.shields.io/badge/code%20style-ruff-46a758.svg)](https://docs.astral.sh/ruff/)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![Railway Deploy](https://img.shields.io/badge/deploy-Railway-purple?logo=railway)](https://railway.app)
 [![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
 
 [Сайт](https://pandapal.ru) • [Telegram Бот](https://t.me/PandaPalBot)
+
+[English README](README_EN.md)
 
 </div>
 
@@ -171,13 +173,19 @@ graph TB
 ## Тестирование
 
 - Наборы тестов: `unit`, `integration`, `e2e`, `security`, `resilience`, `performance`
-- Текущее покрытие по структуре: 50+ unit файлов, 40+ integration, 5 e2e
 
 Запуск:
 
 ```bash
 pytest tests/ -v
 ```
+
+### Частые проблемы локального запуска
+
+- **Не стартует backend**: проверьте `.env` и обязательные переменные из `config/env.template`.
+- **Ошибки миграций**: выполните `alembic upgrade head` и убедитесь, что `DATABASE_URL` указывает на рабочую БД.
+- **Frontend не открывается**: запустите `npm run dev` из `frontend/` и проверьте порт в выводе Vite.
+- **Проблемы с Telegram Mini App**: для локальной проверки открывайте веб-режим отдельно от Telegram-контекста.
 
 ## Наполнение базы знаний (RAG)
 

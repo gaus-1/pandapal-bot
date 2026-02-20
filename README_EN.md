@@ -9,12 +9,14 @@ Educational platform for grades 1-9 with a Telegram bot and web Mini App. It hel
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript)](https://www.typescriptlang.org/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Code style: Ruff](https://img.shields.io/badge/code%20style-ruff-46a758.svg)](https://docs.astral.sh/ruff/)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![Railway Deploy](https://img.shields.io/badge/deploy-Railway-purple?logo=railway)](https://railway.app)
 [![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
 
 [Website](https://pandapal.ru) • [Telegram Bot](https://t.me/PandaPalBot)
+
+[Русская версия README](README.md)
 
 </div>
 
@@ -171,13 +173,19 @@ Report vulnerabilities: see [SECURITY.md](.github/SECURITY.md)
 ## Testing
 
 - Test suites: `unit`, `integration`, `e2e`, `security`, `resilience`, `performance`
-- Current structure: 50+ unit files, 40+ integration files, 5 e2e files
 
 Run:
 
 ```bash
 pytest tests/ -v
 ```
+
+### Common local setup issues
+
+- **Backend does not start**: check `.env` and required keys from `config/env.template`.
+- **Migration errors**: run `alembic upgrade head` and verify `DATABASE_URL` points to a live database.
+- **Frontend is not reachable**: run `npm run dev` inside `frontend/` and use the port shown by Vite.
+- **Telegram Mini App context issues**: test regular web mode and Telegram context separately.
 
 ## Knowledge Base Indexing (RAG)
 
