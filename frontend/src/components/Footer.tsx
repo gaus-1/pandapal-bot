@@ -69,9 +69,9 @@ export const Footer: React.FC = React.memo(() => {
       </div>
 
       {/* Ссылки на документы (РКН) — в карточке для мобильных */}
-      <div className="max-w-2xl mx-auto mb-5">
+      <div className="max-w-3xl mx-auto mb-5">
         <nav
-          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 px-3 py-2 sm:px-4 sm:py-3 flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-y-0.5 sm:gap-x-3 sm:gap-y-0 text-xs sm:text-sm text-gray-600 dark:text-slate-400"
+          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 p-1.5 sm:p-2.5 grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2 text-xs sm:text-sm"
           aria-label="Документы"
         >
           <a
@@ -80,7 +80,7 @@ export const Footer: React.FC = React.memo(() => {
               e.preventDefault();
               navigateTo(LEGAL_ROUTES.privacy);
             }}
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center py-0.5 leading-snug"
+            className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors"
           >
             Политика конфиденциальности
           </a>
@@ -90,7 +90,7 @@ export const Footer: React.FC = React.memo(() => {
               e.preventDefault();
               navigateTo(LEGAL_ROUTES.personalData);
             }}
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center py-0.5 leading-snug"
+            className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors"
           >
             Обработка персональных данных
           </a>
@@ -100,7 +100,7 @@ export const Footer: React.FC = React.memo(() => {
               e.preventDefault();
               navigateTo(LEGAL_ROUTES.offer);
             }}
-            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center py-0.5 leading-snug"
+            className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors"
           >
             Договор оферты
           </a>
@@ -110,19 +110,19 @@ export const Footer: React.FC = React.memo(() => {
       {/* Внутренние SEO-ссылки по ключевым интентам */}
       <div className="max-w-3xl mx-auto mb-6">
         <nav
-          className="rounded-xl border border-gray-100 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 px-3 py-2 sm:px-4 sm:py-3 flex flex-wrap items-center justify-center gap-2 text-xs sm:text-sm"
+          className="rounded-xl border border-gray-100 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-1.5 sm:p-2.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs sm:text-sm"
           aria-label="Полезные страницы"
         >
-          <a href="/bezopasnyy-ai-dlya-detey" className="text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+          <a href="/bezopasnyy-ai-dlya-detey" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
             Безопасный ИИ для детей
           </a>
-          <a href="/pomoshch-s-domashkoy-v-telegram" className="text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+          <a href="/pomoshch-s-domashkoy-v-telegram" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
             Помощь с домашкой в Telegram
           </a>
-          <a href="/safe-ai-for-kids" className="text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+          <a href="/safe-ai-for-kids" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
             Safe AI tutor for kids
           </a>
-          <a href="/homework-help-telegram-bot" className="text-gray-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+          <a href="/homework-help-telegram-bot" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
             Telegram homework help bot
           </a>
         </nav>

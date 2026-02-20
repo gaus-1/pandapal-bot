@@ -4,6 +4,7 @@ interface SeoHeadProps {
   title: string;
   description: string;
   canonicalPath?: string;
+  locale?: 'ru_RU' | 'en_US';
 }
 
 const ensureMeta = (selector: string, create: () => HTMLMetaElement): HTMLMetaElement => {
@@ -27,10 +28,11 @@ const ensureCanonical = (): HTMLLinkElement => {
   return link;
 };
 
-export const SeoHead: React.FC<SeoHeadProps> = React.memo(({ title, description, canonicalPath = '/' }) => {
-  useEffect(() => {
-    const canonicalUrl = `https://pandapal.ru${canonicalPath}`;
-    document.title = title;
+export const SeoHead: React.FC<SeoHeadProps> = React.memo(
+  ({ title, description, canonicalPath = '/', locale = 'ru_RU' }) => {
+    useEffect(() => {
+      const canonicalUrl = `https://pandapal.ru${canonicalPath}`;
+      document.title = title;
 
     const descriptionMeta = ensureMeta('meta[name="description"]', () => {
       const m = document.createElement('meta');
@@ -60,11 +62,33 @@ export const SeoHead: React.FC<SeoHeadProps> = React.memo(({ title, description,
     });
     ogUrlMeta.setAttribute('content', canonicalUrl);
 
-    const canonical = ensureCanonical();
-    canonical.setAttribute('href', canonicalUrl);
-  }, [title, description, canonicalPath]);
+    const ogLocaleMeta = ensureMeta('meta[property="og:locale"]', () => {
+      const m = document.createElement('meta');
+      m.setAttribute('property', 'og:locale');
+      return m;
+    });
+    ogLocaleMeta.setAttribute('content', locale);
 
-  return null;
-});
+    const twitterTitleMeta = ensureMeta('meta[name="twitter:title"]', () => {
+      const m = document.createElement('meta');
+      m.setAttribute('name', 'twitter:title');
+      return m;
+    });
+    twitterTitleMeta.setAttribute('content', title);
+
+    const twitterDescriptionMeta = ensureMeta('meta[name="twitter:description"]', () => {
+      const m = document.createElement('meta');
+      m.setAttribute('name', 'twitter:description');
+      return m;
+    });
+    twitterDescriptionMeta.setAttribute('content', description);
+
+      const canonical = ensureCanonical();
+      canonical.setAttribute('href', canonicalUrl);
+    }, [title, description, canonicalPath, locale]);
+
+    return null;
+  }
+);
 
 SeoHead.displayName = 'SeoHead';

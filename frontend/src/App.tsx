@@ -235,6 +235,8 @@ const App: React.FC = () => {
           subtitle="Помощь с учебой для школьников 1-9 классов в безопасной среде"
           description="PandaPal помогает детям с уроками по основным школьным предметам, поддерживает текст, фото и голосовые вопросы и использует модерацию контента для безопасного общения."
           botCta="Открыть @PandaPalBot"
+          canonicalPath="/bezopasnyy-ai-dlya-detey"
+          locale="ru"
           faq={[
             { question: 'Подходит ли PandaPal для младших школьников?', answer: 'Да, ответы адаптируются под возраст и уровень обучения.' },
             { question: 'Чем PandaPal полезен родителям?', answer: 'Сервис делает помощь с учебой более понятной и безопасной за счет встроенной модерации.' },
@@ -254,12 +256,15 @@ const App: React.FC = () => {
           title="Safe AI tutor for kids - PandaPal"
           description="PandaPal is a safe AI tutor for school students with moderation, homework help, and Telegram access."
           canonicalPath="/safe-ai-for-kids"
+          locale="en_US"
         />
         <IntentPage
           title="Safe AI Tutor for Kids: PandaPal"
           subtitle="Homework help and learning support for grades 1-9"
           description="PandaPal is a child-safe AI assistant that helps with school subjects, supports text/photo/voice input, and keeps educational interactions moderated."
           botCta="Open @PandaPalBot"
+          canonicalPath="/safe-ai-for-kids"
+          locale="en"
           faq={[
             { question: 'Is PandaPal safe for children?', answer: 'Yes. The service uses moderation and educational-first responses.' },
             { question: 'What can students ask?', answer: 'Students can ask homework and school-topic questions by text, photo, or voice.' },
@@ -285,6 +290,8 @@ const App: React.FC = () => {
           subtitle="Быстрые объяснения по школьным предметам в формате Telegram-бота"
           description="PandaPal объясняет решения понятным языком, помогает разобрать ошибки и поддерживает вопросы в формате текста, фото задания и голосовых сообщений."
           botCta="Перейти в @PandaPalBot"
+          canonicalPath="/pomoshch-s-domashkoy-v-telegram"
+          locale="ru"
           faq={[
             { question: 'Можно ли отправить фото задания?', answer: 'Да, можно отправить фото и получить пошаговое объяснение.' },
             { question: 'По каким предметам работает бот?', answer: 'По основным школьным предметам для 1-9 классов.' },
@@ -304,12 +311,15 @@ const App: React.FC = () => {
           title="Telegram homework help bot - PandaPal"
           description="PandaPal is a Telegram homework help bot with text, photo, and voice support."
           canonicalPath="/homework-help-telegram-bot"
+          locale="en_US"
         />
         <IntentPage
           title="Telegram Homework Help Bot"
           subtitle="School help for students with text, photo, and voice input"
           description="PandaPal helps students understand homework step by step and supports multiple input formats directly in Telegram."
           botCta="Open PandaPal bot"
+          canonicalPath="/homework-help-telegram-bot"
+          locale="en"
           faq={[
             { question: 'Can I send homework photos?', answer: 'Yes. PandaPal can process a photo and explain the solution.' },
             { question: 'Is it suitable for school students?', answer: 'Yes, it is designed for grades 1-9 educational support.' },

@@ -117,12 +117,18 @@ describe('SEO: robots.txt', () => {
 });
 
 describe('SEO: sitemap.xml', () => {
-  it('должен содержать только канонический URL главной страницы', () => {
+  it('должен содержать главную и ключевые канонические SEO-страницы', () => {
     const sitemap = readSitemapXml();
     expect(sitemap).toContain('<loc>https://pandapal.ru/</loc>');
-    expect(sitemap).not.toContain('<loc>https://pandapal.ru/premium</loc>');
-    expect(sitemap).not.toContain('<loc>https://pandapal.ru/privacy</loc>');
-    expect(sitemap).not.toContain('<loc>https://pandapal.ru/offer</loc>');
+    expect(sitemap).toContain('<loc>https://pandapal.ru/bezopasnyy-ai-dlya-detey</loc>');
+    expect(sitemap).toContain('<loc>https://pandapal.ru/safe-ai-for-kids</loc>');
+    expect(sitemap).toContain('<loc>https://pandapal.ru/pomoshch-s-domashkoy-v-telegram</loc>');
+    expect(sitemap).toContain('<loc>https://pandapal.ru/homework-help-telegram-bot</loc>');
+    expect(sitemap).toContain('<loc>https://pandapal.ru/premium</loc>');
+    expect(sitemap).toContain('<loc>https://pandapal.ru/donation</loc>');
+    expect(sitemap).toContain('<loc>https://pandapal.ru/privacy</loc>');
+    expect(sitemap).toContain('<loc>https://pandapal.ru/personal-data</loc>');
+    expect(sitemap).toContain('<loc>https://pandapal.ru/offer</loc>');
   });
 });
 
