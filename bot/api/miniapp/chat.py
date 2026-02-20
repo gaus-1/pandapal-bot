@@ -105,6 +105,8 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             return error_response
 
         # КРИТИЧНО: Проверка лимита ДО любых платных вызовов (SpeechKit, Vision, YandexGPT)
+        raw_message = validated.message or ""
+
         with get_db() as db:
             user_service = UserService(db)
             user = user_service.get_user_by_telegram_id(telegram_id)
@@ -129,16 +131,20 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                     status=429,
                 )
 
-            # Проверка ленивости панды (как в Telegram-обработчике)
+            # Проверка ленивости панды (как в Telegram-обработчике).
+            # Для фидбека ("плохой/хороший ответ") не перехватываем ленивостью,
+            # чтобы пользователь получил реакцию панды.
+            from bot.services.panda_chat_reactions import get_chat_reaction
             from bot.services.panda_lazy_service import PandaLazyService
 
-            lazy_service = PandaLazyService(db)
-            is_lazy, lazy_message = lazy_service.check_and_update_lazy_state(telegram_id)
-            if is_lazy and lazy_message:
-                logger.info(f"😴 Mini App: Панда 'ленива' для пользователя {telegram_id}")
-                return web.json_response({"response": lazy_message})
+            if not get_chat_reaction(raw_message):
+                lazy_service = PandaLazyService(db)
+                is_lazy, lazy_message = lazy_service.check_and_update_lazy_state(telegram_id)
+                if is_lazy and lazy_message:
+                    logger.info(f"😴 Mini App: Панда 'ленива' для пользователя {telegram_id}")
+                    return web.json_response({"response": lazy_message})
 
-        message = validated.message or ""
+        message = raw_message
         photo_base64 = validated.photo_base64
         audio_base64 = validated.audio_base64
 
@@ -305,9 +311,15 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
 
             # Предложение отдыха/игры после 10 или 20 ответов подряд
             lazy_service = PandaLazyService(db)
-            rest_response, _skip_ai, _show_video = lazy_service.check_rest_offer(
-                telegram_id, user_message, user.first_name
-            )
+            from bot.services.panda_chat_reactions import get_chat_reaction
+
+            # Фидбек пользователя (хороший/плохой ответ) не должен
+            # перехватываться сценарием отдыха.
+            rest_response = None
+            if not get_chat_reaction(user_message):
+                rest_response, _skip_ai, _show_video = lazy_service.check_rest_offer(
+                    telegram_id, user_message, user.first_name
+                )
             if rest_response:
                 limit_reached, _ = premium_service.increment_request_count(telegram_id)
                 history_service.add_message(telegram_id, user_message, "user")

@@ -189,8 +189,9 @@ class TestPandaLazyMiniappReal:
         data = json.loads(response.body.decode()) if response.body else {}
         assert "response" in data
         text = data["response"]
-        # Первые 3 раза в сутки — «ПРОДОЛЖИМ?», иначе фраза про перерыв/игру
-        assert "ПРОДОЛЖИМ?" in text or "поиграем" in text or "перерыв" in text or "отдохнуть" in text
+        # Rest-offer должен быть только текстом (без видео-триггера «ПРОДОЛЖИМ?»).
+        assert "ПРОДОЛЖИМ?" not in text
+        assert "поиграем" in text or "перерыв" in text or "отдохнуть" in text
 
     @pytest.mark.asyncio
     async def test_continue_after_rest_offer_in_miniapp(self, real_db_session, test_user):
@@ -246,27 +247,38 @@ class TestPandaLazyMiniappReal:
         self, real_db_session, test_user
     ):
         """
-        После 3 показов видео в сутки следующий перерыв — только текст, без «ПРОДОЛЖИМ?».
+        Если лимит видео исчерпан, даже явный запрос «поешь» не должен
+        возвращать «ПРОДОЛЖИМ?» (только текстовое сообщение).
         """
-        from bot.api.miniapp import miniapp_ai_chat
+        from bot.services.panda_lazy_service import PandaLazyService
         from datetime import UTC, datetime
 
-        telegram_id = test_user.telegram_id
-        test_user.consecutive_since_rest = 10
-        test_user.rest_offers_count = 0
-        test_user.last_ai_was_rest = False
         test_user.bamboo_breaks_today = 3
         test_user.bamboo_break_date = datetime.now(UTC).date()
         real_db_session.commit()
 
-        request = self._create_chat_request(telegram_id, "Ещё вопрос")
+        lazy_service = PandaLazyService(real_db_session)
+        show_video, text = lazy_service.try_show_bamboo_eat_on_request(test_user.telegram_id)
 
-        with self._patch_db_and_auth(real_db_session):
-            response = await miniapp_ai_chat(request)
-
-        assert response.status == 200
-        data = json.loads(response.body.decode()) if response.body else {}
-        assert "response" in data
-        text = data["response"]
+        assert show_video is False
         assert "ПРОДОЛЖИМ?" not in text
-        assert "поиграем" in text or "перерыв" in text
+        assert "объелся бамбуком" in text or "завтра" in text
+
+    @pytest.mark.asyncio
+    async def test_bamboo_video_shown_only_on_explicit_request(self, real_db_session, test_user):
+        """
+        Явный запрос «поешь/перекуси/отдохни» должен возвращать show_video=True
+        при доступном дневном лимите.
+        """
+        from bot.services.panda_lazy_service import PandaLazyService
+        from datetime import UTC, datetime
+
+        test_user.bamboo_breaks_today = 0
+        test_user.bamboo_break_date = datetime.now(UTC).date()
+        real_db_session.commit()
+
+        lazy_service = PandaLazyService(real_db_session)
+        show_video, text = lazy_service.try_show_bamboo_eat_on_request(test_user.telegram_id)
+
+        assert show_video is True
+        assert text == "Продолжим?"

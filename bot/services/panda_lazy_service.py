@@ -145,7 +145,11 @@ class PandaLazyService:
 
         Returns:
             (response_text, skip_ai, show_bamboo_video): если response_text не None — отправить
-            и не вызывать AI. show_bamboo_video=True — отправить event: video и текст «ПРОДОЛЖИМ?».
+            и не вызывать AI.
+
+            Важно: show_bamboo_video для rest-offer всегда False. Видео с пандой
+            показывается только по явному запросу пользователя «поешь/перекуси/отдохни»
+            в try_show_bamboo_eat_on_request().
         """
         user = self.db.execute(
             select(User).where(User.telegram_id == telegram_id)
@@ -157,9 +161,6 @@ class PandaLazyService:
         consecutive = getattr(user, "consecutive_since_rest", 0)
         rest_offers = getattr(user, "rest_offers_count", 0)
         last_was_rest = getattr(user, "last_ai_was_rest", False)
-        bamboo_break_date = getattr(user, "bamboo_break_date", None)
-        bamboo_breaks_today = getattr(user, "bamboo_breaks_today", 0)
-
         name = (user_first_name or user.first_name or "").strip() or "друг"
         msg_lower = (user_message or "").strip().lower()
 
@@ -170,8 +171,6 @@ class PandaLazyService:
                 consecutive,
                 rest_offers,
                 last_was_rest,
-                bamboo_break_date,
-                bamboo_breaks_today,
                 name,
                 msg_lower,
                 telegram_id,
@@ -186,8 +185,6 @@ class PandaLazyService:
         consecutive: int,
         rest_offers: int,
         last_was_rest: bool,
-        bamboo_break_date,
-        bamboo_breaks_today: int,
         name: str,
         msg_lower: str,
         telegram_id: int,
@@ -236,29 +233,8 @@ class PandaLazyService:
         need_third_rest = rest_offers == 2 and consecutive >= self.REST_OFFER_AFTER_THIRD
 
         if need_first_rest or need_second_rest or need_third_rest:
-            now = datetime.now(UTC)
-            today_utc = now.date()
-
-            if hasattr(user, "bamboo_break_date") and bamboo_break_date != today_utc:
-                user.bamboo_breaks_today = 0
-                user.bamboo_break_date = today_utc
-                user.rest_offers_count = 0
-                rest_offers = 0
-                bamboo_breaks_today = 0
-                need_first_rest = consecutive >= self.REST_OFFER_AFTER_FIRST
-                need_second_rest = False
-                need_third_rest = False
-                self.db.flush()
-
             user.rest_offers_count = rest_offers + 1
             user.last_ai_was_rest = True
-
-            if bamboo_breaks_today < self.BAMBOO_VIDEO_MAX_PER_DAY:
-                user.bamboo_breaks_today = bamboo_breaks_today + 1
-                if not getattr(user, "bamboo_break_date", None):
-                    user.bamboo_break_date = today_utc
-                self.db.flush()
-                return "ПРОДОЛЖИМ?", True, True
 
             rest_phrases = [
                 f"Я хочу отдохнуть, {name}, может поиграем?",
@@ -300,7 +276,7 @@ class PandaLazyService:
                 if not getattr(user, "bamboo_break_date", None):
                     user.bamboo_break_date = today_utc
                 self.db.flush()
-                return True, "ПРОДОЛЖИМ?"
+                return True, "Продолжим?"
             return False, "Я уже объелся бамбуком сегодня — завтра снова поем!"
         except Exception:
             return False, "Продолжим?"

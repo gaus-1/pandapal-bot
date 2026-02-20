@@ -187,7 +187,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                     }
                   );
                 } else if (eventType === 'video' && data.videoUrl) {
-                  // Перерыв на бамбук: видео приходит первым, затем event: message с текстом «ПРОДОЛЖИМ?»
+                  // Перерыв на бамбук: видео приходит первым, затем event: message с текстом «Продолжим?»
                   const videoUrl = data.videoUrl as string;
                   queryClient.setQueryData<ChatMessage[]>(
                     queryKeys.chatHistory(telegramId, limit),
@@ -209,7 +209,7 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                     }
                   );
                 } else if (eventType === 'message' && data.content) {
-                  // Получено полное сообщение (например, секретное или «ПРОДОЛЖИМ?» после видео)
+                  // Получено полное сообщение (например, секретное или «Продолжим?» после видео)
                   const messageContent = data.content;
 
                   // Обновляем или добавляем сообщение AI

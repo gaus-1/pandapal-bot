@@ -94,7 +94,7 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
         # Проверка лимитов и ленивости (ранний выход до тяжёлой работы).
         # Повторная проверка лимита — после prepare_context ниже; при изменении правил лимита обновлять оба места.
-        if not await check_premium_and_lazy(telegram_id, response):
+        if not await check_premium_and_lazy(telegram_id, response, raw_message=message):
             return response
 
         # Событие начала обработки
@@ -111,10 +111,10 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
         if await try_adult_topics(user_message, telegram_id, response):
             return response
 
-        if await try_rest_offer(user_message, telegram_id, response):
+        if await try_bamboo_eat_request(user_message, telegram_id, response):
             return response
 
-        if await try_bamboo_eat_request(user_message, telegram_id, response):
+        if await try_rest_offer(user_message, telegram_id, response):
             return response
 
         # Нормализация опечаток

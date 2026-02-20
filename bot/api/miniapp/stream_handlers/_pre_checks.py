@@ -99,7 +99,9 @@ async def parse_and_validate_request(
     }
 
 
-async def check_premium_and_lazy(telegram_id: int, response: web.StreamResponse) -> bool:
+async def check_premium_and_lazy(
+    telegram_id: int, response: web.StreamResponse, raw_message: str = ""
+) -> bool:
     """Проверка лимита и ленивости панды. Возвращает True если можно продолжать."""
     with get_db() as db:
         user_service = UserService(db)
@@ -122,15 +124,23 @@ async def check_premium_and_lazy(telegram_id: int, response: web.StreamResponse)
             )
             return False
 
+        from bot.api.miniapp.stream_handlers._routing import BAMBOO_EAT_PATTERN
+        from bot.services.panda_chat_reactions import get_chat_reaction
         from bot.services.panda_lazy_service import PandaLazyService
 
-        lazy_service = PandaLazyService(db)
-        is_lazy, lazy_message = lazy_service.check_and_update_lazy_state(telegram_id)
-        if is_lazy and lazy_message:
-            logger.info(f"😴 Mini App Stream: Панда 'ленива' для пользователя {telegram_id}")
-            event_data = json.dumps({"content": lazy_message}, ensure_ascii=False)
-            await response.write(f"event: message\ndata: {event_data}\n\n".encode())
-            await response.write(b"event: done\ndata: {}\n\n")
-            return False
+        # Не перехватываем фидбек и явные «поешь/перекуси» ранней веткой ленивости.
+        msg = (raw_message or "").strip()
+        is_feedback = bool(get_chat_reaction(msg)) if msg else False
+        is_explicit_bamboo = bool(BAMBOO_EAT_PATTERN.search(msg)) if msg else False
+
+        if not is_feedback and not is_explicit_bamboo:
+            lazy_service = PandaLazyService(db)
+            is_lazy, lazy_message = lazy_service.check_and_update_lazy_state(telegram_id)
+            if is_lazy and lazy_message:
+                logger.info(f"😴 Mini App Stream: Панда 'ленива' для пользователя {telegram_id}")
+                event_data = json.dumps({"content": lazy_message}, ensure_ascii=False)
+                await response.write(f"event: message\ndata: {event_data}\n\n".encode())
+                await response.write(b"event: done\ndata: {}\n\n")
+                return False
 
     return True

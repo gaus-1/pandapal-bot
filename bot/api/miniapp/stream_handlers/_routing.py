@@ -144,6 +144,13 @@ async def try_bamboo_eat_request(
 
 async def try_rest_offer(user_message: str, telegram_id: int, response: web.StreamResponse) -> bool:
     """Предложение отдыха после длинной сессии. Возвращает True если обработано."""
+    # Фидбек-сообщения должны идти в ветку реакций панды (happy/eating/offended/questioning),
+    # а не перехватываться сценарием отдыха/видео.
+    from bot.services.panda_chat_reactions import get_chat_reaction
+
+    if get_chat_reaction(user_message):
+        return False
+
     with get_db() as db_rest:
         from bot.services import UserService
 
