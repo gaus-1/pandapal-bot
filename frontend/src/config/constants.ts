@@ -46,6 +46,17 @@ export const FEATURES: readonly Feature[] = [
     title: 'PandaPalGo',
     description: 'Играй с пандой в крестики-нолики, шашки, 2048 и эрудит!',
   },
+  {
+    id: 'homework-photo-check',
+    title: 'Проверка ДЗ по фото',
+    description: 'Сфотографируй решение, панда найдет ошибки и объяснит по шагам.',
+  },
+  {
+    id: 'multimodal-chat',
+    title: 'Общайся как тебе удобно',
+    description:
+      'Спрашивай текстом, голосом или отправляй фото с заданиями по любым предметам.',
+  },
 ] as const;
 
 /**
