@@ -104,32 +104,32 @@ Monthly report: `python scripts/referral_report.py [--year YYYY] [--month MM]`.
 
 ```text
 PandaPal/
-├── bot/
-│   ├── handlers/            # Telegram handlers (ai_chat: text/voice/image/document)
-│   ├── services/            # AI, RAG, games, payments, moderation, miniapp services
-│   │   ├── rag/             # vector_search, query_expander, reranker, semantic_cache, compressor
-│   │   ├── games_service/   # TicTacToe, Checkers, 2048, Erudite
-│   │   ├── game_engines/
-│   │   └── visualization/
-│   ├── api/
-│   │   ├── miniapp/         # chat, chat_stream (SSE), homework, progress, other
-│   │   ├── auth_endpoints.py
-│   │   ├── premium_endpoints.py
-│   │   ├── games_endpoints.py
-│   │   └── validators.py
-│   ├── config/
-│   ├── security/
-│   ├── monitoring/
-│   ├── models/
-│   └── database/
-├── frontend/
-│   ├── src/                 # components, features, hooks, services, store
-│   └── public/
+├── .github/                 # CI/CD workflows, security policy, templates
+├── bot/                     # Backend domain: API, handlers, services, models, security
+│   ├── api/                 # HTTP endpoints (miniapp, premium, games, auth)
+│   ├── handlers/            # Telegram handlers (text/voice/image/document)
+│   ├── services/            # Business logic (AI, RAG, games, payments, moderation)
+│   ├── database/            # SQLAlchemy and DB integration
+│   ├── models/              # ORM models
+│   ├── config/              # Runtime configuration modules
+│   ├── security/            # Security middleware, crypto, audit
+│   └── monitoring/          # Metrics and observability
+├── frontend/                # React Mini App and website frontend
+│   ├── src/                 # components, features, hooks, services, store, utils
+│   ├── public/              # Static assets
+│   ├── dist/                # Production build output
+│   └── e2e/                 # Playwright e2e tests
 ├── tests/                   # unit, integration, e2e, security, resilience, performance
-├── alembic/
-├── scripts/
-├── server_routes/
-└── web_server.py
+├── alembic/                 # Database migrations
+├── server_routes/           # Static serving and server route modules
+├── scripts/                 # Operational and maintenance scripts
+├── config/                  # env.template and environment configs
+├── docs/                    # Technical documentation
+├── data/                    # Project data assets
+├── metrics/                 # Monitoring-related artifacts
+├── sql/                     # SQL utilities and notes
+├── Dockerfile               # Main application container build
+└── web_server.py            # Backend server entry point
 ```
 
 ## Architecture

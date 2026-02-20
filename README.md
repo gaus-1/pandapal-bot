@@ -104,32 +104,32 @@ npm run dev
 
 ```text
 PandaPal/
-├── bot/
-│   ├── handlers/            # Telegram handlers (ai_chat: text/voice/image/document)
-│   ├── services/            # AI, RAG, games, payments, moderation, miniapp services
-│   │   ├── rag/             # vector_search, query_expander, reranker, semantic_cache, compressor
-│   │   ├── games_service/   # TicTacToe, Checkers, 2048, Erudite
-│   │   ├── game_engines/    # Игровые движки
-│   │   └── visualization/   # Детектор и генераторы визуализаций
-│   ├── api/
-│   │   ├── miniapp/         # chat, chat_stream (SSE), homework, progress, other
-│   │   ├── auth_endpoints.py
-│   │   ├── premium_endpoints.py
-│   │   ├── games_endpoints.py
-│   │   └── validators.py
-│   ├── config/
-│   ├── security/
-│   ├── monitoring/
-│   ├── models/
-│   └── database/
-├── frontend/
-│   ├── src/                 # components, features, hooks, services, store
-│   └── public/
+├── .github/                 # CI/CD workflows, security policy, templates
+├── bot/                     # Backend домен: API, handlers, services, models, security
+│   ├── api/                 # HTTP endpoints (miniapp, premium, games, auth)
+│   ├── handlers/            # Telegram handlers (text/voice/image/document)
+│   ├── services/            # Бизнес-логика (AI, RAG, games, payments, moderation)
+│   ├── database/            # Работа с БД и SQLAlchemy слой
+│   ├── models/              # ORM-модели
+│   ├── config/              # Конфигурационные модули
+│   ├── security/            # Защита, middleware, crypto, audit
+│   └── monitoring/          # Метрики и наблюдаемость
+├── frontend/                # React Mini App и веб-интерфейс
+│   ├── src/                 # components, features, hooks, services, store, utils
+│   ├── public/              # Статические файлы
+│   ├── dist/                # Production build
+│   └── e2e/                 # Playwright e2e
 ├── tests/                   # unit, integration, e2e, security, resilience, performance
-├── alembic/
-├── scripts/
-├── server_routes/
-└── web_server.py
+├── alembic/                 # Миграции БД
+├── server_routes/           # Раздача статики и серверные роуты
+├── scripts/                 # Операционные/служебные скрипты
+├── config/                  # env.template и конфиги окружения
+├── docs/                    # Техническая документация
+├── data/                    # Данные проекта
+├── metrics/                 # Материалы по метрикам
+├── sql/                     # SQL-утилиты и заметки
+├── Dockerfile               # Основной контейнер приложения
+└── web_server.py            # Точка входа backend-сервера
 ```
 
 ## Архитектура
