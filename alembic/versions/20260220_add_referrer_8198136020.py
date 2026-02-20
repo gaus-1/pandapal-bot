@@ -19,6 +19,21 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # Исторически первый реферер был вставлен с явным id=1.
+    # На чистых БД sequence может остаться на старте и вернуть снова 1.
+    # Синхронизируем sequence с фактическим MAX(id), чтобы избежать PK-конфликта.
+    op.execute(
+        sa.text(
+            """
+            SELECT setval(
+                pg_get_serial_sequence('referrers', 'id'),
+                COALESCE((SELECT MAX(id) FROM referrers), 1),
+                true
+            )
+            """
+        )
+    )
+
     op.execute(
         sa.text(
             """

@@ -18,11 +18,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Статический ffmpeg (для speech_service: WebM -> OGG). Без apt — иначе mesa/x11/wayland и долгая сборка.
-RUN curl -sL "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz" | tar -xJ -C /tmp \
-    && cp /tmp/ffmpeg-*-amd64-static/ffmpeg /usr/local/bin/ \
-    && chmod +x /usr/local/bin/ffmpeg \
-    && rm -rf /tmp/ffmpeg-*
+# Статический ffmpeg (для speech_service: WebM -> OGG).
+# Primary source может быть временно недоступен в CI, поэтому есть fallback.
+RUN set -eux; \
+    FFMPEG_PRIMARY_URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"; \
+    FFMPEG_FALLBACK_URL="https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"; \
+    if curl -fsSL --retry 5 --retry-all-errors "$FFMPEG_PRIMARY_URL" -o /tmp/ffmpeg.tar.xz; then \
+        tar -xJf /tmp/ffmpeg.tar.xz -C /tmp; \
+        cp /tmp/ffmpeg-*-amd64-static/ffmpeg /usr/local/bin/ffmpeg; \
+    else \
+        curl -fsSL --retry 5 --retry-all-errors "$FFMPEG_FALLBACK_URL" -o /tmp/ffmpeg.tar.xz; \
+        tar -xJf /tmp/ffmpeg.tar.xz -C /tmp; \
+        cp /tmp/ffmpeg-master-latest-linux64-gpl/bin/ffmpeg /usr/local/bin/ffmpeg; \
+    fi; \
+    chmod +x /usr/local/bin/ffmpeg; \
+    /usr/local/bin/ffmpeg -version; \
+    rm -rf /tmp/ffmpeg.tar.xz /tmp/ffmpeg-*-amd64-static /tmp/ffmpeg-master-latest-linux64-gpl
 
 # Python-зависимости (слой кэшируется при неизменном requirements.txt)
 COPY requirements.txt .
