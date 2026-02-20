@@ -138,16 +138,30 @@ PandaPal/
 
 ```mermaid
 graph TB
-    User[Пользователь] --> TG[Telegram Bot]
-    User --> Web[Mini App]
-    TG --> Server[web_server.py]
-    Web --> Server
-    Server --> Services[Backend Services]
-    Services --> AI[Yandex Cloud AI]
-    Services --> DB[(PostgreSQL + pgvector)]
-    Services --> Redis[(Redis)]
-    Services --> YooKassa[YooKassa]
+    user[Пользователь] --> web[Сайт в браузере]
+    user --> miniapp[Telegram Mini App]
+    user --> tgbot[Telegram бот]
+
+    web --> server[Сервер приложения web_server.py]
+    miniapp --> server
+    tgbot --> telegramApi[Telegram Bot API]
+    telegramApi --> server
+
+    server --> api[API и маршруты]
+    api --> services[Сервисы приложения]
+    services --> db[(PostgreSQL + pgvector)]
+    services --> redis[(Redis кэш/состояние)]
+    services --> yandex[Yandex Cloud сервисы]
+    services --> payments[YooKassa платежи]
 ```
+
+Коротко по потоку:
+
+- Пользователь работает через сайт, Mini App или Telegram-бот.
+- Все запросы сходятся в `web_server.py` и API-маршрутах.
+- Основная логика выполняется в сервисах `bot/services`.
+- Данные и состояние хранятся в PostgreSQL/pgvector и Redis.
+- Внешние интеграции: Telegram Bot API, Yandex Cloud, YooKassa.
 
 ### API Endpoints
 

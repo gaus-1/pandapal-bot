@@ -138,16 +138,30 @@ PandaPal/
 
 ```mermaid
 graph TB
-    User[User] --> TG[Telegram Bot]
-    User --> Web[Mini App]
-    TG --> Server[web_server.py]
-    Web --> Server
-    Server --> Services[Backend Services]
-    Services --> AI[Yandex Cloud AI]
-    Services --> DB[(PostgreSQL + pgvector)]
-    Services --> Redis[(Redis)]
-    Services --> YooKassa[YooKassa]
+    user[User] --> web[Website in browser]
+    user --> miniapp[Telegram Mini App]
+    user --> tgbot[Telegram bot]
+
+    web --> server[Application server web_server.py]
+    miniapp --> server
+    tgbot --> telegramApi[Telegram Bot API]
+    telegramApi --> server
+
+    server --> api[API and route layer]
+    api --> services[Application services]
+    services --> db[(PostgreSQL + pgvector)]
+    services --> redis[(Redis cache/state)]
+    services --> yandex[Yandex Cloud services]
+    services --> payments[YooKassa payments]
 ```
+
+Flow in plain words:
+
+- Users interact through the website, Mini App, or Telegram bot.
+- Requests converge in `web_server.py` and the API route layer.
+- Core business logic lives in `bot/services`.
+- Persistent data/state is stored in PostgreSQL/pgvector and Redis.
+- External integrations: Telegram Bot API, Yandex Cloud, YooKassa.
 
 ### API Endpoints
 
