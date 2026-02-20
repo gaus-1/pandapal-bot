@@ -56,6 +56,10 @@ async def miniapp_check_homework(request: web.Request) -> web.Response:
 
         telegram_id = validated.telegram_id
 
+        # Проверка владельца ресурса (OWASP A01)
+        if error_response := require_owner(request, telegram_id):
+            return error_response
+
         # Проверяем пользователя
         with get_db() as db:
             user_service = UserService(db)

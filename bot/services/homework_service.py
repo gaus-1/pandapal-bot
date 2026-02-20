@@ -111,43 +111,49 @@ class HomeworkService:
 
         feedback_lower = feedback.lower()
 
-        # Ключевые слова, указывающие на ошибки
+        # Явные индикаторы "ошибок нет"
+        no_error_indicators = [
+            "нет ошибок",
+            "ошибок нет",
+            "всё верно",
+            "все верно",
+            "всё правильно",
+            "все правильно",
+            "решение правильное",
+            "решено правильно",
+        ]
+
+        # Индикаторы, что в решении есть ошибки/исправления
         error_indicators = [
             "ошибка",
+            "ошибки",
             "неправильно",
             "неверно",
             "исправь",
+            "исправить",
+            "исправлено",
             "не так",
             "нужно исправить",
-            "правильно было бы",
             "должно быть",
+            "правильно было бы",
+            "вместо",
+            "а не",
+            "правильный ответ",
         ]
 
-        # Ключевые слова, указывающие на правильность
-        correct_indicators = [
-            "правильно",
-            "верно",
-            "всё верно",
-            "отлично",
-            "молодец",
-            "всё правильно",
-            "нет ошибок",
-        ]
+        has_no_error_phrase = any(indicator in feedback_lower for indicator in no_error_indicators)
+        has_error_phrase = any(indicator in feedback_lower for indicator in error_indicators)
 
-        # Проверяем наличие индикаторов ошибок
-        has_error_keywords = any(indicator in feedback_lower for indicator in error_indicators)
-        has_correct_keywords = any(indicator in feedback_lower for indicator in correct_indicators)
-
-        # Если есть явные индикаторы ошибок и нет индикаторов правильности
-        if has_error_keywords and not has_correct_keywords:
+        # Если есть явные признаки ошибок — считаем, что ошибки есть,
+        # даже если в тексте есть нейтральные слова вроде "правильно".
+        if has_error_phrase:
             return True
 
-        # Если явно указано, что всё правильно
-        if has_correct_keywords and "нет ошибок" in feedback_lower:
+        # Явный позитивный вывод без признаков исправлений.
+        if has_no_error_phrase:
             return False
 
-        # По умолчанию считаем, что могут быть ошибки, если есть упоминание об исправлении
-        return "исправь" in feedback_lower or "должно быть" in feedback_lower
+        return False
 
     def _extract_errors(self, feedback: str) -> list[dict]:
         """
@@ -159,24 +165,47 @@ class HomeworkService:
         Returns:
             List[Dict]: Список ошибок с описанием
         """
-        # Базовая реализация - можно улучшить с помощью NLP
-        errors = []
+        errors: list[dict] = []
 
         if not feedback:
             return errors
 
-        # Разбиваем на предложения и ищем упоминания ошибок
-        sentences = feedback.split(". ")
+        # Поддерживаем как обычные предложения, так и markdown-списки.
+        parts = []
+        for line in feedback.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if stripped.startswith(("-", "*", "•")):
+                parts.append(stripped.lstrip("-*•").strip())
+            else:
+                parts.append(stripped)
 
-        for sentence in sentences:
+        candidates = []
+        for part in parts:
+            candidates.extend(
+                segment.strip() for segment in part.replace("?", ".").replace("!", ".").split(".")
+            )
+
+        error_markers = [
+            "ошиб",
+            "неправ",
+            "неверн",
+            "исправ",
+            "должно быть",
+            "правильный ответ",
+            "вместо",
+            "а не",
+        ]
+
+        for sentence in candidates:
+            if not sentence:
+                continue
             sentence_lower = sentence.lower()
-            if any(
-                word in sentence_lower
-                for word in ["ошибка", "неправильно", "неверно", "исправь", "должно быть"]
-            ):
-                errors.append({"description": sentence.strip(), "type": "general"})
+            if any(marker in sentence_lower for marker in error_markers):
+                errors.append({"description": sentence, "type": "general"})
 
-        return errors[:5]  # Ограничиваем 5 ошибками
+        return errors[:5]
 
     def get_homework_history(
         self, telegram_id: int, limit: int = 20, subject: str | None = None

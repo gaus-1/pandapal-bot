@@ -34,7 +34,7 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
           {/* Текст описания */}
           <div className="text-xs xs:text-sm sm:text-base md:text-lg text-gray-700 dark:text-slate-200 max-w-3xl leading-relaxed mx-auto">
             {Array.isArray(section.description) ? (
-              <ul className="text-left space-y-2.5 xs:space-y-3 sm:space-y-3.5 md:space-y-4 list-none pl-0 m-0">
+              <ul className="text-left space-y-3.5 xs:space-y-4 sm:space-y-5 md:space-y-6 list-none pl-0 m-0">
                 {section.description.map((item, index) => (
                   <li
                     key={index}
