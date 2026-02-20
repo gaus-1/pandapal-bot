@@ -39,7 +39,7 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
 
   return (
     <section aria-label="Скриншоты Mini App" className="mt-8 sm:mt-10">
-      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 hover:border-gray-200 dark:hover:border-slate-600 shadow-md hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300 p-4 sm:p-4 md:p-5">
+      <div className="mx-auto w-full sm:w-[22rem] md:w-[23rem] lg:w-[24rem] max-w-[calc(100%-5.5rem)]">
         <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">
           <h3 className="font-display text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-50">
             Интерфейс Mini App
@@ -48,7 +48,9 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
             {currentIndex + 1} / {total}
           </span>
         </div>
+      </div>
 
+      <div className="relative mx-auto w-full sm:w-[22rem] md:w-[23rem] lg:w-[24rem] max-w-[calc(100%-5.5rem)]">
         <div
           className="relative flex items-center justify-center"
           onTouchStart={handleTouchStart}
@@ -63,7 +65,7 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
             ←
           </button>
 
-          <div className="mx-auto w-full sm:w-[22rem] md:w-[23rem] lg:w-[24rem] max-w-[calc(100%-5.5rem)] rounded-xl overflow-hidden border border-gray-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+          <div className="w-full rounded-2xl sm:rounded-3xl overflow-hidden border border-gray-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 shadow-md hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300">
             <div className="relative w-full aspect-[9/16] max-h-[520px] overflow-hidden">
               <div
                 className="flex h-full transition-transform duration-500 ease-out"
@@ -104,24 +106,24 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
             →
           </button>
         </div>
+      </div>
 
-        <p className="mt-3 text-sm text-gray-700 dark:text-slate-200 text-center">{current.title}</p>
+      <p className="mt-3 text-sm text-gray-700 dark:text-slate-200 text-center">{current.title}</p>
 
-        <div className="mt-4 flex justify-center gap-1.5">
-          {MINIAPP_SCREENSHOTS.map((item, index) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setCurrentIndex(index)}
-              className={`h-2 rounded-full transition-all ${
-                index === currentIndex
-                  ? 'w-6 bg-blue-500'
-                  : 'w-2 bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500'
-              }`}
-              aria-label={`Открыть скриншот ${item.id}`}
-            />
-          ))}
-        </div>
+      <div className="mt-4 flex justify-center gap-1.5">
+        {MINIAPP_SCREENSHOTS.map((item, index) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => setCurrentIndex(index)}
+            className={`h-2 rounded-full transition-all ${
+              index === currentIndex
+                ? 'w-6 bg-blue-500'
+                : 'w-2 bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500'
+            }`}
+            aria-label={`Открыть скриншот ${item.id}`}
+          />
+        ))}
       </div>
     </section>
   );

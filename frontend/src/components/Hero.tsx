@@ -49,8 +49,9 @@ export const Hero: React.FC = React.memo(() => {
             e.preventDefault();
             const element = document.getElementById('benefits');
             if (element) {
-              // Учитываем высоту фиксированного Header при прокрутке
-              const headerOffset = 100;
+              // Динамически учитываем текущую высоту header на любом устройстве
+              const header = document.querySelector('header');
+              const headerOffset = Math.ceil(header?.getBoundingClientRect().height ?? 88) + 12;
               const elementPosition = element.getBoundingClientRect().top;
               const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 

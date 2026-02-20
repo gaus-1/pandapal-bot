@@ -30,49 +30,6 @@
     min-height: 100dvh;
   }
 
-  /* Убираем дефолтные маркеры списков везде */
-  ul, ol {
-    list-style: none !important;
-    list-style-type: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    -webkit-padding-start: 0 !important;
-    -moz-padding-start: 0 !important;
-  }
-
-  ul li, ol li {
-    list-style: none !important;
-    list-style-type: none !important;
-    margin: 0 !important;
-    margin-left: 0 !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-    padding: 0 !important;
-    padding-left: 0 !important;
-    -webkit-padding-start: 0 !important;
-    -moz-padding-start: 0 !important;
-    line-height: 1.2 !important;
-  }
-
-  ul li::before, ol li::before,
-  ul li::marker, ol li::marker {
-    display: none !important;
-    content: none !important;
-    visibility: hidden !important;
-  }
-
-  /* Дополнительная защита для всех браузеров */
-  * ul, * ol {
-    list-style: none !important;
-    list-style-type: none !important;
-  }
-
-  * ul li, * ol li {
-    list-style: none !important;
-    list-style-type: none !important;
-    list-style-image: none !important;
-  }
-
   /* Заголовки используют Poppins */
   h1, h2, h3, h4, h5, h6 {
     @apply font-display font-bold;
@@ -456,10 +413,6 @@
 
 .dark .text-gray-600 {
   @apply text-slate-300;
-}
-
-.dark .text-gray-600 {
-  @apply text-slate-400;
 }
 
 .dark .bg-gray-50 {

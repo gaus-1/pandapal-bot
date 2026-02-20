@@ -18,7 +18,7 @@ export const Header: React.FC = React.memo(() => {
     <header className="absolute top-0 left-0 right-0 z-40 relative">
       {/* Градиентная граница снизу - прозрачная вверху, видимая внизу, без размытия */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-b from-transparent to-gray-200/60 dark:to-slate-600/60"></div>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 md:py-6 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-3 xs:px-4 sm:px-6 py-3 xs:py-4 md:py-6 flex items-center justify-between">
         {/* Логотип и название - кликабельные для возврата на главную */}
         <a
           href="/"
@@ -55,13 +55,13 @@ export const Header: React.FC = React.memo(() => {
               target.parentElement?.appendChild(emoji);
             }}
           />
-          <span className="font-display text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-50 animate-text-reveal">
+          <span className="hidden xs:inline font-display text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-50 animate-text-reveal">
             {SITE_CONFIG.name}
           </span>
         </a>
 
         {/* Кнопки в правом верхнем углу */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3">
           {/* Навигация */}
           <nav className="hidden sm:flex items-center gap-2">
             <a
@@ -96,7 +96,7 @@ export const Header: React.FC = React.memo(() => {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackButtonClick('header_start_bot')}
-            className="inline-flex items-center justify-center px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600 text-white font-semibold text-sm hover:shadow-lg dark:hover:shadow-xl hover:scale-105 active:scale-100 transition-all duration-200 min-h-[44px] sm:min-h-[48px] touch-manipulation"
+            className="inline-flex items-center justify-center px-3 xs:px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600 text-white font-semibold text-xs xs:text-sm hover:shadow-lg dark:hover:shadow-xl hover:scale-105 active:scale-100 transition-all duration-200 min-h-[40px] xs:min-h-[44px] sm:min-h-[48px] touch-manipulation"
           >
             Войти
           </a>
