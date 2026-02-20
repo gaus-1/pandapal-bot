@@ -31,6 +31,8 @@ interface AIChatProps {
 }
 
 export function AIChat({ user }: AIChatProps) {
+  const WELCOME_LOGOS = ['/logo.png', '/panda-sleeping.png'] as const;
+
   // Используем streaming по умолчанию для более быстрых ответов
   // При ошибке автоматически fallback на обычный режим
   const {
@@ -46,6 +48,7 @@ export function AIChat({ user }: AIChatProps) {
   const [replyToMessage, setReplyToMessage] = useState<number | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const [hasShownWelcomeMessage, setHasShownWelcomeMessage] = useState(false);
+  const [welcomeLogoSrc, setWelcomeLogoSrc] = useState<(typeof WELCOME_LOGOS)[number]>('/logo.png');
   const queryClient = useQueryClient();
   const logoRef = useRef<HTMLImageElement | null>(null);
 
@@ -181,6 +184,14 @@ export function AIChat({ user }: AIChatProps) {
       }
     }
   }, [messages.length, isLoadingHistory, showWelcome]);
+
+  // При первом заходе и после очистки чата выбираем случайный логотип welcome-экрана.
+  useEffect(() => {
+    if (showWelcome && messages.length === 0 && !isLoadingHistory) {
+      const randomLogo = WELCOME_LOGOS[Math.floor(Math.random() * WELCOME_LOGOS.length)];
+      setWelcomeLogoSrc(randomLogo);
+    }
+  }, [showWelcome, messages.length, isLoadingHistory]);
 
   // УЛУЧШЕНО: Упрощенная анимация логотипа - работает как на сайте
   // Используем тот же подход, что и в Header/Footer - простой CSS класс с inline стилями для аппаратного ускорения
@@ -380,13 +391,13 @@ export function AIChat({ user }: AIChatProps) {
           <div className="flex flex-col items-center justify-center min-h-full py-8 animate-fade-in relative z-10">
             <img
               ref={logoRef}
-              src="/logo.png"
+              src={welcomeLogoSrc}
               alt="PandaPal"
               width={120}
               height={120}
               loading="eager"
               className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-2 animate-logo-bounce object-cover"
-              key={`logo-${messages.length}-${showWelcome ? 'welcome' : 'chat'}`}
+              key={`logo-${messages.length}-${showWelcome ? 'welcome' : 'chat'}-${welcomeLogoSrc}`}
               style={{
                 animation: 'logoBounce 2s ease-in-out infinite',
                 willChange: 'transform',

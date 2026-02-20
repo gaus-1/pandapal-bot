@@ -39,7 +39,7 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
 
   return (
     <section aria-label="Скриншоты Mini App" className="mt-8 sm:mt-10">
-      <div className="rounded-2xl sm:rounded-3xl bg-white/80 dark:bg-slate-800/80 border border-gray-100 dark:border-slate-700 p-4 sm:p-5 md:p-6">
+      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 hover:border-gray-200 dark:hover:border-slate-600 shadow-md hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300 p-4 sm:p-5 md:p-6">
         <div className="flex items-center justify-between gap-3 mb-4">
           <h3 className="font-display text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-50">
             Интерфейс Mini App
@@ -50,7 +50,7 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
         </div>
 
         <div
-          className="relative"
+          className="relative flex items-center justify-center"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -63,8 +63,8 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
             ←
           </button>
 
-          <div className="mx-11 rounded-xl overflow-hidden border border-gray-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
-            <div className="aspect-[9/16] max-h-[540px]">
+          <div className="mx-auto w-full sm:w-[calc(100%-5.5rem)] rounded-xl overflow-hidden border border-gray-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+            <div className="aspect-[9/16] max-h-[540px] flex items-center justify-center">
               {broken[current.id] ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-center p-5">
                   <p className="font-medium text-gray-700 dark:text-slate-200 mb-2">{current.title}</p>
@@ -77,7 +77,7 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
                   src={current.src}
                   alt={current.title}
                   loading="lazy"
-                  className="w-full h-full object-contain"
+                  className="max-w-full max-h-full w-auto h-auto object-contain object-center mx-auto"
                   onError={() => setBroken((prev) => ({ ...prev, [current.id]: true }))}
                 />
               )}
