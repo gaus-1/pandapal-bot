@@ -69,10 +69,6 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
             {isDescriptionList ? (
               isBenefitsSection ? (
                 <div className="text-left">
-                  <p className="text-[0.95rem] xs:text-base md:text-lg text-slate-600 dark:text-slate-300 mb-4 sm:mb-5 md:mb-6 max-w-3xl">
-                    Коротко и по делу: выбери важное сейчас, остальное легко посмотреть ниже.
-                  </p>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xs:gap-4 sm:gap-5 md:gap-6">
                     {benefitsGroups.map((group) => (
                       <div
