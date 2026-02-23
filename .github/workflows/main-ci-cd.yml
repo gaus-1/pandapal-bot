@@ -222,11 +222,11 @@ jobs:
           subject-digest: '${{ steps.digest-frontend.outputs.digest }}'
           push-to-registry: false
 
-  # Security: Безопасность и уязвимости
+  # Security: pip-audit на PR и main, bandit только на main
   security:
     name: 🛡️ Security Scan
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
 
     steps:
       - name: 📥 Checkout code
@@ -247,12 +247,13 @@ jobs:
         run: pip-audit
 
       - name: 🛡️ Security linting (bandit)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           bandit -r bot/ -f json -o bandit-report.json -ll --skip B101,B601 || true
 
       - name: 📋 Upload security reports
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
           name: security-reports
           path: bandit-report.json

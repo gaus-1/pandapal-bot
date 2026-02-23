@@ -71,8 +71,3 @@ jobs:
           else
             echo "::error::Missing TELEGRAM_BOT_TOKEN or ADMIN_TELEGRAM_ID secrets"
           fi
-
-      - name: Send recovery notification
-        if: steps.health.outputs.status == 'healthy'
-        run: |
-          echo "Service is healthy"
