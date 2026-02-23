@@ -16,6 +16,7 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
     if frontend_dist.exists():
         static_files = [
             "logo.png",
+            "qr-bot.png",
             "favicon.ico",
             "favicon.svg",
             "favicon-16.png",

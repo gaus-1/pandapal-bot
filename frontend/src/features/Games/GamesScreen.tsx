@@ -268,32 +268,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
         )}
         </div>
       </div>
-
-      {/* Нижняя навигация */}
-      <nav className="flex-shrink-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom">
-        <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
-          <button
-            onClick={() => {
-              telegram.hapticFeedback('light');
-              setCurrentScreen('ai-chat');
-            }}
-            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 transition-colors touch-manipulation min-h-[60px] border border-gray-200 dark:border-slate-700"
-          >
-            <span className="text-2xl">💬</span>
-            <span className="text-xs font-medium text-gray-900 dark:text-slate-100">Чат</span>
-          </button>
-          <button
-            onClick={() => {
-              telegram.hapticFeedback('light');
-              setCurrentScreen('premium');
-            }}
-            className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 transition-colors touch-manipulation min-h-[60px] border border-gray-200 dark:border-slate-700"
-          >
-            <span className="text-2xl">👑</span>
-            <span className="text-xs font-medium text-gray-900 dark:text-slate-100">Premium</span>
-          </button>
-        </div>
-      </nav>
+      {/* Нижняя навигация убрана: из списка игр и из самой игры возврат только по стрелке вверху */}
     </div>
   );
 }
