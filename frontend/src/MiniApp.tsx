@@ -294,7 +294,6 @@ function MiniAppContent() {
           <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
             <NavButton icon="💬" label="Чат" isActive={false} onClick={() => navigateTo('ai-chat')} />
             <NavButton icon="🏆" label="Достижения" isActive={false} onClick={() => navigateTo('achievements')} />
-            <NavButton icon="🎮" label="PandaPalGo" isActive={false} onClick={() => navigateTo('games')} />
             <NavButton icon="👑" label="Premium" isActive={false} onClick={() => navigateTo('premium')} />
           </div>
         </nav>

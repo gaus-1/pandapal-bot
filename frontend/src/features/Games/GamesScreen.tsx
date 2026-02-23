@@ -20,6 +20,13 @@ type GameType = 'tic_tac_toe' | 'checkers' | '2048' | 'erudite' | null;
 
 const GAMES = [
   {
+    id: 'my_panda',
+    name: 'Моя панда',
+    icon: '🐼',
+    description: 'Тамагочи: корми, играй и укладывай панду спать!',
+    color: 'from-blue-200 to-blue-100',
+  },
+  {
     id: 'tic_tac_toe',
     name: 'Крестики-нолики',
     icon: '❌⭕',
@@ -45,13 +52,6 @@ const GAMES = [
     name: 'эрудит',
     icon: '📚',
     description: 'Составляй слова и набирай очки!',
-    color: 'from-blue-200 to-blue-100',
-  },
-  {
-    id: 'my_panda',
-    name: 'Моя панда',
-    icon: '🐼',
-    description: 'Тамагочи: корми, играй и укладывай панду спать!',
     color: 'from-blue-200 to-blue-100',
   },
 ] as const;
@@ -157,7 +157,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
   return (
     <div className="w-full h-full bg-white dark:bg-slate-800 flex flex-col">
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto px-3 xs:px-4 sm:px-4 py-4 sm:py-6">
         {/* Заголовок */}
         <div className="text-center mb-3">
           <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-1">
@@ -199,7 +199,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
                   text-gray-800 dark:text-slate-100 shadow-lg hover:shadow-xl dark:hover:shadow-2xl transform hover:scale-105
                   active:scale-100 active:bg-gradient-to-br ${game.color} dark:active:from-slate-600 dark:active:to-slate-700 transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
-                  text-left h-[120px] flex flex-col overflow-hidden border border-blue-200/50 dark:border-slate-600/50
+                  text-left h-[100px] flex flex-col overflow-hidden border border-blue-200/50 dark:border-slate-600/50
                 `}
               >
                 <div className="text-xl sm:text-2xl mb-0.5 flex-shrink-0 leading-none">{game.icon}</div>
@@ -208,12 +208,12 @@ export function GamesScreen({ user }: GamesScreenProps) {
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
-                  minHeight: '32px',
-                  maxHeight: '32px'
+                  minHeight: '28px',
+                  maxHeight: '28px'
                 }}>{game.description}</p>
 
                 {/* Статистика - всегда резервируем место */}
-                <div className="mt-auto min-h-[24px] flex-shrink-0">
+                <div className="mt-auto min-h-[20px] flex-shrink-0">
                   {hasStats ? (
                     <div className="pt-1.5 border-t border-blue-300/40 dark:border-slate-600/50">
                       <div className="flex justify-between text-xs leading-tight text-gray-700 dark:text-slate-200 font-medium">

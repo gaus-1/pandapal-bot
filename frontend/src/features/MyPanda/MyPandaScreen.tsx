@@ -416,9 +416,9 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       </header>
 
       <div className="flex-1 flex flex-col items-center px-3 xs:px-4 sm:px-4 md:px-5 py-2 sm:py-3 gap-2 sm:gap-3 md:gap-4 min-h-0 min-w-0 pb-20 max-w-full">
-        {/* Реакция панды — контейнер чуть больше для лучшей видимости */}
+        {/* Реакция панды — контейнер компактнее, чтобы не скроллить */}
         <div
-          className="flex-shrink-0 w-full max-w-[165px] fold:max-w-[190px] xs:max-w-[210px] sm:max-w-[260px] md:max-w-[300px] lg:max-w-[320px] max-h-[30vh] fold:max-h-[32vh] xs:max-h-[36vh] sm:max-h-[40vh] md:max-h-[42vh] aspect-square flex items-center justify-center bg-gray-50 dark:bg-slate-700/50 rounded-2xl"
+          className="flex-shrink-0 w-full max-w-[165px] fold:max-w-[190px] xs:max-w-[210px] sm:max-w-[260px] md:max-w-[300px] lg:max-w-[320px] max-h-[24vh] fold:max-h-[26vh] xs:max-h-[28vh] sm:max-h-[32vh] md:max-h-[34vh] aspect-square flex items-center justify-center bg-gray-50 dark:bg-slate-700/50 rounded-2xl"
           aria-label="Панда"
         >
           {showingFall ? (
@@ -508,7 +508,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               type="button"
               onClick={handleFeed}
               disabled={!state.can_feed || !!actionLoading}
-              className="w-full min-h-[40px] sm:min-h-[44px] py-2 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700 text-white transition-all active:scale-95 text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+              className="w-full min-h-[40px] sm:min-h-[44px] py-2 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white transition-all active:scale-95 text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis"
               aria-label="Покормить панду"
               title="Покормить"
             >
@@ -525,7 +525,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               type="button"
               onClick={handlePlay}
               disabled={!state.can_play || !!actionLoading}
-              className="w-full min-h-[40px] sm:min-h-[44px] py-2 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600 text-white transition-all active:scale-95 text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+              className="w-full min-h-[40px] sm:min-h-[44px] py-2 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white transition-all active:scale-95 text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis"
               aria-label="Играть с пандой"
               title="Играть"
             >
@@ -542,7 +542,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               type="button"
               onClick={handleSleep}
               disabled={!state.can_sleep || !!actionLoading}
-              className="w-full min-h-[40px] sm:min-h-[44px] py-2 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white transition-all active:scale-95 text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis"
+              className="w-full min-h-[40px] sm:min-h-[44px] py-2 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white transition-all active:scale-95 text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis"
               aria-label="Уложить панду спать"
               title="Уложить спать"
             >
@@ -554,17 +554,17 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               </span>
             )}
           </div>
-          {/* Ряд 2: Залезть на дерево, Упасть с дерева, Хочет в туалет */}
+          {/* Ряд 2: На дерево, Упасть, В туалет — палитра для светлой и тёмной темы */}
           <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
               type="button"
               onClick={handleClimb}
               disabled={!!actionLoading}
-              className="w-full min-h-[38px] sm:min-h-[42px] py-1.5 px-1 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white transition-all active:scale-95 text-[11px] sm:text-xs whitespace-nowrap overflow-hidden text-ellipsis"
-              aria-label="Залезть на дерево"
-              title="Залезть на дерево"
+              className="w-full min-h-[38px] sm:min-h-[42px] py-1.5 px-1 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600 text-white transition-all active:scale-95 text-[11px] sm:text-xs whitespace-nowrap overflow-hidden text-ellipsis"
+              aria-label="На дерево"
+              title="На дерево"
             >
-              Залезть на дерево
+              На дерево
             </button>
           </div>
           <div className="flex flex-col items-center gap-0.5 min-w-0">
@@ -572,11 +572,11 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               type="button"
               onClick={handleFall}
               disabled={!!actionLoading}
-              className="w-full min-h-[38px] sm:min-h-[42px] py-1.5 px-1 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white transition-all active:scale-95 text-[11px] sm:text-xs whitespace-nowrap overflow-hidden text-ellipsis"
-              aria-label="Упасть с дерева"
-              title="Упасть с дерева"
+              className="w-full min-h-[38px] sm:min-h-[42px] py-1.5 px-1 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600 text-white transition-all active:scale-95 text-[11px] sm:text-xs whitespace-nowrap overflow-hidden text-ellipsis"
+              aria-label="Упасть"
+              title="Упасть"
             >
-              {actionLoading === 'fall' ? '...' : 'Упасть с дерева'}
+              {actionLoading === 'fall' ? '...' : 'Упасть'}
             </button>
           </div>
           <div className="flex flex-col items-center gap-0.5 min-w-0">
@@ -584,11 +584,11 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               type="button"
               onClick={handleToilet}
               disabled={state.can_toilet === false || !!actionLoading}
-              className="w-full min-h-[38px] sm:min-h-[42px] py-1.5 px-1 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white transition-all active:scale-95 text-[11px] sm:text-xs whitespace-nowrap overflow-hidden text-ellipsis"
-              aria-label="Хочет в туалет"
-              title="Хочет в туалет"
+              className="w-full min-h-[38px] sm:min-h-[42px] py-1.5 px-1 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-violet-600 hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-600 text-white transition-all active:scale-95 text-[11px] sm:text-xs whitespace-nowrap overflow-hidden text-ellipsis"
+              aria-label="В туалет"
+              title="В туалет"
             >
-              {actionLoading === 'toilet' ? '...' : 'Хочет в туалет'}
+              {actionLoading === 'toilet' ? '...' : 'В туалет'}
             </button>
             {cooldown.toiletInSec > 0 && (
               <span className="text-[10px] sm:text-xs text-gray-500 dark:text-slate-500" aria-hidden="true">
@@ -599,7 +599,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
         </div>
 
         {achievementEntries.length > 0 && (
-          <div className="w-full max-w-[320px] mt-2 p-3 rounded-xl bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600">
+          <div className="w-full max-w-[280px] xs:max-w-[300px] sm:max-w-[320px] mt-2 p-2.5 sm:p-3 rounded-xl bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600">
             <h3 className="font-display text-xs sm:text-sm font-semibold text-gray-900 dark:text-slate-100 mb-2">
               Достижения
             </h3>
