@@ -74,6 +74,11 @@ describe('SEO: index.html', () => {
     expect(html).toContain('@PandaPalBot');
   });
 
+  it('SoftwareApplication Schema должен содержать installUrl на бота', () => {
+    const html = readIndexHtml();
+    expect(html).toContain('"installUrl": "https://t.me/PandaPalBot"');
+  });
+
   it('Organization Schema не должен содержать aggregateRating', () => {
     const html = readIndexHtml();
     const orgBlock = html.includes('"@type": "Organization"')
@@ -150,5 +155,11 @@ describe('AEO: llms.txt', () => {
       llms.includes('virtual pet') ||
       llms.includes('виртуальный питомец');
     expect(hasPandaMention).toBe(true);
+  });
+
+  it('должен содержать прямую ссылку на тамагочи (startapp=my_panda)', () => {
+    const llms = readLlmsTxt();
+    expect(llms).toContain('startapp=my_panda');
+    expect(llms).toContain('t.me/PandaPalBot');
   });
 });

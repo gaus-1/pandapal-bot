@@ -99,7 +99,8 @@
 
     <!-- Canonical URL -->
     <link rel="canonical" href="https://pandapal.ru/">
-    <link rel="alternate" type="text/plain" href="/.well-known/llms.txt" title="LLMs Policy" />
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs Policy" />
+    <link rel="alternate" type="text/plain" href="/.well-known/llms.txt" title="LLMs Policy (well-known)" />
 
     <!-- Language alternates (RU, EN, BY, KZ, MD, RO, KG, UZ, TJ + диаспора: US, GB, IL, DE, FR, LV, LT, EE, CA, AU, AR, BR, MX, NZ, UY) -->
     <link rel="alternate" hreflang="ru" href="https://pandapal.ru/">
@@ -197,6 +198,7 @@
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Telegram",
       "url": "https://pandapal.ru",
+      "installUrl": "https://t.me/PandaPalBot",
       "mainEntityOfPage": { "@type": "WebPage", "@id": "https://pandapal.ru/" },
       "datePublished": "2024-01-01",
       "dateModified": "2026-02-19",
@@ -355,6 +357,14 @@
             "@type": "Answer",
             "text": "Виртуальный питомец (тамагочи) в Mini App: ребёнок кормит панду, играет с ней и укладывает спать. Реакции панды и достижения. Доступ по боту @PandaPalBot."
           }
+        },
+        {
+          "@type": "Question",
+          "name": "Как открыть игру Моя панда (тамагочи) сразу?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Прямая ссылка на игру «Моя панда» в Telegram Mini App: https://t.me/PandaPalBot?startapp=my_panda — откроет бота и сразу экран с виртуальным питомцем. Сайт: pandapal.ru/igra-moya-panda."
+          }
         }
       ]
     }
@@ -390,6 +400,14 @@
             "@type": "Answer",
             "text": "PandaPal is free for 30 requests per month. Premium subscription with unlimited requests and extra features is 299 RUB/month. Visit pandapal.ru or @PandaPalBot in Telegram."
           }
+        },
+        {
+          "@type": "Question",
+          "name": "Where to play My Panda tamagotchi?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Open the tamagotchi (My Panda) directly in Telegram Mini App: https://t.me/PandaPalBot?startapp=my_panda. Or open @PandaPalBot, then Menu and My Panda. Website: pandapal.ru/igra-moya-panda."
+          }
         }
       ]
     }
@@ -409,7 +427,7 @@
     }
     </script>
 
-    <!-- WebPage с Speakable для голосового и ИИ-поиска -->
+    <!-- WebPage для голосового и ИИ-поиска (speakable требует статичный контент в DOM) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -417,8 +435,8 @@
       "@id": "https://pandapal.ru/#webpage",
       "name": "PandaPal — безопасный AI-друг для детей",
       "url": "https://pandapal.ru/",
-      "description": "PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса. Telegram Mini App, помощь с уроками по всем предметам, 24/7.",
-      "dateModified": "2026-02-19"
+      "description": "PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса. Telegram Mini App: помощь с уроками по всем предметам, игра «Моя панда» (тамагочи). Открыть: https://t.me/PandaPalBot или сразу тамагочи: https://t.me/PandaPalBot?startapp=my_panda.",
+      "dateModified": "2026-02-23"
     }
     </script>
 

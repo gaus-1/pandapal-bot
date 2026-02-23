@@ -24,6 +24,9 @@ export const PANDA_PET_PAGE_TITLE_RU = 'Моя панда — виртуальн
 export const PANDA_PET_DESCRIPTION_RU =
   '«Моя панда» — виртуальный питомец (тамагочи) в PandaPal: кормите, играйте, укладывайте спать. Реакции панды и достижения. Доступ в Mini App по боту @PandaPalBot.';
 
+/** Прямая ссылка на игру «Моя панда» в Mini App (deep link) */
+export const PANDA_PET_DIRECT_LINK = 'https://t.me/PandaPalBot?startapp=my_panda';
+
 /** FAQ для страницы «Моя панда» */
 export const PANDA_PET_FAQ_RU: { question: string; answer: string }[] = [
   {
@@ -40,5 +43,10 @@ export const PANDA_PET_FAQ_RU: { question: string; answer: string }[] = [
     question: 'Для какого возраста подходит «Моя панда»?',
     answer:
       'Виртуальный питомец рассчитан на детей младшего и среднего школьного возраста. Игра бесплатна и доступна всем пользователям бота PandaPal.',
+  },
+  {
+    question: 'Как открыть игру Моя панда сразу?',
+    answer:
+      'Прямая ссылка на тамагочи в Telegram: https://t.me/PandaPalBot?startapp=my_panda — откроет бота и сразу экран с виртуальной пандой.',
   },
 ];

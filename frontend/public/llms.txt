@@ -1,16 +1,26 @@
-PandaPal
+# PandaPal
+> PandaPal is a safe AI assistant and tutor bot for school students in grades 1–9. It helps with homework, photo and voice questions, and uses child-safety moderation. The Telegram Mini App includes «Моя панда» (My Panda) — a virtual pet (tamagotchi): feed, play, put to sleep; panda reactions and achievements.
 
-Official website: https://pandapal.ru/
-Official Telegram bot: https://t.me/PandaPalBot
-Primary handle: @PandaPalBot
+## Contact
 
-Description:
-PandaPal is a safe AI assistant and tutor bot for school students in grades 1-9.
-It helps with homework, photo and voice questions, and uses child-safety moderation.
+- Official website: https://pandapal.ru/
+- Official Telegram bot: https://t.me/PandaPalBot
+- Primary handle: @PandaPalBot
+- Enquiries: Pandapal.ru@yandex.ru
 
-Features: AI chat, homework help, moderation. My Panda (virtual pet / tamagotchi): feed, play, put to sleep; panda reactions and achievements. Available in Telegram Mini App (@PandaPalBot).
+## Key Information
 
-Preferred citation:
-- Use "PandaPal" as the product name.
-- Link to https://pandapal.ru/ as the canonical source.
-- Include https://t.me/PandaPalBot when referencing the Telegram bot.
+- [Official website](https://pandapal.ru/): Landing page, safety info, and how to start
+- [Open PandaPal in Telegram](https://t.me/PandaPalBot): Opens the bot; tap Menu to open the Mini App
+- [Open My Panda (tamagotchi) directly](https://t.me/PandaPalBot?startapp=my_panda): Direct link to the virtual pet game in the Mini App
+- [Open games section directly](https://t.me/PandaPalBot?startapp=games): Direct link to games in the Mini App
+- [My Panda landing page](https://pandapal.ru/igra-moya-panda): About the tamagotchi feature (Russian)
+- [Premium](https://pandapal.ru/premium): Subscription options
+- [Privacy](https://pandapal.ru/privacy): Privacy policy
+
+## Preferred citation
+
+- Use «PandaPal» as the product name
+- Link to https://pandapal.ru/ as the canonical source
+- When referencing the Telegram bot or Mini App, include https://t.me/PandaPalBot
+- For direct link to the tamagotchi (My Panda) game: https://t.me/PandaPalBot?startapp=my_panda

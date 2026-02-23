@@ -99,6 +99,8 @@ function MiniAppContent() {
           const startParamFromInit = telegram.getStartParam();
           if (startParamFromInit === 'games') {
             useAppStore.getState().setCurrentScreen('games');
+          } else if (startParamFromInit === 'my_panda') {
+            useAppStore.getState().setCurrentScreen('my-panda');
           }
         } else {
           // Если через 2 секунды все еще нет - показываем ошибку только если точно в Telegram
@@ -175,6 +177,8 @@ function MiniAppContent() {
 
     if (startParam === 'games') {
       setCurrentScreen('games');
+    } else if (startParam === 'my_panda') {
+      setCurrentScreen('my-panda');
     }
 
     // Показываем кнопку "Назад" для навигации

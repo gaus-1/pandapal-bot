@@ -7,7 +7,7 @@
 import React, { useEffect, useState } from 'react';
 import { Header, Hero, Features, Section, Footer, CallToAction, SeoHead } from './components';
 import { SECTIONS } from './config/constants';
-import { PANDA_PET_PAGE_TITLE_RU, PANDA_PET_DESCRIPTION_RU, PANDA_PET_FAQ_RU } from './config/seo-text';
+import { PANDA_PET_PAGE_TITLE_RU, PANDA_PET_DESCRIPTION_RU, PANDA_PET_FAQ_RU, PANDA_PET_DIRECT_LINK } from './config/seo-text';
 import { telegram } from './services/telegram';
 import { MiniApp } from './MiniApp';
 import { PremiumScreen } from './features/Premium/PremiumScreen';
@@ -365,6 +365,8 @@ const App: React.FC = () => {
           canonicalPath="/igra-moya-panda"
           locale="ru"
           faq={PANDA_PET_FAQ_RU}
+          directLinkUrl={PANDA_PET_DIRECT_LINK}
+          directLinkLabel="Открыть игру сразу"
         />
         <Footer />
         <CookieBanner />
