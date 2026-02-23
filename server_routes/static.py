@@ -251,13 +251,15 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
                     return web.Response(status=404, text="Not Found")
                 if not file_path.exists() or not file_path.is_file():
                     return web.Response(status=404, text="Not Found")
-                content_type = (
-                    "image/png"
-                    if file_path.suffix.lower() == ".png"
-                    else "application/octet-stream"
-                )
-                if file_path.suffix.lower() == ".mp4":
+                suffix = file_path.suffix.lower()
+                if suffix == ".png":
+                    content_type = "image/png"
+                elif suffix in (".jpg", ".jpeg"):
+                    content_type = "image/jpeg"
+                elif suffix == ".mp4":
                     content_type = "video/mp4"
+                else:
+                    content_type = "application/octet-stream"
                 return web.FileResponse(
                     file_path,
                     headers={

@@ -36,3 +36,15 @@ export function getPandaImagePath(key: PandaReactionKey): string {
 export function getPandaVideoPath(key: PandaReactionKey): string {
   return `${PANDA_VIDEO_BASE}/panda-${key}.mp4`;
 }
+
+/** Картинка: панда залезает на дерево (игровая сцена) */
+export const PANDA_CLIMB_IMAGE = `${PANDA_ASSETS_BASE}/panda-climbs-a-tree.jpg`;
+
+/** Картинка: панда упала с дерева (игровая сцена) */
+export const PANDA_FALL_IMAGE = `${PANDA_ASSETS_BASE}/panda-falls.jpg`;
+
+/** Картинка: панда в туалете (сцена «хочет в туалет») */
+export const PANDA_POOPS_IMAGE = `${PANDA_ASSETS_BASE}/Panda-poops.jpg`;
+
+/** Видео кормления: панда ест бамбук (показывается рандомно вместо картинки при Покормить) */
+export const PANDA_FEED_VIDEO = `${PANDA_VIDEO_BASE}/panda_eats_bamboo.mp4`;

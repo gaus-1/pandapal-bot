@@ -48,6 +48,7 @@ class PandaPet(Base):
     last_fed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_played_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_slept_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_toilet_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     feed_count_since_hour_start: Mapped[int] = mapped_column(
         SmallInteger, nullable=False, server_default="0"

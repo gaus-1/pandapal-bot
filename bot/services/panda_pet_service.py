@@ -38,8 +38,10 @@ PLAY_ENERGY_COST = 10
 SLEEP_ENERGY_DELTA = 30
 MIN_PLAY_INTERVAL_MINUTES = 5
 MIN_SLEEP_INTERVAL_MINUTES = 10
+TOILET_COOLDOWN_MINUTES = 20
 ABSENCE_OFFENDED_HOURS = 24
 MOOD_OFFENDED_MAX = 65
+TOILET_MOOD_DELTA = 15
 
 
 class PandaPetService:
@@ -107,6 +109,13 @@ class PandaPetService:
             return True
         return (now - last).total_seconds() >= MIN_SLEEP_INTERVAL_MINUTES * 60
 
+    def _can_toilet(self, pet: PandaPet, now: datetime) -> bool:
+        """Можно ли «хочет в туалет»: прошло TOILET_COOLDOWN_MINUTES с last_toilet_at."""
+        last = _as_datetime(pet.last_toilet_at)
+        if last is None:
+            return True
+        return (now - last).total_seconds() >= TOILET_COOLDOWN_MINUTES * 60
+
     def _maybe_reset_feed_hour(self, pet: PandaPet, now: datetime) -> None:
         """Сбросить счётчик кормлений, если час с feed_hour_start_at прошёл."""
         start_at = _as_datetime(pet.feed_hour_start_at)
@@ -151,9 +160,11 @@ class PandaPetService:
             "last_fed_at": _iso(pet.last_fed_at),
             "last_played_at": _iso(pet.last_played_at),
             "last_slept_at": _iso(pet.last_slept_at),
+            "last_toilet_at": _iso(pet.last_toilet_at),
             "can_feed": self._can_feed(pet, now),
             "can_play": self._can_play(pet, now),
             "can_sleep": self._can_sleep(pet, now),
+            "can_toilet": self._can_toilet(pet, now),
             "consecutive_visit_days": pet.consecutive_visit_days,
             "achievements": pet.achievements or {},
         }
@@ -207,4 +218,24 @@ class PandaPetService:
         pet.last_slept_at = now
         self.db.flush()
         logger.debug("Panda slept: user=%s energy=%s", telegram_id, pet.energy)
+        return self.get_state(telegram_id)
+
+    def fall_from_tree(self, telegram_id: int) -> dict:
+        """Панда упала с дерева: настроение падает до «обиженной» (max 65). Возвращает новое состояние."""
+        pet = self.get_or_create(telegram_id)
+        pet.mood = min(pet.mood, MOOD_OFFENDED_MAX)
+        self.db.flush()
+        logger.debug("Panda fell from tree: user=%s mood=%s", telegram_id, pet.mood)
+        return self.get_state(telegram_id)
+
+    def toilet(self, telegram_id: int) -> dict:
+        """Хочет в туалет: кулдаун 20 мин, поднимает настроение (довольная панда). Возвращает новое состояние."""
+        pet = self.get_or_create(telegram_id)
+        now = datetime.now(UTC)
+        if not self._can_toilet(pet, now):
+            raise ValueError("Действие доступно раз в 20 минут")
+        pet.last_toilet_at = now
+        pet.mood = min(100, pet.mood + TOILET_MOOD_DELTA)
+        self.db.flush()
+        logger.debug("Panda toilet: user=%s mood=%s", telegram_id, pet.mood)
         return self.get_state(telegram_id)

@@ -8,11 +8,20 @@ import {
   feedPandaPet,
   playPandaPet,
   sleepPandaPet,
+  fallFromTreePandaPet,
+  toiletPandaPet,
   type PandaPetState as ApiState,
 } from '../../services/api';
 import { telegram } from '../../services/telegram';
 import type { UserProfile } from '../../services/api';
-import { getPandaImagePath, getPandaVideoPath } from './constants';
+import {
+  getPandaImagePath,
+  getPandaVideoPath,
+  PANDA_CLIMB_IMAGE,
+  PANDA_FALL_IMAGE,
+  PANDA_POOPS_IMAGE,
+  PANDA_FEED_VIDEO,
+} from './constants';
 import {
   getPandaReactionKey,
   getLastActionFromState,
@@ -47,9 +56,11 @@ const DEFAULT_STATE: ApiState = {
   last_fed_at: null,
   last_played_at: null,
   last_slept_at: null,
+  last_toilet_at: null,
   can_feed: true,
   can_play: true,
   can_sleep: true,
+  can_toilet: true,
   consecutive_visit_days: 0,
   achievements: {},
 };
@@ -96,6 +107,11 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const [showVideo, setShowVideo] = useState(true);
   const [cooldownTick, setCooldownTick] = useState(0);
   const [imageLoadError, setImageLoadError] = useState(false);
+  const [showClimbUntil, setShowClimbUntil] = useState<number | null>(null);
+  const [showFallUntil, setShowFallUntil] = useState<number | null>(null);
+  const [showToiletHappyUntil, setShowToiletHappyUntil] = useState<number | null>(null);
+  /** При кормлении: true = видео, false = картинка eating, null = ещё не выбрано */
+  const [feedMediaIsVideo, setFeedMediaIsVideo] = useState<boolean | null>(null);
 
   const loadState = useCallback(async () => {
     try {
@@ -121,18 +137,33 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   }, [isMockUser, loadState]);
 
   // Хук всегда вызывается (правила React) — обновляет showVideo при смене реакции
+  const lastAction = state ? getLastActionFromState(state) : null;
   const reactionKey = state
     ? getPandaReactionKey({
         hunger: state.hunger,
         mood: state.mood,
         energy: state.energy,
-        lastAction: getLastActionFromState(state),
+        lastAction,
       })
     : null;
   const hasVideo = reactionKey ? REACTIONS_WITH_VIDEO.includes(reactionKey) : false;
+  const isFeedReaction =
+    lastAction === 'feed' && (reactionKey === 'eating' || reactionKey === 'full');
+
   useEffect(() => {
     if (reactionKey && hasVideo) setShowVideo(true);
   }, [reactionKey, hasVideo]);
+  useEffect(() => {
+    if (isFeedReaction && feedMediaIsVideo === true) setShowVideo(true);
+  }, [isFeedReaction, feedMediaIsVideo]);
+  useEffect(() => {
+    if (lastAction !== 'feed') setFeedMediaIsVideo(null);
+  }, [lastAction]);
+  useEffect(() => {
+    if (isFeedReaction && feedMediaIsVideo === null) {
+      setFeedMediaIsVideo(Math.random() < 0.5);
+    }
+  }, [isFeedReaction, feedMediaIsVideo]);
   useEffect(() => {
     setImageLoadError(false);
   }, [reactionKey]);
@@ -140,14 +171,37 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   // Обновление таймеров кулдауна раз в секунду
   useEffect(() => {
     if (!state) return;
-    const hasCooldown = !state.can_feed || !state.can_play || !state.can_sleep;
+    const hasCooldown =
+      !state.can_feed ||
+      !state.can_play ||
+      !state.can_sleep ||
+      (state.can_toilet === false);
     if (!hasCooldown) return;
     const t = setInterval(() => setCooldownTick((n) => n + 1), 1000);
     return () => clearInterval(t);
-  }, [state?.can_feed, state?.can_play, state?.can_sleep, state]);
+  }, [state?.can_feed, state?.can_play, state?.can_sleep, state?.can_toilet, state]);
+
+  // Сброс показа climb/fall/toilet по истечении времени (5 сек climb, 10 сек fall, 10 сек toilet happy)
+  useEffect(() => {
+    const t = setInterval(() => {
+      const now = Date.now();
+      setShowClimbUntil((prev) => (prev != null && now >= prev ? null : prev));
+      setShowFallUntil((prev) => (prev != null && now >= prev ? null : prev));
+      setShowToiletHappyUntil((prev) => (prev != null && now >= prev ? null : prev));
+    }, 500);
+    return () => clearInterval(t);
+  }, []);
 
   const cooldown = useMemo(
-    () => (state ? getCooldownInfo(state) : { playInSec: 0, sleepInSec: 0, feedLabel: null as string | null }),
+    () =>
+      state
+        ? getCooldownInfo(state)
+        : {
+            playInSec: 0,
+            sleepInSec: 0,
+            toiletInSec: 0,
+            feedLabel: null as string | null,
+          },
     [state, cooldownTick]
   );
   const achievementEntries = state && state.achievements && typeof state.achievements === 'object'
@@ -157,6 +211,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const handleFeed = async () => {
     if (!state?.can_feed || actionLoading) return;
     telegram.hapticFeedback('light');
+    setFeedMediaIsVideo(Math.random() < 0.5);
     setActionLoading('feed');
     try {
       const next = await feedPandaPet(user.telegram_id);
@@ -233,6 +288,68 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
     }
   };
 
+  const handleToilet = async () => {
+    if (!state || state.can_toilet === false || actionLoading) return;
+    telegram.hapticFeedback('light');
+    setActionLoading('toilet');
+    try {
+      const next = await toiletPandaPet(user.telegram_id);
+      setState(next);
+      setShowToiletHappyUntil(Date.now() + TOILET_HAPPY_DURATION_MS);
+    } catch (err) {
+      if (user.telegram_id === 0 && state) {
+        setState({
+          ...state,
+          mood: Math.min(100, state.mood + 15),
+          last_toilet_at: new Date().toISOString(),
+          can_toilet: false,
+        });
+        setShowToiletHappyUntil(Date.now() + TOILET_HAPPY_DURATION_MS);
+      } else {
+        const msg = err instanceof Error ? err.message : 'Ошибка';
+        setError(msg);
+        telegram.notifyError();
+        telegram.showAlert(msg);
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const CLIMB_DURATION_MS = 5000;
+  const FALL_DURATION_MS = 10000;
+  const TOILET_HAPPY_DURATION_MS = 10000;
+  const MOOD_OFFENDED_MAX = 65;
+
+  const handleClimb = () => {
+    if (actionLoading) return;
+    telegram.hapticFeedback('light');
+    setShowClimbUntil(Date.now() + CLIMB_DURATION_MS);
+  };
+
+  const handleFall = async () => {
+    if (actionLoading) return;
+    telegram.hapticFeedback('light');
+    setActionLoading('fall');
+    try {
+      const next = await fallFromTreePandaPet(user.telegram_id);
+      setState(next);
+      setShowFallUntil(Date.now() + FALL_DURATION_MS);
+    } catch (err) {
+      if (user.telegram_id === 0 && state) {
+        setState({ ...state, mood: Math.min(state.mood, MOOD_OFFENDED_MAX) });
+        setShowFallUntil(Date.now() + FALL_DURATION_MS);
+      } else {
+        const msg = err instanceof Error ? err.message : 'Ошибка';
+        setError(msg);
+        telegram.notifyError();
+        telegram.showAlert(msg);
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-4 bg-white dark:bg-slate-800 safe-area-inset">
@@ -265,11 +382,25 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
 
   if (!state) return null;
 
+  const now = Date.now();
+  const showingFall = showFallUntil != null && now < showFallUntil;
+  const showingToiletHappy =
+    !showingFall && showToiletHappyUntil != null && now < showToiletHappyUntil;
+  const showingClimb =
+    !showingFall &&
+    !showingToiletHappy &&
+    showClimbUntil != null &&
+    now < showClimbUntil;
+
   const imageSrc =
     reactionKey
       ? (imageLoadError ? getPandaImagePath('neutral') : getPandaImagePath(reactionKey))
       : '';
   const displayVideo = hasVideo && showVideo;
+  const displayFeedVideo =
+    isFeedReaction && feedMediaIsVideo === true && showVideo;
+  const displayFeedImage =
+    isFeedReaction && (feedMediaIsVideo === false || !showVideo);
 
   return (
     <div className="h-full flex flex-col bg-white dark:bg-slate-800 overflow-auto safe-area-inset">
@@ -285,12 +416,46 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       </header>
 
       <div className="flex-1 flex flex-col items-center px-3 xs:px-4 sm:px-4 md:px-5 py-2 sm:py-3 gap-2 sm:gap-3 md:gap-4 min-h-0 min-w-0 pb-20 max-w-full">
-        {/* Реакция панды — поднята выше; ограничена по высоте под все устройства */}
+        {/* Реакция панды — контейнер чуть больше для лучшей видимости */}
         <div
-          className="flex-shrink-0 w-full max-w-[140px] fold:max-w-[160px] xs:max-w-[180px] sm:max-w-[220px] md:max-w-[260px] lg:max-w-[280px] max-h-[26vh] fold:max-h-[28vh] xs:max-h-[32vh] sm:max-h-[36vh] md:max-h-[38vh] aspect-square flex items-center justify-center bg-gray-50 dark:bg-slate-700/50 rounded-2xl"
+          className="flex-shrink-0 w-full max-w-[165px] fold:max-w-[190px] xs:max-w-[210px] sm:max-w-[260px] md:max-w-[300px] lg:max-w-[320px] max-h-[30vh] fold:max-h-[32vh] xs:max-h-[36vh] sm:max-h-[40vh] md:max-h-[42vh] aspect-square flex items-center justify-center bg-gray-50 dark:bg-slate-700/50 rounded-2xl"
           aria-label="Панда"
         >
-          {displayVideo && reactionKey ? (
+          {showingFall ? (
+            <img
+              src={PANDA_FALL_IMAGE}
+              alt="Панда упала с дерева"
+              className="max-w-full max-h-full object-contain"
+            />
+          ) : showingToiletHappy ? (
+            <img
+              src={PANDA_POOPS_IMAGE}
+              alt="Панда в туалете"
+              className="max-w-full max-h-full object-contain"
+            />
+          ) : showingClimb ? (
+            <img
+              src={PANDA_CLIMB_IMAGE}
+              alt="Панда залезает на дерево"
+              className="max-w-full max-h-full object-contain"
+            />
+          ) : displayFeedVideo ? (
+            <video
+              src={PANDA_FEED_VIDEO}
+              autoPlay
+              muted
+              playsInline
+              className="max-w-full max-h-full w-full h-full object-contain"
+              aria-label="Панда ест бамбук"
+              onEnded={() => setShowVideo(false)}
+            />
+          ) : displayFeedImage ? (
+            <img
+              src={getPandaImagePath('eating')}
+              alt="Панда ест"
+              className="max-w-full max-h-full object-contain"
+            />
+          ) : displayVideo && reactionKey ? (
             <video
               src={getPandaVideoPath(reactionKey)}
               autoPlay
@@ -315,7 +480,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
           ) : null}
         </div>
         <p className="font-sans text-xs sm:text-sm text-gray-600 dark:text-slate-500 text-center -mt-0.5">
-          После действия выражение панды меняется ~{LAST_ACTION_DURATION_SEC} сек.
+          После действия реакция панды меняется ~{LAST_ACTION_DURATION_SEC} сек.
         </p>
         <div className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] space-y-2 sm:space-y-3">
           <Bar
@@ -335,14 +500,15 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
           />
         </div>
 
-        {/* Три действия в один ряд; контрастные цвета для светлой и тёмной темы */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full max-w-[320px] sm:max-w-[360px] md:max-w-[400px] min-w-0 shrink-0">
+        {/* Шесть кнопок: по три в ряд; гармоничные цвета и размеры для светлой и тёмной темы */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-2.5 w-full max-w-[340px] sm:max-w-[380px] md:max-w-[420px] min-w-0 shrink-0">
+          {/* Ряд 1: Покормить, Играть, Спать */}
           <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
               type="button"
               onClick={handleFeed}
               disabled={!state.can_feed || !!actionLoading}
-              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700 text-white transition-all active:scale-95 text-sm sm:text-base whitespace-nowrap overflow-hidden text-ellipsis"
+              className="w-full min-h-[40px] sm:min-h-[44px] py-2 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700 text-white transition-all active:scale-95 text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis"
               aria-label="Покормить панду"
               title="Покормить"
             >
@@ -359,7 +525,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               type="button"
               onClick={handlePlay}
               disabled={!state.can_play || !!actionLoading}
-              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600 text-white transition-all active:scale-95 text-sm sm:text-base whitespace-nowrap overflow-hidden text-ellipsis"
+              className="w-full min-h-[40px] sm:min-h-[44px] py-2 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600 text-white transition-all active:scale-95 text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis"
               aria-label="Играть с пандой"
               title="Играть"
             >
@@ -376,7 +542,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               type="button"
               onClick={handleSleep}
               disabled={!state.can_sleep || !!actionLoading}
-              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white transition-all active:scale-95 text-sm sm:text-base whitespace-nowrap overflow-hidden text-ellipsis"
+              className="w-full min-h-[40px] sm:min-h-[44px] py-2 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white transition-all active:scale-95 text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis"
               aria-label="Уложить панду спать"
               title="Уложить спать"
             >
@@ -385,6 +551,48 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             {cooldown.sleepInSec > 0 && (
               <span className="text-[10px] sm:text-xs text-gray-500 dark:text-slate-500" aria-hidden="true">
                 через {Math.ceil(cooldown.sleepInSec / 60)} мин
+              </span>
+            )}
+          </div>
+          {/* Ряд 2: Залезть на дерево, Упасть с дерева, Хочет в туалет */}
+          <div className="flex flex-col items-center gap-0.5 min-w-0">
+            <button
+              type="button"
+              onClick={handleClimb}
+              disabled={!!actionLoading}
+              className="w-full min-h-[38px] sm:min-h-[42px] py-1.5 px-1 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white transition-all active:scale-95 text-[11px] sm:text-xs whitespace-nowrap overflow-hidden text-ellipsis"
+              aria-label="Залезть на дерево"
+              title="Залезть на дерево"
+            >
+              Залезть на дерево
+            </button>
+          </div>
+          <div className="flex flex-col items-center gap-0.5 min-w-0">
+            <button
+              type="button"
+              onClick={handleFall}
+              disabled={!!actionLoading}
+              className="w-full min-h-[38px] sm:min-h-[42px] py-1.5 px-1 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white transition-all active:scale-95 text-[11px] sm:text-xs whitespace-nowrap overflow-hidden text-ellipsis"
+              aria-label="Упасть с дерева"
+              title="Упасть с дерева"
+            >
+              {actionLoading === 'fall' ? '...' : 'Упасть с дерева'}
+            </button>
+          </div>
+          <div className="flex flex-col items-center gap-0.5 min-w-0">
+            <button
+              type="button"
+              onClick={handleToilet}
+              disabled={state.can_toilet === false || !!actionLoading}
+              className="w-full min-h-[38px] sm:min-h-[42px] py-1.5 px-1 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-sky-600 hover:bg-sky-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white transition-all active:scale-95 text-[11px] sm:text-xs whitespace-nowrap overflow-hidden text-ellipsis"
+              aria-label="Хочет в туалет"
+              title="Хочет в туалет"
+            >
+              {actionLoading === 'toilet' ? '...' : 'Хочет в туалет'}
+            </button>
+            {cooldown.toiletInSec > 0 && (
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-slate-500" aria-hidden="true">
+                через {Math.ceil(cooldown.toiletInSec / 60)} мин
               </span>
             )}
           </div>

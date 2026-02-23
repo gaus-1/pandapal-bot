@@ -160,6 +160,34 @@ class TestPandaPetAPI(AioHTTPTestCase):
         assert data["energy"] == 80
 
     @unittest_run_loop
+    async def test_fall_from_tree_sets_offended_mood(self):
+        """POST fall-from-tree понижает mood до offended (≤65) и возвращает состояние."""
+        with patch("bot.api.panda_pet_endpoints.require_owner", return_value=None):
+            resp = await self.client.request(
+                "POST",
+                f"/api/miniapp/panda-pet/{self.test_telegram_id}/fall-from-tree",
+                json={},
+            )
+        assert resp.status == 200
+        data = await resp.json()
+        assert data["mood"] <= 65
+
+    @unittest_run_loop
+    async def test_toilet_cooldown_20_min(self):
+        """POST toilet обновляет last_toilet_at, can_toilet False до истечения 20 мин."""
+        with patch("bot.api.panda_pet_endpoints.require_owner", return_value=None):
+            resp = await self.client.request(
+                "POST",
+                f"/api/miniapp/panda-pet/{self.test_telegram_id}/toilet",
+                json={},
+            )
+        assert resp.status == 200
+        data = await resp.json()
+        assert data["last_toilet_at"] is not None
+        assert data["can_toilet"] is False
+        assert data["mood"] >= 70
+
+    @unittest_run_loop
     async def test_feed_limit_per_hour(self):
         """После нескольких кормлений подряд хотя бы один ответ — ошибка (400/500)."""
         with patch("bot.api.panda_pet_endpoints.require_owner", return_value=None):

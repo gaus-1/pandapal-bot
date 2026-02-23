@@ -54,6 +54,8 @@ export {
   feedPandaPet,
   playPandaPet,
   sleepPandaPet,
+  fallFromTreePandaPet,
+  toiletPandaPet,
 } from './pandaPet';
 export type { PandaPetState } from './pandaPet';
 
