@@ -98,6 +98,8 @@ class TestPandaPetAPI(AioHTTPTestCase):
         assert data["can_feed"] is True
         assert data["can_play"] is True
         assert data["can_sleep"] is True
+        assert data.get("can_climb") is True
+        assert data.get("can_fall") is True
         assert "consecutive_visit_days" in data
         assert "achievements" in data
 
@@ -130,7 +132,7 @@ class TestPandaPetAPI(AioHTTPTestCase):
         assert resp.status == 200
         data = await resp.json()
         assert data["hunger"] == 85
-        assert data["can_feed"] is True
+        assert data["can_feed"] is False  # кулдаун 30 мин
 
     @unittest_run_loop
     async def test_play_updates_state(self):
@@ -188,21 +190,52 @@ class TestPandaPetAPI(AioHTTPTestCase):
         assert data["mood"] >= 70
 
     @unittest_run_loop
-    async def test_feed_limit_per_hour(self):
-        """После нескольких кормлений подряд хотя бы один ответ — ошибка (400/500)."""
+    async def test_feed_cooldown_30_min(self):
+        """Кормление: первое успешно, второе сразу — 400 (кулдаун 30 мин)."""
         with patch("bot.api.panda_pet_endpoints.require_owner", return_value=None):
-            statuses = []
-            for _ in range(4):
-                r = await self.client.request(
-                    "POST",
-                    f"/api/miniapp/panda-pet/{self.test_telegram_id}/feed",
-                    json={},
-                )
-                statuses.append(r.status)
-            assert 200 in statuses, "At least one feed should succeed"
-            assert any(s in (400, 500) for s in statuses), (
-                "At least one request should hit limit or error: " + str(statuses)
+            r1 = await self.client.request(
+                "POST",
+                f"/api/miniapp/panda-pet/{self.test_telegram_id}/feed",
+                json={},
             )
+            r2 = await self.client.request(
+                "POST",
+                f"/api/miniapp/panda-pet/{self.test_telegram_id}/feed",
+                json={},
+            )
+        assert r1.status == 200
+        assert r2.status == 400
+
+    @unittest_run_loop
+    async def test_climb_cooldown_and_fall_cooldown(self):
+        """POST climb устанавливает last_climb_at, can_climb False; POST fall-from-tree — last_fall_at, can_fall False."""
+        with patch("bot.api.panda_pet_endpoints.require_owner", return_value=None):
+            resp = await self.client.request(
+                "POST",
+                f"/api/miniapp/panda-pet/{self.test_telegram_id}/climb",
+                json={},
+            )
+        assert resp.status == 200
+        data = await resp.json()
+        assert data["last_climb_at"] is not None
+        assert data["can_climb"] is False
+        with patch("bot.api.panda_pet_endpoints.require_owner", return_value=None):
+            r2 = await self.client.request(
+                "POST",
+                f"/api/miniapp/panda-pet/{self.test_telegram_id}/climb",
+                json={},
+            )
+        assert r2.status == 400
+        with patch("bot.api.panda_pet_endpoints.require_owner", return_value=None):
+            resp = await self.client.request(
+                "POST",
+                f"/api/miniapp/panda-pet/{self.test_telegram_id}/fall-from-tree",
+                json={},
+            )
+        assert resp.status == 200
+        data = await resp.json()
+        assert data["last_fall_at"] is not None
+        assert data["can_fall"] is False
 
     @unittest_run_loop
     async def test_get_state_after_24h_absence_returns_offended_mood(self):

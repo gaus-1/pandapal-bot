@@ -30,6 +30,11 @@ export interface PandaPetState {
   can_sleep: boolean;
   /** Есть после деплоя бэкенда с toilet; для совместимости — опционально */
   can_toilet?: boolean;
+  /** На дерево / Упасть — раз в час */
+  last_climb_at?: string | null;
+  last_fall_at?: string | null;
+  can_climb?: boolean;
+  can_fall?: boolean;
   consecutive_visit_days: number;
   achievements: Record<string, unknown>;
 }
@@ -81,6 +86,19 @@ export async function sleepPandaPet(telegramId: number): Promise<PandaPetState> 
   if (!response.ok) {
     const data = await response.json().catch(() => ({ error: 'Unknown error' }));
     throw new Error(data.error || 'Не удалось уложить спать');
+  }
+  return response.json();
+}
+
+export async function climbPandaPet(telegramId: number): Promise<PandaPetState> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/panda-pet/${telegramId}/climb`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({}),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(data.error || 'Действие доступно раз в час');
   }
   return response.json();
 }

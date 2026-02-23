@@ -54,6 +54,7 @@ export {
   feedPandaPet,
   playPandaPet,
   sleepPandaPet,
+  climbPandaPet,
   fallFromTreePandaPet,
   toiletPandaPet,
 } from './pandaPet';

@@ -8,6 +8,7 @@ import {
   feedPandaPet,
   playPandaPet,
   sleepPandaPet,
+  climbPandaPet,
   fallFromTreePandaPet,
   toiletPandaPet,
   type PandaPetState as ApiState,
@@ -57,10 +58,14 @@ const DEFAULT_STATE: ApiState = {
   last_played_at: null,
   last_slept_at: null,
   last_toilet_at: null,
+  last_climb_at: null,
+  last_fall_at: null,
   can_feed: true,
   can_play: true,
   can_sleep: true,
   can_toilet: true,
+  can_climb: true,
+  can_fall: true,
   consecutive_visit_days: 0,
   achievements: {},
 };
@@ -175,11 +180,13 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       !state.can_feed ||
       !state.can_play ||
       !state.can_sleep ||
-      (state.can_toilet === false);
+      (state.can_toilet === false) ||
+      (state.can_climb === false) ||
+      (state.can_fall === false);
     if (!hasCooldown) return;
     const t = setInterval(() => setCooldownTick((n) => n + 1), 1000);
     return () => clearInterval(t);
-  }, [state?.can_feed, state?.can_play, state?.can_sleep, state?.can_toilet, state]);
+  }, [state?.can_feed, state?.can_play, state?.can_sleep, state?.can_toilet, state?.can_climb, state?.can_fall, state]);
 
   // Сброс показа climb/fall/toilet по истечении времени (5 сек climb, 10 сек fall, 10 сек toilet happy)
   useEffect(() => {
@@ -200,7 +207,10 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             playInSec: 0,
             sleepInSec: 0,
             toiletInSec: 0,
+            feedInSec: 0,
             feedLabel: null as string | null,
+            climbInSec: 0,
+            fallInSec: 0,
           },
     [state, cooldownTick]
   );
@@ -321,14 +331,37 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const TOILET_HAPPY_DURATION_MS = 10000;
   const MOOD_OFFENDED_MAX = 65;
 
-  const handleClimb = () => {
-    if (actionLoading) return;
+  const handleClimb = async () => {
+    if (!state || actionLoading || state.can_climb === false) return;
+    const currentState = state;
     telegram.hapticFeedback('light');
-    setShowClimbUntil(Date.now() + CLIMB_DURATION_MS);
+    setActionLoading('climb');
+    try {
+      const next = await climbPandaPet(user.telegram_id);
+      setState(next);
+      setShowClimbUntil(Date.now() + CLIMB_DURATION_MS);
+    } catch (err) {
+      if (user.telegram_id === 0 && currentState) {
+        setState({
+          ...currentState,
+          last_climb_at: new Date().toISOString(),
+          can_climb: false,
+        });
+        setShowClimbUntil(Date.now() + CLIMB_DURATION_MS);
+      } else {
+        const msg = err instanceof Error ? err.message : 'Ошибка';
+        setError(msg);
+        telegram.notifyError();
+        telegram.showAlert(msg);
+      }
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const handleFall = async () => {
-    if (actionLoading) return;
+    if (!state || actionLoading || state.can_fall === false) return;
+    const currentState = state;
     telegram.hapticFeedback('light');
     setActionLoading('fall');
     try {
@@ -336,8 +369,13 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       setState(next);
       setShowFallUntil(Date.now() + FALL_DURATION_MS);
     } catch (err) {
-      if (user.telegram_id === 0 && state) {
-        setState({ ...state, mood: Math.min(state.mood, MOOD_OFFENDED_MAX) });
+      if (user.telegram_id === 0 && currentState) {
+        setState({
+          ...currentState,
+          mood: Math.min(currentState.mood, MOOD_OFFENDED_MAX),
+          last_fall_at: new Date().toISOString(),
+          can_fall: false,
+        });
         setShowFallUntil(Date.now() + FALL_DURATION_MS);
       } else {
         const msg = err instanceof Error ? err.message : 'Ошибка';
@@ -515,7 +553,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               {actionLoading === 'feed' ? '...' : 'Покормить'}
             </button>
             <span className="min-h-[1.25rem] text-[10px] sm:text-xs text-gray-500 dark:text-slate-500 text-center leading-tight" aria-hidden="true">
-              {cooldown.feedLabel ?? '\u00A0'}
+              {cooldown.feedInSec > 0 ? `через ${Math.ceil(cooldown.feedInSec / 60)} мин` : state.can_feed ? 'каждые 30 мин' : '\u00A0'}
             </span>
           </div>
           <div className="flex flex-col items-center gap-0.5 min-w-0">
@@ -553,27 +591,31 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             <button
               type="button"
               onClick={handleClimb}
-              disabled={!!actionLoading}
+              disabled={state.can_climb === false || !!actionLoading}
               className="w-full min-h-[38px] sm:min-h-[42px] py-1.5 px-1 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600 text-white transition-all active:scale-95 text-[11px] sm:text-xs whitespace-nowrap overflow-hidden text-ellipsis"
               aria-label="На дерево"
               title="На дерево"
             >
-              На дерево
+              {actionLoading === 'climb' ? '...' : 'На дерево'}
             </button>
-            <span className="min-h-[1.25rem]" aria-hidden="true" />
+            <span className="min-h-[1.25rem] text-[10px] sm:text-xs text-gray-500 dark:text-slate-500 text-center leading-tight" aria-hidden="true">
+              {cooldown.climbInSec > 0 ? `через ${Math.ceil(cooldown.climbInSec / 60)} мин` : (state.can_climb !== false ? 'раз в час' : '\u00A0')}
+            </span>
           </div>
           <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
               type="button"
               onClick={handleFall}
-              disabled={!!actionLoading}
+              disabled={state.can_fall === false || !!actionLoading}
               className="w-full min-h-[38px] sm:min-h-[42px] py-1.5 px-1 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600 text-white transition-all active:scale-95 text-[11px] sm:text-xs whitespace-nowrap overflow-hidden text-ellipsis"
               aria-label="Упасть"
               title="Упасть"
             >
               {actionLoading === 'fall' ? '...' : 'Упасть'}
             </button>
-            <span className="min-h-[1.25rem]" aria-hidden="true" />
+            <span className="min-h-[1.25rem] text-[10px] sm:text-xs text-gray-500 dark:text-slate-500 text-center leading-tight" aria-hidden="true">
+              {cooldown.fallInSec > 0 ? `через ${Math.ceil(cooldown.fallInSec / 60)} мин` : (state.can_fall !== false ? 'раз в час' : '\u00A0')}
+            </span>
           </div>
           <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button

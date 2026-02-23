@@ -18,41 +18,42 @@ interface GamesScreenProps {
 
 type GameType = 'tic_tac_toe' | 'checkers' | '2048' | 'erudite' | null;
 
+/** Палитры карточек: гармоничные сочетания для детского интерфейса (тёплые и холодные тона, не перегружая) */
 const GAMES = [
   {
     id: 'my_panda',
     name: 'Моя панда',
     icon: '🐼',
     description: 'Тамагочи: корми, играй и укладывай панду спать!',
-    color: 'from-blue-200 to-blue-100',
+    color: 'from-teal-200 to-teal-100',
   },
   {
     id: 'tic_tac_toe',
     name: 'Крестики-нолики',
     icon: '❌⭕',
     description: 'Играй против панды! Кто первым соберет линию?',
-    color: 'from-blue-200 to-blue-100',
+    color: 'from-sky-200 to-sky-100',
   },
   {
     id: 'checkers',
     name: 'Шашки',
     icon: '⚫⚪',
     description: 'Играй против панды! Кто первым возьмет все фишки?',
-    color: 'from-blue-200 to-blue-100',
+    color: 'from-amber-200 to-amber-100',
   },
   {
     id: '2048',
     name: '2048',
     icon: '🔢',
     description: 'Объединяй числа и достигни 2048!',
-    color: 'from-blue-200 to-blue-100',
+    color: 'from-violet-200 to-violet-100',
   },
   {
     id: 'erudite',
     name: 'эрудит',
     icon: '📚',
     description: 'Составляй слова и набирай очки!',
-    color: 'from-blue-200 to-blue-100',
+    color: 'from-emerald-200 to-emerald-100',
   },
 ] as const;
 
@@ -199,7 +200,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
                   text-gray-800 dark:text-slate-100 shadow-lg hover:shadow-xl dark:hover:shadow-2xl transform hover:scale-[1.02] active:scale-100
                   active:bg-gradient-to-br ${game.color} dark:active:from-slate-600 dark:active:to-slate-700 transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed min-w-0
-                  text-left h-[100px] flex flex-col overflow-hidden border border-blue-200/50 dark:border-slate-600/50
+                  text-left min-h-[120px] h-[120px] flex flex-col overflow-hidden border border-blue-200/50 dark:border-slate-600/50
                 `}
               >
                 <div className="text-xl sm:text-2xl mb-0.5 flex-shrink-0 leading-none">{game.icon}</div>

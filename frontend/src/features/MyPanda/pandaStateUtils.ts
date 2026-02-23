@@ -8,10 +8,12 @@ import type { PandaReactionKey } from './constants';
 export const LAST_ACTION_DURATION_SEC = 45;
 
 /** Интервалы до следующего действия (минуты), синхронно с бэкендом */
-export const MIN_PLAY_INTERVAL_MINUTES = 5;
-export const MIN_SLEEP_INTERVAL_MINUTES = 10;
+export const FEED_COOLDOWN_MINUTES = 30;
+export const MIN_PLAY_INTERVAL_MINUTES = 60;
+export const MIN_SLEEP_INTERVAL_MINUTES = 120;
 export const MIN_TOILET_INTERVAL_MINUTES = 20;
-export const FEEDS_PER_HOUR = 3;
+export const MIN_CLIMB_INTERVAL_MINUTES = 60;
+export const MIN_FALL_INTERVAL_MINUTES = 60;
 
 const HUNGER_LOW = 30;
 const HUNGER_OK = 60;
@@ -105,27 +107,37 @@ export interface CooldownInfo {
   playInSec: number;
   sleepInSec: number;
   toiletInSec: number;
+  feedInSec: number;
   feedLabel: string | null;
+  climbInSec: number;
+  fallInSec: number;
 }
 
 /**
  * Секунды до следующего действия и подпись для кормления.
- * playInSec/sleepInSec/toiletInSec = 0 если действие уже доступно.
+ * *_inSec = 0 если действие уже доступно.
  */
 export function getCooldownInfo(state: {
   last_fed_at: string | null;
   last_played_at: string | null;
   last_slept_at: string | null;
   last_toilet_at?: string | null;
+  last_climb_at?: string | null;
+  last_fall_at?: string | null;
   can_feed: boolean;
   can_play: boolean;
   can_sleep: boolean;
   can_toilet?: boolean;
+  can_climb?: boolean;
+  can_fall?: boolean;
 }): CooldownInfo {
   const now = Date.now();
   let playInSec = 0;
   let sleepInSec = 0;
   let toiletInSec = 0;
+  let feedInSec = 0;
+  let climbInSec = 0;
+  let fallInSec = 0;
   if (state.last_played_at && !state.can_play) {
     const next = new Date(state.last_played_at).getTime() + MIN_PLAY_INTERVAL_MINUTES * 60 * 1000;
     playInSec = Math.max(0, Math.ceil((next - now) / 1000));
@@ -139,6 +151,28 @@ export function getCooldownInfo(state: {
       new Date(state.last_toilet_at).getTime() + MIN_TOILET_INTERVAL_MINUTES * 60 * 1000;
     toiletInSec = Math.max(0, Math.ceil((next - now) / 1000));
   }
-  const feedLabel = !state.can_feed ? `До ${FEEDS_PER_HOUR} раз в час` : null;
-  return { playInSec, sleepInSec, toiletInSec, feedLabel };
+  if (state.last_fed_at && !state.can_feed) {
+    const next = new Date(state.last_fed_at).getTime() + FEED_COOLDOWN_MINUTES * 60 * 1000;
+    feedInSec = Math.max(0, Math.ceil((next - now) / 1000));
+  }
+  if (state.last_climb_at != null && state.can_climb === false) {
+    const next =
+      new Date(state.last_climb_at).getTime() + MIN_CLIMB_INTERVAL_MINUTES * 60 * 1000;
+    climbInSec = Math.max(0, Math.ceil((next - now) / 1000));
+  }
+  if (state.last_fall_at != null && state.can_fall === false) {
+    const next =
+      new Date(state.last_fall_at).getTime() + MIN_FALL_INTERVAL_MINUTES * 60 * 1000;
+    fallInSec = Math.max(0, Math.ceil((next - now) / 1000));
+  }
+  const feedLabel = !state.can_feed ? null : null;
+  return {
+    playInSec,
+    sleepInSec,
+    toiletInSec,
+    feedInSec,
+    feedLabel,
+    climbInSec,
+    fallInSec,
+  };
 }

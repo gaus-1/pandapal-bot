@@ -28,9 +28,15 @@ const mockState = {
   last_fed_at: null as string | null,
   last_played_at: null as string | null,
   last_slept_at: null as string | null,
+  last_toilet_at: null as string | null,
+  last_climb_at: null as string | null,
+  last_fall_at: null as string | null,
   can_feed: true,
   can_play: true,
   can_sleep: true,
+  can_toilet: true,
+  can_climb: true,
+  can_fall: true,
   consecutive_visit_days: 1,
   achievements: {},
 };
@@ -69,7 +75,7 @@ describe('MyPandaScreen', () => {
 
   it('при клике «Покормить» вызывает feedPandaPet и обновляет состояние', async () => {
     const user = userEvent.setup();
-    const nextState = { ...mockState, hunger: 85, can_feed: true };
+    const nextState = { ...mockState, hunger: 85, can_feed: false };
     vi.mocked(api.feedPandaPet).mockResolvedValue(nextState);
 
     render(<MyPandaScreen user={mockUser} />);

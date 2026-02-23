@@ -5,7 +5,7 @@
 лимиты на кормление/игру/сон; достижения.
 """
 
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from loguru import logger
 from sqlalchemy import select
@@ -31,14 +31,16 @@ def _as_datetime(value: datetime | str | None) -> datetime | None:
 
 
 # Лимиты и константы (один конфиг в сервисе)
-FEEDS_PER_HOUR = 3
+FEED_COOLDOWN_MINUTES = 30
 FEED_HUNGER_DELTA = 25
 PLAY_MOOD_DELTA = 20
 PLAY_ENERGY_COST = 10
 SLEEP_ENERGY_DELTA = 30
-MIN_PLAY_INTERVAL_MINUTES = 5
-MIN_SLEEP_INTERVAL_MINUTES = 10
+MIN_PLAY_INTERVAL_MINUTES = 60
+MIN_SLEEP_INTERVAL_MINUTES = 120
 TOILET_COOLDOWN_MINUTES = 20
+CLIMB_COOLDOWN_MINUTES = 60
+FALL_COOLDOWN_MINUTES = 60
 ABSENCE_OFFENDED_HOURS = 24
 MOOD_OFFENDED_MAX = 65
 TOILET_MOOD_DELTA = 15
@@ -57,7 +59,7 @@ class PandaPetService:
         """
         stmt = select(PandaPet).where(PandaPet.user_telegram_id == telegram_id)
         pet = self.db.execute(stmt).scalar_one_or_none()
-        today = date.today()
+        today = datetime.now(UTC).date()
 
         if pet:
             last_visit = _as_datetime(pet.last_visit_date)
@@ -87,13 +89,11 @@ class PandaPetService:
         return pet
 
     def _can_feed(self, pet: PandaPet, now: datetime) -> bool:
-        """Можно ли кормить: не больше FEEDS_PER_HOUR в текущем часе."""
-        start_at = _as_datetime(pet.feed_hour_start_at)
-        if start_at is None:
+        """Можно ли кормить: прошло FEED_COOLDOWN_MINUTES с last_fed_at."""
+        last = _as_datetime(pet.last_fed_at)
+        if last is None:
             return True
-        if now - start_at >= timedelta(hours=1):
-            return True
-        return pet.feed_count_since_hour_start < FEEDS_PER_HOUR
+        return (now - last).total_seconds() >= FEED_COOLDOWN_MINUTES * 60
 
     def _can_play(self, pet: PandaPet, now: datetime) -> bool:
         """Можно ли играть: прошло MIN_PLAY_INTERVAL_MINUTES с last_played_at."""
@@ -116,12 +116,19 @@ class PandaPetService:
             return True
         return (now - last).total_seconds() >= TOILET_COOLDOWN_MINUTES * 60
 
-    def _maybe_reset_feed_hour(self, pet: PandaPet, now: datetime) -> None:
-        """Сбросить счётчик кормлений, если час с feed_hour_start_at прошёл."""
-        start_at = _as_datetime(pet.feed_hour_start_at)
-        if start_at is not None and now - start_at >= timedelta(hours=1):
-            pet.feed_count_since_hour_start = 0
-            pet.feed_hour_start_at = now
+    def _can_climb(self, pet: PandaPet, now: datetime) -> bool:
+        """Можно ли «на дерево»: прошло CLIMB_COOLDOWN_MINUTES с last_climb_at."""
+        last = _as_datetime(pet.last_climb_at)
+        if last is None:
+            return True
+        return (now - last).total_seconds() >= CLIMB_COOLDOWN_MINUTES * 60
+
+    def _can_fall(self, pet: PandaPet, now: datetime) -> bool:
+        """Можно ли «упасть»: прошло FALL_COOLDOWN_MINUTES с last_fall_at."""
+        last = _as_datetime(pet.last_fall_at)
+        if last is None:
+            return True
+        return (now - last).total_seconds() >= FALL_COOLDOWN_MINUTES * 60
 
     def get_state(self, telegram_id: int) -> dict:
         """
@@ -131,7 +138,6 @@ class PandaPetService:
         """
         pet = self.get_or_create(telegram_id)
         now = datetime.now(UTC)
-        self._maybe_reset_feed_hour(pet, now)
 
         last_opened = _as_datetime(pet.last_opened_at)
         if last_opened is not None and (now - last_opened) >= timedelta(
@@ -161,10 +167,14 @@ class PandaPetService:
             "last_played_at": _iso(pet.last_played_at),
             "last_slept_at": _iso(pet.last_slept_at),
             "last_toilet_at": _iso(pet.last_toilet_at),
+            "last_climb_at": _iso(pet.last_climb_at),
+            "last_fall_at": _iso(pet.last_fall_at),
             "can_feed": self._can_feed(pet, now),
             "can_play": self._can_play(pet, now),
             "can_sleep": self._can_sleep(pet, now),
             "can_toilet": self._can_toilet(pet, now),
+            "can_climb": self._can_climb(pet, now),
+            "can_fall": self._can_fall(pet, now),
             "consecutive_visit_days": pet.consecutive_visit_days,
             "achievements": pet.achievements or {},
         }
@@ -173,18 +183,12 @@ class PandaPetService:
         """Покормить панду. Возвращает новое состояние."""
         pet = self.get_or_create(telegram_id)
         now = datetime.now(UTC)
-        self._maybe_reset_feed_hour(pet, now)
 
         if not self._can_feed(pet, now):
-            raise ValueError("Кормить можно не чаще 3 раз в час")
+            raise ValueError("Кормить можно каждые 30 минут")
 
         pet.hunger = min(100, pet.hunger + FEED_HUNGER_DELTA)
         pet.last_fed_at = now
-        if pet.feed_hour_start_at is None or now - pet.feed_hour_start_at >= timedelta(hours=1):
-            pet.feed_hour_start_at = now
-            pet.feed_count_since_hour_start = 1
-        else:
-            pet.feed_count_since_hour_start += 1
         pet.total_fed_count += 1
         self.db.flush()
         logger.debug("Panda fed: user=%s hunger=%s", telegram_id, pet.hunger)
@@ -196,7 +200,7 @@ class PandaPetService:
         now = datetime.now(UTC)
 
         if not self._can_play(pet, now):
-            raise ValueError("Играть можно не чаще чем раз в 5 минут")
+            raise ValueError("Играть можно раз в час")
 
         pet.mood = min(100, pet.mood + PLAY_MOOD_DELTA)
         pet.energy = max(0, pet.energy - PLAY_ENERGY_COST)
@@ -212,7 +216,7 @@ class PandaPetService:
         now = datetime.now(UTC)
 
         if not self._can_sleep(pet, now):
-            raise ValueError("Укладывать спать можно не чаще чем раз в 10 минут")
+            raise ValueError("Укладывать спать можно раз в 2 часа")
 
         pet.energy = min(100, pet.energy + SLEEP_ENERGY_DELTA)
         pet.last_slept_at = now
@@ -220,10 +224,25 @@ class PandaPetService:
         logger.debug("Panda slept: user=%s energy=%s", telegram_id, pet.energy)
         return self.get_state(telegram_id)
 
-    def fall_from_tree(self, telegram_id: int) -> dict:
-        """Панда упала с дерева: настроение падает до «обиженной» (max 65). Возвращает новое состояние."""
+    def climb(self, telegram_id: int) -> dict:
+        """Панда залезла на дерево. Кулдаун 1 час. Возвращает новое состояние."""
         pet = self.get_or_create(telegram_id)
+        now = datetime.now(UTC)
+        if not self._can_climb(pet, now):
+            raise ValueError("На дерево можно раз в час")
+        pet.last_climb_at = now
+        self.db.flush()
+        logger.debug("Panda climbed: user=%s", telegram_id)
+        return self.get_state(telegram_id)
+
+    def fall_from_tree(self, telegram_id: int) -> dict:
+        """Панда упала с дерева: настроение падает до «обиженной» (max 65). Кулдаун 1 час. Возвращает новое состояние."""
+        pet = self.get_or_create(telegram_id)
+        now = datetime.now(UTC)
+        if not self._can_fall(pet, now):
+            raise ValueError("Упасть можно раз в час")
         pet.mood = min(pet.mood, MOOD_OFFENDED_MAX)
+        pet.last_fall_at = now
         self.db.flush()
         logger.debug("Panda fell from tree: user=%s mood=%s", telegram_id, pet.mood)
         return self.get_state(telegram_id)
