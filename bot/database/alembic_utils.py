@@ -42,7 +42,14 @@ def _get_current_revision(tables: list) -> str | None:
 
 def _apply_alembic_migration_for_existing_tables(alembic_cfg, current_revision: str | None) -> bool:
     """Применение миграций Alembic для существующих таблиц."""
+    import logging
+
     from alembic import command
+
+    # INFO от alembic.runtime идёт в stderr и в Railway отображается как [err]; понижаем до WARNING
+    for name in ("alembic.runtime.migration", "alembic.runtime.migrations"):
+        log = logging.getLogger(name)
+        log.setLevel(logging.WARNING)
 
     migration_applied = False
 
@@ -151,8 +158,12 @@ def _apply_alembic_migration_for_existing_tables(alembic_cfg, current_revision: 
 
 def _apply_alembic_migration_for_new_tables(alembic_cfg) -> bool:
     """Применение миграций Alembic для новых таблиц."""
+    import logging
+
     from alembic import command
 
+    for _name in ("alembic.runtime.migration", "alembic.runtime.migrations"):
+        logging.getLogger(_name).setLevel(logging.WARNING)
     try:
         command.upgrade(alembic_cfg, "head")
         logger.info("✅ Миграции Alembic применены успешно")

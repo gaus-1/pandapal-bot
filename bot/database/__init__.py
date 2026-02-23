@@ -78,8 +78,12 @@ async def init_database() -> None:
             if _check_premium_migration_needed(inspector, tables):
                 migration_applied = _apply_premium_migration()
             elif not migration_applied:
+                import logging
+
                 from alembic import command
 
+                for _name in ("alembic.runtime.migration", "alembic.runtime.migrations"):
+                    logging.getLogger(_name).setLevel(logging.WARNING)
                 logger.info("🔄 Применение миграций Alembic...")
                 try:
                     command.upgrade(alembic_cfg, "head")
