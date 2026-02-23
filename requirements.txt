@@ -67,7 +67,6 @@ beautifulsoup4==4.14.3          # HTML/XML парсер
 lxml==6.0.2                     # Быстрый XML парсер
 soupsieve==2.8.1                # CSS селекторы для BS4
 regex==2025.11.3                # Продвинутые регулярные выражения
-nltk==3.9.2                     # Natural Language Toolkit
 
 # Обработка изображений
 pillow==12.1.1                  # PIL (манипуляции с изображениями)
