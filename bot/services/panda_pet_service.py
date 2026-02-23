@@ -1,0 +1,194 @@
+"""
+Сервис виртуального питомца «Моя панда» (тамагочи).
+
+Управление состоянием панды: голод, настроение, энергия;
+лимиты на кормление/игру/сон; достижения.
+"""
+
+from datetime import UTC, date, datetime, timedelta
+
+from loguru import logger
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from bot.models import PandaPet, User
+
+
+def _as_datetime(value: datetime | str | None) -> datetime | None:
+    """Нормализация datetime из БД (SQLite может вернуть строку или naive datetime)."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value
+    if isinstance(value, str):
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
+        return dt
+    return None
+
+
+# Лимиты и константы (один конфиг в сервисе)
+FEEDS_PER_HOUR = 3
+FEED_HUNGER_DELTA = 25
+PLAY_MOOD_DELTA = 20
+PLAY_ENERGY_COST = 10
+SLEEP_ENERGY_DELTA = 30
+MIN_PLAY_INTERVAL_MINUTES = 5
+MIN_SLEEP_INTERVAL_MINUTES = 10
+
+
+class PandaPetService:
+    """Сервис для работы с питомцем панды."""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_or_create(self, telegram_id: int) -> PandaPet:
+        """
+        Получить питомца по telegram_id или создать с дефолтами.
+        При создании или первом визите за день обновляет consecutive_visit_days и last_visit_date.
+        """
+        stmt = select(PandaPet).where(PandaPet.user_telegram_id == telegram_id)
+        pet = self.db.execute(stmt).scalar_one_or_none()
+        today = date.today()
+
+        if pet:
+            last_visit = _as_datetime(pet.last_visit_date)
+            if last_visit is None or last_visit.date() < today:
+                pet.consecutive_visit_days += 1
+                pet.last_visit_date = datetime.now(UTC)
+                logger.debug(
+                    "Panda visit day updated: user=%s days=%s",
+                    telegram_id,
+                    pet.consecutive_visit_days,
+                )
+            return pet
+
+        # Проверяем, что пользователь есть в users
+        user_stmt = select(User).where(User.telegram_id == telegram_id)
+        if self.db.execute(user_stmt).scalar_one_or_none() is None:
+            raise ValueError("User not found")
+
+        pet = PandaPet(
+            user_telegram_id=telegram_id,
+            consecutive_visit_days=1,
+            last_visit_date=datetime.now(UTC),
+        )
+        self.db.add(pet)
+        self.db.flush()
+        logger.info("Panda pet created: user=%s", telegram_id)
+        return pet
+
+    def _can_feed(self, pet: PandaPet, now: datetime) -> bool:
+        """Можно ли кормить: не больше FEEDS_PER_HOUR в текущем часе."""
+        start_at = _as_datetime(pet.feed_hour_start_at)
+        if start_at is None:
+            return True
+        if now - start_at >= timedelta(hours=1):
+            return True
+        return pet.feed_count_since_hour_start < FEEDS_PER_HOUR
+
+    def _can_play(self, pet: PandaPet, now: datetime) -> bool:
+        """Можно ли играть: прошло MIN_PLAY_INTERVAL_MINUTES с last_played_at."""
+        last = _as_datetime(pet.last_played_at)
+        if last is None:
+            return True
+        return (now - last).total_seconds() >= MIN_PLAY_INTERVAL_MINUTES * 60
+
+    def _can_sleep(self, pet: PandaPet, now: datetime) -> bool:
+        """Можно ли уложить спать: прошло MIN_SLEEP_INTERVAL_MINUTES с last_slept_at."""
+        last = _as_datetime(pet.last_slept_at)
+        if last is None:
+            return True
+        return (now - last).total_seconds() >= MIN_SLEEP_INTERVAL_MINUTES * 60
+
+    def _maybe_reset_feed_hour(self, pet: PandaPet, now: datetime) -> None:
+        """Сбросить счётчик кормлений, если час с feed_hour_start_at прошёл."""
+        start_at = _as_datetime(pet.feed_hour_start_at)
+        if start_at is not None and now - start_at >= timedelta(hours=1):
+            pet.feed_count_since_hour_start = 0
+            pet.feed_hour_start_at = now
+
+    def get_state(self, telegram_id: int) -> dict:
+        """
+        Состояние панды для API: hunger, mood, energy, last_*_at,
+        can_feed, can_play, can_sleep, consecutive_visit_days, achievements.
+        """
+        pet = self.get_or_create(telegram_id)
+        self._maybe_reset_feed_hour(pet, datetime.now(UTC))
+        now = datetime.now(UTC)
+
+        def _iso(dt: datetime | str | None) -> str | None:
+            if dt is None:
+                return None
+            if isinstance(dt, datetime):
+                return dt.isoformat()
+            return str(dt)
+
+        return {
+            "hunger": pet.hunger,
+            "mood": pet.mood,
+            "energy": pet.energy,
+            "last_fed_at": _iso(pet.last_fed_at),
+            "last_played_at": _iso(pet.last_played_at),
+            "last_slept_at": _iso(pet.last_slept_at),
+            "can_feed": self._can_feed(pet, now),
+            "can_play": self._can_play(pet, now),
+            "can_sleep": self._can_sleep(pet, now),
+            "consecutive_visit_days": pet.consecutive_visit_days,
+            "achievements": pet.achievements or {},
+        }
+
+    def feed(self, telegram_id: int) -> dict:
+        """Покормить панду. Возвращает новое состояние."""
+        pet = self.get_or_create(telegram_id)
+        now = datetime.now(UTC)
+        self._maybe_reset_feed_hour(pet, now)
+
+        if not self._can_feed(pet, now):
+            raise ValueError("Кормить можно не чаще 3 раз в час")
+
+        pet.hunger = min(100, pet.hunger + FEED_HUNGER_DELTA)
+        pet.last_fed_at = now
+        if pet.feed_hour_start_at is None or now - pet.feed_hour_start_at >= timedelta(hours=1):
+            pet.feed_hour_start_at = now
+            pet.feed_count_since_hour_start = 1
+        else:
+            pet.feed_count_since_hour_start += 1
+        pet.total_fed_count += 1
+        self.db.flush()
+        logger.debug("Panda fed: user=%s hunger=%s", telegram_id, pet.hunger)
+        return self.get_state(telegram_id)
+
+    def play(self, telegram_id: int) -> dict:
+        """Играть с пандой. Возвращает новое состояние."""
+        pet = self.get_or_create(telegram_id)
+        now = datetime.now(UTC)
+
+        if not self._can_play(pet, now):
+            raise ValueError("Играть можно не чаще чем раз в 5 минут")
+
+        pet.mood = min(100, pet.mood + PLAY_MOOD_DELTA)
+        pet.energy = max(0, pet.energy - PLAY_ENERGY_COST)
+        pet.last_played_at = now
+        pet.total_played_count += 1
+        self.db.flush()
+        logger.debug("Panda played: user=%s mood=%s", telegram_id, pet.mood)
+        return self.get_state(telegram_id)
+
+    def sleep(self, telegram_id: int) -> dict:
+        """Уложить панду спать. Возвращает новое состояние."""
+        pet = self.get_or_create(telegram_id)
+        now = datetime.now(UTC)
+
+        if not self._can_sleep(pet, now):
+            raise ValueError("Укладывать спать можно не чаще чем раз в 10 минут")
+
+        pet.energy = min(100, pet.energy + SLEEP_ENERGY_DELTA)
+        pet.last_slept_at = now
+        self.db.flush()
+        logger.debug("Panda slept: user=%s energy=%s", telegram_id, pet.energy)
+        return self.get_state(telegram_id)

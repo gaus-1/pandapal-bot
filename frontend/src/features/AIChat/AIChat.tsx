@@ -551,7 +551,7 @@ export function AIChat({ user }: AIChatProps) {
         <div className="flex-shrink-0 bg-blue-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-t border-blue-500/30 dark:border-slate-700 px-4 py-2 flex items-center justify-between relative z-10">
           <div className="flex-1 min-w-0">
             <p className="text-xs text-blue-500 dark:text-blue-400 font-semibold">Ответ на:</p>
-            <p className="text-sm text-gray-700 dark:text-gray-300 truncate">{messages[replyToMessage].content.slice(0, 50)}...</p>
+            <p className="text-sm text-gray-700 dark:text-slate-300 truncate">{messages[replyToMessage].content.slice(0, 50)}...</p>
           </div>
           <button onClick={() => setReplyToMessage(null)} className="ml-2 text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 active:text-gray-800 dark:active:text-slate-100 transition-colors">✖️</button>
         </div>

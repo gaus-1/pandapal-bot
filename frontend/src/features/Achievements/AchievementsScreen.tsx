@@ -86,7 +86,7 @@ export function AchievementsScreen({ user }: AchievementsScreenProps) {
                 <div className={`text-4xl sm:text-5xl md:text-6xl mb-2 sm:mb-3 ${!achievement.unlocked ? 'grayscale opacity-50' : ''}`}>
                   {achievement.icon}
                 </div>
-                <div className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 dark:text-slate-100 mb-1 text-center leading-tight">
+                <div className="font-display text-xs sm:text-sm md:text-base font-semibold text-gray-900 dark:text-slate-100 mb-1 text-center leading-tight">
                   {achievement.title}
                 </div>
                 {achievement.unlocked && achievement.unlock_date && (

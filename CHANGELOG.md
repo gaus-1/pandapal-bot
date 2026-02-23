@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Моя панда — виртуальный питомец (тамагочи) в Mini App
+- SEO-страница /igra-moya-panda для discoverability в поисковиках и ИИ-поиске
 - GitHub community files (CONTRIBUTING, CODE_OF_CONDUCT, SECURITY)
 - Comprehensive documentation structure
 - Pull request template

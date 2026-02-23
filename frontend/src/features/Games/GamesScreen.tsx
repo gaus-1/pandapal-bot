@@ -47,6 +47,13 @@ const GAMES = [
     description: 'Составляй слова и набирай очки!',
     color: 'from-blue-200 to-blue-100',
   },
+  {
+    id: 'my_panda',
+    name: 'Моя панда',
+    icon: '🐼',
+    description: 'Тамагочи: корми, играй и укладывай панду спать!',
+    color: 'from-blue-200 to-blue-100',
+  },
 ] as const;
 
 export function GamesScreen({ user }: GamesScreenProps) {
@@ -58,7 +65,9 @@ export function GamesScreen({ user }: GamesScreenProps) {
   const [stats, setStats] = useState<Record<string, GameStats>>({});
 
   useEffect(() => {
-    loadStats();
+    if (user.telegram_id !== 0) {
+      loadStats();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.telegram_id]);
 
@@ -169,14 +178,22 @@ export function GamesScreen({ user }: GamesScreenProps) {
         {/* Список игр */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
           {GAMES.map((game) => {
-            const gameStats = stats[game.id];
+            const isMyPanda = game.id === 'my_panda';
+            const gameStats = isMyPanda ? undefined : stats[game.id];
             const hasStats = gameStats && gameStats.total_games > 0;
             const hasBestScore = game.id === '2048' && gameStats?.best_score;
             return (
               <button
                 key={game.id}
-                onClick={() => handleStartGame(game.id)}
-                disabled={isLoading}
+                onClick={() => {
+                  if (isMyPanda) {
+                    telegram.hapticFeedback('light');
+                    setCurrentScreen('my-panda');
+                  } else {
+                    handleStartGame(game.id);
+                  }
+                }}
+                disabled={isLoading && !isMyPanda}
                 className={`
                   relative p-2.5 rounded-lg bg-gradient-to-br ${game.color} dark:from-slate-700 dark:to-slate-800
                   text-gray-800 dark:text-slate-100 shadow-lg hover:shadow-xl dark:hover:shadow-2xl transform hover:scale-105
@@ -187,7 +204,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
               >
                 <div className="text-2xl sm:text-3xl mb-1.5 flex-shrink-0 leading-none">{game.icon}</div>
                 <h3 className="font-display text-sm sm:text-base font-bold mb-1 flex-shrink-0 leading-tight">{game.name}</h3>
-                <p className="text-xs sm:text-sm opacity-90 mb-2 overflow-hidden leading-tight" style={{
+                <p className="font-sans text-xs sm:text-sm opacity-90 mb-2 overflow-hidden leading-tight" style={{
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',

@@ -129,6 +129,7 @@ describe('SEO: sitemap.xml', () => {
     expect(sitemap).toContain('<loc>https://pandapal.ru/privacy</loc>');
     expect(sitemap).toContain('<loc>https://pandapal.ru/personal-data</loc>');
     expect(sitemap).toContain('<loc>https://pandapal.ru/offer</loc>');
+    expect(sitemap).toContain('<loc>https://pandapal.ru/igra-moya-panda</loc>');
   });
 });
 
@@ -138,5 +139,16 @@ describe('AEO: llms.txt', () => {
     expect(llms).toContain('Official website: https://pandapal.ru/');
     expect(llms).toContain('Official Telegram bot: https://t.me/PandaPalBot');
     expect(llms).toContain('Primary handle: @PandaPalBot');
+  });
+
+  it('должен содержать упоминание Моя панда / tamagotchi / виртуальный питомец', () => {
+    const llms = readLlmsTxt();
+    const hasPandaMention =
+      llms.includes('My Panda') ||
+      llms.includes('Моя панда') ||
+      llms.includes('tamagotchi') ||
+      llms.includes('virtual pet') ||
+      llms.includes('виртуальный питомец');
+    expect(hasPandaMention).toBe(true);
   });
 });

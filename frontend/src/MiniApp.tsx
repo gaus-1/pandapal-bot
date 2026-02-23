@@ -21,6 +21,7 @@ const AchievementsScreen = lazy(() => import('./features/Achievements/Achievemen
 const PremiumScreen = lazy(() => import('./features/Premium/PremiumScreen').then(m => ({ default: m.PremiumScreen })));
 const DonationScreen = lazy(() => import('./features/Donation/DonationScreen').then(m => ({ default: m.DonationScreen })));
 const GamesScreen = lazy(() => import('./features/Games/GamesScreen').then(m => ({ default: m.GamesScreen })));
+const MyPandaScreen = lazy(() => import('./features/MyPanda/MyPandaScreen').then(m => ({ default: m.MyPandaScreen })));
 
 export function MiniApp() {
   return (
@@ -48,6 +49,34 @@ function MiniAppContent() {
   // Здесь не дублируем логику, чтобы избежать конфликтов
 
   useEffect(() => {
+    // Локальная разработка: localhost + miniapp — сразу mock-пользователь, без запросов к API
+    const isLocalMiniappDev = import.meta.env.DEV && typeof window !== 'undefined' && (() => {
+      const host = window.location.hostname;
+      const path = window.location.pathname;
+      const q = new URLSearchParams(window.location.search);
+      const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
+      const pathOk = path === '/miniapp' || path.startsWith('/miniapp/');
+      const queryOk = q.get('miniapp') === '1' || q.get('miniapp') === 'true';
+      return isLocal && (pathOk || queryOk);
+    })();
+    if (isLocalMiniappDev) {
+      try {
+        telegram.init();
+      } catch (e) {
+        logger.debug('Telegram init in local dev:', e);
+      }
+      const { setUser, setIsLoading, setError } = useAppStore.getState();
+      setUser({
+        telegram_id: 0,
+        first_name: 'Локальный',
+        user_type: 'child',
+        is_premium: false,
+      });
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
     // Инициализация Telegram Mini App
     telegram.init();
 
@@ -223,6 +252,7 @@ function MiniAppContent() {
           {currentScreen === 'premium' && user && <PremiumScreen user={user} />}
           {currentScreen === 'donation' && <DonationScreen user={user} />}
           {currentScreen === 'games' && user && <GamesScreen user={user} />}
+          {currentScreen === 'my-panda' && user && <MyPandaScreen user={user} />}
         </Suspense>
       </div>
 
@@ -250,7 +280,16 @@ function MiniAppContent() {
             />
           </div>
         </nav>
-      ) : currentScreen === 'games' ? null : (
+      ) : currentScreen === 'games' ? null : currentScreen === 'my-panda' ? (
+        <nav className="flex-shrink-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
+          <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
+            <NavButton icon="💬" label="Чат" isActive={false} onClick={() => navigateTo('ai-chat')} />
+            <NavButton icon="🏆" label="Достижения" isActive={false} onClick={() => navigateTo('achievements')} />
+            <NavButton icon="🎮" label="PandaPalGo" isActive={false} onClick={() => navigateTo('games')} />
+            <NavButton icon="👑" label="Premium" isActive={false} onClick={() => navigateTo('premium')} />
+          </div>
+        </nav>
+      ) : (
         <nav className="flex-shrink-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
           <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
             <NavButton

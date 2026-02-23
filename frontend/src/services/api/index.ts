@@ -48,6 +48,15 @@ export {
   getGameSession,
 } from './games';
 
+// Panda Pet (Моя панда)
+export {
+  getPandaPetState,
+  feedPandaPet,
+  playPandaPet,
+  sleepPandaPet,
+} from './pandaPet';
+export type { PandaPetState } from './pandaPet';
+
 // Premium
 export {
   createPremiumPayment,

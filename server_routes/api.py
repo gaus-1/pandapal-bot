@@ -26,6 +26,7 @@ def setup_api_routes(app: web.Application) -> None:
     route_configs = [
         ("bot.api.miniapp", "setup_miniapp_routes", "🎮 Mini App API"),
         ("bot.api.games_endpoints", "setup_games_routes", "🎮 Games API"),
+        ("bot.api.panda_pet_endpoints", "setup_panda_pet_routes", "🐼 Panda Pet API"),
         ("bot.api.premium_endpoints", "setup_premium_routes", "💰 Premium API"),
         ("bot.api.auth_endpoints", "setup_auth_routes", "🔐 Auth API"),
     ]

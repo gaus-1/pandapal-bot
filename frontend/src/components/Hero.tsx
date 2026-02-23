@@ -42,6 +42,18 @@ export const Hero: React.FC = React.memo(() => {
           Начни
         </a>
 
+        {/* Локальная разработка: ссылка на Mini App с пандой */}
+        {import.meta.env.DEV && typeof window !== 'undefined' &&
+          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
+          <a
+            href="/miniapp"
+            className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-amber-500 dark:bg-amber-600 text-white font-semibold text-base sm:text-lg shadow-md hover:shadow-lg transition-all border-2 border-amber-600 dark:border-amber-500 min-h-[44px] sm:min-h-[48px] touch-manipulation"
+            aria-label="Открыть Mini App локально (игра Моя панда)"
+          >
+            Открыть Mini App (локально)
+          </a>
+        )}
+
         {/* Вторичная CTA */}
         <a
           href="#benefits"

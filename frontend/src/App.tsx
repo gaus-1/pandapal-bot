@@ -7,6 +7,7 @@
 import React, { useEffect, useState } from 'react';
 import { Header, Hero, Features, Section, Footer, CallToAction, SeoHead } from './components';
 import { SECTIONS } from './config/constants';
+import { PANDA_PET_PAGE_TITLE_RU, PANDA_PET_DESCRIPTION_RU, PANDA_PET_FAQ_RU } from './config/seo-text';
 import { telegram } from './services/telegram';
 import { MiniApp } from './MiniApp';
 import { PremiumScreen } from './features/Premium/PremiumScreen';
@@ -70,13 +71,27 @@ const App: React.FC = () => {
        window.location.hostname.includes('telegram.org') ||
        window.location.hostname.includes('web.telegram.org'));
 
+    // Локальная разработка: localhost + (/miniapp или ?miniapp=1) открывает Mini App с пандой
+    let isLocalMiniappDev = false;
+    if (import.meta.env.DEV && typeof window !== 'undefined') {
+      const host = window.location.hostname;
+      const path = window.location.pathname;
+      const q = new URLSearchParams(window.location.search);
+      const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
+      const pathOk = path === '/miniapp' || path.startsWith('/miniapp/');
+      const queryOk = q.get('miniapp') === '1' || q.get('miniapp') === 'true';
+      isLocalMiniappDev = isLocal && (pathOk || queryOk);
+    }
+
     // СТРОГАЯ проверка: Mini App только если:
     // 1. Есть initData (главный признак) ИЛИ
     // 2. Есть tgaddr в URL (явный признак) ИЛИ
-    // 3. Есть window.Telegram.WebApp И (Telegram User Agent ИЛИ web.telegram.org)
+    // 3. Есть window.Telegram.WebApp И (Telegram User Agent ИЛИ web.telegram.org) ИЛИ
+    // 4. Локальная разработка: /miniapp на localhost
     const inTelegram = hasInitData ||
       hasTgaddr ||
-      (hasTelegramWebApp && isTelegramUserAgent);
+      (hasTelegramWebApp && isTelegramUserAgent) ||
+      isLocalMiniappDev;
 
     setIsInTelegram(inTelegram);
     setIsChecking(false);
@@ -108,6 +123,8 @@ const App: React.FC = () => {
           setCurrentRoute('homework-ru');
         } else if (pathname === '/homework-help-telegram-bot') {
           setCurrentRoute('homework-en');
+        } else if (pathname === '/igra-moya-panda') {
+          setCurrentRoute('panda-pet');
         } else {
           setCurrentRoute('');
         }
@@ -325,6 +342,29 @@ const App: React.FC = () => {
             { question: 'Is it suitable for school students?', answer: 'Yes, it is designed for grades 1-9 educational support.' },
             { question: 'Where can I access it?', answer: 'Use the official Telegram bot @PandaPalBot.' },
           ]}
+        />
+        <Footer />
+        <CookieBanner />
+      </div>
+    );
+  }
+
+  if (currentRoute === 'panda-pet') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <SeoHead
+          title={`${PANDA_PET_PAGE_TITLE_RU} | PandaPal`}
+          description={PANDA_PET_DESCRIPTION_RU}
+          canonicalPath="/igra-moya-panda"
+        />
+        <IntentPage
+          title={PANDA_PET_PAGE_TITLE_RU}
+          subtitle="Виртуальный питомец (тамагочи) в Mini App"
+          description={PANDA_PET_DESCRIPTION_RU}
+          botCta="Открыть в Telegram"
+          canonicalPath="/igra-moya-panda"
+          locale="ru"
+          faq={PANDA_PET_FAQ_RU}
         />
         <Footer />
         <CookieBanner />

@@ -8,6 +8,8 @@ Description:
 PandaPal is a safe AI assistant and tutor bot for school students in grades 1-9.
 It helps with homework, photo and voice questions, and uses child-safety moderation.
 
+Features: AI chat, homework help, moderation. My Panda (virtual pet / tamagotchi): feed, play, put to sleep; panda reactions and achievements. Available in Telegram Mini App (@PandaPalBot).
+
 Preferred citation:
 - Use "PandaPal" as the product name.
 - Link to https://pandapal.ru/ as the canonical source.

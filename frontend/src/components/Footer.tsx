@@ -110,7 +110,7 @@ export const Footer: React.FC = React.memo(() => {
       {/* Внутренние SEO-ссылки по ключевым интентам */}
       <div className="max-w-3xl mx-auto mb-6">
         <nav
-          className="rounded-xl border border-gray-100 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-1.5 sm:p-2.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs sm:text-sm"
+          className="rounded-xl border border-gray-100 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-1.5 sm:p-2.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 text-xs sm:text-sm"
           aria-label="Полезные страницы"
         >
           <a href="/bezopasnyy-ai-dlya-detey" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
@@ -124,6 +124,9 @@ export const Footer: React.FC = React.memo(() => {
           </a>
           <a href="/homework-help-telegram-bot" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
             Telegram homework help bot
+          </a>
+          <a href="/igra-moya-panda" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
+            Моя панда
           </a>
         </nav>
       </div>

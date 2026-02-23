@@ -31,6 +31,7 @@ from aiogram.client.default import DefaultBotProperties  # noqa: E402
 from aiogram.enums import ParseMode  # noqa: E402
 from aiogram.fsm.storage.memory import MemoryStorage  # noqa: E402
 from aiogram.fsm.storage.redis import RedisStorage  # noqa: E402
+from aiogram.types import MenuButtonWebApp, WebAppInfo  # noqa: E402
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler  # noqa: E402
 from aiohttp import web  # noqa: E402
 from redis.asyncio import Redis  # noqa: E402
@@ -152,6 +153,15 @@ class PandaPalBotServer:
             webhook_info = await self.bot.get_webhook_info()
             logger.info(f"✅ Webhook установлен: {webhook_info.url}")
             logger.info(f"📊 Webhook info: {webhook_info}")
+
+            # Кнопка меню «Открыть PandaPal» (синяя снизу в чате)
+            await self.bot.set_chat_menu_button(
+                menu_button=MenuButtonWebApp(
+                    text="Открыть PandaPal",
+                    web_app=WebAppInfo(url=self.settings.frontend_url),
+                ),
+            )
+            logger.info("✅ Кнопка меню установлена: «Открыть PandaPal»")
 
             return webhook_url
 
