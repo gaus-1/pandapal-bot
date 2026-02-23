@@ -71,15 +71,15 @@ const App: React.FC = () => {
        window.location.hostname.includes('telegram.org') ||
        window.location.hostname.includes('web.telegram.org'));
 
-    // Локальная разработка: localhost + (/miniapp или ?miniapp=1) открывает Mini App с пандой
+    // Локальная разработка и локальный прод: localhost + (/miniapp или ?miniapp=1) открывает Mini App
     let isLocalMiniappDev = false;
-    if (import.meta.env.DEV && typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
       const host = window.location.hostname;
       const path = window.location.pathname;
       const q = new URLSearchParams(window.location.search);
       const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
       const pathOk = path === '/miniapp' || path.startsWith('/miniapp/');
-      const queryOk = q.get('miniapp') === '1' || q.get('miniapp') === 'true';
+      const queryOk = q.has('miniapp') && (q.get('miniapp') === '' || q.get('miniapp') === '1' || q.get('miniapp') === 'true');
       isLocalMiniappDev = isLocal && (pathOk || queryOk);
     }
 

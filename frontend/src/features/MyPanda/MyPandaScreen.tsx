@@ -65,8 +65,8 @@ function Bar({
 }) {
   const pct = Math.max(0, Math.min(100, value));
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex justify-between text-xs sm:text-sm text-gray-600 dark:text-slate-400">
+    <div className="flex flex-col gap-1 w-full min-w-0">
+      <div className="flex justify-between text-xs sm:text-sm text-gray-700 dark:text-slate-300">
         <span>{label}</span>
         <span>{pct}%</span>
       </div>
@@ -273,21 +273,21 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
 
   return (
     <div className="h-full flex flex-col bg-white dark:bg-slate-800 overflow-auto safe-area-inset">
-      <header className="flex-shrink-0 py-3 px-3 sm:px-4 border-b border-gray-200 dark:border-slate-700">
-        <h1 className="text-lg sm:text-xl font-display font-bold text-gray-900 dark:text-slate-100 text-center">
+      <header className="flex-shrink-0 py-2 px-3 xs:px-4 sm:px-4 md:px-5 border-b border-gray-200 dark:border-slate-700">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-display font-bold text-gray-900 dark:text-slate-100 text-center">
           Моя панда
         </h1>
         {state.consecutive_visit_days > 0 && (
-          <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 text-center mt-0.5">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 text-center mt-0.5">
             Дней подряд: {state.consecutive_visit_days}
           </p>
         )}
       </header>
 
-      <div className="flex-1 flex flex-col items-center px-3 sm:px-4 py-4 gap-3 sm:gap-4 min-h-0 min-w-0 pb-20">
-        {/* Реакция панды — ограничена по высоте, чтобы полоски и все 3 кнопки помещались без скролла на типичных экранах */}
+      <div className="flex-1 flex flex-col items-center px-3 xs:px-4 sm:px-4 md:px-5 py-2 sm:py-3 gap-2 sm:gap-3 md:gap-4 min-h-0 min-w-0 pb-20 max-w-full">
+        {/* Реакция панды — поднята выше; ограничена по высоте под все устройства */}
         <div
-          className="flex-shrink-0 w-full max-w-[180px] sm:max-w-[220px] md:max-w-[260px] max-h-[32vh] sm:max-h-[38vh] aspect-square flex items-center justify-center bg-gray-50 dark:bg-slate-700/50 rounded-2xl"
+          className="flex-shrink-0 w-full max-w-[140px] fold:max-w-[160px] xs:max-w-[180px] sm:max-w-[220px] md:max-w-[260px] lg:max-w-[280px] max-h-[26vh] fold:max-h-[28vh] xs:max-h-[32vh] sm:max-h-[36vh] md:max-h-[38vh] aspect-square flex items-center justify-center bg-gray-50 dark:bg-slate-700/50 rounded-2xl"
           aria-label="Панда"
         >
           {displayVideo && reactionKey ? (
@@ -314,10 +314,10 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             />
           ) : null}
         </div>
-        <p className="font-sans text-xs text-gray-500 dark:text-slate-500 text-center -mt-1">
+        <p className="font-sans text-xs sm:text-sm text-gray-600 dark:text-slate-500 text-center -mt-0.5">
           После действия выражение панды меняется ~{LAST_ACTION_DURATION_SEC} сек.
         </p>
-        <div className="w-full max-w-[280px] space-y-3">
+        <div className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] space-y-2 sm:space-y-3">
           <Bar
             value={state.hunger}
             label="Голод"
@@ -326,7 +326,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
           <Bar
             value={state.mood}
             label="Настроение"
-            colorClass="bg-pink-500 dark:bg-pink-400"
+            colorClass="bg-rose-500 dark:bg-pink-400"
           />
           <Bar
             value={state.energy}
@@ -335,8 +335,8 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
           />
         </div>
 
-        {/* Три действия всегда в один ряд, без горизонтального скролла; ширина по вьюпорту */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full max-w-[360px] min-w-0 shrink-0">
+        {/* Три действия в один ряд; контрастные цвета для светлой и тёмной темы */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full max-w-[320px] sm:max-w-[360px] md:max-w-[400px] min-w-0 shrink-0">
           <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
               type="button"
@@ -359,7 +359,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               type="button"
               onClick={handlePlay}
               disabled={!state.can_play || !!actionLoading}
-              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white transition-all active:scale-95 text-sm sm:text-base whitespace-nowrap overflow-hidden text-ellipsis"
+              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600 text-white transition-all active:scale-95 text-sm sm:text-base whitespace-nowrap overflow-hidden text-ellipsis"
               aria-label="Играть с пандой"
               title="Играть"
             >

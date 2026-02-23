@@ -49,14 +49,14 @@ function MiniAppContent() {
   // Здесь не дублируем логику, чтобы избежать конфликтов
 
   useEffect(() => {
-    // Локальная разработка: localhost + miniapp — сразу mock-пользователь, без запросов к API
-    const isLocalMiniappDev = import.meta.env.DEV && typeof window !== 'undefined' && (() => {
+    // Локальная разработка и локальный просмотр: localhost + miniapp — mock-пользователь, без API
+    const isLocalMiniappDev = typeof window !== 'undefined' && (() => {
       const host = window.location.hostname;
       const path = window.location.pathname;
       const q = new URLSearchParams(window.location.search);
       const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
       const pathOk = path === '/miniapp' || path.startsWith('/miniapp/');
-      const queryOk = q.get('miniapp') === '1' || q.get('miniapp') === 'true';
+      const queryOk = q.has('miniapp') && (q.get('miniapp') === '' || q.get('miniapp') === '1' || q.get('miniapp') === 'true');
       return isLocal && (pathOk || queryOk);
     })();
     if (isLocalMiniappDev) {
@@ -114,18 +114,23 @@ function MiniAppContent() {
             useAppStore.getState().setError(
               'Не удалось загрузить данные. Попробуйте перезапустить Mini App через кнопку в боте.'
             );
-          } else if (import.meta.env.DEV && typeof window !== 'undefined' &&
+          } else if (typeof window !== 'undefined' &&
             (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-            // Локальная разработка без Telegram — mock-пользователь для просмотра Mini App
-            const { setUser, setIsLoading, setError } = useAppStore.getState();
-            setUser({
-              telegram_id: 0,
-              first_name: 'Локальный',
-              user_type: 'child',
-              is_premium: false,
-            });
-            setError(null);
-            setIsLoading(false);
+            const path = window.location.pathname;
+            const q = new URLSearchParams(window.location.search);
+            const pathOk = path === '/miniapp' || path.startsWith('/miniapp/');
+            const queryOk = q.has('miniapp');
+            if (pathOk || queryOk) {
+              const { setUser, setIsLoading, setError } = useAppStore.getState();
+              setUser({
+                telegram_id: 0,
+                first_name: 'Локальный',
+                user_type: 'child',
+                is_premium: false,
+              });
+              setError(null);
+              setIsLoading(false);
+            }
           }
           useAppStore.getState().setIsLoading(false);
         }
