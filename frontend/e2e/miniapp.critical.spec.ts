@@ -1,7 +1,6 @@
 /**
  * КРИТИЧЕСКИЕ E2E ТЕСТЫ для PandaPal Mini App
  * Проверяет РЕАЛЬНУЮ работу с Yandex API (текст, фото, аудио)
- * БЕЗ ЗАГЛУШЕК И ИМИТАЦИЙ!
  */
 
 import { test, expect } from '@playwright/test';

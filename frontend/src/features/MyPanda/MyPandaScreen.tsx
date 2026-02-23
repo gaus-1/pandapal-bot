@@ -115,8 +115,11 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const [showClimbUntil, setShowClimbUntil] = useState<number | null>(null);
   const [showFallUntil, setShowFallUntil] = useState<number | null>(null);
   const [showToiletHappyUntil, setShowToiletHappyUntil] = useState<number | null>(null);
+  const [toiletImageError, setToiletImageError] = useState(false);
   /** При кормлении: true = видео, false = картинка eating, null = ещё не выбрано */
   const [feedMediaIsVideo, setFeedMediaIsVideo] = useState<boolean | null>(null);
+  /** Ошибка загрузки видео кормления — показываем картинку eating */
+  const [feedVideoError, setFeedVideoError] = useState(false);
 
   const loadState = useCallback(async () => {
     try {
@@ -161,9 +164,10 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   useEffect(() => {
     if (isFeedReaction && feedMediaIsVideo === true) setShowVideo(true);
   }, [isFeedReaction, feedMediaIsVideo]);
+  // Не сбрасывать выбор видео/картинки во время запроса кормления — иначе к моменту прихода state уже null и видео не показывается
   useEffect(() => {
-    if (lastAction !== 'feed') setFeedMediaIsVideo(null);
-  }, [lastAction]);
+    if (lastAction !== 'feed' && actionLoading !== 'feed') setFeedMediaIsVideo(null);
+  }, [lastAction, actionLoading]);
   useEffect(() => {
     if (isFeedReaction && feedMediaIsVideo === null) {
       setFeedMediaIsVideo(Math.random() < 0.5);
@@ -172,6 +176,12 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   useEffect(() => {
     setImageLoadError(false);
   }, [reactionKey]);
+  useEffect(() => {
+    if (showToiletHappyUntil != null) setToiletImageError(false);
+  }, [showToiletHappyUntil]);
+  useEffect(() => {
+    if (isFeedReaction) setFeedVideoError(false);
+  }, [isFeedReaction]);
 
   // Обновление таймеров кулдауна раз в секунду
   useEffect(() => {
@@ -466,19 +476,30 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               className="max-w-full max-h-full object-contain"
             />
           ) : showingToiletHappy ? (
-            <img
-              src={PANDA_POOPS_IMAGE}
-              alt="Панда в туалете"
-              className="max-w-full max-h-full object-contain"
-            />
+            toiletImageError ? (
+              <img
+                src={getPandaImagePath('happy')}
+                alt="Панда довольна"
+                className="max-w-full max-h-full object-contain"
+              />
+            ) : (
+              <img
+                key={`toilet-${showToiletHappyUntil}`}
+                src={PANDA_POOPS_IMAGE}
+                alt="Панда в туалете"
+                className="max-w-full max-h-full object-contain"
+                onError={() => setToiletImageError(true)}
+              />
+            )
           ) : showingClimb ? (
             <img
               src={PANDA_CLIMB_IMAGE}
               alt="Панда залезает на дерево"
               className="max-w-full max-h-full object-contain"
             />
-          ) : displayFeedVideo ? (
+          ) : displayFeedVideo && !feedVideoError ? (
             <video
+              key="feed-video"
               src={PANDA_FEED_VIDEO}
               autoPlay
               muted
@@ -486,8 +507,9 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               className="max-w-full max-h-full w-full h-full object-contain"
               aria-label="Панда ест бамбук"
               onEnded={() => setShowVideo(false)}
+              onError={() => setFeedVideoError(true)}
             />
-          ) : displayFeedImage ? (
+          ) : displayFeedImage || (isFeedReaction && feedVideoError) ? (
             <img
               src={getPandaImagePath('eating')}
               alt="Панда ест"
