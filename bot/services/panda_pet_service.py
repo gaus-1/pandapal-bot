@@ -38,6 +38,8 @@ PLAY_ENERGY_COST = 10
 SLEEP_ENERGY_DELTA = 30
 MIN_PLAY_INTERVAL_MINUTES = 5
 MIN_SLEEP_INTERVAL_MINUTES = 10
+ABSENCE_OFFENDED_HOURS = 24
+MOOD_OFFENDED_MAX = 65
 
 
 class PandaPetService:
@@ -116,10 +118,24 @@ class PandaPetService:
         """
         Состояние панды для API: hunger, mood, energy, last_*_at,
         can_feed, can_play, can_sleep, consecutive_visit_days, achievements.
+        Если пользователь не заходил в тамагочи >= 24 ч, при заходе mood понижается до offended (65).
         """
         pet = self.get_or_create(telegram_id)
-        self._maybe_reset_feed_hour(pet, datetime.now(UTC))
         now = datetime.now(UTC)
+        self._maybe_reset_feed_hour(pet, now)
+
+        last_opened = _as_datetime(pet.last_opened_at)
+        if last_opened is not None and (now - last_opened) >= timedelta(
+            hours=ABSENCE_OFFENDED_HOURS
+        ):
+            pet.mood = min(pet.mood, MOOD_OFFENDED_MAX)
+            logger.debug(
+                "Panda offended after 24h absence: user=%s mood=%s",
+                telegram_id,
+                pet.mood,
+            )
+        pet.last_opened_at = now
+        self.db.flush()
 
         def _iso(dt: datetime | str | None) -> str | None:
             if dt is None:

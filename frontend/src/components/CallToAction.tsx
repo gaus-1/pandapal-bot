@@ -6,11 +6,12 @@
 import React, { useState } from 'react';
 import { SITE_CONFIG } from '../config/constants';
 
+/** Статический QR в public — не зависит от внешнего API, загружается стабильно на ПК и смартфоне */
+const QR_IMAGE_SRC = '/qr-bot.png';
+
 export const CallToAction: React.FC = React.memo(() => {
   const [qrError, setQrError] = useState(false);
   const [qrLoaded, setQrLoaded] = useState(false);
-
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(SITE_CONFIG.botUrl)}`;
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
@@ -47,12 +48,13 @@ export const CallToAction: React.FC = React.memo(() => {
               ) : (
                 <>
                   <img
-                    src={qrUrl}
+                    src={QR_IMAGE_SRC}
                     alt="QR-код для перехода в Telegram бота"
                     className={`w-full h-full max-w-[200px] max-h-[200px] sm:max-w-[220px] sm:max-h-[220px] md:max-w-[240px] md:max-h-[240px] object-contain transition-opacity duration-300 ${
                       qrLoaded ? 'opacity-100' : 'opacity-0'
                     }`}
-                    loading="lazy"
+                    loading="eager"
+                    fetchPriority="high"
                     width="220"
                     height="220"
                     onLoad={() => setQrLoaded(true)}

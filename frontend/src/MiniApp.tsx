@@ -349,7 +349,7 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
       aria-current={isActive ? 'page' : undefined}
     >
       <span className="text-xl sm:text-2xl md:text-3xl flex-shrink-0 leading-none" aria-hidden="true">{icon}</span>
-      <span className="text-xs sm:text-sm md:text-base font-medium leading-tight truncate w-full text-center">{label}</span>
+      <span className="text-xs sm:text-sm md:text-base font-medium leading-tight text-center break-words line-clamp-2 w-full px-0.5">{label}</span>
     </button>
   );
 }

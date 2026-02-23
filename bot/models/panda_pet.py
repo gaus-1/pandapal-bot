@@ -60,6 +60,7 @@ class PandaPet(Base):
 
     consecutive_visit_days: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     last_visit_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     achievements: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 

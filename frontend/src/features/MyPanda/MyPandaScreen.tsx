@@ -277,9 +277,10 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
         )}
       </header>
 
-      <div className="flex-1 flex flex-col items-center px-3 sm:px-4 py-4 gap-4">
+      <div className="flex-1 flex flex-col items-center px-3 sm:px-4 py-4 gap-3 sm:gap-4">
+        {/* Реакция панды — не больше ~40% высоты экрана, чтобы внизу поместились полоски и все 3 кнопки */}
         <div
-          className="flex-shrink-0 w-full max-w-[280px] aspect-square flex items-center justify-center bg-gray-50 dark:bg-slate-700/50 rounded-2xl"
+          className="flex-shrink-0 w-full max-w-[180px] sm:max-w-[220px] md:max-w-[260px] max-h-[38vh] aspect-square flex items-center justify-center bg-gray-50 dark:bg-slate-700/50 rounded-2xl"
           aria-label="Панда"
         >
           {displayVideo && reactionKey ? (
@@ -321,14 +322,16 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
           />
         </div>
 
-        <div className="flex flex-nowrap justify-center gap-2 sm:gap-3 w-full max-w-[360px] overflow-x-auto">
-          <div className="flex-1 min-w-0 flex flex-col items-center gap-0.5">
+        {/* Три действия всегда в один ряд, без горизонтального скролла — детям должно быть понятно */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full max-w-[360px]">
+          <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
               type="button"
               onClick={handleFeed}
               disabled={!state.can_feed || !!actionLoading}
-              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-2 sm:px-4 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700 text-white transition-all active:scale-95 text-sm sm:text-base"
+              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700 text-white transition-all active:scale-95 text-sm sm:text-base whitespace-nowrap overflow-hidden text-ellipsis"
               aria-label="Покормить панду"
+              title="Покормить"
             >
               {actionLoading === 'feed' ? '...' : 'Покормить'}
             </button>
@@ -338,13 +341,14 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               </span>
             )}
           </div>
-          <div className="flex-1 min-w-0 flex flex-col items-center gap-0.5">
+          <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
               type="button"
               onClick={handlePlay}
               disabled={!state.can_play || !!actionLoading}
-              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-2 sm:px-4 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white transition-all active:scale-95 text-sm sm:text-base"
+              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white transition-all active:scale-95 text-sm sm:text-base whitespace-nowrap overflow-hidden text-ellipsis"
               aria-label="Играть с пандой"
+              title="Играть"
             >
               {actionLoading === 'play' ? '...' : 'Играть'}
             </button>
@@ -354,15 +358,16 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               </span>
             )}
           </div>
-          <div className="flex-1 min-w-0 flex flex-col items-center gap-0.5">
+          <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
               type="button"
               onClick={handleSleep}
               disabled={!state.can_sleep || !!actionLoading}
-              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-2 sm:px-4 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white transition-all active:scale-95 text-sm sm:text-base"
+              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-1 sm:px-2 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white transition-all active:scale-95 text-sm sm:text-base whitespace-nowrap overflow-hidden text-ellipsis"
               aria-label="Уложить панду спать"
+              title="Уложить спать"
             >
-              {actionLoading === 'sleep' ? '...' : 'Уложить спать'}
+              {actionLoading === 'sleep' ? '...' : 'Спать'}
             </button>
             {cooldown.sleepInSec > 0 && (
               <span className="text-[10px] sm:text-xs text-gray-500 dark:text-slate-500" aria-hidden="true">

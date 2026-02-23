@@ -6,12 +6,13 @@
 import os
 import tempfile
 from contextlib import contextmanager
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from bot.api.panda_pet_endpoints import setup_panda_pet_routes
@@ -174,6 +175,29 @@ class TestPandaPetAPI(AioHTTPTestCase):
             assert any(s in (400, 500) for s in statuses), (
                 "At least one request should hit limit or error: " + str(statuses)
             )
+
+    @unittest_run_loop
+    async def test_get_state_after_24h_absence_returns_offended_mood(self):
+        """Если пользователь не заходил в тамагочи 24 ч, при заходе mood понижается до 65 (обиженная панда)."""
+        with patch("bot.api.panda_pet_endpoints.require_owner", return_value=None):
+            await self.client.request(
+                "GET",
+                f"/api/miniapp/panda-pet/{self.test_telegram_id}",
+            )
+        with self.mock_get_db() as db:
+            pet = db.execute(
+                select(PandaPet).where(PandaPet.user_telegram_id == self.test_telegram_id)
+            ).scalar_one()
+            pet.last_opened_at = datetime.now(UTC) - timedelta(hours=25)
+            db.commit()
+        with patch("bot.api.panda_pet_endpoints.require_owner", return_value=None):
+            resp = await self.client.request(
+                "GET",
+                f"/api/miniapp/panda-pet/{self.test_telegram_id}",
+            )
+        assert resp.status == 200
+        data = await resp.json()
+        assert data["mood"] <= 65
 
     @unittest_run_loop
     async def test_get_state_user_not_found_404(self):
