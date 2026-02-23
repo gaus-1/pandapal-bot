@@ -192,6 +192,7 @@ export function AIChat({ user }: AIChatProps) {
       setWelcomeLogoSrc(randomLogo);
     }
   }, [showWelcome, messages.length, isLoadingHistory]);
+  const welcomeImageAlt = welcomeLogoSrc === '/panda-sleeping.png' ? 'Панда спит' : 'PandaPal';
 
   // УЛУЧШЕНО: Упрощенная анимация логотипа - работает как на сайте
   // Используем тот же подход, что и в Header/Footer - простой CSS класс с inline стилями для аппаратного ускорения
@@ -300,10 +301,10 @@ export function AIChat({ user }: AIChatProps) {
         await queryClient.refetchQueries({
           queryKey: queryKeys.chatHistory(user.telegram_id, 20),
         });
-        // Сбрасываем состояние приветствия ПОСЛЕ очистки истории
-        // useEffect сам покажет welcome screen когда messages.length === 0
+        // Сбрасываем состояние приветствия и сразу выбираем новый случайный логотип
         setHasShownWelcomeMessage(false);
         setShowWelcome(true);
+        setWelcomeLogoSrc(WELCOME_LOGOS[Math.floor(Math.random() * WELCOME_LOGOS.length)]);
       } catch (error) {
         logger.error('Ошибка очистки истории:', error);
         telegram.showAlert('Ошибка при очистке истории');
@@ -392,12 +393,12 @@ export function AIChat({ user }: AIChatProps) {
             <img
               ref={logoRef}
               src={welcomeLogoSrc}
-              alt="PandaPal"
+              alt={welcomeImageAlt}
               width={120}
               height={120}
               loading="eager"
               className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-2 animate-logo-bounce object-cover"
-              key={`logo-${messages.length}-${showWelcome ? 'welcome' : 'chat'}-${welcomeLogoSrc}`}
+              key={`welcome-img-${welcomeLogoSrc}-${messages.length}`}
               style={{
                 animation: 'logoBounce 2s ease-in-out infinite',
                 willChange: 'transform',

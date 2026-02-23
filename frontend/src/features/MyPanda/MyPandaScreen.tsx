@@ -2,7 +2,7 @@
  * Экран «Моя панда» — виртуальный питомец (тамагочи).
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   getPandaPetState,
   feedPandaPet,
@@ -13,9 +13,28 @@ import {
 import { telegram } from '../../services/telegram';
 import type { UserProfile } from '../../services/api';
 import { getPandaImagePath, getPandaVideoPath } from './constants';
-import { getPandaReactionKey, getLastActionFromState } from './pandaStateUtils';
+import {
+  getPandaReactionKey,
+  getLastActionFromState,
+  getCooldownInfo,
+  LAST_ACTION_DURATION_SEC,
+} from './pandaStateUtils';
 import { REACTIONS_WITH_VIDEO } from './generated/videoReactions';
 import { logger } from '../../utils/logger';
+
+/** Подписи для ключей достижений (бэкенд может добавлять свои) */
+const ACHIEVEMENT_LABELS: Record<string, string> = {
+  first_feed: 'Первое кормление',
+  first_play: 'Первая игра',
+  first_sleep: 'Первый сон',
+  week_visit: 'Неделя подряд',
+  ten_feed: '10 кормлений',
+  ten_play: '10 игр',
+  friend: 'Друг панды',
+};
+function getAchievementLabel(key: string): string {
+  return ACHIEVEMENT_LABELS[key] ?? key;
+}
 
 interface MyPandaScreenProps {
   user: UserProfile;
@@ -75,6 +94,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showVideo, setShowVideo] = useState(true);
+  const [cooldownTick, setCooldownTick] = useState(0);
 
   const loadState = useCallback(async () => {
     try {
@@ -112,6 +132,23 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   useEffect(() => {
     if (reactionKey && hasVideo) setShowVideo(true);
   }, [reactionKey, hasVideo]);
+
+  // Обновление таймеров кулдауна раз в секунду
+  useEffect(() => {
+    if (!state) return;
+    const hasCooldown = !state.can_feed || !state.can_play || !state.can_sleep;
+    if (!hasCooldown) return;
+    const t = setInterval(() => setCooldownTick((n) => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [state?.can_feed, state?.can_play, state?.can_sleep, state]);
+
+  const cooldown = useMemo(
+    () => (state ? getCooldownInfo(state) : { playInSec: 0, sleepInSec: 0, feedLabel: null as string | null }),
+    [state, cooldownTick]
+  );
+  const achievementEntries = state && state.achievements && typeof state.achievements === 'object'
+    ? Object.entries(state.achievements)
+    : [];
 
   const handleFeed = async () => {
     if (!state?.can_feed || actionLoading) return;
@@ -263,7 +300,9 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             />
           )}
         </div>
-
+        <p className="font-sans text-xs text-gray-500 dark:text-slate-500 text-center -mt-1">
+          После действия выражение панды меняется ~{LAST_ACTION_DURATION_SEC} сек.
+        </p>
         <div className="w-full max-w-[280px] space-y-3">
           <Bar
             value={state.hunger}
@@ -283,34 +322,73 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
         </div>
 
         <div className="flex flex-nowrap justify-center gap-2 sm:gap-3 w-full max-w-[360px] overflow-x-auto">
-          <button
-            type="button"
-            onClick={handleFeed}
-            disabled={!state.can_feed || !!actionLoading}
-            className="flex-1 min-w-0 min-h-[44px] sm:min-h-[48px] py-2.5 px-2 sm:px-4 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700 text-white transition-all active:scale-95 text-sm sm:text-base"
-            aria-label="Покормить панду"
-          >
-            {actionLoading === 'feed' ? '...' : 'Покормить'}
-          </button>
-          <button
-            type="button"
-            onClick={handlePlay}
-            disabled={!state.can_play || !!actionLoading}
-            className="flex-1 min-w-0 min-h-[44px] sm:min-h-[48px] py-2.5 px-2 sm:px-4 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white transition-all active:scale-95 text-sm sm:text-base"
-            aria-label="Играть с пандой"
-          >
-            {actionLoading === 'play' ? '...' : 'Играть'}
-          </button>
-          <button
-            type="button"
-            onClick={handleSleep}
-            disabled={!state.can_sleep || !!actionLoading}
-            className="flex-1 min-w-0 min-h-[44px] sm:min-h-[48px] py-2.5 px-2 sm:px-4 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white transition-all active:scale-95 text-sm sm:text-base"
-            aria-label="Уложить панду спать"
-          >
-            {actionLoading === 'sleep' ? '...' : 'Уложить спать'}
-          </button>
+          <div className="flex-1 min-w-0 flex flex-col items-center gap-0.5">
+            <button
+              type="button"
+              onClick={handleFeed}
+              disabled={!state.can_feed || !!actionLoading}
+              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-2 sm:px-4 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700 text-white transition-all active:scale-95 text-sm sm:text-base"
+              aria-label="Покормить панду"
+            >
+              {actionLoading === 'feed' ? '...' : 'Покормить'}
+            </button>
+            {cooldown.feedLabel && (
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-slate-500" aria-hidden="true">
+                {cooldown.feedLabel}
+              </span>
+            )}
+          </div>
+          <div className="flex-1 min-w-0 flex flex-col items-center gap-0.5">
+            <button
+              type="button"
+              onClick={handlePlay}
+              disabled={!state.can_play || !!actionLoading}
+              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-2 sm:px-4 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-pink-500 hover:bg-pink-600 dark:bg-pink-600 dark:hover:bg-pink-700 text-white transition-all active:scale-95 text-sm sm:text-base"
+              aria-label="Играть с пандой"
+            >
+              {actionLoading === 'play' ? '...' : 'Играть'}
+            </button>
+            {cooldown.playInSec > 0 && (
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-slate-500" aria-hidden="true">
+                через {Math.ceil(cooldown.playInSec / 60)} мин
+              </span>
+            )}
+          </div>
+          <div className="flex-1 min-w-0 flex flex-col items-center gap-0.5">
+            <button
+              type="button"
+              onClick={handleSleep}
+              disabled={!state.can_sleep || !!actionLoading}
+              className="w-full min-h-[44px] sm:min-h-[48px] py-2.5 px-2 sm:px-4 rounded-xl font-medium touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white transition-all active:scale-95 text-sm sm:text-base"
+              aria-label="Уложить панду спать"
+            >
+              {actionLoading === 'sleep' ? '...' : 'Уложить спать'}
+            </button>
+            {cooldown.sleepInSec > 0 && (
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-slate-500" aria-hidden="true">
+                через {Math.ceil(cooldown.sleepInSec / 60)} мин
+              </span>
+            )}
+          </div>
         </div>
+
+        {achievementEntries.length > 0 && (
+          <div className="w-full max-w-[320px] mt-2 p-3 rounded-xl bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600">
+            <h3 className="font-display text-xs sm:text-sm font-semibold text-gray-900 dark:text-slate-100 mb-2">
+              Достижения
+            </h3>
+            <div className="flex flex-wrap gap-1.5">
+              {achievementEntries.map(([key]) => (
+                <span
+                  key={key}
+                  className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 text-xs font-medium"
+                >
+                  {getAchievementLabel(key)}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {error && (
           <p className="text-sm text-red-600 dark:text-red-400 text-center">{error}</p>

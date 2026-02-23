@@ -5,7 +5,12 @@
 import type { PandaReactionKey } from './constants';
 
 /** Секунды, в течение которых показываем реакцию на последнее действие (eating, played, sleeping и т.д.) */
-const LAST_ACTION_DURATION_SEC = 45;
+export const LAST_ACTION_DURATION_SEC = 45;
+
+/** Интервалы до следующего действия (минуты), синхронно с бэкендом */
+export const MIN_PLAY_INTERVAL_MINUTES = 5;
+export const MIN_SLEEP_INTERVAL_MINUTES = 10;
+export const FEEDS_PER_HOUR = 3;
 
 const HUNGER_LOW = 30;
 const HUNGER_OK = 60;
@@ -93,4 +98,37 @@ export function getLastActionFromState(state: PandaPetStateTimestamps): 'feed' |
     }
   }
   return action;
+}
+
+export interface CooldownInfo {
+  playInSec: number;
+  sleepInSec: number;
+  feedLabel: string | null;
+}
+
+/**
+ * Секунды до следующего действия и подпись для кормления.
+ * playInSec/sleepInSec = 0 если действие уже доступно.
+ */
+export function getCooldownInfo(state: {
+  last_fed_at: string | null;
+  last_played_at: string | null;
+  last_slept_at: string | null;
+  can_feed: boolean;
+  can_play: boolean;
+  can_sleep: boolean;
+}): CooldownInfo {
+  const now = Date.now();
+  let playInSec = 0;
+  let sleepInSec = 0;
+  if (state.last_played_at && !state.can_play) {
+    const next = new Date(state.last_played_at).getTime() + MIN_PLAY_INTERVAL_MINUTES * 60 * 1000;
+    playInSec = Math.max(0, Math.ceil((next - now) / 1000));
+  }
+  if (state.last_slept_at && !state.can_sleep) {
+    const next = new Date(state.last_slept_at).getTime() + MIN_SLEEP_INTERVAL_MINUTES * 60 * 1000;
+    sleepInSec = Math.max(0, Math.ceil((next - now) / 1000));
+  }
+  const feedLabel = !state.can_feed ? `До ${FEEDS_PER_HOUR} раз в час` : null;
+  return { playInSec, sleepInSec, feedLabel };
 }
