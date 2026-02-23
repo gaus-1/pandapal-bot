@@ -63,7 +63,7 @@ npm run dev
 - Голосовые вопросы с подтверждением перед отправкой в AI
 - Визуализации по предметам (графики, таблицы, схемы, карты)
 - RAG-поиск по базе знаний с `pgvector` (`knowledge_embeddings`)
-- Игры PandaPalGo: Крестики-нолики, Шашки, 2048, Эрудит
+- Игры PandaPalGo: Моя панда (тамагочи), Крестики-нолики, Шашки, 2048, Эрудит. Тамагочи: кормление каждые 30 мин, игра / на дерево / упасть раз в час, сон раз в 2 часа
 - Прогресс, достижения и геймификация
 - Premium через YooKassa (299 ₽/месяц), сохранение карт
 - Реферальная программа (`ref_<telegram_id>`)
@@ -138,21 +138,21 @@ PandaPal/
 
 ```mermaid
 graph TB
-    user[Пользователь] --> web[Сайт в браузере]
-    user --> miniapp[Telegram Mini App]
-    user --> tgbot[Telegram бот]
+    user["Пользователь"] --> web["Сайт в браузере"]
+    user --> miniapp["Telegram Mini App"]
+    user --> tgbot["Telegram бот"]
 
-    web --> server[Сервер приложения web_server.py]
+    web --> server["Сервер web_server.py"]
     miniapp --> server
-    tgbot --> telegramApi[Telegram Bot API]
+    tgbot --> telegramApi["Telegram Bot API"]
     telegramApi --> server
 
-    server --> api[API и маршруты]
-    api --> services[Сервисы приложения]
-    services --> db[(PostgreSQL + pgvector)]
-    services --> redis[(Redis кэш/состояние)]
-    services --> yandex[Yandex Cloud сервисы]
-    services --> payments[YooKassa платежи]
+    server --> api["API и маршруты"]
+    api --> services["Сервисы приложения"]
+    services --> db["PostgreSQL + pgvector"]
+    services --> redis["Redis кэш"]
+    services --> yandex["Yandex Cloud"]
+    services --> payments["YooKassa"]
 ```
 
 Коротко по потоку:
@@ -171,7 +171,8 @@ graph TB
 - `GET /api/miniapp/homework/history/{telegram_id}`
 - `GET /api/miniapp/progress/{telegram_id}`
 - `GET /api/miniapp/premium/status/{telegram_id}`
-- `POST /api/miniapp/games/{telegram_id}/create`
+- `POST /api/miniapp/games/{telegram_id}/create` — создание сессии (tic_tac_toe, checkers, 2048, erudite)
+- `GET /api/miniapp/panda-pet/{telegram_id}` — состояние тамагочи; POST feed/play/sleep/climb/fall-from-tree/toilet
 
 ## Безопасность
 
