@@ -500,7 +500,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
           />
         </div>
 
-        {/* Шесть кнопок: по три в ряд; гармоничные цвета и размеры для светлой и тёмной темы */}
+        {/* Шесть кнопок: под каждой — место для подписи «через N мин» или «До 3 раз в час» */}
         <div className="grid grid-cols-3 gap-2 sm:gap-2.5 w-full max-w-[340px] sm:max-w-[380px] md:max-w-[420px] min-w-0 shrink-0">
           {/* Ряд 1: Покормить, Играть, Спать */}
           <div className="flex flex-col items-center gap-0.5 min-w-0">
@@ -514,11 +514,9 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             >
               {actionLoading === 'feed' ? '...' : 'Покормить'}
             </button>
-            {cooldown.feedLabel && (
-              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-slate-500" aria-hidden="true">
-                {cooldown.feedLabel}
-              </span>
-            )}
+            <span className="min-h-[1.25rem] text-[10px] sm:text-xs text-gray-500 dark:text-slate-500 text-center leading-tight" aria-hidden="true">
+              {cooldown.feedLabel ?? '\u00A0'}
+            </span>
           </div>
           <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
@@ -531,11 +529,9 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             >
               {actionLoading === 'play' ? '...' : 'Играть'}
             </button>
-            {cooldown.playInSec > 0 && (
-              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-slate-500" aria-hidden="true">
-                через {Math.ceil(cooldown.playInSec / 60)} мин
-              </span>
-            )}
+            <span className="min-h-[1.25rem] text-[10px] sm:text-xs text-gray-500 dark:text-slate-500 text-center leading-tight" aria-hidden="true">
+              {cooldown.playInSec > 0 ? `через ${Math.ceil(cooldown.playInSec / 60)} мин` : '\u00A0'}
+            </span>
           </div>
           <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
@@ -548,13 +544,11 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             >
               {actionLoading === 'sleep' ? '...' : 'Спать'}
             </button>
-            {cooldown.sleepInSec > 0 && (
-              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-slate-500" aria-hidden="true">
-                через {Math.ceil(cooldown.sleepInSec / 60)} мин
-              </span>
-            )}
+            <span className="min-h-[1.25rem] text-[10px] sm:text-xs text-gray-500 dark:text-slate-500 text-center leading-tight" aria-hidden="true">
+              {cooldown.sleepInSec > 0 ? `через ${Math.ceil(cooldown.sleepInSec / 60)} мин` : '\u00A0'}
+            </span>
           </div>
-          {/* Ряд 2: На дерево, Упасть, В туалет — палитра для светлой и тёмной темы */}
+          {/* Ряд 2: На дерево, Упасть, В туалет */}
           <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
               type="button"
@@ -566,6 +560,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             >
               На дерево
             </button>
+            <span className="min-h-[1.25rem]" aria-hidden="true" />
           </div>
           <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
@@ -578,6 +573,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             >
               {actionLoading === 'fall' ? '...' : 'Упасть'}
             </button>
+            <span className="min-h-[1.25rem]" aria-hidden="true" />
           </div>
           <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
@@ -590,11 +586,9 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             >
               {actionLoading === 'toilet' ? '...' : 'В туалет'}
             </button>
-            {cooldown.toiletInSec > 0 && (
-              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-slate-500" aria-hidden="true">
-                через {Math.ceil(cooldown.toiletInSec / 60)} мин
-              </span>
-            )}
+            <span className="min-h-[1.25rem] text-[10px] sm:text-xs text-gray-500 dark:text-slate-500 text-center leading-tight" aria-hidden="true">
+              {cooldown.toiletInSec > 0 ? `через ${Math.ceil(cooldown.toiletInSec / 60)} мин` : '\u00A0'}
+            </span>
           </div>
         </div>
 

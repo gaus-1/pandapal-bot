@@ -175,8 +175,8 @@ export function GamesScreen({ user }: GamesScreenProps) {
           </div>
         )}
 
-        {/* Список игр */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5 mb-4">
+        {/* Список игр — адаптивная сетка без перекрытий */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 w-full min-w-0">
           {GAMES.map((game) => {
             const isMyPanda = game.id === 'my_panda';
             const gameStats = isMyPanda ? undefined : stats[game.id];
@@ -196,9 +196,9 @@ export function GamesScreen({ user }: GamesScreenProps) {
                 disabled={isLoading && !isMyPanda}
                 className={`
                   relative p-2 rounded-lg bg-gradient-to-br ${game.color} dark:from-slate-700 dark:to-slate-800
-                  text-gray-800 dark:text-slate-100 shadow-lg hover:shadow-xl dark:hover:shadow-2xl transform hover:scale-105
-                  active:scale-100 active:bg-gradient-to-br ${game.color} dark:active:from-slate-600 dark:active:to-slate-700 transition-all duration-200
-                  disabled:opacity-50 disabled:cursor-not-allowed
+                  text-gray-800 dark:text-slate-100 shadow-lg hover:shadow-xl dark:hover:shadow-2xl transform hover:scale-[1.02] active:scale-100
+                  active:bg-gradient-to-br ${game.color} dark:active:from-slate-600 dark:active:to-slate-700 transition-all duration-200
+                  disabled:opacity-50 disabled:cursor-not-allowed min-w-0
                   text-left h-[100px] flex flex-col overflow-hidden border border-blue-200/50 dark:border-slate-600/50
                 `}
               >
