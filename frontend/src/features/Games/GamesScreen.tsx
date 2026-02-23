@@ -176,7 +176,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
         )}
 
         {/* Список игр */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5 mb-4">
           {GAMES.map((game) => {
             const isMyPanda = game.id === 'my_panda';
             const gameStats = isMyPanda ? undefined : stats[game.id];
@@ -195,37 +195,37 @@ export function GamesScreen({ user }: GamesScreenProps) {
                 }}
                 disabled={isLoading && !isMyPanda}
                 className={`
-                  relative p-2.5 rounded-lg bg-gradient-to-br ${game.color} dark:from-slate-700 dark:to-slate-800
+                  relative p-2 rounded-lg bg-gradient-to-br ${game.color} dark:from-slate-700 dark:to-slate-800
                   text-gray-800 dark:text-slate-100 shadow-lg hover:shadow-xl dark:hover:shadow-2xl transform hover:scale-105
                   active:scale-100 active:bg-gradient-to-br ${game.color} dark:active:from-slate-600 dark:active:to-slate-700 transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
-                  text-left h-[150px] flex flex-col overflow-hidden border border-blue-200/50 dark:border-slate-600/50
+                  text-left h-[120px] flex flex-col overflow-hidden border border-blue-200/50 dark:border-slate-600/50
                 `}
               >
-                <div className="text-2xl sm:text-3xl mb-1.5 flex-shrink-0 leading-none">{game.icon}</div>
-                <h3 className="font-display text-sm sm:text-base font-bold mb-1 flex-shrink-0 leading-tight">{game.name}</h3>
-                <p className="font-sans text-xs sm:text-sm opacity-90 mb-2 overflow-hidden leading-tight" style={{
+                <div className="text-xl sm:text-2xl mb-0.5 flex-shrink-0 leading-none">{game.icon}</div>
+                <h3 className="font-display text-sm font-bold mb-0.5 flex-shrink-0 leading-tight">{game.name}</h3>
+                <p className="font-sans text-xs opacity-90 mb-1 overflow-hidden leading-tight" style={{
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
-                  minHeight: '40px',
-                  maxHeight: '40px'
+                  minHeight: '32px',
+                  maxHeight: '32px'
                 }}>{game.description}</p>
 
                 {/* Статистика - всегда резервируем место */}
-                <div className="mt-auto min-h-[34px] flex-shrink-0">
+                <div className="mt-auto min-h-[24px] flex-shrink-0">
                   {hasStats ? (
-                    <div className="pt-2 border-t border-blue-300/40 dark:border-slate-600/50">
+                    <div className="pt-1.5 border-t border-blue-300/40 dark:border-slate-600/50">
                       <div className="flex justify-between text-xs leading-tight text-gray-700 dark:text-slate-200 font-medium">
                         <span>Побед: {gameStats.wins}</span>
                         <span>Игр: {gameStats.total_games}</span>
                       </div>
                       {hasBestScore ? (
-                        <div className="text-xs mt-0.5 leading-tight text-gray-700 dark:text-slate-200 font-medium">
+                        <div className="text-[10px] sm:text-xs mt-0.5 leading-tight text-gray-700 dark:text-slate-200 font-medium">
                           Лучший счет: {gameStats.best_score}
                         </div>
                       ) : (
-                        <div className="h-[14px]"></div>
+                        <div className="h-[10px]"></div>
                       )}
                     </div>
                   ) : (
