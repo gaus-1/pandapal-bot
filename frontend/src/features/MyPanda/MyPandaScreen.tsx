@@ -95,6 +95,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showVideo, setShowVideo] = useState(true);
   const [cooldownTick, setCooldownTick] = useState(0);
+  const [imageLoadError, setImageLoadError] = useState(false);
 
   const loadState = useCallback(async () => {
     try {
@@ -132,6 +133,9 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   useEffect(() => {
     if (reactionKey && hasVideo) setShowVideo(true);
   }, [reactionKey, hasVideo]);
+  useEffect(() => {
+    setImageLoadError(false);
+  }, [reactionKey]);
 
   // Обновление таймеров кулдауна раз в секунду
   useEffect(() => {
@@ -261,7 +265,10 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
 
   if (!state) return null;
 
-  const imageSrc = reactionKey ? getPandaImagePath(reactionKey) : '';
+  const imageSrc =
+    reactionKey
+      ? (imageLoadError ? getPandaImagePath('neutral') : getPandaImagePath(reactionKey))
+      : '';
   const displayVideo = hasVideo && showVideo;
 
   return (
@@ -277,10 +284,10 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
         )}
       </header>
 
-      <div className="flex-1 flex flex-col items-center px-3 sm:px-4 py-4 gap-3 sm:gap-4">
-        {/* Реакция панды — не больше ~40% высоты экрана, чтобы внизу поместились полоски и все 3 кнопки */}
+      <div className="flex-1 flex flex-col items-center px-3 sm:px-4 py-4 gap-3 sm:gap-4 min-h-0 min-w-0 pb-20">
+        {/* Реакция панды — ограничена по высоте, чтобы полоски и все 3 кнопки помещались без скролла на типичных экранах */}
         <div
-          className="flex-shrink-0 w-full max-w-[180px] sm:max-w-[220px] md:max-w-[260px] max-h-[38vh] aspect-square flex items-center justify-center bg-gray-50 dark:bg-slate-700/50 rounded-2xl"
+          className="flex-shrink-0 w-full max-w-[180px] sm:max-w-[220px] md:max-w-[260px] max-h-[32vh] sm:max-h-[38vh] aspect-square flex items-center justify-center bg-gray-50 dark:bg-slate-700/50 rounded-2xl"
           aria-label="Панда"
         >
           {displayVideo && reactionKey ? (
@@ -293,13 +300,19 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               aria-label={`Панда: ${reactionKey}`}
               onEnded={() => setShowVideo(false)}
             />
-          ) : (
+          ) : imageSrc ? (
             <img
               src={imageSrc}
               alt={reactionKey ? `Панда: ${reactionKey}` : 'Панда'}
               className="max-w-full max-h-full object-contain"
+              onError={() => {
+                if (!imageLoadError) {
+                  setImageLoadError(true);
+                  logger.debug('MyPanda reaction image failed to load, using neutral');
+                }
+              }}
             />
-          )}
+          ) : null}
         </div>
         <p className="font-sans text-xs text-gray-500 dark:text-slate-500 text-center -mt-1">
           После действия выражение панды меняется ~{LAST_ACTION_DURATION_SEC} сек.
@@ -322,8 +335,8 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
           />
         </div>
 
-        {/* Три действия всегда в один ряд, без горизонтального скролла — детям должно быть понятно */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full max-w-[360px]">
+        {/* Три действия всегда в один ряд, без горизонтального скролла; ширина по вьюпорту */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full max-w-[360px] min-w-0 shrink-0">
           <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
               type="button"
