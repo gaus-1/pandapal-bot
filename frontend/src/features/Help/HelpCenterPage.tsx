@@ -32,11 +32,11 @@ export const HelpCenterPage: React.FC = React.memo(() => {
               const articles = getHelpArticlesByCategory(cat.id);
               if (articles.length === 0) return null;
               return (
-                <section key={cat.id}>
+                <section key={cat.id} className="text-center">
                   <h2 className="font-display text-base sm:text-lg font-bold text-gray-900 dark:text-slate-50 mb-3">
                     {cat.titleRu}
                   </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-md sm:max-w-none mx-auto sm:mx-0">
+                  <div className="flex flex-wrap justify-center gap-2">
                     {articles.map((art) => (
                       <a
                         key={art.id}

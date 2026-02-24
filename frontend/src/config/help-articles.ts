@@ -43,7 +43,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     descriptionRu: 'Пошаговая инструкция: как открыть бота, войти в Mini App и задать первый вопрос.',
     bodyRu: [
       { type: 'p', text: 'Откройте Telegram и найдите бота @PandaPalBot или перейдите по ссылке https://t.me/PandaPalBot.' },
-      { type: 'p', text: 'Нажмите «Запустить» или «Start». Вам откроется Mini App — веб-приложение внутри Telegram.' },
+      { type: 'p', text: 'Нажмите «Открыть PandaPal». Вам откроется Mini App — веб-приложение внутри Telegram.' },
       { type: 'p', text: 'В Mini App можно сразу задавать вопросы текстом, отправлять фото задания или голосовые сообщения. PandaPal отвечает по школьным предметам для 1–9 класса.' },
       { type: 'ul', items: ['Официальный бот: @PandaPalBot', 'Сайт: pandapal.ru', 'Ничего устанавливать не нужно — всё работает в Telegram.'] },
     ],
