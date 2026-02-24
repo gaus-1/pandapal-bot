@@ -16,8 +16,8 @@ export const HelpCenterPage: React.FC = React.memo(() => {
   return (
     <>
       <Header />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
-        <article className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-5 sm:p-7 md:p-8 shadow-lg dark:shadow-xl">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 flex flex-col items-center">
+        <article className="w-full max-w-3xl mx-auto rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-5 sm:p-7 md:p-8 shadow-lg dark:shadow-xl">
           <header className="mb-5 sm:mb-6">
             <h1 className="font-display text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-50">
               Вопросы и ответы
