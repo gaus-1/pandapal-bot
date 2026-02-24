@@ -55,27 +55,27 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
   const benefitsGroups = isBenefitsSection ? buildBenefitsGroups(descriptionItems) : [];
 
   return (
-    <section id={section.id} className="py-8 xs:py-10 sm:py-12 md:py-14 lg:py-16">
+    <section id={section.id} className="py-12 sm:py-16 lg:py-20">
       {/* Контейнер с профессиональным дизайном */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
-        <div className="rounded-2xl xs:rounded-2.5xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-4 xs:p-5 sm:p-6 md:p-8 lg:p-10 xl:p-12 shadow-lg dark:shadow-xl hover:shadow-xl dark:hover:shadow-2xl transition-shadow duration-300 text-center">
+      <div className="max-w-6xl mx-auto">
+        <div className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-6 sm:p-8 lg:p-10 shadow-lg dark:shadow-xl hover:shadow-xl dark:hover:shadow-2xl transition-shadow duration-300 text-center">
           {/* Заголовок секции */}
-          <h2 className="font-display text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 xs:mb-5 sm:mb-6 md:mb-7 lg:mb-8 text-gray-900 dark:text-slate-50">
+          <h2 className="font-display text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6 lg:mb-8 text-gray-900 dark:text-slate-50">
             {section.title}
           </h2>
 
           {/* Текст описания */}
-          <div className="text-sm xs:text-base md:text-[1.0625rem] text-gray-700 dark:text-slate-200 max-w-5xl leading-[1.75] mx-auto">
+          <div className="text-sm sm:text-base md:text-lg text-gray-700 dark:text-slate-200 max-w-5xl leading-relaxed mx-auto">
             {isDescriptionList ? (
               isBenefitsSection ? (
                 <div className="text-left">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xs:gap-4 sm:gap-5 md:gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
                     {benefitsGroups.map((group) => (
                       <div
                         key={group.title}
-                        className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-600/70 bg-slate-50/80 dark:bg-slate-900/35 p-3 xs:p-4 sm:p-5"
+                        className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-600/70 bg-slate-50/80 dark:bg-slate-900/35 p-4 sm:p-5 lg:p-6"
                       >
-                        <h3 className="font-display text-sm xs:text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 mb-2.5 sm:mb-3">
+                        <h3 className="font-display text-sm sm:text-lg font-bold text-slate-900 dark:text-slate-100 mb-2.5 sm:mb-3">
                           {group.title}
                         </h3>
 
@@ -91,7 +91,7 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
                                   aria-hidden="true"
                                   className="mt-[0.58em] h-1.5 w-1.5 rounded-full bg-blue-500 dark:bg-blue-400 flex-shrink-0"
                                 />
-                                <span className="text-slate-700 dark:text-slate-200 break-words leading-[1.62]">
+                                <span className="text-slate-700 dark:text-slate-200 break-words leading-relaxed">
                                   <span className="font-semibold text-slate-900 dark:text-slate-100">
                                     {lead}
                                   </span>
@@ -106,7 +106,7 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
                   </div>
                 </div>
               ) : (
-                <ul className="text-left m-0 p-0 space-y-3.5 xs:space-y-4 sm:space-y-5">
+                <ul className="text-left m-0 p-0 space-y-3 sm:space-y-4 lg:space-y-5">
                   {descriptionItems.map((item, index) => (
                     <li key={index} className="flex items-start gap-2.5 sm:gap-3 list-none">
                       <span
@@ -121,7 +121,7 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
                 </ul>
               )
             ) : (
-              <p className="font-sans">{section.description}</p>
+              <p>{section.description}</p>
             )}
           </div>
         </div>

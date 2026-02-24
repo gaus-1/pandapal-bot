@@ -173,7 +173,7 @@ const App: React.FC = () => {
           canonicalPath="/premium"
         />
         <Header />
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-14">
           <PremiumScreen user={null} />
         </main>
         <Footer />
@@ -192,7 +192,7 @@ const App: React.FC = () => {
           canonicalPath="/donation"
         />
         <Header />
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-14">
           <DonationScreen user={null} />
         </main>
         <Footer />
@@ -424,8 +424,8 @@ const App: React.FC = () => {
       {/* Шапка сайта (включает DarkModeToggle внутри) */}
       <Header />
 
-      {/* Основной контент */}
-      <main className="max-w-6xl mx-auto px-4">
+      {/* Основной контент — единый контейнер и ритм отступов */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Hero-секция: заголовок + CTA */}
         <Hero />
 

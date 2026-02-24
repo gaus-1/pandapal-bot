@@ -47,8 +47,8 @@ export const HelpArticlePage: React.FC = React.memo(() => {
     return (
       <>
         <Header />
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
-          <article className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-5 sm:p-7 md:p-8 shadow-lg dark:shadow-xl">
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-14">
+          <article className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-6 sm:p-8 lg:p-10 shadow-lg dark:shadow-xl">
             <p className="text-sm text-gray-600 dark:text-slate-300">Статья не найдена.</p>
             <a
               href="/help"
@@ -74,9 +74,9 @@ export const HelpArticlePage: React.FC = React.memo(() => {
   return (
     <>
       <Header />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10">
-        <article className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-5 sm:p-7 md:p-8 shadow-lg dark:shadow-xl">
-          <nav className="text-[11px] sm:text-xs text-gray-500 dark:text-slate-400 mb-4" aria-label="Хлебные крошки">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-14">
+        <article className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-6 sm:p-8 lg:p-10 shadow-lg dark:shadow-xl">
+          <nav className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-4" aria-label="Хлебные крошки">
             <a
               href="/"
               onClick={(e) => {

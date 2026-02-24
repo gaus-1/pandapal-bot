@@ -35,7 +35,7 @@ export const FeedbackConsentModal: React.FC<FeedbackConsentModalProps> = React.m
         >
           <h2
             id="feedback-modal-title"
-            className="font-display font-bold text-lg text-gray-900 dark:text-slate-50 mb-3"
+            className="font-display font-bold text-xl sm:text-2xl text-gray-900 dark:text-slate-50 mb-3"
           >
             Оставить отзыв
           </h2>

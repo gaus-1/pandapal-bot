@@ -34,7 +34,7 @@ export const Footer: React.FC = React.memo(() => {
 
   return (
     <footer
-      className="max-w-6xl mx-auto px-4 py-12 text-center border-t border-gray-200 dark:border-slate-700 dark:border-slate-600/50 mt-16"
+      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center border-t border-gray-200 dark:border-slate-700 dark:border-slate-600/50 mt-12 sm:mt-16 lg:mt-20"
       role="contentinfo"
     >
       {/* Логотип и название */}
@@ -68,10 +68,10 @@ export const Footer: React.FC = React.memo(() => {
         </span>
       </div>
 
-      {/* Ссылки на документы (РКН) — в карточке для мобильных */}
-      <div className="max-w-3xl mx-auto mb-5">
+      {/* Ссылки на документы (РКН) — ширина как у секций main */}
+      <div className="w-full mb-5">
         <nav
-          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 p-1.5 sm:p-2.5 grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2 text-[11px] sm:text-xs"
+          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 p-1.5 sm:p-2.5 grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2 text-xs sm:text-sm"
           aria-label="Документы"
         >
           <a
@@ -107,10 +107,10 @@ export const Footer: React.FC = React.memo(() => {
         </nav>
       </div>
 
-      {/* Внутренние SEO-ссылки по ключевым интентам */}
-      <div className="max-w-3xl mx-auto mb-6">
+      {/* Внутренние SEO-ссылки — ширина как у секций main */}
+      <div className="w-full mb-6">
         <nav
-          className="rounded-xl border border-gray-100 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-1.5 sm:p-2.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 text-[11px] sm:text-xs"
+          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-1.5 sm:p-2.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 text-xs sm:text-sm"
           aria-label="Полезные страницы"
         >
           <a
@@ -161,7 +161,7 @@ export const Footer: React.FC = React.memo(() => {
       )}
 
       {/* Копирайт */}
-      <p className="text-[11px] sm:text-xs text-gray-600 dark:text-slate-400">
+      <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">
         © {currentYear} {SITE_CONFIG.name}. Все права защищены.
       </p>
     </footer>

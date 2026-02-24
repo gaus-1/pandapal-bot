@@ -38,13 +38,13 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
   const current = MINIAPP_SCREENSHOTS[currentIndex];
 
   return (
-    <section aria-label="Скриншоты Mini App" className="mt-8 sm:mt-10">
+    <section aria-label="Скриншоты Mini App" className="mt-10 sm:mt-12 lg:mt-16">
       <div className="mx-auto w-full sm:w-[22rem] md:w-[23rem] lg:w-[24rem] max-w-[calc(100%-5.5rem)]">
         <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">
           <h3 className="font-display text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-50">
             Интерфейс Mini App
           </h3>
-          <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+          <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 leading-snug">
             {currentIndex + 1} / {total}
           </span>
         </div>
@@ -108,7 +108,7 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
         </div>
       </div>
 
-      <p className="mt-3 text-sm text-gray-700 dark:text-slate-200 text-center">{current.title}</p>
+      <p className="mt-3 text-sm sm:text-base text-gray-700 dark:text-slate-200 text-center leading-snug">{current.title}</p>
 
       <div className="mt-4 flex justify-center gap-1.5">
         {MINIAPP_SCREENSHOTS.map((item, index) => (

@@ -16,13 +16,13 @@ export const HelpCenterPage: React.FC = React.memo(() => {
   return (
     <>
       <Header />
-      <main className="w-full max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 flex flex-col items-center">
-        <article className="w-full max-w-2xl mx-auto rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 px-6 sm:px-8 md:px-10 py-5 sm:py-7 md:py-8 shadow-lg dark:shadow-xl">
+      <main className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-14 flex flex-col items-center">
+        <article className="w-full max-w-2xl mx-auto rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 px-6 sm:px-8 lg:px-10 py-6 sm:py-8 lg:py-10 shadow-lg dark:shadow-xl">
           <header className="mb-5 sm:mb-6 text-center">
             <h1 className="font-display text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-50">
               Вопросы и ответы
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-gray-600 dark:text-slate-300 max-w-xl mx-auto">
+            <p className="mt-2 text-sm sm:text-base text-gray-600 dark:text-slate-300 max-w-xl mx-auto leading-relaxed">
               Ответы на частые вопросы о PandaPal: начало работы, учёба, игры, Premium и безопасность.
             </p>
           </header>
