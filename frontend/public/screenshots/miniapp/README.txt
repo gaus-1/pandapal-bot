@@ -1,16 +1,7 @@
 Add Mini App screenshots here.
 
 Required files:
-- 01.webp
-- 02.webp
-- 03.webp
-- 04.webp
-- 05.webp
-- 06.webp
-- 07.webp
-- 08.webp
-- 09.webp
-- 10.webp
+- 01.webp … 12.webp (see frontend/src/config/miniapp-screenshots.ts for titles)
 
 Recommended size:
 - 1080x1920 (portrait)
