@@ -16,6 +16,7 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
     if frontend_dist.exists():
         static_files = [
             "logo.png",
+            "panda-sleeping.png",
             "qr-bot.png",
             "favicon.ico",
             "favicon.svg",
@@ -271,6 +272,39 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             app.router.add_get("/panda-tamagotchi/{filename:.*}", serve_panda_tamagotchi)
             logger.info("✅ Panda tamagotchi зарегистрированы: /panda-tamagotchi/")
 
+        panda_tamagotchi_video_dir = frontend_dist / "panda-tamagotchi-video"
+        if panda_tamagotchi_video_dir.exists() and panda_tamagotchi_video_dir.is_dir():
+
+            async def serve_panda_tamagotchi_video(request: web.Request) -> web.Response:
+                filename = request.match_info.get("filename", "").lstrip("/")
+                if not filename:
+                    return web.Response(status=404, text="Not Found")
+                try:
+                    requested_path = Path(filename)
+                    if requested_path.is_absolute() or ".." in requested_path.parts:
+                        return web.Response(status=404, text="Not Found")
+                    file_path = (panda_tamagotchi_video_dir / requested_path).resolve()
+                    if not str(file_path).startswith(str(panda_tamagotchi_video_dir.resolve())):
+                        return web.Response(status=404, text="Not Found")
+                except (RuntimeError, OSError, ValueError):
+                    return web.Response(status=404, text="Not Found")
+                if not file_path.exists() or not file_path.is_file():
+                    return web.Response(status=404, text="Not Found")
+                suffix = file_path.suffix.lower()
+                content_type = "video/mp4" if suffix == ".mp4" else "application/octet-stream"
+                return web.FileResponse(
+                    file_path,
+                    headers={
+                        "Content-Type": content_type,
+                        "Cache-Control": "public, max-age=86400",
+                    },
+                )
+
+            app.router.add_get(
+                "/panda-tamagotchi-video/{filename:.*}", serve_panda_tamagotchi_video
+            )
+            logger.info("✅ Panda tamagotchi video зарегистрированы: /panda-tamagotchi-video/")
+
         security_txt_path = frontend_dist / "security.txt"
         if security_txt_path.exists():
 
@@ -330,6 +364,7 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
                 or path.startswith("/video/")
                 or path.startswith("/screenshots/")
                 or path.startswith("/panda-tamagotchi/")
+                or path.startswith("/panda-tamagotchi-video/")
                 or path == "/webhook"
                 or path.startswith("/webhook/")
                 or path == "/health"

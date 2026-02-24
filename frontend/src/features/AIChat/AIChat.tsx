@@ -159,39 +159,29 @@ export function AIChat({ user }: AIChatProps) {
     };
   }, [cleanupVoice]);
 
-  // Показываем приветствие при первом открытии или очистке чата
+  // Показываем приветствие при первом открытии или очистке чата. Сразу выбираем случайный логотип (спящая панда или основное лого).
   useEffect(() => {
-    // Управляем состоянием приветствия на основе истории сообщений
     if (!isLoadingHistory) {
       if (messages.length === 0) {
-        // История пустая - показываем приветствие и сбрасываем флаг отправки
-        // Это происходит при первом открытии или после очистки истории
         logger.debug('[Welcome] История пустая, показываем welcome screen');
         setShowWelcome(true);
         setHasShownWelcomeMessage(false);
+        setWelcomeLogoSrc(WELCOME_LOGOS[Math.floor(Math.random() * WELCOME_LOGOS.length)]);
       } else {
-        // Есть сообщения - скрываем приветствие
         logger.debug('[Welcome] Есть сообщения, скрываем welcome screen');
         setShowWelcome(false);
         setHasShownWelcomeMessage(true);
       }
     } else {
-      // Пока история загружается, показываем welcome screen если еще не установлено
       if (!showWelcome && messages.length === 0) {
-        logger.debug('[Welcome] История загружается, но показываем welcome screen');
+        logger.debug('[Welcome] История загружается, показываем welcome screen');
         setShowWelcome(true);
         setHasShownWelcomeMessage(false);
+        setWelcomeLogoSrc(WELCOME_LOGOS[Math.floor(Math.random() * WELCOME_LOGOS.length)]);
       }
     }
   }, [messages.length, isLoadingHistory, showWelcome]);
 
-  // При первом заходе и после очистки чата выбираем случайный логотип welcome-экрана.
-  useEffect(() => {
-    if (showWelcome && messages.length === 0 && !isLoadingHistory) {
-      const randomLogo = WELCOME_LOGOS[Math.floor(Math.random() * WELCOME_LOGOS.length)];
-      setWelcomeLogoSrc(randomLogo);
-    }
-  }, [showWelcome, messages.length, isLoadingHistory]);
   const welcomeImageAlt = welcomeLogoSrc === '/panda-sleeping.png' ? 'Панда спит' : 'PandaPal';
 
   // УЛУЧШЕНО: Упрощенная анимация логотипа - работает как на сайте
@@ -399,6 +389,11 @@ export function AIChat({ user }: AIChatProps) {
               loading="eager"
               className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-2 animate-logo-bounce object-cover"
               key={`welcome-img-${welcomeLogoSrc}-${messages.length}`}
+              onError={() => {
+                if (welcomeLogoSrc === '/panda-sleeping.png') {
+                  setWelcomeLogoSrc('/logo.png');
+                }
+              }}
               style={{
                 animation: 'logoBounce 2s ease-in-out infinite',
                 willChange: 'transform',

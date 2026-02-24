@@ -65,6 +65,18 @@ export const Header: React.FC = React.memo(() => {
           {/* Навигация */}
           <nav className="hidden sm:flex items-center gap-2">
             <a
+              href="/help"
+              onClick={(e) => {
+                e.preventDefault();
+                window.history.pushState(null, '', '/help');
+                window.dispatchEvent(new Event('popstate'));
+                trackButtonClick('header_help');
+              }}
+              className="nav-link-header"
+            >
+              Помощь
+            </a>
+            <a
               href="/premium"
               onClick={(e) => {
                 e.preventDefault();

@@ -27,6 +27,10 @@ export const PANDA_PET_DESCRIPTION_RU =
 /** Прямая ссылка на игру «Моя панда» в Mini App (deep link) */
 export const PANDA_PET_DIRECT_LINK = 'https://t.me/PandaPalBot?startapp=my_panda';
 
+/** Страница помощи: описание для SEO */
+export const HELP_PAGE_DESCRIPTION_RU =
+  'Ответы на частые вопросы о PandaPal: как начать, помощь с домашним заданием, игра Моя панда, Premium и безопасность.';
+
 /** FAQ для страницы «Моя панда» */
 export const PANDA_PET_FAQ_RU: { question: string; answer: string }[] = [
   {

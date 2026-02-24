@@ -71,4 +71,40 @@
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
     </url>
+    <url>
+        <loc>https://pandapal.ru/help</loc>
+        <lastmod>2026-02-24</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://pandapal.ru/help/kak-nachat</loc>
+        <lastmod>2026-02-24</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>https://pandapal.ru/help/proverka-dz-po-foto</loc>
+        <lastmod>2026-02-24</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>https://pandapal.ru/help/igra-moya-panda</loc>
+        <lastmod>2026-02-24</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>https://pandapal.ru/help/premium-i-limity</loc>
+        <lastmod>2026-02-24</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>https://pandapal.ru/help/bezopasnost-i-moderaciya</loc>
+        <lastmod>2026-02-24</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
 </urlset>

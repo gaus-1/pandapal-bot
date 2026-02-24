@@ -7,13 +7,15 @@
 import React, { useEffect, useState } from 'react';
 import { Header, Hero, Features, Section, Footer, CallToAction, SeoHead } from './components';
 import { SECTIONS } from './config/constants';
-import { PANDA_PET_PAGE_TITLE_RU, PANDA_PET_DESCRIPTION_RU, PANDA_PET_FAQ_RU, PANDA_PET_DIRECT_LINK } from './config/seo-text';
+import { PANDA_PET_PAGE_TITLE_RU, PANDA_PET_DESCRIPTION_RU, PANDA_PET_FAQ_RU, PANDA_PET_DIRECT_LINK, HELP_PAGE_DESCRIPTION_RU } from './config/seo-text';
 import { telegram } from './services/telegram';
 import { MiniApp } from './MiniApp';
 import { PremiumScreen } from './features/Premium/PremiumScreen';
 import { DonationScreen } from './features/Donation/DonationScreen';
 import { PrivacyPage, PersonalDataPage, OfferPage } from './features/Legal';
 import { IntentPage } from './features/Discoverability';
+import { HelpCenterPage, HelpArticlePage } from './features/Help';
+import { getHelpArticleBySlug } from './config/help-articles';
 import { CookieBanner } from './components/CookieBanner';
 import { logger } from './utils/logger';
 import './index.css';
@@ -125,6 +127,10 @@ const App: React.FC = () => {
           setCurrentRoute('homework-en');
         } else if (pathname === '/igra-moya-panda') {
           setCurrentRoute('panda-pet');
+        } else if (pathname === '/help') {
+          setCurrentRoute('help');
+        } else if (pathname.startsWith('/help/') && pathname.length > 6) {
+          setCurrentRoute('help-article');
         } else {
           setCurrentRoute('');
         }
@@ -368,6 +374,39 @@ const App: React.FC = () => {
           directLinkUrl={PANDA_PET_DIRECT_LINK}
           directLinkLabel="Открыть игру сразу"
         />
+        <Footer />
+        <CookieBanner />
+      </div>
+    );
+  }
+
+  if (currentRoute === 'help') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <SeoHead
+          title="Помощь — PandaPal"
+          description={HELP_PAGE_DESCRIPTION_RU}
+          canonicalPath="/help"
+        />
+        <HelpCenterPage />
+        <Footer />
+        <CookieBanner />
+      </div>
+    );
+  }
+
+  if (currentRoute === 'help-article') {
+    const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+    const slug = pathname.startsWith('/help/') ? pathname.replace(/^\/help\/?/, '').split('/')[0] : '';
+    const article = slug ? getHelpArticleBySlug(slug) : undefined;
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+        <SeoHead
+          title={article ? `${article.titleRu} — Помощь — PandaPal` : 'Помощь — PandaPal'}
+          description={article ? article.descriptionRu : HELP_PAGE_DESCRIPTION_RU}
+          canonicalPath={article ? `/help/${article.slug}` : '/help'}
+        />
+        <HelpArticlePage />
         <Footer />
         <CookieBanner />
       </div>

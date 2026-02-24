@@ -135,6 +135,8 @@ describe('SEO: sitemap.xml', () => {
     expect(sitemap).toContain('<loc>https://pandapal.ru/personal-data</loc>');
     expect(sitemap).toContain('<loc>https://pandapal.ru/offer</loc>');
     expect(sitemap).toContain('<loc>https://pandapal.ru/igra-moya-panda</loc>');
+    expect(sitemap).toContain('<loc>https://pandapal.ru/help</loc>');
+    expect(sitemap).toContain('<loc>https://pandapal.ru/help/kak-nachat</loc>');
   });
 });
 
