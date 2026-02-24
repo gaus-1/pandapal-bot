@@ -190,41 +190,22 @@ test.describe('Mini App - Критические функции (REAL API)', () 
     console.log('✅ РЕАЛЬНЫЙ Yandex Vision работает! AI проанализировал фото.');
   });
 
-  test('3. CRITICAL: AI должен распознавать РЕАЛЬНОЕ аудио через Yandex SpeechKit', async ({ page, context }) => {
-    test.setTimeout(90000); // 90 секунд для SpeechKit
-
-    // Даём разрешение на микрофон (правильный формат для Playwright)
+  test('3. Кнопка голосового ввода отображается и доступна', async ({ page, context }) => {
     try {
       await context.grantPermissions(['microphone']);
     } catch {
-      // Игнорируем ошибку если разрешение не поддерживается (например, в мобильном эмуляторе)
-      console.log('Microphone permission not supported in this context');
+      // Разрешение микрофона может быть недоступно в эмуляторе
     }
 
     await expect(page.locator('textarea[placeholder*="Задай вопрос"]')).toBeVisible({ timeout: 10000 });
 
-    // Проверяем что поле ввода пустое (чтобы показалась кнопка записи)
     const input = page.locator('textarea[placeholder*="Задай вопрос"]');
     await expect(input).toHaveValue('');
 
-    // Находим кнопку записи аудио (показывается когда input пустой, иконка 🎤)
     const recordButton = page.locator('button:has-text("🎤")').first();
     await expect(recordButton).toBeVisible();
 
-    // КРИТИЧНО: Для реального теста нужен реальный аудио файл
-    // Загружаем тестовый WAV файл с фразой "Два плюс два"
-    // В production это будет запись с микрофона, но для теста используем файл
-
-    console.log('⚠️ ПРИМЕЧАНИЕ: Полноценный тест аудио требует реального микрофона.');
-    console.log('   В автоматических тестах используем загрузку аудио файла.');
-
-    // TODO: Для полного теста нужно:
-    // 1. Записать реальный аудио файл с вопросом
-    // 2. Загрузить его через MediaRecorder mock или file upload
-    // 3. Проверить что SpeechKit распознал текст
-    // 4. Проверить что GPT ответил на вопрос
-
-    console.log('✅ Базовая проверка UI для аудио пройдена. Для полного теста нужен реальный микрофон.');
+    // Полноценная проверка SpeechKit — вручную или отдельный сценарий с файлом
   });
 
   test('4. CRITICAL: Emergency номера должны быть кликабельны', async ({ page }) => {

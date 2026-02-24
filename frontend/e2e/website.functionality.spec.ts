@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Website Functionality', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('https://pandapal.ru');
+    await page.goto('/');
   });
 
   test('главная страница должна загружаться', async ({ page }) => {

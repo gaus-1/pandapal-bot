@@ -1,18 +1,36 @@
 # E2E тесты для PandaPal Mini App
 
-## Важно
+## Что запускается в CI
+
+В CI запускаются только smoke и лендинг против локального preview (`TEST_LOCAL=1`):
+- `miniapp.smoke.spec.ts` — лендинг, открытие Mini App, навигация по экранам (моки API)
+- `website.functionality.spec.ts`, `website.responsive.spec.ts` — функциональность и адаптивность лендинга
+
+Один проект chromium. Полные тесты с реальным Yandex API (`miniapp.critical.spec.ts`) — только вручную, не в CI.
+
+## Запуск smoke локально
+
+```bash
+TEST_LOCAL=1 npm run test:e2e:smoke
+```
+
+Или явно:
+```bash
+TEST_LOCAL=1 npx playwright test --project=chromium miniapp.smoke.spec.ts website.functionality.spec.ts website.responsive.spec.ts
+```
+
+## Важно (miniapp.critical.spec.ts)
 
 Эти тесты используют реальные Yandex API.
 
 ### Не запускать
-- В CI/CD pipeline
+- В CI (в CI идут только smoke)
 - При каждом коммите
-- Для локальной отладки (используйте unit тесты)
+- Для локальной отладки (используйте unit или smoke)
 
 ### Запускать
 - Перед production деплоем (вручную)
 - После изменений в AI логике
-- Для проверки критических функций
 
 ## Стоимость
 

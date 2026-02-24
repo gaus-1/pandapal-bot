@@ -22,8 +22,7 @@ export default defineConfig({
   ],
 
   use: {
-    // Base URL - production
-    baseURL: 'https://pandapal.ru',
+    baseURL: process.env.TEST_LOCAL ? 'http://localhost:4173' : 'https://pandapal.ru',
 
     // Скриншоты при ошибках
     screenshot: 'only-on-failure',

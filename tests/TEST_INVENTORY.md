@@ -115,9 +115,8 @@
 2. `test_sql_injection.py` - Защита от SQL инъекций ✅ НОВЫЙ
 
 ### E2E тесты (tests/e2e/)
-1. `test_complete_user_journey.py` - Комплексный тест: сайт -> Mini App -> AI -> геймификация -> БД -> кеш ✅ НОВЫЙ
-2. `test_error_handling_e2e.py` - E2E тесты обработки ошибок (Yandex API, сеть) ✅ НОВЫЙ
-3. `test_full_user_flow.py` - Полный flow пользователя (backend)
+- В CI: `test_full_user_flow.py`, `test_error_handling_e2e.py`
+- Вручную (тяжёлые/реальное API): `test_complete_user_journey.py`, `test_comprehensive_panda_e2e.py`, `test_panda_responses_real.py`
 
 ## Frontend тесты (TypeScript/Vitest)
 
@@ -138,9 +137,8 @@
 14. `store/__tests__/appStore.test.ts` - Тесты store
 
 ### E2E тесты (frontend/e2e/)
-1. `miniapp.critical.spec.ts` - Критичные тесты Mini App
-2. `website.functionality.spec.ts` - Функциональность сайта
-3. `website.responsive.spec.ts` - Адаптивность сайта
+- В CI (smoke, моки API): `miniapp.smoke.spec.ts`, `website.functionality.spec.ts`, `website.responsive.spec.ts`
+- Вручную (реальный Yandex API): `miniapp.critical.spec.ts`
 
 ## Категории тестов
 

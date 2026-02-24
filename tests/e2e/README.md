@@ -38,10 +38,26 @@ async def test_user_journey():
     assert game is not None
 ```
 
+## Запуск в CI и вручную
+
+В CI **не** запускаются (тяжёлые/реальное API):
+- `test_complete_user_journey.py`
+- `test_comprehensive_panda_e2e.py`
+- `test_panda_responses_real.py`
+
+В CI запускаются:
+- `test_full_user_flow.py`
+- `test_error_handling_e2e.py`
+
+Тяжёлые e2e вручную:
+```bash
+pytest tests/e2e/test_complete_user_journey.py tests/e2e/test_comprehensive_panda_e2e.py tests/e2e/test_panda_responses_real.py -v
+```
+
 ## Запуск
 
 ```bash
-# Все E2E тесты
+# Все E2E тесты (включая тяжёлые)
 pytest tests/e2e/ -v
 
 # С маркером
