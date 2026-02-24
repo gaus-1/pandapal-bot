@@ -17,7 +17,7 @@
   }
 
   body {
-    @apply font-sans antialiased overflow-x-hidden;
+    @apply font-sans antialiased;
     font-feature-settings: 'cv11', 'ss01';
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;

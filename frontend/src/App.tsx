@@ -415,7 +415,7 @@ const App: React.FC = () => {
 
   // Лендинг (главная страница)
   return (
-    <div className="min-h-screen min-w-0 overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
       <SeoHead
         title="PandaPal - безопасный и полезный AI-друг для детей"
         description="PandaPal - безопасный AI-помощник и робот-репетитор для школьников 1-9 класса в формате Telegram Mini App."
@@ -424,8 +424,8 @@ const App: React.FC = () => {
       {/* Шапка сайта (включает DarkModeToggle внутри) */}
       <Header />
 
-      {/* Основной контент: единый вертикальный зазор между секциями */}
-      <main className="w-full max-w-6xl mx-auto px-3 xs:px-4 sm:px-6 md:px-8 flex flex-col gap-y-12 sm:gap-y-16 md:gap-y-20 box-border">
+      {/* Основной контент */}
+      <main className="max-w-6xl mx-auto px-4">
         {/* Hero-секция: заголовок + CTA */}
         <Hero />
 

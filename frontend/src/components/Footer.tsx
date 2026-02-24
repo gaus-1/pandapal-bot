@@ -34,7 +34,7 @@ export const Footer: React.FC = React.memo(() => {
 
   return (
     <footer
-      className="max-w-6xl mx-auto px-3 xs:px-4 sm:px-6 md:px-8 py-12 text-center border-t border-gray-200 dark:border-slate-700 dark:border-slate-600/50 mt-12 sm:mt-16 md:mt-20 w-full box-border"
+      className="max-w-6xl mx-auto px-4 py-12 text-center border-t border-gray-200 dark:border-slate-700 dark:border-slate-600/50 mt-16"
       role="contentinfo"
     >
       {/* Логотип и название */}

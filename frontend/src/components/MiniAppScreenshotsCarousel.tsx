@@ -39,7 +39,7 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
 
   return (
     <section aria-label="Скриншоты Mini App" className="mt-8 sm:mt-10">
-      <div className="mx-auto w-full max-w-[min(100%,22rem)] sm:w-[22rem] md:w-[23rem] lg:w-[24rem] box-border px-0">
+      <div className="mx-auto w-full sm:w-[22rem] md:w-[23rem] lg:w-[24rem] max-w-[calc(100%-5.5rem)]">
         <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">
           <h3 className="font-display text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-50">
             Интерфейс Mini App
@@ -50,7 +50,7 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
         </div>
       </div>
 
-      <div className="relative mx-auto w-full max-w-[min(100%,22rem)] sm:w-[22rem] md:w-[23rem] lg:w-[24rem] box-border">
+      <div className="relative mx-auto w-full sm:w-[22rem] md:w-[23rem] lg:w-[24rem] max-w-[calc(100%-5.5rem)]">
         <div
           className="relative flex items-center justify-center"
           onTouchStart={handleTouchStart}
