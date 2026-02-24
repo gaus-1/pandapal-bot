@@ -15,8 +15,8 @@ import { trackButtonClick } from '../utils/analytics';
  */
 export const Hero: React.FC = React.memo(() => {
   return (
-    <section className="pt-12 sm:pt-16 md:pt-20 pb-12 sm:pb-16 md:pb-20 text-center">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
+    <section className="py-12 sm:py-16 md:py-20 text-center">
+      <div className="max-w-4xl mx-auto px-3 xs:px-4 sm:px-6 md:px-8 w-full box-border">
         {/* Основной заголовок (H1 для SEO, entity PandaPal в первом заголовке) */}
         <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-gray-900 dark:text-slate-50">
           PandaPal: безопасный и полезный AI-друг для детей

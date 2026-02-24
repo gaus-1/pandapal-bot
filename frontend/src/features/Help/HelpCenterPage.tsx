@@ -16,27 +16,27 @@ export const HelpCenterPage: React.FC = React.memo(() => {
   return (
     <>
       <Header />
-      <main className="w-full max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 flex flex-col items-center">
-        <article className="w-full max-w-2xl mx-auto rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 px-6 sm:px-8 md:px-10 py-5 sm:py-7 md:py-8 shadow-lg dark:shadow-xl">
-          <header className="mb-5 sm:mb-6 text-center">
+      <main className="w-full min-h-[calc(100vh-4rem)] box-border flex flex-col items-center justify-center px-3 xs:px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 lg:py-12 overflow-x-hidden">
+        <article className="w-full max-w-2xl min-w-0 mx-auto rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 shadow-lg dark:shadow-xl px-4 xs:px-5 sm:px-6 md:px-8 py-5 sm:py-6 md:py-8 lg:py-9">
+          <header className="mb-6 sm:mb-7 text-center">
             <h1 className="font-display text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-50">
               Вопросы и ответы
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-gray-600 dark:text-slate-300 max-w-xl mx-auto">
+            <p className="mt-2 text-xs sm:text-sm text-gray-600 dark:text-slate-300 max-w-xl mx-auto px-0">
               Ответы на частые вопросы о PandaPal: начало работы, учёба, игры, Premium и безопасность.
             </p>
           </header>
 
-          <nav className="space-y-6" aria-label="Разделы помощи">
+          <nav className="space-y-5 sm:space-y-6" aria-label="Разделы помощи">
             {categories.map((cat) => {
               const articles = getHelpArticlesByCategory(cat.id);
               if (articles.length === 0) return null;
               return (
-                <section key={cat.id}>
+                <section key={cat.id} className="w-full">
                   <h2 className="font-display text-base sm:text-lg font-bold text-gray-900 dark:text-slate-50 mb-3">
                     {cat.titleRu}
                   </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-md sm:max-w-none mx-auto sm:mx-0">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
                     {articles.map((art) => (
                       <a
                         key={art.id}
