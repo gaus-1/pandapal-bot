@@ -6,11 +6,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MiniApp } from '../../MiniApp';
-import { useAppStore } from '../../store/appStore';
-import { telegram } from '../../services/telegram';
+import { MiniApp } from '../MiniApp';
+import { useAppStore } from '../store/appStore';
+import { telegram } from '../services/telegram';
 
-vi.mock('../../services/telegram');
+vi.mock('../services/telegram');
 vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => ({
     authenticate: vi.fn(),

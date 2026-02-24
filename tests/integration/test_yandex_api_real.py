@@ -11,6 +11,7 @@
 
 import asyncio
 import base64
+import os
 from pathlib import Path
 
 import pytest
@@ -20,8 +21,35 @@ from bot.services.speech_service import SpeechService
 from bot.services.vision_service import VisionService
 
 
+def _check_real_api_key():
+    """Проверяет наличие реального API ключа в env или settings."""
+    env_key = os.environ.get("YANDEX_CLOUD_API_KEY", "")
+    if env_key and env_key != "test_api_key" and len(env_key) > 20:
+        return True
+    try:
+        from bot.config.settings import settings
+
+        key = getattr(settings, "yandex_cloud_api_key", None)
+        if (
+            key
+            and key not in ("test_api_key", "your_real_yandex_api_key_here")
+            and len(key) > 20
+        ):
+            return True
+    except Exception:
+        pass
+    return False
+
+
+REAL_API_KEY_AVAILABLE = _check_real_api_key()
+
+
 @pytest.mark.integration
 @pytest.mark.asyncio
+@pytest.mark.skipif(
+    not REAL_API_KEY_AVAILABLE,
+    reason="Требуется YANDEX_CLOUD_API_KEY в env",
+)
 class TestYandexAPIReal:
     """Тесты реальной работы с Yandex API."""
 
@@ -184,6 +212,10 @@ class TestYandexAPIReal:
 
 @pytest.mark.integration
 @pytest.mark.asyncio
+@pytest.mark.skipif(
+    not REAL_API_KEY_AVAILABLE,
+    reason="Требуется YANDEX_CLOUD_API_KEY в env",
+)
 class TestYandexAPIErrorHandling:
     """Тесты обработки ошибок реальных API."""
 

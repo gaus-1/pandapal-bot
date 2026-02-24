@@ -8,10 +8,35 @@
 - Интеграция модерации с AI сервисом
 """
 
+import os
+
 import pytest
 
 from bot.services.moderation_service import ContentModerationService
 from bot.services.yandex_cloud_service import YandexCloudService
+
+
+def _check_real_api_key():
+    """Проверяет наличие реального API ключа в env или settings."""
+    env_key = os.environ.get("YANDEX_CLOUD_API_KEY", "")
+    if env_key and env_key != "test_api_key" and len(env_key) > 20:
+        return True
+    try:
+        from bot.config.settings import settings
+
+        key = getattr(settings, "yandex_cloud_api_key", None)
+        if (
+            key
+            and key not in ("test_api_key", "your_real_yandex_api_key_here")
+            and len(key) > 20
+        ):
+            return True
+    except Exception:
+        pass
+    return False
+
+
+REAL_API_KEY_AVAILABLE = _check_real_api_key()
 
 
 class TestModerationAndYandexReal:
@@ -86,6 +111,10 @@ class TestModerationAndYandexReal:
     # YandexCloudService (РЕАЛЬНЫЕ API - ТРАТИТ ДЕНЬГИ!)
 
     @pytest.mark.real_api
+    @pytest.mark.skipif(
+        not REAL_API_KEY_AVAILABLE,
+        reason="Требуется YANDEX_CLOUD_API_KEY в env",
+    )
     @pytest.mark.asyncio
     async def test_yandex_gpt_real_simple(self):
         """КРИТИЧНО: Реальный тест YandexGPT (тратит деньги!)"""
@@ -104,6 +133,10 @@ class TestModerationAndYandexReal:
         assert "4" in response or "четыре" in response.lower()
 
     @pytest.mark.real_api
+    @pytest.mark.skipif(
+        not REAL_API_KEY_AVAILABLE,
+        reason="Требуется YANDEX_CLOUD_API_KEY в env",
+    )
     @pytest.mark.asyncio
     async def test_yandex_gpt_real_with_history(self):
         """КРИТИЧНО: Реальный тест YandexGPT с историей (тратит деньги!)"""
@@ -125,6 +158,10 @@ class TestModerationAndYandexReal:
         assert "Петя" in response or "Петр" in response
 
     @pytest.mark.real_api
+    @pytest.mark.skipif(
+        not REAL_API_KEY_AVAILABLE,
+        reason="Требуется YANDEX_CLOUD_API_KEY в env",
+    )
     @pytest.mark.asyncio
     async def test_yandex_vision_real(self):
         """КРИТИЧНО: Реальный тест Yandex Vision (тратит деньги!)"""
@@ -148,6 +185,10 @@ class TestModerationAndYandexReal:
             pytest.skip(f"Yandex Vision API недоступен: {e}")
 
     @pytest.mark.real_api
+    @pytest.mark.skipif(
+        not REAL_API_KEY_AVAILABLE,
+        reason="Требуется YANDEX_CLOUD_API_KEY в env",
+    )
     @pytest.mark.asyncio
     async def test_yandex_speechkit_real(self):
         """КРИТИЧНО: Реальный тест Yandex SpeechKit (тратит деньги!)"""
