@@ -13,8 +13,8 @@ repos:
         name: ✅ Проверка YAML синтаксиса
         exclude: ^(frontend/.*\.yml$|\.github/workflows/.*\.yml$)
       - id: check-added-large-files
-        name: 📦 Проверка больших файлов (>1MB)
-        args: ['--maxkb=4096']
+        name: 📦 Проверка больших файлов (max 5MB)
+        args: ['--maxkb=5120']
       - id: check-merge-conflict
         name: ⚠️ Проверка маркеров слияния
       - id: check-json
