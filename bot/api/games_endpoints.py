@@ -8,7 +8,22 @@ from pydantic import BaseModel, ValidationError
 
 from bot.api.validators import require_owner, validate_telegram_id
 from bot.database import get_db
+from bot.models import GameSession
 from bot.services.games_service import GamesService
+
+
+def _require_game_session_owner(request: web.Request, session_id: int) -> web.Response | None:
+    """
+    A01: проверка владельца игровой сессии.
+    Возвращает 404 если сессия не найдена, 403 если запрос не от владельца, иначе None.
+    """
+    with get_db() as db:
+        session = db.get(GameSession, session_id)
+        if not session:
+            return web.json_response({"error": "Session not found"}, status=404)
+        if err := require_owner(request, session.user_telegram_id):
+            return err
+    return None
 
 
 class CreateGameRequest(BaseModel):  # noqa: D101
@@ -187,9 +202,12 @@ async def tic_tac_toe_move(request: web.Request) -> web.Response:
 
     POST /api/miniapp/games/tic-tac-toe/{session_id}/move
     Body: { "position": 0-8 }
+    Требует X-Telegram-Init-Data: доступ только владельцу сессии (A01).
     """
     try:
         session_id = int(request.match_info["session_id"])
+        if err := _require_game_session_owner(request, session_id):
+            return err
         data = await request.json()
 
         try:
@@ -223,9 +241,12 @@ async def checkers_move(request: web.Request) -> web.Response:
 
     POST /api/miniapp/games/checkers/{session_id}/move
     Body: { "from_row": 0-7, "from_col": 0-7, "to_row": 0-7, "to_col": 0-7 }
+    Требует X-Telegram-Init-Data: доступ только владельцу сессии (A01).
     """
     try:
         session_id = int(request.match_info["session_id"])
+        if err := _require_game_session_owner(request, session_id):
+            return err
         data = await request.json()
 
         try:
@@ -275,9 +296,12 @@ async def game_2048_move(request: web.Request) -> web.Response:
 
     POST /api/miniapp/games/2048/{session_id}/move
     Body: { "direction": "up" | "down" | "left" | "right" }
+    Требует X-Telegram-Init-Data: доступ только владельцу сессии (A01).
     """
     try:
         session_id = int(request.match_info["session_id"])
+        if err := _require_game_session_owner(request, session_id):
+            return err
         data = await request.json()
 
         try:
@@ -311,9 +335,12 @@ async def erudite_place_tile(request: web.Request) -> web.Response:
 
     POST /api/miniapp/games/erudite/{session_id}/place-tile
     Body: { "row": int, "col": int, "letter": str }
+    Требует X-Telegram-Init-Data: доступ только владельцу сессии (A01).
     """
     try:
         session_id = int(request.match_info["session_id"])
+        if err := _require_game_session_owner(request, session_id):
+            return err
         data = await request.json()
 
         try:
@@ -345,9 +372,12 @@ async def erudite_clear_move(request: web.Request) -> web.Response:
     Очистить текущий ход в Эрудите.
 
     POST /api/miniapp/games/erudite/{session_id}/clear-move
+    Требует X-Telegram-Init-Data: доступ только владельцу сессии (A01).
     """
     try:
         session_id = int(request.match_info["session_id"])
+        if err := _require_game_session_owner(request, session_id):
+            return err
 
         with get_db() as db:
             games_service = GamesService(db)
@@ -369,9 +399,12 @@ async def erudite_confirm_move(request: web.Request) -> web.Response:
     Подтвердить ход в Эрудите.
 
     POST /api/miniapp/games/erudite/{session_id}/confirm-move
+    Требует X-Telegram-Init-Data: доступ только владельцу сессии (A01).
     """
     try:
         session_id = int(request.match_info["session_id"])
+        if err := _require_game_session_owner(request, session_id):
+            return err
 
         with get_db() as db:
             games_service = GamesService(db)
@@ -424,18 +457,17 @@ async def get_game_session(request: web.Request) -> web.Response:
     Получить игровую сессию.
 
     GET /api/miniapp/games/session/{session_id}
+    Требует X-Telegram-Init-Data: доступ только владельцу сессии (A01).
     """
     try:
         session_id = int(request.match_info["session_id"])
+        if err := _require_game_session_owner(request, session_id):
+            return err
 
         with get_db() as db:
-            from bot.models import GameSession
-
             session = db.get(GameSession, session_id)
             if not session:
                 return web.json_response({"error": "Session not found"}, status=404)
-
-            # Сохраняем данные до закрытия сессии
             session_dict = session.to_dict()
 
         return web.json_response({"success": True, "session": session_dict})
@@ -453,9 +485,12 @@ async def get_checkers_valid_moves(request: web.Request) -> web.Response:
     Получить валидные ходы для шашек.
 
     GET /api/miniapp/games/checkers/{session_id}/valid-moves
+    Требует X-Telegram-Init-Data: доступ только владельцу сессии (A01).
     """
     try:
         session_id = int(request.match_info["session_id"])
+        if err := _require_game_session_owner(request, session_id):
+            return err
 
         with get_db() as db:
             games_service = GamesService(db)

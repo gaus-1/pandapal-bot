@@ -64,6 +64,11 @@ class TestGamesAPI(AioHTTPTestCase):
         # Патчим get_db для использования тестовой БД
         self.get_db_patcher = patch("bot.api.games_endpoints.get_db", self.mock_get_db)
         self.get_db_patcher.start()
+        # A01: в этих тестах проверяем логику игр; владелец считается авторизованным
+        self.require_owner_patcher = patch(
+            "bot.api.games_endpoints.require_owner", return_value=None
+        )
+        self.require_owner_patcher.start()
 
         # Создаем тестового пользователя
         self.test_telegram_id = 123456789
@@ -96,6 +101,7 @@ class TestGamesAPI(AioHTTPTestCase):
             db.commit()
 
         # Останавливаем патчи
+        self.require_owner_patcher.stop()
         self.get_db_patcher.stop()
         await super().tearDownAsync()
 

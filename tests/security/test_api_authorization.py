@@ -165,6 +165,28 @@ class TestAPIAuthorization:
             assert response.status == 404, "Должен вернуться 404 для несуществующего пользователя"
 
     @pytest.mark.asyncio
+    async def test_get_user_returns_403_without_init_data(self):
+        """A01: GET /api/miniapp/user/{id} без X-Telegram-Init-Data возвращает 403 (без мока)."""
+        from aiohttp import web
+        from aiohttp.test_utils import TestClient, TestServer
+
+        from bot.api.miniapp import setup_miniapp_routes
+
+        app = web.Application(client_max_size=25 * 1024 * 1024)
+        setup_miniapp_routes(app)
+
+        async with TestClient(TestServer(app)) as client:
+            resp = await client.get(
+                "/api/miniapp/user/111111111",
+                headers={},
+            )
+            assert resp.status == 403, (
+                f"Ожидался 403 без X-Telegram-Init-Data, получено {resp.status}"
+            )
+            data = await resp.json()
+            assert "error" in data
+
+    @pytest.mark.asyncio
     async def test_chat_stream_returns_403_without_init_data(self):
         """A01: chat-stream без X-Telegram-Init-Data возвращает 403 до открытия SSE."""
         from aiohttp import web
