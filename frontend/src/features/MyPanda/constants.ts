@@ -49,3 +49,12 @@ export const PANDA_POOPS_IMAGE = `${PANDA_ASSETS_BASE}/Panda-poops.jpg`;
 
 /** Видео кормления: панда ест бамбук (показывается рандомно вместо картинки при Покормить) */
 export const PANDA_FEED_VIDEO = `${PANDA_VIDEO_BASE}/panda_eats_bamboo.mp4`;
+
+/** Видео: панда упала с дерева (Упасть — рандомно видео или картинка) */
+export const PANDA_FALL_VIDEO = `${PANDA_VIDEO_BASE}/Panda-falls-from-a-bamboo-tree_.mp4`;
+
+/** Видео: панда спит (Спать — рандомно видео или картинка) */
+export const PANDA_SLEEP_VIDEO = `${PANDA_VIDEO_BASE}/Panda-sleeps.mp4`;
+
+/** Видео: панда залезает на дерево (На дерево — рандомно видео или картинка) */
+export const PANDA_CLIMB_VIDEO = `${PANDA_VIDEO_BASE}/panda-stumbles.mp4`;

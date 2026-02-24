@@ -22,6 +22,9 @@ import {
   PANDA_FALL_IMAGE,
   PANDA_POOPS_IMAGE,
   PANDA_FEED_VIDEO,
+  PANDA_FALL_VIDEO,
+  PANDA_SLEEP_VIDEO,
+  PANDA_CLIMB_VIDEO,
 } from './constants';
 import {
   getPandaReactionKey,
@@ -120,6 +123,15 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const [feedMediaIsVideo, setFeedMediaIsVideo] = useState<boolean | null>(null);
   /** Ошибка загрузки видео кормления — показываем картинку eating */
   const [feedVideoError, setFeedVideoError] = useState(false);
+  /** Упасть: true = видео, false = картинка, null = ещё не выбрано */
+  const [fallMediaIsVideo, setFallMediaIsVideo] = useState<boolean | null>(null);
+  const [fallVideoError, setFallVideoError] = useState(false);
+  /** Спать: true = видео, false = картинка, null = ещё не выбрано */
+  const [sleepMediaIsVideo, setSleepMediaIsVideo] = useState<boolean | null>(null);
+  const [sleepVideoError, setSleepVideoError] = useState(false);
+  /** На дерево: true = видео, false = картинка, null = ещё не выбрано */
+  const [climbMediaIsVideo, setClimbMediaIsVideo] = useState<boolean | null>(null);
+  const [climbVideoError, setClimbVideoError] = useState(false);
 
   const loadState = useCallback(async () => {
     try {
@@ -157,6 +169,8 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const hasVideo = reactionKey ? REACTIONS_WITH_VIDEO.includes(reactionKey) : false;
   const isFeedReaction =
     lastAction === 'feed' && (reactionKey === 'eating' || reactionKey === 'full');
+  const isSleepReaction =
+    lastAction === 'sleep' && (reactionKey === 'sleeping' || reactionKey === 'sleepy');
 
   useEffect(() => {
     if (reactionKey && hasVideo) setShowVideo(true);
@@ -164,6 +178,9 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   useEffect(() => {
     if (isFeedReaction && feedMediaIsVideo === true) setShowVideo(true);
   }, [isFeedReaction, feedMediaIsVideo]);
+  useEffect(() => {
+    if (isSleepReaction && sleepMediaIsVideo === true) setShowVideo(true);
+  }, [isSleepReaction, sleepMediaIsVideo]);
   // Не сбрасывать выбор видео/картинки во время запроса кормления — иначе к моменту прихода state уже null и видео не показывается
   useEffect(() => {
     if (lastAction !== 'feed' && actionLoading !== 'feed') setFeedMediaIsVideo(null);
@@ -182,6 +199,29 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   useEffect(() => {
     if (isFeedReaction) setFeedVideoError(false);
   }, [isFeedReaction]);
+  useEffect(() => {
+    if (showFallUntil == null && actionLoading !== 'fall') setFallMediaIsVideo(null);
+  }, [showFallUntil, actionLoading]);
+  useEffect(() => {
+    if (lastAction !== 'sleep' && actionLoading !== 'sleep') setSleepMediaIsVideo(null);
+  }, [lastAction, actionLoading]);
+  useEffect(() => {
+    if (showClimbUntil == null && actionLoading !== 'climb') setClimbMediaIsVideo(null);
+  }, [showClimbUntil, actionLoading]);
+  useEffect(() => {
+    if (isSleepReaction && sleepMediaIsVideo === null) {
+      setSleepMediaIsVideo(Math.random() < 0.5);
+    }
+  }, [isSleepReaction, sleepMediaIsVideo]);
+  useEffect(() => {
+    if (showingFall) setFallVideoError(false);
+  }, [showFallUntil]);
+  useEffect(() => {
+    if (showingClimb) setClimbVideoError(false);
+  }, [showClimbUntil]);
+  useEffect(() => {
+    if (isSleepReaction) setSleepVideoError(false);
+  }, [isSleepReaction]);
 
   // Обновление таймеров кулдауна раз в секунду
   useEffect(() => {
@@ -285,6 +325,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const handleSleep = async () => {
     if (!state?.can_sleep || actionLoading) return;
     telegram.hapticFeedback('light');
+    setSleepMediaIsVideo(Math.random() < 0.5);
     setActionLoading('sleep');
     try {
       const next = await sleepPandaPet(user.telegram_id);
@@ -345,6 +386,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
     if (!state || actionLoading || state.can_climb === false) return;
     const currentState = state;
     telegram.hapticFeedback('light');
+    setClimbMediaIsVideo(Math.random() < 0.5);
     setActionLoading('climb');
     try {
       const next = await climbPandaPet(user.telegram_id);
@@ -373,6 +415,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
     if (!state || actionLoading || state.can_fall === false) return;
     const currentState = state;
     telegram.hapticFeedback('light');
+    setFallMediaIsVideo(Math.random() < 0.5);
     setActionLoading('fall');
     try {
       const next = await fallFromTreePandaPet(user.telegram_id);
@@ -449,6 +492,12 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
     isFeedReaction && feedMediaIsVideo === true && showVideo;
   const displayFeedImage =
     isFeedReaction && (feedMediaIsVideo === false || !showVideo);
+  const displayFallVideo = showingFall && fallMediaIsVideo === true && !fallVideoError;
+  const displayClimbVideo = showingClimb && climbMediaIsVideo === true && !climbVideoError;
+  const displaySleepVideo =
+    isSleepReaction && sleepMediaIsVideo === true && !sleepVideoError && showVideo;
+  const displaySleepImage =
+    isSleepReaction && (sleepMediaIsVideo === false || sleepVideoError || !showVideo);
 
   return (
     <div className="h-full flex flex-col bg-white dark:bg-slate-800 overflow-auto safe-area-inset">
@@ -470,11 +519,24 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
           aria-label="Панда"
         >
           {showingFall ? (
-            <img
-              src={PANDA_FALL_IMAGE}
-              alt="Панда упала с дерева"
-              className="max-w-full max-h-full object-contain"
-            />
+            displayFallVideo ? (
+              <video
+                key="fall-video"
+                src={PANDA_FALL_VIDEO}
+                autoPlay
+                muted
+                playsInline
+                className="max-w-full max-h-full w-full h-full object-contain"
+                aria-label="Панда упала с дерева"
+                onError={() => setFallVideoError(true)}
+              />
+            ) : (
+              <img
+                src={PANDA_FALL_IMAGE}
+                alt="Панда упала с дерева"
+                className="max-w-full max-h-full object-contain"
+              />
+            )
           ) : showingToiletHappy ? (
             toiletImageError ? (
               <img
@@ -492,11 +554,24 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               />
             )
           ) : showingClimb ? (
-            <img
-              src={PANDA_CLIMB_IMAGE}
-              alt="Панда залезает на дерево"
-              className="max-w-full max-h-full object-contain"
-            />
+            displayClimbVideo ? (
+              <video
+                key="climb-video"
+                src={PANDA_CLIMB_VIDEO}
+                autoPlay
+                muted
+                playsInline
+                className="max-w-full max-h-full w-full h-full object-contain"
+                aria-label="Панда залезает на дерево"
+                onError={() => setClimbVideoError(true)}
+              />
+            ) : (
+              <img
+                src={PANDA_CLIMB_IMAGE}
+                alt="Панда залезает на дерево"
+                className="max-w-full max-h-full object-contain"
+              />
+            )
           ) : displayFeedVideo && !feedVideoError ? (
             <video
               key="feed-video"
@@ -513,6 +588,24 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             <img
               src={getPandaImagePath('eating')}
               alt="Панда ест"
+              className="max-w-full max-h-full object-contain"
+            />
+          ) : displaySleepVideo ? (
+            <video
+              key="sleep-video"
+              src={PANDA_SLEEP_VIDEO}
+              autoPlay
+              muted
+              playsInline
+              className="max-w-full max-h-full w-full h-full object-contain"
+              aria-label="Панда спит"
+              onEnded={() => setShowVideo(false)}
+              onError={() => setSleepVideoError(true)}
+            />
+          ) : displaySleepImage && reactionKey ? (
+            <img
+              src={getPandaImagePath(reactionKey)}
+              alt="Панда спит"
               className="max-w-full max-h-full object-contain"
             />
           ) : displayVideo && reactionKey ? (
