@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { telegram } from '../../services/telegram';
 import { createGame, getGameStats, type GameStats, type UserProfile } from '../../services/api';
 import { useAppStore } from '../../store/appStore';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 import { TicTacToe } from './TicTacToe';
 import { Checkers } from './Checkers';
 import { Game2048 } from './Game2048';
@@ -76,7 +77,6 @@ export function GamesScreen({ user }: GamesScreenProps) {
     try {
       const allStats = await getGameStats(user.telegram_id);
       if (typeof allStats === 'object' && !Array.isArray(allStats) && allStats !== null) {
-        // Проверяем, что это Record<string, GameStats>, а не просто GameStats
         const statsRecord = allStats as Record<string, GameStats>;
         setStats(statsRecord);
       }
@@ -92,7 +92,12 @@ export function GamesScreen({ user }: GamesScreenProps) {
     try {
       telegram.hapticFeedback('light');
       const result = await createGame(user.telegram_id, gameType);
-      setSessionId(result.session_id);
+      const sid = result?.session_id != null ? Number(result.session_id) : null;
+      if (sid == null || Number.isNaN(sid)) {
+        setError('Ошибка: сервер не вернул сессию');
+        return;
+      }
+      setSessionId(sid);
       setSelectedGame(gameType as GameType);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Ошибка создания игры';
@@ -117,43 +122,59 @@ export function GamesScreen({ user }: GamesScreenProps) {
   };
 
   if (selectedGame && sessionId) {
+    const gameFallback = (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-4 text-center">
+        <p className="text-gray-600 dark:text-slate-400 mb-4">Игра не загрузилась. Вернись и попробуй снова.</p>
+        <button
+          type="button"
+          onClick={handleBack}
+          className="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium"
+        >
+          ← Назад к играм
+        </button>
+      </div>
+    );
     return (
       <div className="w-full h-full bg-white dark:bg-slate-800 overflow-y-auto">
-        {selectedGame === 'tic_tac_toe' && (
-          <TicTacToe
-            sessionId={sessionId}
-            user={user}
-            onBack={handleBack}
-            onGameEnd={handleGameEnd}
-          />
-        )}
-        {selectedGame === 'checkers' && (
-          <Checkers
-            sessionId={sessionId}
-            user={user}
-            onBack={handleBack}
-            onGameEnd={handleGameEnd}
-          />
-        )}
-        {selectedGame === '2048' && (
-          <Game2048
-            sessionId={sessionId}
-            user={user}
-            onBack={handleBack}
-            onGameEnd={handleGameEnd}
-          />
-        )}
-        {selectedGame === 'erudite' && (
-          <Erudite
-            sessionId={sessionId}
-            user={user}
-            onBack={handleBack}
-            onGameEnd={handleGameEnd}
-          />
-        )}
+        <ErrorBoundary fallback={gameFallback}>
+          {selectedGame === 'tic_tac_toe' && (
+            <TicTacToe
+              sessionId={sessionId}
+              user={user}
+              onBack={handleBack}
+              onGameEnd={handleGameEnd}
+            />
+          )}
+          {selectedGame === 'checkers' && (
+            <Checkers
+              sessionId={sessionId}
+              user={user}
+              onBack={handleBack}
+              onGameEnd={handleGameEnd}
+            />
+          )}
+          {selectedGame === '2048' && (
+            <Game2048
+              sessionId={sessionId}
+              user={user}
+              onBack={handleBack}
+              onGameEnd={handleGameEnd}
+            />
+          )}
+          {selectedGame === 'erudite' && (
+            <Erudite
+              sessionId={sessionId}
+              user={user}
+              onBack={handleBack}
+              onGameEnd={handleGameEnd}
+            />
+          )}
+        </ErrorBoundary>
       </div>
     );
   }
+
+  const safeStats = typeof stats === 'object' && stats !== null ? stats : {};
 
   return (
     <div className="w-full h-full bg-white dark:bg-slate-800 flex flex-col">
@@ -180,7 +201,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 w-full min-w-0">
           {GAMES.map((game) => {
             const isMyPanda = game.id === 'my_panda';
-            const gameStats = isMyPanda ? undefined : stats[game.id];
+            const gameStats = isMyPanda ? undefined : safeStats[game.id];
             const hasStats = gameStats && gameStats.total_games > 0;
             const hasBestScore = game.id === '2048' && gameStats?.best_score;
             return (
@@ -239,13 +260,13 @@ export function GamesScreen({ user }: GamesScreenProps) {
         </div>
 
         {/* Общая статистика */}
-        {Object.keys(stats).length > 0 && (
+        {Object.keys(safeStats).length > 0 && (
           <div className="mt-4 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
             <h2 className="font-display text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">
               📊 Твоя статистика
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {Object.values(stats).map((stat) => (
+              {Object.values(safeStats).map((stat) => (
                 <div
                   key={stat.game_type}
                   className="p-2 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700"

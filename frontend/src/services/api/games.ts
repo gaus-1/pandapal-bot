@@ -212,7 +212,85 @@ export async function getGameSession(sessionId: number): Promise<GameSession> {
   }
 
   const data = await response.json();
-  return data.session;
+  const session = data?.session;
+  if (session == null || typeof session !== 'object') {
+    throw new Error('Ошибка получения сессии: неверный ответ сервера');
+  }
+  return session as GameSession;
+}
+
+/** Состояние эрудита после хода (ответ API) */
+export interface EruditeStateResponse {
+  board: string[][];
+  bonus_cells: number[][];
+  player_tiles: string[];
+  ai_tiles: string[];
+  player_score: number;
+  ai_score: number;
+  current_player: number;
+  game_over: boolean;
+  first_move: boolean;
+  current_move: Array<[number, number, string]>;
+  bag_count: number;
+}
+
+/**
+ * Разместить фишку в эрудите
+ */
+export async function eruditePlaceTile(
+  sessionId: number,
+  row: number,
+  col: number,
+  letter: string
+): Promise<EruditeStateResponse> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/erudite/${sessionId}/place-tile`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ row, col, letter }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка размещения фишки');
+  }
+
+  return response.json();
+}
+
+/**
+ * Подтвердить ход в эрудите
+ */
+export async function eruditeConfirmMove(sessionId: number): Promise<EruditeStateResponse> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/erudite/${sessionId}/confirm-move`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка подтверждения хода');
+  }
+
+  return response.json();
+}
+
+/**
+ * Очистить текущий ход в эрудите
+ */
+export async function eruditeClearMove(sessionId: number): Promise<EruditeStateResponse> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/erudite/${sessionId}/clear-move`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка очистки хода');
+  }
+
+  return response.json();
 }
 
 /**

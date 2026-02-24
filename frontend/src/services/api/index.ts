@@ -46,7 +46,11 @@ export {
   game2048Move,
   getGameStats,
   getGameSession,
+  eruditePlaceTile,
+  eruditeConfirmMove,
+  eruditeClearMove,
 } from './games';
+export type { EruditeStateResponse } from './games';
 
 // Panda Pet (Моя панда)
 export {

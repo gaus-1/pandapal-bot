@@ -4,9 +4,14 @@
  */
 
 import { useState, useEffect } from 'react';
-import { getGameSession, type UserProfile } from '../../services/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+import {
+  getGameSession,
+  eruditePlaceTile,
+  eruditeConfirmMove,
+  eruditeClearMove,
+  type UserProfile,
+  type EruditeStateResponse,
+} from '../../services/api';
 
 interface EruditeProps {
   sessionId: number;
@@ -15,19 +20,7 @@ interface EruditeProps {
   onGameEnd: () => void;
 }
 
-interface EruditeState {
-  board: string[][];
-  bonus_cells: number[][];
-  player_tiles: string[];
-  ai_tiles: string[];
-  player_score: number;
-  ai_score: number;
-  current_player: number;
-  game_over: boolean;
-  first_move: boolean;
-  current_move: Array<[number, number, string]>;
-  bag_count: number;
-}
+type EruditeState = EruditeStateResponse;
 
 export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
   const [state, setState] = useState<EruditeState | null>(null);
@@ -77,19 +70,8 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/miniapp/games/erudite/${sessionId}/place-tile`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ row, col, letter: selectedTile }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || 'Ошибка размещения фишки');
-      }
-
-      const data = await response.json();
-      setState(data as EruditeState);
+      const data = await eruditePlaceTile(sessionId, row, col, selectedTile);
+      setState(data);
       setSelectedTile(null);
     } catch (err) {
       console.error('Ошибка размещения фишки:', err);
@@ -103,18 +85,8 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/miniapp/games/erudite/${sessionId}/confirm-move`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || 'Ошибка подтверждения хода');
-      }
-
-      const data = await response.json();
-      setState(data as EruditeState);
+      const data = await eruditeConfirmMove(sessionId);
+      setState(data);
 
       if (data.game_over) {
         setTimeout(() => {
@@ -279,15 +251,9 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
               onClick={async () => {
                 if (!state) return;
                 try {
-                  const response = await fetch(`${API_BASE_URL}/api/miniapp/games/erudite/${sessionId}/clear-move`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                  });
-                  if (response.ok) {
-                    const data = await response.json();
-                    setState(data as EruditeState);
-                    setSelectedTile(null);
-                  }
+                  const data = await eruditeClearMove(sessionId);
+                  setState(data);
+                  setSelectedTile(null);
                 } catch (err) {
                   console.error('Ошибка очистки хода:', err);
                 }

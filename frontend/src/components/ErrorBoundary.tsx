@@ -48,6 +48,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return this.props.fallback;
     }
 
+    const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
     return (
       <div className="flex items-center justify-center min-h-screen min-h-dvh bg-gray-50 dark:bg-slate-800 p-4">
         <div className="text-center max-w-md">
@@ -58,6 +59,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <p className="font-sans text-gray-600 dark:text-slate-400 mb-6 text-sm">
             Произошла непредвиденная ошибка. Попробуй обновить страницу.
           </p>
+          {isDev && this.state.error && (
+            <pre className="text-left text-xs bg-red-50 dark:bg-slate-900 p-3 rounded mb-4 overflow-auto max-h-32">
+              {this.state.error.message}
+            </pre>
+          )}
           <div className="flex gap-3 justify-center">
             <button
               onClick={this.handleReset}

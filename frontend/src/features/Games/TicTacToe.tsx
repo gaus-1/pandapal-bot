@@ -35,14 +35,19 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
   }, [sessionId]);
 
   const loadGameState = async () => {
-    // Оптимизация: не загружаем состояние если игра закончена
     if (gameOver) return;
+    if (sessionId == null || Number.isNaN(Number(sessionId))) return;
 
     try {
       const session = await getGameSession(sessionId);
-      const gameState = session.game_state as { board?: (string | null)[] };
+      if (!session || typeof session !== 'object') {
+        setBoard(Array(9).fill(null));
+        setIsUserTurn(true);
+        return;
+      }
+      const gameState = (session.game_state ?? {}) as { board?: (string | null)[] };
 
-      if (gameState.board) {
+      if (Array.isArray(gameState.board) && gameState.board.length === 9) {
         setBoard(gameState.board);
         const hasEmptyCells = gameState.board.some((cell) => cell === null);
         setIsUserTurn(hasEmptyCells);

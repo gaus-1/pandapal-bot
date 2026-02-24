@@ -213,11 +213,21 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       setSleepMediaIsVideo(Math.random() < 0.5);
     }
   }, [isSleepReaction, sleepMediaIsVideo]);
+  const nowForEffects = Date.now();
+  const showingFallForEffects = showFallUntil != null && nowForEffects < showFallUntil;
+  const showingToiletHappyForEffects =
+    !showingFallForEffects && showToiletHappyUntil != null && nowForEffects < showToiletHappyUntil;
+  const showingClimbForEffects =
+    !showingFallForEffects &&
+    !showingToiletHappyForEffects &&
+    showClimbUntil != null &&
+    nowForEffects < showClimbUntil;
+
   useEffect(() => {
-    if (showingFall) setFallVideoError(false);
+    if (showingFallForEffects) setFallVideoError(false);
   }, [showFallUntil]);
   useEffect(() => {
-    if (showingClimb) setClimbVideoError(false);
+    if (showingClimbForEffects) setClimbVideoError(false);
   }, [showClimbUntil]);
   useEffect(() => {
     if (isSleepReaction) setSleepVideoError(false);
@@ -471,7 +481,14 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
     );
   }
 
-  if (!state) return null;
+  if (!state) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-4 bg-white dark:bg-slate-800 safe-area-inset">
+        <div className="animate-pulse w-48 h-48 rounded-2xl bg-gray-200 dark:bg-slate-600" />
+        <p className="mt-4 text-sm text-gray-500 dark:text-slate-400">Загрузка панды...</p>
+      </div>
+    );
+  }
 
   const now = Date.now();
   const showingFall = showFallUntil != null && now < showFallUntil;
