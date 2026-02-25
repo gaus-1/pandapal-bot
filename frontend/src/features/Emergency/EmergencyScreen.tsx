@@ -142,10 +142,10 @@ export function EmergencyScreen() {
 
             {/* Когда звонить */}
             <div className="mb-3 sm:mb-4">
-              <p className="font-display text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2 sm:mb-3">
+              <p className="font-display text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-slate-100 mb-fib-1 sm:mb-fib-2">
                 Звони, если:
               </p>
-              <ul className="space-y-2.5 xs:space-y-3 sm:space-y-3.5 md:space-y-4">
+              <ul className="space-y-fib-1">
                 {emergency.when.map((reason, idx) => (
                   <li
                     key={idx}

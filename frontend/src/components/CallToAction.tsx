@@ -25,11 +25,10 @@ export const CallToAction: React.FC = React.memo(() => {
           Отсканируй QR-код камерой телефона или нажми кнопку ниже
         </p>
 
-        {/* QR + Кнопка: пропорция 61.8% / 38.2% (золотое сечение) на десктопе */}
-        <div className="flex flex-col md:flex-row md:grid md:grid-cols-[1.618fr_1fr] items-center justify-center gap-fib-5 sm:gap-fib-6 lg:gap-fib-6 mb-fib-5 sm:mb-fib-5 lg:mb-fib-6">
-          {/* Левая колонка 61.8%: QR + разделитель «или» */}
-          <div className="flex flex-col md:flex-row items-center justify-center gap-fib-4 w-full md:w-auto">
-          <div className="flex flex-col items-center">
+        {/* QR + «или» + Кнопка: на десктопе три колонки — «или» по центру */}
+        <div className="flex flex-col md:grid md:grid-cols-[1.618fr_auto_1fr] items-center justify-center gap-fib-5 sm:gap-fib-6 lg:gap-fib-6 mb-fib-5 sm:mb-fib-5 lg:mb-fib-6">
+          {/* Левая колонка: QR */}
+          <div className="flex flex-col items-center justify-center w-full md:w-auto">
             <div className="bg-white dark:bg-slate-800 p-fib-4 sm:p-fib-5 rounded-2xl shadow-xl dark:shadow-2xl border-2 border-gray-100 dark:border-slate-700 dark:border-slate-600/50 relative w-[220px] h-[220px] sm:w-[240px] sm:h-[240px] md:w-[260px] md:h-[260px] flex items-center justify-center">
               {qrError ? (
                 <div className="flex flex-col items-center justify-center p-fib-4 text-center">
@@ -79,17 +78,16 @@ export const CallToAction: React.FC = React.memo(() => {
             </p>
           </div>
 
-          {/* Разделитель "или" */}
-          <div className="flex items-center justify-center">
+          {/* Центр: разделитель «или» — отдельная колонка для выравнивания по центру на ПК */}
+          <div className="flex items-center justify-center shrink-0">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-pink-100 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center shadow-md">
               <span className="font-display text-lg font-bold text-gray-700 dark:text-slate-300">
                 или
               </span>
             </div>
           </div>
-          </div>
 
-          {/* Правая колонка 38.2%: кнопки */}
+          {/* Правая колонка: кнопки */}
           <div className="flex flex-col items-center gap-fib-4 w-full md:w-auto">
             <a
               href={SITE_CONFIG.botUrl}

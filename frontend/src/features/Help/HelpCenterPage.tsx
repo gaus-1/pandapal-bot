@@ -17,7 +17,7 @@ export const HelpCenterPage: React.FC = React.memo(() => {
     <>
       <Header />
       <main className="w-full max-w-4xl mx-auto px-fib-4 sm:px-fib-4 lg:px-fib-5 py-fib-5 sm:py-fib-6 lg:py-fib-6 flex flex-col items-center">
-        <article className="w-full max-w-4xl mx-auto rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 px-fib-4 sm:px-fib-5 lg:px-fib-5 py-fib-4 sm:py-fib-5 lg:py-fib-5 shadow-lg dark:shadow-xl">
+        <article className="w-full max-w-4xl mx-auto rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 px-fib-4 sm:px-fib-4 lg:px-fib-5 py-fib-4 sm:py-fib-5 lg:py-fib-5 shadow-lg dark:shadow-xl">
           <header className="mb-fib-4 sm:mb-fib-5 text-center">
             <h1 className="font-display text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-50">
               Вопросы и ответы
