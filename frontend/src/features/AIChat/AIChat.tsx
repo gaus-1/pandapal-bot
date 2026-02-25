@@ -59,6 +59,7 @@ export function AIChat({ user }: AIChatProps) {
   const [showWelcome, setShowWelcome] = useState(false);
   const [hasShownWelcomeMessage, setHasShownWelcomeMessage] = useState(false);
   const [welcomeMedia, setWelcomeMedia] = useState<typeof WELCOME_MEDIA[number]>(() => pickRandomWelcomeMedia());
+  const [welcomeVideoReady, setWelcomeVideoReady] = useState(false);
   const queryClient = useQueryClient();
   const logoRef = useRef<HTMLImageElement | null>(null);
   const welcomeMediaKeyRef = useRef(0);
@@ -179,6 +180,7 @@ export function AIChat({ user }: AIChatProps) {
         setHasShownWelcomeMessage(false);
         setWelcomeMedia(pickRandomWelcomeMedia());
         welcomeMediaKeyRef.current += 1;
+        setWelcomeVideoReady(false);
       } else {
         logger.debug('[Welcome] Есть сообщения, скрываем welcome screen');
         setShowWelcome(false);
@@ -191,6 +193,7 @@ export function AIChat({ user }: AIChatProps) {
         setHasShownWelcomeMessage(false);
         setWelcomeMedia(pickRandomWelcomeMedia());
         welcomeMediaKeyRef.current += 1;
+        setWelcomeVideoReady(false);
       }
     }
   }, [messages.length, isLoadingHistory, showWelcome]);
@@ -283,6 +286,7 @@ export function AIChat({ user }: AIChatProps) {
         setShowWelcome(true);
         setWelcomeMedia(pickRandomWelcomeMedia());
         welcomeMediaKeyRef.current += 1;
+        setWelcomeVideoReady(false);
       } catch (error) {
         logger.error('Ошибка очистки истории:', error);
         telegram.showAlert('Ошибка при очистке истории');
@@ -369,7 +373,7 @@ export function AIChat({ user }: AIChatProps) {
         ) : showWelcome && messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-full py-8 animate-fade-in relative z-10">
             <div
-              className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-2 overflow-hidden flex items-center justify-center animate-logo-bounce shrink-0"
+              className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 mx-auto mb-6 rounded-full shadow-2xl bg-slate-100/90 dark:bg-slate-800/90 backdrop-blur-sm p-2 overflow-hidden flex items-center justify-center animate-logo-bounce shrink-0"
               style={{
                 animation: 'logoBounce 2s ease-in-out infinite',
                 willChange: 'transform',
@@ -381,16 +385,26 @@ export function AIChat({ user }: AIChatProps) {
               } as React.CSSProperties}
             >
               {welcomeMedia.type === 'video' ? (
-                <video
-                  key={`welcome-video-${welcomeMediaKeyRef.current}-${welcomeMedia.src}`}
-                  src={welcomeMedia.src}
-                  muted
-                  loop
-                  autoPlay
-                  playsInline
-                  className="w-full h-full object-contain rounded-full"
-                  aria-label={welcomeMedia.alt}
-                />
+                <>
+                  <video
+                    key={`welcome-video-${welcomeMediaKeyRef.current}-${welcomeMedia.src}`}
+                    src={welcomeMedia.src}
+                    poster="/panda-sleeping.png"
+                    preload="auto"
+                    muted
+                    loop
+                    autoPlay
+                    playsInline
+                    onCanPlay={() => setWelcomeVideoReady(true)}
+                    className="w-full h-full object-contain rounded-full bg-transparent"
+                    aria-label={welcomeMedia.alt}
+                  />
+                  {!welcomeVideoReady && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-slate-200/80 dark:bg-slate-700/80" aria-hidden>
+                      <div className="h-8 w-8 border-2 border-slate-400 dark:border-slate-500 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                </>
               ) : (
                 <img
                   ref={logoRef}
