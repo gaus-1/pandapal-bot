@@ -123,7 +123,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
 
   if (selectedGame && sessionId) {
     const gameFallback = (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] p-4 text-center">
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-fib-4 text-center">
         <p className="text-gray-600 dark:text-slate-400 mb-4">Игра не загрузилась. Вернись и попробуй снова.</p>
         <button
           type="button"
@@ -179,9 +179,9 @@ export function GamesScreen({ user }: GamesScreenProps) {
   return (
     <div className="w-full h-full bg-white dark:bg-slate-800 flex flex-col">
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-3 xs:px-4 sm:px-4 py-4 sm:py-6">
+        <div className="max-w-4xl mx-auto px-fib-2 fold:px-fib-3 xs:px-fib-4 sm:px-fib-4 py-fib-4 sm:py-fib-5 min-w-0">
         {/* Заголовок */}
-        <div className="text-center mb-3">
+        <div className="text-center mb-fib-3">
           <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-1">
             🎮 PandaPalGo
           </h1>
@@ -192,13 +192,13 @@ export function GamesScreen({ user }: GamesScreenProps) {
 
         {/* Ошибка */}
         {error && (
-          <div className="mb-3 p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg">
+          <div className="mb-fib-3 p-fib-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg">
             <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
           </div>
         )}
 
         {/* Список игр — адаптивная сетка без перекрытий */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 w-full min-w-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-fib-3 sm:gap-fib-4 mb-fib-4 w-full min-w-0">
           {GAMES.map((game) => {
             const isMyPanda = game.id === 'my_panda';
             const gameStats = isMyPanda ? undefined : safeStats[game.id];
@@ -261,15 +261,15 @@ export function GamesScreen({ user }: GamesScreenProps) {
 
         {/* Общая статистика */}
         {Object.keys(safeStats).length > 0 && (
-          <div className="mt-4 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+          <div className="mt-fib-4 p-fib-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
             <h2 className="font-display text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">
               📊 Твоя статистика
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-fib-2">
               {Object.values(safeStats).map((stat) => (
                 <div
                   key={stat.game_type}
-                  className="p-2 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700"
+                  className="p-fib-2 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700"
                 >
                   <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-1">
                     {stat.game_type === 'tic_tac_toe' && '❌⭕ Крестики-нолики'}

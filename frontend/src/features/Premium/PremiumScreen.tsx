@@ -242,7 +242,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
       <div className="max-w-4xl mx-auto px-fib-3 xs:px-fib-4 sm:px-fib-4 md:px-fib-5 py-fib-1 xs:py-fib-2 sm:py-fib-2 md:py-fib-3 pb-16 xs:pb-20 sm:pb-24">
         {/* Информация о пользователе (для веб-сайта) */}
         {!inTelegram && isAuthenticated && webUser && (
-          <div className="mb-4 p-4 bg-gradient-to-br from-stone-50/90 to-amber-50/90 dark:from-slate-800/90 dark:to-slate-800/90 rounded-[1.5rem] border border-stone-200/25 dark:border-slate-700/40 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] flex items-center justify-between">
+          <div className="mb-fib-4 p-fib-4 bg-gradient-to-br from-stone-50/90 to-amber-50/90 dark:from-slate-800/90 dark:to-slate-800/90 rounded-[1.5rem] border border-stone-200/25 dark:border-slate-700/40 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 dark:text-slate-400">Вы вошли как:</p>
               <p className="text-base font-semibold text-gray-900 dark:text-slate-100">
@@ -291,7 +291,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
          (currentUser as UserProfile)?.active_subscription &&
          ((currentUser as UserProfile).active_subscription?.has_saved_payment_method ||
           (currentUser as UserProfile).active_subscription?.auto_renew) && (
-          <div className="mb-4 sm:mb-5 p-4 sm:p-5 bg-gradient-to-br from-blue-50/85 via-indigo-50/85 to-purple-50/85 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 rounded-[1.5rem] sm:rounded-[2rem] border border-blue-200/25 dark:border-blue-800/20 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
+          <div className="mb-fib-4 sm:mb-fib-5 p-fib-4 sm:p-fib-5 bg-gradient-to-br from-blue-50/85 via-indigo-50/85 to-purple-50/85 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 rounded-[1.5rem] sm:rounded-[2rem] border border-blue-200/25 dark:border-blue-800/20 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-xl sm:text-2xl">💳</span>
@@ -329,8 +329,8 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
         {/* Диалог подтверждения отвязки */}
         {showRemoveConfirm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gradient-to-br from-white/95 to-stone-50/95 dark:from-slate-800/95 dark:to-slate-800/95 rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-6 max-w-sm w-full border border-stone-200/30 dark:border-slate-700/40 shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-fib-4">
+            <div className="bg-gradient-to-br from-white/95 to-stone-50/95 dark:from-slate-800/95 dark:to-slate-800/95 rounded-[2rem] sm:rounded-[2.5rem] p-fib-4 sm:p-fib-5 max-w-sm w-full border border-stone-200/30 dark:border-slate-700/40 shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
               <h3 className="text-base sm:text-lg font-display font-bold text-gray-900 dark:text-slate-100 mb-2">
                 Отвязать карту?
               </h3>

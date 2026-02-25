@@ -245,7 +245,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
   return (
     <div className="w-full h-full bg-white dark:bg-slate-800 flex flex-col overflow-hidden">
       {/* Заголовок */}
-      <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-700">
+      <div className="flex-shrink-0 flex items-center justify-between px-fib-3 fold:px-fib-4 sm:px-fib-4 py-fib-3 border-b border-gray-200 dark:border-slate-700">
         <button
           onClick={onBack}
           className="p-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 transition-colors text-sm touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
@@ -260,7 +260,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       </div>
 
       {/* Статус */}
-      <div className="flex-shrink-0 text-center py-2 px-4">
+      <div className="flex-shrink-0 text-center py-fib-2 px-fib-3 fold:px-fib-4">
         {winner && (
           <div className="mb-2">
             <PandaReaction mood={winner === "user" ? "sad" : "happy"} size="small" />
@@ -290,8 +290,8 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
       </div>
 
       {/* Игровая доска */}
-      <div className="flex-1 flex items-center justify-center px-2 sm:px-4 pb-2 min-h-0 w-full">
-        <div className="w-full max-w-[600px] aspect-square relative">
+      <div className="flex-1 flex items-center justify-center px-fib-2 fold:px-fib-2 sm:px-fib-4 pb-2 min-h-0 w-full overflow-hidden">
+        <div className="w-full max-w-[600px] min-w-0 aspect-square relative">
           <div className="w-full h-full grid grid-cols-8 grid-rows-8 gap-[2px] bg-gray-400 dark:bg-slate-700 border-[4px] border-gray-400 dark:border-slate-700 rounded-xl shadow-2xl overflow-hidden">
             {board.length > 0 ? (
               board.map((row, rowIndex) =>
@@ -375,7 +375,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
       {/* Инструкция */}
       {!gameOver && (
-        <div className="flex-shrink-0 text-center text-xs sm:text-sm text-gray-600 dark:text-slate-400 px-4 py-2 space-y-1 bg-white dark:bg-slate-800">
+        <div className="flex-shrink-0 text-center text-xs sm:text-sm text-gray-600 dark:text-slate-400 px-fib-3 sm:px-fib-4 py-fib-2 space-y-1 bg-white dark:bg-slate-800">
           <p className="m-0">Ты играешь белыми, панда играет черными</p>
           <p className="m-0">Нажми на свою фишку, затем на клетку для хода</p>
         </div>
@@ -383,7 +383,7 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
       {/* Кнопка новой игры */}
       {gameOver && (
-        <div className="flex-shrink-0 text-center px-4 py-3 bg-white dark:bg-slate-800">
+        <div className="flex-shrink-0 text-center px-fib-4 py-fib-3 bg-white dark:bg-slate-800">
           <button
             onClick={onBack}
             className="px-8 py-3 bg-blue-500 dark:bg-blue-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px] shadow-md"

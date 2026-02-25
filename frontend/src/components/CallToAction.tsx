@@ -25,9 +25,10 @@ export const CallToAction: React.FC = React.memo(() => {
           Отсканируй QR-код камерой телефона или нажми кнопку ниже
         </p>
 
-        {/* QR + Кнопка - профессиональная сетка */}
-        <div className="flex flex-col md:flex-row items-center justify-center gap-fib-5 sm:gap-fib-6 lg:gap-fib-6 mb-fib-5 sm:mb-fib-5 lg:mb-fib-6">
-          {/* QR-код */}
+        {/* QR + Кнопка: пропорция 61.8% / 38.2% (золотое сечение) на десктопе */}
+        <div className="flex flex-col md:flex-row md:grid md:grid-cols-[1.618fr_1fr] items-center justify-center gap-fib-5 sm:gap-fib-6 lg:gap-fib-6 mb-fib-5 sm:mb-fib-5 lg:mb-fib-6">
+          {/* Левая колонка 61.8%: QR + разделитель «или» */}
+          <div className="flex flex-col md:flex-row items-center justify-center gap-fib-4 w-full md:w-auto">
           <div className="flex flex-col items-center">
             <div className="bg-white dark:bg-slate-800 p-fib-4 sm:p-fib-5 rounded-2xl shadow-xl dark:shadow-2xl border-2 border-gray-100 dark:border-slate-700 dark:border-slate-600/50 relative w-[220px] h-[220px] sm:w-[240px] sm:h-[240px] md:w-[260px] md:h-[260px] flex items-center justify-center">
               {qrError ? (
@@ -86,9 +87,10 @@ export const CallToAction: React.FC = React.memo(() => {
               </span>
             </div>
           </div>
+          </div>
 
-          {/* Кнопки */}
-          <div className="flex flex-col items-center gap-fib-4">
+          {/* Правая колонка 38.2%: кнопки */}
+          <div className="flex flex-col items-center gap-fib-4 w-full md:w-auto">
             <a
               href={SITE_CONFIG.botUrl}
               target="_blank"

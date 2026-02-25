@@ -48,16 +48,16 @@ export function AchievementsScreen({ user }: AchievementsScreenProps) {
 
   return (
     <div className="w-full h-full bg-white dark:bg-slate-800 overflow-y-auto">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 pb-20 sm:pb-24">
+      <div className="max-w-4xl mx-auto px-fib-2 fold:px-fib-3 xs:px-fib-4 sm:px-fib-5 md:px-fib-5 py-fib-4 sm:py-fib-5 md:py-fib-6 pb-20 sm:pb-24">
         {/* Заголовок */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex items-center gap-3 mb-2 sm:mb-3">
+        <div className="mb-fib-4 sm:mb-fib-5 md:mb-fib-6">
+          <div className="flex items-center gap-fib-2 sm:gap-fib-3 mb-fib-2 sm:mb-fib-3">
             <span className="text-3xl sm:text-4xl md:text-5xl">🏆</span>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-gray-900 dark:text-slate-100">
               Достижения
             </h1>
           </div>
-          <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 mb-3 sm:mb-4">
+          <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 mb-fib-3 sm:mb-fib-4">
             Получено {unlockedCount} из {totalCount}
           </p>
 
@@ -72,12 +72,12 @@ export function AchievementsScreen({ user }: AchievementsScreenProps) {
 
         {/* Список достижений */}
         {achievements.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-fib-3 sm:gap-fib-4 md:gap-fib-5">
             {achievements.map((achievement) => (
               <button
                 key={achievement.id}
                 onClick={() => handleAchievementClick(achievement)}
-                className={`flex flex-col items-center justify-center p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl transition-all min-h-[120px] sm:min-h-[140px] md:min-h-[160px] border ${
+                className={`flex flex-col items-center justify-center p-fib-3 sm:p-fib-4 md:p-fib-5 rounded-xl sm:rounded-2xl transition-all min-h-[100px] fold:min-h-[120px] sm:min-h-[140px] md:min-h-[160px] border ${
                   achievement.unlocked
                     ? 'bg-blue-500/20 dark:bg-blue-500/30 hover:bg-blue-500/30 dark:hover:bg-blue-500/40 active:bg-blue-500/40 dark:active:bg-blue-500/50 active:scale-95 border-blue-500/30 dark:border-blue-500/50'
                     : 'bg-gray-50 dark:bg-slate-800 opacity-60 border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600'

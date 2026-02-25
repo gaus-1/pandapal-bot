@@ -56,17 +56,17 @@ export default {
         display: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         chat: ['Literata', 'Georgia', 'serif'],
       },
-      // Адаптивная типографика под все устройства
+      // Типографика: иерархия по золотому сечению (16→26→42→48→68 px), line-height = size × 1.618
       fontSize: {
-        'xs': ['0.75rem', { lineHeight: '1rem' }],
-        'sm': ['0.875rem', { lineHeight: '1.25rem' }],
-        'base': ['1rem', { lineHeight: '1.5rem' }],
-        'lg': ['1.125rem', { lineHeight: '1.75rem' }],
-        'xl': ['1.25rem', { lineHeight: '1.75rem' }],
-        '2xl': ['1.5rem', { lineHeight: '2rem' }],
-        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
-        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
-        '5xl': ['3rem', { lineHeight: '1' }],
+        'xs': ['0.75rem', { lineHeight: '1.21rem' }],
+        'sm': ['0.875rem', { lineHeight: '1.42rem' }],
+        'base': ['1rem', { lineHeight: '1.618rem' }],      // 16px
+        'lg': ['1.125rem', { lineHeight: '1.82rem' }],
+        'xl': ['1.25rem', { lineHeight: '2.02rem' }],
+        '2xl': ['1.625rem', { lineHeight: '2.63rem' }],    // 26px
+        '3xl': ['2.625rem', { lineHeight: '4.25rem' }],    // 42px
+        '4xl': ['3rem', { lineHeight: '4.85rem' }],        // 48px
+        '5xl': ['4.25rem', { lineHeight: '6.88rem' }],     // 68px
       },
       // Шкала отступов по Фибоначчи (8, 13, 21, 34… px) для гармонии и симметрии
       spacing: {
@@ -78,16 +78,18 @@ export default {
         'fib-6': '55px',
         'fib-7': '89px',
       },
-      // Брейкпоинты для 2025: включая складные телефоны и презентационные экраны
+      // Брейкпоинты 2026: складные, смартфоны, планшеты, ноутбуки, мониторы до 4K/ультрашироких
       screens: {
-        'xs': '375px',   // Мини-телефоны
-        'sm': '640px',   // Мобильные
-        'md': '768px',   // Планшеты
-        'lg': '1024px',  // Ноутбуки
-        'xl': '1280px',  // Десктопы
-        '2xl': '1536px', // Большие экраны
-        '3xl': '1920px', // Презентации / 4K
-        'fold': '280px', // Складные телефоны (Galaxy Fold)
+        'fold': '280px',   // Складные внешний экран (Galaxy Z Fold, iPhone Fold)
+        'narrow': '320px', // Узкие экраны (часть складных 320px)
+        'xs': '375px',     // iPhone SE, mini, стандартные узкие
+        'sm': '640px',    // Крупные смартфоны, планшеты портрет
+        'md': '768px',    // Планшеты
+        'lg': '1024px',   // Ноутбуки, планшеты альбом
+        'xl': '1280px',   // Десктопы
+        '2xl': '1536px',  // Большие мониторы
+        '3xl': '1920px',  // Full HD+ / презентации
+        '4xl': '2560px',  // QHD/4K и ультраширокие
       },
     },
   },

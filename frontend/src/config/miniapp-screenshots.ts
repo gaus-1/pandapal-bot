@@ -7,7 +7,7 @@ export interface MiniAppScreenshotItem {
 /**
  * Список скриншотов Mini App.
  * Добавь файлы в frontend/public/screenshots/miniapp/
- * и оставь имена 01.webp ... 12.webp (или поменяй пути тут).
+ * и оставь имена 01.webp ... 14.webp (или поменяй пути тут).
  */
 export const MINIAPP_SCREENSHOTS: readonly MiniAppScreenshotItem[] = [
   { id: 1, src: '/screenshots/miniapp/01.webp', title: 'Главный экран' },
@@ -22,4 +22,6 @@ export const MINIAPP_SCREENSHOTS: readonly MiniAppScreenshotItem[] = [
   { id: 10, src: '/screenshots/miniapp/10.webp', title: 'Экстренные номера' },
   { id: 11, src: '/screenshots/miniapp/11.webp', title: 'Хороший ответ' },
   { id: 12, src: '/screenshots/miniapp/12.webp', title: 'Не понравился ответ' },
+  { id: 13, src: '/screenshots/miniapp/13.webp', title: 'Моя панда' },
+  { id: 14, src: '/screenshots/miniapp/14.webp', title: 'Моя панда' },
 ] as const;

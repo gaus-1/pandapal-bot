@@ -166,7 +166,7 @@ const App: React.FC = () => {
   // Premium страница
   if (currentRoute === 'premium') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
         <SeoHead
           title="PandaPal Premium - расширенные возможности"
           description="Premium-подписка PandaPal: больше возможностей для безопасной помощи в учебе."
@@ -185,7 +185,7 @@ const App: React.FC = () => {
   // Donation страница
   if (currentRoute === 'donation') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
         <SeoHead
           title="Поддержать PandaPal"
           description="Поддержите развитие PandaPal - безопасного AI-помощника для школьников."
@@ -204,7 +204,7 @@ const App: React.FC = () => {
   // Юридические страницы (РКН)
   if (currentRoute === 'privacy') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
         <SeoHead
           title="Политика конфиденциальности PandaPal"
           description="Политика конфиденциальности сервиса PandaPal."
@@ -218,7 +218,7 @@ const App: React.FC = () => {
   }
   if (currentRoute === 'personal-data') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
         <SeoHead
           title="Обработка персональных данных PandaPal"
           description="Правила обработки персональных данных в PandaPal."
@@ -232,7 +232,7 @@ const App: React.FC = () => {
   }
   if (currentRoute === 'offer') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
         <SeoHead
           title="Договор оферты PandaPal"
           description="Публичная оферта сервиса PandaPal."
@@ -247,7 +247,7 @@ const App: React.FC = () => {
 
   if (currentRoute === 'safe-ai-ru') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
         <SeoHead
           title="Безопасный ИИ для детей - PandaPal"
           description="PandaPal - безопасный AI-помощник для школьников: помощь с учебой, модерация и родительский контроль."
@@ -274,7 +274,7 @@ const App: React.FC = () => {
 
   if (currentRoute === 'safe-ai-en') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
         <SeoHead
           title="Safe AI tutor for kids - PandaPal"
           description="PandaPal is a safe AI tutor for school students with moderation, homework help, and Telegram access."
@@ -302,7 +302,7 @@ const App: React.FC = () => {
 
   if (currentRoute === 'homework-ru') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
         <SeoHead
           title="Помощь с домашкой в Telegram - PandaPal"
           description="PandaPal помогает с домашним заданием в Telegram: текст, фото и голосовые вопросы."
@@ -329,7 +329,7 @@ const App: React.FC = () => {
 
   if (currentRoute === 'homework-en') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
         <SeoHead
           title="Telegram homework help bot - PandaPal"
           description="PandaPal is a Telegram homework help bot with text, photo, and voice support."
@@ -357,7 +357,7 @@ const App: React.FC = () => {
 
   if (currentRoute === 'panda-pet') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
         <SeoHead
           title={`${PANDA_PET_PAGE_TITLE_RU} | PandaPal`}
           description={PANDA_PET_DESCRIPTION_RU}
@@ -382,7 +382,7 @@ const App: React.FC = () => {
 
   if (currentRoute === 'help') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
         <SeoHead
           title="Помощь — PandaPal"
           description={HELP_PAGE_DESCRIPTION_RU}
@@ -400,7 +400,7 @@ const App: React.FC = () => {
     const slug = pathname.startsWith('/help/') ? pathname.replace(/^\/help\/?/, '').split('/')[0] : '';
     const article = slug ? getHelpArticleBySlug(slug) : undefined;
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
         <SeoHead
           title={article ? `${article.titleRu} — Помощь — PandaPal` : 'Помощь — PandaPal'}
           description={article ? article.descriptionRu : HELP_PAGE_DESCRIPTION_RU}
@@ -415,7 +415,7 @@ const App: React.FC = () => {
 
   // Лендинг (главная страница)
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
       <SeoHead
         title="PandaPal - безопасный и полезный AI-друг для детей"
         description="PandaPal - безопасный AI-помощник и робот-репетитор для школьников 1-9 класса в формате Telegram Mini App."
@@ -425,7 +425,7 @@ const App: React.FC = () => {
       <Header />
 
       {/* Основной контент — единый контейнер и ритм отступов */}
-      <main className="max-w-6xl mx-auto px-fib-2 sm:px-fib-3 lg:px-fib-4">
+      <main className="max-w-6xl mx-auto px-fib-2 fold:px-fib-2 sm:px-fib-3 lg:px-fib-4 4xl:px-fib-5 min-w-0">
         {/* Hero-секция: заголовок + CTA */}
         <Hero />
 

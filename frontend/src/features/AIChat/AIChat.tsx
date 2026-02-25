@@ -407,8 +407,7 @@ export function AIChat({ user }: AIChatProps) {
                     onCanPlay={() => setWelcomeVideoReady(true)}
                     onPlaying={() => setWelcomeVideoReady(true)}
                     onLoadedData={() => setWelcomeVideoReady(true)}
-                    className="relative z-10 max-w-full max-h-full w-auto h-auto min-w-[80px] min-h-[80px] object-contain object-center rounded-full bg-transparent block"
-                    style={{ objectFit: 'contain', objectPosition: 'center' }}
+                    className="absolute inset-0 z-10 w-full h-full min-w-0 min-h-0 object-cover object-center rounded-full bg-slate-100/90 dark:bg-slate-800/90 block"
                     aria-label={welcomeMedia.alt}
                   />
                   {!welcomeVideoReady && (
@@ -433,7 +432,7 @@ export function AIChat({ user }: AIChatProps) {
               )}
             </div>
             <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>
-            <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 text-center max-w-md mx-auto px-4 animate-fade-in delay-300">
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 text-center max-w-md mx-auto px-fib-4 animate-fade-in delay-300">
               Задай любой вопрос, и я помогу тебе с учебой! 📚✨
             </p>
           </div>

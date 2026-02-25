@@ -132,7 +132,7 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-900 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-2 py-1 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+      <div className="flex items-center justify-between px-fib-2 fold:px-fib-3 py-fib-2 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <h1 className="font-display text-sm font-bold text-gray-900 dark:text-slate-100">📚 эрудит</h1>
         <button
           onClick={onBack}
@@ -143,7 +143,7 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
       </div>
 
       {/* Scores */}
-      <div className="flex justify-between px-2 py-1 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+      <div className="flex justify-between px-fib-2 fold:px-fib-3 py-fib-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div>
           <div className="text-[10px] text-gray-600 dark:text-gray-400">Вы</div>
           <div className="text-base font-bold text-blue-600 dark:text-blue-400">{state.player_score}</div>
@@ -164,7 +164,7 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
       )}
 
       {/* Game Board */}
-      <div className="flex-1 overflow-hidden flex items-center justify-center p-1 min-h-0">
+      <div className="flex-1 overflow-hidden flex items-center justify-center p-fib-2 min-h-0 min-w-0">
         <div
           className="grid gap-0.5 w-full h-full"
           style={{ gridTemplateColumns: 'repeat(15, minmax(0, 1fr))', aspectRatio: '1', maxWidth: '100%', maxHeight: '100%' }}
@@ -208,7 +208,7 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
       </div>
 
       {/* Player Tiles */}
-      <div className="p-2 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+      <div className="p-fib-2 fold:p-fib-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="text-xs font-semibold mb-1.5 text-gray-700 dark:text-gray-300">Ваши фишки:</div>
         <div className="flex flex-wrap gap-1.5">
           {state.player_tiles.map((tile, idx) => (
@@ -238,7 +238,7 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
       </div>
 
       {/* Action Buttons */}
-      <div className="px-2 py-1 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex-shrink-0">
+      <div className="px-fib-2 fold:px-fib-3 py-fib-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex-shrink-0">
         {state.current_move.length > 0 ? (
           <div className="flex gap-1">
             <button

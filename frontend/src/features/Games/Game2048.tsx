@@ -235,7 +235,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
   return (
     <div className="w-full h-full bg-white dark:bg-slate-800 overflow-y-auto">
-      <div className="max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <div className="max-w-md mx-auto px-fib-2 fold:px-fib-3 xs:px-fib-4 sm:px-fib-4 py-fib-4 sm:py-fib-5">
         {/* Заголовок */}
         <div className="flex items-center justify-between mb-2">
           <button
@@ -283,7 +283,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
         {/* Игровая доска с поддержкой swipe */}
         <div
-          className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 mb-4 touch-none select-none w-full max-w-[260px] mx-auto border border-gray-200 dark:border-slate-600"
+          className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 mb-4 touch-none select-none w-full max-w-[260px] fold:max-w-[calc(100vw-16px)] mx-auto border border-gray-200 dark:border-slate-600"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
@@ -332,7 +332,7 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
             <div className="text-xs text-gray-600 dark:text-slate-400 mb-1.5 text-center font-medium">
               Используй кнопки или свайп по доске
             </div>
-            <div className="grid grid-cols-3 gap-1 max-w-[260px] mx-auto bg-gray-50 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-600">
+            <div className="grid grid-cols-3 gap-1 max-w-[260px] fold:max-w-[calc(100vw-16px)] mx-auto bg-gray-50 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-600">
               <div /> {/* Spacer */}
               <button
                 onClick={() => handleMove("up")}

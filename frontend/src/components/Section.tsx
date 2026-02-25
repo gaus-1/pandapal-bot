@@ -69,7 +69,7 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
             {isDescriptionList ? (
               isBenefitsSection ? (
                 <div className="text-left">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-fib-4 sm:gap-fib-5 lg:gap-fib-5">
+                  <div className="grid grid-cols-1 md:grid-cols-[1.618fr_1fr] gap-fib-4 sm:gap-fib-5 lg:gap-fib-5">
                     {benefitsGroups.map((group) => (
                       <div
                         key={group.title}

@@ -30,35 +30,33 @@
     min-height: 100dvh;
   }
 
-  /* Заголовки используют Poppins */
+  /* Заголовки: Poppins, line-height = 1.618 по рекомендации */
   h1, h2, h3, h4, h5, h6 {
     @apply font-display font-bold;
     letter-spacing: -0.02em;
+    line-height: 1.618;
   }
 
-  /* Адаптивные размеры заголовков - единая система */
-  /* Используем Tailwind брейкпоинты + fluid typography для плавного масштабирования */
+  /* Иерархия 16 → 26 → 42 px: body 16, подзаголовок 26, крупный 42 */
   h1 {
     @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl;
-    /* Fluid typography: плавное масштабирование между брейкпоинтами (fallback для браузеров без clamp) */
-    font-size: clamp(1.5rem, 4vw + 1rem, 3rem);
+    font-size: clamp(1.625rem, 4vw + 1rem, 4.25rem);
   }
 
   h2 {
     @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
-    /* Fluid typography */
-    font-size: clamp(1.25rem, 3vw + 0.75rem, 2.25rem);
+    font-size: clamp(1.25rem, 3vw + 0.75rem, 3rem);
   }
 
   h3 {
     @apply text-lg sm:text-xl md:text-2xl lg:text-3xl;
-    /* Fluid typography */
-    font-size: clamp(1.125rem, 2.5vw + 0.5rem, 1.875rem);
+    font-size: clamp(1.125rem, 2.5vw + 0.5rem, 2.625rem);
   }
 
-  /* Параграфы: единый ритм text-sm → base → lg, leading-relaxed */
+  /* Параграфы: base 16px, line-height по золотому сечению 1.618 */
   p {
-    @apply text-sm sm:text-base md:text-lg leading-relaxed;
+    @apply text-sm sm:text-base md:text-lg;
+    line-height: 1.618;
   }
 
   /* Оптимизация для touch-устройств */
@@ -180,7 +178,7 @@
     }
   }
 
-  /* Адаптивные утилиты для контейнеров (отступы по Фибоначчи) */
+  /* Адаптивные утилиты для контейнеров (отступы по Фибоначчи), 280px–4K */
   .container-responsive {
     @apply w-full max-w-7xl mx-auto px-fib-2 sm:px-fib-3 lg:px-fib-4;
   }

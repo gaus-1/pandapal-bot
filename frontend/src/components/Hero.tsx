@@ -27,8 +27,8 @@ export const Hero: React.FC = React.memo(() => {
           {HERO_TAGLINE_RU}
         </p>
 
-        {/* CTA кнопки */}
-        <div className="mt-fib-4 sm:mt-fib-5 md:mt-fib-5 flex flex-col sm:flex-row gap-fib-3 sm:gap-fib-4 justify-center items-stretch sm:items-center">
+        {/* CTA кнопки: правило третей — лёгкий сдвиг вправо на десктопе для динамики */}
+        <div className="mt-fib-4 sm:mt-fib-5 md:mt-fib-5 flex flex-col sm:flex-row gap-fib-3 sm:gap-fib-4 justify-center md:justify-center md:ml-[8%] items-stretch sm:items-center">
         {/* Основная CTA */}
         <a
           href={SITE_CONFIG.botUrl}

@@ -143,7 +143,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
 
   return (
     <div className="w-full h-full bg-white dark:bg-slate-800 overflow-y-auto">
-      <div className="max-w-md mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <div className="max-w-md mx-auto px-fib-2 fold:px-fib-3 xs:px-fib-4 sm:px-fib-4 py-fib-4 sm:py-fib-5">
         {/* Заголовок */}
         <div className="flex items-center justify-between mb-2">
           <button
@@ -175,7 +175,7 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
         </div>
 
         {/* Игровая доска */}
-        <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 mb-4 w-full max-w-[260px] mx-auto border border-gray-200 dark:border-slate-600">
+        <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 mb-4 w-full max-w-[260px] fold:max-w-[calc(100vw-16px)] mx-auto border border-gray-200 dark:border-slate-600">
           <div className="grid grid-cols-3 gap-0.5 w-full">
             {Array.from({ length: 9 }).map((_, index) => {
               const content = getSquareContent(index);
