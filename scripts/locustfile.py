@@ -1,11 +1,11 @@
 """
 Точка входа для нагрузочного тестирования Locust.
 
-Использование:
-  locust
-  locust --host=http://localhost:8080 --users 100 --spawn-rate 10
-  locust --headless -u 50 -r 5 -t 30s
-  locust -c TelegramAuthLoadTest --users 50
+Использование (из корня проекта):
+  locust -f scripts/locustfile.py
+  locust -f scripts/locustfile.py --host=http://localhost:8080 --users 100 --spawn-rate 10
+  locust -f scripts/locustfile.py --headless -u 50 -r 5 -t 30s
+  locust -f scripts/locustfile.py -c TelegramAuthLoadTest --users 50
 """
 
 import os

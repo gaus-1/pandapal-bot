@@ -17,6 +17,7 @@ Scripts for database management and migrations:
 
 ### Testing Scripts
 Scripts for testing and quality assurance:
+- `locustfile.py` - Locust entry point (run from repo root: `locust -f scripts/locustfile.py`)
 - `test_ab_testing.py` - A/B testing experiments
 - `test_imports.py` - Test import structure
 - `load_testing.py` - Load testing

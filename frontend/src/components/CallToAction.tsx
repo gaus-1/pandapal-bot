@@ -87,8 +87,8 @@ export const CallToAction: React.FC = React.memo(() => {
             </div>
           </div>
 
-          {/* Правая колонка: кнопки */}
-          <div className="flex flex-col items-center gap-fib-4 w-full md:w-auto">
+          {/* Правая колонка: кнопки — justify-center чтобы «или» было по центру между QR и кнопками */}
+          <div className="flex flex-col items-center justify-center gap-fib-4 w-full md:w-auto">
             <a
               href={SITE_CONFIG.botUrl}
               target="_blank"
