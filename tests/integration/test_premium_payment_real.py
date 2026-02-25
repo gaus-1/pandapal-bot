@@ -17,7 +17,7 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from aiogram import Bot, Dispatcher
+from aiogram import Bot
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import (
     Chat,

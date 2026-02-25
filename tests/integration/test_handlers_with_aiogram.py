@@ -6,7 +6,7 @@ Integration тесты для handlers с моками aiogram
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from aiogram import Bot, Dispatcher
+from aiogram import Bot
 from aiogram.types import Chat, Message, User
 
 
