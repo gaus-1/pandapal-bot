@@ -106,14 +106,14 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
                   </div>
                 </div>
               ) : (
-                <ul className="text-left m-0 p-0 space-y-fib-3 sm:space-y-fib-4 lg:space-y-fib-5">
+                <ul className="text-center m-0 p-0 space-y-fib-3 sm:space-y-fib-4 lg:space-y-fib-5">
                   {descriptionItems.map((item, index) => (
-                    <li key={index} className="flex items-start gap-fib-2 sm:gap-fib-3 list-none">
+                    <li key={index} className="flex justify-center items-start gap-fib-2 sm:gap-fib-3 list-none">
                       <span
                         aria-hidden="true"
                         className="mt-[0.62em] h-1.5 w-1.5 rounded-full bg-blue-500 dark:bg-blue-400 flex-shrink-0"
                       />
-                      <span className="leading-[1.68] break-words text-slate-700 dark:text-slate-200">
+                      <span className="leading-[1.68] break-words text-slate-700 dark:text-slate-200 text-center">
                         {item}
                       </span>
                     </li>

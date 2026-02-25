@@ -78,8 +78,8 @@ export const CallToAction: React.FC = React.memo(() => {
             </p>
           </div>
 
-          {/* Центр: разделитель «или» — отдельная колонка для выравнивания по центру на ПК */}
-          <div className="flex items-center justify-center shrink-0">
+          {/* Центр: разделитель «или» — по центру по вертикали между QR и кнопками */}
+          <div className="flex items-center justify-center shrink-0 md:self-stretch">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-pink-100 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center shadow-md">
               <span className="font-display text-lg font-bold text-gray-700 dark:text-slate-300">
                 или
@@ -128,7 +128,7 @@ export const CallToAction: React.FC = React.memo(() => {
               Быстрый старт
             </h3>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 leading-snug">
-              Открой бота и отправь /start — мы сразу начнем!
+              Открой бота и нажми Открыть PandaPal — мы сразу начнем!
             </p>
           </div>
           <div className="flex flex-col items-center text-center">

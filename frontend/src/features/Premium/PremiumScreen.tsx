@@ -239,7 +239,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
 
   return (
     <div className="w-full h-full bg-gradient-to-br from-rose-50/40 via-purple-50/40 to-sky-50/40 dark:from-slate-900 dark:via-slate-800 dark:to-slate-800 overflow-y-auto backdrop-blur-sm">
-      <div className="max-w-4xl mx-auto px-fib-3 xs:px-fib-4 sm:px-fib-4 md:px-fib-5 py-fib-1 xs:py-fib-2 sm:py-fib-2 md:py-fib-3 pb-16 xs:pb-20 sm:pb-24">
+      <div className="max-w-4xl mx-auto px-fib-3 xs:px-fib-4 sm:px-fib-4 md:px-fib-5 pt-0 pb-16 xs:pb-20 sm:pb-24">
         {/* Информация о пользователе (для веб-сайта) */}
         {!inTelegram && isAuthenticated && webUser && (
           <div className="mb-fib-4 p-fib-4 bg-gradient-to-br from-stone-50/90 to-amber-50/90 dark:from-slate-800/90 dark:to-slate-800/90 rounded-[1.5rem] border border-stone-200/25 dark:border-slate-700/40 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] flex items-center justify-between">
