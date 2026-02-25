@@ -34,11 +34,11 @@ export const Footer: React.FC = React.memo(() => {
 
   return (
     <footer
-      className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center border-t border-gray-200 dark:border-slate-700 dark:border-slate-600/50 mt-12 sm:mt-16 lg:mt-20"
+      className="max-w-6xl mx-auto px-fib-4 sm:px-fib-4 lg:px-fib-5 py-fib-5 sm:py-fib-6 text-center border-t border-gray-200 dark:border-slate-700 dark:border-slate-600/50 mt-fib-5 sm:mt-fib-6 lg:mt-fib-7"
       role="contentinfo"
     >
       {/* Логотип и название */}
-      <div className="flex items-center justify-center gap-3 mb-6">
+      <div className="flex items-center justify-center gap-fib-3 mb-fib-5">
         <img
           src={SITE_CONFIG.logo.src}
           alt={SITE_CONFIG.logo.alt}
@@ -69,9 +69,9 @@ export const Footer: React.FC = React.memo(() => {
       </div>
 
       {/* Ссылки на документы (РКН) — ширина как у секций main */}
-      <div className="w-full mb-5">
+      <div className="w-full mb-fib-4">
         <nav
-          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 p-1.5 sm:p-2.5 grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2 text-xs sm:text-sm"
+          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 p-fib-2 sm:p-fib-2 grid grid-cols-1 sm:grid-cols-3 gap-fib-2 sm:gap-fib-2 text-xs sm:text-sm"
           aria-label="Документы"
         >
           <a
@@ -80,7 +80,7 @@ export const Footer: React.FC = React.memo(() => {
               e.preventDefault();
               navigateTo(LEGAL_ROUTES.privacy);
             }}
-            className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors"
+            className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-3 py-fib-2 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors"
           >
             Политика конфиденциальности
           </a>
@@ -90,7 +90,7 @@ export const Footer: React.FC = React.memo(() => {
               e.preventDefault();
               navigateTo(LEGAL_ROUTES.personalData);
             }}
-            className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors"
+            className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-3 py-fib-2 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors"
           >
             Обработка персональных данных
           </a>
@@ -100,7 +100,7 @@ export const Footer: React.FC = React.memo(() => {
               e.preventDefault();
               navigateTo(LEGAL_ROUTES.offer);
             }}
-            className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors"
+            className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-3 py-fib-2 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors"
           >
             Договор оферты
           </a>
@@ -108,9 +108,9 @@ export const Footer: React.FC = React.memo(() => {
       </div>
 
       {/* Внутренние SEO-ссылки — ширина как у секций main */}
-      <div className="w-full mb-6">
+      <div className="w-full mb-fib-5">
         <nav
-          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-1.5 sm:p-2.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 text-xs sm:text-sm"
+          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-fib-2 sm:p-fib-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-fib-2 text-xs sm:text-sm"
           aria-label="Полезные страницы"
         >
           <a
@@ -119,33 +119,33 @@ export const Footer: React.FC = React.memo(() => {
               e.preventDefault();
               navigateTo('/help');
             }}
-            className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors"
+            className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-3 py-fib-2 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors"
           >
             Помощь
           </a>
-          <a href="/bezopasnyy-ai-dlya-detey" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
+          <a href="/bezopasnyy-ai-dlya-detey" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-3 py-fib-2 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
             Безопасный ИИ для детей
           </a>
-          <a href="/pomoshch-s-domashkoy-v-telegram" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
+          <a href="/pomoshch-s-domashkoy-v-telegram" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-3 py-fib-2 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
             Помощь с домашкой в Telegram
           </a>
-          <a href="/safe-ai-for-kids" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
+          <a href="/safe-ai-for-kids" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-3 py-fib-2 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
             Safe AI tutor for kids
           </a>
-          <a href="/homework-help-telegram-bot" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
+          <a href="/homework-help-telegram-bot" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-3 py-fib-2 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
             Telegram homework help bot
           </a>
-          <a href="/igra-moya-panda" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
+          <a href="/igra-moya-panda" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-3 py-fib-2 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
             Моя панда
           </a>
         </nav>
       </div>
 
       {/* Кнопка обратной связи */}
-      <div className="mb-6">
+      <div className="mb-fib-5">
         <button
           onClick={handleFeedbackClick}
-          className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600 text-white font-medium text-xs sm:text-sm hover:shadow-lg dark:hover:shadow-xl hover:scale-105 active:scale-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
+          className="inline-flex items-center justify-center gap-fib-2 px-fib-4 sm:px-fib-4 md:px-fib-5 py-fib-2 sm:py-fib-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600 text-white font-medium text-xs sm:text-sm hover:shadow-lg dark:hover:shadow-xl hover:scale-105 active:scale-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
           aria-label="Оставить отзыв о PandaPal"
         >
           <span className="text-sm sm:text-base">📝</span>

@@ -24,26 +24,26 @@ export const FeedbackConsentModal: React.FC<FeedbackConsentModalProps> = React.m
 
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/50"
+        className="fixed inset-0 z-50 flex items-center justify-center p-fib-4 bg-black/40 dark:bg-black/50"
         role="dialog"
         aria-modal="true"
         aria-labelledby="feedback-modal-title"
       >
         <div
-          className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl max-w-md w-full p-6"
+          className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-xl max-w-md w-full p-fib-5"
           onClick={(e) => e.stopPropagation()}
         >
           <h2
             id="feedback-modal-title"
-            className="font-display font-bold text-xl sm:text-2xl text-gray-900 dark:text-slate-50 mb-3"
+            className="font-display font-bold text-xl sm:text-2xl text-gray-900 dark:text-slate-50 mb-fib-3"
           >
             Оставить отзыв
           </h2>
-          <p className="text-sm text-gray-700 dark:text-slate-200 mb-4">
+          <p className="text-sm text-gray-700 dark:text-slate-200 mb-fib-4">
             Твой отзыв будет отправлен через форму на Яндексе. Мы обработаем твои ответы в соответствии с политикой обработки персональных данных.
           </p>
           <form onSubmit={handleSubmit}>
-            <label className="flex items-start gap-3 cursor-pointer mb-5">
+            <label className="flex items-start gap-fib-3 cursor-pointer mb-fib-4">
               <input
                 type="checkbox"
                 checked={agreed}
@@ -67,18 +67,18 @@ export const FeedbackConsentModal: React.FC<FeedbackConsentModalProps> = React.m
                 .
               </span>
             </label>
-            <div className="flex gap-3 justify-end">
+            <div className="flex gap-fib-3 justify-end">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-full border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 font-medium text-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors min-h-[44px]"
+                className="px-fib-4 py-fib-2 rounded-full border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 font-medium text-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors min-h-[44px]"
               >
                 Отмена
               </button>
               <button
                 type="submit"
                 disabled={!agreed}
-                className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600 text-white font-semibold text-sm min-h-[44px] hover:scale-105 active:scale-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
+                className="inline-flex items-center justify-center px-fib-4 py-fib-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600 text-white font-semibold text-sm min-h-[44px] hover:scale-105 active:scale-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
               >
                 Перейти к форме
               </button>

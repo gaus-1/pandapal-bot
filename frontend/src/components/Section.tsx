@@ -55,12 +55,12 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
   const benefitsGroups = isBenefitsSection ? buildBenefitsGroups(descriptionItems) : [];
 
   return (
-    <section id={section.id} className="py-12 sm:py-16 lg:py-20">
+    <section id={section.id} className="py-fib-5 sm:py-fib-6 lg:py-fib-7">
       {/* Контейнер с профессиональным дизайном */}
       <div className="max-w-6xl mx-auto">
-        <div className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-6 sm:p-8 lg:p-10 shadow-lg dark:shadow-xl hover:shadow-xl dark:hover:shadow-2xl transition-shadow duration-300 text-center">
+        <div className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-fib-4 sm:p-fib-5 lg:p-fib-5 shadow-lg dark:shadow-xl hover:shadow-xl dark:hover:shadow-2xl transition-shadow duration-300 text-center">
           {/* Заголовок секции */}
-          <h2 className="font-display text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6 lg:mb-8 text-gray-900 dark:text-slate-50">
+          <h2 className="font-display text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-fib-4 sm:mb-fib-5 lg:mb-fib-5 text-gray-900 dark:text-slate-50">
             {section.title}
           </h2>
 
@@ -69,23 +69,23 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
             {isDescriptionList ? (
               isBenefitsSection ? (
                 <div className="text-left">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-fib-4 sm:gap-fib-5 lg:gap-fib-5">
                     {benefitsGroups.map((group) => (
                       <div
                         key={group.title}
-                        className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-600/70 bg-slate-50/80 dark:bg-slate-900/35 p-4 sm:p-5 lg:p-6"
+                        className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-600/70 bg-slate-50/80 dark:bg-slate-900/35 p-fib-4 sm:p-fib-4 lg:p-fib-5"
                       >
-                        <h3 className="font-display text-sm sm:text-lg font-bold text-slate-900 dark:text-slate-100 mb-2.5 sm:mb-3">
+                        <h3 className="font-display text-sm sm:text-lg font-bold text-slate-900 dark:text-slate-100 mb-fib-2 sm:mb-fib-3">
                           {group.title}
                         </h3>
 
-                        <ul className="m-0 p-0 space-y-2.5 sm:space-y-3">
+                        <ul className="m-0 p-0 space-y-fib-2 sm:space-y-fib-3">
                           {group.items.map((item, index) => {
                             const { lead, body } = splitLeadAndBody(item);
                             return (
                               <li
                                 key={`${group.title}-${index}`}
-                                className="flex items-start gap-2.5 sm:gap-3 list-none"
+                                className="flex items-start gap-fib-2 sm:gap-fib-3 list-none"
                               >
                                 <span
                                   aria-hidden="true"
@@ -106,9 +106,9 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
                   </div>
                 </div>
               ) : (
-                <ul className="text-left m-0 p-0 space-y-3 sm:space-y-4 lg:space-y-5">
+                <ul className="text-left m-0 p-0 space-y-fib-3 sm:space-y-fib-4 lg:space-y-fib-5">
                   {descriptionItems.map((item, index) => (
-                    <li key={index} className="flex items-start gap-2.5 sm:gap-3 list-none">
+                    <li key={index} className="flex items-start gap-fib-2 sm:gap-fib-3 list-none">
                       <span
                         aria-hidden="true"
                         className="mt-[0.62em] h-1.5 w-1.5 rounded-full bg-blue-500 dark:bg-blue-400 flex-shrink-0"

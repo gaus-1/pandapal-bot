@@ -17,7 +17,7 @@ const linkClass =
 
 function renderBody(blocks: HelpBodyBlock[]) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-fib-3">
       {blocks.map((block, i) =>
         block.type === 'p' ? (
           <p
@@ -47,8 +47,8 @@ export const HelpArticlePage: React.FC = React.memo(() => {
     return (
       <>
         <Header />
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-14">
-          <article className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-6 sm:p-8 lg:p-10 shadow-lg dark:shadow-xl">
+        <main className="max-w-4xl mx-auto px-fib-4 sm:px-fib-4 lg:px-fib-5 py-fib-5 sm:py-fib-6 lg:py-fib-6">
+          <article className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-fib-4 sm:p-fib-5 lg:p-fib-5 shadow-lg dark:shadow-xl">
             <p className="text-sm text-gray-600 dark:text-slate-300">Статья не найдена.</p>
             <a
               href="/help"
@@ -56,7 +56,7 @@ export const HelpArticlePage: React.FC = React.memo(() => {
                 e.preventDefault();
                 navigateTo('/help');
               }}
-              className="mt-4 inline-block text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              className="mt-fib-4 inline-block text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
               Вернуться в раздел помощи
             </a>
@@ -74,8 +74,8 @@ export const HelpArticlePage: React.FC = React.memo(() => {
   return (
     <>
       <Header />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-14">
-        <article className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-6 sm:p-8 lg:p-10 shadow-lg dark:shadow-xl">
+      <main className="max-w-4xl mx-auto px-fib-4 sm:px-fib-4 lg:px-fib-5 py-fib-5 sm:py-fib-6 lg:py-fib-6">
+        <article className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-fib-4 sm:p-fib-5 lg:p-fib-5 shadow-lg dark:shadow-xl">
           <nav className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-4" aria-label="Хлебные крошки">
             <a
               href="/"

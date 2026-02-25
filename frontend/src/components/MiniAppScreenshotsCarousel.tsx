@@ -38,9 +38,9 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
   const current = MINIAPP_SCREENSHOTS[currentIndex];
 
   return (
-    <section aria-label="Скриншоты Mini App" className="mt-10 sm:mt-12 lg:mt-16">
+    <section aria-label="Скриншоты Mini App" className="mt-fib-6 sm:mt-fib-6 lg:mt-fib-7">
       <div className="mx-auto w-full sm:w-[22rem] md:w-[23rem] lg:w-[24rem] max-w-[calc(100%-5.5rem)]">
-        <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">
+        <div className="flex items-center justify-between gap-fib-3 mb-fib-3 sm:mb-fib-4">
           <h3 className="font-display text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-50">
             Интерфейс Mini App
           </h3>
@@ -59,7 +59,7 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
           <button
             type="button"
             onClick={goPrev}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 dark:bg-slate-900/85 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-900 transition-colors"
+            className="absolute left-fib-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 dark:bg-slate-900/85 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-900 transition-colors"
             aria-label="Предыдущий скриншот"
           >
             ←
@@ -74,8 +74,8 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
                 {MINIAPP_SCREENSHOTS.map((item) => (
                   <div key={item.id} className="relative h-full w-full flex-shrink-0">
                     {broken[item.id] ? (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-center p-5">
-                        <p className="font-medium text-gray-700 dark:text-slate-200 mb-2">
+                      <div className="w-full h-full flex flex-col items-center justify-center text-center p-fib-4">
+                        <p className="font-medium text-gray-700 dark:text-slate-200 mb-fib-2">
                           {item.title}
                         </p>
                         <p className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
@@ -100,7 +100,7 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
           <button
             type="button"
             onClick={goNext}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 dark:bg-slate-900/85 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-900 transition-colors"
+            className="absolute right-fib-2 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 dark:bg-slate-900/85 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-900 transition-colors"
             aria-label="Следующий скриншот"
           >
             →
@@ -108,9 +108,9 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
         </div>
       </div>
 
-      <p className="mt-3 text-sm sm:text-base text-gray-700 dark:text-slate-200 text-center leading-snug">{current.title}</p>
+      <p className="mt-fib-3 text-sm sm:text-base text-gray-700 dark:text-slate-200 text-center leading-snug">{current.title}</p>
 
-      <div className="mt-4 flex justify-center gap-1.5">
+      <div className="mt-fib-4 flex justify-center gap-fib-2">
         {MINIAPP_SCREENSHOTS.map((item, index) => (
           <button
             key={item.id}

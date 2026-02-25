@@ -367,7 +367,7 @@ export function AIChat({ user }: AIChatProps) {
       </div>
 
       {/* Сообщения */}
-      <div ref={messagesContainerRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-4 md:p-5 space-y-3 sm:space-y-4 relative z-[1] bg-transparent" role="log">
+      <div ref={messagesContainerRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-fib-3 sm:p-fib-4 md:p-fib-4 space-y-fib-3 sm:space-y-fib-4 relative z-[1] bg-transparent" role="log">
         {isLoadingHistory ? (
           <div className="text-center py-8"><div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 dark:border-blue-400"></div></div>
         ) : showWelcome && messages.length === 0 ? (
@@ -561,7 +561,7 @@ export function AIChat({ user }: AIChatProps) {
 
       {/* Индикатор ответа */}
       {replyToMessage !== null && messages[replyToMessage] && (
-        <div className="flex-shrink-0 bg-blue-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-t border-blue-500/30 dark:border-slate-700 px-4 py-2 flex items-center justify-between relative z-10">
+        <div className="flex-shrink-0 bg-blue-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-t border-blue-500/30 dark:border-slate-700 px-fib-4 py-fib-2 flex items-center justify-between relative z-10">
           <div className="flex-1 min-w-0">
             <p className="text-xs text-blue-500 dark:text-blue-400 font-semibold">Ответ на:</p>
             <p className="text-sm text-gray-700 dark:text-slate-300 truncate">{messages[replyToMessage].content.slice(0, 50)}...</p>
@@ -571,9 +571,9 @@ export function AIChat({ user }: AIChatProps) {
       )}
 
       {/* Поле ввода */}
-      <div className="flex-shrink-0 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-t border-gray-200/50 dark:border-slate-700/50 p-1.5 sm:p-2 shadow-lg relative z-10">
+      <div className="flex-shrink-0 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-t border-gray-200/50 dark:border-slate-700/50 p-fib-2 sm:p-fib-2 shadow-lg relative z-10">
         <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-        <div className="flex items-center gap-1 sm:gap-1.5">
+        <div className="flex items-center gap-fib-1 sm:gap-fib-2">
           <button onClick={handlePhotoClick} disabled={isSending || isRecording} className="flex-shrink-0 h-[44px] sm:h-[48px] w-[44px] sm:w-[48px] rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center disabled:opacity-50 hover:shadow-md transition-all active:scale-95 shadow-sm self-center">
             <span className="text-base sm:text-lg">📷</span>
           </button>

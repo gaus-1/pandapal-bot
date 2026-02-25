@@ -23,9 +23,9 @@ interface FeatureCardProps {
 export const FeatureCard: React.FC<FeatureCardProps> = React.memo(
   ({ feature }) => {
     return (
-      <article className="w-full rounded-2xl bg-white dark:bg-slate-800 p-6 sm:p-8 lg:p-10 shadow-md hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 dark:border-slate-700 hover:border-gray-200 dark:hover:border-slate-600 flex flex-col h-full">
+      <article className="w-full rounded-2xl bg-white dark:bg-slate-800 p-fib-4 sm:p-fib-5 lg:p-fib-5 shadow-md hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 dark:border-slate-700 hover:border-gray-200 dark:hover:border-slate-600 flex flex-col h-full">
         {/* Заголовок преимущества */}
-        <h3 className="font-display text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-gray-900 dark:text-slate-100">
+        <h3 className="font-display text-xl sm:text-2xl font-bold mb-fib-3 sm:mb-fib-4 text-gray-900 dark:text-slate-100">
           {feature.title}
         </h3>
 

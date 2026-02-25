@@ -50,30 +50,30 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
     const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
     return (
-      <div className="flex items-center justify-center min-h-screen min-h-dvh bg-gray-50 dark:bg-slate-800 p-4">
+      <div className="flex items-center justify-center min-h-screen min-h-dvh bg-gray-50 dark:bg-slate-800 p-fib-4">
         <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">🐼</div>
-          <h2 className="font-display text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">
+          <div className="text-6xl mb-fib-4">🐼</div>
+          <h2 className="font-display text-xl font-bold text-gray-900 dark:text-slate-100 mb-fib-2">
             Что-то пошло не так
           </h2>
-          <p className="font-sans text-gray-600 dark:text-slate-400 mb-6 text-sm">
+          <p className="font-sans text-gray-600 dark:text-slate-400 mb-fib-5 text-sm">
             Произошла непредвиденная ошибка. Попробуй обновить страницу.
           </p>
           {isDev && this.state.error && (
-            <pre className="text-left text-xs bg-red-50 dark:bg-slate-900 p-3 rounded mb-4 overflow-auto max-h-32">
+            <pre className="text-left text-xs bg-red-50 dark:bg-slate-900 p-fib-3 rounded mb-fib-4 overflow-auto max-h-32">
               {this.state.error.message}
             </pre>
           )}
-          <div className="flex gap-3 justify-center">
+          <div className="flex gap-fib-3 justify-center">
             <button
               onClick={this.handleReset}
-              className="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium"
+              className="px-fib-4 py-fib-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm font-medium"
             >
               Попробовать снова
             </button>
             <button
               onClick={this.handleReload}
-              className="px-5 py-2.5 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100 rounded-lg transition-colors text-sm font-medium"
+              className="px-fib-4 py-fib-2 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-900 dark:text-slate-100 rounded-lg transition-colors text-sm font-medium"
             >
               Обновить страницу
             </button>

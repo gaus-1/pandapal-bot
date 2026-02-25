@@ -16,9 +16,9 @@ export const HelpCenterPage: React.FC = React.memo(() => {
   return (
     <>
       <Header />
-      <main className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-14 flex flex-col items-center">
-        <article className="w-full max-w-2xl mx-auto rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 px-6 sm:px-8 lg:px-10 py-6 sm:py-8 lg:py-10 shadow-lg dark:shadow-xl">
-          <header className="mb-5 sm:mb-6 text-center">
+      <main className="w-full max-w-4xl mx-auto px-fib-4 sm:px-fib-4 lg:px-fib-5 py-fib-5 sm:py-fib-6 lg:py-fib-6 flex flex-col items-center">
+        <article className="w-full max-w-2xl mx-auto rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 px-fib-4 sm:px-fib-5 lg:px-fib-5 py-fib-4 sm:py-fib-5 lg:py-fib-5 shadow-lg dark:shadow-xl">
+          <header className="mb-fib-4 sm:mb-fib-5 text-center">
             <h1 className="font-display text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-50">
               Вопросы и ответы
             </h1>
@@ -27,16 +27,16 @@ export const HelpCenterPage: React.FC = React.memo(() => {
             </p>
           </header>
 
-          <nav className="space-y-6" aria-label="Разделы помощи">
+          <nav className="space-y-fib-5" aria-label="Разделы помощи">
             {categories.map((cat) => {
               const articles = getHelpArticlesByCategory(cat.id);
               if (articles.length === 0) return null;
               return (
                 <section key={cat.id} className="text-center">
-                  <h2 className="font-display text-base sm:text-lg font-bold text-gray-900 dark:text-slate-50 mb-3">
+                  <h2 className="font-display text-base sm:text-lg font-bold text-gray-900 dark:text-slate-50 mb-fib-3">
                     {cat.titleRu}
                   </h2>
-                  <div className="flex flex-wrap justify-center gap-2">
+                  <div className="flex flex-wrap justify-center gap-fib-2">
                     {articles.map((art) => (
                       <a
                         key={art.id}

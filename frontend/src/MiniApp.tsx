@@ -221,7 +221,7 @@ function MiniAppContent() {
       <div className="flex items-center justify-center min-h-screen min-h-dvh bg-[var(--tg-theme-bg-color)] safe-area-inset">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--tg-theme-button-color)]"></div>
-          <p className="mt-4 text-[var(--tg-theme-text-color)]">Загрузка...</p>
+          <p className="mt-fib-4 text-[var(--tg-theme-text-color)]">Загрузка...</p>
         </div>
       </div>
     );
@@ -229,10 +229,10 @@ function MiniAppContent() {
 
   if (error || !user) {
     return (
-      <div className="flex items-center justify-center min-h-screen min-h-dvh bg-[var(--tg-theme-bg-color)] p-4 safe-area-inset">
+      <div className="flex items-center justify-center min-h-screen min-h-dvh bg-[var(--tg-theme-bg-color)] p-fib-4 safe-area-inset">
         <div className="text-center">
-          <div className="text-6xl mb-4">😔</div>
-          <h2 className="text-xl font-display font-bold text-[var(--tg-theme-text-color)] mb-2">
+          <div className="text-6xl mb-fib-4">😔</div>
+          <h2 className="text-xl font-display font-bold text-[var(--tg-theme-text-color)] mb-fib-2">
             Ошибка загрузки
           </h2>
           <p className="text-[var(--tg-theme-hint-color)]">
@@ -240,7 +240,7 @@ function MiniAppContent() {
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-6 py-2 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-lg"
+            className="mt-fib-4 px-fib-5 py-fib-2 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-lg"
             aria-label="Перезагрузить страницу"
           >
             Попробовать снова
@@ -268,7 +268,7 @@ function MiniAppContent() {
       {/* Нижняя навигация - фиксированная */}
       {currentScreen === 'ai-chat' ? (
         <nav className="flex-shrink-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
-          <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
+          <div className="flex gap-fib-2 sm:gap-fib-2 md:gap-fib-3 px-fib-2 sm:px-fib-2 md:px-fib-3 py-fib-2 sm:py-fib-2 md:py-fib-3 max-w-full overflow-x-auto">
             <NavButton
               icon="🏆"
               label="Достижения"
@@ -291,7 +291,7 @@ function MiniAppContent() {
         </nav>
       ) : currentScreen === 'games' ? null : currentScreen === 'my-panda' ? (
         <nav className="flex-shrink-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
-          <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
+          <div className="flex gap-fib-2 sm:gap-fib-2 md:gap-fib-3 px-fib-2 sm:px-fib-2 md:px-fib-3 py-fib-2 sm:py-fib-2 md:py-fib-3 max-w-full overflow-x-auto">
             <NavButton icon="💬" label="Чат" isActive={false} onClick={() => navigateTo('ai-chat')} />
             <NavButton icon="🏆" label="Достижения" isActive={false} onClick={() => navigateTo('achievements')} />
             <NavButton icon="👑" label="Premium" isActive={false} onClick={() => navigateTo('premium')} />
@@ -299,7 +299,7 @@ function MiniAppContent() {
         </nav>
       ) : (
         <nav className="flex-shrink-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
-          <div className="flex gap-1.5 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 py-2 sm:py-2.5 md:py-3 max-w-full overflow-x-auto">
+          <div className="flex gap-fib-2 sm:gap-fib-2 md:gap-fib-3 px-fib-2 sm:px-fib-2 md:px-fib-3 py-fib-2 sm:py-fib-2 md:py-fib-3 max-w-full overflow-x-auto">
             <NavButton
               icon="💬"
               label="Чат"
@@ -348,7 +348,7 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex-1 flex flex-col items-center justify-center gap-0.5 sm:gap-1 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-lg sm:rounded-xl transition-all min-w-0 min-h-[60px] sm:min-h-[70px] touch-manipulation ${
+      className={`flex-1 flex flex-col items-center justify-center gap-fib-1 sm:gap-fib-2 py-fib-2 sm:py-fib-2 px-fib-2 sm:px-fib-2 rounded-lg sm:rounded-xl transition-all min-w-0 min-h-[60px] sm:min-h-[70px] touch-manipulation ${
         isActive
           ? 'bg-blue-500 dark:bg-blue-600 text-white font-semibold shadow-md'
           : 'text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 active:scale-95 font-medium border border-gray-200 dark:border-slate-700'
@@ -370,7 +370,7 @@ function LoadingFallback() {
     <div className="flex items-center justify-center h-full min-h-screen min-h-dvh">
       <div className="text-center">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Загрузка...</p>
+        <p className="mt-fib-2 text-sm text-gray-600 dark:text-gray-400">Загрузка...</p>
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ import { trackButtonClick } from '../utils/analytics';
  */
 export const Hero: React.FC = React.memo(() => {
   return (
-    <section className="pt-16 sm:pt-20 lg:pt-24 pb-12 sm:pb-16 lg:pb-20 text-center">
+    <section className="pt-fib-6 sm:pt-fib-7 lg:pt-fib-7 pb-fib-5 sm:pb-fib-6 lg:pb-fib-6 text-center">
       <div className="max-w-4xl mx-auto">
         {/* Основной заголовок (H1 для SEO, entity PandaPal в первом заголовке) */}
         <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-gray-900 dark:text-slate-50">
@@ -23,12 +23,12 @@ export const Hero: React.FC = React.memo(() => {
         </h1>
 
         {/* Описание продукта (канонический слоган из seo-text) */}
-        <p className="mt-3 sm:mt-4 md:mt-5 text-sm sm:text-base md:text-lg text-gray-700 dark:text-slate-200 max-w-2xl mx-auto leading-relaxed">
+        <p className="mt-fib-3 sm:mt-fib-4 md:mt-fib-4 text-sm sm:text-base md:text-lg text-gray-700 dark:text-slate-200 max-w-2xl mx-auto leading-relaxed">
           {HERO_TAGLINE_RU}
         </p>
 
         {/* CTA кнопки */}
-        <div className="mt-5 sm:mt-6 md:mt-7 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center">
+        <div className="mt-fib-4 sm:mt-fib-5 md:mt-fib-5 flex flex-col sm:flex-row gap-fib-3 sm:gap-fib-4 justify-center items-stretch sm:items-center">
         {/* Основная CTA */}
         <a
           href={SITE_CONFIG.botUrl}

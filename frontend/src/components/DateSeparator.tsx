@@ -39,8 +39,8 @@ export function DateSeparator({ date }: DateSeparatorProps) {
   }
 
   return (
-    <div className="flex items-center justify-center my-4">
-      <div className="px-3 py-1.5 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50 shadow-sm">
+    <div className="flex items-center justify-center my-fib-4">
+      <div className="px-fib-3 py-fib-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50 shadow-sm">
         <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-slate-400">
           {label}
         </span>

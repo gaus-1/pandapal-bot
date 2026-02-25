@@ -180,9 +180,9 @@
     }
   }
 
-  /* Адаптивные утилиты для контейнеров */
+  /* Адаптивные утилиты для контейнеров (отступы по Фибоначчи) */
   .container-responsive {
-    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply w-full max-w-7xl mx-auto px-fib-2 sm:px-fib-3 lg:px-fib-4;
   }
 
   /* Container queries для адаптивных компонентов */

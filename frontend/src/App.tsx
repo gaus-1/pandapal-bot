@@ -173,7 +173,7 @@ const App: React.FC = () => {
           canonicalPath="/premium"
         />
         <Header />
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-14">
+        <main className="max-w-4xl mx-auto px-fib-2 sm:px-fib-3 lg:px-fib-4 py-fib-5 sm:py-fib-6 lg:py-fib-6">
           <PremiumScreen user={null} />
         </main>
         <Footer />
@@ -192,7 +192,7 @@ const App: React.FC = () => {
           canonicalPath="/donation"
         />
         <Header />
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-14">
+        <main className="max-w-4xl mx-auto px-fib-2 sm:px-fib-3 lg:px-fib-4 py-fib-5 sm:py-fib-6 lg:py-fib-6">
           <DonationScreen user={null} />
         </main>
         <Footer />
@@ -425,7 +425,7 @@ const App: React.FC = () => {
       <Header />
 
       {/* Основной контент — единый контейнер и ритм отступов */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="max-w-6xl mx-auto px-fib-2 sm:px-fib-3 lg:px-fib-4">
         {/* Hero-секция: заголовок + CTA */}
         <Hero />
 

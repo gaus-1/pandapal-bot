@@ -14,26 +14,26 @@ export const CallToAction: React.FC = React.memo(() => {
   const [qrLoaded, setQrLoaded] = useState(false);
 
   return (
-    <div className="max-w-6xl mx-auto py-12 sm:py-16 lg:py-20">
-      <section id="cta" className="py-10 sm:py-12 lg:py-14 bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-slate-800/60 dark:via-slate-900 dark:to-slate-800/60 rounded-3xl border border-gray-100 dark:border-slate-700 dark:border-slate-600/50 scroll-mt-20">
-        <div className="px-4 sm:px-6 lg:px-8 text-center">
+    <div className="max-w-6xl mx-auto py-fib-5 sm:py-fib-6 lg:py-fib-7">
+      <section id="cta" className="py-fib-5 sm:py-fib-5 lg:py-fib-6 bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-slate-800/60 dark:via-slate-900 dark:to-slate-800/60 rounded-3xl border border-gray-100 dark:border-slate-700 dark:border-slate-600/50 scroll-mt-20">
+        <div className="px-fib-4 sm:px-fib-4 lg:px-fib-5 text-center">
         {/* Заголовок */}
-        <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold mb-4 text-gray-900 dark:text-slate-50">
+        <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-bold mb-fib-4 text-gray-900 dark:text-slate-50">
           Начни общение прямо сейчас! 🚀
         </h2>
-        <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 mb-8 sm:mb-10 lg:mb-12">
+        <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 mb-fib-5 sm:mb-fib-5 lg:mb-fib-6">
           Отсканируй QR-код камерой телефона или нажми кнопку ниже
         </p>
 
         {/* QR + Кнопка - профессиональная сетка */}
-        <div className="flex flex-col md:flex-row items-center justify-center gap-8 sm:gap-12 lg:gap-16 mb-8 sm:mb-10 lg:mb-12">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-fib-5 sm:gap-fib-6 lg:gap-fib-6 mb-fib-5 sm:mb-fib-5 lg:mb-fib-6">
           {/* QR-код */}
           <div className="flex flex-col items-center">
-            <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-xl dark:shadow-2xl border-2 border-gray-100 dark:border-slate-700 dark:border-slate-600/50 relative w-[220px] h-[220px] sm:w-[240px] sm:h-[240px] md:w-[260px] md:h-[260px] flex items-center justify-center">
+            <div className="bg-white dark:bg-slate-800 p-fib-4 sm:p-fib-5 rounded-2xl shadow-xl dark:shadow-2xl border-2 border-gray-100 dark:border-slate-700 dark:border-slate-600/50 relative w-[220px] h-[220px] sm:w-[240px] sm:h-[240px] md:w-[260px] md:h-[260px] flex items-center justify-center">
               {qrError ? (
-                <div className="flex flex-col items-center justify-center p-4 text-center">
-                  <div className="text-4xl mb-2">📱</div>
-                  <p className="text-sm text-gray-600 dark:text-slate-400 mb-2">
+                <div className="flex flex-col items-center justify-center p-fib-4 text-center">
+                  <div className="text-4xl mb-fib-2">📱</div>
+                  <p className="text-sm text-gray-600 dark:text-slate-400 mb-fib-2">
                     QR-код не загрузился
                   </p>
                   <a
@@ -73,7 +73,7 @@ export const CallToAction: React.FC = React.memo(() => {
                 </>
               )}
             </div>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mt-4 font-medium">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mt-fib-4 font-medium">
               Наведи камеру на QR-код
             </p>
           </div>
@@ -88,7 +88,7 @@ export const CallToAction: React.FC = React.memo(() => {
           </div>
 
           {/* Кнопки */}
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-fib-4">
             <a
               href={SITE_CONFIG.botUrl}
               target="_blank"
@@ -108,7 +108,7 @@ export const CallToAction: React.FC = React.memo(() => {
             >
               🎮 PandaPalGo
             </a>
-            <div className="flex items-baseline gap-2.5 xs:gap-3 sm:gap-3.5 max-w-xs text-left">
+            <div className="flex items-baseline gap-fib-2 xs:gap-fib-3 sm:gap-fib-3 max-w-xs text-left">
               <span className="text-xl sm:text-2xl flex-shrink-0 leading-none">💡</span>
               <p className="text-sm sm:text-base text-gray-600 dark:text-slate-400 leading-relaxed break-words">
                 <span className="font-semibold text-yellow-600 dark:text-yellow-400">Совет:</span>
@@ -119,12 +119,12 @@ export const CallToAction: React.FC = React.memo(() => {
         </div>
 
         {/* Преимущества внизу - выровненная сетка */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 pt-6 sm:pt-8 border-t border-gray-200 dark:border-slate-700">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-fib-5 sm:gap-fib-5 pt-fib-5 sm:pt-fib-5 border-t border-gray-200 dark:border-slate-700">
           <div className="flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 flex items-center justify-center text-3xl mb-3 shadow-md">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 flex items-center justify-center text-3xl mb-fib-3 shadow-md">
               ⚡
             </div>
-            <h3 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-100 mb-2">
+            <h3 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-100 mb-fib-2">
               Быстрый старт
             </h3>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 leading-snug">
@@ -132,10 +132,10 @@ export const CallToAction: React.FC = React.memo(() => {
             </p>
           </div>
           <div className="flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-100 to-emerald-200 dark:from-green-900/30 dark:to-emerald-800/30 flex items-center justify-center text-3xl mb-3 shadow-md">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-100 to-emerald-200 dark:from-green-900/30 dark:to-emerald-800/30 flex items-center justify-center text-3xl mb-fib-3 shadow-md">
               🔒
             </div>
-            <h3 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-100 mb-2">
+            <h3 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-100 mb-fib-2">
               Безопасно
             </h3>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 leading-snug">
@@ -143,10 +143,10 @@ export const CallToAction: React.FC = React.memo(() => {
             </p>
           </div>
           <div className="flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-100 to-amber-200 dark:from-yellow-900/30 dark:to-amber-800/30 flex items-center justify-center text-3xl mb-3 shadow-md">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-100 to-amber-200 dark:from-yellow-900/30 dark:to-amber-800/30 flex items-center justify-center text-3xl mb-fib-3 shadow-md">
               ⭐
             </div>
-            <h3 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-100 mb-2">
+            <h3 className="font-display font-bold text-base sm:text-lg text-gray-900 dark:text-slate-100 mb-fib-2">
               Premium
             </h3>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 leading-snug">
