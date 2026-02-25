@@ -30,7 +30,6 @@ import {
   getPandaReactionKey,
   getLastActionFromState,
   getCooldownInfo,
-  LAST_ACTION_DURATION_SEC,
 } from './pandaStateUtils';
 import { REACTIONS_WITH_VIDEO } from './generated/videoReactions';
 import { logger } from '../../utils/logger';
@@ -530,9 +529,9 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       </header>
 
       <div className="flex-1 flex flex-col items-center px-3 xs:px-4 sm:px-4 md:px-5 py-2 sm:py-3 gap-2 sm:gap-3 md:gap-4 min-h-0 min-w-0 pb-20 max-w-full">
-        {/* Реакция панды — контейнер компактнее, чтобы не скроллить */}
+        {/* Реакция панды — контейнер увеличен за счёт удалённой подписи «После действия...» */}
         <div
-          className="flex-shrink-0 w-full max-w-[165px] fold:max-w-[190px] xs:max-w-[210px] sm:max-w-[260px] md:max-w-[300px] lg:max-w-[320px] max-h-[24vh] fold:max-h-[26vh] xs:max-h-[28vh] sm:max-h-[32vh] md:max-h-[34vh] aspect-square flex items-center justify-center bg-gray-50 dark:bg-slate-700/50 rounded-2xl"
+          className="flex-shrink-0 w-full max-w-[180px] fold:max-w-[205px] xs:max-w-[230px] sm:max-w-[280px] md:max-w-[320px] lg:max-w-[340px] max-h-[27vh] fold:max-h-[29vh] xs:max-h-[31vh] sm:max-h-[35vh] md:max-h-[38vh] aspect-square flex items-center justify-center bg-gray-50 dark:bg-slate-700/50 rounded-2xl"
           aria-label="Панда"
         >
           {showingFall ? (
@@ -649,9 +648,6 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             />
           ) : null}
         </div>
-        <p className="font-sans text-xs sm:text-sm text-gray-600 dark:text-slate-500 text-center -mt-0.5">
-          После действия реакция панды меняется ~{LAST_ACTION_DURATION_SEC} сек.
-        </p>
         <div className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] space-y-2 sm:space-y-3">
           <Bar
             value={state.hunger}
