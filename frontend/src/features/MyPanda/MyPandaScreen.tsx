@@ -542,7 +542,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
                 autoPlay
                 muted
                 playsInline
-                className="max-w-full max-h-full w-full h-full object-contain"
+                className="max-w-full max-h-full w-full h-full object-contain object-center"
                 aria-label="Панда упала с дерева"
                 onError={() => setFallVideoError(true)}
               />
@@ -550,7 +550,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               <img
                 src={PANDA_FALL_IMAGE}
                 alt="Панда упала с дерева"
-                className="max-w-full max-h-full object-contain"
+                className="max-w-full max-h-full object-contain object-center"
               />
             )
           ) : showingToiletHappy ? (
@@ -558,14 +558,14 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               <img
                 src={getPandaImagePath('happy')}
                 alt="Панда довольна"
-                className="max-w-full max-h-full object-contain"
+                className="max-w-full max-h-full object-contain object-center"
               />
             ) : (
               <img
                 key={`toilet-${showToiletHappyUntil}`}
                 src={PANDA_POOPS_IMAGE}
                 alt="Панда в туалете"
-                className="max-w-full max-h-full object-contain"
+                className="max-w-full max-h-full object-contain object-center"
                 onError={() => setToiletImageError(true)}
               />
             )
@@ -577,7 +577,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
                 autoPlay
                 muted
                 playsInline
-                className="max-w-full max-h-full w-full h-full object-contain"
+                className="max-w-full max-h-full w-full h-full object-contain object-center"
                 aria-label="Панда залезает на дерево"
                 onError={() => setClimbVideoError(true)}
               />
@@ -585,7 +585,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               <img
                 src={PANDA_CLIMB_IMAGE}
                 alt="Панда залезает на дерево"
-                className="max-w-full max-h-full object-contain"
+                className="max-w-full max-h-full object-contain object-center"
               />
             )
           ) : displayFeedVideo && !feedVideoError ? (
@@ -595,7 +595,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               autoPlay
               muted
               playsInline
-              className="max-w-full max-h-full w-full h-full object-contain"
+              className="max-w-full max-h-full w-full h-full object-contain object-center"
               aria-label="Панда ест бамбук"
               onEnded={() => setShowVideo(false)}
               onError={() => setFeedVideoError(true)}
@@ -604,7 +604,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             <img
               src={getPandaImagePath('eating')}
               alt="Панда ест"
-              className="max-w-full max-h-full object-contain"
+              className="max-w-full max-h-full object-contain object-center"
             />
           ) : displaySleepVideo ? (
             <video
@@ -613,7 +613,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               autoPlay
               muted
               playsInline
-              className="max-w-full max-h-full w-full h-full object-contain"
+              className="max-w-full max-h-full w-full h-full object-contain object-center"
               aria-label="Панда спит"
               onEnded={() => setShowVideo(false)}
               onError={() => setSleepVideoError(true)}
@@ -622,7 +622,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             <img
               src={getPandaImagePath(reactionKey)}
               alt="Панда спит"
-              className="max-w-full max-h-full object-contain"
+              className="max-w-full max-h-full object-contain object-center"
             />
           ) : displayVideo && reactionKey ? (
             <video
@@ -630,7 +630,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               autoPlay
               muted
               playsInline
-              className="max-w-full max-h-full object-contain"
+              className="max-w-full max-h-full object-contain object-center"
               aria-label={`Панда: ${reactionKey}`}
               onEnded={() => setShowVideo(false)}
             />
@@ -638,7 +638,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             <img
               src={imageSrc}
               alt={reactionKey ? `Панда: ${reactionKey}` : 'Панда'}
-              className="max-w-full max-h-full object-contain"
+              className="max-w-full max-h-full object-contain object-center"
               onError={() => {
                 if (!imageLoadError) {
                   setImageLoadError(true);

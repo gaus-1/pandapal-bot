@@ -17,7 +17,7 @@ export function PandaChatReaction({ reaction, className = '' }: PandaChatReactio
     <img
       src={src}
       alt="Панда"
-      className={`max-w-[140px] sm:max-w-[160px] md:max-w-[180px] h-auto object-contain rounded-xl shadow-md mb-2 ${className}`}
+      className={`max-w-[140px] sm:max-w-[160px] md:max-w-[180px] h-auto object-contain object-center rounded-xl shadow-md mb-2 ${className}`}
       loading="lazy"
     />
   );

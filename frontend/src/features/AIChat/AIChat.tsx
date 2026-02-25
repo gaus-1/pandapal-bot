@@ -396,7 +396,8 @@ export function AIChat({ user }: AIChatProps) {
                     autoPlay
                     playsInline
                     onCanPlay={() => setWelcomeVideoReady(true)}
-                    className="w-full h-full object-contain rounded-full bg-transparent"
+                    className="w-full h-full object-contain object-center rounded-full bg-transparent"
+                    style={{ objectFit: 'contain', objectPosition: 'center' }}
                     aria-label={welcomeMedia.alt}
                   />
                   {!welcomeVideoReady && (
@@ -413,7 +414,8 @@ export function AIChat({ user }: AIChatProps) {
                   width={120}
                   height={120}
                   loading="eager"
-                  className="w-full h-full object-contain rounded-full"
+                  className="w-full h-full object-contain object-center rounded-full"
+                  style={{ objectFit: 'contain', objectPosition: 'center' }}
                   key={`welcome-img-${welcomeMediaKeyRef.current}-${welcomeMedia.src}`}
                   onError={() => setWelcomeMedia(WELCOME_MEDIA[0])}
                 />
@@ -483,7 +485,7 @@ export function AIChat({ user }: AIChatProps) {
                             controls
                             autoPlay
                             preload="auto"
-                            className="max-w-[280px] sm:max-w-[320px] w-full aspect-video object-contain rounded-xl mb-2 shadow-md"
+                            className="max-w-[280px] sm:max-w-[320px] w-full aspect-video object-contain object-center rounded-xl mb-2 shadow-md"
                           />
                         );
                       })()
@@ -491,7 +493,7 @@ export function AIChat({ user }: AIChatProps) {
                       <img
                         src={msg.imageUrl}
                         alt="Визуализация"
-                        className="w-full rounded-xl mb-2 shadow-md"
+                        className="w-full max-w-full object-contain object-center rounded-xl mb-2 shadow-md"
                       />
                     ) : null}
                     {msg.role === 'ai' && msg.pandaReaction ? (
