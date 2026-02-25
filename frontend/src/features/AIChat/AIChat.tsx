@@ -384,7 +384,7 @@ export function AIChat({ user }: AIChatProps) {
         ) : showWelcome && messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-full py-8 animate-fade-in relative z-10">
             <div
-              className="relative w-40 h-40 sm:w-44 sm:h-44 md:w-52 md:h-52 mx-auto mb-6 rounded-full shadow-2xl bg-white dark:bg-slate-800/90 backdrop-blur-sm p-2 overflow-hidden flex items-center justify-center animate-logo-bounce shrink-0"
+              className="relative w-40 h-40 sm:w-44 sm:h-44 md:w-52 md:h-52 mx-auto mb-6 rounded-full shadow-2xl bg-rose-50 dark:bg-slate-800/90 backdrop-blur-sm p-2 overflow-hidden flex items-center justify-center animate-logo-bounce shrink-0"
               style={{
                 willChange: 'transform',
                 transform: 'translateZ(0)',
@@ -407,11 +407,11 @@ export function AIChat({ user }: AIChatProps) {
                     onCanPlay={() => setWelcomeVideoReady(true)}
                     onPlaying={() => setWelcomeVideoReady(true)}
                     onLoadedData={() => setWelcomeVideoReady(true)}
-                    className="absolute inset-0 z-10 w-full h-full min-w-0 min-h-0 object-contain object-center rounded-full bg-white dark:bg-slate-800/90 block"
+                    className="absolute inset-0 z-10 w-full h-full min-w-0 min-h-0 object-contain object-center rounded-full bg-rose-50 dark:bg-slate-800/90 block"
                     aria-label={welcomeMedia.alt}
                   />
                   {!welcomeVideoReady && (
-                    <div className="absolute inset-0 z-0 flex items-center justify-center rounded-full bg-white dark:bg-slate-700/80" aria-hidden>
+                    <div className="absolute inset-0 z-0 flex items-center justify-center rounded-full bg-rose-50 dark:bg-slate-700/80" aria-hidden>
                       <div className="h-8 w-8 border-2 border-slate-400 dark:border-slate-500 border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}

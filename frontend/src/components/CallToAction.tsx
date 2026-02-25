@@ -78,8 +78,8 @@ export const CallToAction: React.FC = React.memo(() => {
             </p>
           </div>
 
-          {/* Центр: «или» по центру зазора между QR и кнопками (сдвиг вправо — левая колонка узкая; вниз — подпись под QR) */}
-          <div className="flex items-center justify-center shrink-0 md:self-stretch md:-translate-y-[8px] md:translate-x-[10px]">
+          {/* Центр: «или» по вертикали между QR-блоком и кнопками (QR выше — сдвиг вниз); по горизонтали — середина зазора */}
+          <div className="flex items-center justify-center shrink-0 md:self-stretch md:translate-y-[14px] md:translate-x-[10px]">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-pink-100 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center shadow-md">
               <span className="font-display text-lg font-bold text-gray-700 dark:text-slate-300">
                 или
