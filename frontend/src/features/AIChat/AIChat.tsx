@@ -30,8 +30,18 @@ interface AIChatProps {
   user: UserProfile;
 }
 
+/** Медиа для приветственного экрана: два видео + картинка спящей панды (рандом при пустой истории) */
+const WELCOME_MEDIA = [
+  { type: 'video' as const, src: '/video/panda_eats.mp4', alt: 'Панда ест' },
+  { type: 'video' as const, src: '/video/panda_talk.mp4', alt: 'Панда говорит' },
+  { type: 'image' as const, src: '/panda-sleeping.png', alt: 'Панда спит' },
+];
+
+function pickRandomWelcomeMedia(): (typeof WELCOME_MEDIA)[number] {
+  return WELCOME_MEDIA[Math.floor(Math.random() * WELCOME_MEDIA.length)];
+}
+
 export function AIChat({ user }: AIChatProps) {
-  const WELCOME_LOGOS = ['/logo.png', '/panda-sleeping.png'] as const;
 
   // Используем streaming по умолчанию для более быстрых ответов
   // При ошибке автоматически fallback на обычный режим
@@ -48,9 +58,10 @@ export function AIChat({ user }: AIChatProps) {
   const [replyToMessage, setReplyToMessage] = useState<number | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const [hasShownWelcomeMessage, setHasShownWelcomeMessage] = useState(false);
-  const [welcomeLogoSrc, setWelcomeLogoSrc] = useState<(typeof WELCOME_LOGOS)[number]>('/logo.png');
+  const [welcomeMedia, setWelcomeMedia] = useState<typeof WELCOME_MEDIA[number]>(() => pickRandomWelcomeMedia());
   const queryClient = useQueryClient();
   const logoRef = useRef<HTMLImageElement | null>(null);
+  const welcomeMediaKeyRef = useRef(0);
 
   // Сохраняем выбранное случайное сообщение для генерации
   const randomMessageRef = useRef<string | null>(null);
@@ -159,14 +170,15 @@ export function AIChat({ user }: AIChatProps) {
     };
   }, [cleanupVoice]);
 
-  // Показываем приветствие при первом открытии или очистке чата. Сразу выбираем случайный логотип (спящая панда или основное лого).
+  // Показываем приветствие при первом открытии или очистке чата. Случайно выбираем одно из трёх медиа (2 видео + спящая панда).
   useEffect(() => {
     if (!isLoadingHistory) {
       if (messages.length === 0) {
         logger.debug('[Welcome] История пустая, показываем welcome screen');
         setShowWelcome(true);
         setHasShownWelcomeMessage(false);
-        setWelcomeLogoSrc(WELCOME_LOGOS[Math.floor(Math.random() * WELCOME_LOGOS.length)]);
+        setWelcomeMedia(pickRandomWelcomeMedia());
+        welcomeMediaKeyRef.current += 1;
       } else {
         logger.debug('[Welcome] Есть сообщения, скрываем welcome screen');
         setShowWelcome(false);
@@ -177,36 +189,11 @@ export function AIChat({ user }: AIChatProps) {
         logger.debug('[Welcome] История загружается, показываем welcome screen');
         setShowWelcome(true);
         setHasShownWelcomeMessage(false);
-        setWelcomeLogoSrc(WELCOME_LOGOS[Math.floor(Math.random() * WELCOME_LOGOS.length)]);
+        setWelcomeMedia(pickRandomWelcomeMedia());
+        welcomeMediaKeyRef.current += 1;
       }
     }
   }, [messages.length, isLoadingHistory, showWelcome]);
-
-  const welcomeImageAlt = welcomeLogoSrc === '/panda-sleeping.png' ? 'Панда спит' : 'PandaPal';
-
-  // УЛУЧШЕНО: Упрощенная анимация логотипа - работает как на сайте
-  // Используем тот же подход, что и в Header/Footer - простой CSS класс с inline стилями для аппаратного ускорения
-  useEffect(() => {
-    if (showWelcome && messages.length === 0 && logoRef.current) {
-      const img = logoRef.current;
-
-      // Применяем те же стили, что и на сайте (Header.tsx, Footer.tsx)
-      img.style.animation = 'logoBounce 2s ease-in-out infinite';
-      img.style.willChange = 'transform';
-      img.style.transform = 'translateZ(0)';
-      img.style.backfaceVisibility = 'hidden';
-
-      // WebKit префиксы для мобильных
-      img.style.webkitAnimation = 'logoBounce 2s ease-in-out infinite';
-      img.style.webkitTransform = 'translateZ(0)';
-      img.style.webkitBackfaceVisibility = 'hidden';
-
-      // Добавляем CSS класс для дополнительной поддержки
-      if (!img.classList.contains('animate-logo-bounce')) {
-        img.classList.add('animate-logo-bounce');
-      }
-    }
-  }, [showWelcome, messages.length]);
 
   // Автоматическое приветствие от панды через 5 секунд после показа приветствия
   useEffect(() => {
@@ -249,7 +236,7 @@ export function AIChat({ user }: AIChatProps) {
         } else {
           logger.debug('[Welcome] Условия не выполнены, приветствие не отправлено');
         }
-      }, 3000); // 3 секунды задержка
+      }, 5000); // 5 секунд задержка перед приветственным сообщением от панды
 
       return () => {
         logger.debug('[Welcome] Очистка таймера');
@@ -294,7 +281,8 @@ export function AIChat({ user }: AIChatProps) {
         // Сбрасываем состояние приветствия и сразу выбираем новый случайный логотип
         setHasShownWelcomeMessage(false);
         setShowWelcome(true);
-        setWelcomeLogoSrc(WELCOME_LOGOS[Math.floor(Math.random() * WELCOME_LOGOS.length)]);
+        setWelcomeMedia(pickRandomWelcomeMedia());
+        welcomeMediaKeyRef.current += 1;
       } catch (error) {
         logger.error('Ошибка очистки истории:', error);
         telegram.showAlert('Ошибка при очистке истории');
@@ -380,20 +368,8 @@ export function AIChat({ user }: AIChatProps) {
           <div className="text-center py-8"><div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 dark:border-blue-400"></div></div>
         ) : showWelcome && messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-full py-8 animate-fade-in relative z-10">
-            <img
-              ref={logoRef}
-              src={welcomeLogoSrc}
-              alt={welcomeImageAlt}
-              width={120}
-              height={120}
-              loading="eager"
-              className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-2 animate-logo-bounce object-cover"
-              key={`welcome-img-${welcomeLogoSrc}-${messages.length}`}
-              onError={() => {
-                if (welcomeLogoSrc === '/panda-sleeping.png') {
-                  setWelcomeLogoSrc('/logo.png');
-                }
-              }}
+            <div
+              className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mx-auto mb-6 rounded-full shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-2 overflow-hidden flex items-center justify-center animate-logo-bounce shrink-0"
               style={{
                 animation: 'logoBounce 2s ease-in-out infinite',
                 willChange: 'transform',
@@ -403,7 +379,32 @@ export function AIChat({ user }: AIChatProps) {
                 WebkitTransform: 'translateZ(0)',
                 WebkitBackfaceVisibility: 'hidden',
               } as React.CSSProperties}
-            />
+            >
+              {welcomeMedia.type === 'video' ? (
+                <video
+                  key={`welcome-video-${welcomeMediaKeyRef.current}-${welcomeMedia.src}`}
+                  src={welcomeMedia.src}
+                  muted
+                  loop
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-contain rounded-full"
+                  aria-label={welcomeMedia.alt}
+                />
+              ) : (
+                <img
+                  ref={logoRef}
+                  src={welcomeMedia.src}
+                  alt={welcomeMedia.alt}
+                  width={120}
+                  height={120}
+                  loading="eager"
+                  className="w-full h-full object-contain rounded-full"
+                  key={`welcome-img-${welcomeMediaKeyRef.current}-${welcomeMedia.src}`}
+                  onError={() => setWelcomeMedia(WELCOME_MEDIA[0])}
+                />
+              )}
+            </div>
             <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-slate-100 mb-3 animate-fade-in delay-200">Начни общение!</h2>
             <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-slate-400 text-center max-w-md mx-auto px-4 animate-fade-in delay-300">
               Задай любой вопрос, и я помогу тебе с учебой! 📚✨
