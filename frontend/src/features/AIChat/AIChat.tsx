@@ -396,7 +396,7 @@ export function AIChat({ user }: AIChatProps) {
                     autoPlay
                     playsInline
                     onCanPlay={() => setWelcomeVideoReady(true)}
-                    className="w-full h-full object-contain object-center rounded-full bg-transparent"
+                    className="max-w-full max-h-full w-auto h-auto min-w-[80px] min-h-[80px] object-contain object-center rounded-full bg-transparent block"
                     style={{ objectFit: 'contain', objectPosition: 'center' }}
                     aria-label={welcomeMedia.alt}
                   />
@@ -414,7 +414,7 @@ export function AIChat({ user }: AIChatProps) {
                   width={120}
                   height={120}
                   loading="eager"
-                  className="w-full h-full object-contain object-center rounded-full"
+                  className="max-w-full max-h-full w-auto h-auto min-w-[80px] min-h-[80px] object-contain object-center rounded-full block"
                   style={{ objectFit: 'contain', objectPosition: 'center' }}
                   key={`welcome-img-${welcomeMediaKeyRef.current}-${welcomeMedia.src}`}
                   onError={() => setWelcomeMedia(WELCOME_MEDIA[0])}
