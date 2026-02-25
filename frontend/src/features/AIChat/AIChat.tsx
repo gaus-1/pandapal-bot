@@ -64,6 +64,17 @@ export function AIChat({ user }: AIChatProps) {
   const logoRef = useRef<HTMLImageElement | null>(null);
   const welcomeMediaKeyRef = useRef(0);
 
+  // Сброс welcomeVideoReady при смене видео; фолбэк на мобильных, если onCanPlay/onPlaying не сработали
+  useEffect(() => {
+    if (welcomeMedia.type !== 'video') {
+      setWelcomeVideoReady(false);
+      return;
+    }
+    setWelcomeVideoReady(false);
+    const t = setTimeout(() => setWelcomeVideoReady(true), 2500);
+    return () => clearTimeout(t);
+  }, [welcomeMedia.src, welcomeMedia.type]);
+
   // Сохраняем выбранное случайное сообщение для генерации
   const randomMessageRef = useRef<string | null>(null);
   const shouldShowRandomRef = useRef<boolean>(false);
@@ -375,13 +386,11 @@ export function AIChat({ user }: AIChatProps) {
             <div
               className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 mx-auto mb-6 rounded-full shadow-2xl bg-slate-100/90 dark:bg-slate-800/90 backdrop-blur-sm p-2 overflow-hidden flex items-center justify-center animate-logo-bounce shrink-0"
               style={{
-                animation: 'logoBounce 2s ease-in-out infinite',
                 willChange: 'transform',
                 transform: 'translateZ(0)',
                 backfaceVisibility: 'hidden',
-                WebkitAnimation: 'logoBounce 2s ease-in-out infinite',
-                WebkitTransform: 'translateZ(0)',
                 WebkitBackfaceVisibility: 'hidden',
+                isolation: 'isolate',
               } as React.CSSProperties}
             >
               {welcomeMedia.type === 'video' ? (
@@ -396,12 +405,14 @@ export function AIChat({ user }: AIChatProps) {
                     autoPlay
                     playsInline
                     onCanPlay={() => setWelcomeVideoReady(true)}
-                    className="max-w-full max-h-full w-auto h-auto min-w-[80px] min-h-[80px] object-contain object-center rounded-full bg-transparent block"
+                    onPlaying={() => setWelcomeVideoReady(true)}
+                    onLoadedData={() => setWelcomeVideoReady(true)}
+                    className="relative z-10 max-w-full max-h-full w-auto h-auto min-w-[80px] min-h-[80px] object-contain object-center rounded-full bg-transparent block"
                     style={{ objectFit: 'contain', objectPosition: 'center' }}
                     aria-label={welcomeMedia.alt}
                   />
                   {!welcomeVideoReady && (
-                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-slate-200/80 dark:bg-slate-700/80" aria-hidden>
+                    <div className="absolute inset-0 z-0 flex items-center justify-center rounded-full bg-slate-200/80 dark:bg-slate-700/80" aria-hidden>
                       <div className="h-8 w-8 border-2 border-slate-400 dark:border-slate-500 border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}

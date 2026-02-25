@@ -121,9 +121,9 @@
       -webkit-animation-name: logoBounce !important;
       animation-duration: 2s !important;
       -webkit-animation-duration: 2s !important;
-      animationTimingFunction: ease-in-out !important;
+      animation-timing-function: ease-in-out !important;
       -webkit-animation-timing-function: ease-in-out !important;
-      animationIterationCount: infinite !important;
+      animation-iteration-count: infinite !important;
       -webkit-animation-iteration-count: infinite !important;
       animationFillMode: both !important;
       -webkit-animation-fill-mode: both !important;
