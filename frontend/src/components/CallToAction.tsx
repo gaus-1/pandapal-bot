@@ -27,8 +27,8 @@ export const CallToAction: React.FC = React.memo(() => {
 
         {/* QR + «или» + Кнопка: на десктопе три колонки — «или» по центру */}
         <div className="flex flex-col md:grid md:grid-cols-[1.618fr_auto_1fr] items-center justify-center gap-fib-5 sm:gap-fib-6 lg:gap-fib-6 mb-fib-5 sm:mb-fib-5 lg:mb-fib-6">
-          {/* Левая колонка: QR */}
-          <div className="flex flex-col items-center justify-center w-full md:w-auto">
+          {/* Левая колонка: QR — по ширине карточки, границы совпадают */}
+          <div className="flex flex-col items-center justify-center w-full md:w-max md:justify-self-center">
             <div className="bg-white dark:bg-slate-800 p-fib-4 sm:p-fib-5 rounded-2xl shadow-xl dark:shadow-2xl border-2 border-gray-100 dark:border-slate-700 dark:border-slate-600/50 relative w-[220px] h-[220px] sm:w-[240px] sm:h-[240px] md:w-[260px] md:h-[260px] flex items-center justify-center">
               {qrError ? (
                 <div className="flex flex-col items-center justify-center p-fib-4 text-center">
