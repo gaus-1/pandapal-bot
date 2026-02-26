@@ -47,6 +47,7 @@ async def test_frontend_static_files_have_expected_headers(tmp_path: Path) -> No
                 ("/sw.js", "application/javascript", "public, max-age=31536000, immutable"),
                 ("/robots.txt", "text/plain; charset=utf-8", "public, max-age=3600"),
                 ("/sitemap.xml", "application/xml; charset=utf-8", "public, max-age=3600"),
+                ("/llms.txt", "text/plain; charset=utf-8", "public, max-age=3600"),
                 ("/.well-known/security.txt", "text/plain; charset=utf-8", None),
                 ("/.well-known/llms.txt", "text/plain; charset=utf-8", "public, max-age=3600"),
             ]
@@ -84,3 +85,19 @@ async def test_spa_fallback_serves_index_for_non_file_paths(tmp_path: Path) -> N
             body = await response.text()
             assert response.status == 200
             assert "PandaPal" in body
+
+
+@pytest.mark.asyncio
+async def test_sitemap_urls_return_200_via_spa_fallback(tmp_path: Path) -> None:
+    """URL из sitemap должны отдаваться с 200 (SPA fallback отдаёт index.html)."""
+    _prepare_dist(tmp_path)
+    app = web.Application()
+    setup_frontend_static(app, tmp_path)
+
+    async with TestServer(app) as server:
+        async with TestClient(server) as client:
+            for path in ["/", "/premium", "/help/kak-nachat"]:
+                response = await client.get(path)
+                assert response.status == 200, f"GET {path} expected 200"
+                body = await response.text()
+                assert "PandaPal" in body or "root" in body

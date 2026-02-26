@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Header } from '../../components';
 import {
   getHelpArticleBySlug,
@@ -6,6 +6,9 @@ import {
   type HelpArticle,
   type HelpBodyBlock,
 } from '../../config/help-articles';
+
+const SEO_ARTICLE_SCRIPT_ID = 'seo-article';
+const SITE_BASE = 'https://pandapal.ru/';
 
 const navigateTo = (path: string) => {
   window.history.pushState(null, '', path);
@@ -42,6 +45,35 @@ export const HelpArticlePage: React.FC = React.memo(() => {
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   const slug = pathname.startsWith('/help/') ? pathname.replace(/^\/help\/?/, '').split('/')[0] : '';
   const article = slug ? getHelpArticleBySlug(slug) : undefined;
+
+  useEffect(() => {
+    if (!article) {
+      document.getElementById(SEO_ARTICLE_SCRIPT_ID)?.remove();
+      return;
+    }
+    const articleSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      url: `${SITE_BASE}help/${article.slug}`,
+      name: article.titleRu,
+      description: article.descriptionRu,
+      dateModified: '2026-02-24',
+      inLanguage: 'ru',
+    };
+    let script = document.getElementById(SEO_ARTICLE_SCRIPT_ID) as HTMLScriptElement | null;
+    if (script) {
+      script.textContent = JSON.stringify(articleSchema);
+    } else {
+      script = document.createElement('script');
+      script.id = SEO_ARTICLE_SCRIPT_ID;
+      script.type = 'application/ld+json';
+      script.textContent = JSON.stringify(articleSchema);
+      document.head.appendChild(script);
+    }
+    return () => {
+      document.getElementById(SEO_ARTICLE_SCRIPT_ID)?.remove();
+    };
+  }, [article]);
 
   if (!article) {
     return (

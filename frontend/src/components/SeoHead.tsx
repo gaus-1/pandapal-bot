@@ -1,10 +1,34 @@
 import React, { useEffect } from 'react';
 
+const SEO_BASE_URL = 'https://pandapal.ru/';
+const BREADCRUMB_SCRIPT_ID = 'seo-breadcrumb';
+
+export interface BreadcrumbItem {
+  name: string;
+  path: string;
+}
+
+function buildBreadcrumbJsonLd(items: BreadcrumbItem[]): string {
+  const itemListElement = items.map((item, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: item.name,
+    item: item.path === '/' ? SEO_BASE_URL : `${SEO_BASE_URL}${item.path.replace(/^\//, '')}`,
+  }));
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement,
+  });
+}
+
 interface SeoHeadProps {
   title: string;
   description: string;
   canonicalPath?: string;
   locale?: 'ru_RU' | 'en_US';
+  imageUrl?: string;
+  breadcrumbs?: BreadcrumbItem[];
 }
 
 const ensureMeta = (selector: string, create: () => HTMLMetaElement): HTMLMetaElement => {
@@ -28,10 +52,15 @@ const ensureCanonical = (): HTMLLinkElement => {
   return link;
 };
 
+function buildCanonicalUrl(path: string): string {
+  const normalized = path === '/' ? '' : path.replace(/^\//, '');
+  return normalized ? `${SEO_BASE_URL}${normalized}` : SEO_BASE_URL;
+}
+
 export const SeoHead: React.FC<SeoHeadProps> = React.memo(
-  ({ title, description, canonicalPath = '/', locale = 'ru_RU' }) => {
+  ({ title, description, canonicalPath = '/', locale = 'ru_RU', imageUrl, breadcrumbs }) => {
     useEffect(() => {
-      const canonicalUrl = `https://pandapal.ru${canonicalPath}`;
+      const canonicalUrl = buildCanonicalUrl(canonicalPath);
       document.title = title;
 
     const descriptionMeta = ensureMeta('meta[name="description"]', () => {
@@ -83,9 +112,47 @@ export const SeoHead: React.FC<SeoHeadProps> = React.memo(
     });
     twitterDescriptionMeta.setAttribute('content', description);
 
+      if (imageUrl) {
+        const ogImageMeta = ensureMeta('meta[property="og:image"]', () => {
+          const m = document.createElement('meta');
+          m.setAttribute('property', 'og:image');
+          return m;
+        });
+        ogImageMeta.setAttribute('content', imageUrl);
+        const twitterImageMeta = ensureMeta('meta[name="twitter:image"]', () => {
+          const m = document.createElement('meta');
+          m.setAttribute('name', 'twitter:image');
+          return m;
+        });
+        twitterImageMeta.setAttribute('content', imageUrl);
+        const twitterImageAltMeta = ensureMeta('meta[name="twitter:image:alt"]', () => {
+          const m = document.createElement('meta');
+          m.setAttribute('name', 'twitter:image:alt');
+          return m;
+        });
+        twitterImageAltMeta.setAttribute('content', 'PandaPal — безопасный AI-друг для детей');
+      }
+
       const canonical = ensureCanonical();
       canonical.setAttribute('href', canonicalUrl);
-    }, [title, description, canonicalPath, locale]);
+
+      // BreadcrumbList: один script на документ, обновляем по id
+      let breadcrumbScript = document.getElementById(BREADCRUMB_SCRIPT_ID) as HTMLScriptElement | null;
+      if (breadcrumbs?.length) {
+        const jsonLd = buildBreadcrumbJsonLd(breadcrumbs);
+        if (breadcrumbScript) {
+          breadcrumbScript.textContent = jsonLd;
+        } else {
+          breadcrumbScript = document.createElement('script');
+          breadcrumbScript.id = BREADCRUMB_SCRIPT_ID;
+          breadcrumbScript.type = 'application/ld+json';
+          breadcrumbScript.textContent = jsonLd;
+          document.head.appendChild(breadcrumbScript);
+        }
+      } else if (breadcrumbScript) {
+        breadcrumbScript.remove();
+      }
+    }, [title, description, canonicalPath, locale, imageUrl, breadcrumbs]);
 
     return null;
   }

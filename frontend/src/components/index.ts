@@ -17,4 +17,4 @@ export { ChatBackground } from './ChatBackground';
 export { DateSeparator } from './DateSeparator';
 export { ErrorBoundary } from './ErrorBoundary';
 export { NetworkStatusBar } from './NetworkStatusBar';
-export { SeoHead } from './SeoHead';
+export { SeoHead, type BreadcrumbItem } from './SeoHead';

@@ -24,7 +24,7 @@ export const IntentPage: React.FC<IntentPageProps> = React.memo(
     const faqSchema = {
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
-      url: `https://pandapal.ru${canonicalPath}`,
+      url: canonicalPath === '/' ? 'https://pandapal.ru/' : `https://pandapal.ru${canonicalPath}`,
       inLanguage: locale,
       mainEntity: faq.map((item) => ({
         '@type': 'Question',

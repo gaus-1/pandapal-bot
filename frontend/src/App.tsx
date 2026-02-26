@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Header, Hero, Features, Section, Footer, CallToAction, SeoHead } from './components';
+import { Header, Hero, Features, Section, Footer, CallToAction, SeoHead, type BreadcrumbItem } from './components';
 import { SECTIONS } from './config/constants';
 import { PANDA_PET_PAGE_TITLE_RU, PANDA_PET_DESCRIPTION_RU, PANDA_PET_FAQ_RU, PANDA_PET_DIRECT_LINK, HELP_PAGE_DESCRIPTION_RU } from './config/seo-text';
 import { telegram } from './services/telegram';
@@ -19,6 +19,9 @@ import { getHelpArticleBySlug } from './config/help-articles';
 import { CookieBanner } from './components/CookieBanner';
 import { logger } from './utils/logger';
 import './index.css';
+
+const DEFAULT_OG_IMAGE = 'https://pandapal.ru/favicon-512.png';
+const BREADCRUMB_HOME: BreadcrumbItem[] = [{ name: 'Главная', path: '/' }];
 
 /**
  * Корневой компонент приложения PandaPal
@@ -171,6 +174,8 @@ const App: React.FC = () => {
           title="PandaPal Premium - расширенные возможности"
           description="Premium-подписка PandaPal: больше возможностей для безопасной помощи в учебе."
           canonicalPath="/premium"
+          imageUrl={DEFAULT_OG_IMAGE}
+          breadcrumbs={[...BREADCRUMB_HOME, { name: 'Premium', path: '/premium' }]}
         />
         <Header />
         <main className="max-w-4xl mx-auto px-fib-2 sm:px-fib-3 lg:px-fib-4 py-fib-5 sm:py-fib-6 lg:py-fib-6">
@@ -190,6 +195,8 @@ const App: React.FC = () => {
           title="Поддержать PandaPal"
           description="Поддержите развитие PandaPal - безопасного AI-помощника для школьников."
           canonicalPath="/donation"
+          imageUrl={DEFAULT_OG_IMAGE}
+          breadcrumbs={[...BREADCRUMB_HOME, { name: 'Поддержать', path: '/donation' }]}
         />
         <Header />
         <main className="max-w-4xl mx-auto px-fib-2 sm:px-fib-3 lg:px-fib-4 py-fib-5 sm:py-fib-6 lg:py-fib-6">
@@ -209,6 +216,8 @@ const App: React.FC = () => {
           title="Политика конфиденциальности PandaPal"
           description="Политика конфиденциальности сервиса PandaPal."
           canonicalPath="/privacy"
+          imageUrl={DEFAULT_OG_IMAGE}
+          breadcrumbs={[...BREADCRUMB_HOME, { name: 'Политика конфиденциальности', path: '/privacy' }]}
         />
         <PrivacyPage />
         <Footer />
@@ -223,6 +232,8 @@ const App: React.FC = () => {
           title="Обработка персональных данных PandaPal"
           description="Правила обработки персональных данных в PandaPal."
           canonicalPath="/personal-data"
+          imageUrl={DEFAULT_OG_IMAGE}
+          breadcrumbs={[...BREADCRUMB_HOME, { name: 'Персональные данные', path: '/personal-data' }]}
         />
         <PersonalDataPage />
         <Footer />
@@ -237,6 +248,8 @@ const App: React.FC = () => {
           title="Договор оферты PandaPal"
           description="Публичная оферта сервиса PandaPal."
           canonicalPath="/offer"
+          imageUrl={DEFAULT_OG_IMAGE}
+          breadcrumbs={[...BREADCRUMB_HOME, { name: 'Оферта', path: '/offer' }]}
         />
         <OfferPage />
         <Footer />
@@ -252,6 +265,8 @@ const App: React.FC = () => {
           title="Безопасный ИИ для детей - PandaPal"
           description="PandaPal - безопасный AI-помощник для школьников: помощь с учебой, модерация и родительский контроль."
           canonicalPath="/bezopasnyy-ai-dlya-detey"
+          imageUrl={DEFAULT_OG_IMAGE}
+          breadcrumbs={[...BREADCRUMB_HOME, { name: 'Безопасный ИИ для детей', path: '/bezopasnyy-ai-dlya-detey' }]}
         />
         <IntentPage
           title="Безопасный ИИ для детей: PandaPal"
@@ -280,6 +295,8 @@ const App: React.FC = () => {
           description="PandaPal is a safe AI tutor for school students with moderation, homework help, and Telegram access."
           canonicalPath="/safe-ai-for-kids"
           locale="en_US"
+          imageUrl={DEFAULT_OG_IMAGE}
+          breadcrumbs={[...BREADCRUMB_HOME, { name: 'Safe AI for kids', path: '/safe-ai-for-kids' }]}
         />
         <IntentPage
           title="Safe AI Tutor for Kids: PandaPal"
@@ -307,6 +324,8 @@ const App: React.FC = () => {
           title="Помощь с домашкой в Telegram - PandaPal"
           description="PandaPal помогает с домашним заданием в Telegram: текст, фото и голосовые вопросы."
           canonicalPath="/pomoshch-s-domashkoy-v-telegram"
+          imageUrl={DEFAULT_OG_IMAGE}
+          breadcrumbs={[...BREADCRUMB_HOME, { name: 'Помощь с домашкой', path: '/pomoshch-s-domashkoy-v-telegram' }]}
         />
         <IntentPage
           title="Помощь с домашним заданием в Telegram"
@@ -335,6 +354,8 @@ const App: React.FC = () => {
           description="PandaPal is a Telegram homework help bot with text, photo, and voice support."
           canonicalPath="/homework-help-telegram-bot"
           locale="en_US"
+          imageUrl={DEFAULT_OG_IMAGE}
+          breadcrumbs={[...BREADCRUMB_HOME, { name: 'Homework help', path: '/homework-help-telegram-bot' }]}
         />
         <IntentPage
           title="Telegram Homework Help Bot"
@@ -362,6 +383,8 @@ const App: React.FC = () => {
           title={`${PANDA_PET_PAGE_TITLE_RU} | PandaPal`}
           description={PANDA_PET_DESCRIPTION_RU}
           canonicalPath="/igra-moya-panda"
+          imageUrl={DEFAULT_OG_IMAGE}
+          breadcrumbs={[...BREADCRUMB_HOME, { name: PANDA_PET_PAGE_TITLE_RU, path: '/igra-moya-panda' }]}
         />
         <IntentPage
           title={PANDA_PET_PAGE_TITLE_RU}
@@ -387,6 +410,8 @@ const App: React.FC = () => {
           title="Помощь — PandaPal"
           description={HELP_PAGE_DESCRIPTION_RU}
           canonicalPath="/help"
+          imageUrl={DEFAULT_OG_IMAGE}
+          breadcrumbs={[...BREADCRUMB_HOME, { name: 'Вопросы и ответы', path: '/help' }]}
         />
         <HelpCenterPage />
         <Footer />
@@ -405,6 +430,12 @@ const App: React.FC = () => {
           title={article ? `${article.titleRu} — Помощь — PandaPal` : 'Помощь — PandaPal'}
           description={article ? article.descriptionRu : HELP_PAGE_DESCRIPTION_RU}
           canonicalPath={article ? `/help/${article.slug}` : '/help'}
+          imageUrl={DEFAULT_OG_IMAGE}
+          breadcrumbs={
+            article
+              ? [...BREADCRUMB_HOME, { name: 'Вопросы и ответы', path: '/help' }, { name: article.titleRu, path: `/help/${article.slug}` }]
+              : [...BREADCRUMB_HOME, { name: 'Вопросы и ответы', path: '/help' }]
+          }
         />
         <HelpArticlePage />
         <Footer />
@@ -420,6 +451,7 @@ const App: React.FC = () => {
         title="PandaPal - безопасный и полезный AI-друг для детей"
         description="PandaPal - безопасный AI-помощник и робот-репетитор для школьников 1-9 класса в формате Telegram Mini App."
         canonicalPath="/"
+        breadcrumbs={BREADCRUMB_HOME}
       />
       {/* Шапка сайта (включает DarkModeToggle внутри) */}
       <Header />

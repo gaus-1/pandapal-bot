@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run generate:panda-video && tsc -b tsconfig.app.json && vite build",
+    "build": "npm run generate:panda-video && npm run update-sitemap-dates && tsc -b tsconfig.app.json && vite build",
     "generate:panda-video": "node scripts/generate-panda-video-list.mjs",
+    "update-sitemap-dates": "node scripts/update_sitemap_dates.mjs",
     "lint": "eslint .",
     "type-check": "tsc -b tsconfig.app.json --noEmit",
     "preview": "vite preview",
