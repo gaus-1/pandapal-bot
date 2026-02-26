@@ -3,7 +3,7 @@
  * С поддержкой Telegram Login Widget для авторизации с веб-сайта
  */
 
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { telegram } from '../../services/telegram';
 import { useAppStore } from '../../store/appStore';
 import type { UserProfile } from '../../services/api';
@@ -65,34 +65,28 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
     }
   }, [inTelegram, verifySession]);
 
-  // Автообновление статуса подписки после возврата с оплаты
-  useEffect(() => {
-    const checkPaymentStatus = async () => {
-      // Проверяем наличие параметра payment_id в URL (возврат с ЮKassa)
-      const urlParams = new URLSearchParams(window.location.search);
-      const paymentId = urlParams.get('payment_id');
-
-      if (paymentId && currentUser) {
-        // Обновляем данные пользователя для получения актуального статуса подписки
-        try {
-          const response = await fetch(`/api/miniapp/user/${currentUser.telegram_id}`);
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.user) {
-              logger.debug('Premium: обновлены данные пользователя');
-              setUser(data.user);
-              // Убираем payment_id из URL
-              window.history.replaceState({}, '', window.location.pathname);
-            }
-          }
-        } catch (error) {
-          console.error('Ошибка обновления статуса подписки:', error);
+  const checkPaymentStatus = useCallback(async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentId = urlParams.get('payment_id');
+    if (!paymentId || !currentUser) return;
+    try {
+      const response = await fetch(`/api/miniapp/user/${currentUser.telegram_id}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.user) {
+          logger.debug('Premium: обновлены данные пользователя');
+          setUser(data.user);
+          window.history.replaceState({}, '', window.location.pathname);
         }
       }
-    };
-
-    checkPaymentStatus();
+    } catch (error) {
+      console.error('Ошибка обновления статуса подписки:', error);
+    }
   }, [currentUser, setUser]);
+
+  useEffect(() => {
+    checkPaymentStatus();
+  }, [checkPaymentStatus]);
 
   // Логирование для отладки
   useEffect(() => {

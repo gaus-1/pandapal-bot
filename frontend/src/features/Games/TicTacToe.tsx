@@ -20,7 +20,7 @@ interface TicTacToeProps {
 }
 
 export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
-  const [board, setBoard] = useState<(string | null)[]>(Array(9).fill(null));
+  const [board, setBoard] = useState<(string | null)[]>(() => Array(9).fill(null));
   const [isUserTurn, setIsUserTurn] = useState(true);
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState<"user" | "ai" | "draw" | null>(null);

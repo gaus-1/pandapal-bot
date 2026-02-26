@@ -18,7 +18,8 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
-    "test:e2e:smoke": "playwright test --project=chromium miniapp.smoke.spec.ts website.functionality.spec.ts website.responsive.spec.ts"
+    "test:e2e:smoke": "playwright test --project=chromium miniapp.smoke.spec.ts website.functionality.spec.ts website.responsive.spec.ts",
+    "doctor": "react-doctor . --verbose"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.16",
@@ -49,6 +50,7 @@
     "globals": "^16.4.0",
     "jsdom": "^27.4.0",
     "postcss": "^8.5.6",
+    "react-doctor": "^0.0.29",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.44.0",

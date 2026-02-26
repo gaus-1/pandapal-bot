@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAppStore } from '../../store/appStore';
 
 interface TelegramLoginButtonProps {
@@ -44,52 +44,40 @@ export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Создаём глобальный callback для Telegram Widget
-    window.TelegramLoginWidget = {
-      dataOnauth: async (telegramData: TelegramAuthData) => {
-        setIsLoading(true);
-        setError(null);
-
-        try {
-          // Отправляем данные на backend для валидации и создания сессии
-          const response = await fetch('/api/auth/telegram/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams(telegramData as Record<string, string>).toString(),
-          });
-
-          if (!response.ok) {
-            throw new Error('Ошибка авторизации');
-          }
-
-          const data = await response.json();
-
-          if (data.success) {
-            // Сохраняем session token в localStorage
-            localStorage.setItem('telegram_session', data.session_token);
-            setSessionToken(data.session_token);
-
-            // Сохраняем данные пользователя в store
-            setWebUser(data.user);
-
-            // Вызываем callback
-            onAuth(data.user);
-
-            // Авторизация через Telegram успешна
-          } else {
-            throw new Error(data.error || 'Неизвестная ошибка');
-          }
-        } catch (err) {
-          console.error('❌ Ошибка авторизации:', err);
-          setError('Не удалось войти через Telegram. Попробуйте ещё раз.');
-        } finally {
-          setIsLoading(false);
+  const handleTelegramAuth = useCallback(
+    async (telegramData: TelegramAuthData) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch('/api/auth/telegram/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams(telegramData as Record<string, string>).toString(),
+        });
+        if (!response.ok) throw new Error('Ошибка авторизации');
+        const data = await response.json();
+        if (data.success) {
+          localStorage.setItem('telegram_session', data.session_token);
+          setSessionToken(data.session_token);
+          setWebUser(data.user);
+          onAuth(data.user);
+        } else {
+          throw new Error(data.error || 'Неизвестная ошибка');
         }
-      },
-    };
+      } catch (err) {
+        console.error('❌ Ошибка авторизации:', err);
+        setError('Не удалось войти через Telegram. Попробуйте ещё раз.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [onAuth, setSessionToken, setWebUser],
+  );
+
+  useEffect(() => {
+    window.TelegramLoginWidget = { dataOnauth: handleTelegramAuth };
 
     // Загружаем скрипт Telegram Widget
     const script = document.createElement('script');
@@ -111,7 +99,7 @@ export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
         container.removeChild(script);
       }
     };
-  }, [buttonSize, requestWriteAccess, onAuth, setWebUser, setSessionToken]);
+  }, [buttonSize, requestWriteAccess, handleTelegramAuth]);
 
   return (
     <div className="telegram-login-wrapper">

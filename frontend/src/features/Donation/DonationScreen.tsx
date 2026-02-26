@@ -160,11 +160,12 @@ export function DonationScreen({ user }: DonationScreenProps) {
 
           {/* Произвольная сумма */}
           <div className="mb-3 sm:mb-4 md:mb-5">
-            <label className="block text-xs sm:text-sm font-medium text-gray-900 dark:text-slate-100 mb-1.5 sm:mb-2 md:mb-2.5">
+            <label htmlFor="donation-custom-amount" className="block text-xs sm:text-sm font-medium text-gray-900 dark:text-slate-100 mb-1.5 sm:mb-2 md:mb-2.5">
               Или введите свою сумму (от 50 ⭐):
             </label>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 md:gap-3">
               <input
+                id="donation-custom-amount"
                 type="number"
                 min="50"
                 value={customAmount}

@@ -36,6 +36,7 @@ npm run dev              # Запуск dev-сервера (localhost:5173)
 npm run build            # Сборка для production
 npm run preview          # Предпросмотр production-сборки
 npm run lint             # Проверка кода
+npm run doctor           # React Doctor — проверка здоровья кода (линт + мёртвый код, score 0–100)
 npm test                 # Запуск тестов
 ```
 

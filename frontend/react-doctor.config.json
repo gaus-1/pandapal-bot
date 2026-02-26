@@ -1,0 +1,9 @@
+{
+  "ignore": {
+    "files": [
+      "src/test/**",
+      "public/sw.js"
+    ]
+  },
+  "verbose": true
+}
