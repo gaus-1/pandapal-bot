@@ -25,8 +25,8 @@ export const CallToAction: React.FC = React.memo(() => {
           Отсканируй QR-код камерой телефона или нажми кнопку ниже
         </p>
 
-        {/* QR + «или» + Кнопка: на десктопе три колонки — «или» по центру */}
-        <div className="flex flex-col md:grid md:grid-cols-[1.618fr_auto_1fr] items-center justify-center gap-fib-5 sm:gap-fib-6 lg:gap-fib-6 mb-fib-5 sm:mb-fib-5 lg:mb-fib-6">
+        {/* QR + «или» + Кнопка: на десктопе три колонки — «или» строго по центру; блок по центру на ПК/планшете */}
+        <div className="flex flex-col md:grid md:grid-cols-[1fr_auto_1fr] items-center justify-center gap-fib-5 sm:gap-fib-6 lg:gap-fib-6 mb-fib-5 sm:mb-fib-5 lg:mb-fib-6 max-w-5xl mx-auto">
           {/* Левая колонка: QR — по ширине карточки, границы совпадают */}
           <div className="flex flex-col items-center justify-center w-full md:w-max md:justify-self-center">
             <div className="bg-white dark:bg-slate-800 p-fib-4 sm:p-fib-5 rounded-2xl shadow-xl dark:shadow-2xl border-2 border-gray-100 dark:border-slate-700 dark:border-slate-600/50 relative w-[220px] h-[220px] sm:w-[240px] sm:h-[240px] md:w-[260px] md:h-[260px] flex items-center justify-center">
@@ -78,8 +78,8 @@ export const CallToAction: React.FC = React.memo(() => {
             </p>
           </div>
 
-          {/* Центр: «или» по вертикали между QR-блоком и кнопками (QR выше — сдвиг вниз); по горизонтали — середина зазора */}
-          <div className="flex items-center justify-center shrink-0 md:self-stretch md:translate-y-[14px] md:translate-x-[10px]">
+          {/* Центр: «или» по вертикали между QR-блоком и кнопками (QR выше — сдвиг вниз) */}
+          <div className="flex items-center justify-center shrink-0 md:self-stretch md:translate-y-[14px]">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-pink-100 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center shadow-md">
               <span className="font-display text-lg font-bold text-gray-700 dark:text-slate-300">
                 или
@@ -87,8 +87,8 @@ export const CallToAction: React.FC = React.memo(() => {
             </div>
           </div>
 
-          {/* Правая колонка: кнопки — justify-center чтобы «или» было по центру между QR и кнопками */}
-          <div className="flex flex-col items-center justify-center gap-fib-4 w-full md:w-auto">
+          {/* Правая колонка: кнопки — по центру ячейки на десктопе */}
+          <div className="flex flex-col items-center justify-center gap-fib-4 w-full md:w-auto md:justify-self-center">
             <a
               href={SITE_CONFIG.botUrl}
               target="_blank"
