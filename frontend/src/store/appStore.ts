@@ -118,7 +118,25 @@ export const useAppStore = create<AppState>()(
         verifySession: async () => {
           const { sessionToken } = get();
 
+          // Проверяем сессию по cookie (credentials: 'include') или по Bearer из state
           if (!sessionToken) {
+            set({ isLoading: true });
+            try {
+              const r = await fetch('/api/auth/telegram/verify', {
+                method: 'GET',
+                credentials: 'include',
+              });
+              if (r.ok) {
+                const data = await r.json();
+                if (data.success) {
+                  set({ webUser: data.user, isAuthenticated: true, isLoading: false });
+                  return true;
+                }
+              }
+            } catch {
+              set({ isLoading: false });
+            }
+            set({ webUser: null, isAuthenticated: false, isLoading: false });
             return false;
           }
 
@@ -127,9 +145,10 @@ export const useAppStore = create<AppState>()(
           try {
             const response = await fetch('/api/auth/telegram/verify', {
               method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${sessionToken}`,
-              },
+              credentials: 'include',
+              headers: sessionToken
+                ? { 'Authorization': `Bearer ${sessionToken}` }
+                : {},
             });
 
             if (response.ok) {
@@ -166,17 +185,16 @@ export const useAppStore = create<AppState>()(
           const { sessionToken } = get();
 
           // Отправляем запрос на backend для удаления сессии
-          if (sessionToken) {
-            try {
-              await fetch('/api/auth/telegram/logout', {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${sessionToken}`,
-                },
-              });
-            } catch (error) {
-              console.error('Ошибка при выходе:', error);
-            }
+          try {
+            await fetch('/api/auth/telegram/logout', {
+              method: 'POST',
+              credentials: 'include',
+              headers: sessionToken
+                ? { 'Authorization': `Bearer ${sessionToken}` }
+                : {},
+            });
+          } catch (error) {
+            console.error('Ошибка при выходе:', error);
           }
 
           // Очищаем локальное состояние

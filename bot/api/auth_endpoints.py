@@ -4,12 +4,29 @@ API endpoints для аутентификации через Telegram Login Widg
 Обрабатывает авторизацию пользователей через виджет Telegram на веб-сайте.
 """
 
+import os
+
 from aiohttp import web
 from loguru import logger
 
 from bot.database import get_db
-from bot.services.session_service import get_session_service
+from bot.services.session_service import SESSION_TTL_DAYS, get_session_service
 from bot.services.telegram_auth_service import TelegramAuthService
+
+# Cookie для веб-авторизации (HTTP-only, снижает риск кражи при XSS)
+TELEGRAM_SESSION_COOKIE = "telegram_session"
+SESSION_COOKIE_MAX_AGE = SESSION_TTL_DAYS * 24 * 3600
+
+
+def _get_session_token(request: web.Request) -> str | None:
+    """Токен сессии из cookie или заголовка Authorization Bearer (обратная совместимость)."""
+    token = request.cookies.get(TELEGRAM_SESSION_COOKIE)
+    if token:
+        return token
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        return auth_header.replace("Bearer ", "").strip()
+    return None
 
 
 def setup_auth_routes(app: web.Application) -> None:
@@ -89,18 +106,24 @@ async def telegram_login(request: web.Request) -> web.Response:
                 f"✅ Telegram авторизация успешна: user={user.telegram_id} ({user.full_name})"
             )
 
-            return web.json_response(
-                {
-                    "success": True,
-                    "session_token": session_token,
-                    "user": {
-                        "telegram_id": user.telegram_id,
-                        "full_name": user.full_name,
-                        "username": user.username,
-                        "is_premium": user.is_premium,
-                    },
-                }
+            payload = {
+                "success": True,
+                "session_token": session_token,
+                "user": {
+                    "telegram_id": user.telegram_id,
+                    "full_name": user.full_name,
+                    "username": user.username,
+                    "is_premium": user.is_premium,
+                },
+            }
+            response = web.json_response(payload)
+            # HTTP-only cookie для снижения риска кражи сессии при XSS; JSON с токеном сохранён для обратной совместимости
+            response.headers["Set-Cookie"] = (
+                f"{TELEGRAM_SESSION_COOKIE}={session_token}; "
+                "HttpOnly; Secure; SameSite=Strict; "
+                f"Path=/api; Max-Age={SESSION_COOKIE_MAX_AGE}"
             )
+            return response
 
     except Exception as e:
         logger.error(f"❌ Ошибка обработки Telegram Login: {e}", exc_info=True)
@@ -128,14 +151,10 @@ async def verify_session(request: web.Request) -> web.Response:
         }
     """
     try:
-        # Получаем токен из заголовка
-        auth_header = request.headers.get("Authorization", "")
-        if not auth_header.startswith("Bearer "):
+        session_token = _get_session_token(request)
+        if not session_token:
             return web.json_response({"success": False, "error": "No token provided"}, status=401)
 
-        session_token = auth_header.replace("Bearer ", "")
-
-        # Получаем сессию через SessionService
         session_service = get_session_service()
         session = await session_service.get_session(session_token)
 
@@ -182,14 +201,10 @@ async def logout(request: web.Request) -> web.Response:
         {"success": true}
     """
     try:
-        # Получаем токен из заголовка
-        auth_header = request.headers.get("Authorization", "")
-        if not auth_header.startswith("Bearer "):
+        session_token = _get_session_token(request)
+        if not session_token:
             return web.json_response({"success": False, "error": "No token provided"}, status=401)
 
-        session_token = auth_header.replace("Bearer ", "")
-
-        # Удаляем сессию через SessionService
         session_service = get_session_service()
         session = await session_service.get_session(session_token)
 
@@ -197,18 +212,40 @@ async def logout(request: web.Request) -> web.Response:
             await session_service.delete_session(session_token)
             logger.info(f"👋 Пользователь {session.telegram_id} вышел из системы")
 
-        return web.json_response({"success": True})
+        response = web.json_response({"success": True})
+        # Удаляем cookie сессии в браузере
+        response.headers["Set-Cookie"] = (
+            f"{TELEGRAM_SESSION_COOKIE}=; HttpOnly; Secure; SameSite=Strict; "
+            "Path=/api; Max-Age=0"
+        )
+        return response
 
     except Exception as e:
         logger.error(f"❌ Ошибка выхода из системы: {e}", exc_info=True)
         return web.json_response({"success": False, "error": "Internal server error"}, status=500)
 
 
-async def session_stats(_request: web.Request) -> web.Response:
+# Разрешённые IP для GET /api/auth/stats (только localhost по умолчанию)
+AUTH_STATS_ALLOWED_IPS = frozenset(
+    os.getenv("AUTH_STATS_ALLOWED_IPS", "127.0.0.1,::1").replace(" ", "").split(",")
+)
+
+
+def _is_auth_stats_allowed(request: web.Request) -> bool:
+    """Проверка допуска к endpoint статистики сессий (localhost или внутренний секрет)."""
+    remote = request.remote or ""
+    if remote in AUTH_STATS_ALLOWED_IPS:
+        return True
+    secret = os.getenv("AUTH_STATS_SECRET")
+    return bool(secret and request.headers.get("X-Internal-Monitor") == secret)
+
+
+async def session_stats(request: web.Request) -> web.Response:
     """
     Статистика по сессиям (для мониторинга).
 
     GET /api/auth/stats
+    Доступ только с localhost или с заголовком X-Internal-Monitor (см. AUTH_STATS_SECRET).
 
     Response:
         {
@@ -217,6 +254,9 @@ async def session_stats(_request: web.Request) -> web.Response:
             "redis_connected": true
         }
     """
+    if not _is_auth_stats_allowed(request):
+        logger.warning(f"🚫 Доступ к /api/auth/stats отклонён: remote={request.remote}")
+        return web.json_response({"error": "Forbidden"}, status=403)
     try:
         session_service = get_session_service()
         stats = await session_service.get_stats()
