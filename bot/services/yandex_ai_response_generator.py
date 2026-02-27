@@ -574,11 +574,19 @@ def _ensure_list_and_bold_breaks(text: str, line_threshold: int = 130) -> str:
     return "\n".join(result_lines)
 
 
-def _ensure_paragraph_breaks(text: str, min_length: int = 300, sentences_per_para: int = 2) -> str:
+# Порог длины текста без абзацев, при котором включается страховка разбивки (символов)
+_PARAGRAPH_BREAK_MIN_LENGTH = 250
+
+
+def _ensure_paragraph_breaks(
+    text: str, min_length: int | None = None, sentences_per_para: int = 2
+) -> str:
     """
     Если текст длинный и без абзацев (нет \\n\\n) — вставить разбивку по предложениям.
     Страховка от «полотна» текста от модели.
     """
+    if min_length is None:
+        min_length = _PARAGRAPH_BREAK_MIN_LENGTH
     if not text or "\n\n" in text or len(text) < min_length:
         return text
     # Разбиваем по границам предложений (. ! ? с последующим пробелом)
@@ -613,7 +621,7 @@ def clean_ai_response(text: str) -> str:
     # Склеиваем строки из одних цифр (1\n8\n3 → 183), убираем «цифры в столбик»
     text = _merge_digit_only_lines(text)
 
-    # Разбивка длинных строк по маркерам списка и после жирного (до дедупликации)
+    # Разбивка длинных строк по маркерам списка и после жирного (до дедупликации и финальной нормализации)
     text = _ensure_list_and_bold_breaks(text)
 
     # Удаляем вставки в квадратных скобках (артефакты модели)

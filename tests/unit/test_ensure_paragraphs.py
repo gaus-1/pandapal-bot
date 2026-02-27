@@ -10,8 +10,8 @@ from bot.services.yandex_ai_response_generator import (
 
 
 def test_ensure_paragraph_breaks_adds_newlines_for_long_wall():
-    """Длинный текст (>=300 символов) без \\n\\n получает разбивку по предложениям."""
-    # Порог 300 символов — иначе _ensure_paragraph_breaks не срабатывает
+    """Длинный текст (>=250 символов) без \\n\\n получает разбивку по предложениям."""
+    # Порог 250 символов — иначе _ensure_paragraph_breaks не срабатывает
     wall = (
         "Газ — это одно из четырёх основных агрегатных состояний вещества, которое характеризуется "
         "очень слабыми связями между частицами. Основные характеристики газа: частицы движутся "
@@ -19,7 +19,7 @@ def test_ensure_paragraph_breaks_adds_newlines_for_long_wall():
         "модель, в которой пренебрегают размерами частиц. Реальный газ учитывает взаимодействия. "
         "Давление и температура связаны уравнением состояния."
     )
-    assert len(wall) >= 300
+    assert len(wall) >= 250
     out = _ensure_paragraph_breaks(wall)
     assert "\n\n" in out
     paragraphs = [p.strip() for p in out.split("\n\n") if p.strip()]
@@ -81,7 +81,7 @@ def test_clean_ai_response_long_wall_gets_paragraphs():
     )
     assert len(wall) >= 450
     cleaned = clean_ai_response(wall)
-    # Страховка срабатывает при длине >= 300 символов
+    # Страховка срабатывает при длине >= 250 символов
     assert "\n\n" in cleaned, f"expected paragraph breaks in cleaned ({len(cleaned)} chars)"
 
 

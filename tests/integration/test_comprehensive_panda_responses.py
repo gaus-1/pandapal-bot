@@ -295,6 +295,29 @@ class TestComprehensivePandaResponses:
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
+    async def test_educational_response_has_paragraphs_and_bold(self):
+        """Ответ на образовательный вопрос содержит абзацы (\\n\\n) и выделение жирным (**)."""
+        from bot.services.ai_service_solid import get_ai_service
+
+        ai_service = get_ai_service()
+        response = await ai_service.generate_response(
+            user_message="Что такое фотосинтез? Объясни коротко.",
+            chat_history=[],
+            user_age=11,
+        )
+        assert response and len(response.strip()) > 50, "Ответ не должен быть пустым или слишком коротким"
+        assert "\n\n" in response, (
+            "Ответ должен содержать абзацы (пустая строка между блоками)"
+        )
+        assert "**" in response, (
+            "Ответ должен содержать выделение жирным (**термин** или **Подзаголовок:**)"
+        )
+        print(
+            f"\n[OK] Образовательный ответ: абзацы и жирное присутствуют, ответ: {len(response)} символов"
+        )
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
     async def test_text_responses_all_subjects_detailed(self):
         """Тест: Текстовые ответы по ВСЕМ предметам должны быть развернутыми и подробными."""
         from bot.services.ai_service_solid import get_ai_service
