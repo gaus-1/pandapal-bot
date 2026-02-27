@@ -195,9 +195,7 @@ class SessionService:
         else:
             self._save_to_memory(session_token, session_data)
 
-        logger.info(
-            f"✅ Создана сессия для пользователя {telegram_id}, token={session_token[:10]}..."
-        )
+        logger.info(f"✅ Создана сессия для пользователя {telegram_id}")
 
         return session_token
 
@@ -256,7 +254,7 @@ class SessionService:
         else:
             self._save_to_memory(session_token, session)
 
-        logger.debug(f"🔄 Сессия {session_token[:10]}... продлена на {self.session_ttl_days} дней")
+        logger.debug(f"🔄 Сессия продлена на {self.session_ttl_days} дней")
         return True
 
     # Redis методы

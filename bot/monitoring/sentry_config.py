@@ -68,11 +68,19 @@ class SentryConfig:
         Маскирует чувствительные данные и фильтрует неважные ошибки.
         """
         _ = hint  # Sentry передает hint, но мы его не используем
-        # Маскируем чувствительные данные
+        # Маскируем чувствительные данные в extra
         if "extra" in event:
             for key in ["token", "password", "secret", "key"]:
                 if key in event["extra"]:
                     event["extra"][key] = "[MASKED]"
+        # Маскируем заголовки запроса с токенами и подписями
+        if "request" in event and isinstance(event.get("request"), dict):
+            req = event["request"]
+            if "headers" in req and isinstance(req["headers"], dict):
+                sensitive = ("authorization", "x-telegram-init-data", "cookie")
+                for hkey, _ in list(req["headers"].items()):
+                    if hkey and any(s in (hkey or "").lower() for s in sensitive):
+                        req["headers"][hkey] = "[MASKED]"
 
         # Фильтруем неважные ошибки
         if "exception" in event:
