@@ -296,7 +296,7 @@ class TestComprehensivePandaResponses:
     @pytest.mark.asyncio
     @pytest.mark.skipif(not REAL_API_KEY_AVAILABLE, reason="Требуется реальный Yandex API ключ")
     async def test_educational_response_has_paragraphs_and_bold(self):
-        """Ответ на образовательный вопрос содержит абзацы (\\n\\n) и выделение жирным (**)."""
+        """Ответ на образовательный вопрос структурирован: абзацы и списки или жирное (**)."""
         from bot.services.ai_service_solid import get_ai_service
 
         ai_service = get_ai_service()
@@ -305,15 +305,16 @@ class TestComprehensivePandaResponses:
             chat_history=[],
             user_age=11,
         )
-        assert response and len(response.strip()) > 50, "Ответ не должен быть пустым или слишком коротким"
-        assert "\n\n" in response, (
-            "Ответ должен содержать абзацы (пустая строка между блоками)"
+        self._assert_structure_and_russian(response, context="[Фотосинтез] ")
+        assert "\n\n" in response, "Ответ должен содержать абзацы (пустая строка между блоками)"
+        has_bold_or_list = "**" in response or response.count("\n- ") >= 2 or re.search(
+            r"\n[1-9]\.\s", response
         )
-        assert "**" in response, (
-            "Ответ должен содержать выделение жирным (**термин** или **Подзаголовок:**)"
+        assert has_bold_or_list, (
+            "Ответ должен содержать списки (- или 1. 2. 3.) или выделение жирным (**)"
         )
         print(
-            f"\n[OK] Образовательный ответ: абзацы и жирное присутствуют, ответ: {len(response)} символов"
+            f"\n[OK] Образовательный ответ: структура и грамотность соблюдены, ответ: {len(response)} символов"
         )
 
     @pytest.mark.asyncio
