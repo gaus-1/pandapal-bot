@@ -59,9 +59,7 @@ async def _process_audio_input(
         if not await check_premium_limit(telegram_id, message.from_user.username, message):
             return
 
-        processing_msg = await message.answer(
-            f"{emoji} Слушаю {label.lower()}... Пожалуйста, подожди! 🐼"
-        )
+        processing_msg = await message.answer(f"{emoji} Слушаю... 🐼")
 
         # Скачиваем файл
         tg_file = await message.bot.get_file(file_id)

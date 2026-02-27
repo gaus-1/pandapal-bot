@@ -216,8 +216,10 @@ async def run_fallback(
     chunk_data = json.dumps({"chunk": cleaned_response}, ensure_ascii=False)
     await response.write(f"event: chunk\ndata: {chunk_data}\n\n".encode())
 
-    # Сохраняем в историю
+    # Сохраняем в историю и геймификацию
     limit_reached = False
+    unlocked_achievements: list = []
+    save_succeeded = False
     try:
         limit_reached, total_requests = premium_service.increment_request_count(telegram_id)
 
@@ -235,11 +237,22 @@ async def run_fallback(
         from bot.services.panda_lazy_service import PandaLazyService
 
         PandaLazyService(db).increment_consecutive_after_ai(telegram_id)
+
+        from bot.services.gamification_service import GamificationService
+
+        gamification_service = GamificationService(db)
+        unlocked_achievements = gamification_service.process_message(telegram_id, user_message)
         db.commit()
+        save_succeeded = True
         logger.info(f"✅ Stream: Fallback успешен, ответ сохранен для {telegram_id}")
     except Exception as save_err:
         logger.error(f"❌ Stream: Ошибка сохранения fallback ответа: {save_err}")
         db.rollback()
+
+    if save_succeeded and unlocked_achievements:
+        from bot.api.miniapp.helpers import send_achievements_event
+
+        await send_achievements_event(response, unlocked_achievements)
 
     # Сообщение при достижении лимита
     if limit_reached:

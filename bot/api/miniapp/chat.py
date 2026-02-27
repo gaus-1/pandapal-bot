@@ -453,7 +453,8 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             user_msg = None
             ai_msg = None
             limit_reached_message_text = None
-            unlocked_achievements = []  # Инициализируем в начале блока
+            unlocked_achievements: list = []
+            save_succeeded = False
             try:
                 # Увеличиваем счетчик запросов (независимо от истории)
                 limit_reached, total_requests = premium_service.increment_request_count(telegram_id)
@@ -528,6 +529,7 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
                     logger.error(
                         f"❌❌❌ ПРОБЛЕМА: сообщение {user_msg.id} НЕ найдено в БД после коммита!"
                     )
+                save_succeeded = True
 
             except Exception as save_error:
                 logger.error(
@@ -542,8 +544,8 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
             if limit_reached_message_text:
                 response_data["limit_reached_message"] = limit_reached_message_text
 
-            # Добавляем информацию о разблокированных достижениях
-            if unlocked_achievements:
+            # Добавляем информацию о разблокированных достижениях только если сохранение прошло (не было rollback)
+            if save_succeeded and unlocked_achievements:
                 try:
                     from bot.services.gamification_service import ALL_ACHIEVEMENTS
 

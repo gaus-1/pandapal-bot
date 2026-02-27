@@ -307,8 +307,8 @@ export function useChatStream({ telegramId, limit = 20, onError }: UseChatStream
                     }
                   );
                 } else if (eventType === 'achievements' && data.achievements) {
-                  // Достижения получены, но не показываем popup в чате
-                  // (достижения можно посмотреть в разделе "Достижения")
+                  // Инвалидируем кэш достижений, чтобы экран «Достижения» при следующем открытии подтянул актуальные данные
+                  queryClient.invalidateQueries({ queryKey: queryKeys.achievements(telegramId) });
                 } else if (eventType === 'error' && data.error) {
                   throw new Error(data.error);
                 } else if (eventType === 'done') {

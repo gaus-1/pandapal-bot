@@ -46,7 +46,7 @@ async def handle_image(message: Message, state: FSMContext):  # noqa: ARG001
             return
 
         # Показываем, что обрабатываем изображение
-        processing_msg = await message.answer("🖼️ Анализирую изображение... Пожалуйста, подожди! 🐼")
+        processing_msg = await message.answer("🖼️ Смотрю... 🐼")
 
         # Получаем файл изображения
         file = await message.bot.get_file(photo.file_id)

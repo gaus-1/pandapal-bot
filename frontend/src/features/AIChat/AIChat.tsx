@@ -110,15 +110,15 @@ export function AIChat({ user }: AIChatProps) {
 
     // Основные статусы по типу сообщения
     if (status === 'transcribing' || (status === 'generating' && messageType === 'audio')) {
-      return 'Слушаю твое сообщение...';
+      return 'Слушаю...';
     }
 
     if (status === 'analyzing_photo' || (status === 'generating' && messageType === 'photo')) {
-      return 'Смотрю, что на фото...';
+      return 'Смотрю...';
     }
 
     if (status === 'generating' && messageType === 'text') {
-      return 'Читаю твое сообщение...';
+      return 'Читаю...';
     }
 
     if (status === 'generating') {

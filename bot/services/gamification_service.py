@@ -493,7 +493,7 @@ class GamificationService:
             elif gs.game_type == "2048" and gs.best_score and gs.best_score > game_2048_best_score:
                 game_2048_best_score = gs.best_score
 
-        return {
+        stats = {
             "total_messages": total_messages,
             "total_questions": total_questions,
             "consecutive_days": consecutive_days,
@@ -505,6 +505,16 @@ class GamificationService:
             "checkers_wins": checkers_wins,
             "2048_best_score": game_2048_best_score,
         }
+        # Premium-метрики для отображения прогресса по эксклюзивным достижениям
+        from bot.services.premium_features_service import PremiumFeaturesService
+
+        premium_service = PremiumFeaturesService(self.db)
+        if premium_service.is_premium_active(telegram_id):
+            stats["premium_requests"] = total_messages
+            stats["premium_subjects"] = unique_subjects
+            stats["premium_days"] = consecutive_days
+            stats["vip_status"] = 1
+        return stats
 
     def _calculate_consecutive_days(self, telegram_id: int) -> int:
         """
@@ -697,6 +707,14 @@ class GamificationService:
             return min(stats.get("checkers_wins", 0), achievement.condition_value)
         elif condition_type == "2048_best_score":
             return min(stats.get("2048_best_score", 0), achievement.condition_value)
+        elif condition_type == "premium_requests":
+            return min(stats.get("premium_requests", 0), achievement.condition_value)
+        elif condition_type == "premium_subjects":
+            return min(stats.get("premium_subjects", 0), achievement.condition_value)
+        elif condition_type == "premium_days":
+            return min(stats.get("premium_days", 0), achievement.condition_value)
+        elif condition_type == "vip_status":
+            return 1 if stats.get("vip_status", 0) >= achievement.condition_value else 0
 
         return 0
 
