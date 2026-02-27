@@ -131,6 +131,24 @@ class Settings(BaseSettings):
         description="Количество сообщений в истории для контекста AI",
         validation_alias=AliasChoices("CHAT_HISTORY_LIMIT", "chat_history_limit"),
     )
+    chat_history_messages_for_api_free: int = Field(
+        default=10,
+        ge=1,
+        le=50,
+        description="Сколько последних сообщений передавать в Yandex API (free)",
+        validation_alias=AliasChoices(
+            "CHAT_HISTORY_MESSAGES_FOR_API_FREE", "chat_history_messages_for_api_free"
+        ),
+    )
+    chat_history_messages_for_api_premium: int = Field(
+        default=20,
+        ge=1,
+        le=50,
+        description="Сколько последних сообщений передавать в Yandex API (premium)",
+        validation_alias=AliasChoices(
+            "CHAT_HISTORY_MESSAGES_FOR_API_PREMIUM", "chat_history_messages_for_api_premium"
+        ),
+    )
 
     # SECURITY
     secret_key: str = Field(

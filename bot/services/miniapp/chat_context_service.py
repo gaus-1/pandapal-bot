@@ -8,6 +8,7 @@
 - Получение веб-контекста
 """
 
+from bot.config import settings
 from bot.services import ChatHistoryService, UserService
 from bot.services.premium_features_service import PremiumFeaturesService
 
@@ -154,10 +155,15 @@ class MiniappChatContextService:
             allow_emoji_this_turn=allow_emoji_this_turn,
         )
 
-        # Преобразуем историю в формат Yandex
+        # Преобразуем историю в формат Yandex (лимит для API: premium 20, free 10)
+        api_limit = (
+            settings.chat_history_messages_for_api_premium
+            if self.premium_service.is_premium_active(telegram_id)
+            else settings.chat_history_messages_for_api_free
+        )
         yandex_history = []
         if history:
-            for msg in history[-10:]:
+            for msg in history[-api_limit:]:
                 role = msg.get("role", "user")
                 text = msg.get("text", "").strip()
                 if text:

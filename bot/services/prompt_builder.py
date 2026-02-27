@@ -34,15 +34,19 @@ class PromptBuilder:
         Построить системный промпт: базовые правила + опциональный контекст
         (приветствие/прощание, пол, предпочтение по эмодзи).
         """
+        history = chat_history or []
         greeting = self._get_greeting_context(
-            chat_history or [],
+            history,
             is_history_cleared,
             user_message,
             is_auto_greeting_sent,
             user_name,
             user_grade,
         )
+        current_topic = self._get_current_topic_snippet(history)
         parts = [self.base_prompt]
+        if current_topic:
+            parts.append(current_topic)
         if greeting:
             parts.append(greeting)
         if user_gender:
@@ -231,6 +235,25 @@ class PromptBuilder:
             )
 
         return None
+
+    @staticmethod
+    def _get_current_topic_snippet(chat_history: list[dict]) -> str | None:
+        """Фрагмент последнего ответа ассистента для контекста диалога (до 200 символов)."""
+        if not chat_history:
+            return None
+        last_assistant_text = None
+        for msg in reversed(chat_history):
+            if msg.get("role") == "assistant":
+                last_assistant_text = (msg.get("text") or "").strip()
+                break
+        if not last_assistant_text:
+            return None
+        # До первого перевода строки или обрезка по длине
+        first_line = last_assistant_text.split("\n")[0].strip()
+        snippet = (first_line[:200] + "…") if len(first_line) > 200 else first_line
+        if not snippet:
+            return None
+        return f"Текущий контекст диалога (для связности ответа): {snippet}."
 
 
 # Глобальный экземпляр

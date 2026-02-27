@@ -240,9 +240,9 @@ class YandexCloudService:
             if system_prompt:
                 messages.append({"role": "system", "text": system_prompt})
 
-            # Добавляем историю чата
+            # Добавляем историю чата (срез по лимиту делается у вызывающей стороны)
             if chat_history:
-                for msg in chat_history[-10:]:  # Последние 10 сообщений
+                for msg in chat_history:
                     messages.append({"role": msg.get("role", "user"), "text": msg.get("text", "")})
 
             # Добавляем текущее сообщение
@@ -359,9 +359,9 @@ class YandexCloudService:
             if system_prompt:
                 messages.append({"role": "system", "text": system_prompt})
 
-            # Добавляем историю чата
+            # Добавляем историю чата (срез по лимиту делается у вызывающей стороны)
             if chat_history:
-                for msg in chat_history[-10:]:  # Последние 10 сообщений
+                for msg in chat_history:
                     messages.append({"role": msg.get("role", "user"), "text": msg.get("text", "")})
 
             # Добавляем текущее сообщение

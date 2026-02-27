@@ -97,6 +97,43 @@ class TestKnowledgeService:
         assert "Фотосинтез" in result
         assert "фотосинтез" in result.lower() or "Фотосинтез" in result
 
+    def test_build_rag_query_no_history_returns_message(self):
+        """build_rag_query: без истории возвращает исходное сообщение."""
+        out = KnowledgeService.build_rag_query("Что такое фотосинтез?", None)
+        assert out == "Что такое фотосинтез?"
+        out_empty = KnowledgeService.build_rag_query("  Вопрос  ", [])
+        assert out_empty == "Вопрос"
+
+    def test_build_rag_query_no_assistant_returns_message(self):
+        """build_rag_query: если в истории нет ответов assistant — возвращает сообщение."""
+        history = [{"role": "user", "text": "Привет"}]
+        out = KnowledgeService.build_rag_query("а ещё?", history)
+        assert out == "а ещё?"
+
+    def test_build_rag_query_continuation_prepends_topic(self):
+        """build_rag_query: «а ещё?» + длинный ответ assistant — в запросе есть фрагмент темы."""
+        long_reply = (
+            "Фотосинтез — это процесс, при котором растения превращают свет в энергию. "
+            "Он происходит в хлоропластах. Без фотосинтеза не было бы жизни на Земле."
+        )
+        history = [
+            {"role": "user", "text": "Что такое фотосинтез?"},
+            {"role": "assistant", "text": long_reply},
+        ]
+        out = KnowledgeService.build_rag_query("а ещё примеры?", history)
+        assert "Фотосинтез" in out or "фотосинтез" in out.lower()
+        assert "а ещё примеры?" in out or "ещё примеры" in out
+
+    def test_build_rag_query_long_message_unchanged(self):
+        """build_rag_query: длинное сообщение возвращается без дополнения темы."""
+        history = [
+            {"role": "user", "text": "Что такое фотосинтез?"},
+            {"role": "assistant", "text": "Фотосинтез — процесс в растениях."},
+        ]
+        long_msg = "Расскажи подробнее про этапы фотосинтеза и где он происходит"
+        out = KnowledgeService.build_rag_query(long_msg, history)
+        assert out == long_msg
+
     def test_get_knowledge_service_singleton(self):
         """Тест получения singleton экземпляра"""
         service1 = get_knowledge_service()

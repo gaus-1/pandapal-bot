@@ -180,8 +180,11 @@ async def miniapp_ai_chat_stream(request: web.Request) -> web.StreamResponse:
 
             from bot.config import settings
 
+            rag_query = response_generator.knowledge_service.build_rag_query(
+                normalized_message, context["history"]
+            )
             relevant_materials = await response_generator.knowledge_service.enhanced_search(
-                user_question=normalized_message,
+                user_question=rag_query,
                 user_age=user.age,
                 top_k=3,
                 use_wikipedia=response_generator._should_use_wikipedia(normalized_message),

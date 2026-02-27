@@ -30,6 +30,23 @@ _FAREWELL_KEYWORDS = frozenset(
     }
 )
 
+# Уточняющий вопрос: только при явном коротком продолжении без конкретики (без вызова модели)
+_CLARIFICATION_MAX_MESSAGE_LEN = 25
+_CLARIFICATION_MIN_LAST_REPLY_LEN = 180
+_CLARIFICATION_PHRASES = frozenset(
+    {
+        "а ещё?",
+        "а почему?",
+        "а это?",
+        "и что?",
+        "а можно по-другому?",
+        "а что с этим?",
+    }
+)
+_CLARIFICATION_RESPONSE = (
+    "Напиши, пожалуйста, чуть подробнее — о чём именно хочешь узнать? Тогда отвечу точнее."
+)
+
 
 def _is_probably_russian_message(text: str) -> bool:
     """Определить, что сообщение в основном русскоязычное (для RU-вовлечения)."""
@@ -1122,6 +1139,26 @@ class YandexAIResponseGenerator:
         ]
         return any(re.search(p, ml) for p in cot_triggers)
 
+    @staticmethod
+    def _should_ask_clarification(user_message: str, chat_history: list[dict] | None) -> bool:
+        """
+        True только при коротком неоднозначном продолжении: длина ≤25, в истории есть ответ
+        assistant не короче 180 символов, сообщение входит в список продолжений.
+        """
+        msg = (user_message or "").strip()
+        if len(msg) > _CLARIFICATION_MAX_MESSAGE_LEN:
+            return False
+        if not chat_history:
+            return False
+        last_assistant_text = None
+        for m in reversed(chat_history):
+            if m.get("role") == "assistant":
+                last_assistant_text = (m.get("text") or "").strip()
+                break
+        if not last_assistant_text or len(last_assistant_text) < _CLARIFICATION_MIN_LAST_REPLY_LEN:
+            return False
+        return msg.lower() in _CLARIFICATION_PHRASES
+
     async def generate_response(
         self,
         user_message: str,
@@ -1133,10 +1170,11 @@ class YandexAIResponseGenerator:
         message_count_since_name: int = 0,
         skip_name_asking: bool = False,  # noqa: ARG002
         non_educational_questions_count: int = 0,
-        is_premium: bool = False,  # noqa: ARG002
+        is_premium: bool = False,
         is_auto_greeting_sent: bool = False,
         user_gender: str | None = None,
         emoji_in_chat: bool | None = None,
+        history_message_limit: int | None = None,
     ) -> str:
         """
         Генерировать ответ AI на сообщение пользователя.
@@ -1167,9 +1205,20 @@ class YandexAIResponseGenerator:
 
                 return ContentModerationService().get_safe_response_alternative(block_reason)
 
-            # RAG: enhanced_search подтягивает Wikipedia при пустой базе (use_wikipedia)
+            if self._should_ask_clarification(user_message, chat_history):
+                return _CLARIFICATION_RESPONSE
+
+            if history_message_limit is None:
+                history_message_limit = (
+                    settings.chat_history_messages_for_api_premium
+                    if is_premium
+                    else settings.chat_history_messages_for_api_free
+                )
+
+            # RAG: запрос с учётом контекста диалога для коротких продолжений («а ещё?», «а почему?»)
+            rag_query = self.knowledge_service.build_rag_query(user_message, chat_history)
             relevant_materials = await self.knowledge_service.enhanced_search(
-                user_question=user_message,
+                user_question=rag_query,
                 user_age=user_age,
                 top_k=3,
                 use_wikipedia=self._should_use_wikipedia(user_message),
@@ -1186,13 +1235,13 @@ class YandexAIResponseGenerator:
                 relevant_materials, user_message, max_sentences=max_sent
             )
 
-            # Преобразуем историю в формат Yandex Cloud
+            # Преобразуем историю в формат Yandex Cloud (лимит задаётся вызывающей стороной)
             yandex_history = []
             if chat_history:
-                for msg in chat_history[-10:]:  # Последние 10 сообщений
-                    role = msg.get("role", "user")  # Используем роль напрямую из истории
+                for msg in chat_history[-history_message_limit:]:
+                    role = msg.get("role", "user")
                     text = msg.get("text", "").strip()
-                    if text:  # Только непустые сообщения
+                    if text:
                         yandex_history.append({"role": role, "text": text})
 
             # Используем PromptBuilder для формирования промпта

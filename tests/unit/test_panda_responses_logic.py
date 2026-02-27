@@ -175,6 +175,86 @@ class TestPromptStructure:
         )
         assert "женский" in prompt_f or "Пол пользователя" in prompt_f
 
+    @pytest.mark.asyncio
+    async def test_history_message_limit_slice(self, response_generator):
+        """При 25 сообщениях и history_message_limit=20 в API уходит список длины 20."""
+        history_25 = [
+            {"role": "user" if i % 2 == 0 else "assistant", "text": f"msg {i}"}
+            for i in range(25)
+        ]
+        with patch.object(
+            response_generator.yandex_service, "generate_text_response", new_callable=AsyncMock
+        ) as mock_gpt:
+            mock_gpt.return_value = "Ответ."
+            await response_generator.generate_response(
+                user_message="Вопрос",
+                chat_history=history_25,
+                user_age=10,
+                history_message_limit=20,
+            )
+            call_args = mock_gpt.call_args
+            chat_history_passed = call_args.kwargs.get("chat_history", [])
+            assert len(chat_history_passed) == 20, (
+                "В Yandex API должна уходить история, обрезанная до 20 сообщений"
+            )
+
+
+class TestShouldAskClarification:
+    """Уточняющий вопрос при коротком неоднозначном продолжении."""
+
+    def test_short_continuation_with_long_reply_returns_true(self, response_generator):
+        """«а ещё?» + длинный ответ в истории → True."""
+        long_reply = "Фотосинтез — это процесс. " * 20  # > 180 символов
+        history = [
+            {"role": "user", "text": "Что такое фотосинтез?"},
+            {"role": "assistant", "text": long_reply},
+        ]
+        assert response_generator._should_ask_clarification("а ещё?", history) is True
+
+    def test_full_question_returns_false(self, response_generator):
+        """«Расскажи про фотосинтез» → False (длинное или не из списка)."""
+        history = [{"role": "assistant", "text": "Да, конечно. " * 30}]
+        assert (
+            response_generator._should_ask_clarification("Расскажи про фотосинтез", history)
+            is False
+        )
+
+    def test_empty_history_returns_false(self, response_generator):
+        """Пустая история → False."""
+        assert response_generator._should_ask_clarification("а ещё?", []) is False
+        assert response_generator._should_ask_clarification("а ещё?", None) is False
+
+    def test_short_last_reply_returns_false(self, response_generator):
+        """Последний ответ assistant короче 180 символов → False."""
+        history = [
+            {"role": "user", "text": "Привет"},
+            {"role": "assistant", "text": "Привет!"},
+        ]
+        assert response_generator._should_ask_clarification("а ещё?", history) is False
+
+    @pytest.mark.asyncio
+    async def test_generate_response_returns_clarification_without_api_call(
+        self, response_generator
+    ):
+        """При «а ещё?» и длинном ответе в истории возвращается фиксированная фраза, API не вызывается."""
+        from bot.services.yandex_ai_response_generator import _CLARIFICATION_RESPONSE
+
+        long_reply = "Фотосинтез — это процесс превращения света в энергию. " * 10
+        history = [
+            {"role": "user", "text": "Что такое фотосинтез?"},
+            {"role": "assistant", "text": long_reply},
+        ]
+        with patch.object(
+            response_generator.yandex_service, "generate_text_response", new_callable=AsyncMock
+        ) as mock_gpt:
+            result = await response_generator.generate_response(
+                user_message="а ещё?",
+                chat_history=history,
+                user_age=10,
+            )
+            assert result == _CLARIFICATION_RESPONSE
+            mock_gpt.assert_not_called()
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

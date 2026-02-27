@@ -28,6 +28,25 @@ from bot.services.web_scraper import EducationalContent, WebScraperService
 # Языки Википедии (совпадают с SUPPORTED_LANGUAGES в translate_service)
 WIKIPEDIA_LANGUAGES = frozenset({"ru", "en", "de", "fr", "es"})
 
+# Query rewriting для RAG: короткое сообщение-продолжение диалога
+RAG_QUERY_SHORT_MESSAGE_MAX_LEN = 40
+RAG_QUERY_TOPIC_MAX_CHARS = 300
+RAG_QUERY_CONTINUATION_PHRASES = frozenset(
+    {
+        "а ещё",
+        "ещё?",
+        "а почему",
+        "а это",
+        "а можно",
+        "и что",
+        "а что с этим",
+        "почему так",
+        "а зачем",
+        "а как",
+        "а где",
+    }
+)
+
 
 def _normalize_wikipedia_lang(language_code: str | None) -> str:
     """Нормализация кода языка для Wikipedia API (ru, en, de, fr, es)."""
@@ -126,6 +145,37 @@ class KnowledgeService:
             ]
 
         return subject_materials
+
+    @staticmethod
+    def build_rag_query(user_message: str, chat_history: list[dict] | None = None) -> str:
+        """
+        Строит поисковый запрос для RAG: при коротком «продолжении» дополняет контекстом последнего ответа.
+
+        Если истории нет или нет ответов assistant — возвращает user_message.
+        Иначе при коротком сообщении (≤40 символов) с маркерами продолжения («а ещё», «а почему» и т.п.)
+        возвращает фрагмент последнего ответа + сообщение; иначе — только user_message.
+        """
+        if not chat_history:
+            return user_message.strip()
+        last_assistant_text = None
+        for msg in reversed(chat_history):
+            if msg.get("role") == "assistant":
+                last_assistant_text = (msg.get("text") or "").strip()
+                break
+        if not last_assistant_text:
+            return user_message.strip()
+        msg_stripped = user_message.strip()
+        if len(msg_stripped) > RAG_QUERY_SHORT_MESSAGE_MAX_LEN:
+            return msg_stripped
+        msg_lower = msg_stripped.lower()
+        if not any(phrase in msg_lower for phrase in RAG_QUERY_CONTINUATION_PHRASES):
+            return msg_stripped
+        topic = last_assistant_text.split("\n")[0].strip()
+        if len(topic) > RAG_QUERY_TOPIC_MAX_CHARS:
+            cut = topic[:RAG_QUERY_TOPIC_MAX_CHARS]
+            last_space = cut.rfind(" ")
+            topic = (cut[:last_space] if last_space > 0 else cut) + "…"
+        return f"{topic} {msg_stripped}"
 
     async def enhanced_search(
         self,
