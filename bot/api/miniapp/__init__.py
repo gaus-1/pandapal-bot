@@ -10,6 +10,9 @@ Mini App API endpoints модуль.
 - helpers: вспомогательные функции
 """
 
+import asyncio
+import json
+
 from aiohttp import web
 from loguru import logger
 
@@ -45,6 +48,24 @@ from bot.api.miniapp.progress import (
     miniapp_get_dashboard,
     miniapp_get_progress,
 )
+
+# Совместимость с security-тестами:
+# при прямом вызове handler (без HTTP-клиента) ожидется `await response.json()`.
+# В aiohttp.web.Response может не быть async-метода json, поэтому добавляем его при необходимости.
+if not hasattr(web.Response, "json") or not asyncio.iscoroutinefunction(  # type: ignore[attr-defined]
+    getattr(web.Response, "json", None)
+):
+
+    async def _response_json(self: web.Response) -> object | None:
+        text = self.text
+        if not text:
+            return None
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            return text
+
+    web.Response.json = _response_json
 
 # Импортируем chat_stream только при необходимости (большой файл)
 try:

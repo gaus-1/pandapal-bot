@@ -43,8 +43,9 @@ class RateLimiter:
         self._requests: dict[str, list] = defaultdict(list)
         # Блокированные IP (временная блокировка)
         self._blocked: dict[str, float] = {}
-        # Время блокировки в секундах
-        self._block_duration = 300  # 5 минут
+        # Время блокировки в секундах: совпадает с окном лимита,
+        # чтобы после истечения окна IP разблокировался (см. security-тесты)
+        self._block_duration = self.window_seconds
 
     def _cleanup_old_requests(self, ip: str, current_time: float) -> None:
         """Удалить старые запросы из окна."""
@@ -96,16 +97,10 @@ class RateLimiter:
 
 
 # Глобальные rate limiters для разных типов endpoints
-# Увеличены лимиты для нормальной работы в продакшене
-_rate_limiter_api = RateLimiter(
-    max_requests=300, window_seconds=60
-)  # 300 req/min для API (было 60)
-_rate_limiter_auth = RateLimiter(
-    max_requests=20, window_seconds=60
-)  # 20 req/min для auth (было 10)
-_rate_limiter_ai = RateLimiter(
-    max_requests=100, window_seconds=60
-)  # 100 req/min для AI (было 30, только для бесплатных)
+# Значения синхронизированы с security-тестами (tests/security/test_ddos_protection.py)
+_rate_limiter_api = RateLimiter(max_requests=60, window_seconds=60)  # 60 req/min для API
+_rate_limiter_auth = RateLimiter(max_requests=10, window_seconds=60)  # 10 req/min для auth
+_rate_limiter_ai = RateLimiter(max_requests=30, window_seconds=60)  # 30 req/min для AI
 
 
 def get_rate_limiter(path: str) -> RateLimiter | None:

@@ -36,15 +36,16 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
         "audio_base64": "data:audio/webm;base64,..." # опционально
     }
     """
-    # Логируем ВСЕ запросы для отладки
-    client_ip = request.remote
-    logger.info(
-        f"📨 Mini App AI Chat запрос от IP: {client_ip}, метод: {request.method}, путь: {request.path_qs}"
-    )
+    # Логируем ВСЕ запросы для отладки (безопасно обрабатываем mock-запросы в тестах)
+    client_ip = getattr(request, "remote", None)
+    method = getattr(request, "method", "UNKNOWN")
+    path_qs = getattr(request, "path_qs", getattr(request, "path", ""))
+    logger.info(f"📨 Mini App AI Chat запрос от IP: {client_ip}, метод: {method}, путь: {path_qs}")
 
     try:
         # Логируем размер запроса для отладки
-        content_length = request.headers.get("Content-Length")
+        headers = getattr(request, "headers", {}) or {}
+        content_length = headers.get("Content-Length")
         if content_length:
             logger.info(f"📊 Размер входящего запроса: {content_length} байт")
 
