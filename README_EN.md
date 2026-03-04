@@ -63,7 +63,7 @@ Full installation details: [docs/](docs/)
 - Voice questions with confirmation before AI submit
 - Subject visualizations (graphs, tables, schemes, maps)
 - RAG search with `pgvector` in `knowledge_embeddings`
-- PandaPalGo games: Tic-Tac-Toe, Checkers, 2048, Erudite
+- PandaPalGo games: My Panda (tamagotchi with feeding, play, sleep cycles), Tic-Tac-Toe, Checkers, 2048, Erudite
 - Progress, achievements, and gamification
 - Premium via YooKassa (299 RUB/month), saved cards
 - Referral program (`ref_<telegram_id>`)
