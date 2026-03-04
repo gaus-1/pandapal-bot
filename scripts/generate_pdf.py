@@ -58,14 +58,14 @@ def markdown_to_html(markdown_content: str) -> str:
                 color: #666;
             }}
         }}
-        
+
         body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
             font-size: 11pt;
         }}
-        
+
         h1 {{
             color: #2c3e50;
             border-bottom: 3px solid #3498db;
@@ -73,7 +73,7 @@ def markdown_to_html(markdown_content: str) -> str:
             margin-top: 30px;
             page-break-after: avoid;
         }}
-        
+
         h2 {{
             color: #34495e;
             border-bottom: 2px solid #95a5a6;
@@ -81,18 +81,18 @@ def markdown_to_html(markdown_content: str) -> str:
             margin-top: 25px;
             page-break-after: avoid;
         }}
-        
+
         h3 {{
             color: #555;
             margin-top: 20px;
             page-break-after: avoid;
         }}
-        
+
         h4 {{
             color: #666;
             margin-top: 15px;
         }}
-        
+
         code {{
             background-color: #f4f4f4;
             padding: 2px 6px;
@@ -101,7 +101,7 @@ def markdown_to_html(markdown_content: str) -> str:
             font-size: 10pt;
             color: #e83e8c;
         }}
-        
+
         pre {{
             background-color: #f8f9fa;
             border: 1px solid #e9ecef;
@@ -112,13 +112,13 @@ def markdown_to_html(markdown_content: str) -> str:
             font-size: 9pt;
             line-height: 1.4;
         }}
-        
+
         pre code {{
             background-color: transparent;
             padding: 0;
             color: #333;
         }}
-        
+
         blockquote {{
             border-left: 4px solid #3498db;
             padding-left: 15px;
@@ -126,48 +126,48 @@ def markdown_to_html(markdown_content: str) -> str:
             color: #555;
             font-style: italic;
         }}
-        
+
         table {{
             width: 100%;
             border-collapse: collapse;
             margin: 15px 0;
             page-break-inside: avoid;
         }}
-        
+
         th, td {{
             border: 1px solid #ddd;
             padding: 10px;
             text-align: left;
         }}
-        
+
         th {{
             background-color: #3498db;
             color: white;
             font-weight: bold;
         }}
-        
+
         tr:nth-child(even) {{
             background-color: #f8f9fa;
         }}
-        
+
         ul, ol {{
             margin: 10px 0;
             padding-left: 30px;
         }}
-        
+
         li {{
             margin: 5px 0;
         }}
-        
+
         a {{
             color: #3498db;
             text-decoration: none;
         }}
-        
+
         a:hover {{
             text-decoration: underline;
         }}
-        
+
         .toc {{
             background-color: #f8f9fa;
             border: 1px solid #e9ecef;
@@ -176,32 +176,32 @@ def markdown_to_html(markdown_content: str) -> str:
             margin: 20px 0;
             page-break-inside: avoid;
         }}
-        
+
         .toc ul {{
             list-style-type: none;
             padding-left: 0;
         }}
-        
+
         .toc li {{
             margin: 8px 0;
         }}
-        
+
         .toc a {{
             color: #2c3e50;
             font-weight: 500;
         }}
-        
+
         hr {{
             border: none;
             border-top: 2px solid #e9ecef;
             margin: 30px 0;
         }}
-        
+
         strong {{
             color: #2c3e50;
             font-weight: 600;
         }}
-        
+
         em {{
             color: #555;
         }}

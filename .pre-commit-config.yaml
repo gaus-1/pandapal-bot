@@ -31,12 +31,12 @@ repos:
       # Форматирование кода (заменяет black)
       - id: ruff-format
         name: 🎨 ruff format - форматирование кода
-        exclude: ^(tests/|scripts/|alembic/)
+        exclude: ^(scripts/|alembic/)
       # Линтинг и сортировка импортов (заменяет flake8 + isort)
       - id: ruff
         name: 🔍 ruff - линтинг и сортировка импортов (PEP8)
         args: ['--fix', '--exit-non-zero-on-fix']
-        exclude: ^(tests/|scripts/|alembic/)
+        exclude: ^(scripts/|alembic/)
 
   # Radon: сложность кода (manual)
   - repo: local
@@ -67,10 +67,11 @@ repos:
           - '--show-error-codes'
           - '--warn-unused-ignores'
           - '--no-error-summary'
-        exclude: ^(tests/|scripts/|alembic/|bot/services/|bot/handlers/)
-        # Не блокирует коммит, только предупреждает
+        exclude: ^(tests/|scripts/|alembic/)
+        # Не блокирует коммит, только предупреждает; запуск вручную:
+        #   pre-commit run mypy --all-files
         verbose: true
-        stages: [manual]  # Запускается только вручную через: git commit --no-verify
+        stages: [manual]
 
   # pylint: SOLID и архитектура
   - repo: https://github.com/pycqa/pylint

@@ -28,13 +28,13 @@ from aiogram.types import (
 )
 
 
-def get_main_menu_keyboard(user_type: str = "child") -> ReplyKeyboardRemove:
+def get_main_menu_keyboard(_user_type: str = "child") -> ReplyKeyboardRemove:
     """
     Убираем reply keyboard - все функции в Mini App.
     Mini App открывается через кнопку меню в Telegram (настроена в BotFather).
 
     Args:
-        user_type: Тип пользователя (не используется, для совместимости)
+        _user_type: Тип пользователя (не используется, для совместимости)
 
     Returns:
         ReplyKeyboardRemove: Убирает reply клавиатуру
@@ -107,12 +107,12 @@ def get_help_type_keyboard() -> InlineKeyboardMarkup:
     return keyboard
 
 
-def get_settings_keyboard(user_type: str = "child") -> InlineKeyboardMarkup:
+def get_settings_keyboard(_user_type: str = "child") -> InlineKeyboardMarkup:
     """
     Клавиатура настроек профиля
 
     Args:
-        user_type: Тип пользователя (не используется, для совместимости)
+        _user_type: Тип пользователя (не используется, для совместимости)
 
     Returns:
         InlineKeyboardMarkup: Клавиатура настроек

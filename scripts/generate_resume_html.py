@@ -36,7 +36,7 @@ def markdown_to_html(markdown_content: str) -> str:
             size: A4;
             margin: 2cm;
         }}
-        
+
         body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
@@ -46,7 +46,7 @@ def markdown_to_html(markdown_content: str) -> str:
             margin: 0 auto;
             padding: 20px;
         }}
-        
+
         h1 {{
             color: #2c3e50;
             border-bottom: 3px solid #3498db;
@@ -55,7 +55,7 @@ def markdown_to_html(markdown_content: str) -> str:
             margin-bottom: 10px;
             font-size: 24pt;
         }}
-        
+
         h2 {{
             color: #34495e;
             border-bottom: 2px solid #95a5a6;
@@ -65,7 +65,7 @@ def markdown_to_html(markdown_content: str) -> str:
             font-size: 16pt;
             page-break-after: avoid;
         }}
-        
+
         h3 {{
             color: #555;
             margin-top: 20px;
@@ -73,18 +73,18 @@ def markdown_to_html(markdown_content: str) -> str:
             font-size: 13pt;
             page-break-after: avoid;
         }}
-        
+
         h4 {{
             color: #666;
             margin-top: 15px;
             margin-bottom: 8px;
             font-size: 12pt;
         }}
-        
+
         p {{
             margin: 8px 0;
         }}
-        
+
         code {{
             background-color: #f4f4f4;
             padding: 2px 6px;
@@ -93,7 +93,7 @@ def markdown_to_html(markdown_content: str) -> str:
             font-size: 10pt;
             color: #e83e8c;
         }}
-        
+
         pre {{
             background-color: #f8f9fa;
             border: 1px solid #e9ecef;
@@ -104,42 +104,42 @@ def markdown_to_html(markdown_content: str) -> str:
             font-size: 9pt;
             line-height: 1.4;
         }}
-        
+
         pre code {{
             background-color: transparent;
             padding: 0;
             color: #333;
         }}
-        
+
         ul, ol {{
             margin: 10px 0;
             padding-left: 30px;
         }}
-        
+
         li {{
             margin: 5px 0;
         }}
-        
+
         a {{
             color: #3498db;
             text-decoration: none;
         }}
-        
+
         a:hover {{
             text-decoration: underline;
         }}
-        
+
         hr {{
             border: none;
             border-top: 2px solid #e9ecef;
             margin: 30px 0;
         }}
-        
+
         strong {{
             color: #2c3e50;
             font-weight: 600;
         }}
-        
+
         .contact-info {{
             margin: 10px 0;
             font-size: 10pt;
