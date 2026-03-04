@@ -268,7 +268,7 @@ function MiniAppContent() {
       {/* Нижняя навигация - фиксированная */}
       {currentScreen === 'ai-chat' ? (
         <nav className="flex-shrink-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
-          <div className="flex gap-fib-2 sm:gap-fib-2 md:gap-fib-3 px-fib-2 sm:px-fib-2 md:px-fib-3 py-fib-2 sm:py-fib-2 md:py-fib-3 max-w-full overflow-x-auto">
+          <div className="flex gap-fib-2 sm:gap-fib-2 md:gap-fib-3 px-fib-2 sm:px-fib-2 md:px-fib-3 py-fib-1 sm:py-fib-2 md:py-fib-2 max-w-full overflow-x-auto">
             <NavButton
               icon="🏆"
               label="Достижения"
@@ -291,7 +291,7 @@ function MiniAppContent() {
         </nav>
       ) : currentScreen === 'games' ? null : currentScreen === 'my-panda' ? (
         <nav className="flex-shrink-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
-          <div className="flex gap-fib-2 sm:gap-fib-2 md:gap-fib-3 px-fib-2 sm:px-fib-2 md:px-fib-3 py-fib-2 sm:py-fib-2 md:py-fib-3 max-w-full overflow-x-auto">
+          <div className="flex gap-fib-2 sm:gap-fib-2 md:gap-fib-3 px-fib-2 sm:px-fib-2 md:px-fib-3 py-fib-1 sm:py-fib-2 md:py-fib-2 max-w-full overflow-x-auto">
             <NavButton icon="💬" label="Чат" isActive={false} onClick={() => navigateTo('ai-chat')} />
             <NavButton icon="🏆" label="Достижения" isActive={false} onClick={() => navigateTo('achievements')} />
             <NavButton icon="👑" label="Premium" isActive={false} onClick={() => navigateTo('premium')} />
@@ -299,7 +299,7 @@ function MiniAppContent() {
         </nav>
       ) : (
         <nav className="flex-shrink-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-lg safe-area-inset-bottom" aria-label="Основная навигация">
-          <div className="flex gap-fib-2 sm:gap-fib-2 md:gap-fib-3 px-fib-2 sm:px-fib-2 md:px-fib-3 py-fib-2 sm:py-fib-2 md:py-fib-3 max-w-full overflow-x-auto">
+          <div className="flex gap-fib-2 sm:gap-fib-2 md:gap-fib-3 px-fib-2 sm:px-fib-2 md:px-fib-3 py-fib-1 sm:py-fib-2 md:py-fib-2 max-w-full overflow-x-auto">
             <NavButton
               icon="💬"
               label="Чат"
@@ -348,7 +348,7 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex-1 flex flex-col items-center justify-center gap-fib-1 sm:gap-fib-1 py-fib-1 sm:py-fib-2 px-fib-2 sm:px-fib-2 rounded-lg sm:rounded-xl transition-all min-w-0 min-h-[52px] sm:min-h-[64px] touch-manipulation ${
+      className={`flex-1 flex flex-col items-center justify-center gap-fib-1 sm:gap-fib-1 py-fib-1 sm:py-fib-1 px-fib-2 sm:px-fib-2 rounded-lg sm:rounded-xl transition-all min-w-0 min-h-[48px] sm:min-h-[56px] touch-manipulation ${
         isActive
           ? 'bg-blue-500 dark:bg-blue-600 text-white font-semibold shadow-md'
           : 'text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 active:scale-95 font-medium border border-gray-200 dark:border-slate-700'

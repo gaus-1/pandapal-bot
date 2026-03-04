@@ -142,3 +142,13 @@ def test_clean_ai_response_latex_math_symbols():
     assert "≈" in cleaned
     assert "∑" in cleaned
     assert "∫" in cleaned
+
+
+def test_clean_ai_response_double_list_marker():
+    """Двойной маркер списка «- - Текст» превращается в один маркер."""
+    text = "Основные характеристики графика синуса:\n- - Периодичность\n- - Амплитуда"
+    cleaned = clean_ai_response(text)
+    assert "- - " not in cleaned
+    # При этом пункты списка остаются
+    assert "Периодичность" in cleaned
+    assert "Амплитуда" in cleaned
