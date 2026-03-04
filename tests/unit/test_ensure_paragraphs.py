@@ -114,3 +114,31 @@ def test_clean_ai_response_duplicate_numbering():
     cleaned = clean_ai_response(text)
     assert "5. 6." not in cleaned
     assert "6." in cleaned
+
+
+def test_clean_ai_response_dash_after_punctuation():
+    """. — текст и ? — текст превращаются в обычные предложения без длинного тире."""
+    text = "Антиоксиданты. — вещества, которые защищают резину. Что это? — добавки."
+    cleaned = clean_ai_response(text)
+    # Длинное тире после точки/вопросительного знака должно исчезнуть
+    assert ". —" not in cleaned
+    assert "? —" not in cleaned
+    # При этом обычное тире внутри предложения сохраняется
+    assert "Антиоксиданты" in cleaned
+    assert "добавки." in cleaned
+
+
+def test_clean_ai_response_latex_math_symbols():
+    """LaTeX-команды для школьных формул конвертируются в понятные символы."""
+    text = (
+        "Неравенства: a \\leq b, c \\geq d, x \\neq y, x \\approx y. "
+        "Квадратное уравнение: x^2 + 2x + 1 = 0. "
+        "Сумма: \\sum_{i=1}^n i, интеграл: \\int_a^b f(x) dx."
+    )
+    cleaned = clean_ai_response(text)
+    assert "≤" in cleaned
+    assert "≥" in cleaned
+    assert "≠" in cleaned
+    assert "≈" in cleaned
+    assert "∑" in cleaned
+    assert "∫" in cleaned

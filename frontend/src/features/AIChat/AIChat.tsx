@@ -665,6 +665,17 @@ function renderTextWithBold(text: string): React.ReactNode {
 function isSubheadingLine(line: string): boolean {
   const t = line.trim();
   if (!t.endsWith(':') || t.includes('**') || t.length > 120) return false;
+  // Разрешаем строки вида «— Подзаголовок:»
+  if (t.startsWith('— ')) {
+    const withoutDash = t.slice(2).trim();
+    if (!withoutDash) return false;
+    // Не считаем подзаголовком, если внутри есть точка (скорее обычное предложение)
+    if (withoutDash.includes('.')) return false;
+    return true;
+  }
+  const firstChar = t[0];
+  if (!/[A-Za-zА-Яа-я0-9]/.test(firstChar)) return false;
+  if (t.includes('.')) return false;
   return true;
 }
 
@@ -821,12 +832,31 @@ function renderSectionContent(content: string) {
   );
 }
 
-function MessageContent({ content, role, isGreeting }: MessageContentProps) {
+function isCodeBlock(content: string): boolean {
+  const lines = content.split('\n').map((l) => l.trim()).filter(Boolean);
+  if (lines.length === 0) return false;
+  // Если большинство строк выглядят как код (английские идентификаторы, =, ;, { }), считаем блоком кода
+  const codeLike = lines.filter((line) => {
+    if (/[А-Яа-яЁё]/.test(line)) return false;
+    return /^[A-Za-z0-9_].*[=;{}()]/.test(line);
+  });
+  return codeLike.length >= lines.length * 0.6;
+}
+
+export function MessageContent({ content, role, isGreeting }: MessageContentProps) {
   if (role !== 'ai') {
     return (
       <p className="whitespace-pre-wrap break-words font-medium text-xs sm:text-sm leading-relaxed text-white dark:text-white">
         {content}
       </p>
+    );
+  }
+
+  if (isCodeBlock(content)) {
+    return (
+      <pre className="whitespace-pre-wrap break-words text-xs sm:text-sm leading-relaxed font-mono bg-gray-900/90 text-green-100 rounded-lg p-3 overflow-x-auto">
+        <code>{content}</code>
+      </pre>
     );
   }
 

@@ -745,6 +745,13 @@ def clean_ai_response(text: str) -> str:
                 unique_ordered.append(paragraphs[i])
         text = "\n\n".join(unique_ordered)
 
+    # Фиксим артефакт: знак конца предложения + длинное тире после него (". — текст") → ". текст"
+    # Учитываем возможную кавычку/ёлочку сразу после знака (.\" — ...).
+    text = re.sub(r"([.!?][\"»]?)\s+—\s+", r"\1 ", text)
+
+    # Схлопываем лишние пробелы (не трогаем переводы строк)
+    text = re.sub(r"[ \t]{2,}", " ", text)
+
     # Артефакты модели: "2dot 6" → "2·6"
     text = re.sub(r"(\d+)dot\s+(\d+)", r"\1·\2", text, flags=re.IGNORECASE)
 

@@ -55,6 +55,17 @@ def test_dedup_paragraph_with_prefix():
 
 
 @pytest.mark.unit
+def test_remove_duplicate_text_keeps_similar_but_not_identical():
+    """Похожие, но не идентичные абзацы (вводная и вывод) не должны склеиваться."""
+    intro = "Итак, подведём итог по теме квадратных уравнений."
+    summary = "Подведём итог: квадратные уравнения решаются по формуле дискриминанта."
+    text = intro + "\n\n" + summary
+    result = remove_duplicate_text(text, min_length=30)
+    assert intro in result
+    assert summary in result
+
+
+@pytest.mark.unit
 def test_normalize_bold_spacing():
     """Пробелы вокруг ** вставляются для отображения жирного."""
     assert normalize_bold_spacing("слово**термин**") == "слово ** термин **"

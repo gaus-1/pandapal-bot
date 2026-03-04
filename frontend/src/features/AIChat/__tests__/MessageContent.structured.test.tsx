@@ -92,6 +92,15 @@ describe('MessageContent - Структурирование ответов', () 
       expect(screen.getByText(/Ось симметрии проходит через вершину/)).toBeInTheDocument();
     });
 
+    it('не должен ошибочно делать подзаголовком обычное предложение с двоеточием и точкой', () => {
+      const response = `Пример: это обычное предложение, а не заголовок. Следующая строка продолжает мысль.`;
+
+      render(<MessageContent content={response} role="ai" />);
+
+      // Слово «Пример» должно быть частью обычного текста (не отдельным заголовком-секцией)
+      expect(screen.getByText('Пример:')).toBeInTheDocument();
+    });
+
     it('должен обрабатывать ответы с нумерованными списками', () => {
       const numberedListResponse = `Как построить параболу:
 1. Найди вершину
@@ -104,6 +113,15 @@ describe('MessageContent - Структурирование ответов', () 
       expect(screen.getByText(/Найди вершину/)).toBeInTheDocument();
       expect(screen.getByText(/Найди точки пересечения/)).toBeInTheDocument();
       expect(screen.getByText(/Построй симметричные точки/)).toBeInTheDocument();
+    });
+
+    it('должен отображать блок кода моноширинным шрифтом', () => {
+      const codeResponse = `for (let i = 0; i < 10; i++) {\n  console.log(i);\n}`;
+
+      render(<MessageContent content={codeResponse} role="ai" />);
+
+      const codeElement = screen.getByText(/console\.log/);
+      expect(codeElement.tagName.toLowerCase()).toBe('code');
     });
   });
 
