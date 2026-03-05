@@ -591,6 +591,49 @@ def _ensure_list_and_bold_breaks(text: str, line_threshold: int = 130) -> str:
     return "\n".join(result_lines)
 
 
+def _merge_definition_split_by_dash(text: str) -> str:
+    """
+    Склеивает случаи, когда определение вида «**Термин** — это ...»
+    разорвалось на два пункта списка:
+
+    - **Термин**
+    - — это величина, которая ...
+
+    Объединяет их в один корректный пункт:
+
+    - **Термин** — это величина, которая ...
+    """
+    if not text or "**" not in text:
+        return text
+
+    lines = text.split("\n")
+    result_lines: list[str] = []
+    i = 0
+
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        # Ищем строку-пункт со строгим жирным термином: "- **Термин**"
+        if stripped.startswith("- **") and stripped.endswith("**") and i + 1 < len(lines):
+            next_line = lines[i + 1]
+            next_stripped = next_line.lstrip()
+
+            # Следующая строка — ещё один пункт или просто строка, начинающаяся с тире
+            if next_stripped.startswith("- —") or next_stripped.startswith("—"):
+                # Убираем второй маркер списка, но оставляем само определение
+                tail = next_stripped.lstrip("-").lstrip()
+                merged = f"{line.rstrip()} {tail}"
+                result_lines.append(merged)
+                i += 2
+                continue
+
+        result_lines.append(line)
+        i += 1
+
+    return "\n".join(result_lines)
+
+
 # Порог длины текста без абзацев, при котором включается страховка разбивки (символов)
 _PARAGRAPH_BREAK_MIN_LENGTH = 250
 
@@ -640,6 +683,9 @@ def clean_ai_response(text: str) -> str:
 
     # Разбивка длинных строк по маркерам списка и после жирного (до дедупликации и финальной нормализации)
     text = _ensure_list_and_bold_breaks(text)
+
+    # Склеиваем случаи, когда определение «**Термин** — это ...» разорвалось на два пункта списка
+    text = _merge_definition_split_by_dash(text)
 
     # Удаляем вставки в квадратных скобках (артефакты модели)
     text = re.sub(r"\[Приложить изображение[^\]]*\]", "", text, flags=re.IGNORECASE)
@@ -998,6 +1044,30 @@ def clean_ai_response(text: str) -> str:
 
     # Страховка: длинный сплошной текст без абзацев — разбиваем по предложениям (каждые 2)
     text = _ensure_paragraph_breaks(text)
+
+    # Убираем «пустые» пункты списков, которые состоят только из маркера и тире/ничего
+    cleaned_lines: list[str] = []
+    for line in text.split("\n"):
+        stripped = line.strip()
+
+        # Пустая строка — это разделитель абзацев, его сохраняем
+        if stripped == "":
+            cleaned_lines.append(line)
+            continue
+
+        # Строки вида "-", "•", "—" считаем артефактами модели и пропускаем
+        if stripped in {"-", "•", "—"}:
+            continue
+
+        # Строки вида "- -", "- —", "-   " — тоже артефакты, пропускаем
+        if stripped.startswith("- "):
+            rest = stripped[2:].strip()
+            if rest in {"", "-", "—"}:
+                continue
+
+        cleaned_lines.append(line)
+
+    text = "\n".join(cleaned_lines)
 
     return text
 
