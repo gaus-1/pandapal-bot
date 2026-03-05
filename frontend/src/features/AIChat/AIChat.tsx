@@ -358,8 +358,8 @@ export function AIChat({ user }: AIChatProps) {
         <div className="flex items-center gap-1 sm:gap-1.5">
           <img src="/logo.png" alt="PandaPal" width={28} height={28} loading="lazy" className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/90 dark:bg-slate-800/90 p-0.5 shadow-sm" />
           <div className="flex-1 min-w-0">
-            <h1 className="text-[11px] sm:text-xs md:text-sm font-display font-bold text-white dark:text-slate-100 drop-shadow-sm truncate">PandaPal AI</h1>
-            <p className="text-[9px] sm:text-[11px] md:text-xs text-blue-50 dark:text-slate-300 font-semibold truncate">Привет, {user.first_name}! 🎓</p>
+            <h1 className="text-[11px] sm:text-xs md:text-sm font-display font-bold leading-tight text-white dark:text-slate-100 drop-shadow-sm truncate">PandaPal AI</h1>
+            <p className="text-[9px] sm:text-[11px] md:text-xs leading-tight text-blue-50 dark:text-slate-300 font-semibold truncate">Привет, {user.first_name}! 🎓</p>
           </div>
           <div className="flex items-center gap-1.5">
             <MiniAppThemeToggle />
