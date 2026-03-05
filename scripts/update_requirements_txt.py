@@ -69,7 +69,7 @@ UPDATES = {
     "safety": "3.7.0",
     "safety-schemas": "0.0.17",
     "bandit": "1.9.2",
-    "authlib": "1.6.6",
+    "authlib": "1.6.7",
     # Инструменты разработки
     "cfgv": "3.5.0",
     "iniconfig": "2.3.0",
