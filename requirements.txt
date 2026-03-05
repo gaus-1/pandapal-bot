@@ -39,7 +39,7 @@ pycparser==2.23
 rsa==4.9.1
 pyasn1==0.6.2
 pyasn1_modules==0.4.2
-authlib==1.6.6
+authlib==1.6.7
 
 # Конфиг и валидация
 pydantic==2.12.5
