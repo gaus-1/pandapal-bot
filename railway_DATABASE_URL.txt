@@ -1,0 +1,32 @@
+# Railway / pgvector: финальная конфигурация переменных для web-сервиса
+# Цель: исключить ошибки резолва railway.internal и падения healthcheck из-за БД.
+
+# Рекомендуемый и основной вариант для web service Variables:
+#   DATABASE_URL = ${{pgvector.DATABASE_URL}}
+
+# Допустимый альтернативный вариант (private network):
+#   DATABASE_URL = ${{pgvector.DATABASE_URL_PRIVATE}}
+
+# Если нужен ручной TCP proxy URL (fallback):
+#   DATABASE_URL = postgresql://postgres:<password>@${{pgvector.RAILWAY_TCP_PROXY_DOMAIN}}:${{pgvector.RAILWAY_TCP_PROXY_PORT}}/railway
+
+# Полный список (как в pgvector) с правками под явные reference на сервис pgvector:
+# DATABASE_URL="${{pgvector.DATABASE_URL}}"
+# DATABASE_URL_PRIVATE="${{pgvector.DATABASE_URL_PRIVATE}}"
+# PGDATA="/var/lib/postgresql/data/pgdata"
+# PGDATABASE="${{pgvector.POSTGRES_DB}}"
+# PGHOST="${{pgvector.RAILWAY_TCP_PROXY_DOMAIN}}"
+# PGHOST_PRIVATE="${{pgvector.RAILWAY_PRIVATE_DOMAIN}}"
+# PGPASSWORD="${{pgvector.POSTGRES_PASSWORD}}"
+# PGPORT="${{pgvector.RAILWAY_TCP_PROXY_PORT}}"
+# PGPORT_PRIVATE="5432"
+# PGUSER="${{pgvector.POSTGRES_USER}}"
+# POSTGRES_DB="railway"
+# POSTGRES_PASSWORD="<secret>"
+# POSTGRES_USER="postgres"
+# RAILWAY_DEPLOYMENT_DRAINING_SECONDS="60"
+# SSL_CERT_DAYS="820"
+
+# Важно для web-сервиса:
+# - держать один источник истины: DATABASE_URL
+# - не собирать DATABASE_URL вручную через PG* переменные, если есть pgvector.DATABASE_URL
