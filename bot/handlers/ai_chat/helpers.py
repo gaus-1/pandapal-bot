@@ -89,57 +89,9 @@ def extract_user_name_from_message(user_message: str) -> tuple[str | None, bool]
     Returns:
         tuple: (имя или None, является ли отказом)
     """
-    cleaned_message = user_message.strip().lower()
-    cleaned_message = re.sub(r"[.,!?;:]+$", "", cleaned_message)
+    from bot.utils.chat_utils import extract_user_name_from_message as _extract
 
-    refusal_patterns = [
-        r"не\s+хочу",
-        r"не\s+скажу",
-        r"не\s+буду",
-        r"не\s+назову",
-        r"не\s+хочу\s+называть",
-        r"не\s+буду\s+называть",
-        r"не\s+хочу\s+говорить",
-        r"не\s+скажу\s+имя",
-        r"не\s+хочу\s+сказать",
-    ]
-    is_refusal = any(re.search(pattern, cleaned_message) for pattern in refusal_patterns)
-    if is_refusal:
-        return None, True
-
-    common_words = [
-        "да",
-        "нет",
-        "ок",
-        "окей",
-        "хорошо",
-        "спасибо",
-        "привет",
-        "пока",
-        "здравствуй",
-        "здравствуйте",
-        "как дела",
-        "что",
-        "как",
-        "почему",
-        "где",
-        "когда",
-        "кто",
-    ]
-
-    cleaned_for_check = cleaned_message.split()[0] if cleaned_message.split() else cleaned_message
-
-    is_like_name = (
-        2 <= len(cleaned_for_check) <= 15
-        and re.match(r"^[а-яёА-ЯЁa-zA-Z-]+$", cleaned_for_check)
-        and cleaned_for_check not in common_words
-        and len(cleaned_message.split()) <= 2
-    )
-
-    if is_like_name:
-        return cleaned_message.split()[0].capitalize(), False
-
-    return None, False
+    return _extract(user_message)
 
 
 # Ключевые слова для детектирования запроса на генерацию изображений
@@ -303,8 +255,6 @@ _DIAGRAM_NAMES: dict[str, str] = {
 def build_visualization_enhanced_message(
     user_message: str,
     viz_type: str,
-    user_age: int | None = None,  # noqa: ARG001
-    emoji_preference: str | None = None,  # noqa: ARG001
 ) -> str:
     """
     Построение расширенного сообщения с контекстом визуализации для AI.

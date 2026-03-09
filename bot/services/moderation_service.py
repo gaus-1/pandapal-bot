@@ -425,7 +425,7 @@ class ContentModerationService(IModerationService):
             return "Извини, я не могу ответить на этот вопрос. Давай лучше поговорим об учёбе! 📚"
         return response
 
-    def get_safe_response_alternative(self, detected_topic: str = "") -> str:  # noqa: ARG002
+    def get_safe_response_alternative(self, reason: str = "") -> str:  # noqa: ARG002
         """Получить безопасный альтернативный ответ при блокировке."""
         alternatives = [
             "Извините, но я не могу обсуждать эту тему. Давай лучше поговорим об учёбе! 📚",

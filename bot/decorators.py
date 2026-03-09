@@ -3,7 +3,7 @@
 import functools
 import time
 from collections.abc import Callable
-from typing import Any, TypeVar
+from typing import Any
 
 from loguru import logger
 from tenacity import (
@@ -12,8 +12,6 @@ from tenacity import (
     stop_after_attempt,
     wait_exponential,
 )
-
-F = TypeVar("F", bound=Callable[..., Any])
 
 
 def async_retry(
@@ -34,7 +32,7 @@ def async_retry(
     )
 
 
-def log_execution_time(func: F) -> F:
+def log_execution_time[F: Callable[..., Any]](func: F) -> F:
     """Декоратор для логирования времени выполнения функции."""
 
     @functools.wraps(func)
@@ -49,7 +47,9 @@ def log_execution_time(func: F) -> F:
     return wrapper  # type: ignore[return-value]
 
 
-def retry_on_exception(max_attempts: int = 3, delay: float = 1.0, exceptions: tuple = (Exception,)):
+def retry_on_exception[F: Callable[..., Any]](
+    max_attempts: int = 3, delay: float = 1.0, exceptions: tuple = (Exception,)
+):
     """Декоратор для автоматических повторных попыток при возникновении исключений."""
 
     def decorator(func: F) -> F:
@@ -78,7 +78,7 @@ def retry_on_exception(max_attempts: int = 3, delay: float = 1.0, exceptions: tu
     return decorator
 
 
-def validate_input(**validators):
+def validate_input[F: Callable[..., Any]](**validators):
     """Декоратор для валидации входных параметров."""
 
     def decorator(func: F) -> F:
@@ -96,7 +96,7 @@ def validate_input(**validators):
     return decorator
 
 
-def cache_result(ttl: int | None = None):
+def cache_result[F: Callable[..., Any]](ttl: int | None = None):
     """Декоратор для кэширования результатов."""
 
     def decorator(func: F) -> F:
@@ -132,7 +132,7 @@ def cache_result(ttl: int | None = None):
     return decorator
 
 
-def rate_limit(calls_per_minute: int = 60):
+def rate_limit[F: Callable[..., Any]](calls_per_minute: int = 60):
     """Декоратор для ограничения частоты вызовов."""
 
     def decorator(func: F) -> F:
@@ -157,7 +157,7 @@ def rate_limit(calls_per_minute: int = 60):
     return decorator
 
 
-def security_check(check_function: Callable[[], bool]):
+def security_check[F: Callable[..., Any]](check_function: Callable[[], bool]):
     """Декоратор для проверки безопасности."""
 
     def decorator(func: F) -> F:
@@ -172,7 +172,7 @@ def security_check(check_function: Callable[[], bool]):
     return decorator
 
 
-def deprecated(reason: str = "Функция устарела"):
+def deprecated[F: Callable[..., Any]](reason: str = "Функция устарела"):
     """Декоратор для пометки устаревших функций."""
 
     def decorator(func: F) -> F:
@@ -204,6 +204,6 @@ def singleton(cls):
     return get_instance
 
 
-def memoize(func: F) -> F:
+def memoize[F: Callable[..., Any]](func: F) -> F:
     """Кэширование без TTL. Алиас для cache_result()."""
     return cache_result()(func)

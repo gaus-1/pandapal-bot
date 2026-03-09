@@ -351,32 +351,9 @@ async def miniapp_ai_chat(request: web.Request) -> web.Response:
 
             # Подсчитываем количество сообщений пользователя с последнего обращения по имени
             # Ищем последнее обращение по имени в истории (ищем в ответах AI)
-            user_message_count = 0
-            if user.first_name:
-                # Ищем последнее обращение по имени в ответах AI (ищем имя в тексте)
-                last_name_mention_index = -1
-                for i, msg in enumerate(history):
-                    if (
-                        msg.get("role") == "assistant"
-                        and user.first_name.lower() in msg.get("text", "").lower()
-                    ):
-                        last_name_mention_index = i
-                        break
+            from bot.utils.chat_utils import count_user_messages_since_name_mention
 
-                # Считаем сообщения пользователя ПОСЛЕ последнего обращения по имени
-                if last_name_mention_index >= 0:
-                    # Есть обращение по имени - считаем сообщения после него
-                    user_message_count = sum(
-                        1
-                        for msg in history[last_name_mention_index + 1 :]
-                        if msg.get("role") == "user"
-                    )
-                else:
-                    # Нет обращения по имени - считаем все сообщения пользователя
-                    user_message_count = sum(1 for msg in history if msg.get("role") == "user")
-            else:
-                # Нет имени - считаем все сообщения пользователя
-                user_message_count = sum(1 for msg in history if msg.get("role") == "user")
+            user_message_count = count_user_messages_since_name_mention(history, user.first_name)
 
             # Определяем, является ли вопрос образовательным (единый список — config)
             from bot.config.educational_keywords import EDUCATIONAL_KEYWORDS

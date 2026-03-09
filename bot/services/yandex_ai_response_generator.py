@@ -39,6 +39,8 @@ _CLARIFICATION_PHRASES = frozenset(
         "и что?",
         "а можно по-другому?",
         "а что с этим?",
+        "а ещё?",
+        "а почему?",
     }
 )
 _CLARIFICATION_RESPONSE = (
