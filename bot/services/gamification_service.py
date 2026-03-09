@@ -558,7 +558,7 @@ class GamificationService:
         Returns:
             int: Количество уникальных предметов
         """
-        from bot.config.subject_keywords import SUBJECT_KEYWORDS
+        from bot.config.subjects import SUBJECT_KEYWORDS
 
         # Получаем все сообщения пользователя
         stmt = select(ChatHistory.message_text).where(

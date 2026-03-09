@@ -105,7 +105,7 @@ class PersonalTutorService:
             .all()
         )
 
-        from bot.config.subject_keywords import SUBJECT_KEYWORDS
+        from bot.config.subjects import SUBJECT_KEYWORDS
 
         subject_activity = {}
         for subject, keywords in SUBJECT_KEYWORDS.items():
