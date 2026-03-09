@@ -95,6 +95,7 @@ Thumbs.db
 **/.*ignore
 **/.c*/
 **/context*.mdc
+.agents/
 
 # Compiled files
 bot/config/_compiled/
