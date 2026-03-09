@@ -1,5 +1,6 @@
 """Result reranking для улучшения качества RAG."""
 
+import re
 from datetime import UTC, datetime
 
 
@@ -90,30 +91,45 @@ class ResultReranker:
         return min(relevance, 1.0)
 
     def _calculate_age_match(self, result, user_age: int | None) -> float:
-        """Рассчитать соответствие возрасту."""
+        """Рассчитать соответствие возрасту по сложности контента."""
         if not user_age:
             return 0.5  # Нейтральный score
 
-        # Проверяем метаданные о сложности контента
         content = getattr(result, "content", "")
+        if not content:
+            return 0.5
 
-        # Простая эвристика: ищем индикаторы сложности
-        complexity_indicators = {
-            "простой": 0.2,
-            "базовый": 0.3,
-            "средний": 0.5,
-            "сложный": 0.7,
-            "продвинутый": 0.9,
-        }
+        # Эвристика сложности контента по объективным признакам:
+        # 1. Средняя длина предложения (длинные = сложнее)
+        sentences = [s.strip() for s in re.split(r"[.!?]+\s+", content) if s.strip()]
+        avg_sentence_len = (
+            sum(len(s.split()) for s in sentences) / len(sentences) if sentences else 10
+        )
 
-        for indicator, complexity in complexity_indicators.items():
-            if indicator in content.lower():
-                # Соответствие возрасту: чем ближе, тем лучше
-                age_complexity = user_age / 18.0  # Нормализация к 0-1
-                match = 1.0 - abs(age_complexity - complexity)
-                return max(match, 0.0)
+        # 2. Наличие формул/цифр (больше = сложнее)
+        formula_density = len(re.findall(r"[=+\-×÷√∑∫²³⁴⁵⁶⁷⁸⁹°]", content)) / max(len(content), 1)
 
-        return 0.5  # По умолчанию
+        # 3. Наличие научных/технических терминов
+        technical_terms = len(
+            re.findall(
+                r"(?:теорема|уравнение|функция|производная|интеграл|коэффициент|"
+                r"алгоритм|молекула|атом|ион|реакция|вектор|матрица)",
+                content.lower(),
+            )
+        )
+
+        # Нормализация сложности контента к 0-1
+        complexity = min(
+            (avg_sentence_len / 25) * 0.4  # Длина предложений (макс при 25 слов)
+            + formula_density * 200 * 0.3  # Плотность формул
+            + min(technical_terms / 3, 1.0) * 0.3,  # Технические термины
+            1.0,
+        )
+
+        # Соответствие возрасту: user_age нормализуем к 0-1
+        age_complexity = user_age / 18.0
+        match = 1.0 - abs(age_complexity - complexity)
+        return max(match, 0.1)
 
     def _calculate_recency(self, result) -> float:
         """Рассчитать актуальность по времени (extracted_at или timestamp)."""

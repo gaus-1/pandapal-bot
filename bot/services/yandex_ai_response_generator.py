@@ -35,8 +35,6 @@ _CLARIFICATION_MAX_MESSAGE_LEN = 25
 _CLARIFICATION_MIN_LAST_REPLY_LEN = 180
 _CLARIFICATION_PHRASES = frozenset(
     {
-        "а ещё?",
-        "а почему?",
         "а это?",
         "и что?",
         "а можно по-другому?",
@@ -86,6 +84,41 @@ def finalize_ai_response(raw_text: str, user_message: str = "") -> str:
     return add_random_engagement_question(cleaned)
 
 
+# Фразы, которые промпт запрещает (модель иногда выдаёт их вопреки промпту)
+_EXPLAIN_MORE_PATTERNS = (
+    "объяснить подробнее",
+    "рассказать подробнее",
+    "хочешь, объясню подробнее",
+    "разберём подробнее",
+    "давай разберём подробнее",
+    "хочешь узнать подробнее",
+)
+
+
+def _strip_explain_more_tail(text: str) -> str:
+    """
+    Удаляет фразы «объяснить подробнее?» и подобные из хвоста ответа.
+    Промпт запрещает заканчивать ответ приглашением «давай разберём подробнее» —
+    даём полный разбор сразу.
+    """
+    if not text:
+        return text
+    lines = text.rstrip().split("\n")
+    # Проверяем последние 2 строки
+    for _ in range(2):
+        if not lines:
+            break
+        last = lines[-1].strip().lower()
+        if any(pat in last for pat in _EXPLAIN_MORE_PATTERNS):
+            lines.pop()
+            # Убираем пустые строки-разделители после удаления
+            while lines and not lines[-1].strip():
+                lines.pop()
+        else:
+            break
+    return "\n".join(lines)
+
+
 def add_random_engagement_question(response: str) -> str:
     """
     Добавляет случайный вопрос для вовлечения в конец ответа.
@@ -101,39 +134,48 @@ def add_random_engagement_question(response: str) -> str:
     if not response or not response.strip():
         return response
 
+    # Шаг 1: удалить запрещённые «объяснить подробнее?» из хвоста
+    response = _strip_explain_more_tail(response)
+    if not response or not response.strip():
+        return response
+
     # Варианты вопросов для вовлечения (тон в духе панды: дружеский, без давления)
-    # Без «Объяснить подробнее?» — промпт запрещает приглашать подробнее, даём полный ответ сразу
     engagement_questions = [
         "Спроси меня ещё что-нибудь, мне нравится с тобой общаться!",
         "Есть вопросы посложнее?",
         "Что ещё разберём?",
         "Какой следующий вопрос?",
+        "Хочешь задачку на закрепление?",
+        "Попробуем разобрать пример?",
+        "Продолжаем? Задавай следующий вопрос!",
+        "Хочешь ещё что-нибудь узнать по этой теме?",
+        "Интересно? Спрашивай дальше!",
+        "Давай разберём ещё что-нибудь?",
+        "Какую тему возьмём следующей?",
+        "Ну как, понятно? Спрашивай, если что!",
     ]
 
-    # Проверяем, нет ли уже вопроса в конце ответа (более строгая проверка)
+    # Проверяем, нет ли уже вопроса в конце ответа
     response_lower = response.lower().strip()
     question_indicators = [
         "понятно?",
-        "объяснить подробнее",
         "спроси меня",
         "есть вопросы",
-        "хочешь, объясню",
-        "рассказать подробнее",
-        "подробнее?",
+        "что ещё разберём",
+        "какой следующий",
+        "задавай",
+        "спрашивай",
     ]
 
-    # Проверяем последние 150 символов на наличие вопроса (более широкая проверка)
     last_part = response_lower[-150:] if len(response_lower) > 150 else response_lower
     has_existing_question = any(indicator in last_part for indicator in question_indicators)
 
     if has_existing_question:
-        # Если вопрос уже есть, просто убеждаемся что он отделен пустой строкой
+        # Если вопрос-вовлечение уже есть — отделяем его пустой строкой
         response_stripped = response.strip()
         if not response_stripped.endswith("\n\n") and "\n\n" not in response_stripped[-50:]:
-            # Добавляем пустую строку перед последним предложением если её нет
             lines = response_stripped.split("\n")
             if len(lines) > 1 and lines[-1].strip():
-                # Если последняя строка не пустая, добавляем пустую строку
                 return "\n".join(lines[:-1]) + "\n\n" + lines[-1]
         return response
 
@@ -142,12 +184,9 @@ def add_random_engagement_question(response: str) -> str:
 
     # ВСЕГДА отделяем вопрос пустой строкой от основного текста
     response_stripped = response.strip()
-
-    # Убираем лишние переносы строк в конце
     while response_stripped.endswith("\n"):
         response_stripped = response_stripped.rstrip("\n")
 
-    # Добавляем вопрос с пустой строкой перед ним
     return f"{response_stripped}\n\n{random_question}"
 
 

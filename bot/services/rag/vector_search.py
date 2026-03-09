@@ -52,7 +52,7 @@ class VectorSearchService:
 
     def __init__(
         self,
-        min_similarity: float = 0.4,
+        min_similarity: float = 0.55,
         default_top_k: int = 10,
     ):
         self.min_similarity = min_similarity
