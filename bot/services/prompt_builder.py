@@ -21,9 +21,9 @@ class PromptBuilder:
         user_name: str | None = None,
         chat_history: list[dict] | None = None,
         is_history_cleared: bool = False,
-        message_count_since_name: int = 0,  # noqa: ARG002
-        non_educational_questions_count: int = 0,  # noqa: ARG002
-        user_age: int | None = None,  # noqa: ARG002
+        message_count_since_name: int = 0,
+        non_educational_questions_count: int = 0,
+        user_age: int | None = None,
         user_grade: int | None = None,
         is_auto_greeting_sent: bool = False,
         user_gender: str | None = None,
@@ -49,6 +49,21 @@ class PromptBuilder:
             parts.append(current_topic)
         if greeting:
             parts.append(greeting)
+        # Адаптация по возрасту/классу
+        age_snippet = self._get_age_adaptation_snippet(user_age, user_grade)
+        if age_snippet:
+            parts.append(age_snippet)
+        # Обращение по имени
+        if user_name and message_count_since_name >= 5:
+            parts.append(
+                f"Обратись к пользователю по имени ({user_name}) в этом ответе — давно не обращался."
+            )
+        # Редирект на учёбу
+        if non_educational_questions_count >= 3:
+            parts.append(
+                "Пользователь уже несколько раз спрашивал не по учёбе. "
+                "Мягко предложи вернуться к школьным темам в конце ответа, без навязчивости."
+            )
         if user_gender:
             g = user_gender.lower().strip()
             gender_hint = "мужской" if g == "male" else "женский" if g == "female" else "не указан"
@@ -228,6 +243,37 @@ class PromptBuilder:
             )
 
         return None
+
+    @staticmethod
+    def _get_age_adaptation_snippet(user_age: int | None, user_grade: int | None) -> str | None:
+        """Фрагмент промпта для адаптации ответа под возраст/класс пользователя."""
+        # Определяем эффективный возраст: из профиля или по классу (класс + 6)
+        age = user_age
+        if age is None and user_grade is not None:
+            age = user_grade + 6  # 1 класс ≈ 7 лет
+
+        if age is None:
+            return None
+
+        if age <= 9:
+            return (
+                f"Пользователю {age} лет (младшая школа). "
+                "Отвечай короткими простыми предложениями. "
+                "Используй бытовые аналогии (яблоки, конфеты, мячики). "
+                "Избегай сложных терминов без объяснения. "
+                "Длина ответа: 3–6 предложений, если не просят подробнее."
+            )
+        if age <= 12:
+            return (
+                f"Пользователю {age} лет (средняя школа). "
+                "Чёткие объяснения с примерами. "
+                "Термины поясняй в скобках при первом использовании."
+            )
+        return (
+            f"Пользователю {age} лет (старшая школа). "
+            "Можно использовать научные термины свободно. "
+            "Давай более глубокий академический разбор."
+        )
 
     @staticmethod
     def _get_current_topic_snippet(chat_history: list[dict]) -> str | None:

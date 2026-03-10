@@ -287,3 +287,97 @@ class TestBrokenSynonymsFix:
         service = AdvancedModerationService()
         normalized = service._normalize_text("отношения между странами")
         assert "секс" not in normalized
+
+
+# ── Age adaptation ───────────────────────────────────────────────
+class TestAgeAdaptation:
+    """Промпт адаптируется под возраст/класс."""
+
+    def test_young_child_gets_short_instructions(self):
+        from bot.services.prompt_builder import PromptBuilder
+
+        pb = PromptBuilder()
+        snippet = pb._get_age_adaptation_snippet(user_age=7, user_grade=None)
+        assert snippet is not None
+        assert "младшая школа" in snippet
+        assert "короткими" in snippet
+
+    def test_middle_school(self):
+        from bot.services.prompt_builder import PromptBuilder
+
+        pb = PromptBuilder()
+        snippet = pb._get_age_adaptation_snippet(user_age=11, user_grade=None)
+        assert snippet is not None
+        assert "средняя школа" in snippet
+
+    def test_teen_gets_academic(self):
+        from bot.services.prompt_builder import PromptBuilder
+
+        pb = PromptBuilder()
+        snippet = pb._get_age_adaptation_snippet(user_age=14, user_grade=None)
+        assert snippet is not None
+        assert "старшая школа" in snippet
+
+    def test_grade_infers_age(self):
+        from bot.services.prompt_builder import PromptBuilder
+
+        pb = PromptBuilder()
+        # 2 класс → ~8 лет → младшая школа
+        snippet = pb._get_age_adaptation_snippet(user_age=None, user_grade=2)
+        assert snippet is not None
+        assert "младшая школа" in snippet
+
+    def test_no_age_no_grade_returns_none(self):
+        from bot.services.prompt_builder import PromptBuilder
+
+        pb = PromptBuilder()
+        assert pb._get_age_adaptation_snippet(None, None) is None
+
+
+# ── Name mention trigger ─────────────────────────────────────────
+class TestNameMentionTrigger:
+    """Имя добавляется в промпт после 5+ сообщений."""
+
+    def test_name_mentioned_after_threshold(self):
+        from bot.services.prompt_builder import PromptBuilder
+
+        pb = PromptBuilder()
+        result = pb.build_system_prompt(
+            user_message="что такое фотосинтез",
+            user_name="Маша",
+            message_count_since_name=6,
+        )
+        assert "Маша" in result
+
+    def test_name_not_mentioned_below_threshold(self):
+        from bot.services.prompt_builder import PromptBuilder
+
+        pb = PromptBuilder()
+        result = pb.build_system_prompt(
+            user_message="что такое фотосинтез",
+            user_name="Маша",
+            message_count_since_name=2,
+        )
+        # Имя не должно быть в контексте обращения (может быть в greeting — это ок)
+        assert "давно не обращался" not in result
+
+
+# ── Visualization trigger words narrowed ─────────────────────────
+class TestVizTriggerWords:
+    """Слишком широкие слова убраны из VISUALIZATION_TRIGGER_WORDS."""
+
+    def test_no_broad_verbs(self):
+        from bot.config.response_rules import VISUALIZATION_TRIGGER_WORDS
+
+        removed = ["покажи", "создай", "составь", "выведи"]
+        for word in removed:
+            assert word not in VISUALIZATION_TRIGGER_WORDS, (
+                f"'{word}' слишком широкое для визуализации"
+            )
+
+    def test_core_words_remain(self):
+        from bot.config.response_rules import VISUALIZATION_TRIGGER_WORDS
+
+        assert "график" in VISUALIZATION_TRIGGER_WORDS
+        assert "нарисуй" in VISUALIZATION_TRIGGER_WORDS
+        assert "построй" in VISUALIZATION_TRIGGER_WORDS
