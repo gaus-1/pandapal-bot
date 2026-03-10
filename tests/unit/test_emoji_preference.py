@@ -80,10 +80,10 @@ class TestGetEmojiPromptSnippet:
 
     @pytest.mark.unit
     def test_yes_emoji_returns_instruction(self):
-        """emoji_in_chat=True — обязательно добавить 1–2 эмодзи."""
+        """emoji_in_chat=True — добавить 1–2 эмодзи когда уместно."""
         s = get_emoji_prompt_snippet(True, True)
         assert s is not None
-        assert "обязательно" in s.lower()
+        assert "добавляй" in s.lower()
         assert "1–2" in s
         assert "структура" in s.lower()
 
