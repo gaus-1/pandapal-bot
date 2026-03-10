@@ -61,13 +61,15 @@ npm run dev
 - AI-чат для учебных вопросов (обычный и streaming SSE)
 - Проверка домашних заданий по фото + история и статистика
 - Голосовые вопросы с подтверждением перед отправкой в AI
-- Визуализации по предметам (графики, таблицы, схемы, карты)
+- Визуализации по предметам (графики, таблицы, диаграммы, схемы, карты)
+- Генерация изображений по учебным темам (YandexART)
 - RAG-поиск по базе знаний с `pgvector` (`knowledge_embeddings`)
-- Игры PandaPalGo: Моя панда (тамагочи), Крестики-нолики, Шашки, 2048, Эрудит. Тамагочи: кормление каждые 30 мин, игра / на дерево / упасть раз в час, сон раз в 2 часа
+- Игры PandaPalGo: Моя панда (тамагочи), Крестики-нолики, Шашки, 2048, Эрудит
 - Прогресс, достижения и геймификация
 - Premium через YooKassa (299 ₽/месяц), сохранение карт
 - Реферальная программа (`ref_<telegram_id>`)
 - Модерация контента для детской аудитории
+- Адаптация ответов AI по возрасту/классу пользователя
 
 ### Реферальная программа
 
@@ -82,7 +84,7 @@ npm run dev
 - Python 3.13, aiogram 3.24, aiohttp 3.13
 - SQLAlchemy 2.0, PostgreSQL 17 + pgvector, Alembic
 - Redis 7.1 (Upstash)
-- Yandex Cloud: YandexGPT Pro, SpeechKit STT, Vision OCR, Translate API, Embeddings API
+- Yandex Cloud: YandexGPT Pro, YandexART, SpeechKit STT, Vision OCR, Translate API, Embeddings API
 - YooKassa 3.9.0
 - Параметры генерации по умолчанию: `temperature=0.35`, `max_tokens=8192`
 
@@ -106,13 +108,16 @@ npm run dev
 PandaPal/
 ├── .github/                 # CI/CD workflows, security policy, templates
 ├── bot/                     # Backend домен: API, handlers, services, models, security
-│   ├── api/                 # HTTP endpoints (miniapp, premium, games, auth)
+│   ├── api/                 # HTTP endpoints (miniapp, premium, games, auth, panda-pet)
 │   ├── handlers/            # Telegram handlers (text/voice/image/document)
 │   ├── services/            # Бизнес-логика (AI, RAG, games, payments, moderation)
 │   ├── database/            # Работа с БД и SQLAlchemy слой
 │   ├── models/              # ORM-модели
 │   ├── config/              # Конфигурационные модули
 │   ├── security/            # Защита, middleware, crypto, audit
+│   ├── middleware/          # Middleware для обработки запросов
+│   ├── localization/        # Локализация и переводы
+│   ├── utils/               # Вспомогательные утилиты
 │   └── monitoring/          # Метрики и наблюдаемость
 ├── frontend/                # React Mini App и веб-интерфейс
 │   ├── src/                 # components, features, hooks, services, store, utils
@@ -128,7 +133,9 @@ PandaPal/
 ├── data/                    # Данные проекта
 ├── metrics/                 # Материалы по метрикам
 ├── sql/                     # SQL-утилиты и заметки
+├── logs/                    # Логи приложения
 ├── Dockerfile               # Основной контейнер приложения
+├── docker-compose.yml       # Композиция сервисов для локальной разработки
 └── web_server.py            # Точка входа backend-сервера
 ```
 
@@ -167,11 +174,20 @@ graph TB
 
 - `POST /api/miniapp/ai/chat` — non-streaming чат
 - `POST /api/miniapp/ai/chat-stream` — streaming чат (SSE)
+- `POST /api/miniapp/auth` — аутентификация Mini App
+- `GET /api/miniapp/user/{telegram_id}` — профиль пользователя
+- `GET /api/miniapp/chat/history/{telegram_id}` — история чата
 - `POST /api/miniapp/homework/check` — проверка ДЗ по фото
-- `GET /api/miniapp/homework/history/{telegram_id}`
-- `GET /api/miniapp/progress/{telegram_id}`
-- `GET /api/miniapp/premium/status/{telegram_id}`
-- `POST /api/miniapp/games/{telegram_id}/create` — создание сессии (tic_tac_toe, checkers, 2048, erudite)
+- `GET /api/miniapp/homework/history/{telegram_id}` — история ДЗ
+- `GET /api/miniapp/progress/{telegram_id}` — прогресс
+- `GET /api/miniapp/achievements/{telegram_id}` — достижения
+- `GET /api/miniapp/dashboard/{telegram_id}` — дашборд
+- `GET /api/miniapp/subjects` — список предметов
+- `GET /api/miniapp/premium/status/{telegram_id}` — статус Premium
+- `POST /api/miniapp/premium/create-payment` — создание оплаты
+- `POST /api/miniapp/premium/yookassa-webhook` — webhook YooKassa
+- `POST /api/miniapp/donation/create-invoice` — создание доната
+- `POST /api/miniapp/games/{telegram_id}/create` — создание игровой сессии (tic_tac_toe, checkers, 2048, erudite)
 - `GET /api/miniapp/panda-pet/{telegram_id}` — состояние тамагочи; POST feed/play/sleep/climb/fall-from-tree/toilet
 
 ## Безопасность

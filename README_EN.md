@@ -61,13 +61,15 @@ Full installation details: [docs/](docs/)
 - AI chat for educational questions (regular and SSE streaming)
 - Homework checking from photos + history/statistics
 - Voice questions with confirmation before AI submit
-- Subject visualizations (graphs, tables, schemes, maps)
+- Subject visualizations (graphs, tables, diagrams, schemes, maps)
+- Educational image generation (YandexART)
 - RAG search with `pgvector` in `knowledge_embeddings`
-- PandaPalGo games: My Panda (tamagotchi with feeding, play, sleep cycles), Tic-Tac-Toe, Checkers, 2048, Erudite
+- PandaPalGo games: My Panda (tamagotchi), Tic-Tac-Toe, Checkers, 2048, Erudite
 - Progress, achievements, and gamification
 - Premium via YooKassa (299 RUB/month), saved cards
 - Referral program (`ref_<telegram_id>`)
 - Multi-layer content moderation for child safety
+- Age/grade-adaptive AI responses
 
 ### Referral Program
 
@@ -82,7 +84,7 @@ Monthly report: `python scripts/referral_report.py [--year YYYY] [--month MM]`.
 - Python 3.13, aiogram 3.24, aiohttp 3.13
 - SQLAlchemy 2.0, PostgreSQL 17 + pgvector, Alembic
 - Redis 7.1 (Upstash)
-- Yandex Cloud: YandexGPT Pro, SpeechKit STT, Vision OCR, Translate API, Embeddings API
+- Yandex Cloud: YandexGPT Pro, YandexART, SpeechKit STT, Vision OCR, Translate API, Embeddings API
 - YooKassa 3.9.0
 - Default generation params: `temperature=0.35`, `max_tokens=8192`
 
@@ -106,13 +108,16 @@ Monthly report: `python scripts/referral_report.py [--year YYYY] [--month MM]`.
 PandaPal/
 ├── .github/                 # CI/CD workflows, security policy, templates
 ├── bot/                     # Backend domain: API, handlers, services, models, security
-│   ├── api/                 # HTTP endpoints (miniapp, premium, games, auth)
+│   ├── api/                 # HTTP endpoints (miniapp, premium, games, auth, panda-pet)
 │   ├── handlers/            # Telegram handlers (text/voice/image/document)
 │   ├── services/            # Business logic (AI, RAG, games, payments, moderation)
 │   ├── database/            # SQLAlchemy and DB integration
 │   ├── models/              # ORM models
 │   ├── config/              # Runtime configuration modules
 │   ├── security/            # Security middleware, crypto, audit
+│   ├── middleware/          # Request processing middleware
+│   ├── localization/        # Localization and translations
+│   ├── utils/               # Helper utilities
 │   └── monitoring/          # Metrics and observability
 ├── frontend/                # React Mini App and website frontend
 │   ├── src/                 # components, features, hooks, services, store, utils
@@ -128,7 +133,9 @@ PandaPal/
 ├── data/                    # Project data assets
 ├── metrics/                 # Monitoring-related artifacts
 ├── sql/                     # SQL utilities and notes
+├── logs/                    # Application logs
 ├── Dockerfile               # Main application container build
+├── docker-compose.yml       # Service composition for local development
 └── web_server.py            # Backend server entry point
 ```
 
@@ -167,11 +174,21 @@ Flow in plain words:
 
 - `POST /api/miniapp/ai/chat` — non-streaming chat
 - `POST /api/miniapp/ai/chat-stream` — streaming chat (SSE)
+- `POST /api/miniapp/auth` — Mini App authentication
+- `GET /api/miniapp/user/{telegram_id}` — user profile
+- `GET /api/miniapp/chat/history/{telegram_id}` — chat history
 - `POST /api/miniapp/homework/check` — homework check by photo
-- `GET /api/miniapp/homework/history/{telegram_id}`
-- `GET /api/miniapp/progress/{telegram_id}`
-- `GET /api/miniapp/premium/status/{telegram_id}`
-- `POST /api/miniapp/games/{telegram_id}/create`
+- `GET /api/miniapp/homework/history/{telegram_id}` — homework history
+- `GET /api/miniapp/progress/{telegram_id}` — progress
+- `GET /api/miniapp/achievements/{telegram_id}` — achievements
+- `GET /api/miniapp/dashboard/{telegram_id}` — dashboard
+- `GET /api/miniapp/subjects` — subject list
+- `GET /api/miniapp/premium/status/{telegram_id}` — Premium status
+- `POST /api/miniapp/premium/create-payment` — create payment
+- `POST /api/miniapp/premium/yookassa-webhook` — YooKassa webhook
+- `POST /api/miniapp/donation/create-invoice` — create donation
+- `POST /api/miniapp/games/{telegram_id}/create` — create game session (tic_tac_toe, checkers, 2048, erudite)
+- `GET /api/miniapp/panda-pet/{telegram_id}` — tamagotchi state; POST feed/play/sleep/climb/fall-from-tree/toilet
 
 ## Security
 
