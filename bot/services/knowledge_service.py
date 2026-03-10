@@ -463,6 +463,13 @@ class KnowledgeService:
 
                 self.last_update = datetime.now()
 
+                # Инвалидация semantic cache при обновлении базы: старый кэш может содержать устаревшие результаты
+                try:
+                    self.semantic_cache.clear()
+                    logger.debug("🗑️ Semantic cache очищен после обновления базы знаний")
+                except Exception as cache_err:
+                    logger.debug(f"Semantic cache clear: {cache_err}")
+
                 logger.info(
                     f"✅ База знаний обновлена: {len(all_materials)} материалов по {len(self.knowledge_base)} предметам"
                 )
@@ -748,11 +755,21 @@ class KnowledgeService:
         """
         Проверить, содержит ли текст запрещенный контент.
         Дополнительный safety-фильтр для внешнего контента в детском приложении.
+        Проверяет и по локальным forbidden_topics, и по общим FORBIDDEN_PATTERNS.
         """
         if not text or not text.strip():
             return False
         text_lower = text.lower()
-        return any(pattern in text_lower for pattern in self.forbidden_topics)
+        # Проверка по локальным паттернам (опасный контент: бомба, суицид, порно и т.д.)
+        if any(pattern in text_lower for pattern in self.forbidden_topics):
+            return True
+        # Проверка по глобальным запрещённым паттернам (расширенный набор)
+        from bot.config import FORBIDDEN_PATTERNS
+
+        # Берём только самые критичные паттерны для внешнего контента (> 5 символов,
+        # чтобы не ловить короткие false positives вроде «die», «beat», «dead»)
+        critical_patterns = (p for p in FORBIDDEN_PATTERNS if len(p) > 5)
+        return any(pattern in text_lower for pattern in critical_patterns)
 
     def _adapt_content_for_children(self, text: str, user_age: int | None = None) -> str:
         """

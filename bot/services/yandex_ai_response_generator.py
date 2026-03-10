@@ -41,6 +41,14 @@ _CLARIFICATION_PHRASES = frozenset(
         "а что с этим?",
         "а ещё?",
         "а почему?",
+        "???",
+        "не понял",
+        "не поняла",
+        "а дальше?",
+        "и?",
+        "ну и?",
+        "а как?",
+        "зачем?",
     }
 )
 _CLARIFICATION_RESPONSE = (
@@ -1072,11 +1080,7 @@ def clean_ai_response(text: str) -> str:
     for pattern in auto_system_patterns:
         text = re.sub(pattern, "", text, flags=re.IGNORECASE)
 
-    # Убираем только символы, которые ломают отображение или не поддерживаются
     # НЕ удаляем: × • (буллеты, умножение); ² ³ ∑ ∫ ∞ ∠ ° (формулы — см. prompts.py ЗАПИСЬ ФОРМУЛ)
-    complex_math_chars = []
-    for char in complex_math_chars:
-        text = text.replace(char, "")
 
     # Очищаем лишние пробелы (но сохраняем абзацы - двойные переносы строк)
     text = re.sub(r"[ \t]+", " ", text)  # Множественные пробелы в одну строку
@@ -1245,19 +1249,22 @@ class YandexAIResponseGenerator:
         """
         Определить, нужно ли использовать Zero-shot CoT (пошаговое рассуждение).
         Задачи с числами и многошаговой логикой — добавляем «Давайте решать пошагово».
+        Исключаем нарративные упоминания слова «задача» без числовых вычислений.
         """
         ml = message.lower().strip()
         cot_triggers = [
             r"сколько\s+(всего|осталось|получилось|было|стало)",
             r"реши\s+(задачу|уравнение|пример)",
             r"вычисли|посчитай",
-            r"задача",
             r"\d+\s*[\+\-\*\/×÷]\s*\d+",  # Числа и операции
             r"было\s+\d+",  # «Было 23 яблока»
             r"купил[ио]?\s+\d+",
             r"ушло\s+\d+",
             r"осталось\s+\d+",
         ]
+        # Слово «задача» триггерит CoT ТОЛЬКО если рядом есть числа
+        if re.search(r"задач", ml) and re.search(r"\d", ml):
+            return True
         return any(re.search(p, ml) for p in cot_triggers)
 
     @staticmethod
@@ -1506,9 +1513,12 @@ class YandexAIResponseGenerator:
             logger.error(f"❌ Ошибка анализа изображения (Yandex): {e}")
             return "😔 Извини, у меня возникли проблемы с анализом изображения. Попробуй ещё раз!"
 
-    async def moderate_image_content(self, image_data: bytes) -> tuple[bool, str]:  # noqa: ARG002
+    async def moderate_image_content(self, image_data: bytes) -> tuple[bool, str]:
         """
         Проверить изображение на безопасность.
+
+        Базовая проверка: если OCR распознал текст, прогоняем его через модерацию.
+        Это защищает от пересылки изображений с запрещённым текстовым контентом.
 
         Args:
             image_data: Данные изображения в байтах.
@@ -1516,5 +1526,14 @@ class YandexAIResponseGenerator:
         Returns:
             tuple[bool, str]: (is_safe, reason)
         """
-        # Правила по запрещённым темам отключены — не применяются
+        try:
+            ocr_result = await self.yandex_service.recognize_text(image_data)
+            if ocr_result and ocr_result.strip():
+                is_safe, reason = self.moderator.moderate(ocr_result)
+                if not is_safe:
+                    logger.warning(f"⚠️ Изображение заблокировано модерацией: {reason}")
+                    return False, reason
+        except Exception as e:
+            # OCR недоступен — пропускаем, не блокируем
+            logger.debug(f"Модерация изображения: OCR недоступен ({e})")
         return True, "OK"

@@ -14,6 +14,15 @@ def _normalize_text(text: str) -> str:
     return " ".join(text.split())
 
 
+def _truncate_on_word_boundary(text: str, max_len: int) -> str:
+    """Обрезать текст по границе слова, не разрывая слова посередине."""
+    if len(text) <= max_len:
+        return text
+    cut = text[:max_len]
+    last_space = cut.rfind(" ")
+    return cut[:last_space] if last_space > 0 else cut
+
+
 class EmbeddingService:
     """Сервис эмбеддингов через Yandex Cloud API."""
 
@@ -26,21 +35,21 @@ class EmbeddingService:
         """Эмбеддинг для поискового запроса."""
         normalized = _normalize_text(text)
         if len(normalized) > self.MAX_TEXT_LENGTH:
-            normalized = normalized[: self.MAX_TEXT_LENGTH]
+            normalized = _truncate_on_word_boundary(normalized, self.MAX_TEXT_LENGTH)
         return await self._yandex.get_embedding(normalized, text_type="query")
 
     async def embed_document(self, text: str) -> list[float] | None:
         """Эмбеддинг для документа."""
         normalized = _normalize_text(text)
         if len(normalized) > self.MAX_TEXT_LENGTH:
-            normalized = normalized[: self.MAX_TEXT_LENGTH]
+            normalized = _truncate_on_word_boundary(normalized, self.MAX_TEXT_LENGTH)
         return await self._yandex.get_embedding(normalized, text_type="doc")
 
     async def get_embedding(self, text: str, text_type: str = "doc") -> list[float] | None:
         """Получить эмбеддинг текста (doc или query)."""
         normalized = _normalize_text(text)
         if len(normalized) > self.MAX_TEXT_LENGTH:
-            normalized = normalized[: self.MAX_TEXT_LENGTH]
+            normalized = _truncate_on_word_boundary(normalized, self.MAX_TEXT_LENGTH)
         return await self._yandex.get_embedding(normalized, text_type=text_type)
 
 

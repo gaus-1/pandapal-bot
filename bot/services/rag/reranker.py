@@ -69,7 +69,7 @@ class ResultReranker:
         return total_score
 
     def _calculate_relevance(self, query: str, result) -> float:
-        """Рассчитать текстовую релевантность (упрощенный BM25)."""
+        """Рассчитать текстовую релевантность (упрощенный BM25 + биграммы)."""
         query_terms = set(query.lower().split())
 
         # Объединяем title и content для поиска
@@ -78,7 +78,7 @@ class ResultReranker:
         if not text:
             return 0.0
 
-        # Подсчет совпадений
+        # Подсчет совпадений (unigrams)
         matches = sum(1 for term in query_terms if term in text)
 
         # Нормализация
@@ -87,6 +87,18 @@ class ResultReranker:
         # Бонус за точное совпадение фразы
         if query.lower() in text:
             relevance += 0.3
+
+        # Бонус за совпадение биграмм (пары слов): «теорема Пифагора» > «Пифагор на теореме»
+        query_words = query.lower().split()
+        if len(query_words) >= 2:
+            bigram_matches = 0
+            total_bigrams = len(query_words) - 1
+            for i in range(total_bigrams):
+                bigram = f"{query_words[i]} {query_words[i + 1]}"
+                if bigram in text:
+                    bigram_matches += 1
+            if total_bigrams > 0:
+                relevance += 0.2 * (bigram_matches / total_bigrams)
 
         return min(relevance, 1.0)
 

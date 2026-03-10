@@ -267,10 +267,11 @@ class QueryExpander:
         query_lower = query.lower()
         additions = []
 
-        # Добавляем синонимы
+        # Добавляем синонимы (до 2-х на каждый совпавший термин)
         for term, syns in self.synonyms.items():
             if term in query_lower and len(additions) < max_additions:
-                additions.append(syns[0])  # Добавляем первый синоним
+                for syn in syns[: min(2, max_additions - len(additions))]:
+                    additions.append(syn)
 
         # Добавляем связанные термины
         for term, related in self.related_terms.items():
