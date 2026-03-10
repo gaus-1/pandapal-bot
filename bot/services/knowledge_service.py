@@ -15,6 +15,7 @@ from urllib.parse import quote
 import httpx
 from loguru import logger
 
+from bot.config import FORBIDDEN_PATTERNS
 from bot.services.cache_service import cache_service
 from bot.services.rag import (
     ContextCompressor,
@@ -100,6 +101,9 @@ class KnowledgeService:
                 "эротическ",
             }
         )
+
+        # Глобальные FORBIDDEN_PATTERNS (>5 символов, чтобы не ловить false positives)
+        self._critical_forbidden_patterns = frozenset(p for p in FORBIDDEN_PATTERNS if len(p) > 5)
 
         logger.info(
             f"📚 KnowledgeService инициализирован (RAG: ON, авто-обновление: {'ВКЛ' if self.auto_update_enabled else 'ВЫКЛ'})"
@@ -763,13 +767,8 @@ class KnowledgeService:
         # Проверка по локальным паттернам (опасный контент: бомба, суицид, порно и т.д.)
         if any(pattern in text_lower for pattern in self.forbidden_topics):
             return True
-        # Проверка по глобальным запрещённым паттернам (расширенный набор)
-        from bot.config import FORBIDDEN_PATTERNS
-
-        # Берём только самые критичные паттерны для внешнего контента (> 5 символов,
-        # чтобы не ловить короткие false positives вроде «die», «beat», «dead»)
-        critical_patterns = (p for p in FORBIDDEN_PATTERNS if len(p) > 5)
-        return any(pattern in text_lower for pattern in critical_patterns)
+        # Проверка по глобальным запрещённым паттернам (расширенный набор >5 символов)
+        return any(pattern in text_lower for pattern in self._critical_forbidden_patterns)
 
     def _adapt_content_for_children(self, text: str, user_age: int | None = None) -> str:
         """

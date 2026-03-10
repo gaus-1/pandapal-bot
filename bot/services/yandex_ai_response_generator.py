@@ -82,11 +82,16 @@ def finalize_ai_response(raw_text: str, user_message: str = "") -> str:
     """
     Единый финальный postprocess:
     - очистка формата/дубликатов
+    - модерация ответа AI (защита от галлюцинаций модели)
     - вовлекающий вопрос только для RU-диалога и не в farewell-кейсах
     """
     cleaned = clean_ai_response((raw_text or "").strip())
     if not cleaned:
         return cleaned
+    # Модерация ответа: блокируем запрещённый контент, который модель могла сгенерировать
+    from bot.services.moderation_service import ContentModerationService
+
+    cleaned = ContentModerationService().sanitize_ai_response(cleaned)
     if _is_farewell_message(user_message):
         return cleaned
     if not _is_probably_russian_message(user_message):
@@ -129,11 +134,14 @@ def _strip_explain_more_tail(text: str) -> str:
     return "\n".join(lines)
 
 
+# Минимальная длина ответа, при которой добавляется вопрос-вовлечение
+_MIN_RESPONSE_LEN_FOR_ENGAGEMENT = 200
+
+
 def add_random_engagement_question(response: str) -> str:
     """
     Добавляет случайный вопрос для вовлечения в конец ответа.
-
-    КРИТИЧЕСКИ ВАЖНО: Вопрос ВСЕГДА должен быть отделен пустой строкой от основного текста.
+    Не добавляет вопрос к коротким ответам (<200 символов), чтобы не быть навязчивым.
 
     Args:
         response: Исходный ответ AI
@@ -147,6 +155,10 @@ def add_random_engagement_question(response: str) -> str:
     # Шаг 1: удалить запрещённые «объяснить подробнее?» из хвоста
     response = _strip_explain_more_tail(response)
     if not response or not response.strip():
+        return response
+
+    # Не добавляем вопрос к коротким/простым ответам — это навязчиво
+    if len(response.strip()) < _MIN_RESPONSE_LEN_FOR_ENGAGEMENT:
         return response
 
     # Варианты вопросов для вовлечения (тон в духе панды: дружеский, без давления)
@@ -208,19 +220,24 @@ def _normalize_for_dedup(s: str) -> str:
     return re.sub(r"\s+", " ", s)
 
 
+# Лимит итераций для _remove_duplicate_long_substrings (защита от O(n³))
+_MAX_DEDUP_ITERATIONS = 5
+
+
 def _remove_duplicate_long_substrings(text: str, min_len: int = 70) -> str:
     """
     Удаляет повторяющиеся длинные подстроки (артефакт стриминга: вставка блока повторно).
     Убирает второе и последующие вхождения блока длиной min_len+ символов.
+    Ограничен по итерациям для предотвращения зависания.
     """
     if not text or len(text) < min_len * 2:
         return text
     result = text
-    changed = True
-    while changed:
-        changed = False
+    for _iteration in range(_MAX_DEDUP_ITERATIONS):
+        found = False
         for length in range(min(len(result) // 2, 200), min_len - 1, -10):
-            for i in range(len(result) - length):
+            # Проверяем только каждую 5-ю позицию для экономии (подстроки >= 70 символов)
+            for i in range(0, len(result) - length, 5):
                 sub = result[i : i + length]
                 if sub.strip() and len(sub.strip()) >= min_len:
                     j = result.find(sub, i + 1)
@@ -232,10 +249,12 @@ def _remove_duplicate_long_substrings(text: str, min_len: int = 70) -> str:
                             result = before + " " + after
                         else:
                             result = before + after
-                        changed = True
+                        found = True
                         break
-            if changed:
+            if found:
                 break
+        if not found:
+            break
     return result
 
 
@@ -369,7 +388,7 @@ def remove_duplicate_text(text: str, min_length: int = 20) -> str:
                         w_seen = set(seen.split())
                         if w_new and w_seen:
                             sim = len(w_new & w_seen) / max(len(w_new), len(w_seen))
-                            if sim > 0.55:
+                            if sim > 0.75:
                                 is_dup = True
                                 break
                 if not is_dup:

@@ -94,20 +94,11 @@ class PromptBuilder:
                         ai_greeted = True
                         break
 
-        # Пользователь прощается - ТОЛЬКО если это явное прощание, не вопрос
-        farewell_keywords = [
-            "пока",
-            "до свидания",
-            "до свиданья",
-            "прощай",
-            "прощайте",
-            "bye",
-            "goodbye",
-            "see you",
-            "увидимся",
-        ]
+        # Пользователь прощается — единый набор из _FAREWELL_KEYWORDS
+        from bot.services.yandex_ai_response_generator import _FAREWELL_KEYWORDS
+
         # Проверяем, что это именно прощание, а не вопрос с этими словами
-        is_farewell = any(fw in user_message_lower for fw in farewell_keywords)
+        is_farewell = any(fw in user_message_lower for fw in _FAREWELL_KEYWORDS)
         # Если есть вопросительные слова - это не прощание
         has_question_words = any(
             qw in user_message_lower for qw in ["что", "как", "где", "когда", "почему", "кто", "?"]

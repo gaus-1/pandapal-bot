@@ -202,5 +202,88 @@ class TestImageModeration:
         assert reason == "OK"
 
 
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+# ── Модерация ОТВЕТА AI ──────────────────────────────────────────
+class TestResponseOutputModeration:
+    """finalize_ai_response модерирует ответ через sanitize_ai_response."""
+
+    def test_blocks_forbidden_output(self):
+        from bot.services.yandex_ai_response_generator import finalize_ai_response
+
+        # Ответ с запрещённым словом должен быть заменён
+        result = finalize_ai_response("Вот как сделать наркотики дома", user_message="расскажи")
+        assert "наркотик" not in result.lower()
+        assert "учёб" in result.lower() or "📚" in result
+
+    def test_passes_safe_output(self):
+        from bot.services.yandex_ai_response_generator import finalize_ai_response
+
+        result = finalize_ai_response("Фотосинтез — это процесс преобразования света.", user_message="что такое фотосинтез")
+        assert "Фотосинтез" in result
+
+
+# ── Engagement question guard ─────────────────────────────────────
+class TestEngagementQuestionGuard:
+    """Короткие ответы не получают вопрос-вовлечение."""
+
+    def test_short_answer_no_engagement(self):
+        from bot.services.yandex_ai_response_generator import add_random_engagement_question
+
+        result = add_random_engagement_question("Ответ: 4.")
+        assert result == "Ответ: 4."  # Без вопроса
+
+    def test_long_answer_gets_engagement(self):
+        from bot.services.yandex_ai_response_generator import add_random_engagement_question
+
+        long_text = "Фотосинтез — процесс. " * 20  # >200 символов
+        result = add_random_engagement_question(long_text.strip())
+        assert len(result) > len(long_text.strip())
+
+
+# ── Dedup threshold 75% ──────────────────────────────────────────
+class TestDedupThreshold:
+    """Порог 75% не удаляет формулы с повторяющимися словами."""
+
+    def test_similar_formulas_preserved(self):
+        from bot.services.yandex_ai_response_generator import clean_ai_response
+
+        text = (
+            "Площадь треугольника = (a·h)/2\n\n"
+            "Площадь прямоугольника = a·b\n\n"
+            "Площадь параллелограмма = a·h"
+        )
+        result = clean_ai_response(text)
+        assert "треугольника" in result
+        assert "прямоугольника" in result
+        assert "параллелограмма" in result
+
+
+# ── Educational bypass fix ────────────────────────────────────────
+class TestEducationalBypassFix:
+    """Глаголы-действия удалены из EDUCATIONAL_CONTEXTS."""
+
+    def test_no_generic_verbs_in_contexts(self):
+        from bot.services.moderation_service import ContentModerationService
+
+        contexts_lower = [c.lower() for c in ContentModerationService.EDUCATIONAL_CONTEXTS]
+        dangerous_verbs = ["расскажи", "покажи", "помоги", "создай", "напиши", "нарисуй", "составь", "построй"]
+        for verb in dangerous_verbs:
+            assert verb not in contexts_lower, f"'{verb}' не должен быть в EDUCATIONAL_CONTEXTS"
+
+
+# ── Broken synonym fix ───────────────────────────────────────────
+class TestBrokenSynonymsFix:
+    """Общеупотребительные слова не заменяются на запрещённые."""
+
+    def test_chemistry_not_replaced(self):
+        from bot.services.advanced_moderation import AdvancedModerationService
+
+        service = AdvancedModerationService()
+        normalized = service._normalize_text("расскажи про химию")
+        assert "наркотик" not in normalized
+
+    def test_relations_not_replaced(self):
+        from bot.services.advanced_moderation import AdvancedModerationService
+
+        service = AdvancedModerationService()
+        normalized = service._normalize_text("отношения между странами")
+        assert "секс" not in normalized

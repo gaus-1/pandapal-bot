@@ -62,8 +62,10 @@ class MiniappChatContextService:
             telegram_id, limit=history_limit
         )
 
-        # Проверяем, была ли очистка истории
-        is_history_cleared = len(history) == 0
+        # Проверяем, была ли ОЧИСТКА истории (а не просто новый пользователь без истории)
+        # Новый пользователь без истории — не то же самое, что пользователь, очистивший историю
+        total_messages = self.history_service.get_message_count(telegram_id)
+        is_history_cleared = len(history) == 0 and total_messages > 0
 
         # Проверяем, было ли отправлено автоматическое приветствие
         # Если история содержит только одно сообщение от AI с приветствием - считаем что приветствие было отправлено
