@@ -135,7 +135,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
       </div>
     );
     return (
-      <div className="w-full h-full bg-white dark:bg-slate-800 overflow-y-auto">
+      <div className="w-full h-full bg-white dark:bg-slate-800 overflow-hidden">
         <ErrorBoundary fallback={gameFallback}>
           {selectedGame === 'tic_tac_toe' && (
             <TicTacToe

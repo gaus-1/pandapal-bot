@@ -143,40 +143,40 @@ export function TicTacToe({ sessionId, user, onBack, onGameEnd }: TicTacToeProps
   };
 
   return (
-    <div className="w-full h-full bg-white dark:bg-slate-800 overflow-y-auto">
-      <div className="max-w-md mx-auto px-fib-2 fold:px-fib-3 xs:px-fib-4 sm:px-fib-4 py-fib-4 sm:py-fib-5">
-        {/* Заголовок */}
-        <div className="flex items-center justify-between mb-2">
-          <button
-            onClick={onBack}
-            className="p-2.5 sm:p-3 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
-            aria-label="Назад"
-          >
-            ← Назад
-          </button>
-          <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 dark:text-slate-100">
-            ❌⭕ Крестики-нолики
-          </h2>
-          <div className="w-10 sm:w-12" />
-        </div>
+    <div className="w-full h-full bg-white dark:bg-slate-800 flex flex-col overflow-hidden">
+      {/* Заголовок */}
+      <div className="flex-shrink-0 flex items-center justify-between px-fib-3 py-fib-2 border-b border-gray-200 dark:border-slate-700">
+        <button
+          onClick={onBack}
+          className="p-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 transition-colors text-sm touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
+          aria-label="Назад"
+        >
+          ← Назад
+        </button>
+        <h2 className="text-lg sm:text-xl font-display font-bold text-gray-900 dark:text-slate-100">
+          ❌⭕ Крестики-нолики
+        </h2>
+        <div className="w-10" />
+      </div>
 
-        {/* Статус */}
-        <div className="text-center mb-0">
-          {winner && winner !== "draw" && (
-            <div className="mb-2">
-              <PandaReaction mood={winner === "user" ? "sad" : "happy"} size="small" />
-            </div>
-          )}
-          <div className="font-display text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-100 mb-0">
-            {getStatusMessage()}
+      {/* Статус */}
+      <div className="flex-shrink-0 text-center py-fib-2 px-fib-3">
+        {winner && winner !== "draw" && (
+          <div className="mb-1">
+            <PandaReaction mood={winner === "user" ? "sad" : "happy"} size="small" />
           </div>
-          {error && (
-            <p className="text-xs sm:text-sm text-red-500 mt-2">{error}</p>
-          )}
+        )}
+        <div className="font-display text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100">
+          {getStatusMessage()}
         </div>
+        {error && (
+          <p className="text-xs sm:text-sm text-red-500 mt-1">{error}</p>
+        )}
+      </div>
 
-        {/* Игровая доска */}
-        <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 mb-4 w-full max-w-[260px] fold:max-w-[calc(100vw-16px)] mx-auto border border-gray-200 dark:border-slate-600">
+      {/* Игровая доска */}
+      <div className="flex-1 flex items-center justify-center px-fib-3 min-h-0">
+        <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 w-full max-w-[220px] mx-auto border border-gray-200 dark:border-slate-600">
           <div className="grid grid-cols-3 gap-0.5 w-full">
             {Array.from({ length: 9 }).map((_, index) => {
               const content = getSquareContent(index);
@@ -199,11 +199,11 @@ export function TicTacToe({ sessionId, user, onBack, onGameEnd }: TicTacToeProps
                       : "bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-600"
                     }
                     ${isAiMove
-                      ? "ring-2 sm:ring-4 ring-yellow-400 dark:ring-yellow-500 ring-opacity-60 dark:ring-opacity-70 animate-[fadeInScale_0.3s_ease-out]"
+                      ? "ring-2 ring-yellow-400 dark:ring-yellow-500 ring-opacity-60 dark:ring-opacity-70 animate-[fadeInScale_0.3s_ease-out]"
                       : ""
                     }
                     ${isUserMove
-                      ? "ring-2 sm:ring-4 ring-blue-500 dark:ring-blue-400 ring-opacity-60 dark:ring-opacity-70"
+                      ? "ring-2 ring-blue-500 dark:ring-blue-400 ring-opacity-60 dark:ring-opacity-70"
                       : ""
                     }
                     disabled:opacity-50 disabled:cursor-not-allowed
@@ -221,18 +221,17 @@ export function TicTacToe({ sessionId, user, onBack, onGameEnd }: TicTacToeProps
             })}
           </div>
         </div>
+      </div>
 
-        {/* Инструкция */}
-        {!gameOver && (
-          <div className="text-center text-xs sm:text-sm text-gray-600 dark:text-slate-400 max-w-[260px] mx-auto px-2">
+      {/* Инструкция / Кнопки */}
+      <div className="flex-shrink-0 text-center px-fib-3 py-fib-2">
+        {!gameOver ? (
+          <div className="text-xs text-gray-600 dark:text-slate-400">
             <p>Ты играешь ❌, панда играет ⭕</p>
-            <p className="mt-1">Нажми на клетку, чтобы сделать ход</p>
+            <p className="mt-0.5">Нажми на клетку, чтобы сделать ход</p>
           </div>
-        )}
-
-        {/* Кнопка новой игры */}
-        {gameOver && (
-          <div className="text-center flex items-center justify-center gap-3">
+        ) : (
+          <div className="flex items-center justify-center gap-3">
             <button
               onClick={async () => {
                 try {
@@ -240,13 +239,13 @@ export function TicTacToe({ sessionId, user, onBack, onGameEnd }: TicTacToeProps
                   if (result?.session_id != null) window.location.reload();
                 } catch { onGameEnd(); }
               }}
-              className="px-6 py-3 bg-green-500 dark:bg-green-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px]"
+              className="px-5 py-2.5 bg-green-500 dark:bg-green-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm min-h-[44px]"
             >
               Играть снова
             </button>
             <button
               onClick={onBack}
-              className="px-6 py-3 bg-blue-500 dark:bg-blue-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px]"
+              className="px-5 py-2.5 bg-blue-500 dark:bg-blue-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm min-h-[44px]"
             >
               К играм
             </button>

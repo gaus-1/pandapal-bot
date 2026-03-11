@@ -235,56 +235,56 @@ export function Game2048({ sessionId, user, onBack, onGameEnd }: Game2048Props) 
   };
 
   return (
-    <div className="w-full h-full bg-white dark:bg-slate-800 overflow-y-auto">
-      <div className="max-w-md mx-auto px-fib-2 fold:px-fib-3 xs:px-fib-4 sm:px-fib-4 py-fib-4 sm:py-fib-5">
-        {/* Заголовок */}
-        <div className="flex items-center justify-between mb-2">
-          <button
-            onClick={onBack}
-            className="p-2.5 sm:p-3 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 transition-colors text-sm sm:text-base touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
-            aria-label="Назад"
-          >
-            ← Назад
-          </button>
-          <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 dark:text-slate-100">
-            🔢 2048
-          </h2>
-          <div className="w-10 sm:w-12" />
-        </div>
+    <div className="w-full h-full bg-white dark:bg-slate-800 flex flex-col overflow-hidden">
+      {/* Заголовок */}
+      <div className="flex-shrink-0 flex items-center justify-between px-fib-3 py-fib-2 border-b border-gray-200 dark:border-slate-700">
+        <button
+          onClick={onBack}
+          className="p-2 rounded-lg bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 transition-colors text-sm touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-900 dark:text-slate-100"
+          aria-label="Назад"
+        >
+          ← Назад
+        </button>
+        <h2 className="text-lg sm:text-xl font-display font-bold text-gray-900 dark:text-slate-100">
+          🔢 2048
+        </h2>
+        <div className="w-10" />
+      </div>
 
-        {/* Счет */}
-        <div className="text-center mb-0">
-          {won && (
-            <div className="mb-2">
-              <PandaReaction mood="happy" size="small" />
-            </div>
-          )}
-          {gameOver && (
-            <div className="mb-2">
-              <PandaReaction mood="sad" size="small" />
-            </div>
-          )}
-          <div className="font-display text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-slate-100 mb-0">
-            {score}
+      {/* Счёт */}
+      <div className="flex-shrink-0 text-center py-fib-2 px-fib-3">
+        {won && (
+          <div className="mb-1">
+            <PandaReaction mood="happy" size="small" />
           </div>
-          {won && (
-            <div className="text-xs sm:text-sm text-green-500 font-semibold">
-              🎉 Ты достиг 2048!
-            </div>
-          )}
-          {gameOver && (
-            <div className="text-xs sm:text-sm text-red-500 font-semibold mt-1">
-              Игра окончена
-            </div>
-          )}
-          {error && (
-            <p className="text-xs sm:text-sm text-red-500 mt-2">{error}</p>
-          )}
+        )}
+        {gameOver && (
+          <div className="mb-1">
+            <PandaReaction mood="sad" size="small" />
+          </div>
+        )}
+        <div className="font-display text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100">
+          {score}
         </div>
+        {won && (
+          <div className="text-xs text-green-500 font-semibold">
+            🎉 Ты достиг 2048!
+          </div>
+        )}
+        {gameOver && (
+          <div className="text-xs text-red-500 font-semibold">
+            Игра окончена
+          </div>
+        )}
+        {error && (
+          <p className="text-xs text-red-500 mt-1">{error}</p>
+        )}
+      </div>
 
-        {/* Игровая доска с поддержкой swipe */}
+      {/* Игровая доска */}
+      <div className="flex-1 flex items-center justify-center px-fib-3 min-h-0">
         <div
-          className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 mb-4 touch-none select-none w-full max-w-[260px] fold:max-w-[calc(100vw-16px)] mx-auto border border-gray-200 dark:border-slate-600"
+          className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 touch-none select-none w-full max-w-[220px] mx-auto border border-gray-200 dark:border-slate-600"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
@@ -297,7 +297,7 @@ export function Game2048({ sessionId, user, onBack, onGameEnd }: Game2048Props) 
                   <div
                     key={index}
                     className={`
-                      aspect-square rounded-md sm:rounded-lg flex items-center justify-center
+                      aspect-square rounded-md flex items-center justify-center
                       font-bold text-sm sm:text-base
                       w-full h-full
                       ${value === 0
@@ -325,25 +325,24 @@ export function Game2048({ sessionId, user, onBack, onGameEnd }: Game2048Props) 
             </div>
           )}
         </div>
+      </div>
 
-        {/* Кнопки управления */}
-        {!gameOver && (
-          <div className="mb-4">
-            <div className="text-xs text-gray-600 dark:text-slate-400 mb-1.5 text-center font-medium">
-              Используй кнопки или свайп по доске
+      {/* Кнопки управления / Game Over */}
+      <div className="flex-shrink-0 px-fib-3 py-fib-2">
+        {!gameOver ? (
+          <div>
+            <div className="text-[10px] text-gray-500 dark:text-slate-400 text-center mb-1">
+              Свайп по доске или кнопки ↑↓←→
             </div>
-            <div className="grid grid-cols-3 gap-1 max-w-[260px] fold:max-w-[calc(100vw-16px)] mx-auto bg-gray-50 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-600">
+            <div className="grid grid-cols-3 gap-1 max-w-[180px] mx-auto">
               <div /> {/* Spacer */}
               <button
                 onClick={() => handleMove("up")}
                 disabled={isLoading}
-                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
+                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[40px] flex items-center justify-center shadow-md"
                 aria-label="Вверх"
-                style={{
-                  filter: 'contrast(1.3) brightness(1.15)'
-                }}
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5">
                   <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
                 </svg>
               </button>
@@ -351,13 +350,10 @@ export function Game2048({ sessionId, user, onBack, onGameEnd }: Game2048Props) 
               <button
                 onClick={() => handleMove("left")}
                 disabled={isLoading}
-                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
+                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[40px] flex items-center justify-center shadow-md"
                 aria-label="Влево"
-                style={{
-                  filter: 'contrast(1.3) brightness(1.15)'
-                }}
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5">
                   <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </button>
@@ -365,13 +361,10 @@ export function Game2048({ sessionId, user, onBack, onGameEnd }: Game2048Props) 
               <button
                 onClick={() => handleMove("right")}
                 disabled={isLoading}
-                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
+                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[40px] flex items-center justify-center shadow-md"
                 aria-label="Вправо"
-                style={{
-                  filter: 'contrast(1.3) brightness(1.15)'
-                }}
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5">
                   <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                 </svg>
               </button>
@@ -379,33 +372,18 @@ export function Game2048({ sessionId, user, onBack, onGameEnd }: Game2048Props) 
               <button
                 onClick={() => handleMove("down")}
                 disabled={isLoading}
-                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center shadow-md border border-blue-500 dark:border-blue-600"
+                className="p-1 bg-blue-500 dark:bg-blue-600 text-white rounded-lg font-bold hover:opacity-80 active:scale-95 transition-all disabled:opacity-50 touch-manipulation min-h-[40px] flex items-center justify-center shadow-md"
                 aria-label="Вниз"
-                style={{
-                  filter: 'contrast(1.3) brightness(1.15)'
-                }}
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5">
                   <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
               </button>
               <div /> {/* Spacer */}
             </div>
           </div>
-        )}
-
-        {/* Инструкция */}
-        {!gameOver && (
-          <div className="text-center text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-4 leading-tight">
-            <p className="m-0">Объединяй одинаковые числа!</p>
-            <p className="m-0">Свайп по доске или используй кнопки</p>
-            <p className="m-0">Цель: достичь 2048</p>
-          </div>
-        )}
-
-        {/* Кнопка новой игры */}
-        {gameOver && (
-          <div className="text-center flex items-center justify-center gap-3">
+        ) : (
+          <div className="flex items-center justify-center gap-3">
             <button
               onClick={async () => {
                 try {
@@ -413,13 +391,13 @@ export function Game2048({ sessionId, user, onBack, onGameEnd }: Game2048Props) 
                   if (result?.session_id != null) window.location.reload();
                 } catch { onGameEnd(); }
               }}
-              className="px-6 py-3 bg-green-500 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px]"
+              className="px-5 py-2.5 bg-green-500 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm min-h-[44px]"
             >
               Играть снова
             </button>
             <button
               onClick={onBack}
-              className="px-6 py-3 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px]"
+              className="px-5 py-2.5 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm min-h-[44px]"
             >
               К играм
             </button>
