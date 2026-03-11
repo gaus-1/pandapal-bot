@@ -408,16 +408,24 @@ class ContentModerationService(IModerationService):
         return True, None
 
     def sanitize_ai_response(self, response: str) -> str:
-        """Очистка ответа AI от нецензурной лексики.
+        """Очистка ответа AI от небезопасного контента.
 
-        Проверяем ТОЛЬКО мат — запрещённые темы не проверяем,
-        т.к. AI-промпт уже фильтрует опасный контент,
-        а образовательные ответы используют слова вроде
-        'кровь' (биология), 'нож' (труд), 'драка' (история).
+        Проверяем мат и запрещённые темы, но пропускаем ответы
+        с образовательным контекстом (биология: 'кровь', история: 'война',
+        русский: 'члены предложения', труд: 'нож' и т.д.).
         """
-        normalized = response.strip().lower()
-        if self._profanity_regex.search(normalized):
-            logger.error("⚠️ AI сгенерировал нецензурную лексику!")
+        is_safe, reason = self.is_safe_content(response)
+        if not is_safe:
+            # Образовательный контекст: если AI ответ содержит учебные слова,
+            # значит он отвечал на школьный вопрос — пропускаем
+            normalized = response.strip().lower()
+            has_educational_context = any(ctx in normalized for ctx in self.EDUCATIONAL_CONTEXTS)
+            if has_educational_context and reason != "ненормативная лексика":
+                logger.debug(
+                    "✅ AI ответ содержит запрещённое слово, но в образовательном контексте — пропускаем"
+                )
+                return response
+            logger.error(f"⚠️ AI сгенерировал небезопасный контент! Причина: {reason}")
             return "Извини, я не могу ответить на этот вопрос. Давай лучше поговорим об учёбе! 📚"
         return response
 
