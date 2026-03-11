@@ -408,10 +408,16 @@ class ContentModerationService(IModerationService):
         return True, None
 
     def sanitize_ai_response(self, response: str) -> str:
-        """Очистка ответа AI от потенциально опасного контента."""
-        is_safe, reason = self.is_safe_content(response)
-        if not is_safe:
-            logger.error(f"⚠️ AI сгенерировал небезопасный контент! Причина: {reason}")
+        """Очистка ответа AI от нецензурной лексики.
+
+        Проверяем ТОЛЬКО мат — запрещённые темы не проверяем,
+        т.к. AI-промпт уже фильтрует опасный контент,
+        а образовательные ответы используют слова вроде
+        'кровь' (биология), 'нож' (труд), 'драка' (история).
+        """
+        normalized = response.strip().lower()
+        if self._profanity_regex.search(normalized):
+            logger.error("⚠️ AI сгенерировал нецензурную лексику!")
             return "Извини, я не могу ответить на этот вопрос. Давай лучше поговорим об учёбе! 📚"
         return response
 
