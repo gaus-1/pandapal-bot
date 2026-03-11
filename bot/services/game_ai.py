@@ -1,7 +1,6 @@
 """
-Сервис игр для PandaPalGo.
-Реализует логику игр: крестики-нолики, виселица, 2048.
-Включает AI противника (панда) для игры с ребенком.
+AI-противники для игр PandaPalGo.
+Реализует AI для крестиков-ноликов (minimax).
 """
 
 import random
@@ -161,86 +160,3 @@ class TicTacToeAI:
     def _is_board_full(self, board: list[str | None]) -> bool:
         """Проверить заполнена ли доска"""
         return all(cell is not None for cell in board)
-
-
-class CheckersAI:
-    """AI для шашек (панда)"""
-
-    def get_best_move(
-        self, board: list[list[str | None]], player: str
-    ) -> tuple[int, int, int, int] | None:
-        """
-        Получить лучший ход для AI.
-
-        Args:
-            board: Доска 8x8 (список списков: None, 'user', 'ai')
-            player: Символ AI ('ai')
-
-        Returns:
-            Optional[Tuple[int, int, int, int]]: (from_row, from_col, to_row, to_col) или None
-        """
-        # Ищем все возможные ходы
-        moves = self._get_all_moves(board, player)
-        if not moves:
-            return None
-
-        # Приоритет: взятие фишки > движение вперед > случайный ход
-        capture_moves = [m for m in moves if self._is_capture_move(m)]
-        if capture_moves:
-            return random.choice(capture_moves)
-
-        forward_moves = [m for m in moves if self._is_forward_move(m)]
-        if forward_moves:
-            return random.choice(forward_moves)
-
-        return random.choice(moves)
-
-    def _get_all_moves(
-        self, board: list[list[str | None]], player: str
-    ) -> list[tuple[int, int, int, int]]:
-        """
-        Получить все возможные ходы для игрока.
-        DEPRECATED: используется старая логика для обратной совместимости.
-        Новая логика в games_service использует CheckersGame.get_valid_moves.
-        """
-        moves = []
-        for row in range(8):
-            for col in range(8):
-                if board[row][col] == player:
-                    moves.extend(self._get_moves_from_position(board, row, col))
-        return moves
-
-    def _get_moves_from_position(
-        self, board: list[list[str | None]], row: int, col: int
-    ) -> list[tuple[int, int, int, int]]:
-        """
-        Получить все возможные ходы из заданной позиции.
-        DEPRECATED: не учитывает дамки и обязательное взятие.
-        """
-        moves = []
-        # AI двигается вниз (увеличение row, так как он вверху доски)
-        for dr, dc in [(1, -1), (1, 1)]:
-            new_row, new_col = row + dr, col + dc
-            if not (0 <= new_row < 8 and 0 <= new_col < 8):
-                continue
-
-            if board[new_row][new_col] is None:
-                moves.append((row, col, new_row, new_col))
-            elif board[new_row][new_col] == "user":
-                # Проверяем возможность взятия
-                jump_row, jump_col = new_row + dr, new_col + dc
-                if 0 <= jump_row < 8 and 0 <= jump_col < 8 and board[jump_row][jump_col] is None:
-                    moves.append((row, col, jump_row, jump_col))
-        return moves
-
-    def _is_capture_move(self, move: tuple[int, int, int, int]) -> bool:
-        """Проверить, является ли ход взятием фишки"""
-        from_row, from_col, to_row, to_col = move
-        # Если ход на 2 клетки по диагонали - это взятие
-        return abs(to_row - from_row) == 2 and abs(to_col - from_col) == 2
-
-    def _is_forward_move(self, move: tuple[int, int, int, int]) -> bool:
-        """Проверить, является ли ход движением вперед"""
-        from_row, _, to_row, _ = move
-        # Для AI (который вверху) движение вперед = движение вниз (увеличение row)
-        return to_row > from_row

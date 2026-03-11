@@ -50,9 +50,10 @@ class Game2048Mixin:
 
         state = game.get_state()
 
-        # Проверяем поражение
+        # Проверяем завершение
         if state["game_over"]:
-            self.finish_game_session(session_id, "loss", state["score"])
+            result = "win" if state["won"] else "loss"
+            self.finish_game_session(session_id, result, state["score"])
             self.db.commit()
             return {
                 "board": state["board"],

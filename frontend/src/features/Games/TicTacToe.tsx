@@ -8,6 +8,7 @@ import { telegram } from "../../services/telegram";
 import {
   ticTacToeMove,
   getGameSession,
+  createGame,
   type UserProfile,
 } from "../../services/api";
 import { PandaReaction } from "../../components/PandaReaction";
@@ -19,7 +20,7 @@ interface TicTacToeProps {
   onGameEnd: () => void;
 }
 
-export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
+export function TicTacToe({ sessionId, user, onBack, onGameEnd }: TicTacToeProps) {
   const [board, setBoard] = useState<(string | null)[]>(() => Array(9).fill(null));
   const [isUserTurn, setIsUserTurn] = useState(true);
   const [gameOver, setGameOver] = useState(false);
@@ -193,20 +194,17 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
                     flex items-center justify-center
                     transition-all duration-300 touch-manipulation
                     w-full
-                    ${
-                      isEmpty && !gameOver && !isLoading
-                        ? "bg-blue-500 dark:bg-blue-600 text-white hover:opacity-80 dark:hover:opacity-70 active:scale-95"
-                        : "bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-600"
+                    ${isEmpty && !gameOver && !isLoading
+                      ? "bg-blue-500 dark:bg-blue-600 text-white hover:opacity-80 dark:hover:opacity-70 active:scale-95"
+                      : "bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 border border-gray-200 dark:border-slate-600"
                     }
-                    ${
-                      isAiMove
-                        ? "ring-2 sm:ring-4 ring-yellow-400 dark:ring-yellow-500 ring-opacity-60 dark:ring-opacity-70 animate-[fadeInScale_0.3s_ease-out]"
-                        : ""
+                    ${isAiMove
+                      ? "ring-2 sm:ring-4 ring-yellow-400 dark:ring-yellow-500 ring-opacity-60 dark:ring-opacity-70 animate-[fadeInScale_0.3s_ease-out]"
+                      : ""
                     }
-                    ${
-                      isUserMove
-                        ? "ring-2 sm:ring-4 ring-blue-500 dark:ring-blue-400 ring-opacity-60 dark:ring-opacity-70"
-                        : ""
+                    ${isUserMove
+                      ? "ring-2 sm:ring-4 ring-blue-500 dark:ring-blue-400 ring-opacity-60 dark:ring-opacity-70"
+                      : ""
                     }
                     disabled:opacity-50 disabled:cursor-not-allowed
                   `}
@@ -234,12 +232,23 @@ export function TicTacToe({ sessionId, onBack, onGameEnd }: TicTacToeProps) {
 
         {/* Кнопка новой игры */}
         {gameOver && (
-          <div className="text-center space-y-3">
+          <div className="text-center flex items-center justify-center gap-3">
+            <button
+              onClick={async () => {
+                try {
+                  const result = await createGame(user.telegram_id, 'tic_tac_toe');
+                  if (result?.session_id != null) window.location.reload();
+                } catch { onGameEnd(); }
+              }}
+              className="px-6 py-3 bg-green-500 dark:bg-green-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px]"
+            >
+              Играть снова
+            </button>
             <button
               onClick={onBack}
               className="px-6 py-3 bg-blue-500 dark:bg-blue-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px]"
             >
-              Вернуться к играм
+              К играм
             </button>
           </div>
         )}

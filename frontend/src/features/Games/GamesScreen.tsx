@@ -51,7 +51,7 @@ const GAMES = [
   },
   {
     id: 'erudite',
-    name: 'эрудит',
+    name: 'Эрудит',
     icon: '📚',
     description: 'Составляй слова и набирай очки!',
     color: 'from-emerald-200 to-emerald-100',
@@ -180,114 +180,114 @@ export function GamesScreen({ user }: GamesScreenProps) {
     <div className="w-full h-full bg-white dark:bg-slate-800 flex flex-col">
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-fib-2 fold:px-fib-3 xs:px-fib-4 sm:px-fib-4 py-fib-4 sm:py-fib-5 min-w-0">
-        {/* Заголовок */}
-        <div className="text-center mb-fib-3">
-          <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-1">
-            🎮 PandaPalGo
-          </h1>
-          <p className="font-sans text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400 leading-tight">
-            Играй с пандой и зарабатывай достижения!
-          </p>
-        </div>
-
-        {/* Ошибка */}
-        {error && (
-          <div className="mb-fib-3 p-fib-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg">
-            <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+          {/* Заголовок */}
+          <div className="text-center mb-fib-3">
+            <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-1">
+              🎮 PandaPalGo
+            </h1>
+            <p className="font-sans text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400 leading-tight">
+              Играй с пандой и зарабатывай достижения!
+            </p>
           </div>
-        )}
 
-        {/* Список игр — адаптивная сетка без перекрытий */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-fib-3 sm:gap-fib-4 mb-fib-4 w-full min-w-0">
-          {GAMES.map((game) => {
-            const isMyPanda = game.id === 'my_panda';
-            const gameStats = isMyPanda ? undefined : safeStats[game.id];
-            const hasStats = gameStats && gameStats.total_games > 0;
-            const hasBestScore = game.id === '2048' && gameStats?.best_score;
-            return (
-              <button
-                key={game.id}
-                onClick={() => {
-                  if (isMyPanda) {
-                    telegram.hapticFeedback('light');
-                    setCurrentScreen('my-panda');
-                  } else {
-                    handleStartGame(game.id);
-                  }
-                }}
-                disabled={isLoading && !isMyPanda}
-                className={`
+          {/* Ошибка */}
+          {error && (
+            <div className="mb-fib-3 p-fib-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-800 rounded-lg">
+              <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Список игр — адаптивная сетка без перекрытий */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-fib-3 sm:gap-fib-4 mb-fib-4 w-full min-w-0">
+            {GAMES.map((game) => {
+              const isMyPanda = game.id === 'my_panda';
+              const gameStats = isMyPanda ? undefined : safeStats[game.id];
+              const hasStats = gameStats && gameStats.total_games > 0;
+              const hasBestScore = game.id === '2048' && gameStats?.best_score;
+              return (
+                <button
+                  key={game.id}
+                  onClick={() => {
+                    if (isMyPanda) {
+                      telegram.hapticFeedback('light');
+                      setCurrentScreen('my-panda');
+                    } else {
+                      handleStartGame(game.id);
+                    }
+                  }}
+                  disabled={isLoading && !isMyPanda}
+                  className={`
                   relative p-2 rounded-lg bg-gradient-to-br ${game.color} dark:from-slate-700 dark:to-slate-800
                   text-gray-800 dark:text-slate-100 shadow-lg hover:shadow-xl dark:hover:shadow-2xl transform hover:scale-[1.02] active:scale-100
                   active:bg-gradient-to-br ${game.color} dark:active:from-slate-600 dark:active:to-slate-700 transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed min-w-0
                   text-left min-h-[120px] h-[120px] flex flex-col overflow-hidden border border-blue-200/50 dark:border-slate-600/50
                 `}
-              >
-                <div className="text-xl sm:text-2xl mb-0.5 flex-shrink-0 leading-none">{game.icon}</div>
-                <h3 className="font-display text-sm font-bold mb-0.5 flex-shrink-0 leading-tight">{game.name}</h3>
-                <p className="font-sans text-xs opacity-90 mb-1 overflow-hidden leading-tight" style={{
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  minHeight: '28px',
-                  maxHeight: '28px'
-                }}>{game.description}</p>
-
-                {/* Статистика - всегда резервируем место */}
-                <div className="mt-auto min-h-[20px] flex-shrink-0">
-                  {hasStats ? (
-                    <div className="pt-1.5 border-t border-blue-300/40 dark:border-slate-600/50">
-                      <div className="flex justify-between text-xs leading-tight text-gray-700 dark:text-slate-200 font-medium">
-                        <span>Побед: {gameStats.wins}</span>
-                        <span>Игр: {gameStats.total_games}</span>
-                      </div>
-                      {hasBestScore ? (
-                        <div className="text-[10px] sm:text-xs mt-0.5 leading-tight text-gray-700 dark:text-slate-200 font-medium">
-                          Лучший счет: {gameStats.best_score}
-                        </div>
-                      ) : (
-                        <div className="h-[10px]"></div>
-                      )}
-                    </div>
-                  ) : (
-                    <div></div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Общая статистика */}
-        {Object.keys(safeStats).length > 0 && (
-          <div className="mt-fib-4 p-fib-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
-            <h2 className="font-display text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">
-              📊 Твоя статистика
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-fib-2">
-              {Object.values(safeStats).map((stat) => (
-                <div
-                  key={stat.game_type}
-                  className="p-fib-2 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700"
                 >
-                  <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-1">
-                    {stat.game_type === 'tic_tac_toe' && '❌⭕ Крестики-нолики'}
-                    {stat.game_type === 'checkers' && '⚫⚪ Шашки'}
-                    {stat.game_type === '2048' && '🔢 2048'}
-                    {stat.game_type === 'erudite' && '📚 эрудит'}
+                  <div className="text-xl sm:text-2xl mb-0.5 flex-shrink-0 leading-none">{game.icon}</div>
+                  <h3 className="font-display text-sm font-bold mb-0.5 flex-shrink-0 leading-tight">{game.name}</h3>
+                  <p className="font-sans text-xs opacity-90 mb-1 overflow-hidden leading-tight" style={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    minHeight: '28px',
+                    maxHeight: '28px'
+                  }}>{game.description}</p>
+
+                  {/* Статистика - всегда резервируем место */}
+                  <div className="mt-auto min-h-[20px] flex-shrink-0">
+                    {hasStats ? (
+                      <div className="pt-1.5 border-t border-blue-300/40 dark:border-slate-600/50">
+                        <div className="flex justify-between text-xs leading-tight text-gray-700 dark:text-slate-200 font-medium">
+                          <span>Побед: {gameStats.wins}</span>
+                          <span>Игр: {gameStats.total_games}</span>
+                        </div>
+                        {hasBestScore ? (
+                          <div className="text-[10px] sm:text-xs mt-0.5 leading-tight text-gray-700 dark:text-slate-200 font-medium">
+                            Лучший счет: {gameStats.best_score}
+                          </div>
+                        ) : (
+                          <div className="h-[10px]"></div>
+                        )}
+                      </div>
+                    ) : (
+                      <div></div>
+                    )}
                   </div>
-                  <div className="text-sm sm:text-base font-bold text-gray-900 dark:text-slate-100">
-                    {stat.wins} побед
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">
-                    {stat.total_games} игр • {stat.win_rate}% побед
-                  </div>
-                </div>
-              ))}
-            </div>
+                </button>
+              );
+            })}
           </div>
-        )}
+
+          {/* Общая статистика */}
+          {Object.keys(safeStats).length > 0 && (
+            <div className="mt-fib-4 p-fib-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+              <h2 className="font-display text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">
+                📊 Твоя статистика
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-fib-2">
+                {Object.values(safeStats).map((stat) => (
+                  <div
+                    key={stat.game_type}
+                    className="p-fib-2 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700"
+                  >
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-1">
+                      {stat.game_type === 'tic_tac_toe' && '❌⭕ Крестики-нолики'}
+                      {stat.game_type === 'checkers' && '⚫⚪ Шашки'}
+                      {stat.game_type === '2048' && '🔢 2048'}
+                      {stat.game_type === 'erudite' && '📚 Эрудит'}
+                    </div>
+                    <div className="text-sm sm:text-base font-bold text-gray-900 dark:text-slate-100">
+                      {stat.wins} побед
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400">
+                      {stat.total_games} игр • {stat.win_rate}% побед
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       {/* Нижняя навигация убрана: из списка игр и из самой игры возврат только по стрелке вверху */}

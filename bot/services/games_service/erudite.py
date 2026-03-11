@@ -150,3 +150,54 @@ class EruditeMixin:
             self.db.commit()
 
         return state
+
+    def erudite_pass_move(self, session_id: int) -> dict:
+        """Пропустить ход в Эрудите (пас)."""
+        session = self.db.get(GameSession, session_id)
+        if not session:
+            raise ValueError(f"Game session {session_id} not found")
+
+        if session.game_state and isinstance(session.game_state, dict):
+            game = EruditeGame.from_dict(session.game_state)
+        else:
+            game = EruditeGame()
+
+        success, message = game.pass_move()
+        if not success:
+            raise ValueError(message)
+
+        # Если игра не окончена и теперь ход AI — делаем ход AI
+        if not game.game_over and game.current_player == 2:
+            ai_success, ai_message = game.make_ai_move()
+            logger.info(f"AI ход в Эрудите после паса: {ai_message}")
+
+        state = game.get_state()
+
+        self.update_game_session(
+            session_id,
+            {
+                "board": state["board"],
+                "bonus_cells": state["bonus_cells"],
+                "player_tiles": state["player_tiles"],
+                "ai_tiles": state["ai_tiles"],
+                "player_score": state["player_score"],
+                "ai_score": state["ai_score"],
+                "current_player": state["current_player"],
+                "game_over": state["game_over"],
+                "first_move": state["first_move"],
+                "current_move": state["current_move"],
+                "bag_count": state["bag_count"],
+                "bag": game.bag,
+            },
+            "loss" if state["game_over"] else "in_progress",
+        )
+
+        if state["game_over"]:
+            self.finish_game_session(
+                session_id,
+                "loss" if state["player_score"] < state["ai_score"] else "win",
+                state["player_score"],
+            )
+            self.db.commit()
+
+        return state

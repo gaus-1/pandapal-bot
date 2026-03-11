@@ -165,7 +165,7 @@ export function getCooldownInfo(state: {
       new Date(state.last_fall_at).getTime() + MIN_FALL_INTERVAL_MINUTES * 60 * 1000;
     fallInSec = Math.max(0, Math.ceil((next - now) / 1000));
   }
-  const feedLabel = !state.can_feed ? null : null;
+  const feedLabel: string | null = null;
   return {
     playInSec,
     sleepInSec,

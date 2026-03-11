@@ -8,6 +8,7 @@ import { telegram } from "../../services/telegram";
 import {
   game2048Move,
   getGameSession,
+  createGame,
   type UserProfile,
 } from "../../services/api";
 import { PandaReaction } from "../../components/PandaReaction";
@@ -19,7 +20,7 @@ interface Game2048Props {
   onGameEnd: () => void;
 }
 
-export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
+export function Game2048({ sessionId, user, onBack, onGameEnd }: Game2048Props) {
   const [board, setBoard] = useState<number[][]>([]);
   const [prevBoard, setPrevBoard] = useState<number[][]>([]);
   const [score, setScore] = useState(0);
@@ -299,12 +300,11 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
                       aspect-square rounded-md sm:rounded-lg flex items-center justify-center
                       font-bold text-sm sm:text-base
                       w-full h-full
-                      ${
-                        value === 0
-                          ? "bg-white dark:bg-slate-700"
-                          : `${getTileColor(value)} ${getTileTextColor(
-                              value,
-                            )} ${getTileFontSize(value)}`
+                      ${value === 0
+                        ? "bg-white dark:bg-slate-700"
+                        : `${getTileColor(value)} ${getTileTextColor(
+                          value,
+                        )} ${getTileFontSize(value)}`
                       }
                       transition-all duration-300
                     `}
@@ -405,12 +405,23 @@ export function Game2048({ sessionId, onBack, onGameEnd }: Game2048Props) {
 
         {/* Кнопка новой игры */}
         {gameOver && (
-          <div className="text-center">
+          <div className="text-center flex items-center justify-center gap-3">
+            <button
+              onClick={async () => {
+                try {
+                  const result = await createGame(user.telegram_id, '2048');
+                  if (result?.session_id != null) window.location.reload();
+                } catch { onGameEnd(); }
+              }}
+              className="px-6 py-3 bg-green-500 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px]"
+            >
+              Играть снова
+            </button>
             <button
               onClick={onBack}
               className="px-6 py-3 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px]"
             >
-              Вернуться к играм
+              К играм
             </button>
           </div>
         )}

@@ -10,6 +10,7 @@ import {
   checkersMove,
   getCheckersValidMoves,
   getGameSession,
+  createGame,
   type UserProfile,
 } from "../../services/api";
 import { PandaReaction } from "../../components/PandaReaction";
@@ -21,7 +22,7 @@ interface CheckersProps {
   onGameEnd: () => void;
 }
 
-export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
+export function Checkers({ sessionId, user, onBack, onGameEnd }: CheckersProps) {
   const [board, setBoard] = useState<(string | null)[][]>([]);
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
   const [gameOver, setGameOver] = useState(false);
@@ -310,20 +311,17 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
                         w-full h-full aspect-square
                         flex items-center justify-center
                         transition-all duration-200 touch-manipulation outline-none
-                        ${
-                          isDark
-                            ? "bg-blue-500 dark:bg-blue-700"
-                            : "bg-white dark:bg-slate-600"
+                        ${isDark
+                          ? "bg-blue-500 dark:bg-blue-700"
+                          : "bg-white dark:bg-slate-600"
                         }
-                        ${
-                          selected
-                            ? "brightness-125 dark:brightness-110 ring-inset ring-4 ring-yellow-400 dark:ring-yellow-500 ring-opacity-60 dark:ring-opacity-70 z-10"
-                            : ""
+                        ${selected
+                          ? "brightness-125 dark:brightness-110 ring-inset ring-4 ring-yellow-400 dark:ring-yellow-500 ring-opacity-60 dark:ring-opacity-70 z-10"
+                          : ""
                         }
-                        ${
-                          isValidTarget
-                            ? "ring-2 ring-green-400 dark:ring-green-500 ring-opacity-80 dark:ring-opacity-70 ring-inset brightness-110 dark:brightness-105"
-                            : ""
+                        ${isValidTarget
+                          ? "ring-2 ring-green-400 dark:ring-green-500 ring-opacity-80 dark:ring-opacity-70 ring-inset brightness-110 dark:brightness-105"
+                          : ""
                         }
                       `}
                       aria-label={`Клетка ${rowIndex + 1}, ${colIndex + 1}`}
@@ -383,12 +381,23 @@ export function Checkers({ sessionId, onBack, onGameEnd }: CheckersProps) {
 
       {/* Кнопка новой игры */}
       {gameOver && (
-        <div className="flex-shrink-0 text-center px-fib-4 py-fib-3 bg-white dark:bg-slate-800">
+        <div className="flex-shrink-0 text-center px-fib-4 py-fib-3 bg-white dark:bg-slate-800 flex items-center justify-center gap-3">
+          <button
+            onClick={async () => {
+              try {
+                const result = await createGame(user.telegram_id, 'checkers');
+                if (result?.session_id != null) window.location.reload();
+              } catch { onGameEnd(); }
+            }}
+            className="px-6 py-3 bg-green-500 dark:bg-green-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px] shadow-md"
+          >
+            Играть снова
+          </button>
           <button
             onClick={onBack}
-            className="px-8 py-3 bg-blue-500 dark:bg-blue-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px] shadow-md"
+            className="px-6 py-3 bg-blue-500 dark:bg-blue-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity touch-manipulation text-sm sm:text-base min-h-[44px] shadow-md"
           >
-            Вернуться к играм
+            К играм
           </button>
         </div>
       )}

@@ -159,11 +159,11 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const lastAction = state ? getLastActionFromState(state) : null;
   const reactionKey = state
     ? getPandaReactionKey({
-        hunger: state.hunger,
-        mood: state.mood,
-        energy: state.energy,
-        lastAction,
-      })
+      hunger: state.hunger,
+      mood: state.mood,
+      energy: state.energy,
+      lastAction,
+    })
     : null;
   const hasVideo = reactionKey ? REACTIONS_WITH_VIDEO.includes(reactionKey) : false;
   const isFeedReaction =
@@ -263,14 +263,14 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       state
         ? getCooldownInfo(state)
         : {
-            playInSec: 0,
-            sleepInSec: 0,
-            toiletInSec: 0,
-            feedInSec: 0,
-            feedLabel: null as string | null,
-            climbInSec: 0,
-            fallInSec: 0,
-          },
+          playInSec: 0,
+          sleepInSec: 0,
+          toiletInSec: 0,
+          feedInSec: 0,
+          feedLabel: null as string | null,
+          climbInSec: 0,
+          fallInSec: 0,
+        },
     [state, cooldownTick]
   );
   const achievementEntries = state && state.achievements && typeof state.achievements === 'object'
@@ -316,7 +316,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
         setState({
           ...state,
           mood: Math.min(100, state.mood + 20),
-          energy: Math.max(0, state.energy - 15),
+          energy: Math.max(0, state.energy - 10),
           last_played_at: new Date().toISOString(),
           can_play: false,
         });
@@ -343,7 +343,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       if (user.telegram_id === 0 && state) {
         setState({
           ...state,
-          energy: Math.min(100, state.energy + 40),
+          energy: Math.min(100, state.energy + 30),
           last_slept_at: new Date().toISOString(),
           can_sleep: false,
         });
@@ -405,6 +405,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       if (user.telegram_id === 0 && currentState) {
         setState({
           ...currentState,
+          mood: Math.min(100, currentState.mood + 10),
           last_climb_at: new Date().toISOString(),
           can_climb: false,
         });

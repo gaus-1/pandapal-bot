@@ -259,25 +259,3 @@ class CheckersGame:
         # Теперь меняем ход (если игра не окончена)
         self.current_player = next_player
         return True
-
-    def _check_win(self):
-        """
-        УСТАРЕЛ: Проверка победы теперь выполняется в make_move.
-        Оставлен для обратной совместимости.
-        """
-        # Считаем шашки
-        count_1 = sum(row.count(1) + row.count(3) for row in self.board)
-        count_2 = sum(row.count(2) + row.count(4) for row in self.board)
-
-        if count_1 == 0:
-            self.winner = 2
-        elif count_2 == 0:
-            self.winner = 1
-        else:
-            # Проверяем наличие ходов у противника
-            opponent = 2 if self.current_player == 1 else 1
-            opponent_moves = self.get_valid_moves(opponent)
-            if not opponent_moves:
-                # Противник не может ходить - текущий игрок победил
-                # НО: текущий игрок УЖЕ сменился, так что победил предыдущий
-                self.winner = opponent  # Побеждает тот, кто только что сходил

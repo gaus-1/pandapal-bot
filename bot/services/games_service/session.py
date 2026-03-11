@@ -14,11 +14,10 @@ class GamesServiceBase:
     """Базовый класс: CRUD сессий, статистика, достижения."""
 
     def __init__(self, db: Session):  # noqa: D107
-        from bot.services.game_ai import CheckersAI, TicTacToeAI
+        from bot.services.game_ai import TicTacToeAI
 
         self.db = db
         self.tic_tac_toe_ai = TicTacToeAI(difficulty="medium")
-        self.checkers_ai = CheckersAI()
 
     def create_game_session(
         self, telegram_id: int, game_type: str, initial_state: dict | None = None

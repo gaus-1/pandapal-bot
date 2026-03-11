@@ -421,6 +421,33 @@ async def erudite_confirm_move(request: web.Request) -> web.Response:
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
+async def erudite_pass_move(request: web.Request) -> web.Response:
+    """
+    Пропустить ход в Эрудите (пас).
+
+    POST /api/miniapp/games/erudite/{session_id}/pass
+    Требует X-Telegram-Init-Data: доступ только владельцу сессии (A01).
+    """
+    try:
+        session_id = int(request.match_info["session_id"])
+        if err := _require_game_session_owner(request, session_id):
+            return err
+
+        with get_db() as db:
+            games_service = GamesService(db)
+            state = games_service.erudite_pass_move(session_id)
+            db.commit()
+
+        return web.json_response({"success": True, **state})
+
+    except ValueError as e:
+        logger.warning(f"⚠️ Invalid pass: {e}")
+        return web.json_response({"error": str(e)}, status=400)
+    except Exception as e:
+        logger.error(f"❌ Ошибка паса в Эрудите: {e}", exc_info=True)
+        return web.json_response({"error": "Internal server error"}, status=500)
+
+
 async def get_game_stats(request: web.Request) -> web.Response:
     """
     Получить статистику игр пользователя.
@@ -526,6 +553,7 @@ def setup_games_routes(app: web.Application) -> None:
     app.router.add_post(
         "/api/miniapp/games/erudite/{session_id}/confirm-move", erudite_confirm_move
     )
+    app.router.add_post("/api/miniapp/games/erudite/{session_id}/pass", erudite_pass_move)
     app.router.add_get("/api/miniapp/games/{telegram_id}/stats", get_game_stats)
     app.router.add_get("/api/miniapp/games/session/{session_id}", get_game_session)
 

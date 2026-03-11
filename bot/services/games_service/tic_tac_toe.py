@@ -1,7 +1,5 @@
 """Логика игры крестики-нолики."""
 
-import asyncio
-
 from bot.models import GameSession
 from bot.services.game_engines import TicTacToe
 
@@ -68,6 +66,7 @@ class TicTacToeMixin:
         if game.winner == 1:
             state = game.get_state()
             self.finish_game_session(session_id, "win")
+            self.db.commit()
             return {
                 "board": state["board"],
                 "winner": "user",
@@ -88,8 +87,6 @@ class TicTacToeMixin:
             }
 
         # Ход AI (2 = O)
-        # Панда думает перед ходом
-        await asyncio.sleep(1.5)
         # Находим лучший ход через AI
         frontend_board = game.get_state()["board"]
         ai_position = self.tic_tac_toe_ai.get_best_move(frontend_board, "O")

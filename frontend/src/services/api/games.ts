@@ -294,6 +294,24 @@ export async function eruditeClearMove(sessionId: number): Promise<EruditeStateR
 }
 
 /**
+ * Пропустить ход в эрудите (пас)
+ */
+export async function eruditePassMove(sessionId: number): Promise<EruditeStateResponse> {
+  const response = await fetch(`${API_BASE_URL}/miniapp/games/erudite/${sessionId}/pass`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error || 'Ошибка паса');
+  }
+
+  return response.json();
+}
+
+/**
  * Premium API
  */
 

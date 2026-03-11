@@ -1,6 +1,5 @@
 """Логика игры в шашки."""
 
-import asyncio
 import random
 
 from loguru import logger
@@ -8,6 +7,77 @@ from loguru import logger
 from bot.models import GameSession
 from bot.services.game_ai import _debug_log
 from bot.services.game_engines import CheckersGame
+
+
+def _evaluate_board(game: CheckersGame) -> float:
+    """Оценка позиции для AI (игрок 2). Больше = лучше для AI."""
+    score = 0.0
+    for r in range(8):
+        for c in range(8):
+            piece = game.board[r][c]
+            if piece == 0:
+                continue
+            # Простая шашка: +/-1, дамка: +/-3
+            if piece == 2:  # AI простая
+                score += 1.0
+                # Продвижение AI к дамке (вниз, к ряду 7)
+                score += r * 0.15
+                # Контроль центра
+                if 2 <= r <= 5 and 2 <= c <= 5:
+                    score += 0.3
+            elif piece == 4:  # AI дамка
+                score += 3.0
+                if 2 <= r <= 5 and 2 <= c <= 5:
+                    score += 0.5
+            elif piece == 1:  # Игрок простая
+                score -= 1.0
+                score -= (7 - r) * 0.15
+                if 2 <= r <= 5 and 2 <= c <= 5:
+                    score -= 0.3
+            elif piece == 3:  # Игрок дамка
+                score -= 3.0
+                if 2 <= r <= 5 and 2 <= c <= 5:
+                    score -= 0.5
+    return score
+
+
+def _select_best_ai_move(game: CheckersGame, valid_moves: list[dict]) -> dict:
+    """Выбрать лучший ход для AI на основе оценки позиции после хода."""
+    # Обязательные взятия имеют приоритет
+    capture_moves = [m for m in valid_moves if m.get("capture")]
+    candidates = capture_moves if capture_moves else valid_moves
+
+    if len(candidates) == 1:
+        return candidates[0]
+
+    best_move = candidates[0]
+    best_score = float("-inf")
+
+    # Сохраняем состояние доски
+    saved_board = [row[:] for row in game.board]
+    saved_player = game.current_player
+    saved_winner = game.winner
+    saved_capture = game.must_capture_from
+
+    for move_data in candidates:
+        fr, fc = move_data["from"][0], move_data["from"][1]
+        tr, tc = move_data["to"][0], move_data["to"][1]
+
+        # Пробуем ход
+        game.make_move(fr, fc, tr, tc)
+        score = _evaluate_board(game)
+
+        # Откат
+        game.board = [row[:] for row in saved_board]
+        game.current_player = saved_player
+        game.winner = saved_winner
+        game.must_capture_from = saved_capture
+
+        if score > best_score:
+            best_score = score
+            best_move = move_data
+
+    return best_move
 
 
 def _load_checkers_game(session: GameSession) -> CheckersGame:
@@ -226,13 +296,8 @@ class CheckersMixin:
                 "ai_move": None,
             }
 
-        # Выбираем лучший ход через AI
-        # Панда думает перед ходом
-        await asyncio.sleep(1.5)
-
-        # Приоритет: взятия > любой ход
-        capture_moves = [m for m in valid_moves if m.get("capture")]
-        ai_move_data = random.choice(capture_moves) if capture_moves else random.choice(valid_moves)
+        # Выбираем лучший ход через оценку позиции
+        ai_move_data = _select_best_ai_move(game, valid_moves)
 
         ai_move = (
             ai_move_data["from"][0],
@@ -316,7 +381,6 @@ class CheckersMixin:
             af, ac = ai_move_data["from"][0], ai_move_data["from"][1]
             at_row, at_col = ai_move_data["to"][0], ai_move_data["to"][1]
             last_ai_move = (af, ac, at_row, at_col)
-            await asyncio.sleep(0.5)
             if not game.make_move(af, ac, at_row, at_col):
                 break
 
@@ -398,12 +462,10 @@ class CheckersMixin:
                 "ai_move": None,
             }
 
-        capture_moves = [m for m in valid_moves if m.get("capture")]
-        ai_move_data = random.choice(capture_moves) if capture_moves else random.choice(valid_moves)
+        ai_move_data = _select_best_ai_move(game, valid_moves)
         af, ac = ai_move_data["from"][0], ai_move_data["from"][1]
         at_row, at_col = ai_move_data["to"][0], ai_move_data["to"][1]
         last_ai_move = (af, ac, at_row, at_col)
-        await asyncio.sleep(0.8)
         if not game.make_move(af, ac, at_row, at_col):
             state = game.get_board_state()
             self.finish_game_session(session_id, "win")
@@ -424,7 +486,6 @@ class CheckersMixin:
             af, ac = ai_move_data["from"][0], ai_move_data["from"][1]
             at_row, at_col = ai_move_data["to"][0], ai_move_data["to"][1]
             last_ai_move = (af, ac, at_row, at_col)
-            await asyncio.sleep(0.4)
             if not game.make_move(af, ac, at_row, at_col):
                 break
 

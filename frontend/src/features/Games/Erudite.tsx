@@ -9,6 +9,8 @@ import {
   eruditePlaceTile,
   eruditeConfirmMove,
   eruditeClearMove,
+  eruditePassMove,
+  createGame,
   type UserProfile,
   type EruditeStateResponse,
 } from '../../services/api';
@@ -22,7 +24,7 @@ interface EruditeProps {
 
 type EruditeState = EruditeStateResponse;
 
-export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
+export function Erudite({ sessionId, user, onBack, onGameEnd }: EruditeProps) {
   const [state, setState] = useState<EruditeState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -133,7 +135,7 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
     <div className="flex flex-col h-full bg-white dark:bg-gray-900 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-fib-2 fold:px-fib-3 py-fib-2 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <h1 className="font-display text-sm font-bold text-gray-900 dark:text-slate-100">📚 эрудит</h1>
+        <h1 className="font-display text-sm font-bold text-gray-900 dark:text-slate-100">📚 Эрудит</h1>
         <button
           onClick={onBack}
           className="px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
@@ -263,6 +265,24 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
               🗑️
             </button>
           </div>
+        ) : !state.game_over && state.current_player === 1 ? (
+          <button
+            onClick={async () => {
+              try {
+                const data = await eruditePassMove(sessionId);
+                setState(data);
+                if (data.game_over) {
+                  setTimeout(() => onGameEnd(), 2000);
+                }
+              } catch (err) {
+                console.error('Ошибка паса:', err);
+                alert(err instanceof Error ? err.message : 'Ошибка паса');
+              }
+            }}
+            className="w-full py-1.5 bg-yellow-500 text-white rounded font-semibold text-xs hover:bg-yellow-600"
+          >
+            ⏭️ Пас
+          </button>
         ) : null}
       </div>
 
@@ -276,6 +296,22 @@ export function Erudite({ sessionId, onBack, onGameEnd }: EruditeProps) {
             <div className="text-gray-600 dark:text-gray-400 mb-4">
               Вы: {state.player_score} | Панда: {state.ai_score}
             </div>
+            <button
+              onClick={async () => {
+                try {
+                  const result = await createGame(user.telegram_id, 'erudite');
+                  const sid = result?.session_id != null ? Number(result.session_id) : null;
+                  if (sid != null && !Number.isNaN(sid)) {
+                    window.location.reload();
+                  }
+                } catch {
+                  onGameEnd();
+                }
+              }}
+              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              Играть снова
+            </button>
             <button
               onClick={onGameEnd}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"

@@ -49,6 +49,7 @@ export {
   eruditePlaceTile,
   eruditeConfirmMove,
   eruditeClearMove,
+  eruditePassMove,
 } from './games';
 export type { EruditeStateResponse } from './games';
 
