@@ -34,25 +34,7 @@ from bot.models import (
     UserProgress,
 )
 
-# #region agent log
-import json
-import time
-log_path = Path(__file__).parent.parent / ".cursor" / "debug.log"
-def log_debug(location, message, data=None, hypothesis_id=None):
-    try:
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps({
-                "location": location,
-                "message": message,
-                "data": data or {},
-                "timestamp": int(time.time() * 1000),
-                "sessionId": "debug-session",
-                "runId": "run1",
-                "hypothesisId": hypothesis_id or "general"
-            }, ensure_ascii=False) + "\n")
-    except Exception:
-        pass
-# #endregion
+
 
 
 def check_migrations_integrity(engine: Engine) -> bool:
@@ -61,9 +43,7 @@ def check_migrations_integrity(engine: Engine) -> bool:
     print("📋 ПРОВЕРКА МИГРАЦИЙ ALEMBIC")
     print("=" * 80)
 
-    # #region agent log
-    log_debug("scripts/verify_data_persistence.py:check_migrations_integrity", "Starting migration check", {}, "1")
-    # #endregion
+
 
     try:
         inspector = inspect(engine)
@@ -72,14 +52,14 @@ def check_migrations_integrity(engine: Engine) -> bool:
         # Проверяем наличие таблицы alembic_version
         if "alembic_version" not in tables:
             print("❌ Таблица alembic_version не найдена!")
-            log_debug("scripts/verify_data_persistence.py:check_migrations_integrity", "alembic_version table missing", {}, "1")
+
             return False
 
         with engine.connect() as conn:
             result = conn.execute(text("SELECT version_num FROM alembic_version;"))
             current_version = result.scalar()
             print(f"✅ Текущая версия миграции: {current_version}")
-            log_debug("scripts/verify_data_persistence.py:check_migrations_integrity", "Current migration version", {"version": current_version}, "1")
+
 
             # Проверяем, что все таблицы из моделей существуют
             expected_tables = {
@@ -100,18 +80,18 @@ def check_migrations_integrity(engine: Engine) -> bool:
                 if table_name not in tables:
                     missing_tables.append(table_name)
                     print(f"❌ Таблица {table_name} отсутствует!")
-                    log_debug("scripts/verify_data_persistence.py:check_migrations_integrity", "Missing table", {"table": table_name}, "1")
+
 
             if missing_tables:
                 return False
 
             print(f"✅ Все {len(expected_tables)} таблиц существуют")
-            log_debug("scripts/verify_data_persistence.py:check_migrations_integrity", "All tables exist", {"count": len(expected_tables)}, "1")
+
             return True
 
     except Exception as e:
         print(f"❌ Ошибка проверки миграций: {e}")
-        log_debug("scripts/verify_data_persistence.py:check_migrations_integrity", "Migration check error", {"error": str(e)}, "1")
+
         return False
 
 
@@ -121,9 +101,7 @@ def check_table_columns_match_models(engine: Engine) -> dict[str, bool]:
     print("📊 ПРОВЕРКА СТРУКТУРЫ ТАБЛИЦ")
     print("=" * 80)
 
-    # #region agent log
-    log_debug("scripts/verify_data_persistence.py:check_table_columns_match_models", "Starting column check", {}, "2")
-    # #endregion
+
 
     inspector = inspect(engine)
     results = {}
@@ -153,18 +131,18 @@ def check_table_columns_match_models(engine: Engine) -> dict[str, bool]:
                 print(f"❌ {table_name}:")
                 if missing_columns:
                     print(f"   Отсутствующие колонки: {', '.join(missing_columns)}")
-                    log_debug("scripts/verify_data_persistence.py:check_table_columns_match_models", "Missing columns", {"table": table_name, "columns": list(missing_columns)}, "2")
+
                 if extra_columns:
                     print(f"   Лишние колонки в БД: {', '.join(extra_columns)}")
-                    log_debug("scripts/verify_data_persistence.py:check_table_columns_match_models", "Extra columns", {"table": table_name, "columns": list(extra_columns)}, "2")
+
                 results[table_name] = False
             else:
                 print(f"✅ {table_name}: структура корректна")
-                log_debug("scripts/verify_data_persistence.py:check_table_columns_match_models", "Table structure OK", {"table": table_name}, "2")
+
                 results[table_name] = True
         except Exception as e:
             print(f"❌ {table_name}: ошибка проверки - {e}")
-            log_debug("scripts/verify_data_persistence.py:check_table_columns_match_models", "Column check error", {"table": table_name, "error": str(e)}, "2")
+
             results[table_name] = False
 
     return results
@@ -176,9 +154,7 @@ def check_data_persistence_logic() -> dict[str, bool]:
     print("💾 ПРОВЕРКА ЛОГИКИ СОХРАНЕНИЯ ДАННЫХ")
     print("=" * 80)
 
-    # #region agent log
-    log_debug("scripts/verify_data_persistence.py:check_data_persistence_logic", "Starting persistence logic check", {}, "3")
-    # #endregion
+
 
     results = {}
 
@@ -214,15 +190,15 @@ def check_data_persistence_logic() -> dict[str, bool]:
                 if table_name in model_map:
                     count = db.query(model_map[table_name]).count()
                     print(f"✅ {table_name}: {count} записей (логика записи: {', '.join(expected_services)})")
-                    log_debug("scripts/verify_data_persistence.py:check_data_persistence_logic", "Table record count", {"table": table_name, "count": count, "services": expected_services}, "3")
+
                     results[table_name] = True
                 else:
                     print(f"⚠️  {table_name}: модель не найдена в проверке")
-                    log_debug("scripts/verify_data_persistence.py:check_data_persistence_logic", "Model not in check", {"table": table_name}, "3")
+
                     results[table_name] = False
         except Exception as e:
             print(f"❌ {table_name}: ошибка проверки - {e}")
-            log_debug("scripts/verify_data_persistence.py:check_data_persistence_logic", "Persistence check error", {"table": table_name, "error": str(e)}, "3")
+
             results[table_name] = False
 
     return results
@@ -234,15 +210,13 @@ def check_dependencies() -> bool:
     print("📦 ПРОВЕРКА ЗАВИСИМОСТЕЙ")
     print("=" * 80)
 
-    # #region agent log
-    log_debug("scripts/verify_data_persistence.py:check_dependencies", "Starting dependencies check", {}, "4")
-    # #endregion
+
 
     try:
         requirements_path = Path(__file__).parent.parent / "requirements.txt"
         if not requirements_path.exists():
             print("❌ Файл requirements.txt не найден!")
-            log_debug("scripts/verify_data_persistence.py:check_dependencies", "requirements.txt not found", {}, "4")
+
             return False
 
         # Потоковое чтение requirements.txt построчно
@@ -271,18 +245,18 @@ def check_dependencies() -> bool:
             if dep not in found_deps:
                 missing_deps.append(dep)
                 print(f"❌ Зависимость {dep} не найдена в requirements.txt")
-                log_debug("scripts/verify_data_persistence.py:check_dependencies", "Missing dependency", {"dependency": dep}, "4")
+
 
         if missing_deps:
             return False
 
         print(f"✅ Все критические зависимости присутствуют")
-        log_debug("scripts/verify_data_persistence.py:check_dependencies", "All critical dependencies present", {}, "4")
+
         return True
 
     except Exception as e:
         print(f"❌ Ошибка проверки зависимостей: {e}")
-        log_debug("scripts/verify_data_persistence.py:check_dependencies", "Dependencies check error", {"error": str(e)}, "4")
+
         return False
 
 
@@ -292,9 +266,7 @@ def main():
     print("🔍 КОМПЛЕКСНАЯ ПРОВЕРКА СОХРАНЕНИЯ ДАННЫХ")
     print("=" * 80)
 
-    # #region agent log
-    log_debug("scripts/verify_data_persistence.py:main", "Starting comprehensive check", {}, "general")
-    # #endregion
+
 
     all_checks_passed = True
 
@@ -325,7 +297,7 @@ def main():
 
     if all_checks_passed:
         print("✅ ВСЕ ПРОВЕРКИ ПРОЙДЕНЫ УСПЕШНО!")
-        log_debug("scripts/verify_data_persistence.py:main", "All checks passed", {}, "general")
+
         return 0
     else:
         print("⚠️  ОБНАРУЖЕНЫ ПРОБЛЕМЫ:")
@@ -337,7 +309,7 @@ def main():
             print("   - Проблемы с логикой сохранения данных")
         if not deps_ok:
             print("   - Проблемы с зависимостями")
-        log_debug("scripts/verify_data_persistence.py:main", "Some checks failed", {"migrations": migrations_ok, "structure": all(structure_results.values()), "persistence": all(persistence_results.values()), "dependencies": deps_ok}, "general")
+
         return 1
 
 

@@ -20,7 +20,7 @@ import { CookieBanner } from './components/CookieBanner';
 import { logger } from './utils/logger';
 import './index.css';
 
-const DEFAULT_OG_IMAGE = 'https://pandapal.ru/favicon-512.png';
+const DEFAULT_OG_IMAGE = 'https://pandapal.ru/og-image.png';
 const BREADCRUMB_HOME: BreadcrumbItem[] = [{ name: 'Главная', path: '/' }];
 
 /**
@@ -73,8 +73,8 @@ const App: React.FC = () => {
     // Для web.telegram.org разрешаем без initData (он может появиться позже)
     const isTelegramUserAgent = typeof window !== 'undefined' &&
       (window.navigator.userAgent.includes('Telegram') ||
-       window.location.hostname.includes('telegram.org') ||
-       window.location.hostname.includes('web.telegram.org'));
+        window.location.hostname.includes('telegram.org') ||
+        window.location.hostname.includes('web.telegram.org'));
 
     // Локальная разработка и локальный прод: localhost + (/miniapp или ?miniapp=1) открывает Mini App
     let isLocalMiniappDev = false;

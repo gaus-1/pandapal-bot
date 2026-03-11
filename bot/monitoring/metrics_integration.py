@@ -91,7 +91,7 @@ class MetricsIntegration:
 
                 # Записываем успешный вызов
                 response_time = time.time() - start_time
-                self.metrics.increment_counter("ai_requests_total", {"service": "gemini"})
+                self.metrics.increment_counter("ai_requests_total", {"service": "yandex"})
                 self.metrics.record_histogram("ai_response_time_seconds", response_time)
 
                 return result
@@ -100,7 +100,7 @@ class MetricsIntegration:
                 # Записываем ошибку
                 response_time = time.time() - start_time
                 self.metrics.increment_counter(
-                    "ai_requests_total", {"service": "gemini", "status": "error"}
+                    "ai_requests_total", {"service": "yandex", "status": "error"}
                 )
                 self.metrics.increment_counter("errors_total", {"type": type(e).__name__})
                 self.metrics.record_histogram("ai_response_time_seconds", response_time)

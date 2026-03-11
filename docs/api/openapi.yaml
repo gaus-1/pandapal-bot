@@ -5,7 +5,7 @@ info:
     API для образовательного Telegram-бота PandaPal, предназначенного для школьников.
 
     Основные возможности:
-    - AI-ассистент на базе Google Gemini
+    - AI-ассистент на базе YandexGPT
     - Образовательный контент и задания
     - Система родительского контроля
     - Модерация контента
@@ -19,15 +19,15 @@ info:
   version: 1.0.0
   contact:
     name: PandaPal Support
-    email: 79516625803@ya.ru
+    email: Pandapal.ru@yandex.ru
     url: https://pandapal.ru
   license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
+    name: Proprietary
+    url: https://github.com/gaus-1/pandapal-bot/blob/main/LICENSE
 
 servers:
-  - url: https://pandapal-bot.onrender.com
-    description: Production server
+  - url: https://pandapal.ru
+    description: Production server (Railway)
   - url: http://localhost:8000
     description: Development server
 
@@ -46,13 +46,13 @@ tags:
     description: Безопасность и модерация
 
 paths:
-  /api/v1/ai/chat:
+  /api/miniapp/ai/chat:
     post:
       tags:
         - AI Chat
       summary: Отправка сообщения AI ассистенту
       description: |
-        Отправляет сообщение AI ассистенту PandaPalAI на базе Google Gemini.
+        Отправляет сообщение AI ассистенту PandaPalAI на базе YandexGPT.
         Поддерживает текстовые сообщения, изображения и голосовые сообщения.
 
         Безопасность:
@@ -116,7 +116,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /api/v1/users/profile:
+  /api/miniapp/user/profile:
     get:
       tags:
         - User Management
@@ -139,7 +139,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserProfile'
 
-  /api/v1/parental/activity:
+  /api/miniapp/parental/activity:
     get:
       tags:
         - Parental Control
@@ -175,7 +175,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ChildActivityResponse'
 
-  /api/v1/analytics/metrics:
+  /api/miniapp/analytics/metrics:
     get:
       tags:
         - Analytics
@@ -191,7 +191,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SystemMetrics'
 
-  /api/v1/health:
+  /api/miniapp/health:
     get:
       tags:
         - Security

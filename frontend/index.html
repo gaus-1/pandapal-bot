@@ -1,74 +1,76 @@
 <!doctype html>
 <html lang="ru" class="light">
-  <head>
-    <meta charset="UTF-8" />
 
-    <!-- Favicon — круглый логотип панды -->
-    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <!-- Preload критических ресурсов для быстрой загрузки -->
-    <link rel="preload" href="/logo.png" as="image" type="image/png" />
-    <!-- Apple Touch Icon - круглый -->
-    <link rel="apple-touch-icon" sizes="192x192" href="/favicon-192.png" />
-    <!-- Для поисковых систем - круглые фавиконы -->
-    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png" />
-    <link rel="manifest" href="/manifest.json" />
+<head>
+  <meta charset="UTF-8" />
 
-    <!-- Тема по умолчанию — светлая; переключается через JS при выборе dark -->
-    <meta name="color-scheme" content="light" />
-    <script>
-      (function() {
-        // Ранняя инициализация темы для предотвращения мигания
-        // ВСЕГДА светлая тема по умолчанию при первом открытии
-        try {
-          var meta = document.querySelector('meta[name="color-scheme"]');
-          // Принудительно устанавливаем светлую тему по умолчанию
-          document.documentElement.classList.remove('dark');
-          document.documentElement.classList.add('light');
+  <!-- Favicon — круглый логотип панды -->
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+  <!-- Preload критических ресурсов для быстрой загрузки -->
+  <link rel="preload" href="/logo.png" as="image" type="image/png" />
+  <!-- Apple Touch Icon - круглый -->
+  <link rel="apple-touch-icon" sizes="192x192" href="/favicon-192.png" />
+  <!-- Для поисковых систем - круглые фавиконы -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png" />
+  <link rel="manifest" href="/manifest.json" />
 
-          // Читаем сохраненную тему только если она явно установлена пользователем
-          var savedTheme = localStorage.getItem('theme');
-          if (savedTheme === 'dark') {
-            // Пользователь выбрал темную тему - применяем её
-            document.documentElement.classList.add('dark');
-            document.documentElement.classList.remove('light');
-            if (meta) meta.content = 'dark';
-          } else {
-            // По умолчанию светлая тема - сохраняем в localStorage
-            localStorage.setItem('theme', 'light');
-            if (meta) meta.content = 'light';
-          }
-        } catch (e) {
-          // Если localStorage недоступен - используем светлую тему
-          document.documentElement.classList.remove('dark');
-          document.documentElement.classList.add('light');
+  <!-- Тема по умолчанию — светлая; переключается через JS при выборе dark -->
+  <meta name="color-scheme" content="light" />
+  <script>
+    (function () {
+      // Ранняя инициализация темы для предотвращения мигания
+      // ВСЕГДА светлая тема по умолчанию при первом открытии
+      try {
+        var meta = document.querySelector('meta[name="color-scheme"]');
+        // Принудительно устанавливаем светлую тему по умолчанию
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+
+        // Читаем сохраненную тему только если она явно установлена пользователем
+        var savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+          // Пользователь выбрал темную тему - применяем её
+          document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('light');
+          if (meta) meta.content = 'dark';
+        } else {
+          // По умолчанию светлая тема - сохраняем в localStorage
+          localStorage.setItem('theme', 'light');
+          if (meta) meta.content = 'light';
         }
-      })();
-    </script>
+      } catch (e) {
+        // Если localStorage недоступен - используем светлую тему
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+      }
+    })();
+  </script>
 
-    <!-- Viewport для адаптивности -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes, minimum-scale=1.0, maximum-scale=5.0" />
+  <!-- Viewport для адаптивности -->
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes, minimum-scale=1.0, maximum-scale=5.0" />
 
-    <!-- Theme color для браузера (без PWA) -->
-    <meta name="theme-color" content="#3b82f6" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1e293b" />
+  <!-- Theme color для браузера (без PWA) -->
+  <meta name="theme-color" content="#3b82f6" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1e293b" />
 
-    <!-- Мобильные оптимизации -->
-    <meta name="format-detection" content="telephone=no" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="PandaPal" />
+  <!-- Мобильные оптимизации -->
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="PandaPal" />
 
-    <!-- Referrer policy для безопасности -->
-    <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <!-- Referrer policy для безопасности -->
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
 
-    <!-- Content Security Policy (OWASP A03 - XSS Protection) -->
-    <meta http-equiv="Content-Security-Policy" content="
+  <!-- Content Security Policy (OWASP A03 - XSS Protection) -->
+  <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
       script-src 'self' 'unsafe-inline' https://telegram.org https://mc.yandex.ru https://www.googletagmanager.com https://yastatic.net;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
@@ -81,114 +83,121 @@
       object-src 'none';
     " />
 
-    <title>PandaPal — Безопасный и полезный AI - друг для детей | Safe and Useful AI Friend for Children</title>
+  <title>PandaPal — Безопасный и полезный AI - друг для детей | Safe and Useful AI Friend for Children</title>
 
-    <!-- DNS prefetch для внешних ресурсов -->
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-    <link rel="dns-prefetch" href="https://mc.yandex.ru">
-    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+  <!-- DNS prefetch для внешних ресурсов -->
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+  <link rel="dns-prefetch" href="https://mc.yandex.ru">
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 
-    <!-- Google Fonts 2025: Poppins (заголовки) + Inter (текст) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&family=Literata:opsz,wght@10..72,400;10..72,500;10..72,600&display=swap" rel="stylesheet">
+  <!-- Google Fonts 2025: Poppins (заголовки) + Inter (текст) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&family=Literata:opsz,wght@10..72,400;10..72,500;10..72,600&display=swap"
+    rel="stylesheet">
 
-    <!-- Предзагрузка изображений панды для быстрого отображения реакций в играх -->
-    <!-- Preload убран - изображения загружаются по требованию -->
+  <!-- Предзагрузка изображений панды для быстрого отображения реакций в играх -->
+  <!-- Preload убран - изображения загружаются по требованию -->
 
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://pandapal.ru/">
-    <link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs Policy" />
-    <link rel="alternate" type="text/plain" href="/.well-known/llms.txt" title="LLMs Policy (well-known)" />
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://pandapal.ru/">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="LLMs Policy" />
+  <link rel="alternate" type="text/plain" href="/.well-known/llms.txt" title="LLMs Policy (well-known)" />
 
-    <!-- Language alternates (RU, EN, BY, KZ, MD, RO, KG, UZ, TJ + диаспора: US, GB, IL, DE, FR, LV, LT, EE, CA, AU, AR, BR, MX, NZ, UY) -->
-    <link rel="alternate" hreflang="ru" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="en" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="en-US" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="en-GB" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="be" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="kk" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="ro" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="ky" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="uz" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="tg" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="he" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="de" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="fr" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="lv" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="lt" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="et" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="en-CA" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="en-AU" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="es-AR" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="pt-BR" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="es-MX" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="en-NZ" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="es-UY" href="https://pandapal.ru/">
-    <link rel="alternate" hreflang="x-default" href="https://pandapal.ru/">
+  <!-- Language alternates (RU, EN, BY, KZ, MD, RO, KG, UZ, TJ + диаспора: US, GB, IL, DE, FR, LV, LT, EE, CA, AU, AR, BR, MX, NZ, UY) -->
+  <link rel="alternate" hreflang="ru" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="en" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="en-US" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="en-GB" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="be" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="kk" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="ro" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="ky" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="uz" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="tg" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="he" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="de" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="fr" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="lv" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="lt" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="et" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="en-CA" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="en-AU" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="es-AR" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="pt-BR" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="es-MX" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="en-NZ" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="es-UY" href="https://pandapal.ru/">
+  <link rel="alternate" hreflang="x-default" href="https://pandapal.ru/">
 
-    <!-- SEO Meta Tags (Russian, каноническое определение) -->
-    <meta name="description" content="PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса в формате Telegram Mini App. Обработка текста фото и аудио. Помогает с уроками по всем предметам, работает 24/7. Модерация и родительский контроль.">
-    <meta name="keywords" content="PandaPal, @PandaPalBot, помощь с домашним заданием, бот для школьников, репетитор в Telegram, проверка ДЗ по фото, AI для детей, помощь с домашкой, репетитор по математике, репетитор по русскому, подготовка к ОГЭ, подготовка к ЕГЭ, Алиса помоги решить задачу, как решить пример, проверка сочинения, нейросеть для учебы, ВПР задания, телеграм бот школьник, проверка домашнего задания, как помочь ребенку с уроками">
-    <meta name="author" content="PandaPal Team">
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    <meta name="yandex" content="index, follow">
-    <meta name="language" content="Russian, English">
+  <!-- SEO Meta Tags (Russian, каноническое определение) -->
+  <meta name="description"
+    content="PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса в формате Telegram Mini App. Обработка текста фото и аудио. Помогает с уроками по всем предметам, работает 24/7. Модерация и родительский контроль.">
+  <meta name="keywords"
+    content="PandaPal, @PandaPalBot, помощь с домашним заданием, бот для школьников, репетитор в Telegram, проверка ДЗ по фото, AI для детей, помощь с домашкой, репетитор по математике, репетитор по русскому, подготовка к ОГЭ, подготовка к ЕГЭ, Алиса помоги решить задачу, как решить пример, проверка сочинения, нейросеть для учебы, ВПР задания, телеграм бот школьник, проверка домашнего задания, как помочь ребенку с уроками">
+  <meta name="author" content="PandaPal Team">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="yandex" content="index, follow">
+  <meta name="language" content="Russian, English">
 
-    <!-- Open Graph (VK, Telegram, OK) -->
-    <meta property="og:title" content="PandaPal — Безопасный и полезный AI - друг для детей | Safe and Useful AI Friend for Children">
-    <meta property="og:description" content="PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса. Telegram Mini App, обработка текста фото и аудио. Помощь с уроками по всем предметам, 24/7. Модерация и родительский контроль.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://pandapal.ru/">
-    <meta property="og:image" content="https://pandapal.ru/favicon-512.png">
-    <meta property="og:image:width" content="512">
-    <meta property="og:image:height" content="512">
-    <meta property="og:image:alt" content="PandaPal — Безопасный и полезный AI - друг для детей">
-    <meta property="og:site_name" content="PandaPal">
-    <meta property="og:locale" content="ru_RU">
-    <meta property="og:locale:alternate" content="en_US">
-    <meta property="og:locale:alternate" content="be_BY">
-    <meta property="og:locale:alternate" content="kk_KZ">
-    <meta property="og:locale:alternate" content="ru_KZ">
-    <meta property="og:locale:alternate" content="ro_MD">
-    <meta property="og:locale:alternate" content="ro_RO">
-    <meta property="og:locale:alternate" content="ky_KG">
-    <meta property="og:locale:alternate" content="uz_UZ">
-    <meta property="og:locale:alternate" content="tg_TJ">
-    <meta property="og:locale:alternate" content="en_GB">
-    <meta property="og:locale:alternate" content="he_IL">
-    <meta property="og:locale:alternate" content="de_DE">
-    <meta property="og:locale:alternate" content="fr_FR">
-    <meta property="og:locale:alternate" content="lv_LV">
-    <meta property="og:locale:alternate" content="lt_LT">
-    <meta property="og:locale:alternate" content="et_EE">
-    <meta property="og:locale:alternate" content="en_CA">
-    <meta property="og:locale:alternate" content="en_AU">
-    <meta property="og:locale:alternate" content="es_AR">
-    <meta property="og:locale:alternate" content="pt_BR">
-    <meta property="og:locale:alternate" content="es_MX">
-    <meta property="og:locale:alternate" content="en_NZ">
-    <meta property="og:locale:alternate" content="es_UY">
+  <!-- Open Graph (VK, Telegram, OK) -->
+  <meta property="og:title"
+    content="PandaPal — Безопасный и полезный AI - друг для детей | Safe and Useful AI Friend for Children">
+  <meta property="og:description"
+    content="PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса. Telegram Mini App, обработка текста фото и аудио. Помощь с уроками по всем предметам, 24/7. Модерация и родительский контроль.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://pandapal.ru/">
+  <meta property="og:image" content="https://pandapal.ru/og-image.png">
+  <meta property="og:image:width" content="1024">
+  <meta property="og:image:height" content="1024">
+  <meta property="og:image:alt" content="PandaPal — Безопасный и полезный AI - друг для детей">
+  <meta property="og:site_name" content="PandaPal">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:locale:alternate" content="be_BY">
+  <meta property="og:locale:alternate" content="kk_KZ">
+  <meta property="og:locale:alternate" content="ru_KZ">
+  <meta property="og:locale:alternate" content="ro_MD">
+  <meta property="og:locale:alternate" content="ro_RO">
+  <meta property="og:locale:alternate" content="ky_KG">
+  <meta property="og:locale:alternate" content="uz_UZ">
+  <meta property="og:locale:alternate" content="tg_TJ">
+  <meta property="og:locale:alternate" content="en_GB">
+  <meta property="og:locale:alternate" content="he_IL">
+  <meta property="og:locale:alternate" content="de_DE">
+  <meta property="og:locale:alternate" content="fr_FR">
+  <meta property="og:locale:alternate" content="lv_LV">
+  <meta property="og:locale:alternate" content="lt_LT">
+  <meta property="og:locale:alternate" content="et_EE">
+  <meta property="og:locale:alternate" content="en_CA">
+  <meta property="og:locale:alternate" content="en_AU">
+  <meta property="og:locale:alternate" content="es_AR">
+  <meta property="og:locale:alternate" content="pt_BR">
+  <meta property="og:locale:alternate" content="es_MX">
+  <meta property="og:locale:alternate" content="en_NZ">
+  <meta property="og:locale:alternate" content="es_UY">
 
-    <!-- Twitter Cards -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="PandaPal — Safe AI tutor for school kids">
-    <meta name="twitter:description" content="Safe AI assistant for students in grades 1-9: homework help, photo and voice support, moderation and parental controls.">
-    <meta name="twitter:image" content="https://pandapal.ru/favicon-512.png">
-    <meta name="twitter:image:alt" content="PandaPal — безопасный AI-друг для детей">
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PandaPal — Safe AI tutor for school kids">
+  <meta name="twitter:description"
+    content="Safe AI assistant for students in grades 1-9: homework help, photo and voice support, moderation and parental controls.">
+  <meta name="twitter:image" content="https://pandapal.ru/og-image.png">
+  <meta name="twitter:image:alt" content="PandaPal — безопасный AI-друг для детей">
 
-    <!-- Yandex Webmaster -->
-    <meta name="yandex-verification" content="3f9e35f6d79cfb2f" />
+  <!-- Yandex Webmaster -->
+  <meta name="yandex-verification" content="3f9e35f6d79cfb2f" />
 
-    <!-- Географическая привязка -->
-    <meta name="geo.region" content="RU-SPE" />
-    <meta name="geo.placename" content="Санкт-Петербург" />
-    <meta name="geo.country" content="RU" />
+  <!-- Географическая привязка -->
+  <meta name="geo.region" content="RU-SPE" />
+  <meta name="geo.placename" content="Санкт-Петербург" />
+  <meta name="geo.country" content="RU" />
 
-    <!-- Structured Data (JSON-LD) - Russian -->
-    <script type="application/ld+json">
+  <!-- Structured Data (JSON-LD) - Russian -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
@@ -204,7 +213,7 @@
       "installUrl": "https://t.me/PandaPalBot",
       "mainEntityOfPage": { "@type": "WebPage", "@id": "https://pandapal.ru/" },
       "datePublished": "2024-01-01",
-      "dateModified": "2026-02-24",
+      "dateModified": "2026-03-11",
       "audience": {
         "@type": "EducationalAudience",
         "audienceType": "School children, grades 1–9",
@@ -235,8 +244,8 @@
     }
     </script>
 
-    <!-- Organization Schema.org для лучшей индексации -->
-    <script type="application/ld+json">
+  <!-- Organization Schema.org для лучшей индексации -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Organization",
@@ -244,7 +253,7 @@
       "url": "https://pandapal.ru",
       "logo": "https://pandapal.ru/favicon-512.png",
       "description": "PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса. Telegram Mini App, обработка текста фото и аудио, помощь с уроками по всем предметам, игры PandaPalGo, модерация и родительский контроль.",
-      "dateModified": "2026-02-24",
+      "dateModified": "2026-03-11",
       "address": {
         "@type": "PostalAddress",
         "addressCountry": "RU",
@@ -273,8 +282,8 @@
     }
     </script>
 
-    <!-- FAQ Schema.org для SEO (Russian) -->
-    <script type="application/ld+json">
+  <!-- FAQ Schema.org для SEO (Russian) -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
@@ -388,8 +397,8 @@
     }
     </script>
 
-    <!-- FAQ Schema.org (English) для Perplexity и EN-аудитории -->
-    <script type="application/ld+json">
+  <!-- FAQ Schema.org (English) для Perplexity и EN-аудитории -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
@@ -440,8 +449,8 @@
     }
     </script>
 
-    <!-- WebSite Schema (без SearchAction — поиск по сайту не реализован) -->
-    <script type="application/ld+json">
+  <!-- WebSite Schema (без SearchAction — поиск по сайту не реализован) -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
@@ -453,13 +462,13 @@
       ],
       "url": "https://pandapal.ru",
       "description": "PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса в формате Telegram Mini App. Обработка текста фото и аудио. Помогает с уроками по всем предметам, работает 24/7. Модерация и родительский контроль.",
-      "dateModified": "2026-02-24",
+      "dateModified": "2026-03-11",
       "inLanguage": ["ru", "en"]
     }
     </script>
 
-    <!-- WebPage для голосового и ИИ-поиска (speakable для voice/AI) -->
-    <script type="application/ld+json">
+  <!-- WebPage для голосового и ИИ-поиска (speakable для voice/AI) -->
+  <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebPage",
@@ -467,7 +476,7 @@
       "name": "PandaPal — безопасный AI-друг для детей",
       "url": "https://pandapal.ru/",
       "description": "PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса. Telegram Mini App: помощь с уроками по всем предметам, проверка ДЗ по фото, игра «Моя панда» (тамагочи). Открыть: https://t.me/PandaPalBot или сразу тамагочи: https://t.me/PandaPalBot?startapp=my_panda.",
-      "dateModified": "2026-02-24",
+      "dateModified": "2026-03-11",
       "speakable": {
         "@type": "SpeakableSpecification",
         "cssSelector": ["meta[property=\"og:description\"]"]
@@ -475,146 +484,152 @@
     }
     </script>
 
-    <!-- Yandex.Metrika counter -->
-    <script type="text/javascript">
-        (function(m,e,t,r,i,k,a){
-            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-            m[i].l=1*new Date();
-            for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-        })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=104525544', 'ym');
+  <!-- Yandex.Metrika counter -->
+  <script type="text/javascript">
+    (function (m, e, t, r, i, k, a) {
+      m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
+      m[i].l = 1 * new Date();
+      for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
+      k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+    })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=104525544', 'ym');
 
-        ym(104525544, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
-    </script>
-    <!-- /Yandex.Metrika counter -->
-  </head>
-  <body>
-    <noscript><img src="https://mc.yandex.ru/watch/104525544" style="position:absolute; left:-9999px;" alt="" /></noscript>
+    ym(104525544, 'init', { ssr: true, webvisor: true, clickmap: true, ecommerce: "dataLayer", accurateTrackBounce: true, trackLinks: true });
+  </script>
+  <!-- /Yandex.Metrika counter -->
+</head>
 
-    <!-- Яндекс.Вебмастер: Счетчик ИКС (Индекс Качества Сайта) -->
-    <a href="https://webmaster.yandex.ru/siteinfo/?site=pandapal.ru" id="yandex-iks-counter" style="position: fixed; bottom: 10px; left: 10px; z-index: 1000; display: none; text-decoration: none;">
-      <img width="60" height="21" alt="Индекс качества сайта" border="0" style="border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" src="https://yandex.ru/cycounter?pandapal.ru&theme=light&lang=ru"/>
-    </a>
-    <script>
-      // Показываем счетчик ИКС только на основном сайте (не в Mini App)
-      (function() {
-        function updateCounterPosition() {
-          if (typeof window !== 'undefined') {
-            const counter = document.getElementById('yandex-iks-counter');
-            if (counter) {
-              // Проверяем, находимся ли мы в Mini App (есть tgaddr или Telegram WebApp)
-              const isMiniApp = window.location.search.includes('tgaddr') ||
-                               (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp);
+<body>
+  <noscript><img src="https://mc.yandex.ru/watch/104525544" style="position:absolute; left:-9999px;"
+      alt="" /></noscript>
 
-              if (isMiniApp) {
-                // В Mini App - скрываем кнопку
-                counter.style.display = 'none';
-              } else {
-                // На основном сайте - в левом нижнем углу
-                counter.style.display = 'block';
-                counter.style.position = 'fixed';
-                counter.style.bottom = '10px';
-                counter.style.left = '10px';
-                counter.style.zIndex = '999';
-              }
+  <!-- Яндекс.Вебмастер: Счетчик ИКС (Индекс Качества Сайта) -->
+  <a href="https://webmaster.yandex.ru/siteinfo/?site=pandapal.ru" id="yandex-iks-counter"
+    style="position: fixed; bottom: 10px; left: 10px; z-index: 1000; display: none; text-decoration: none;">
+    <img width="60" height="21" alt="Индекс качества сайта" border="0"
+      style="border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);"
+      src="https://yandex.ru/cycounter?pandapal.ru&theme=light&lang=ru" />
+  </a>
+  <script>
+    // Показываем счетчик ИКС только на основном сайте (не в Mini App)
+    (function () {
+      function updateCounterPosition() {
+        if (typeof window !== 'undefined') {
+          const counter = document.getElementById('yandex-iks-counter');
+          if (counter) {
+            // Проверяем, находимся ли мы в Mini App (есть tgaddr или Telegram WebApp)
+            const isMiniApp = window.location.search.includes('tgaddr') ||
+              (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp);
+
+            if (isMiniApp) {
+              // В Mini App - скрываем кнопку
+              counter.style.display = 'none';
+            } else {
+              // На основном сайте - в левом нижнем углу
+              counter.style.display = 'block';
+              counter.style.position = 'fixed';
+              counter.style.bottom = '10px';
+              counter.style.left = '10px';
+              counter.style.zIndex = '999';
             }
           }
         }
+      }
 
-        // Выполняем сразу и после загрузки DOM
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', updateCounterPosition);
-        } else {
-          updateCounterPosition();
+      // Выполняем сразу и после загрузки DOM
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', updateCounterPosition);
+      } else {
+        updateCounterPosition();
+      }
+
+      // Также обновляем при изменении размера окна
+      window.addEventListener('resize', updateCounterPosition);
+    })();
+  </script>
+
+  <div id="root"></div>
+  <script>
+    // РАННЕЕ подавление ошибок Telegram WebView (до загрузки React)
+    (function () {
+      if (typeof window === 'undefined') return;
+
+      const originalError = console.error;
+      const originalWarn = console.warn;
+      const originalLog = console.log;
+
+      // Перехватываем window.onerror для глобальных ошибок
+      window.onerror = function (msg, url, line, col, error) {
+        const message = String(msg || '');
+        const urlStr = String(url || '');
+        if (
+          message.includes('[SW]') ||
+          message.includes('SW registration failed') ||
+          message.includes('no controller') ||
+          message.includes('MP-MTPROTO') ||
+          message.includes('mtprotoworker') ||
+          message.includes('mtprotoworker.ts') ||
+          message.includes('logger.ts') ||
+          urlStr.includes('mtprotoworker.ts') ||
+          urlStr.includes('logger.ts')
+        ) {
+          return true; // Подавляем ошибку
         }
+        return false; // Показываем остальные ошибки
+      };
 
-        // Также обновляем при изменении размера окна
-        window.addEventListener('resize', updateCounterPosition);
-      })();
-    </script>
+      console.error = function (...args) {
+        const message = String(args.join(' '));
+        if (
+          message.includes('[SW]') ||
+          message.includes('SW registration failed') ||
+          message.includes('no controller') ||
+          message.includes('no windows left') ||
+          message.includes('it is not a window') ||
+          message.includes('peer changed') ||
+          message.includes('device-orientation') ||
+          message.includes('Unrecognized feature') ||
+          message.includes('MP-MTPROTO') ||
+          message.includes('Service Worker') ||
+          message.includes('mtprotoworker') ||
+          message.includes('mtprotoworker.ts') ||
+          message.includes('logger.ts') ||
+          message.includes('telegramWebView.ts')
+        ) {
+          return; // Подавляем эти ошибки
+        }
+        originalError.apply(console, args);
+      };
 
-    <div id="root"></div>
-    <script>
-      // РАННЕЕ подавление ошибок Telegram WebView (до загрузки React)
-      (function() {
-        if (typeof window === 'undefined') return;
+      console.warn = function (...args) {
+        const message = String(args.join(' '));
+        if (
+          message.includes('[SW]') ||
+          message.includes('device-orientation') ||
+          message.includes('Unrecognized feature') ||
+          message.includes('Service Worker') ||
+          message.includes('logger.ts') ||
+          message.includes('telegramWebView.ts')
+        ) {
+          return; // Подавляем эти предупреждения
+        }
+        originalWarn.apply(console, args);
+      };
 
-        const originalError = console.error;
-        const originalWarn = console.warn;
-        const originalLog = console.log;
+      // Подавляем логи от Telegram WebView
+      console.log = function (...args) {
+        const message = String(args.join(' '));
+        if (
+          message.includes('[SW]') ||
+          message.includes('MP-MTPROTO') ||
+          message.includes('mtprotoworker')
+        ) {
+          return; // Подавляем эти логи
+        }
+        originalLog.apply(console, args);
+      };
+    })();
+  </script>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
 
-        // Перехватываем window.onerror для глобальных ошибок
-        window.onerror = function(msg, url, line, col, error) {
-          const message = String(msg || '');
-          const urlStr = String(url || '');
-          if (
-            message.includes('[SW]') ||
-            message.includes('SW registration failed') ||
-            message.includes('no controller') ||
-            message.includes('MP-MTPROTO') ||
-            message.includes('mtprotoworker') ||
-            message.includes('mtprotoworker.ts') ||
-            message.includes('logger.ts') ||
-            urlStr.includes('mtprotoworker.ts') ||
-            urlStr.includes('logger.ts')
-          ) {
-            return true; // Подавляем ошибку
-          }
-          return false; // Показываем остальные ошибки
-        };
-
-        console.error = function(...args) {
-          const message = String(args.join(' '));
-          if (
-            message.includes('[SW]') ||
-            message.includes('SW registration failed') ||
-            message.includes('no controller') ||
-            message.includes('no windows left') ||
-            message.includes('it is not a window') ||
-            message.includes('peer changed') ||
-            message.includes('device-orientation') ||
-            message.includes('Unrecognized feature') ||
-            message.includes('MP-MTPROTO') ||
-            message.includes('Service Worker') ||
-            message.includes('mtprotoworker') ||
-            message.includes('mtprotoworker.ts') ||
-            message.includes('logger.ts') ||
-            message.includes('telegramWebView.ts')
-          ) {
-            return; // Подавляем эти ошибки
-          }
-          originalError.apply(console, args);
-        };
-
-        console.warn = function(...args) {
-          const message = String(args.join(' '));
-          if (
-            message.includes('[SW]') ||
-            message.includes('device-orientation') ||
-            message.includes('Unrecognized feature') ||
-            message.includes('Service Worker') ||
-            message.includes('logger.ts') ||
-            message.includes('telegramWebView.ts')
-          ) {
-            return; // Подавляем эти предупреждения
-          }
-          originalWarn.apply(console, args);
-        };
-
-        // Подавляем логи от Telegram WebView
-        console.log = function(...args) {
-          const message = String(args.join(' '));
-          if (
-            message.includes('[SW]') ||
-            message.includes('MP-MTPROTO') ||
-            message.includes('mtprotoworker')
-          ) {
-            return; // Подавляем эти логи
-          }
-          originalLog.apply(console, args);
-        };
-      })();
-    </script>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
 </html>

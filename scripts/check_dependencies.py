@@ -41,7 +41,7 @@ def check_required_env_vars():
         required_vars = [
             "DATABASE_URL",
             "TELEGRAM_BOT_TOKEN",
-            "GEMINI_API_KEY",
+            "YANDEX_API_KEY",
             "SECRET_KEY",
         ]
 
@@ -60,8 +60,7 @@ def check_required_env_vars():
 
         # Optional variables with default values
         optional_vars = {
-            "GEMINI_API_KEYS": settings.gemini_api_keys,
-            "GEMINI_MODEL": settings.gemini_model,
+            "YANDEX_FOLDER_ID": settings.yandex_folder_id,
             "SENTRY_DSN": settings.sentry_dsn,
             "FRONTEND_URL": settings.frontend_url,
             "WEBHOOK_DOMAIN": settings.webhook_domain,
@@ -173,7 +172,7 @@ def check_requirements():
     # Ключевые пакеты для проверки
     key_packages = [
         "aiogram",
-        "google-generativeai",
+        "yandex-cloud-ml-sdk",
         "sqlalchemy",
         "alembic",
         "pydantic",
