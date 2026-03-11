@@ -407,7 +407,7 @@ export function AIChat({ user }: AIChatProps) {
                       onCanPlay={() => setWelcomeVideoReady(true)}
                       onPlaying={() => setWelcomeVideoReady(true)}
                       onLoadedData={() => setWelcomeVideoReady(true)}
-                      className="absolute inset-0 z-10 w-full h-full object-cover object-center rounded-full block"
+                      className="absolute inset-0 z-10 w-full h-full object-contain object-center rounded-full block"
                       aria-label={welcomeMedia.alt}
                     />
                     {!welcomeVideoReady && (
