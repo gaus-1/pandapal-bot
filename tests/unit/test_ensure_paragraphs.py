@@ -145,10 +145,28 @@ def test_clean_ai_response_latex_math_symbols():
 
 
 def test_clean_ai_response_double_list_marker():
-    """Двойной маркер списка «- - Текст» превращается в один маркер."""
+    """Двойной маркер списка любой комбинации превращается в один маркер."""
+    # Исходный кейс: "- - Текст"
     text = "Основные характеристики графика синуса:\n- - Периодичность\n- - Амплитуда"
     cleaned = clean_ai_response(text)
     assert "- - " not in cleaned
-    # При этом пункты списка остаются
     assert "Периодичность" in cleaned
     assert "Амплитуда" in cleaned
+
+    # Bullet + dash: "• - Текст"
+    text2 = "Тема:\n• - правила поведения\n• - безопасность"
+    cleaned2 = clean_ai_response(text2)
+    assert "• -" not in cleaned2
+    assert "правила поведения" in cleaned2
+
+    # En-dash + dash: "– - Текст"
+    text3 = "Список:\n– - первый пункт\n– - второй пункт"
+    cleaned3 = clean_ai_response(text3)
+    assert "– -" not in cleaned3
+    assert "первый пункт" in cleaned3
+
+    # Em-dash + dash: "— - Текст"
+    text4 = "Список:\n— - один\n— - два"
+    cleaned4 = clean_ai_response(text4)
+    assert "— -" not in cleaned4
+    assert "один" in cleaned4

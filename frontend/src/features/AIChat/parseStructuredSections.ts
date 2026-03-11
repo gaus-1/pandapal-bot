@@ -131,7 +131,8 @@ export function parseListItems(content: string): string[] {
   const lines = content.split('\n');
 
   for (const line of lines) {
-    const trimmed = line.trim();
+    // Нормализуем двойные маркеры: "• - Текст" → "- Текст"
+    const trimmed = line.trim().replace(/^[-–—•]\s+[-–—]\s+/, '- ');
     if (!trimmed) continue;
 
     // Маркированный список: -, —, • в начале
