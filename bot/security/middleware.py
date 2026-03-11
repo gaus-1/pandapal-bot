@@ -449,11 +449,15 @@ async def security_middleware(request: web.Request, handler) -> web.Response:
         # https://mc.yandex.ru нужен для Яндекс.Метрики
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://telegram.org https://web.telegram.org https://mc.yandex.ru; "
+            "script-src 'self' 'unsafe-inline' https://telegram.org https://web.telegram.org "
+            "https://mc.yandex.ru https://mc.yandex.com https://yastatic.net; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com; "
             "img-src 'self' data: https:; "
-            f"connect-src 'self' https://api.pandapal.ru https://mc.yandex.ru wss://mc.yandex.ru; "
+            "connect-src 'self' https://api.pandapal.ru https://pandapal.ru "
+            "https://mc.yandex.ru https://mc.yandex.com https://yastatic.net "
+            f"https://api.telegram.org wss://pandapal.ru wss://mc.yandex.ru; "
+            "media-src 'self' blob: data:; "
             f"{csp_frame_ancestors} "
             "base-uri 'self'; "
             "form-action 'self'; "
