@@ -9,6 +9,7 @@
 """
 
 import time
+from collections import deque
 
 from aiohttp import web
 from loguru import logger
@@ -44,7 +45,7 @@ class OverloadProtection:
 
         # Текущая нагрузка
         self._active_requests = 0
-        self._request_times: list[float] = []
+        self._request_times: deque[float] = deque(maxlen=1000)
         self._request_count = 0
         self._last_reset = time.time()
 
@@ -117,13 +118,9 @@ class OverloadProtection:
             # Обрабатываем запрос
             response = await handler(request)
 
-            # Записываем время обработки
+            # Записываем время обработки (deque(maxlen=1000) авто-удаляет старые)
             processing_time = time.time() - start_time
             self._request_times.append(processing_time)
-
-            # Обновляем статистику (оставляем только последние 1000 запросов)
-            if len(self._request_times) > 1000:
-                self._request_times = self._request_times[-1000:]
 
             self._stats["avg_response_time"] = sum(self._request_times) / len(self._request_times)
 

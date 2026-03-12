@@ -517,25 +517,26 @@ class PandaPalBotServer:
 
         logger.info("🔄 Keep-alive пинг запущен (каждые 4 минуты)")
 
-        while True:
-            try:
-                await asyncio.sleep(240)  # 4 минуты
+        # Переиспользуем одну сессию для всех пингов (нет смысла создавать TCPConnector каждый раз)
+        async with aiohttp.ClientSession() as session:
+            while True:
+                try:
+                    await asyncio.sleep(240)  # 4 минуты
 
-                async with (
-                    aiohttp.ClientSession() as session,
-                    session.get(f"http://localhost:{port}/health", timeout=5) as resp,
-                ):
-                    if resp.status == 200:
-                        logger.debug("💓 Keep-alive ping OK")
-                    else:
-                        logger.warning(f"⚠️ Keep-alive ping failed: {resp.status}")
+                    async with session.get(
+                        f"http://localhost:{port}/health", timeout=aiohttp.ClientTimeout(total=5)
+                    ) as resp:
+                        if resp.status == 200:
+                            logger.debug("💓 Keep-alive ping OK")
+                        else:
+                            logger.warning(f"⚠️ Keep-alive ping failed: {resp.status}")
 
-            except asyncio.CancelledError:
-                logger.info("🛑 Keep-alive пинг остановлен")
-                break
-            except Exception as e:
-                logger.warning(f"⚠️ Keep-alive ping error: {e}")
-                await asyncio.sleep(60)  # При ошибке ждем 1 минуту и пробуем снова
+                except asyncio.CancelledError:
+                    logger.info("🛑 Keep-alive пинг остановлен")
+                    break
+                except Exception as e:
+                    logger.warning(f"⚠️ Keep-alive ping error: {e}")
+                    await asyncio.sleep(60)  # При ошибке ждем 1 минуту и пробуем снова
 
 
 async def main() -> None:

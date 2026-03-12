@@ -54,12 +54,22 @@ class YandexCloudService:
         # Таймаут для всех запросов (30 секунд)
         self.timeout = httpx.Timeout(30.0, connect=10.0)
 
+        # Персистентные httpx-клиенты (переиспользуем TCP-соединения вместо создания новых на каждый запрос)
+        self._client = httpx.AsyncClient(timeout=self.timeout)
+        self._stt_client = httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=10.0))
+
         # Очередь для управления одновременными запросами
         # Максимум 12 одновременных запросов для баланса между производительностью
         # и защитой от rate limiting Yandex Cloud API
         self.request_queue = get_ai_request_queue(max_concurrent=12)
 
         logger.info(f"✅ YandexCloudService инициализирован: модель {self.gpt_model}")
+
+    async def close(self) -> None:
+        """Закрыть персистентные HTTP-клиенты."""
+        await self._client.aclose()
+        await self._stt_client.aclose()
+        logger.info("✅ YandexCloudService HTTP-клиенты закрыты")
 
     def _extract_text_from_line(self, line: dict[str, Any]) -> str:
         """
@@ -287,13 +297,12 @@ class YandexCloudService:
                     **self.headers,
                     "x-client-request-id": str(uuid.uuid4()),
                 }
-                async with httpx.AsyncClient(timeout=self.timeout) as client:
-                    response = await client.post(
-                        self.gpt_url, headers=request_headers, json=payload
-                    )
-                    response.raise_for_status()
-                    result = response.json()
-                    return result
+                response = await self._client.post(
+                    self.gpt_url, headers=request_headers, json=payload
+                )
+                response.raise_for_status()
+                result = response.json()
+                return result
 
             # Выполняем запрос через Circuit Breaker + очередь
             async def _cb_request():
@@ -395,8 +404,7 @@ class YandexCloudService:
                     "x-client-request-id": str(uuid.uuid4()),
                 }
                 async with (
-                    httpx.AsyncClient(timeout=self.timeout) as client,
-                    client.stream(
+                    self._client.stream(
                         "POST", self.gpt_url, headers=request_headers, json=payload
                     ) as response,
                 ):
@@ -518,19 +526,16 @@ class YandexCloudService:
                 reraise=True,
             )
             async def _execute_request():
-                # Увеличенный таймаут для SpeechKit (60 секунд)
-                stt_timeout = httpx.Timeout(60.0, connect=10.0)
-                async with httpx.AsyncClient(timeout=stt_timeout) as client:
-                    response = await client.post(
-                        self.stt_url,
-                        headers={
-                            "Authorization": f"Api-Key {self.api_key}",
-                        },
-                        params=params,
-                        content=audio_data,
-                    )
-                    response.raise_for_status()
-                    return response.json()
+                response = await self._stt_client.post(
+                    self.stt_url,
+                    headers={
+                        "Authorization": f"Api-Key {self.api_key}",
+                    },
+                    params=params,
+                    content=audio_data,
+                )
+                response.raise_for_status()
+                return response.json()
 
             # Выполняем запрос через Circuit Breaker + очередь
             async def _cb_request():
@@ -579,18 +584,17 @@ class YandexCloudService:
         model_uri = f"emb://{self.folder_id}/{model}"
         payload = {"modelUri": model_uri, "text": text[:8000]}  # лимит API
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    self.embedding_url,
-                    headers=self.headers,
-                    json=payload,
-                )
-                response.raise_for_status()
-                data = response.json()
-                embedding = data.get("embedding")
-                if embedding and isinstance(embedding, list):
-                    return [float(x) for x in embedding]
-                return None
+            response = await self._client.post(
+                self.embedding_url,
+                headers=self.headers,
+                json=payload,
+            )
+            response.raise_for_status()
+            data = response.json()
+            embedding = data.get("embedding")
+            if embedding and isinstance(embedding, list):
+                return [float(x) for x in embedding]
+            return None
         except Exception as e:
             logger.warning(f"⚠️ Embeddings API недоступен: {e}")
             return None
@@ -627,12 +631,11 @@ class YandexCloudService:
             }
 
             async def _execute_request():
-                async with httpx.AsyncClient(timeout=self.timeout) as client:
-                    response = await client.post(
-                        self.vision_url, headers=self.headers, json=vision_payload
-                    )
-                    response.raise_for_status()
-                    return response.json()
+                response = await self._client.post(
+                    self.vision_url, headers=self.headers, json=vision_payload
+                )
+                response.raise_for_status()
+                return response.json()
 
             async def _cb_request():
                 return await self.request_queue.process(_execute_request)
@@ -696,12 +699,11 @@ class YandexCloudService:
                 reraise=True,
             )
             async def _execute_request():
-                async with httpx.AsyncClient(timeout=self.timeout) as client:
-                    response = await client.post(
-                        self.vision_url, headers=self.headers, json=vision_payload
-                    )
-                    response.raise_for_status()
-                    return response.json()
+                response = await self._client.post(
+                    self.vision_url, headers=self.headers, json=vision_payload
+                )
+                response.raise_for_status()
+                return response.json()
 
             # Выполняем запрос через Circuit Breaker + очередь
             async def _cb_request():

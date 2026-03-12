@@ -74,6 +74,10 @@ class CircuitBreaker:
         """
         Выполнить вызов через Circuit Breaker.
 
+        Lock удерживается ТОЛЬКО при проверке/изменении состояния,
+        НЕ во время выполнения самого запроса — это позволяет
+        параллельным запросам проходить через CB одновременно.
+
         Args:
             func: Асинхронная функция
             *args, **kwargs: Аргументы функции
@@ -84,6 +88,7 @@ class CircuitBreaker:
         Raises:
             CircuitOpenError: Если цепь разомкнута
         """
+        # Фаза 1: проверка состояния (быстрая, под lock)
         async with self._lock:
             current_state = self.state
 
@@ -97,10 +102,11 @@ class CircuitBreaker:
             if current_state == CircuitState.HALF_OPEN:
                 if self._half_open_calls >= self.half_open_max_calls:
                     raise CircuitOpenError(
-                        f"CircuitBreaker [{self.name}] HALF_OPEN: " f"пробные запросы исчерпаны"
+                        f"CircuitBreaker [{self.name}] HALF_OPEN: пробные запросы исчерпаны"
                     )
                 self._half_open_calls += 1
 
+        # Фаза 2: выполнение запроса (БЕЗ lock — параллельные запросы не блокируются)
         try:
             result = await func(*args, **kwargs)
             await self._on_success()

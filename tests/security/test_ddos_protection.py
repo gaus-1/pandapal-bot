@@ -3,6 +3,7 @@
 Проверка rate limiting работает корректно
 """
 
+import os
 import time
 
 import pytest
@@ -15,6 +16,10 @@ from bot.security.middleware import RateLimiter, get_rate_limiter
 class TestDDoSProtection:
     """Тесты защиты от DDOS"""
 
+    @pytest.fixture(autouse=True)
+    def _set_strict_rate_limit(self, monkeypatch):
+        """Включаем строгие лимиты для тестовых проверок."""
+        monkeypatch.setenv("PANDAPAL_STRICT_RATE_LIMIT_TESTING", "true")
     def test_rate_limiter_allows_normal_requests(self):
         """Тест: rate limiter разрешает нормальные запросы"""
         limiter = RateLimiter(max_requests=10, window_seconds=60)

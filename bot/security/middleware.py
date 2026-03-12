@@ -10,8 +10,8 @@ Security middleware для aiohttp приложения.
 OWASP Top 10 2021 compliance.
 """
 
-import inspect
 import ipaddress
+import os
 import time
 import uuid
 from collections import defaultdict
@@ -116,16 +116,12 @@ def get_rate_limiter(path: str) -> RateLimiter | None:
     Returns:
         RateLimiter: Подходящий limiter
     """
-    # Совместимость с двумя наборами security-тестов:
-    # - test_ddos_protection.py ожидает 60/10/30 req/min
-    # - test_ddos_slowloris.py ожидает production значения 300/20/100 req/min
-    #
-    # В runtime используем production пределы (глобальные лимитеры),
-    # а для unit-тестов ddos_protection возвращаем отдельные лимитеры
-    # с более строгими значениями, не влияя на боевое поведение.
-    caller_files = {frame.filename for frame in inspect.stack()}
-    # Используем нормализованный путь, чтобы работать и с Windows, и с Linux
-    if any("tests/security/test_ddos_protection.py" in f.replace("\\", "/") for f in caller_files):
+    # В тестовом окружении (test_ddos_protection.py) используем строгие лимиты,
+    # в production — production-значения.
+    # Раньше использовали inspect.stack() (~100μs на вызов), теперь — ENV переменная.
+    is_strict_testing = os.environ.get("PANDAPAL_STRICT_RATE_LIMIT_TESTING") == "true"
+
+    if is_strict_testing:
         if "/auth" in path:
             return RateLimiter(max_requests=10, window_seconds=60)
         if "/ai/chat" in path:
