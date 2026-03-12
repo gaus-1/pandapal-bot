@@ -56,11 +56,17 @@ describe('SEO: index.html', () => {
     expect(html).toContain('name="twitter:image"');
   });
 
-  it('должен содержать hreflang для RU/EN и x-default', () => {
+  it('должен содержать hreflang для RU/EN и x-default (только языки с контентом)', () => {
     const html = readIndexHtml();
     expect(html).toContain('hreflang="ru"');
     expect(html).toContain('hreflang="en"');
     expect(html).toContain('hreflang="x-default"');
+    // Не должно быть локалей без реального контента
+    expect(html).not.toContain('hreflang="be"');
+    expect(html).not.toContain('hreflang="kk"');
+    expect(html).not.toContain('hreflang="de"');
+    expect(html).not.toContain('hreflang="fr"');
+    expect(html).not.toContain('hreflang="he"');
   });
 
   it('НЕ должен содержать скрытый AEO-блок #seo-content', () => {
@@ -79,10 +85,11 @@ describe('SEO: index.html', () => {
     expect(html).toContain('"installUrl": "https://t.me/PandaPalBot"');
   });
 
-  it('Organization Schema не должен содержать aggregateRating', () => {
+  it('Organization Schema должна содержать EducationalOrganization и не содержать aggregateRating', () => {
     const html = readIndexHtml();
-    const orgBlock = html.includes('"@type": "Organization"')
-      ? html.slice(html.indexOf('"@type": "Organization"'), html.indexOf('</script>', html.indexOf('"@type": "Organization"')))
+    expect(html).toContain('"EducationalOrganization"');
+    const orgBlock = html.includes('"EducationalOrganization"')
+      ? html.slice(html.indexOf('"EducationalOrganization"'), html.indexOf('</script>', html.indexOf('"EducationalOrganization"')))
       : '';
     expect(orgBlock).not.toContain('aggregateRating');
   });
@@ -163,5 +170,26 @@ describe('AEO: llms.txt', () => {
     const llms = readLlmsTxt();
     expect(llms).toContain('startapp=my_panda');
     expect(llms).toContain('t.me/PandaPalBot');
+  });
+
+  it('должен содержать FAQ-секцию с вопросами Q: и ответами A:', () => {
+    const llms = readLlmsTxt();
+    expect(llms).toContain('## FAQ');
+    expect(llms).toContain('Q: ');
+    expect(llms).toContain('A: ');
+    // Должны быть RU и EN вопросы
+    expect(llms).toContain('Q: Что такое PandaPal?');
+    expect(llms).toContain('Q: What is PandaPal?');
+  });
+});
+
+describe('SEO: noscript fallback', () => {
+  it('должен содержать noscript блок с ключевым контентом', () => {
+    const html = readIndexHtml();
+    // Должен быть noscript с h1 и основным контентом
+    expect(html).toContain('<h1>PandaPal');
+    expect(html).toContain('Возможности');
+    expect(html).toContain('Частые вопросы');
+    expect(html).toContain('t.me/PandaPalBot');
   });
 });

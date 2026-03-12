@@ -332,7 +332,13 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             app.router.add_get("/.well-known/llms.txt", serve_llms_txt)
             logger.info("✅ llms.txt зарегистрирован по пути /.well-known/llms.txt")
 
-        app.router.add_get("/", lambda _: web.FileResponse(frontend_dist / "index.html"))
+        app.router.add_get(
+            "/",
+            lambda _: web.FileResponse(
+                frontend_dist / "index.html",
+                headers={"X-Robots-Tag": "index, follow, max-snippet:-1, max-image-preview:large"},
+            ),
+        )
 
         # Расширения, при которых запрос считается к несуществующему файлу — отдаём 404 (рекомендация Яндекса)
         _STATIC_LIKE_EXTENSIONS = (
@@ -378,7 +384,10 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             # Запрос к несуществующей странице с расширением файла — 404 для корректной индексации
             if any(path.endswith(ext) for ext in _STATIC_LIKE_EXTENSIONS):
                 return web.Response(status=404, text="Not Found")
-            return web.FileResponse(frontend_dist / "index.html")
+            return web.FileResponse(
+                frontend_dist / "index.html",
+                headers={"X-Robots-Tag": "index, follow, max-snippet:-1, max-image-preview:large"},
+            )
 
         app.router.add_get("/{tail:.*}", spa_fallback)
         logger.info(f"✅ Frontend настроен: {frontend_dist}")
