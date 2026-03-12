@@ -155,41 +155,41 @@ class YandexCloudService:
         all_lines = []
         try:
             results = vision_result.get("results", [])
-            logger.info(f"📊 Results length: {len(results)}")
+            logger.debug(f"📊 Results length: {len(results)}")
 
             if not results:
                 return ""
 
             inner_results = results[0].get("results", [])
-            logger.info(f"📊 Inner results length: {len(inner_results)}")
+            logger.debug(f"📊 Inner results length: {len(inner_results)}")
 
             if not inner_results:
                 return ""
 
             text_detection = inner_results[0].get("textDetection", {})
-            logger.info(f"📊 Text detection keys: {list(text_detection.keys())}")
+            logger.debug(f"📊 Text detection keys: {list(text_detection.keys())}")
 
             pages = text_detection.get("pages", [])
-            logger.info(f"📄 Найдено страниц: {len(pages)}")
+            logger.debug(f"📄 Найдено страниц: {len(pages)}")
 
             for page_idx, page in enumerate(pages):
                 blocks = page.get("blocks", [])
-                logger.info(f"📦 Страница {page_idx}: блоков {len(blocks)}")
+                logger.debug(f"📦 Страница {page_idx}: блоков {len(blocks)}")
 
                 for block_idx, block in enumerate(blocks):
                     lines = block.get("lines", [])
-                    logger.info(f"  📦 Блок {block_idx}: строк {len(lines)}")
+                    logger.debug(f"  📦 Блок {block_idx}: строк {len(lines)}")
 
                     if block_idx == 0 and lines:
-                        logger.info(f"  🔍 Структура первой строки: {list(lines[0].keys())}")
+                        logger.debug(f"  🔍 Структура первой строки: {list(lines[0].keys())}")
 
                     for line_idx, line in enumerate(lines):
                         line_text = self._extract_text_from_line(line)
                         if line_text:
                             all_lines.append(line_text)
-                            logger.info(f"    ✅ Строка {line_idx}: {line_text[:80]}")
+                            logger.debug(f"    ✅ Строка {line_idx}: {line_text[:80]}")
                         else:
-                            logger.warning(
+                            logger.debug(
                                 f"    ⚠️ Строка {line_idx} пустая! Ключи: {list(line.keys())}"
                             )
 
@@ -597,6 +597,52 @@ class YandexCloudService:
 
     # Vision OCR - анализ изображений
 
+    async def recognize_text(self, image_data: bytes) -> str:
+        """
+        Распознать текст на изображении через Vision OCR (без анализа GPT).
+
+        Используется для модерации изображений (moderate_image_content).
+
+        Args:
+            image_data: Изображение в байтах.
+
+        Returns:
+            str: Распознанный текст или пустая строка.
+        """
+        try:
+            image_base64 = base64.b64encode(image_data).decode("utf-8")
+            vision_payload = {
+                "folderId": self.folder_id,
+                "analyze_specs": [
+                    {
+                        "content": image_base64,
+                        "features": [
+                            {
+                                "type": "TEXT_DETECTION",
+                                "text_detection_config": {"language_codes": ["ru", "en"]},
+                            }
+                        ],
+                    }
+                ],
+            }
+
+            async def _execute_request():
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    response = await client.post(
+                        self.vision_url, headers=self.headers, json=vision_payload
+                    )
+                    response.raise_for_status()
+                    return response.json()
+
+            async def _cb_request():
+                return await self.request_queue.process(_execute_request)
+
+            vision_result = await yandex_vision_circuit.call(_cb_request)
+            return self._extract_text_from_vision_result(vision_result)
+        except Exception as e:
+            logger.warning(f"⚠️ Vision OCR (recognize_text) не удалось: {e}")
+            return ""
+
     async def analyze_image_with_text(
         self,
         image_data: bytes,
@@ -663,31 +709,23 @@ class YandexCloudService:
 
             vision_result = await yandex_vision_circuit.call(_cb_request)
 
-            # 🔍 ДЕТАЛЬНОЕ ЛОГИРОВАНИЕ для отладки
-            logger.info(f"📊 Vision API response keys: {list(vision_result.keys())}")
+            logger.debug(f"📊 Vision API response keys: {list(vision_result.keys())}")
 
-            # Логируем ПОЛНЫЙ ответ для анализа структуры
+            # Полный ответ — только DEBUG (предотвращает мегабайты логов в prod)
             response_full = json.dumps(vision_result, ensure_ascii=False, indent=2)
-            response_preview = response_full[:2000]  # Первые 2000 символов
-            logger.info(
-                f"📊 ПОЛНЫЙ Vision API response (первые 2000 символов):\n{response_preview}"
-            )
-
-            # Сохраняем полный ответ для детального анализа
-            logger.debug(f"📊 ВЕСЬ Vision API response:\n{response_full}")
+            logger.debug(f"📊 Vision API response:\n{response_full[:2000]}")
 
             recognized_text = self._extract_text_from_vision_result(vision_result)
 
             if recognized_text:
-                logger.info(f"✅ Vision OCR УСПЕШНО: {len(recognized_text)} символов")
-                logger.info(f"📝 Первые 200 символов:\n{recognized_text[:200]}")
+                logger.info(f"✅ Vision OCR: {len(recognized_text)} символов")
+                logger.debug(f"📝 Первые 200 символов:\n{recognized_text[:200]}")
             else:
                 logger.warning("⚠️ Vision API вернул ответ, но текст пустой!")
-                logger.warning(f"⚠️ Проверьте структуру: {response_preview}")
+                logger.debug(f"⚠️ Структура ответа: {response_full[:500]}")
 
         except (KeyError, IndexError, AttributeError) as e:
             logger.error(f"❌ Ошибка парсинга Vision API: {type(e).__name__}: {e}")
-            logger.error(f"❌ Response structure: {response_preview}")
             recognized_text = ""
 
         # ВАЖНО: Не обрываем процесс даже если OCR распознал мало текста!
