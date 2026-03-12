@@ -61,7 +61,7 @@ export const DarkModeToggle: React.FC<DarkModeToggleProps> = ({ isInline = false
   // Стили в зависимости от режима (inline или fixed)
   const buttonClassName = isInline
     ? "w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-slate-700 shadow-md hover:shadow-lg border-2 border-gray-200 dark:border-slate-600 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center touch-manipulation"
-    : "fixed top-4 right-4 md:right-28 z-50 w-11 h-11 sm:w-12 sm:h-12 md:w-auto md:h-auto md:px-5 md:py-2.5 rounded-full bg-white dark:bg-slate-700 shadow-md hover:shadow-lg border-2 border-gray-200 dark:border-slate-600 transition-all duration-300 hover:scale-105 active:scale-95 text-sm font-semibold flex items-center justify-center touch-manipulation min-h-[44px] sm:min-h-[48px]";
+    : "fixed top-fib-3 right-fib-3 md:right-fib-7 z-50 w-11 h-11 sm:w-12 sm:h-12 md:w-auto md:h-auto md:px-fib-4 md:py-fib-2 rounded-full bg-white dark:bg-slate-700 shadow-md hover:shadow-lg border-2 border-gray-200 dark:border-slate-600 transition-all duration-300 hover:scale-105 active:scale-95 text-sm font-semibold flex items-center justify-center touch-manipulation min-h-[44px] sm:min-h-[48px]";
 
   return (
     <button

@@ -83,7 +83,7 @@ function Bar({
 }) {
   const pct = Math.max(0, Math.min(100, value));
   return (
-    <div className="flex flex-col gap-1 w-full min-w-0">
+    <div className="flex flex-col gap-fib-1 w-full min-w-0">
       <div className="flex justify-between text-xs sm:text-sm text-gray-700 dark:text-slate-300">
         <span>{label}</span>
         <span>{pct}%</span>
@@ -453,10 +453,10 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
 
   if (loading) {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-4 bg-white dark:bg-slate-800 safe-area-inset">
+      <div className="h-full flex flex-col items-center justify-center p-fib-3 bg-white dark:bg-slate-800 safe-area-inset">
         <div className="animate-pulse w-48 h-48 rounded-2xl bg-gray-200 dark:bg-slate-600" />
-        <div className="mt-4 h-4 w-32 bg-gray-200 dark:bg-slate-600 rounded animate-pulse" />
-        <div className="mt-6 flex gap-3">
+        <div className="mt-fib-3 h-4 w-32 bg-gray-200 dark:bg-slate-600 rounded animate-pulse" />
+        <div className="mt-fib-4 flex gap-fib-2">
           <div className="h-12 w-24 bg-gray-200 dark:bg-slate-600 rounded-xl animate-pulse" />
           <div className="h-12 w-24 bg-gray-200 dark:bg-slate-600 rounded-xl animate-pulse" />
           <div className="h-12 w-24 bg-gray-200 dark:bg-slate-600 rounded-xl animate-pulse" />
@@ -467,12 +467,12 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
 
   if (error && !state) {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-4 bg-white dark:bg-slate-800 safe-area-inset">
-        <p className="text-gray-600 dark:text-slate-400 text-center mb-4">{error}</p>
+      <div className="h-full flex flex-col items-center justify-center p-fib-3 bg-white dark:bg-slate-800 safe-area-inset">
+        <p className="text-gray-600 dark:text-slate-400 text-center mb-fib-3">{error}</p>
         <button
           type="button"
           onClick={() => { setLoading(true); loadState(); }}
-          className="px-4 py-2 rounded-xl bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] min-h-[44px] touch-manipulation"
+          className="px-fib-3 py-fib-2 rounded-xl bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] min-h-[44px] touch-manipulation"
           aria-label="Попробовать снова"
         >
           Попробовать снова
@@ -483,9 +483,9 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
 
   if (!state) {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-4 bg-white dark:bg-slate-800 safe-area-inset">
+      <div className="h-full flex flex-col items-center justify-center p-fib-3 bg-white dark:bg-slate-800 safe-area-inset">
         <div className="animate-pulse w-48 h-48 rounded-2xl bg-gray-200 dark:bg-slate-600" />
-        <p className="mt-4 text-sm text-gray-500 dark:text-slate-400">Загрузка панды...</p>
+        <p className="mt-fib-3 text-sm text-gray-500 dark:text-slate-400">Загрузка панды...</p>
       </div>
     );
   }
@@ -518,7 +518,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
 
   return (
     <div className="h-full flex flex-col bg-white dark:bg-slate-800 overflow-auto safe-area-inset">
-      <header className="flex-shrink-0 py-2 px-3 xs:px-4 sm:px-4 md:px-5 border-b border-gray-200 dark:border-slate-700">
+      <header className="flex-shrink-0 py-fib-2 px-fib-2 xs:px-fib-3 sm:px-fib-3 md:px-fib-4 border-b border-gray-200 dark:border-slate-700">
         <h1 className="text-lg sm:text-xl md:text-2xl font-display font-bold text-gray-900 dark:text-slate-100 text-center">
           Моя панда
         </h1>
@@ -529,7 +529,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
         )}
       </header>
 
-      <div className="flex-1 flex flex-col items-center px-3 xs:px-4 sm:px-4 md:px-5 py-2 sm:py-3 gap-2 sm:gap-3 md:gap-4 min-h-0 min-w-0 pb-20 max-w-full">
+      <div className="flex-1 flex flex-col items-center px-fib-2 xs:px-fib-3 sm:px-fib-3 md:px-fib-4 py-fib-2 sm:py-fib-2 gap-fib-2 sm:gap-fib-2 md:gap-fib-3 min-h-0 min-w-0 pb-20 max-w-full">
         {/* Реакция панды — контейнер увеличен за счёт удалённой подписи «После действия...» */}
         <div
           className="flex-shrink-0 w-full max-w-[180px] fold:max-w-[205px] xs:max-w-[230px] sm:max-w-[280px] md:max-w-[320px] lg:max-w-[340px] max-h-[27vh] fold:max-h-[29vh] xs:max-h-[31vh] sm:max-h-[35vh] md:max-h-[38vh] aspect-square flex items-center justify-center bg-gray-50 dark:bg-slate-700/50 rounded-2xl"
@@ -649,7 +649,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
             />
           ) : null}
         </div>
-        <div className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] space-y-2 sm:space-y-3">
+        <div className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] space-y-fib-2 sm:space-y-fib-2">
           <Bar
             value={state.hunger}
             label="Голод"
@@ -668,7 +668,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
         </div>
 
         {/* Шесть кнопок: под каждой — место для подписи «через N мин» или «До 3 раз в час» */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-2.5 w-full max-w-[340px] sm:max-w-[380px] md:max-w-[420px] min-w-0 shrink-0">
+        <div className="grid grid-cols-3 gap-fib-2 sm:gap-fib-2 w-full max-w-[340px] sm:max-w-[380px] md:max-w-[420px] min-w-0 shrink-0">
           {/* Ряд 1: Покормить, Играть, Спать */}
           <div className="flex flex-col items-center gap-0.5 min-w-0">
             <button
@@ -764,11 +764,11 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
         </div>
 
         {achievementEntries.length > 0 && (
-          <div className="w-full max-w-[280px] xs:max-w-[300px] sm:max-w-[320px] mt-2 p-2.5 sm:p-3 rounded-xl bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600">
-            <h3 className="font-display text-xs sm:text-sm font-semibold text-gray-900 dark:text-slate-100 mb-2">
+          <div className="w-full max-w-[280px] xs:max-w-[300px] sm:max-w-[320px] mt-fib-2 p-fib-2 sm:p-fib-2 rounded-xl bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600">
+            <h3 className="font-display text-xs sm:text-sm font-semibold text-gray-900 dark:text-slate-100 mb-fib-2">
               Достижения
             </h3>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-fib-1">
               {achievementEntries.map(([key]) => (
                 <span
                   key={key}

@@ -26,7 +26,7 @@ export function InteractiveMap({ mapData, fallbackImageUrl }: InteractiveMapProp
   };
 
   return (
-    <div className="relative w-full rounded-xl overflow-hidden mb-2 shadow-md group">
+    <div className="relative w-full rounded-xl overflow-hidden mb-fib-2 shadow-md group">
       {/* Статичная карта */}
       {fallbackImageUrl && (
         <img
@@ -39,7 +39,7 @@ export function InteractiveMap({ mapData, fallbackImageUrl }: InteractiveMapProp
       {/* Кнопка "Открыть карту" поверх изображения */}
       <button
         onClick={handleOpenMap}
-        className="absolute bottom-2 right-2 flex items-center gap-1.5 px-3 py-1.5
+        className="absolute bottom-fib-2 right-fib-2 flex items-center gap-fib-1 px-fib-2 py-fib-1
           bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm
           text-xs font-medium text-blue-600 dark:text-blue-400
           rounded-lg shadow-md border border-gray-200/50 dark:border-slate-600/50

@@ -250,7 +250,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
             </div>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100 active:text-gray-950 dark:active:text-slate-50 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600"
+              className="px-fib-3 py-fib-2 text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100 active:text-gray-950 dark:active:text-slate-50 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600"
             >
               Выйти
             </button>
@@ -258,19 +258,19 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         )}
 
         {/* Заголовок */}
-        <div className="mb-2 xs:mb-3 sm:mb-4 text-center">
-          <div className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl mb-1.5 xs:mb-2 sm:mb-3">👑</div>
-          <h1 className="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-display font-bold text-gray-900 dark:text-slate-100 mb-1 xs:mb-1.5 sm:mb-2">
+        <div className="mb-fib-2 xs:mb-fib-2 sm:mb-fib-3 text-center">
+          <div className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl mb-fib-1 xs:mb-fib-2 sm:mb-fib-2">👑</div>
+          <h1 className="text-base xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-display font-bold text-gray-900 dark:text-slate-100 mb-fib-1 xs:mb-fib-1 sm:mb-fib-2">
             PandaPal Premium
           </h1>
           <p className="text-xs xs:text-sm sm:text-base md:text-base text-gray-600 dark:text-slate-400">
             Получи максимум от обучения
           </p>
-          <p className="mt-1 text-xs text-gray-500 dark:text-slate-500">
+          <p className="mt-fib-1 text-xs text-gray-500 dark:text-slate-500">
             В бесплатной версии PandaPal — 30 запросов в месяц. Premium: 299 ₽/мес, безлимитные запросы и все возможности.
           </p>
           {currentUser?.is_premium && (
-            <div className="mt-1.5 xs:mt-2 px-2.5 xs:px-3 py-1 xs:py-1.5 bg-green-500/20 rounded-lg border border-green-500/50">
+            <div className="mt-fib-1 xs:mt-fib-2 px-fib-2 xs:px-fib-2 py-fib-1 xs:py-fib-1 bg-green-500/20 rounded-lg border border-green-500/50">
               <p className="text-xs xs:text-sm sm:text-sm text-green-600 dark:text-green-400 font-medium">
                 ✅ Premium активен
               </p>
@@ -286,8 +286,8 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
          ((currentUser as UserProfile).active_subscription?.has_saved_payment_method ||
           (currentUser as UserProfile).active_subscription?.auto_renew) && (
           <div className="mb-fib-4 sm:mb-fib-5 p-fib-4 sm:p-fib-5 bg-gradient-to-br from-blue-50/85 via-indigo-50/85 to-purple-50/85 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 rounded-[1.5rem] sm:rounded-[2rem] border border-blue-200/25 dark:border-blue-800/20 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between mb-fib-2">
+              <div className="flex items-center gap-fib-2">
                 <span className="text-xl sm:text-2xl">💳</span>
                 <div>
                   <h3 className="text-sm sm:text-base font-display font-semibold text-gray-900 dark:text-slate-100">
@@ -307,7 +307,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                 <button
                   onClick={() => setShowRemoveConfirm(true)}
                   disabled={isRemovingCard}
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 active:text-red-800 dark:active:text-red-200 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 dark:border-red-800"
+                  className="px-fib-2 sm:px-fib-3 py-fib-1 sm:py-fib-2 text-xs sm:text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 active:text-red-800 dark:active:text-red-200 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed border border-red-200 dark:border-red-800"
                 >
                   {isRemovingCard ? 'Отвязка...' : 'Отвязать'}
                 </button>
@@ -325,24 +325,24 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         {showRemoveConfirm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-fib-4">
             <div className="bg-gradient-to-br from-white/95 to-stone-50/95 dark:from-slate-800/95 dark:to-slate-800/95 rounded-[2rem] sm:rounded-[2.5rem] p-fib-4 sm:p-fib-5 max-w-sm w-full border border-stone-200/30 dark:border-slate-700/40 shadow-[0_4px_20px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
-              <h3 className="text-base sm:text-lg font-display font-bold text-gray-900 dark:text-slate-100 mb-2">
+              <h3 className="text-base sm:text-lg font-display font-bold text-gray-900 dark:text-slate-100 mb-fib-2">
                 Отвязать карту?
               </h3>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-slate-400 mb-4">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-slate-400 mb-fib-3">
                 После отвязки карты автоплатежи будут отключены. Подписка не будет продлеваться автоматически.
               </p>
-              <div className="flex gap-2 sm:gap-3">
+              <div className="flex gap-fib-2 sm:gap-fib-2">
                 <button
                   onClick={() => setShowRemoveConfirm(false)}
                   disabled={isRemovingCard}
-                  className="flex-1 px-4 py-2 text-sm sm:text-base text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 active:text-gray-950 dark:active:text-slate-50 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300 dark:border-slate-600"
+                  className="flex-1 px-fib-3 py-fib-2 text-sm sm:text-base text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 active:text-gray-950 dark:active:text-slate-50 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300 dark:border-slate-600"
                 >
                   Отмена
                 </button>
                 <button
                   onClick={handleRemoveCard}
                   disabled={isRemovingCard}
-                  className="flex-1 px-4 py-2 text-sm sm:text-base text-white bg-red-600 hover:bg-red-700 active:bg-red-800 transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-fib-3 py-fib-2 text-sm sm:text-base text-white bg-red-600 hover:bg-red-700 active:bg-red-800 transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isRemovingCard ? 'Отвязка...' : 'Отвязать'}
                 </button>
@@ -352,14 +352,14 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         )}
 
         {/* Тарифные планы */}
-        <div className="space-y-2 xs:space-y-2.5 sm:space-y-3 mb-3 xs:mb-4 sm:mb-5">
+        <div className="space-y-fib-2 xs:space-y-fib-2 sm:space-y-fib-2 mb-fib-2 xs:mb-fib-3 sm:mb-fib-4">
           {PREMIUM_PLANS.map((plan) => {
             return (
               <div
                 key={plan.id}
-                className="relative p-3 xs:p-4 sm:p-5 md:p-6 rounded-[1.25rem] xs:rounded-[1.5rem] sm:rounded-[1.75rem] md:rounded-[2rem] transition-all bg-gradient-to-br from-purple-50/85 via-pink-50/85 to-rose-50/85 dark:from-purple-950/35 dark:via-pink-950/35 dark:to-rose-950/35 border border-purple-200/30 dark:border-purple-800/25 shadow-[0_4px_16px_rgba(139,92,246,0.1)] dark:shadow-[0_4px_16px_rgba(139,92,246,0.2)]"
+                className="relative p-fib-2 xs:p-fib-3 sm:p-fib-4 md:p-fib-4 rounded-[1.25rem] xs:rounded-[1.5rem] sm:rounded-[1.75rem] md:rounded-[2rem] transition-all bg-gradient-to-br from-purple-50/85 via-pink-50/85 to-rose-50/85 dark:from-purple-950/35 dark:via-pink-950/35 dark:to-rose-950/35 border border-purple-200/30 dark:border-purple-800/25 shadow-[0_4px_16px_rgba(139,92,246,0.1)] dark:shadow-[0_4px_16px_rgba(139,92,246,0.2)]"
               >
-                <div className="flex items-center justify-between mb-1.5 xs:mb-2 sm:mb-3">
+                <div className="flex items-center justify-between mb-fib-1 xs:mb-fib-2 sm:mb-fib-2">
                   <div>
                     <h3 className="text-sm xs:text-base sm:text-lg md:text-xl font-display font-bold text-gray-900 dark:text-slate-100">
                       {plan.name}
@@ -378,7 +378,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   </div>
                 </div>
 
-                <div className="columns-2 gap-x-1 xs:gap-x-1 sm:gap-x-1.5 mb-3 xs:mb-3.5 sm:mb-4 md:mb-5">
+                <div className="columns-2 gap-x-fib-1 xs:gap-x-fib-1 sm:gap-x-fib-1 mb-fib-2 xs:mb-fib-2 sm:mb-fib-3 md:mb-fib-4">
                   {plan.features.map((feature, index) => (
                     <div
                       key={index}
@@ -393,7 +393,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                   <button
                     onClick={() => handlePurchase(plan)}
                     disabled={isProcessing && selectedPlan === plan.id}
-                    className="w-full mt-2 xs:mt-2.5 sm:mt-3 py-2 xs:py-2.5 sm:py-3 md:py-4 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 xs:gap-2 min-h-[44px] sm:min-h-[48px] touch-manipulation"
+                    className="w-full mt-fib-2 xs:mt-fib-2 sm:mt-fib-2 py-fib-2 xs:py-fib-2 sm:py-fib-2 md:py-fib-3 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-fib-1 xs:gap-fib-2 min-h-[44px] sm:min-h-[48px] touch-manipulation"
                   >
                     {isProcessing && selectedPlan === plan.id
                       ? 'Обработка...'
@@ -404,7 +404,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
                     href={`https://t.me/PandaPalBot?start=premium_${plan.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full mt-2 xs:mt-2.5 sm:mt-3 py-2 xs:py-2.5 sm:py-3 md:py-4 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 hover:shadow-xl flex items-center justify-center gap-1.5 xs:gap-2 min-h-[40px] xs:min-h-[44px]"
+                    className="w-full mt-fib-2 xs:mt-fib-2 sm:mt-fib-2 py-fib-2 xs:py-fib-2 sm:py-fib-2 md:py-fib-3 rounded-lg xs:rounded-xl sm:rounded-2xl text-xs xs:text-sm sm:text-base font-medium transition-all bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg active:scale-95 hover:shadow-xl flex items-center justify-center gap-fib-1 xs:gap-fib-2 min-h-[40px] xs:min-h-[44px]"
                   >
                     {/* Иконка замка только на сайте (в Mini App без замка) */}
                     <svg
@@ -429,8 +429,8 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
         </div>
 
         {/* Информация о способах оплаты */}
-        <div className="p-4 sm:p-5 md:p-6 bg-gradient-to-br from-slate-50/90 via-gray-50/90 to-zinc-50/90 dark:from-slate-800/90 dark:to-slate-800/90 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-200/25 dark:border-slate-700/40 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
-          <div className="flex items-center gap-2 mb-1.5">
+        <div className="p-fib-3 sm:p-fib-4 md:p-fib-4 bg-gradient-to-br from-slate-50/90 via-gray-50/90 to-zinc-50/90 dark:from-slate-800/90 dark:to-slate-800/90 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-200/25 dark:border-slate-700/40 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.25)]">
+          <div className="flex items-center gap-fib-2 mb-fib-1">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-5 h-5 text-gray-900 dark:text-slate-100"
@@ -448,7 +448,7 @@ export function PremiumScreen({ user: miniAppUser }: PremiumScreenProps) {
               Оплата только через Telegram
             </h3>
           </div>
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-2 sm:mb-3">
+          <div className="flex flex-wrap gap-x-fib-2 gap-y-fib-1 text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-fib-2 sm:mb-fib-2">
             <span>• Visa, Mastercard, МИР</span>
             <span>• СБП</span>
             <span>• Автоматический чек</span>

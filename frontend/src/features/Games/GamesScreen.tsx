@@ -124,11 +124,11 @@ export function GamesScreen({ user }: GamesScreenProps) {
   if (selectedGame && sessionId) {
     const gameFallback = (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-fib-4 text-center">
-        <p className="text-gray-600 dark:text-slate-400 mb-4">Игра не загрузилась. Вернись и попробуй снова.</p>
+        <p className="text-gray-600 dark:text-slate-400 mb-fib-3">Игра не загрузилась. Вернись и попробуй снова.</p>
         <button
           type="button"
           onClick={handleBack}
-          className="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium"
+          className="px-fib-4 py-fib-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium"
         >
           ← Назад к играм
         </button>
@@ -182,7 +182,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
         <div className="max-w-4xl mx-auto px-fib-2 fold:px-fib-3 xs:px-fib-4 sm:px-fib-4 py-fib-4 sm:py-fib-5 min-w-0">
           {/* Заголовок */}
           <div className="text-center mb-fib-3">
-            <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-1">
+            <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-fib-1">
               🎮 PandaPalGo
             </h1>
             <p className="font-sans text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400 leading-tight">
@@ -262,7 +262,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
           {/* Общая статистика */}
           {Object.keys(safeStats).length > 0 && (
             <div className="mt-fib-4 p-fib-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
-              <h2 className="font-display text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">
+              <h2 className="font-display text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100 mb-fib-2">
                 📊 Твоя статистика
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-fib-2">
@@ -271,7 +271,7 @@ export function GamesScreen({ user }: GamesScreenProps) {
                     key={stat.game_type}
                     className="p-fib-2 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700"
                   >
-                    <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-1">
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 mb-fib-1">
                       {stat.game_type === 'tic_tac_toe' && '❌⭕ Крестики-нолики'}
                       {stat.game_type === 'checkers' && '⚫⚪ Шашки'}
                       {stat.game_type === '2048' && '🔢 2048'}

@@ -16,7 +16,7 @@ const navigateTo = (path: string) => {
 };
 
 const linkClass =
-  'rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-3 py-1.5 min-h-[36px] flex items-center justify-center text-center text-xs sm:text-sm leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors';
+  'rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-2 py-fib-1 min-h-[36px] flex items-center justify-center text-center text-xs sm:text-sm leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors';
 
 function renderBody(blocks: HelpBodyBlock[]) {
   return (
@@ -108,7 +108,7 @@ export const HelpArticlePage: React.FC = React.memo(() => {
       <Header />
       <main className="max-w-4xl mx-auto px-fib-4 sm:px-fib-4 lg:px-fib-5 py-fib-5 sm:py-fib-6 lg:py-fib-6">
         <article className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-fib-4 sm:p-fib-5 lg:p-fib-5 shadow-lg dark:shadow-xl">
-          <nav className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-4" aria-label="Хлебные крошки">
+          <nav className="text-xs sm:text-sm text-gray-500 dark:text-slate-400 mb-fib-3" aria-label="Хлебные крошки">
             <a
               href="/"
               onClick={(e) => {
@@ -140,20 +140,20 @@ export const HelpArticlePage: React.FC = React.memo(() => {
             <span className="text-gray-700 dark:text-slate-200">{article.titleRu}</span>
           </nav>
 
-          <header className="mb-5 sm:mb-6">
+          <header className="mb-fib-4 sm:mb-fib-4">
             <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-slate-50">
               {article.titleRu}
             </h1>
           </header>
 
-          <section className="space-y-4">{renderBody(article.bodyRu)}</section>
+          <section className="space-y-fib-3">{renderBody(article.bodyRu)}</section>
 
           {(relatedArticles.length > 0 || (article.relatedIntentPaths && article.relatedIntentPaths.length > 0)) && (
-            <section className="mt-7 sm:mt-8">
-              <h2 className="font-display text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-50 mb-3">
+            <section className="mt-fib-5 sm:mt-fib-5">
+              <h2 className="font-display text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-50 mb-fib-2">
                 См. также
               </h2>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-fib-2">
                 {relatedArticles.map((a) => (
                   <a
                     key={a.id}
