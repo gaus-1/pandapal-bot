@@ -37,9 +37,9 @@ cryptography==46.0.5
 cffi==2.0.0
 pycparser==2.23
 rsa==4.9.1
-pyasn1==0.6.2
+pyasn1==0.6.3
 pyasn1_modules==0.4.2
-authlib==1.6.7
+authlib==1.6.9
 
 # Конфиг и валидация
 pydantic==2.12.5
