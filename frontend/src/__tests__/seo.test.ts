@@ -133,9 +133,7 @@ describe('SEO: sitemap.xml', () => {
     const sitemap = readSitemapXml();
     expect(sitemap).toContain('<loc>https://pandapal.ru/</loc>');
     expect(sitemap).toContain('<loc>https://pandapal.ru/bezopasnyy-ai-dlya-detey</loc>');
-    expect(sitemap).toContain('<loc>https://pandapal.ru/safe-ai-for-kids</loc>');
     expect(sitemap).toContain('<loc>https://pandapal.ru/pomoshch-s-domashkoy-v-telegram</loc>');
-    expect(sitemap).toContain('<loc>https://pandapal.ru/homework-help-telegram-bot</loc>');
     expect(sitemap).toContain('<loc>https://pandapal.ru/premium</loc>');
     expect(sitemap).toContain('<loc>https://pandapal.ru/donation</loc>');
     expect(sitemap).toContain('<loc>https://pandapal.ru/privacy</loc>');

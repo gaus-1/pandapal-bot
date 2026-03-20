@@ -110,7 +110,7 @@ export const Footer: React.FC = React.memo(() => {
       {/* Внутренние SEO-ссылки — ширина как у секций main */}
       <div className="w-full mb-fib-5">
         <nav
-          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-fib-2 sm:p-fib-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-fib-2 text-xs sm:text-sm"
+          className="rounded-xl sm:rounded-2xl border border-gray-100 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-fib-2 sm:p-fib-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-fib-2 text-xs sm:text-sm"
           aria-label="Полезные страницы"
         >
           <a
@@ -129,12 +129,7 @@ export const Footer: React.FC = React.memo(() => {
           <a href="/pomoshch-s-domashkoy-v-telegram" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-3 py-fib-2 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
             Помощь с домашкой в Telegram
           </a>
-          <a href="/safe-ai-for-kids" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-3 py-fib-2 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
-            Safe AI tutor for kids
-          </a>
-          <a href="/homework-help-telegram-bot" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-3 py-fib-2 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
-            Telegram homework help bot
-          </a>
+
           <a href="/igra-moya-panda" className="rounded-lg border border-gray-200/80 dark:border-slate-600 bg-white/80 dark:bg-slate-900/40 px-fib-3 py-fib-2 min-h-[36px] flex items-center justify-center text-center leading-snug text-gray-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
             Моя панда
           </a>

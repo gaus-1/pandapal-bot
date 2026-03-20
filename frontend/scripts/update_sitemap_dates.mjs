@@ -26,9 +26,7 @@ const isDiff = process.argv.includes('--diff');
 const PAGE_SOURCES = {
   '/': ['App.tsx', 'components/Hero.tsx', 'components/Features.tsx', 'components/CallToAction.tsx', 'config/constants.ts'],
   '/bezopasnyy-ai-dlya-detey': ['features/Discoverability'],
-  '/safe-ai-for-kids': ['features/Discoverability'],
   '/pomoshch-s-domashkoy-v-telegram': ['features/Discoverability'],
-  '/homework-help-telegram-bot': ['features/Discoverability'],
   '/igra-moya-panda': ['features/Discoverability', 'config/seo-text.ts'],
   '/premium': ['features/Premium'],
   '/donation': ['features/Donation'],

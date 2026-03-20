@@ -122,12 +122,8 @@ const App: React.FC = () => {
           setCurrentRoute('offer');
         } else if (pathname === '/bezopasnyy-ai-dlya-detey') {
           setCurrentRoute('safe-ai-ru');
-        } else if (pathname === '/safe-ai-for-kids') {
-          setCurrentRoute('safe-ai-en');
         } else if (pathname === '/pomoshch-s-domashkoy-v-telegram') {
           setCurrentRoute('homework-ru');
-        } else if (pathname === '/homework-help-telegram-bot') {
-          setCurrentRoute('homework-en');
         } else if (pathname === '/igra-moya-panda') {
           setCurrentRoute('panda-pet');
         } else if (pathname === '/help') {
@@ -287,35 +283,6 @@ const App: React.FC = () => {
     );
   }
 
-  if (currentRoute === 'safe-ai-en') {
-    return (
-      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
-        <SeoHead
-          title="Safe AI tutor for kids - PandaPal"
-          description="PandaPal is a safe AI tutor for school students with moderation, homework help, and Telegram access."
-          canonicalPath="/safe-ai-for-kids"
-          locale="en_US"
-          imageUrl={DEFAULT_OG_IMAGE}
-          breadcrumbs={[...BREADCRUMB_HOME, { name: 'Safe AI for kids', path: '/safe-ai-for-kids' }]}
-        />
-        <IntentPage
-          title="Safe AI Tutor for Kids: PandaPal"
-          subtitle="Homework help and learning support for grades 1-9"
-          description="PandaPal is a child-safe AI assistant that helps with school subjects, supports text/photo/voice input, and keeps educational interactions moderated."
-          botCta="Open @PandaPalBot"
-          canonicalPath="/safe-ai-for-kids"
-          locale="en"
-          faq={[
-            { question: 'Is PandaPal safe for children?', answer: 'Yes. The service uses moderation and educational-first responses.' },
-            { question: 'What can students ask?', answer: 'Students can ask homework and school-topic questions by text, photo, or voice.' },
-            { question: 'How do I start?', answer: 'Use the official bot @PandaPalBot or visit pandapal.ru.' },
-          ]}
-        />
-        <Footer />
-        <CookieBanner />
-      </div>
-    );
-  }
 
   if (currentRoute === 'homework-ru') {
     return (
@@ -346,35 +313,6 @@ const App: React.FC = () => {
     );
   }
 
-  if (currentRoute === 'homework-en') {
-    return (
-      <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-sky/20 to-pink/20 dark:from-slate-900 dark:to-slate-800 text-gray-900 dark:text-slate-100 smooth-scroll transition-colors duration-300">
-        <SeoHead
-          title="Telegram homework help bot - PandaPal"
-          description="PandaPal is a Telegram homework help bot with text, photo, and voice support."
-          canonicalPath="/homework-help-telegram-bot"
-          locale="en_US"
-          imageUrl={DEFAULT_OG_IMAGE}
-          breadcrumbs={[...BREADCRUMB_HOME, { name: 'Homework help', path: '/homework-help-telegram-bot' }]}
-        />
-        <IntentPage
-          title="Telegram Homework Help Bot"
-          subtitle="School help for students with text, photo, and voice input"
-          description="PandaPal helps students understand homework step by step and supports multiple input formats directly in Telegram."
-          botCta="Open PandaPal bot"
-          canonicalPath="/homework-help-telegram-bot"
-          locale="en"
-          faq={[
-            { question: 'Can I send homework photos?', answer: 'Yes. PandaPal can process a photo and explain the solution.' },
-            { question: 'Is it suitable for school students?', answer: 'Yes, it is designed for grades 1-9 educational support.' },
-            { question: 'Where can I access it?', answer: 'Use the official Telegram bot @PandaPalBot.' },
-          ]}
-        />
-        <Footer />
-        <CookieBanner />
-      </div>
-    );
-  }
 
   if (currentRoute === 'panda-pet') {
     return (
