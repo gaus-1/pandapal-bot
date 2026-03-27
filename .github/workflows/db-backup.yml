@@ -29,8 +29,16 @@ jobs:
           TIMESTAMP=$(date +%Y%m%d_%H%M%S)
           FILENAME="pandapal_backup_${TIMESTAMP}.sql.gz"
 
+          # Add keepalive parameters to the connection string to prevent Railway proxy disconnects
+          DB_URL="$DATABASE_URL"
+          if [[ "$DB_URL" == *"?"* ]]; then
+            DB_URL="${DB_URL}&keepalives=1&keepalives_idle=10&keepalives_interval=10&keepalives_count=3"
+          else
+            DB_URL="${DB_URL}?keepalives=1&keepalives_idle=10&keepalives_interval=10&keepalives_count=3"
+          fi
+
           echo "Starting backup at $(date -u)"
-          pg_dump "$DATABASE_URL" \
+          pg_dump "$DB_URL" \
             --no-owner \
             --no-privileges \
             --clean \
