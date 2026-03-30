@@ -1,0 +1,32 @@
+erDiagram
+    USERS ||--o{ PANDA_PET : "has"
+    USERS ||--o{ PAYMENTS : "makes"
+    USERS ||--o{ CHAT_MESSAGES : "sends"
+    USERS {
+        int id PK
+        bigint telegram_id
+        boolean is_premium
+        int total_coins
+    }
+    PANDA_PET {
+        int id PK
+        int user_id FK
+        int health
+        int energy
+        int satiety
+        int mood
+    }
+    CHAT_MESSAGES {
+        int id PK
+        int user_id FK
+        text role
+        text content
+        timestamp created_at
+    }
+    PAYMENTS {
+        int id PK
+        int user_id FK
+        string yookassa_id
+        string status
+        decimal amount
+    }
