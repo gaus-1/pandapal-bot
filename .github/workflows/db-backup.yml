@@ -22,39 +22,72 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      - name: Install bash
+        run: |
+          apt-get update -qq && apt-get install -y -qq bash curl > /dev/null 2>&1
+
       - name: Create database dump
+        shell: bash
         env:
           DATABASE_URL: ${{ secrets.DATABASE_PUBLIC_URL }}
         run: |
+          set -euo pipefail
+
           TIMESTAMP=$(date +%Y%m%d_%H%M%S)
           FILENAME="pandapal_backup_${TIMESTAMP}.sql.gz"
 
-          # Add keepalive parameters to the connection string to prevent Railway proxy disconnects
+          # Add keepalive parameters to prevent Railway proxy disconnects
           DB_URL="$DATABASE_URL"
           if [[ "$DB_URL" == *"?"* ]]; then
-            DB_URL="${DB_URL}&keepalives=1&keepalives_idle=10&keepalives_interval=10&keepalives_count=3"
+            DB_URL="${DB_URL}&keepalives=1&keepalives_idle=10&keepalives_interval=10&keepalives_count=5&connect_timeout=30"
           else
-            DB_URL="${DB_URL}?keepalives=1&keepalives_idle=10&keepalives_interval=10&keepalives_count=3"
+            DB_URL="${DB_URL}?keepalives=1&keepalives_idle=10&keepalives_interval=10&keepalives_count=5&connect_timeout=30"
           fi
 
           echo "Starting backup at $(date -u)"
-          pg_dump "$DB_URL" \
-            --no-owner \
-            --no-privileges \
-            --clean \
-            --if-exists \
-            --format=plain \
-            | gzip > "$FILENAME"
 
-          FILESIZE=$(stat --printf="%s" "$FILENAME" 2>/dev/null || stat -f%z "$FILENAME")
-          echo "Backup complete: $FILENAME ($FILESIZE bytes)"
+          # Retry logic: up to 3 attempts with exponential backoff
+          MAX_RETRIES=3
+          RETRY=0
+          SUCCESS=false
 
-          if [ "$FILESIZE" -lt 1000 ]; then
-            echo "::error::Backup file too small ($FILESIZE bytes), likely failed"
+          while [ "$RETRY" -lt "$MAX_RETRIES" ]; do
+            RETRY=$((RETRY + 1))
+            echo "Attempt $RETRY/$MAX_RETRIES..."
+
+            if pg_dump "$DB_URL" \
+              --no-owner \
+              --no-privileges \
+              --clean \
+              --if-exists \
+              --format=plain \
+              | gzip > "$FILENAME"; then
+
+              FILESIZE=$(stat --printf="%s" "$FILENAME" 2>/dev/null || stat -f%z "$FILENAME")
+              if [ "$FILESIZE" -ge 1000 ]; then
+                SUCCESS=true
+                break
+              else
+                echo "::warning::Attempt $RETRY: file too small ($FILESIZE bytes), retrying..."
+              fi
+            else
+              echo "::warning::Attempt $RETRY: pg_dump failed (exit $?), retrying..."
+            fi
+
+            # Exponential backoff: 10s, 20s, 40s
+            SLEEP=$((10 * (2 ** (RETRY - 1))))
+            echo "Sleeping ${SLEEP}s before retry..."
+            sleep "$SLEEP"
+          done
+
+          if [ "$SUCCESS" != "true" ]; then
+            FILESIZE=$(stat --printf="%s" "$FILENAME" 2>/dev/null || echo "0")
+            echo "::error::Backup failed after $MAX_RETRIES attempts (last file: $FILESIZE bytes)"
             exit 1
           fi
 
-          echo "BACKUP_FILE=$FILENAME" >> $GITHUB_ENV
+          echo "Backup complete: $FILENAME ($FILESIZE bytes)"
+          echo "BACKUP_FILE=$FILENAME" >> "$GITHUB_ENV"
 
       - name: Upload backup artifact
         uses: actions/upload-artifact@v4
@@ -69,10 +102,9 @@ jobs:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.ADMIN_TELEGRAM_ID }}
         run: |
-          apt-get update && apt-get install -y curl
           if [ -n "$BOT_TOKEN" ] && [ -n "$CHAT_ID" ]; then
             curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
               -d chat_id="$CHAT_ID" \
-              -d text="⚠️ Database backup FAILED at $(date -u +%H:%M)" \
+              -d text="⚠️ Database backup FAILED at $(date -u +%H:%M) after 3 retries" \
               -d parse_mode="HTML"
           fi
