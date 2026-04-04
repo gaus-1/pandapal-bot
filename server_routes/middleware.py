@@ -55,6 +55,12 @@ def setup_middleware(app: web.Application) -> None:
         """Gzip-сжатие текстовых ответов для уменьшения размера передачи."""
         response = await handler(request)
 
+        # FileResponse — потоковый ответ, у него нет атрибута body.
+        # aiohttp сам умеет сжимать FileResponse через enable_compression().
+        # Пропускаем любые ответы без атрибута body (FileResponse, StreamResponse).
+        if isinstance(response, web.FileResponse):
+            return response
+
         # Проверяем что клиент поддерживает gzip
         accept_encoding = request.headers.get("Accept-Encoding", "")
         if "gzip" not in accept_encoding:
@@ -79,7 +85,7 @@ def setup_middleware(app: web.Application) -> None:
         if response.headers.get("Content-Encoding"):
             return response
 
-        body = response.body
+        body = getattr(response, "body", None)
         if body is None or len(body) < 1024:
             return response
 
