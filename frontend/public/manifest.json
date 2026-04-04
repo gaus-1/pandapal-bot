@@ -53,9 +53,9 @@
   ],
   "screenshots": [
     {
-      "src": "/logo.png",
-      "sizes": "540x720",
-      "type": "image/png"
+      "src": "/logo-200.webp",
+      "sizes": "200x200",
+      "type": "image/webp"
     }
   ]
 }

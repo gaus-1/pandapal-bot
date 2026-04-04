@@ -28,8 +28,9 @@ function readLlmsTxt(): string {
 }
 
 describe('SEO: index.html', () => {
-  it('должен содержать canonical URL', () => {
+  it('должен содержать canonical URL в статическом HTML', () => {
     const html = readIndexHtml();
+    // canonical должен быть в статическом HTML для non-JS краулеров
     expect(html).toContain('rel="canonical"');
     expect(html).toContain('href="https://pandapal.ru/"');
   });
