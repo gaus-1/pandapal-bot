@@ -49,3 +49,55 @@ def setup_middleware(app: web.Application) -> None:
             raise
 
     app.middlewares.insert(0, request_logging_middleware)
+
+    @web.middleware
+    async def compression_middleware(request: web.Request, handler):
+        """Gzip-сжатие текстовых ответов для уменьшения размера передачи."""
+        response = await handler(request)
+
+        # Проверяем что клиент поддерживает gzip
+        accept_encoding = request.headers.get("Accept-Encoding", "")
+        if "gzip" not in accept_encoding:
+            return response
+
+        # Сжимаем только текстовые ответы
+        content_type = response.headers.get("Content-Type", "")
+        compressible_types = (
+            "text/html",
+            "text/css",
+            "text/plain",
+            "text/xml",
+            "application/javascript",
+            "application/json",
+            "application/xml",
+            "image/svg+xml",
+        )
+        if not any(ct in content_type for ct in compressible_types):
+            return response
+
+        # Не сжимаем уже сжатые или маленькие ответы
+        if response.headers.get("Content-Encoding"):
+            return response
+
+        body = response.body
+        if body is None or len(body) < 1024:
+            return response
+
+        import zlib
+
+        compressed = zlib.compress(body, level=6, wbits=16 + zlib.MAX_WBITS)
+
+        # Сжатие имеет смысл только если результат меньше оригинала
+        if len(compressed) >= len(body):
+            return response
+
+        response.body = compressed
+        response.headers["Content-Encoding"] = "gzip"
+        response.headers["Vary"] = "Accept-Encoding"
+        if "Content-Length" in response.headers:
+            response.headers["Content-Length"] = str(len(compressed))
+
+        return response
+
+    app.middlewares.append(compression_middleware)
+    logger.info("✅ Gzip compression middleware активирован")

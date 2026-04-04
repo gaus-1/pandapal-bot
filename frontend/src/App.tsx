@@ -4,12 +4,12 @@
  * @module App
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { Header, Hero, Features, Section, Footer, CallToAction, SeoHead, type BreadcrumbItem } from './components';
 import { SECTIONS } from './config/constants';
 import { PANDA_PET_PAGE_TITLE_RU, PANDA_PET_DESCRIPTION_RU, PANDA_PET_FAQ_RU, PANDA_PET_DIRECT_LINK, HELP_PAGE_DESCRIPTION_RU } from './config/seo-text';
 import { telegram } from './services/telegram';
-import { MiniApp } from './MiniApp';
+const MiniApp = lazy(() => import('./MiniApp').then(m => ({ default: m.MiniApp })));
 import { PremiumScreen } from './features/Premium/PremiumScreen';
 import { DonationScreen } from './features/Donation/DonationScreen';
 import { PrivacyPage, PersonalDataPage, OfferPage } from './features/Legal';
@@ -156,9 +156,20 @@ const App: React.FC = () => {
     );
   }
 
-  // Если в Telegram → Mini App
+  // Если в Telegram → Mini App (lazy loaded)
   if (isInTelegram) {
-    return <MiniApp />;
+    return (
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-slate-800">
+          <div className="text-center">
+            <div className="text-6xl mb-fib-3">🐼</div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        </div>
+      }>
+        <MiniApp />
+      </Suspense>
+    );
   }
 
   // Если в браузере → Роутинг

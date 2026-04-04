@@ -11,7 +11,7 @@
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
   <!-- Preload критических ресурсов для быстрой загрузки -->
-  <link rel="preload" href="/logo.png" as="image" type="image/png" />
+  <link rel="preload" href="/logo-96.webp" as="image" type="image/webp" />
   <!-- Apple Touch Icon - круглый -->
   <link rel="apple-touch-icon" sizes="192x192" href="/favicon-192.png" />
   <!-- Для поисковых систем - круглые фавиконы -->
@@ -96,11 +96,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&family=Literata:opsz,wght@10..72,400;10..72,500;10..72,600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=optional&family=Inter:wght@400;500;600&display=swap&family=Literata:opsz,wght@10..72,400;10..72,500;10..72,600&display=optional"
     rel="stylesheet" media="print" onload="this.media='all'">
   <noscript>
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&family=Literata:opsz,wght@10..72,400;10..72,500;10..72,600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=optional&family=Inter:wght@400;500;600&display=swap&family=Literata:opsz,wght@10..72,400;10..72,500;10..72,600&display=optional"
       rel="stylesheet">
   </noscript>
 
@@ -447,16 +447,24 @@
     }
     </script>
 
-  <!-- Yandex.Metrika counter -->
+  <!-- Yandex.Metrika counter (deferred for performance) -->
   <script type="text/javascript">
-    (function (m, e, t, r, i, k, a) {
-      m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
-      m[i].l = 1 * new Date();
-      for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
-      k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
-    })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=104525544', 'ym');
+    // Defer analytics to avoid blocking critical rendering path
+    function initYM() {
+      (function (m, e, t, r, i, k, a) {
+        m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
+        m[i].l = 1 * new Date();
+        for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
+        k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+      })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=104525544', 'ym');
 
-    ym(104525544, 'init', { ssr: true, webvisor: true, clickmap: true, ecommerce: "dataLayer", accurateTrackBounce: true, trackLinks: true });
+      ym(104525544, 'init', { ssr: true, webvisor: true, clickmap: true, ecommerce: "dataLayer", accurateTrackBounce: true, trackLinks: true });
+    }
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(initYM, { timeout: 3000 });
+    } else {
+      setTimeout(initYM, 2000);
+    }
   </script>
   <!-- /Yandex.Metrika counter -->
 </head>

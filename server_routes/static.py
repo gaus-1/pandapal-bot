@@ -16,6 +16,9 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
     if frontend_dist.exists():
         static_files = [
             "logo.png",
+            "logo-48.webp",
+            "logo-96.webp",
+            "logo-200.webp",
             "panda-sleeping.png",
             "qr-bot.png",
             "favicon.ico",
@@ -54,6 +57,8 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
                 content_type = "application/octet-stream"
                 if static_file.endswith(".svg"):
                     content_type = "image/svg+xml"
+                elif static_file.endswith(".webp"):
+                    content_type = "image/webp"
                 elif static_file.endswith(".png"):
                     content_type = "image/png"
                 elif static_file.endswith(".ico"):
@@ -336,7 +341,10 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             "/",
             lambda _: web.FileResponse(
                 frontend_dist / "index.html",
-                headers={"X-Robots-Tag": "index, follow, max-snippet:-1, max-image-preview:large"},
+                headers={
+                    "X-Robots-Tag": "index, follow, max-snippet:-1, max-image-preview:large",
+                    "Cache-Control": "no-cache",
+                },
             ),
         )
 
@@ -386,7 +394,10 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
                 return web.Response(status=404, text="Not Found")
             return web.FileResponse(
                 frontend_dist / "index.html",
-                headers={"X-Robots-Tag": "index, follow, max-snippet:-1, max-image-preview:large"},
+                headers={
+                    "X-Robots-Tag": "index, follow, max-snippet:-1, max-image-preview:large",
+                    "Cache-Control": "no-cache",
+                },
             )
 
         app.router.add_get("/{tail:.*}", spa_fallback)

@@ -32,26 +32,26 @@ export const Header: React.FC = React.memo(() => {
           aria-label="На главную"
         >
           <img
-            src={SITE_CONFIG.logo.src}
+            src="/logo-96.webp"
+            srcSet="/logo-48.webp 48w, /logo-96.webp 96w, /logo-200.webp 200w"
+            sizes="(max-width: 640px) 40px, 48px"
             alt={SITE_CONFIG.logo.alt}
             className="w-10 h-10 sm:w-12 sm:h-12 rounded-full animate-logo-bounce object-cover"
             loading="eager"
+            fetchPriority="high"
             width="48"
             height="48"
-            style={{
-              animation: 'logoBounce 2s ease-in-out infinite',
-              willChange: 'transform',
-              transform: 'translateZ(0)',
-              backfaceVisibility: 'hidden',
-            }}
             onError={(e) => {
-              // Fallback если логотип не загрузится
+              // Fallback: пробуем PNG, затем emoji
               const target = e.target as HTMLImageElement;
+              if (target.src.includes('.webp')) {
+                target.src = SITE_CONFIG.logo.src;
+                return;
+              }
               target.style.display = 'none';
               const emoji = document.createElement('div');
               emoji.textContent = '🐼';
               emoji.className = 'text-3xl sm:text-4xl animate-logo-bounce';
-              emoji.style.cssText = 'animation: logoBounce 2s ease-in-out infinite; will-change: transform; transform: translateZ(0); backface-visibility: hidden;';
               target.parentElement?.appendChild(emoji);
             }}
           />
