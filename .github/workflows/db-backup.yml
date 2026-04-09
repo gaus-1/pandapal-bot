@@ -36,13 +36,8 @@ jobs:
           TIMESTAMP=$(date +%Y%m%d_%H%M%S)
           FILENAME="pandapal_backup_${TIMESTAMP}.sql.gz"
 
-          # Add keepalive parameters to prevent Railway proxy disconnects
+          # Use raw URL from secrets (modifying it can break Railway Maglev proxy SNI)
           DB_URL="$DATABASE_URL"
-          if [[ "$DB_URL" == *"?"* ]]; then
-            DB_URL="${DB_URL}&sslmode=require&keepalives=1&keepalives_idle=10&keepalives_interval=10&keepalives_count=5&connect_timeout=30"
-          else
-            DB_URL="${DB_URL}?sslmode=require&keepalives=1&keepalives_idle=10&keepalives_interval=10&keepalives_count=5&connect_timeout=30"
-          fi
 
           echo "Starting backup at $(date -u)"
 
