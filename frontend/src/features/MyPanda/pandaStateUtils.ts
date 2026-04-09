@@ -47,6 +47,9 @@ export function getPandaReactionKey(input: PandaStateInput): PandaReactionKey {
     return energy >= 80 ? 'sleeping' : 'sleepy';
   }
 
+  // Приоритет реакциям грусти/обиды (если долго не было)
+  if (mood < MOOD_LOW) return 'offended';
+
   if (hunger < HUNGER_LOW) return 'hungry';
   if (hunger < HUNGER_OK) return 'wants_bamboo';
   if (hunger < 50 && mood < MOOD_OK) return 'no_bamboo';
@@ -54,9 +57,8 @@ export function getPandaReactionKey(input: PandaStateInput): PandaReactionKey {
   if (energy < ENERGY_LOW) return 'sleepy';
   if (energy < ENERGY_OK) return 'sleepy';
 
-  if (mood < MOOD_LOW) return 'sad';
   if (mood < MOOD_OK) return 'bored';
-  if (mood < 70) return 'offended';
+  if (mood < 70) return 'sad';
 
   if (mood >= 85) return 'excited';
   if (mood >= 70) return 'happy';

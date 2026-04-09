@@ -111,7 +111,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const [loading, setLoading] = useState(!isMockUser);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [showVideo, setShowVideo] = useState(true);
+  const [showVideo, setShowVideo] = useState(false);
   const [cooldownTick, setCooldownTick] = useState(0);
   const [imageLoadError, setImageLoadError] = useState(false);
   const [showClimbUntil, setShowClimbUntil] = useState<number | null>(null);
@@ -171,14 +171,15 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const isSleepReaction =
     lastAction === 'sleep' && (reactionKey === 'sleeping' || reactionKey === 'sleepy');
 
+  // Видео отключено для ускорения загрузки
   useEffect(() => {
-    if (reactionKey && hasVideo) setShowVideo(true);
+    setShowVideo(false);
   }, [reactionKey, hasVideo]);
   useEffect(() => {
-    if (isFeedReaction && feedMediaIsVideo === true) setShowVideo(true);
+    setShowVideo(false);
   }, [isFeedReaction, feedMediaIsVideo]);
   useEffect(() => {
-    if (isSleepReaction && sleepMediaIsVideo === true) setShowVideo(true);
+    setShowVideo(false);
   }, [isSleepReaction, sleepMediaIsVideo]);
   // Не сбрасывать выбор видео/картинки во время запроса кормления — иначе к моменту прихода state уже null и видео не показывается
   useEffect(() => {
@@ -186,7 +187,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   }, [lastAction, actionLoading]);
   useEffect(() => {
     if (isFeedReaction && feedMediaIsVideo === null) {
-      setFeedMediaIsVideo(Math.random() < 0.5);
+      setFeedMediaIsVideo(false);
     }
   }, [isFeedReaction, feedMediaIsVideo]);
   useEffect(() => {
@@ -209,7 +210,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   }, [showClimbUntil, actionLoading]);
   useEffect(() => {
     if (isSleepReaction && sleepMediaIsVideo === null) {
-      setSleepMediaIsVideo(Math.random() < 0.5);
+      setSleepMediaIsVideo(false);
     }
   }, [isSleepReaction, sleepMediaIsVideo]);
   const nowForEffects = Date.now();
@@ -280,7 +281,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const handleFeed = async () => {
     if (!state?.can_feed || actionLoading) return;
     telegram.hapticFeedback('light');
-    setFeedMediaIsVideo(Math.random() < 0.5);
+    setFeedMediaIsVideo(false);
     setActionLoading('feed');
     try {
       const next = await feedPandaPet(user.telegram_id);
@@ -334,7 +335,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const handleSleep = async () => {
     if (!state?.can_sleep || actionLoading) return;
     telegram.hapticFeedback('light');
-    setSleepMediaIsVideo(Math.random() < 0.5);
+    setSleepMediaIsVideo(false);
     setActionLoading('sleep');
     try {
       const next = await sleepPandaPet(user.telegram_id);
@@ -395,7 +396,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
     if (!state || actionLoading || state.can_climb === false) return;
     const currentState = state;
     telegram.hapticFeedback('light');
-    setClimbMediaIsVideo(Math.random() < 0.5);
+    setClimbMediaIsVideo(false);
     setActionLoading('climb');
     try {
       const next = await climbPandaPet(user.telegram_id);
@@ -425,7 +426,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
     if (!state || actionLoading || state.can_fall === false) return;
     const currentState = state;
     telegram.hapticFeedback('light');
-    setFallMediaIsVideo(Math.random() < 0.5);
+    setFallMediaIsVideo(false);
     setActionLoading('fall');
     try {
       const next = await fallFromTreePandaPet(user.telegram_id);

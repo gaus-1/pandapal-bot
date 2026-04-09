@@ -257,7 +257,7 @@ export class TelegramService {
     const isFullscreen = (this.webApp as { isFullscreen?: boolean }).isFullscreen === true;
 
     if ((isWebTelegram || isDesktopPlatform) && !isFullscreen) {
-      root.setProperty("--tg-content-safe-area-inset-top", "0px");
+      root.setProperty("--tg-content-safe-area-inset-top", "56px");
     }
   }
 
