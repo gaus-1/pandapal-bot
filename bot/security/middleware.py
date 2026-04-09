@@ -398,8 +398,14 @@ async def security_middleware(request: web.Request, handler) -> web.Response:
     # Выполняем запрос
     try:
         response = await handler(request)
-    except web.HTTPException:
-        # Пропускаем стандартные HTTP ошибки
+    except web.HTTPException as ex:
+        # Для API endpoints возвращаем JSON с ошибкой, чтобы не ломать фронтенд
+        if request.path.startswith("/api/"):
+            return web.json_response(
+                {"error": ex.reason, "request_id": request_id},
+                status=ex.status,
+            )
+        # Пропускаем стандартные HTTP ошибки для обычных страниц
         raise
     except Exception as e:
         logger.error(
