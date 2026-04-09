@@ -132,6 +132,9 @@ class OverloadProtection:
                 {"error": "Request timeout", "message": "Please try again"},
                 status=504,
             )
+        except web.HTTPException:
+            # Пропускаем стандартные HTTP исключения
+            raise
         except Exception as e:
             err_msg = str(e).replace("{", "{{").replace("}", "}}")
             logger.error(f"❌ Ошибка обработки {request.path}: {err_msg}")

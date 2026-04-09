@@ -237,6 +237,9 @@ async def metrics_middleware(request: Request, handler):
 
         return response
 
+    except web.HTTPException:
+        # Пропускаем стандартные HTTP исключения (404, 405 и т.д.) без логирования как ошибку
+        raise
     except Exception as e:
         # Записываем ошибку (экранируем скобки в сообщении, чтобы не ломать format)
         _ = asyncio.get_event_loop().time() - start_time

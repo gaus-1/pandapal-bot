@@ -398,6 +398,9 @@ async def security_middleware(request: web.Request, handler) -> web.Response:
     # Выполняем запрос
     try:
         response = await handler(request)
+    except web.HTTPException:
+        # Пропускаем стандартные HTTP ошибки
+        raise
     except Exception as e:
         logger.error(
             f"❌ Error in request handler: {e}",
