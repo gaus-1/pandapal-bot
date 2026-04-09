@@ -11,6 +11,12 @@ Sitemap: https://pandapal.ru/sitemap.xml
 User-agent: Yandex
 Allow: /
 
+# Alice AI
+User-agent: YandexAdditional
+Allow: /
+User-agent: YandexAdditionalBot
+Allow: /
+
 # Google
 User-agent: Googlebot
 Allow: /
