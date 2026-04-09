@@ -215,6 +215,11 @@
     padding-inline-end: var(--tg-content-safe-area-inset-right, var(--tg-safe-area-inset-right, env(safe-area-inset-right)));
   }
 
+  .safe-area-inset-top {
+    padding-block-start: var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)));
+    padding-top: var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)));
+  }
+
   .safe-area-inset-bottom {
     padding-block-end: calc(var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 0.5rem);
     padding-bottom: calc(var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 0.5rem);
