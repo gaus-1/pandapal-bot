@@ -288,7 +288,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       last_fed_at: new Date().toISOString(),
       can_feed: false,
     });
-    setFeedMediaIsVideo(true);
+    setFeedMediaIsVideo(false);
     setActionLoading('feed');
     try {
       const next = await feedPandaPet(user.telegram_id);
@@ -344,7 +344,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       last_slept_at: new Date().toISOString(),
       can_sleep: false,
     });
-    setSleepMediaIsVideo(true);
+    setSleepMediaIsVideo(false);
     setActionLoading('sleep');
     try {
       const next = await sleepPandaPet(user.telegram_id);
@@ -406,7 +406,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       last_climb_at: new Date().toISOString(),
       can_climb: false,
     });
-    setClimbMediaIsVideo(true);
+    setClimbMediaIsVideo(false);
     setShowClimbUntil(Date.now() + CLIMB_DURATION_MS);
     setActionLoading('climb');
     try {
@@ -436,7 +436,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       last_fall_at: new Date().toISOString(),
       can_fall: false,
     });
-    setFallMediaIsVideo(true);
+    setFallMediaIsVideo(false);
     setShowFallUntil(Date.now() + FALL_DURATION_MS);
     setActionLoading('fall');
     try {
@@ -798,10 +798,6 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
 function PandaPreloader() {
   return (
     <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
-      <video src={PANDA_FEED_VIDEO} preload="auto" muted playsInline />
-      <video src={PANDA_FALL_VIDEO} preload="auto" muted playsInline />
-      <video src={PANDA_SLEEP_VIDEO} preload="auto" muted playsInline />
-      <video src={PANDA_CLIMB_VIDEO} preload="auto" muted playsInline />
       <img src={PANDA_FALL_IMAGE} loading="eager" alt="preload" />
       <img src={PANDA_CLIMB_IMAGE} loading="eager" alt="preload" />
       <img src={PANDA_POOPS_IMAGE} loading="eager" alt="preload" />
