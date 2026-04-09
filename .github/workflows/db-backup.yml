@@ -39,9 +39,9 @@ jobs:
           # Add keepalive parameters to prevent Railway proxy disconnects
           DB_URL="$DATABASE_URL"
           if [[ "$DB_URL" == *"?"* ]]; then
-            DB_URL="${DB_URL}&keepalives=1&keepalives_idle=10&keepalives_interval=10&keepalives_count=5&connect_timeout=30"
+            DB_URL="${DB_URL}&sslmode=require&keepalives=1&keepalives_idle=10&keepalives_interval=10&keepalives_count=5&connect_timeout=30"
           else
-            DB_URL="${DB_URL}?keepalives=1&keepalives_idle=10&keepalives_interval=10&keepalives_count=5&connect_timeout=30"
+            DB_URL="${DB_URL}?sslmode=require&keepalives=1&keepalives_idle=10&keepalives_interval=10&keepalives_count=5&connect_timeout=30"
           fi
 
           echo "Starting backup at $(date -u)"
@@ -56,6 +56,7 @@ jobs:
             echo "Attempt $RETRY/$MAX_RETRIES..."
 
             if pg_dump "$DB_URL" \
+              -v \
               --no-owner \
               --no-privileges \
               --clean \
