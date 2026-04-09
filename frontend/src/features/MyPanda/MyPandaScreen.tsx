@@ -281,20 +281,21 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const handleFeed = async () => {
     if (!state?.can_feed || actionLoading) return;
     telegram.hapticFeedback('light');
-    setFeedMediaIsVideo(false);
+    const previousState = state;
+    setState({
+      ...state,
+      hunger: Math.min(100, state.hunger + 25),
+      last_fed_at: new Date().toISOString(),
+      can_feed: false,
+    });
+    setFeedMediaIsVideo(true);
     setActionLoading('feed');
     try {
       const next = await feedPandaPet(user.telegram_id);
       setState(next);
     } catch (err) {
-      if (user.telegram_id === 0 && state) {
-        setState({
-          ...state,
-          hunger: Math.min(100, state.hunger + 25),
-          last_fed_at: new Date().toISOString(),
-          can_feed: false,
-        });
-      } else {
+      if (user.telegram_id !== 0) {
+        setState(previousState);
         const msg = err instanceof Error ? err.message : 'Ошибка';
         setError(msg);
         telegram.notifyError();
@@ -308,20 +309,21 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const handlePlay = async () => {
     if (!state?.can_play || actionLoading) return;
     telegram.hapticFeedback('light');
+    const previousState = state;
+    setState({
+      ...state,
+      mood: Math.min(100, state.mood + 20),
+      energy: Math.max(0, state.energy - 10),
+      last_played_at: new Date().toISOString(),
+      can_play: false,
+    });
     setActionLoading('play');
     try {
       const next = await playPandaPet(user.telegram_id);
       setState(next);
     } catch (err) {
-      if (user.telegram_id === 0 && state) {
-        setState({
-          ...state,
-          mood: Math.min(100, state.mood + 20),
-          energy: Math.max(0, state.energy - 10),
-          last_played_at: new Date().toISOString(),
-          can_play: false,
-        });
-      } else {
+      if (user.telegram_id !== 0) {
+        setState(previousState);
         const msg = err instanceof Error ? err.message : 'Ошибка';
         setError(msg);
         telegram.notifyError();
@@ -335,20 +337,21 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const handleSleep = async () => {
     if (!state?.can_sleep || actionLoading) return;
     telegram.hapticFeedback('light');
-    setSleepMediaIsVideo(false);
+    const previousState = state;
+    setState({
+      ...state,
+      energy: Math.min(100, state.energy + 30),
+      last_slept_at: new Date().toISOString(),
+      can_sleep: false,
+    });
+    setSleepMediaIsVideo(true);
     setActionLoading('sleep');
     try {
       const next = await sleepPandaPet(user.telegram_id);
       setState(next);
     } catch (err) {
-      if (user.telegram_id === 0 && state) {
-        setState({
-          ...state,
-          energy: Math.min(100, state.energy + 30),
-          last_slept_at: new Date().toISOString(),
-          can_sleep: false,
-        });
-      } else {
+      if (user.telegram_id !== 0) {
+        setState(previousState);
         const msg = err instanceof Error ? err.message : 'Ошибка';
         setError(msg);
         telegram.notifyError();
@@ -362,21 +365,22 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const handleToilet = async () => {
     if (!state || state.can_toilet === false || actionLoading) return;
     telegram.hapticFeedback('light');
+    const previousState = state;
+    setState({
+      ...state,
+      mood: Math.min(100, state.mood + 15),
+      last_toilet_at: new Date().toISOString(),
+      can_toilet: false,
+    });
+    setShowToiletHappyUntil(Date.now() + TOILET_HAPPY_DURATION_MS);
     setActionLoading('toilet');
     try {
       const next = await toiletPandaPet(user.telegram_id);
       setState(next);
-      setShowToiletHappyUntil(Date.now() + TOILET_HAPPY_DURATION_MS);
     } catch (err) {
-      if (user.telegram_id === 0 && state) {
-        setState({
-          ...state,
-          mood: Math.min(100, state.mood + 15),
-          last_toilet_at: new Date().toISOString(),
-          can_toilet: false,
-        });
-        setShowToiletHappyUntil(Date.now() + TOILET_HAPPY_DURATION_MS);
-      } else {
+      if (user.telegram_id !== 0) {
+        setState(previousState);
+        setShowToiletHappyUntil(null);
         const msg = err instanceof Error ? err.message : 'Ошибка';
         setError(msg);
         telegram.notifyError();
@@ -394,24 +398,24 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
 
   const handleClimb = async () => {
     if (!state || actionLoading || state.can_climb === false) return;
-    const currentState = state;
     telegram.hapticFeedback('light');
-    setClimbMediaIsVideo(false);
+    const previousState = state;
+    setState({
+      ...state,
+      mood: Math.min(100, state.mood + 10),
+      last_climb_at: new Date().toISOString(),
+      can_climb: false,
+    });
+    setClimbMediaIsVideo(true);
+    setShowClimbUntil(Date.now() + CLIMB_DURATION_MS);
     setActionLoading('climb');
     try {
       const next = await climbPandaPet(user.telegram_id);
       setState(next);
-      setShowClimbUntil(Date.now() + CLIMB_DURATION_MS);
     } catch (err) {
-      if (user.telegram_id === 0 && currentState) {
-        setState({
-          ...currentState,
-          mood: Math.min(100, currentState.mood + 10),
-          last_climb_at: new Date().toISOString(),
-          can_climb: false,
-        });
-        setShowClimbUntil(Date.now() + CLIMB_DURATION_MS);
-      } else {
+      if (user.telegram_id !== 0) {
+        setState(previousState);
+        setShowClimbUntil(null);
         const msg = err instanceof Error ? err.message : 'Ошибка';
         setError(msg);
         telegram.notifyError();
@@ -424,24 +428,24 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
 
   const handleFall = async () => {
     if (!state || actionLoading || state.can_fall === false) return;
-    const currentState = state;
     telegram.hapticFeedback('light');
-    setFallMediaIsVideo(false);
+    const previousState = state;
+    setState({
+      ...state,
+      mood: Math.min(state.mood, MOOD_OFFENDED_MAX),
+      last_fall_at: new Date().toISOString(),
+      can_fall: false,
+    });
+    setFallMediaIsVideo(true);
+    setShowFallUntil(Date.now() + FALL_DURATION_MS);
     setActionLoading('fall');
     try {
       const next = await fallFromTreePandaPet(user.telegram_id);
       setState(next);
-      setShowFallUntil(Date.now() + FALL_DURATION_MS);
     } catch (err) {
-      if (user.telegram_id === 0 && currentState) {
-        setState({
-          ...currentState,
-          mood: Math.min(currentState.mood, MOOD_OFFENDED_MAX),
-          last_fall_at: new Date().toISOString(),
-          can_fall: false,
-        });
-        setShowFallUntil(Date.now() + FALL_DURATION_MS);
-      } else {
+      if (user.telegram_id !== 0) {
+        setState(previousState);
+        setShowFallUntil(null);
         const msg = err instanceof Error ? err.message : 'Ошибка';
         setError(msg);
         telegram.notifyError();
@@ -519,6 +523,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
 
   return (
     <div className="h-full flex flex-col bg-white dark:bg-slate-800 overflow-auto safe-area-inset">
+      <PandaPreloader />
       <header className="flex-shrink-0 py-fib-2 px-fib-2 xs:px-fib-3 sm:px-fib-3 md:px-fib-4 border-b border-gray-200 dark:border-slate-700">
         <h1 className="text-lg sm:text-xl md:text-2xl font-display font-bold text-gray-900 dark:text-slate-100 text-center">
           Моя панда
@@ -786,6 +791,22 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
           <p className="text-sm text-red-600 dark:text-red-400 text-center">{error}</p>
         )}
       </div>
+    </div>
+  );
+}
+
+function PandaPreloader() {
+  return (
+    <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
+      <video src={PANDA_FEED_VIDEO} preload="auto" muted playsInline />
+      <video src={PANDA_FALL_VIDEO} preload="auto" muted playsInline />
+      <video src={PANDA_SLEEP_VIDEO} preload="auto" muted playsInline />
+      <video src={PANDA_CLIMB_VIDEO} preload="auto" muted playsInline />
+      <img src={PANDA_FALL_IMAGE} loading="eager" alt="preload" />
+      <img src={PANDA_CLIMB_IMAGE} loading="eager" alt="preload" />
+      <img src={PANDA_POOPS_IMAGE} loading="eager" alt="preload" />
+      <img src={getPandaImagePath('eating')} loading="eager" alt="preload" />
+      <img src={getPandaImagePath('sleeping')} loading="eager" alt="preload" />
     </div>
   );
 }
