@@ -248,15 +248,11 @@ export class TelegramService {
 
     // Fallback: если API недоступен, но мы в веб-версии Telegram — ставим разумный отступ сверху.
     // Шапка Mini App в web.telegram.org ~44-56px. Не fullscreen = есть шапка.
-    const isWebTelegram = typeof window !== "undefined" && (
-      window.location.hostname.includes("telegram.org") ||
-      window.location.hostname.includes("web.telegram.org")
-    );
     const platform = this.webApp.platform || "";
-    const isDesktopPlatform = platform === "weba" || platform === "webk" || platform === "macos";
+    const isDesktopPlatform = ["weba", "webk", "macos", "tdesktop", "web"].includes(platform);
     const isFullscreen = (this.webApp as { isFullscreen?: boolean }).isFullscreen === true;
 
-    if ((isWebTelegram || isDesktopPlatform) && !isFullscreen) {
+    if (isDesktopPlatform && !isFullscreen) {
       root.setProperty("--tg-content-safe-area-inset-top", "56px");
     }
   }

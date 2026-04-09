@@ -204,14 +204,15 @@
 
   /* Безопасные отступы для мобильных notch/camera. В Mini App приоритет у --tg-* из API. */
   .safe-area-inset {
-    padding-inline-start: var(--tg-safe-area-inset-left, env(safe-area-inset-left));
-    padding-inline-end: var(--tg-safe-area-inset-right, env(safe-area-inset-right));
-    padding-block-start: var(--tg-safe-area-inset-top, env(safe-area-inset-top));
-    padding-block-end: var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom));
-    padding-left: var(--tg-safe-area-inset-left, env(safe-area-inset-left));
-    padding-right: var(--tg-safe-area-inset-right, env(safe-area-inset-right));
-    padding-top: var(--tg-safe-area-inset-top, env(safe-area-inset-top));
-    padding-bottom: var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom));
+    padding-top: var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, env(safe-area-inset-top)));
+    padding-bottom: var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom)));
+    padding-left: var(--tg-content-safe-area-inset-left, var(--tg-safe-area-inset-left, env(safe-area-inset-left)));
+    padding-right: var(--tg-content-safe-area-inset-right, var(--tg-safe-area-inset-right, env(safe-area-inset-right)));
+
+    padding-block-start: var(--tg-content-safe-area-inset-top, var(--tg-safe-area-inset-top, env(safe-area-inset-top)));
+    padding-block-end: var(--tg-content-safe-area-inset-bottom, var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom)));
+    padding-inline-start: var(--tg-content-safe-area-inset-left, var(--tg-safe-area-inset-left, env(safe-area-inset-left)));
+    padding-inline-end: var(--tg-content-safe-area-inset-right, var(--tg-safe-area-inset-right, env(safe-area-inset-right)));
   }
 
   .safe-area-inset-bottom {
