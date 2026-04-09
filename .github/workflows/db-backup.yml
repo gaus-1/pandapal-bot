@@ -17,7 +17,7 @@ jobs:
     name: PostgreSQL Backup
     runs-on: ubuntu-latest
     container:
-      image: postgres:16
+      image: postgres:18
       options: --user root
     timeout-minutes: 15
 
