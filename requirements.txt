@@ -33,7 +33,7 @@ fakeredis==2.33.0
 cachetools==6.2.4
 
 # Крипто
-cryptography==46.0.6
+cryptography==46.0.7
 cffi==2.0.0
 pycparser==2.23
 rsa==4.9.1
