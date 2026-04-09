@@ -1,0 +1,779 @@
+================================================================================
+DOCUMENT STRUCTURE ANALYSIS
+================================================================================
+
+--- SECTIONS ---
+Section 0: page_width=7772400, page_height=10058400
+  margins: left=1080135, right=539750, top=720090, bottom=720090
+
+--- TABLES ---
+Table 0: 8x4, alignment=unknown, first_cell='Компонент'
+Table 1: 7x3, alignment=unknown, first_cell='Компонент'
+Table 2: 11x7, alignment=unknown, first_cell='Критерий'
+Table 3: 6x3, alignment=unknown, first_cell='Поле'
+Table 4: 7x3, alignment=unknown, first_cell='Поле'
+Table 5: 6x3, alignment=unknown, first_cell='Поле'
+
+--- PARAGRAPHS ---
+[   0] align=CENTER (1)                     style=Normal               | АВТОНОМНАЯ НЕКОММЕРЧЕСКАЯ ОРГАНИЗАЦИЯ ДОПОЛНИТЕЛЬНОГО ПРОФЕССИОНАЛЬНОГО ОБРАЗОВАНИЯ «АКАДЕМИЯ ТОП»
+[   1] align=CENTER (1)                     style=Normal               |
+[   2] align=CENTER (1)                     style=Normal               | ДИПЛОМНАЯ РАБОТА
+[   3] align=CENTER (1)                     style=Normal               | Тема: «Разработка образовательной платформы PandaPal: AI-помощник для школьников на базе Telegram Bot API и веб-технолог
+[   4] align=None                           style=Normal               |
+[   5] align=CENTER (1)                     style=Normal               | Тип проекта: Практико-ориентированный (прикладной)
+[   6] align=CENTER (1)                     style=Normal               | Предметная область: Информатика и программирование, ориентированные на проектирование и разработку полнофункциональной о
+[   7] align=None                           style=Normal               |
+[   8] align=None                           style=Normal               | Автор: студент группы РПО/1 Савин Вячеслав Евгеньевич
+[   9] align=None                           style=Normal               | Руководитель: Макаров Максим Николаевич
+[  10] align=None                           style=Normal               |
+[  11] align=CENTER (1)                     style=Normal               | Санкт-Петербург, 2026
+[  12] align=None                           style=Normal               |
+[  13] align=CENTER (1)                     style=Normal               | ПАСПОРТ ПРОЕКТА
+[  14] align=None                           style=Normal               | Название проекта
+[  15] align=JUSTIFY (3)                    style=Normal               | Разработка образовательной платформы PandaPal: AI-помощник для школьников на базе Telegram Bot API и веб-технологий
+[  16] align=None                           style=Normal               | Предметная область
+[  17] align=JUSTIFY (3)                    style=Normal               | Информатика и программирование, ориентированные на проектирование и разработку полнофункциональной образовательной платф
+[  18] align=None                           style=Normal               | Тип проекта
+[  19] align=JUSTIFY (3)                    style=Normal               | Практико-ориентированный (прикладной)
+[  20] align=None                           style=Normal               | Структура проекта
+[  21] align=JUSTIFY (3)                    style=Normal               |                                       ВВЕДЕНИЕ
+[  22] align=None                           style=Normal               | Проблема проекта
+[  23] align=JUSTIFY (3)                    style=Normal               | Отсутствие доступной, безопасной и комплексной образовательной платформы для школьников младших и средних классов, объед
+[  24] align=None                           style=Normal               | Аннотация проекта
+[  25] align=JUSTIFY (3)                    style=Normal               | В проекте разработана полнофункциональная образовательная платформа PandaPal, представляющая собой AI-помощника для школ
+[  26] align=None                           style=Normal               | География проекта
+[  27] align=JUSTIFY (3)                    style=Normal               | Город Санкт-Петербург, с возможностью тиражирования результатов в масштабах страны через Telegram и веб-доступ. Платформ
+[  28] align=None                           style=Normal               | Целевая аудитория
+[  29] align=JUSTIFY (3)                    style=Normal               | Школьники 1–9 классов (возраст 6–16 лет), их родители и преподаватели, заинтересованные в использовании современных техн
+[  30] align=None                           style=Normal               | Сроки выполнения
+[  31] align=JUSTIFY (3)                    style=Normal               | 01.10.2025 – 25.03.2026
+[  32] align=None                           style=Normal               | Результаты
+[  33] align=JUSTIFY (3)                    style=Normal               | В ходе проекта разработана и развёрнута в продуктивной среде образовательная платформа PandaPal, включающая серверную ча
+[  34] align=None                           style=Normal               |
+[  35] align=CENTER (1)                     style=Normal               | СОДЕРЖАНИЕ
+[  36] align=None                           style=Normal               | СПИСОК СОКРАЩЕНИЙ И УСЛОВНЫХ ОБОЗНАЧЕНИЙ	4
+[  37] align=None                           style=Normal               | ВВЕДЕНИЕ	5
+[  38] align=None                           style=Normal               | ГЛАВА 1. ТЕОРЕТИЧЕСКИЕ ОСНОВЫ РАЗРАБОТКИ ОБРАЗОВАТЕЛЬНЫХ ПЛАТФОРМ С ИСКУССТВЕННЫМ ИНТЕЛЛЕКТОМ	10
+[  39] align=None                           style=Normal               | 1.1. Искусственный интеллект в современном образовании	10
+[  40] align=None                           style=Normal               | 1.2. Чат-боты как инструмент обучения: обзор существующих решений	12
+[  41] align=None                           style=Normal               | 1.3. Технология Retrieval-Augmented Generation (RAG) и её применение в образовании	14
+[  42] align=None                           style=Normal               | 1.4. Геймификация учебного процесса: теория и практика	16
+[  43] align=None                           style=Normal               | 1.5. Безопасность детей в цифровой среде: модерация и фильтрация контента	18
+[  44] align=None                           style=Normal               | 1.6. Обзор используемых технологий и обоснование выбора стека	20
+[  45] align=None                           style=Normal               | ГЛАВА 2. ПРАКТИЧЕСКАЯ ЧАСТЬ: АРХИТЕКТУРА И РЕАЛИЗАЦИЯ ПЛАТФОРМЫ PANDAPAL	23
+[  46] align=None                           style=Normal               | 2.1. Общая архитектура системы	23
+[  47] align=None                           style=Normal               | 2.2. Серверная часть: Python, aiogram, SQLAlchemy	25
+[  48] align=None                           style=Normal               | 2.3. Интеграция с YandexGPT и формирование AI-ответов	28
+[  49] align=None                           style=Normal               | 2.4. RAG-пайплайн: семантический поиск по базе знаний	30
+[  50] align=None                           style=Normal               | 2.5. Клиентская часть: React, TypeScript, Telegram Mini App	32
+[  51] align=None                           style=Normal               | 2.6. Система модерации контента	34
+[  52] align=None                           style=Normal               | 2.7. Образовательные игры и геймификация	36
+[  53] align=None                           style=Normal               | 2.8. Premium-подписка и платёжная система	38
+[  54] align=None                           style=Normal               | 2.9. Развёртывание и обеспечение непрерывной доставки	39
+[  55] align=None                           style=Normal               |
+[  56] align=None                           style=Normal               | ГЛАВА 3. ИССЛЕДОВАТЕЛЬСКАЯ ЧАСТЬ: ТЕСТИРОВАНИЕ, АНАЛИЗ И РЕЗУЛЬТАТЫ	40
+[  57] align=None                           style=Normal               | 3.1. Стратегия тестирования и виды тестов	40
+[  58] align=None                           style=Normal               | 3.2. Результаты нагрузочного и интеграционного тестирования	41
+[  59] align=None                           style=Normal               | 3.3. Анализ безопасности платформы	42
+[  60] align=None                           style=Normal               | 3.4. Визуализация архитектуры и потоков данных	43
+[  61] align=None                           style=Normal               | 3.5. Итоговый анализ и перспективы развития	44
+[  62] align=None                           style=Normal               | 3.6. Сравнительный анализ с существующими образовательными платформами	45
+[  63] align=None                           style=Normal               | ЗАКЛЮЧЕНИЕ	46
+[  64] align=None                           style=Normal               | СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ	50
+[  65] align=None                           style=Normal               | ПРИЛОЖЕНИЯ	53
+[  66] align=None                           style=Normal               |
+[  67] align=CENTER (1)                     style=Normal               | СПИСОК СОКРАЩЕНИЙ И УСЛОВНЫХ ОБОЗНАЧЕНИЙ
+[  68] align=JUSTIFY (3)                    style=Normal               | AI (Artificial Intelligence) — искусственный интеллект
+[  69] align=JUSTIFY (3)                    style=Normal               | API (Application Programming Interface) — программный интерфейс приложения
+[  70] align=JUSTIFY (3)                    style=Normal               | CDN (Content Delivery Network) — сеть доставки контента
+[  71] align=JUSTIFY (3)                    style=Normal               | CI/CD (Continuous Integration / Continuous Delivery) — непрерывная интеграция и доставка
+[  72] align=JUSTIFY (3)                    style=Normal               | CSS (Cascading Style Sheets) — каскадные таблицы стилей
+[  73] align=JUSTIFY (3)                    style=Normal               | DNS (Domain Name System) — система доменных имён
+[  74] align=JUSTIFY (3)                    style=Normal               | HNSW (Hierarchical Navigable Small World) — алгоритм приближённого поиска ближайших соседей
+[  75] align=JUSTIFY (3)                    style=Normal               | LLM (Large Language Model) — большая языковая модель
+[  76] align=JUSTIFY (3)                    style=Normal               | Mini App — веб-приложение, встроенное в мессенджер Telegram
+[  77] align=JUSTIFY (3)                    style=Normal               | NLP (Natural Language Processing) — обработка естественного языка
+[  78] align=JUSTIFY (3)                    style=Normal               | OCR (Optical Character Recognition) — оптическое распознавание символов
+[  79] align=JUSTIFY (3)                    style=Normal               | ORM (Object-Relational Mapping) — объектно-реляционное отображение
+[  80] align=JUSTIFY (3)                    style=Normal               | PaaS (Platform as a Service) — платформа как услуга
+[  81] align=JUSTIFY (3)                    style=Normal               | RAG (Retrieval-Augmented Generation) — генерация с дополнением извлечением
+[  82] align=JUSTIFY (3)                    style=Normal               | REST (Representational State Transfer) — архитектурный стиль API
+[  83] align=JUSTIFY (3)                    style=Normal               | SPA (Single Page Application) — одностраничное приложение
+[  84] align=JUSTIFY (3)                    style=Normal               | SQL (Structured Query Language) — структурированный язык запросов
+[  85] align=JUSTIFY (3)                    style=Normal               | SSE (Server-Sent Events) — серверные события
+[  86] align=JUSTIFY (3)                    style=Normal               | SSL (Secure Sockets Layer) — протокол защищённого соединения
+[  87] align=JUSTIFY (3)                    style=Normal               | STT (Speech-to-Text) — распознавание речи
+[  88] align=JUSTIFY (3)                    style=Normal               | UI (User Interface) — пользовательский интерфейс
+[  89] align=JUSTIFY (3)                    style=Normal               | UX (User Experience) — пользовательский опыт
+[  90] align=JUSTIFY (3)                    style=Normal               | ВКР — выпускная квалификационная работа
+[  91] align=JUSTIFY (3)                    style=Normal               | СУБД — система управления базами данных
+[  92] align=JUSTIFY (3)                    style=Normal               | XP (Experience Points) — очки опыта
+[  93] align=CENTER (1)                     style=Normal               | ВВЕДЕНИЕ
+[  94] align=JUSTIFY (3)                    style=Normal               | Актуальность темы
+[  95] align=JUSTIFY (3)                    style=Normal               | Современная система образования переживает период цифровой трансформации. Развитие технологий искусственного интеллекта,
+[  96] align=JUSTIFY (3)                    style=Normal               | Отдельного внимания заслуживает разработка образовательных инструментов для школьников младших и средних классов. Эта во
+[  97] align=JUSTIFY (3)                    style=Normal               | Мессенджер Telegram насчитывает более 900 миллионов активных пользователей и давно стал привычной средой общения подрост
+[  98] align=JUSTIFY (3)                    style=Normal               | Однако существующие образовательные решения на базе AI часто ориентированы на взрослую аудиторию, не учитывают возрастны
+[  99] align=JUSTIFY (3)                    style=Normal               | Разработка образовательной платформы, объединяющей AI, мультимодальный ввод и геймификацию в безопасной среде для школьн
+[ 100] align=JUSTIFY (3)                    style=Normal               | Проблема проекта
+[ 101] align=JUSTIFY (3)                    style=Normal               | На сегодняшний день отсутствует доступная, безопасная и комплексная образовательная платформа для школьников, которая об
+[ 102] align=JUSTIFY (3)                    style=Normal               | «Сущее» (то, что есть):
+[ 103] align=JUSTIFY (3)                    style=Normal               | • Существующие AI-ассистенты (ChatGPT, Gemini) не адаптированы для детской аудитории и не имеют встроенной модерации кон
+[ 104] align=JUSTIFY (3)                    style=Normal               | • Школьные образовательные платформы не предлагают мультимодальных возможностей: голосовые вопросы, проверка домашних за
+[ 105] align=JUSTIFY (3)                    style=Normal               | • Отсутствует интеграция AI-обучения с элементами геймификации (игры, достижения, прогресс), которые способны значительн
+[ 106] align=JUSTIFY (3)                    style=Normal               | • Не существует образовательной платформы, доступной непосредственно в Telegram — привычной среде общения для подростков
+[ 107] align=JUSTIFY (3)                    style=Normal               | «Должное» (то, что необходимо):
+[ 108] align=JUSTIFY (3)                    style=Normal               | • Необходимо разработать платформу с AI-чатом, адаптирующим ответы по возрасту и классу ученика.
+[ 109] align=JUSTIFY (3)                    style=Normal               | • Требуется реализовать мультимодальный ввод: текст, голос, фото.
+[ 110] align=JUSTIFY (3)                    style=Normal               | • Важно обеспечить многоуровневую модерацию контента для гарантии безопасности детей.
+[ 111] align=JUSTIFY (3)                    style=Normal               | • Необходимо внедрить элементы геймификации для повышения вовлечённости в учебный процесс.
+[ 112] align=JUSTIFY (3)                    style=Normal               | Объект и предмет исследования
+[ 113] align=JUSTIFY (3)                    style=Normal               | Объект исследования — процесс цифровизации школьного образования с применением технологий искусственного интеллекта.
+[ 114] align=JUSTIFY (3)                    style=Normal               | Предмет исследования — методы и средства разработки образовательной платформы на базе Telegram Bot API с использованием
+[ 115] align=JUSTIFY (3)                    style=Normal               | Цель проекта
+[ 116] align=JUSTIFY (3)                    style=Normal               | Цель проекта — разработать и развернуть в продуктивной среде полнофункциональную образовательную платформу PandaPal в фо
+[ 117] align=JUSTIFY (3)                    style=Normal               | Задачи проекта
+[ 118] align=JUSTIFY (3)                    style=Normal               | Для достижения поставленной цели необходимо решить следующие задачи:
+[ 119] align=JUSTIFY (3)                    style=Normal               | 1. Теоретический анализ: изучить существующие подходы к применению AI в образовании, технологии RAG, принципы геймификац
+[ 120] align=JUSTIFY (3)                    style=Normal               | 2. Проектирование архитектуры:
+[ 121] align=JUSTIFY (3)                    style=Normal               | • Спроектировать клиент-серверную архитектуру платформы.
+[ 122] align=JUSTIFY (3)                    style=Normal               | • Определить стек технологий и принципы интеграции с внешними сервисами (Yandex Cloud, YooKassa, Telegram Bot API).
+[ 123] align=JUSTIFY (3)                    style=Normal               | 3. Разработка серверной части:
+[ 124] align=JUSTIFY (3)                    style=Normal               | • Реализовать backend на Python с использованием aiogram 3 и SQLAlchemy 2.
+[ 125] align=JUSTIFY (3)                    style=Normal               | • Интегрировать YandexGPT для генерации AI-ответов с адаптацией по возрасту.
+[ 126] align=JUSTIFY (3)                    style=Normal               | • Реализовать RAG-пайплайн с PostgreSQL и pgvector для семантического поиска.
+[ 127] align=JUSTIFY (3)                    style=Normal               | • Разработать систему многоуровневой модерации контента.
+[ 128] align=JUSTIFY (3)                    style=Normal               | 4. Разработка клиентской части:
+[ 129] align=JUSTIFY (3)                    style=Normal               | • Создать веб-приложение (Mini App) на React 19 с TypeScript 5 и Tailwind CSS 3.4.
+[ 130] align=JUSTIFY (3)                    style=Normal               | • Реализовать адаптивный интерфейс для мобильных устройств.
+[ 131] align=JUSTIFY (3)                    style=Normal               | 5. Реализация функциональных модулей:
+[ 132] align=JUSTIFY (3)                    style=Normal               | • Разработать образовательные игры (крестики-нолики, шашки, 2048, эрудит, тамагочи).
+[ 133] align=JUSTIFY (3)                    style=Normal               | • Внедрить систему геймификации (достижения, XP, прогресс).
+[ 134] align=JUSTIFY (3)                    style=Normal               | • Реализовать Premium-подписку с интеграцией платёжной системы.
+[ 135] align=JUSTIFY (3)                    style=Normal               | 6. Тестирование и развёртывание:
+[ 136] align=JUSTIFY (3)                    style=Normal               | • Написать автоматизированные тесты (unit, integration, e2e, security).
+[ 137] align=JUSTIFY (3)                    style=Normal               | • Развернуть платформу на Railway с CDN через Cloudflare.
+[ 138] align=JUSTIFY (3)                    style=Normal               | Планируемый проектный продукт
+[ 139] align=JUSTIFY (3)                    style=Normal               | Основным проектным продуктом является образовательная платформа PandaPal, включающая:
+[ 140] align=JUSTIFY (3)                    style=Normal               | • Telegram-бота (@PandaPalBot) с AI-чатом, помощью с уроками, голосовыми вопросами.
+[ 141] align=JUSTIFY (3)                    style=Normal               | • Веб-приложение (Mini App) с интерактивным интерфейсом, играми, дашбордом прогресса.
+[ 142] align=JUSTIFY (3)                    style=Normal               | • Веб-сайт (https://pandapal.ru) для доступа вне Telegram.
+[ 143] align=JUSTIFY (3)                    style=Normal               | • Серверную инфраструктуру с базой данных, кэшированием и интеграциями.
+[ 144] align=JUSTIFY (3)                    style=Normal               | • Документацию проекта и исходный код на GitHub.
+[ 145] align=JUSTIFY (3)                    style=Normal               | Целевая аудитория проекта
+[ 146] align=JUSTIFY (3)                    style=Normal               | • Школьники 1–9 классов, нуждающиеся в персонализированной помощи с учёбой.
+[ 147] align=JUSTIFY (3)                    style=Normal               | • Родители, заинтересованные в безопасном и полезном цифровом инструменте для детей.
+[ 148] align=JUSTIFY (3)                    style=Normal               | • Преподаватели, использующие цифровые технологии в учебном процессе.
+[ 149] align=JUSTIFY (3)                    style=Normal               | Ресурсное обеспечение проекта
+[ 150] align=JUSTIFY (3)                    style=Normal               | Для реализации проекта использованы:
+[ 151] align=JUSTIFY (3)                    style=Normal               | • Персональный компьютер с Windows, Python 3.13, Node.js 20;
+[ 152] align=JUSTIFY (3)                    style=Normal               | • Интегрированная среда разработки (VS Code);
+[ 153] align=JUSTIFY (3)                    style=Normal               | • Облачные сервисы: Yandex Cloud (YandexGPT Pro, SpeechKit STT, Vision OCR, YandexART, Embeddings API, Translate API);
+[ 154] align=JUSTIFY (3)                    style=Normal               | • Платформа Railway для размещения сервера и базы данных;
+[ 155] align=JUSTIFY (3)                    style=Normal               | • Upstash Redis для кэширования и управления состоянием;
+[ 156] align=JUSTIFY (3)                    style=Normal               | • Cloudflare для DNS, SSL и CDN;
+[ 157] align=JUSTIFY (3)                    style=Normal               | • GitHub для контроля версий и CI/CD;
+[ 158] align=JUSTIFY (3)                    style=Normal               | • Платёжная система YooKassa;
+[ 159] align=JUSTIFY (3)                    style=Normal               | • Стандартные библиотеки и фреймворки: aiogram 3.24, SQLAlchemy 2.0, Alembic 1.18, React 19, Vite 7, TanStack Query 5, Z
+[ 160] align=JUSTIFY (3)                    style=Normal               | Ожидаемые результаты
+[ 161] align=JUSTIFY (3)                    style=Normal               | • Качественные:
+[ 162] align=JUSTIFY (3)                    style=Normal               | • Создана доступная и безопасная образовательная среда для школьников в привычном мессенджере.
+[ 163] align=JUSTIFY (3)                    style=Normal               | • Обеспечена персонализация обучения с адаптацией AI-ответов по возрасту и классу.
+[ 164] align=JUSTIFY (3)                    style=Normal               | • Реализована многоуровневая модерация контента для защиты детской аудитории.
+[ 165] align=JUSTIFY (3)                    style=Normal               | • Внедрена геймификация, повышающая мотивацию к обучению.
+[ 166] align=JUSTIFY (3)                    style=Normal               | • Количественные:
+[ 167] align=JUSTIFY (3)                    style=Normal               | • Разработан 51 модуль бизнес-логики.
+[ 168] align=JUSTIFY (3)                    style=Normal               | • Реализовано 14 ORM-моделей базы данных.
+[ 169] align=JUSTIFY (3)                    style=Normal               | • Создано 5 образовательных игр.
+[ 170] align=JUSTIFY (3)                    style=Normal               | • Поддержка 9 школьных предметов.
+[ 171] align=JUSTIFY (3)                    style=Normal               | • Написаны автоматизированные тесты 6 категорий (unit, integration, e2e, security, resilience, performance).
+[ 172] align=JUSTIFY (3)                    style=Normal               | • Платформа развёрнута в продуктивной среде и доступна пользователям.
+[ 173] align=JUSTIFY (3)                    style=Normal               | Возможные риски и пути их преодоления
+[ 174] align=JUSTIFY (3)                    style=Normal               | • Риск генерации некорректного или небезопасного контента AI-моделью. Минимизируется за счёт многоуровневой модерации: ф
+[ 175] align=JUSTIFY (3)                    style=Normal               | • Риск сбоев внешних сервисов (Yandex Cloud, YooKassa). Снижается за счёт реализации паттерна Circuit Breaker, механизмо
+[ 176] align=JUSTIFY (3)                    style=Normal               | • Риск превышения лимитов API и увеличения затрат на облачные сервисы. Минимизируется через систему кэширования (Redis),
+[ 177] align=JUSTIFY (3)                    style=Normal               | • Риск нехватки времени на полную реализацию функционала. Снижается за счёт модульной архитектуры, позволяющей последова
+[ 178] align=JUSTIFY (3)                    style=Normal               | Методы исследования
+[ 179] align=JUSTIFY (3)                    style=Normal               | В ходе выполнения проекта применялись следующие методы:
+[ 180] align=JUSTIFY (3)                    style=Normal               | • Анализ и обобщение научной литературы по применению AI в образовании, технологиям RAG и геймификации.
+[ 181] align=JUSTIFY (3)                    style=Normal               | • Сравнительный анализ существующих образовательных платформ (ChatGPT, Duolingo, Учи.ру, Яндекс Учебник).
+[ 182] align=JUSTIFY (3)                    style=Normal               | • Моделирование архитектуры программной системы (клиент-серверная архитектура, диаграммы потоков данных).
+[ 183] align=JUSTIFY (3)                    style=Normal               | • Проектирование и разработка программного обеспечения с использованием итеративного подхода.
+[ 184] align=JUSTIFY (3)                    style=Normal               | • Тестирование (unit, интеграционное, e2e, нагрузочное, security, resilience).
+[ 185] align=JUSTIFY (3)                    style=Normal               | • Статический анализ кода (Bandit, ESLint, TypeScript strict mode).
+[ 186] align=JUSTIFY (3)                    style=Normal               | Научная новизна
+[ 187] align=JUSTIFY (3)                    style=Normal               | В рамках проекта впервые предложена и реализована архитектура образовательной платформы, которая объединяет в одном прил
+[ 188] align=JUSTIFY (3)                    style=Normal               | • систему генерации ответов на основе большой языковой модели (YandexGPT) с многоуровневой модерацией контента и адаптац
+[ 189] align=JUSTIFY (3)                    style=Normal               | • RAG-пайплайн с семантическим кэшированием, расширением запросов и повторным ранжированием результатов для повышения то
+[ 190] align=JUSTIFY (3)                    style=Normal               | • мультимодальный ввод (текст, голос, фото) в сочетании с геймификацией (образовательные игры, виртуальный питомец, сист
+[ 191] align=JUSTIFY (3)                    style=Normal               | Особый вклад проекта состоит в применении технологии векторных эмбеддингов для построения образовательного семантическог
+[ 192] align=JUSTIFY (3)                    style=Normal               | Ещё одним нововведением является механизм виртуального питомца «Моя панда» — интерактивного тамагочи, состояние которого
+[ 193] align=JUSTIFY (3)                    style=Normal               | Практическая значимость
+[ 194] align=JUSTIFY (3)                    style=Normal               | Разработанная платформа PandaPal — полностью рабочий продукт, развёрнутый в продуктивной среде и доступный реальным поль
+[ 195] align=JUSTIFY (3)                    style=Normal               | • школьники 1–9 классов — для получения персонализированной помощи с учёбой;
+[ 196] align=JUSTIFY (3)                    style=Normal               | • родители — для организации безопасного образовательного досуга детей;
+[ 197] align=JUSTIFY (3)                    style=Normal               | • преподаватели — как вспомогательный инструмент в учебном процессе;
+[ 198] align=JUSTIFY (3)                    style=Normal               | • разработчики — как образец архитектуры AI-образовательного приложения с модерацией контента.
+[ 199] align=JUSTIFY (3)                    style=Normal               | Результаты проекта могут быть тиражированы и адаптированы для других образовательных учреждений.
+[ 200] align=JUSTIFY (3)                    style=Normal               | Настоящая работа посвящена созданию образовательной платформы, в которой технологии искусственного интеллекта (большие я
+[ 201] align=None                           style=Normal               |
+[ 202] align=CENTER (1)                     style=Normal               | ГЛАВА 1. ТЕОРЕТИЧЕСКИЕ ОСНОВЫ РАЗРАБОТКИ ОБРАЗОВАТЕЛЬНЫХ ПЛАТФОРМ С ИСКУССТВЕННЫМ ИНТЕЛЛЕКТОМ
+[ 203] align=JUSTIFY (3)                    style=Normal               | 1.1. Искусственный интеллект в современном образовании
+[ 204] align=JUSTIFY (3)                    style=Normal               | Искусственный интеллект (ИИ) — направление компьютерных наук, занимающееся созданием систем, решающих задачи, которые ра
+[ 205] align=JUSTIFY (3)                    style=Normal               | Применение ИИ в образовании охватывает несколько ключевых направлений:
+[ 206] align=JUSTIFY (3)                    style=Normal               | 1. Персонализированное обучение. AI-системы анализируют уровень знаний учащегося, темп усвоения материала и предпочитаем
+[ 207] align=JUSTIFY (3)                    style=Normal               | 2. Автоматизированная оценка и обратная связь. AI позволяет автоматизировать проверку заданий, предоставляя учащимся мгн
+[ 208] align=JUSTIFY (3)                    style=Normal               | 3. Интеллектуальные помощники и чат-боты. Образовательные чат-боты выступают в роли виртуальных репетиторов, доступных к
+[ 209] align=JUSTIFY (3)                    style=Normal               | 4. Мультимодальное взаимодействие. Современные AI-системы поддерживают не только текстовый ввод, но и голосовые запросы,
+[ 210] align=JUSTIFY (3)                    style=Normal               | Среди конкретных технологий, применяемых в образовательном ИИ, выделяются большие языковые модели (GPT, YandexGPT, GigaC
+[ 211] align=JUSTIFY (3)                    style=Normal               | Для PandaPal выбрана модель YandexGPT — российская LLM, разработанная компанией Яндекс. Она поддерживает русский язык на
+[ 212] align=JUSTIFY (3)                    style=Normal               | 1.2. Чат-боты как инструмент обучения: обзор существующих решений
+[ 213] align=JUSTIFY (3)                    style=Normal               | Чат-бот — программа, использующая обработку естественного языка (Natural Language Processing, NLP) для ведения диалога с
+[ 214] align=JUSTIFY (3)                    style=Normal               | Различают два основных типа образовательных чат-ботов:
+[ 215] align=JUSTIFY (3)                    style=Normal               | 1. Чат-боты на основе правил (rule-based). Работают по заранее заданным сценариям и шаблонам. Способны обрабатывать огра
+[ 216] align=JUSTIFY (3)                    style=Normal               | 2. Чат-боты на основе AI (AI-powered). Используют большие языковые модели для генерации ответов. Способны вести свободны
+[ 217] align=JUSTIFY (3)                    style=Normal               | Обзор существующих образовательных платформ с AI:
+[ 218] align=JUSTIFY (3)                    style=Normal               | • ChatGPT (OpenAI) — мощная языковая модель, широко используемая для образовательных целей. Недостатки: не адаптирована
+[ 219] align=JUSTIFY (3)                    style=Normal               | • Duolingo — платформа для изучения языков с элементами геймификации. Достоинства: эффективная геймификация, персонализа
+[ 220] align=JUSTIFY (3)                    style=Normal               | • Учи.ру — российская образовательная платформа для школьников. Достоинства: адаптация под российскую программу. Недоста
+[ 221] align=JUSTIFY (3)                    style=Normal               | • Яндекс Учебник — образовательные материалы от Яндекса. Достоинства: качественный контент, интеграция с российской прог
+[ 222] align=JUSTIFY (3)                    style=Normal               | Платформа PandaPal объединяет преимущества перечисленных решений: AI-чат с адаптацией по возрасту (как ChatGPT, но безоп
+[ 223] align=JUSTIFY (3)                    style=Normal               | Согласно обзору Hwang & Chang (2021), чат-боты в образовании повышают мотивацию учащихся и снижают тревожность при обращ
+[ 224] align=JUSTIFY (3)                    style=Normal               | 1.3. Технология Retrieval-Augmented Generation (RAG) и её применение в образовании
+[ 225] align=JUSTIFY (3)                    style=Normal               | Retrieval-Augmented Generation (RAG) — архитектурный паттерн, при котором LLM дополняется результатами поиска по внешней
+[ 226] align=JUSTIFY (3)                    style=Normal               | Архитектура RAG включает три основных компонента:
+[ 227] align=JUSTIFY (3)                    style=Normal               | 1. Хранилище знаний. Коллекция документов, статей, учебных материалов, индексированных для эффективного поиска. В PandaP
+[ 228] align=JUSTIFY (3)                    style=Normal               | 2. Модель эмбеддингов. Нейросетевая модель, преобразующая текстовые фрагменты в числовые векторы (эмбеддинги), которые о
+[ 229] align=JUSTIFY (3)                    style=Normal               | 3. Генеративная модель. Большая языковая модель, получающая найденные документы как контекст и генерирующая ответ на осн
+[ 230] align=JUSTIFY (3)                    style=Normal               | Процесс работы RAG в PandaPal:
+[ 231] align=JUSTIFY (3)                    style=Normal               | 1. Пользователь задаёт вопрос (например, «Что такое фотосинтез?»).
+[ 232] align=JUSTIFY (3)                    style=Normal               | 2. Вопрос преобразуется в вектор с помощью Yandex Embeddings API.
+[ 233] align=JUSTIFY (3)                    style=Normal               | 3. Выполняется поиск ближайших по смыслу документов в таблице knowledge_embeddings (PostgreSQL + pgvector) с использован
+[ 234] align=JUSTIFY (3)                    style=Normal               | 4. Найденные фрагменты передаются вместе с вопросом в YandexGPT Pro.
+[ 235] align=JUSTIFY (3)                    style=Normal               | 5. Модель генерирует ответ, опираясь на достоверные данные из базы знаний.
+[ 236] align=JUSTIFY (3)                    style=Normal               | Преимущества RAG в образовательном контексте:
+[ 237] align=JUSTIFY (3)                    style=Normal               | • Снижение галлюцинаций. Модель опирается на проверенные источники, а не генерирует факты произвольно. В образовательном
+[ 238] align=JUSTIFY (3)                    style=Normal               | • Актуальность информации. Базу знаний можно обновлять без переобучения модели.
+[ 239] align=JUSTIFY (3)                    style=Normal               | • Прозрачность. Ответ может содержать ссылки на конкретные источники из базы знаний.
+[ 240] align=JUSTIFY (3)                    style=Normal               | • Контролируемость. Администратор решает, какие материалы попадают в базу.
+[ 241] align=JUSTIFY (3)                    style=Normal               | В PandaPal RAG-пайплайн дополнен несколькими оптимизациями:
+[ 242] align=JUSTIFY (3)                    style=Normal               | • Расширение запросов (Query Expansion) — автоматическое обогащение пользовательского запроса синонимами и связанными те
+[ 243] align=JUSTIFY (3)                    style=Normal               | • Семантический кэш — кэширование результатов поиска для семантически похожих запросов, что снижает нагрузку на API эмбе
+[ 244] align=JUSTIFY (3)                    style=Normal               | • Компрессия контекста — сжатие найденных документов для оптимального использования контекстного окна LLM.
+[ 245] align=JUSTIFY (3)                    style=Normal               | • Ранжирование результатов (Reranker) — повторное ранжирование найденных документов по релевантности перед передачей в м
+[ 246] align=JUSTIFY (3)                    style=Normal               | 1.4. Геймификация учебного процесса: теория и практика
+[ 247] align=JUSTIFY (3)                    style=Normal               | Геймификация (gamification) — это применение элементов игрового дизайна в неигровых контекстах с целью повышения вовлечё
+[ 248] align=JUSTIFY (3)                    style=Normal               | Теоретические основы геймификации опираются на ряд психологических теорий:
+[ 249] align=JUSTIFY (3)                    style=Normal               | 1. Теория самодетерминации (Self-Determination Theory, Deci & Ryan). Выделяет три базовые потребности человека: автономи
+[ 250] align=JUSTIFY (3)                    style=Normal               | 2. Теория потока (Flow Theory, Csikszentmihalyi). Описывает состояние максимальной вовлечённости, возникающее при баланс
+[ 251] align=JUSTIFY (3)                    style=Normal               | 3. Теория подкрепления (Reinforcement Theory, Skinner). Положительное подкрепление (награды, баллы, достижения) закрепля
+[ 252] align=JUSTIFY (3)                    style=Normal               | В мета-анализе Sailer & Homner (2020) показано, что геймификация увеличивает вовлечённость учащихся в среднем на 25 %. В
+[ 253] align=JUSTIFY (3)                    style=Normal               | В PandaPal система геймификации реализована через несколько механизмов:
+[ 254] align=JUSTIFY (3)                    style=Normal               | • Очки опыта (XP) — начисляются за отправку сообщений, решение задач, участие в играх.
+[ 255] align=JUSTIFY (3)                    style=Normal               | • Достижения — система из более чем 15 бейджей, разблокируемых при достижении определённых показателей (первое сообщение
+[ 256] align=JUSTIFY (3)                    style=Normal               | • Образовательные игры PandaPalGo — (5 игр: тамагочи «Моя панда», крестики-нолики, шашки, 2048, эрудит), развивающие лог
+[ 257] align=JUSTIFY (3)                    style=Normal               | • «Моя панда» — виртуальный питомец (тамагочи), который меняет настроение и активность в зависимости от того, насколько
+[ 258] align=JUSTIFY (3)                    style=Normal               | • Прогресс и статистика — пользователь видит свой прогресс по предметам, количество решённых задач, дни активности.
+[ 259] align=JUSTIFY (3)                    style=Normal               | 1.5. Безопасность детей в цифровой среде: модерация и фильтрация контента
+[ 260] align=JUSTIFY (3)                    style=Normal               | Информационная безопасность детей в интернете — вопрос, требующий системного подхода. В Российской Федерации данная сфер
+[ 261] align=JUSTIFY (3)                    style=Normal               | При разработке образовательной платформы с AI для детей особое внимание необходимо уделить следующим аспектам безопаснос
+[ 262] align=JUSTIFY (3)                    style=Normal               | 1. Фильтрация входящего контента. Пользовательские запросы (текст, голос, изображения) должны проверяться на наличие нед
+[ 263] align=JUSTIFY (3)                    style=Normal               | 2. Модерация выходного контента. Ответы AI-модели также требуют проверки, поскольку языковые модели могут генерировать н
+[ 264] align=JUSTIFY (3)                    style=Normal               | 3. Адаптация контента по возрасту. Ответы должны учитывать возраст и класс ученика, используя соответствующую лексику, с
+[ 265] align=JUSTIFY (3)                    style=Normal               | В PandaPal модерация контента реализована как многоуровневая система:
+[ 266] align=JUSTIFY (3)                    style=Normal               | • Уровень 1: Фильтрация запрещённых паттернов (forbidden patterns). Проверка входящих сообщений на наличие нецензурной л
+[ 267] align=JUSTIFY (3)                    style=Normal               | • Уровень 2: Расширенная модерация (advanced moderation). Анализ контекста сообщения для выявления скрытых попыток обход
+[ 268] align=JUSTIFY (3)                    style=Normal               | • Уровень 3: AI-модерация. Использование языковой модели для семантического анализа сообщений, которые прошли первые два
+[ 269] align=JUSTIFY (3)                    style=Normal               | • Уровень 4: Сервис взрослых тем (adult topics service). Специализированный модуль для корректной обработки вопросов на
+[ 270] align=JUSTIFY (3)                    style=Normal               | • Адаптивный промпт. Системный промпт для YandexGPT содержит инструкции по адаптации ответов в зависимости от возраста и
+[ 271] align=JUSTIFY (3)                    style=Normal               | 1.6. Обзор используемых технологий и обоснование выбора стека
+[ 272] align=JUSTIFY (3)                    style=Normal               | При выборе стека PandaPal учитывались конкретные требования: качественная поддержка русского языка в AI-моделях, совмест
+[ 273] align=JUSTIFY (3)                    style=Normal               | Серверная часть (Backend):
+[ 274] align=JUSTIFY (3)                    style=Normal               | • Python 3.13 — основной язык разработки. Выбран за широкую экосистему библиотек для AI и веб-разработки, простоту синта
+[ 275] align=JUSTIFY (3)                    style=Normal               | • aiogram 3.24 — асинхронный фреймворк для создания Telegram-ботов. Выбран как наиболее производительный и функциональны
+[ 276] align=JUSTIFY (3)                    style=Normal               | • SQLAlchemy 2.0 — ORM для работы с базами данных. Все запросы к PostgreSQL формируются с параметрами, что исключает SQL
+[ 277] align=JUSTIFY (3)                    style=Normal               | • PostgreSQL 17 + pgvector — реляционная СУБД с расширением для хранения и поиска векторных эмбеддингов. pgvector позвол
+[ 278] align=JUSTIFY (3)                    style=Normal               | • Redis 7 (Upstash) — in-memory хранилище данных. Используется для кэширования, управления сессиями, rate limiting и хра
+[ 279] align=JUSTIFY (3)                    style=Normal               | • Alembic 1.18 — инструмент миграции БД, позволяющий версионировать изменения схемы.
+[ 280] align=JUSTIFY (3)                    style=Normal               | Клиентская часть (Frontend):
+[ 281] align=JUSTIFY (3)                    style=Normal               | • React 19 — JavaScript-библиотека для создания пользовательских интерфейсов. Выбрана за компонентную архитектуру, высок
+[ 282] align=JUSTIFY (3)                    style=Normal               | • TypeScript 5 — типизированный JavaScript. Статические типы помогают находить ошибки на этапе компиляции и упрощают реф
+[ 283] align=JUSTIFY (3)                    style=Normal               | • Vite 7 — сборщик, дающий быструю сборку и горячую перезагрузку модулей при разработке.
+[ 284] align=JUSTIFY (3)                    style=Normal               | • Tailwind CSS 3.4 — utility-first CSS-фреймворк для быстрой и консистентной стилизации интерфейса.
+[ 285] align=JUSTIFY (3)                    style=Normal               | • Zustand 5 — легковесная библиотека управления состоянием, выбранная за простоту и минимальный boilerplate.
+[ 286] align=JUSTIFY (3)                    style=Normal               | • TanStack Query 5 — библиотека для управления серверным состоянием, кэширования запросов и синхронизации данных.
+[ 287] align=JUSTIFY (3)                    style=Normal               | • Telegram Mini App SDK 8.0 — SDK для интеграции веб-приложения с мессенджером Telegram.
+[ 288] align=JUSTIFY (3)                    style=Normal               | Внешние интеграции:
+[ 289] align=JUSTIFY (3)                    style=Normal               | • Yandex Cloud — облачная платформа, предоставляющая набор AI-сервисов:
+[ 290] align=JUSTIFY (3)                    style=Normal               | • YandexGPT Pro — большая языковая модель для генерации ответов.
+[ 291] align=JUSTIFY (3)                    style=Normal               | • Yandex SpeechKit STT — распознавание речи (Speech-to-Text).
+[ 292] align=JUSTIFY (3)                    style=Normal               | • Yandex Vision OCR — оптическое распознавание текста на изображениях.
+[ 293] align=JUSTIFY (3)                    style=Normal               | • YandexART — генерация изображений по текстовому описанию.
+[ 294] align=JUSTIFY (3)                    style=Normal               | • Yandex Embeddings API — создание векторных представлений текста для семантического поиска.
+[ 295] align=JUSTIFY (3)                    style=Normal               | • Yandex Translate API — перевод текстов.
+[ 296] align=JUSTIFY (3)                    style=Normal               | • YooKassa — российская платёжная система для приёма платежей за Premium-подписку.
+[ 297] align=JUSTIFY (3)                    style=Normal               | Инфраструктура:
+[ 298] align=JUSTIFY (3)                    style=Normal               | • Railway — PaaS-платформа для развёртывания приложений. Поддерживает Dockerfile, предоставляет managed PostgreSQL и авт
+[ 299] align=JUSTIFY (3)                    style=Normal               | • Cloudflare — сервис DNS, SSL-сертификатов и CDN для ускорения доставки контента.
+[ 300] align=JUSTIFY (3)                    style=Normal               | • GitHub Actions — система CI/CD для автоматизации тестирования и развёртывания.
+[ 301] align=JUSTIFY (3)                    style=Normal               |
+[ 302] align=JUSTIFY (3)                    style=Normal               [TBL_CAPTION] | Таблица 1 — Сравнительная характеристика ключевых технологий
+[ 303] align=None                           style=Normal               |
+[ 304] align=CENTER (1)                     style=Normal               | ГЛАВА 2. ПРАКТИЧЕСКАЯ ЧАСТЬ: АРХИТЕКТУРА И РЕАЛИЗАЦИЯ ПЛАТФОРМЫ PANDAPAL
+[ 305] align=JUSTIFY (3)                    style=Normal               | 2.1. Общая архитектура системы
+[ 306] align=JUSTIFY (3)                    style=Normal               | Платформа PandaPal построена по клиент-серверной архитектуре с множеством внешних интеграций. Общий поток данных можно о
+[ 307] align=None                           style=Normal               | Пользователь → Telegram / Браузер
+[ 308] align=None                           style=Normal               |                                                 ↓
+[ 309] align=None                           style=Normal               |             Telegram Bot API / HTTPS
+[ 310] align=None                           style=Normal               |                                                 ↓
+[ 311] align=None                           style=Normal               [BOX] |         ┌────────────────────────────┐
+[ 312] align=None                           style=Normal               [BOX] |         │    web_server.py           │
+[ 313] align=None                           style=Normal               [BOX] |         │    (точка входа)           │
+[ 314] align=None                           style=Normal               [BOX] |         │                            │
+[ 315] align=None                           style=Normal               [BOX] |         │  ┌──────────┐ ┌─────────┐  │
+[ 316] align=None                           style=Normal               [BOX] |         │  │ aiogram  │ │ aiohttp │  │
+[ 317] align=None                           style=Normal               [BOX] |         │  │ (Bot API)│ │ (REST)  │  │
+[ 318] align=None                           style=Normal               [BOX] |         │  └──────────┘ └─────────┘  │
+[ 319] align=None                           style=Normal               [BOX] |         └──────────── ┬──────────────┘
+[ 320] align=CENTER (1)                     style=Normal               [FIG_CAPTION, SCHEMA] | Рисунок 1 — Схема бизнес-процессов платформы
+[ 321] align=None                           style=Normal               |                                                ↓
+[ 322] align=None                           style=Normal               [BOX] |         ┌────────────────────────────┐
+[ 323] align=None                           style=Normal               [BOX] |         │       bot/services/        │
+[ 324] align=None                           style=Normal               [BOX] |         │    (51 модуль)             │
+[ 325] align=None                           style=Normal               [BOX] |         │                            │
+[ 326] align=None                           style=Normal               [BOX] |         │  AI · RAG · Модерация      │
+[ 327] align=None                           style=Normal               [BOX] |         │  Игры · Платежи · Кэш      │
+[ 328] align=None                           style=Normal               [BOX] |         │  Визуализация · Аналитика  │
+[ 329] align=None                           style=Normal               [BOX] |         └────────────┬───────────────┘
+[ 330] align=None                           style=Normal               |                                               ↓
+[ 331] align=None                           style=Normal               [BOX] |     ┌────────┬───────┴───────┬──────────┐
+[ 332] align=None                           style=Normal               [BOX] |     │        │               │          │
+[ 333] align=None                           style=Normal               | PostgreSQL  Redis      Yandex Cloud  YooKassa
+[ 334] align=None                           style=Normal               | + pgvector  (Upstash)  (GPT, STT,   (платежи)
+[ 335] align=None                           style=Normal               |                         OCR, ART)
+[ 336] align=JUSTIFY (3)                    style=Normal               | Серверная часть реализована как единое Python-приложение (web_server.py), которое одновременно обрабатывает webhook-запр
+[ 337] align=JUSTIFY (3)                    style=Normal               | Ключевые архитектурные решения:
+[ 338] align=JUSTIFY (3)                    style=Normal               | 1. Модульная структура сервисов. Каталог bot/services/ содержит 51 модуль бизнес-логики, каждый из которых отвечает за к
+[ 339] align=JUSTIFY (3)                    style=Normal               | 2. Слой ORM-моделей. Каталог bot/models/ содержит 10 моделей SQLAlchemy, описывающих сущности предметной области: User (
+[ 340] align=JUSTIFY (3)                    style=Normal               | 3. REST API. Каталог bot/api/ содержит эндпоинты для Mini App и веб-приложения, следуя RESTful-принципам. Все защищённые
+[ 341] align=JUSTIFY (3)                    style=Normal               | 4. Middleware и безопасность. Каталоги bot/middleware/ и bot/security/ реализуют сквозные механизмы: rate limiting, ауди
+[ 342] align=JUSTIFY (3)                    style=Normal               | 2.2. Серверная часть: Python, aiogram, SQLAlchemy
+[ 343] align=JUSTIFY (3)                    style=Normal               | Серверная часть PandaPal написана на Python 3.13 с применением async/await, что позволяет обрабатывать множество запросо
+[ 344] align=JUSTIFY (3)                    style=Normal               | Файл web_server.py (точка входа, ~25 КБ) создаёт и настраивает два основных компонента:
+[ 345] align=JUSTIFY (3)                    style=Normal               | 1. aiogram Bot и Dispatcher — для обработки Telegram-сообщений через webhook. Бот принимает текстовые, голосовые, фото-
+[ 346] align=JUSTIFY (3)                    style=Normal               | 2. aiohttp Application — для обслуживания REST API запросов от Mini App и веб-приложения. Маршруты определены в server_r
+[ 347] align=JUSTIFY (3)                    style=Normal               | Пример обработки текстового сообщения:
+[ 348] align=None                           style=Normal               | Пользователь отправляет сообщение
+[ 349] align=None                           style=Normal               |          ↓
+[ 350] align=None                           style=Normal               | bot/handlers/ai_chat/text.py → получение текстового сообщения
+[ 351] align=None                           style=Normal               |          ↓
+[ 352] align=None                           style=Normal               | bot/services/moderation_service.py → проверка контента
+[ 353] align=None                           style=Normal               |          ↓
+[ 354] align=None                           style=Normal               | bot/services/prompt_builder.py → формирование промпта
+[ 355] align=None                           style=Normal               |          ↓
+[ 356] align=None                           style=Normal               | bot/services/knowledge_service.py → RAG-поиск (если нужен)
+[ 357] align=None                           style=Normal               |          ↓
+[ 358] align=None                           style=Normal               | bot/services/yandex_cloud_service.py → запрос к YandexGPT
+[ 359] align=None                           style=Normal               |          ↓
+[ 360] align=None                           style=Normal               | bot/services/yandex_ai_response_generator.py → обработка ответа
+[ 361] align=None                           style=Normal               |          ↓
+[ 362] align=None                           style=Normal               | Отправка ответа пользователю
+[ 363] align=JUSTIFY (3)                    style=Normal               | Слой работы с базой данных построен на SQLAlchemy 2.0 в асинхронном режиме (драйвер psycopg 3). Использование ORM с пара
+[ 364] align=JUSTIFY (3)                    style=Normal               | Пример ORM-модели пользователя (упрощённо):
+[ 365] align=None                           style=Normal               | class User(Base):
+[ 366] align=None                           style=Normal               |     __tablename__ = "users"
+[ 367] align=None                           style=Normal               |
+[ 368] align=None                           style=Normal               |     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+[ 369] align=None                           style=Normal               |     telegram_id: Mapped[int] = mapped_column(
+[ 370] align=None                           style=Normal               |         BigInteger, unique=True, nullable=False, index=True
+[ 371] align=None                           style=Normal               |     )
+[ 372] align=None                           style=Normal               |     username: Mapped[str | None] = mapped_column(String(255), nullable=True)
+[ 373] align=None                           style=Normal               |     first_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+[ 374] align=None                           style=Normal               |     age: Mapped[int | None] = mapped_column(Integer, nullable=True)
+[ 375] align=None                           style=Normal               |     grade: Mapped[int | None] = mapped_column(Integer, nullable=True)
+[ 376] align=None                           style=Normal               |     user_type: Mapped[str] = mapped_column(
+[ 377] align=None                           style=Normal               |         String(20), nullable=False, default="child"
+[ 378] align=None                           style=Normal               |     )
+[ 379] align=None                           style=Normal               |     created_at: Mapped[datetime] = mapped_column(
+[ 380] align=None                           style=Normal               |         DateTime(timezone=True), server_default=func.now()
+[ 381] align=None                           style=Normal               |     )
+[ 382] align=None                           style=Normal               |     premium_until: Mapped[datetime | None] = mapped_column(
+[ 383] align=None                           style=Normal               |         DateTime(timezone=True), nullable=True
+[ 384] align=None                           style=Normal               |     )
+[ 385] align=None                           style=Normal               |
+[ 386] align=None                           style=Normal               |     @property
+[ 387] align=None                           style=Normal               |     def is_premium(self) -> bool:
+[ 388] align=None                           style=Normal               |         """Активна ли Premium подписка."""
+[ 389] align=None                           style=Normal               |         ...
+[ 390] align=JUSTIFY (3)                    style=Normal               | В проекте используется современный стиль SQLAlchemy 2.0 с аннотациями типов (Mapped[] и mapped_column()), что обеспечива
+[ 391] align=JUSTIFY (3)                    style=Normal               | 2.3. Интеграция с YandexGPT и формирование AI-ответов
+[ 392] align=JUSTIFY (3)                    style=Normal               | Ключевая интеграция платформы — взаимодействие с YandexGPT, LLM от Яндекса. Для взаимодействия с моделью реализован серв
+[ 393] align=JUSTIFY (3)                    style=Normal               | Формирование AI-ответа включает несколько этапов:
+[ 394] align=JUSTIFY (3)                    style=Normal               | 1. Построение промпта (prompt_builder.py, ~16 КБ). Системный промпт формируется динамически в зависимости от:
+[ 395] align=JUSTIFY (3)                    style=Normal               | • Возраста и класса пользователя — определяет сложность языка и объём объяснений.
+[ 396] align=JUSTIFY (3)                    style=Normal               | • Выбранного предмета — добавляет предметно-специфические инструкции.
+[ 397] align=JUSTIFY (3)                    style=Normal               | • Контекста предыдущих сообщений — обеспечивает связность диалога.
+[ 398] align=JUSTIFY (3)                    style=Normal               | • Результатов RAG-поиска — включает релевантные фрагменты из базы знаний.
+[ 399] align=JUSTIFY (3)                    style=Normal               | 2. Формирование контекста (ai_context_builder.py, ~12 КБ). Модуль управляет историей диалога, ограничивая её 200 сообщен
+[ 400] align=JUSTIFY (3)                    style=Normal               | 3. Генерация ответа. Запрос отправляется к YandexGPT Pro через REST API Yandex Cloud с параметрами: temperature=0.35 (ни
+[ 401] align=JUSTIFY (3)                    style=Normal               | 4. Обработка ответа (yandex_ai_response_generator.py, ~22 КБ). Модуль поддерживает два режима генерации:
+[ 402] align=JUSTIFY (3)                    style=Normal               | • Обычный (non-streaming) — ответ получается целиком после завершения генерации.
+[ 403] align=JUSTIFY (3)                    style=Normal               | • Потоковый (streaming, SSE) — ответ передаётся по частям по мере генерации, обеспечивая мгновенную обратную связь польз
+[ 404] align=JUSTIFY (3)                    style=Normal               | 5. Постобработка ответа. Включает очистку от нежелательных артефактов (response_cleaner/), проверку формул (formula_expl
+[ 405] align=JUSTIFY (3)                    style=Normal               | Помимо YandexGPT, платформа интегрирована с другими сервисами Yandex Cloud:
+[ 406] align=JUSTIFY (3)                    style=Normal               | • SpeechKit STT (speech_service.py) — распознаёт голосовые сообщения пользователей, преобразуя их в текст для последующе
+[ 407] align=JUSTIFY (3)                    style=Normal               | • Vision OCR (vision_service.py) — распознаёт текст на фотографиях, что позволяет проверять домашние задания по фото.
+[ 408] align=JUSTIFY (3)                    style=Normal               | • YandexART (yandex_art_service.py) — генерирует изображения по текстовому описанию для визуализации учебных тем.
+[ 409] align=JUSTIFY (3)                    style=Normal               | 2.4. RAG-пайплайн: семантический поиск по базе знаний
+[ 410] align=JUSTIFY (3)                    style=Normal               | RAG-пайплайн PandaPal реализован в каталоге bot/services/rag/ и состоит из пяти основных компонентов:
+[ 411] align=JUSTIFY (3)                    style=Normal               | 1. Векторный поиск (vector_search.py, ~8.5 КБ). Выполняет поиск ближайших векторов в таблице knowledge_embeddings с испо
+[ 412] align=JUSTIFY (3)                    style=Normal               | 2. Расширение запросов (query_expander.py, ~26 КБ). Автоматически обогащает пользовательский запрос синонимами, связанны
+[ 413] align=JUSTIFY (3)                    style=Normal               | 3. Ранжирование (reranker.py, ~7.7 КБ). После первичного векторного поиска выполняет повторное ранжирование результатов
+[ 414] align=JUSTIFY (3)                    style=Normal               | 4. Компрессия контекста (compressor.py, ~4.2 КБ). Сжимает найденные документы до оптимального размера для контекстного о
+[ 415] align=JUSTIFY (3)                    style=Normal               | 5. Семантический кэш (semantic_cache.py, ~7.7 КБ). Кэширует результаты поиска для семантически похожих запросов. Если но
+[ 416] align=JUSTIFY (3)                    style=Normal               | Наполнение базы знаний осуществляется через скрипт scripts/update_knowledge_base.py, который индексирует учебные материа
+[ 417] align=JUSTIFY (3)                    style=Normal               | 2.5. Клиентская часть: React, TypeScript, Telegram Mini App
+[ 418] align=JUSTIFY (3)                    style=Normal               | Клиентская часть PandaPal — одностраничное приложение (SPA) на React 19 с TypeScript 5, собираемое Vite 7. Приложение фу
+[ 419] align=JUSTIFY (3)                    style=Normal               | 1. Telegram Mini App — запускается внутри мессенджера Telegram через кнопку бота. Использует Telegram Mini App SDK 8.0 д
+[ 420] align=JUSTIFY (3)                    style=Normal               | 2. Веб-приложение — доступно по адресу https://pandapal.ru через любой браузер. Обеспечивает полный функционал платформы
+[ 421] align=JUSTIFY (3)                    style=Normal               |
+[ 422] align=JUSTIFY (3)                    style=Normal               | Структура фронтенда организована по функциональному принципу (feature-based architecture):
+[ 423] align=None                           style=Normal               | frontend/src/
+[ 424] align=None                           style=Normal               [BOX] | ├── features/           # Функциональные модули
+[ 425] align=None                           style=Normal               [BOX] | │   ├── AIChat/         # AI-чат с streaming
+[ 426] align=None                           style=Normal               [BOX] | │   ├── Achievements/   # Система достижений
+[ 427] align=None                           style=Normal               [BOX] | │   ├── Games/          # Образовательные игры
+[ 428] align=None                           style=Normal               [BOX] | │   │   ├── TicTacToe.tsx
+[ 429] align=None                           style=Normal               [BOX] | │   │   ├── Checkers.tsx
+[ 430] align=None                           style=Normal               [BOX] | │   │   ├── Game2048.tsx
+[ 431] align=None                           style=Normal               [BOX] | │   │   └── Erudite.tsx
+[ 432] align=None                           style=Normal               [BOX] | │   ├── MyPanda/        # Тамагочи — виртуальный питомец
+[ 433] align=None                           style=Normal               [BOX] | │   ├── Premium/        # Premium-подписка
+[ 434] align=None                           style=Normal               [BOX] | │   ├── Donation/       # Система донатов
+[ 435] align=None                           style=Normal               [BOX] | │   ├── Help/           # Помощь с уроками
+[ 436] align=None                           style=Normal               [BOX] | │   └── Legal/          # Юридическая информация
+[ 437] align=None                           style=Normal               [BOX] | ├── components/         # Переиспользуемые UI-компоненты
+[ 438] align=None                           style=Normal               [BOX] | ├── hooks/              # Кастомные React-хуки
+[ 439] align=None                           style=Normal               [BOX] | ├── services/           # API-клиент
+[ 440] align=None                           style=Normal               [BOX] | ├── store/              # Zustand — управление состоянием
+[ 441] align=None                           style=Normal               [BOX] | ├── utils/              # Утилиты и константы
+[ 442] align=None                           style=Normal               [BOX] | └── types/              # TypeScript типы
+[ 443] align=None                           style=Normal               |
+[ 444] align=JUSTIFY (3)                    style=Normal               | Серверное состояние управляется через TanStack Query 5 (кэширование запросов, фоновая синхронизация, оптимистичные обнов
+[ 445] align=JUSTIFY (3)                    style=Normal               | AI-чат поддерживает streaming через Server-Sent Events (SSE): ответ появляется на экране по мере генерации, аналогично и
+[ 446] align=JUSTIFY (3)                    style=Normal               | 2.6. Система модерации контента
+[ 447] align=JUSTIFY (3)                    style=Normal               | Модерация в PandaPal устроена как многоуровневый конвейер: каждое сообщение проходит несколько ступеней проверки. Основн
+[ 448] align=JUSTIFY (3)                    style=Normal               | • moderation_service.py (~20 КБ) — основной сервис базовой модерации. Содержит словари запрещённых паттернов, регулярные
+[ 449] align=JUSTIFY (3)                    style=Normal               | • advanced_moderation.py (~21 КБ) — расширенная модерация. Анализирует контекст сообщения, выявляет попытки обхода фильт
+[ 450] align=JUSTIFY (3)                    style=Normal               | • ai_moderator.py (~2.4 КБ) — AI-модерация. Использует YandexGPT для семантического анализа сообщений, которые прошли пр
+[ 451] align=JUSTIFY (3)                    style=Normal               | • adult_topics_service.py (~7.4 КБ) — обработка чувствительных тем. Определяет вопросы на деликатные темы (здоровье, сем
+[ 452] align=JUSTIFY (3)                    style=Normal               | Результат модерации определяет дальнейшую обработку сообщения: допуск к AI-обработке, блокировка с уведомлением пользова
+[ 453] align=JUSTIFY (3)                    style=Normal               | 2.7. Образовательные игры и геймификация
+[ 454] align=JUSTIFY (3)                    style=Normal               | В PandaPal реализовано 5 образовательных игр, объединённых под брендом PandaPalGo:
+[ 455] align=JUSTIFY (3)                    style=Normal               | 1. «Моя панда» (тамагочи) — виртуальный питомец-панда, которого нужно кормить, укладывать спать, играть с ним. Состояние
+[ 456] align=JUSTIFY (3)                    style=Normal               | 2. Крестики-нолики (TicTacToe) — классическая игра с AI-противником. Реализация: TicTacToe.tsx (~10 КБ), серверная логик
+[ 457] align=JUSTIFY (3)                    style=Normal               | 3. Шашки (Checkers) — стратегическая настольная игра с AI-противником, несколько уровней сложности. Реализация: Checkers
+[ 458] align=JUSTIFY (3)                    style=Normal               | 4. 2048 — числовая головоломка, развивающая логическое мышление. Реализация: Game2048.tsx (~16 КБ).
+[ 459] align=JUSTIFY (3)                    style=Normal               | 5. Эрудит (Erudite) — словесная игра, расширяющая словарный запас. Использует словарь из erudite_dictionary.py (~14 КБ).
+[ 460] align=JUSTIFY (3)                    style=Normal               | Серверная логика игр реализована в bot/services/games_service/ и bot/services/game_engines/, а API-эндпоинты — в bot/api
+[ 461] align=JUSTIFY (3)                    style=Normal               | Система геймификации (gamification_service.py, ~31 КБ) управляет:
+[ 462] align=JUSTIFY (3)                    style=Normal               | • Начислением XP за различные действия (сообщения, решённые задачи, победы в играх).
+[ 463] align=JUSTIFY (3)                    style=Normal               | • Разблокировкой достижений при достижении определённых условий.
+[ 464] align=JUSTIFY (3)                    style=Normal               | • Расчётом уровня пользователя на основе накопленного XP.
+[ 465] align=JUSTIFY (3)                    style=Normal               | • Формированием статистики прогресса для отображения на дашборде.
+[ 466] align=JUSTIFY (3)                    style=Normal               | 2.8. Premium-подписка и платёжная система
+[ 467] align=JUSTIFY (3)                    style=Normal               | PandaPal предлагает Premium-подписку стоимостью 299 ₽/месяц, расширяющую возможности платформы: неограниченное количеств
+[ 468] align=JUSTIFY (3)                    style=Normal               | Интеграция с платёжной системой YooKassa реализована через несколько модулей:
+[ 469] align=JUSTIFY (3)                    style=Normal               | • payment_service.py (~19 КБ) — основной сервис обработки платежей. Создание платёжных ссылок, обработка webhook-уведомл
+[ 470] align=JUSTIFY (3)                    style=Normal               | • subscription_service.py (~11 КБ) — управление подписками. Активация, продление, отмена подписки, проверка статуса.
+[ 471] align=JUSTIFY (3)                    style=Normal               | • recurring_payment_service.py (~7 КБ) — автоматическое продление подписки через сохранённые платёжные методы.
+[ 472] align=JUSTIFY (3)                    style=Normal               | • premium_features_service.py (~20 КБ) — логика Premium-функций. Определение доступного функционала в зависимости от ста
+[ 473] align=JUSTIFY (3)                    style=Normal               | • premium_endpoints.py (~32 КБ) — REST API для работы с Premium из Mini App.
+[ 474] align=JUSTIFY (3)                    style=Normal               | Дополнительно реализована реферальная программа (referral_service.py): преподаватели и партнёры получают персональную сс
+[ 475] align=JUSTIFY (3)                    style=Normal               | 2.9. Развёртывание и обеспечение непрерывной доставки
+[ 476] align=JUSTIFY (3)                    style=Normal               | Платформа PandaPal развёрнута в продуктивной среде на платформе Railway — PaaS-решении, поддерживающем контейнеризацию ч
+[ 477] align=JUSTIFY (3)                    style=Normal               | Контейнеризация и Dockerfile. Серверная часть упакована в Docker-контейнер на основе образа python:3.13-slim. Dockerfile
+[ 478] align=JUSTIFY (3)                    style=Normal               | Конвейер CI/CD реализован через GitHub Actions и включает следующие этапы:
+[ 479] align=JUSTIFY (3)                    style=Normal               | 1. Линтинг и статический анализ. При каждом push и pull request автоматически запускаются проверки: ESLint и TypeScript
+[ 480] align=JUSTIFY (3)                    style=Normal               | 2. Автоматизированное тестирование. Запускаются unit-тесты и интеграционные тесты с генерацией отчёта о покрытии кода.
+[ 481] align=JUSTIFY (3)                    style=Normal               | 3. Сборка и деплой. При слиянии в ветку main Railway автоматически собирает Docker-образ и развёртывает новую версию с н
+[ 482] align=JUSTIFY (3)                    style=Normal               | Управление конфигурацией. Все секреты (API-ключи Yandex Cloud, токен Telegram-бота, реквизиты YooKassa) хранятся в перем
+[ 483] align=JUSTIFY (3)                    style=Normal               | Инфраструктура доставки контента. Домен pandapal.ru обслуживается через Cloudflare, который предоставляет:
+[ 484] align=JUSTIFY (3)                    style=Normal               | • DNS-управление с проксированием трафика через CDN;
+[ 485] align=JUSTIFY (3)                    style=Normal               | • автоматический SSL-сертификат (TLS 1.3) для всех соединений;
+[ 486] align=JUSTIFY (3)                    style=Normal               | • кэширование статических ресурсов фронтенда (JS, CSS, изображения) на edge-серверах;
+[ 487] align=JUSTIFY (3)                    style=Normal               | • защиту от DDoS-атак на сетевом уровне.
+[ 488] align=JUSTIFY (3)                    style=Normal               | Мониторинг и логирование. Модуль bot/monitoring/ обеспечивает:
+[ 489] align=JUSTIFY (3)                    style=Normal               | • структурированное логирование всех операций через structlog с выводом в формате JSON;
+[ 490] align=JUSTIFY (3)                    style=Normal               | • отслеживание аномалий в использовании платформы (резкое увеличение запросов, нетипичные паттерны обращений);
+[ 491] align=JUSTIFY (3)                    style=Normal               | • метрики производительности: время ответа API, количество ошибок, использование ресурсов.
+[ 492] align=JUSTIFY (3)                    style=Normal               | Railway предоставляет встроенные инструменты мониторинга: логи в реальном времени, отслеживание потребления CPU и памяти
+[ 493] align=None                           style=Normal               |
+[ 494] align=CENTER (1)                     style=Normal               | ГЛАВА 3. ИССЛЕДОВАТЕЛЬСКАЯ ЧАСТЬ: ТЕСТИРОВАНИЕ, АНАЛИЗ И РЕЗУЛЬТАТЫ
+[ 495] align=JUSTIFY (3)                    style=Normal               | 3.1. Стратегия тестирования и виды тестов
+[ 496] align=JUSTIFY (3)                    style=Normal               | Тестирование PandaPal организовано по многоуровневой стратегии, включающей 6 категорий тестов:
+[ 497] align=JUSTIFY (3)                    style=Normal               | 1. Unit-тесты — изолированное тестирование отдельных функций и методов. Проверяют корректность логики модерации, формиро
+[ 498] align=JUSTIFY (3)                    style=Normal               | 2. Интеграционные тесты — проверка корректного взаимодействия между модулями: связка AI-сервис ↔ модерация ↔ база данных
+[ 499] align=JUSTIFY (3)                    style=Normal               | 3. End-to-end (e2e) тесты — полные сценарии пользовательского взаимодействия. Для фронтенда используется Playwright, для
+[ 500] align=JUSTIFY (3)                    style=Normal               | 4. Security-тесты — проверка безопасности: SQL-инъекции, XSS, CSRF, валидация Telegram Init Data, корректность rate limi
+[ 501] align=JUSTIFY (3)                    style=Normal               | 5. Resilience-тесты — проверка отказоустойчивости: поведение при недоступности внешних сервисов (Yandex Cloud, Redis), к
+[ 502] align=JUSTIFY (3)                    style=Normal               | 6. Performance-тесты — нагрузочное тестирование: время ответа API, пропускная способность, потребление памяти.
+[ 503] align=JUSTIFY (3)                    style=Normal               | Тесты расположены в каталоге tests/ с соответствующими подкаталогами. Конфигурация тестов описана в pytest.ini и pyproje
+[ 504] align=JUSTIFY (3)                    style=Normal               | 3.2. Результаты нагрузочного и интеграционного тестирования
+[ 505] align=JUSTIFY (3)                    style=Normal               | В ходе тестирования были получены следующие результаты (Таблица 2).
+[ 506] align=JUSTIFY (3)                    style=Normal               [TBL_CAPTION] | Таблица 2 — Результаты нагрузочного тестирования
+[ 507] align=JUSTIFY (3)                    style=Normal               | Интеграционные тесты подтверждают корректную работу полного цикла: от получения сообщения пользователя до отправки AI-от
+[ 508] align=JUSTIFY (3)                    style=Normal               | 3.3. Анализ безопасности платформы
+[ 509] align=JUSTIFY (3)                    style=Normal               | Безопасность PandaPal обеспечивается на нескольких уровнях:
+[ 510] align=JUSTIFY (3)                    style=Normal               | 1. Аутентификация и авторизация:
+[ 511] align=JUSTIFY (3)                    style=Normal               | • Все защищённые API-эндпоинты валидируют заголовок X-Telegram-Init-Data, содержащий криптографически подписанные данные
+[ 512] align=JUSTIFY (3)                    style=Normal               | • Проверка владельца ресурса: пользователь может получить доступ только к своим данным (профиль, история, прогресс).
+[ 513] align=JUSTIFY (3)                    style=Normal               | 2. Защита от инъекций:
+[ 514] align=JUSTIFY (3)                    style=Normal               | • SQLAlchemy ORM с параметризованными запросами исключает SQL-инъекции.
+[ 515] align=JUSTIFY (3)                    style=Normal               | • Pydantic v2 валидация входных данных предотвращает передачу некорректных типов данных.
+[ 516] align=JUSTIFY (3)                    style=Normal               | • Автоматическое экранирование пользовательского ввода в промптах.
+[ 517] align=JUSTIFY (3)                    style=Normal               | 3. Rate Limiting:
+[ 518] align=JUSTIFY (3)                    style=Normal               | • Все API-эндпоинты защищены лимитами на количество запросов в единицу времени.
+[ 519] align=JUSTIFY (3)                    style=Normal               | • Реализация через Redis обеспечивает распределённый rate limiting.
+[ 520] align=JUSTIFY (3)                    style=Normal               | 4. Мониторинг:
+[ 521] align=JUSTIFY (3)                    style=Normal               | • Модуль bot/monitoring/ отслеживает аномалии в использовании платформы.
+[ 522] align=JUSTIFY (3)                    style=Normal               | • Логирование всех операций через структурированный logger (не print).
+[ 523] align=JUSTIFY (3)                    style=Normal               | Результаты security-тестов не выявили критических уязвимостей. Дополнительно проведён статический анализ кода с помощью
+[ 524] align=JUSTIFY (3)                    style=Normal               | 3.4. Визуализация архитектуры и потоков данных
+[ 525] align=JUSTIFY (3)                    style=Normal               | Общая архитектура системы может быть представлена в виде следующей диаграммы:
+[ 526] align=None                           style=Normal               [BOX] | ┌─────────────────────────────────────────────────────┐
+[ 527] align=None                           style=Normal               [BOX] | │                    КЛИЕНТЫ                          │
+[ 528] align=None                           style=Normal               [BOX] | │                                                     │
+[ 529] align=None                           style=Normal               [BOX] | │  ┌──────────────┐  ┌──────────────┐  ┌───────────┐  │
+[ 530] align=None                           style=Normal               [BOX] | │  │ Telegram Bot │  │ Mini App     │  │ Веб-сайт  │  │
+[ 531] align=None                           style=Normal               [BOX] | │  │ (aiogram)    │  │ (React/TS)   │  │pandapal.ru│  │
+[ 532] align=None                           style=Normal               [BOX] | │  └──────┬───────┘  └──────┬───────┘  └─────┬─────┘  │
+[ 533] align=None                           style=Normal               [BOX] | └─────────┼─────────────────┼────────────────┼────────┘
+[ 534] align=None                           style=Normal               [BOX] |           │                 │                │
+[ 535] align=None                           style=Normal               [BOX] |           └────────────┬────┘────────────────┘
+[ 536] align=CENTER (1)                     style=Normal               [FIG_CAPTION] | Рисунок 2 — Архитектура и потоки данных
+[ 537] align=None                           style=Normal               |                                                    ↓
+[ 538] align=None                           style=Normal               [BOX] | ┌──────────────────────────────────────────────────────┐
+[ 539] align=None                           style=Normal               [BOX] | │               СЕРВЕРНЫЙ СЛОЙ                         │
+[ 540] align=None                           style=Normal               [BOX] | │                                                      │
+[ 541] align=None                           style=Normal               [BOX] | │  ┌─────────────────────────────────────────────────┐ │
+[ 542] align=None                           style=Normal               [BOX] | │  │              web_server.py                      │ │
+[ 543] align=None                           style=Normal               [BOX] | │  │  ┌──────────┐  ┌──────────┐   ┌───────────────┐ │ │
+[ 544] align=None                           style=Normal               [BOX] |               │  │  │Middleware │→│ Handlers │→  │   Services    │ │ │
+[ 545] align=None                           style=Normal               [BOX] | │  │  │(auth,rate)│ │(text,voice│  │(AI,RAG,Games) │ │ │
+[ 546] align=None                           style=Normal               [BOX] | │  │  └──────────┘  │ photo,doc)│  └───────────────┘ │ │
+[ 547] align=None                           style=Normal               [BOX] | │  │                └──────────┘                     │ │
+[ 548] align=None                           style=Normal               [BOX] | │  └─────────────────────────────────────────────────┘ │
+[ 549] align=None                           style=Normal               [BOX] | └──────────────────────┬───────────────────────────────┘
+[ 550] align=None                           style=Normal               |                                                    ↓
+[ 551] align=None                           style=Normal               [BOX] | ┌──────────────────────────────────────────────────────┐
+[ 552] align=None                           style=Normal               [BOX] | │               СЛОЙ ДАННЫХ И ИНТЕГРАЦИЙ               │
+[ 553] align=None                           style=Normal               [BOX] | │                                                      │
+[ 554] align=None                           style=Normal               [BOX] | │  ┌────────────┐ ┌───────┐ ┌──────────┐ ┌─────────┐   │
+[ 555] align=None                           style=Normal               [BOX] | │  │PostgreSQL  │ │Redis  │ │Yandex    │ │YooKassa │   │
+[ 556] align=None                           style=Normal               [BOX] | │  │+ pgvector  │ │Cache  │ │Cloud APIs│ │Payments │   │
+[ 557] align=None                           style=Normal               [BOX] | │  └────────────┘ └───────┘ └──────────┘ └─────────┘   │
+[ 558] align=None                           style=Normal               [BOX] | └──────────────────────────────────────────────────────┘
+[ 559] align=JUSTIFY (3)                    style=Normal               | 3.5. Итоговый анализ и перспективы развития
+[ 560] align=JUSTIFY (3)                    style=Normal               | Текущее состояние платформы можно охарактеризовать следующим образом:
+[ 561] align=JUSTIFY (3)                    style=Normal               | Весь запланированный функционал реализован в полном объёме. Платформа включает AI-чат с адаптацией по возрасту и классу
+[ 562] align=JUSTIFY (3)                    style=Normal               | Перспективы развития:
+[ 563] align=JUSTIFY (3)                    style=Normal               | • Расширение базы знаний RAG дополнительными учебными материалами.
+[ 564] align=JUSTIFY (3)                    style=Normal               | • Добавление новых образовательных игр и викторин.
+[ 565] align=JUSTIFY (3)                    style=Normal               | • Реализация функционала для роли «Учитель»: создание заданий, мониторинг класса.
+[ 566] align=JUSTIFY (3)                    style=Normal               | • Разработка родительского контроля: отчёты об активности ребёнка.
+[ 567] align=JUSTIFY (3)                    style=Normal               | • Внедрение аналитики обучения на основе AI: рекомендации по темам, требующим дополнительного изучения.
+[ 568] align=JUSTIFY (3)                    style=Normal               | • Мультиязычная поддержка через Yandex Translate API.
+[ 569] align=JUSTIFY (3)                    style=Normal               | 3.6. Сравнительный анализ с существующими образовательными платформами
+[ 570] align=JUSTIFY (3)                    style=Normal               | Для объективной оценки разработанной платформы проведён сравнительный анализ PandaPal с пятью существующими образователь
+[ 571] align=JUSTIFY (3)                    style=Normal               |
+[ 572] align=JUSTIFY (3)                    style=Normal               [TBL_CAPTION] | Таблица 3 — Сравнительный анализ образовательных платформ
+[ 573] align=JUSTIFY (3)                    style=Normal               |
+[ 574] align=JUSTIFY (3)                    style=Normal               | Сравнительный анализ показывает, что PandaPal превосходит рассмотренные аналоги по совокупности критериев. Ни одна из су
+[ 575] align=JUSTIFY (3)                    style=Normal               | Уникальным преимуществом PandaPal является размещение непосредственно в Telegram — привычной среде общения для целевой а
+[ 576] align=None                           style=Normal               |
+[ 577] align=CENTER (1)                     style=Normal               | ЗАКЛЮЧЕНИЕ
+[ 578] align=JUSTIFY (3)                    style=Normal               | В рамках проекта разработана и запущена в продуктивной среде образовательная платформа PandaPal — AI-помощник для школьн
+[ 579] align=JUSTIFY (3)                    style=Normal               | По итогам работы можно сделать следующие выводы:
+[ 580] align=JUSTIFY (3)                    style=Normal               | 1. Клиент-серверная архитектура с модульной структурой сервисов подтвердила свою состоятельность: проект легко расширяет
+[ 581] align=JUSTIFY (3)                    style=Normal               | 2. YandexGPT Pro генерирует ответы высокого качества, а адаптация промптов под возраст и класс делает их понятными для у
+[ 582] align=JUSTIFY (3)                    style=Normal               | 3. RAG-пайплайн с pgvector снижает количество галлюцинаций: модель ссылается на проверенные источники из базы знаний, а
+[ 583] align=JUSTIFY (3)                    style=Normal               | 4. Четыре уровня модерации — от регулярных выражений до AI-анализа — формируют надёжный барьер, не пропускающий нежелате
+[ 584] align=JUSTIFY (3)                    style=Normal               | 5. Достижения, игры и виртуальный питомец «Моя панда» формируют привычку ежедневно заходить на платформу, что подтвержда
+[ 585] align=JUSTIFY (3)                    style=Normal               | 6. Шесть категорий автоматизированных тестов (unit, integration, e2e, security, resilience, performance) покрывают основ
+[ 586] align=JUSTIFY (3)                    style=Normal               | 7. Платформа развёрнута на Railway с CDN Cloudflare и доступна по адресу https://pandapal.ru (бот — @PandaPalBot). Систе
+[ 587] align=JUSTIFY (3)                    style=Normal               | Поставленная цель — создание образовательной платформы с AI для школьников — достигнута. PandaPal на практике демонстрир
+[ 588] align=None                           style=Normal               |
+[ 589] align=CENTER (1)                     style=Normal               | ПРИЛОЖЕНИЯ
+[ 590] align=JUSTIFY (3)                    style=Normal               [APPENDIX, SCHEMA] | Приложение А. Схема базы данных (ER-диаграмма)
+[ 591] align=JUSTIFY (3)                    style=Normal               | База данных PandaPal содержит 14 ORM-моделей, связанных внешними ключами. Ниже представлена упрощённая ER-диаграмма.
+[ 592] align=None                           style=Normal               [BOX] |                               ┌──────────────────┐
+[ 593] align=None                           style=Normal               [BOX] |                               │      users       │
+[ 594] align=None                           style=Normal               [BOX] |                               │──────────────────│
+[ 595] align=None                           style=Normal               [BOX] |                               │ telegram_id (PK) │
+[ 596] align=None                           style=Normal               [BOX] |                               └────────┬─────────┘
+[ 597] align=None                           style=Normal               [BOX] |       ┌─────────────────┬──────────────┼──────────────┬─────────────────┐
+[ 598] align=None                           style=Normal               [BOX] |       │                 │              │              │                 │
+[ 599] align=None                           style=Normal               [BOX] |       ▼                 ▼              ▼              ▼                 ▼
+[ 600] align=None                           style=Normal               [BOX] | ┌───────────┐     ┌───────────┐  ┌───────────┐  ┌───────────┐     ┌───────────┐
+[ 601] align=None                           style=Normal               [BOX] | │panda_pets │     │ referrals │  │chat_histor│  │ learning  │     │   games   │
+[ 602] align=None                           style=Normal               [BOX] | │───────────│     │───────────│  │───────────│  │───────────│     │───────────│
+[ 603] align=None                           style=Normal               [BOX] | │user_id(FK)│     │user_id(FK)│  │user_id(FK)│  │user_id(FK)│     │user_id(FK)│
+[ 604] align=None                           style=Normal               [BOX] | └───────────┘     └───────────┘  └───────────┘  └───────────┘     └───────────┘
+[ 605] align=None                           style=Normal               [BOX] |       │                 │              │              │                 │
+[ 606] align=None                           style=Normal               [BOX] |       ▼                 ▼              ▼              ▼                 ▼
+[ 607] align=None                           style=Normal               [BOX] | ┌───────────┐     ┌───────────┐  ┌───────────┐  ┌───────────┐     ┌───────────┐
+[ 608] align=None                           style=Normal               [BOX] | │ payments  │     │ payouts   │  │   daily   │  │ homework  │     │game_stats │
+[ 609] align=None                           style=Normal               [BOX] | │───────────│     │───────────│  │───────────│  │───────────│     │───────────│
+[ 610] align=None                           style=Normal               [BOX] | │user_id(FK)│     │user_id(FK)│  │user_id(FK)│  │user_id(FK)│     │user_id(FK)│
+[ 611] align=None                           style=Normal               [BOX] | └───────────┘     └───────────┘  └───────────┘  └───────────┘     └───────────┘
+[ 612] align=None                           style=Normal               [BOX] |       │                 │
+[ 613] align=None                           style=Normal               [BOX] |       ▼                 ▼
+[ 614] align=None                           style=Normal               [BOX] | ┌───────────┐     ┌───────────┐
+[ 615] align=None                           style=Normal               [BOX] | │ subs      │     │ analytics │
+[ 616] align=None                           style=Normal               [BOX] | │───────────│     │───────────│
+[ 617] align=None                           style=Normal               [BOX] | │user_id(FK)│     │user_id(FK)│
+[ 618] align=None                           style=Normal               [BOX] | └───────────┘     └───────────┘
+[ 619] align=CENTER (1)                     style=Normal               [FIG_CAPTION] | Рисунок 3 — ER-диаграмма базы данных
+[ 620] align=JUSTIFY (3)                    style=Normal               [APPENDIX, SCHEMA] | Приложение Б. Схема развёртывания платформы
+[ 621] align=None                           style=Normal               [BOX] | ┌───────────────────────────────────────────────────────────────┐
+[ 622] align=None                           style=Normal               [BOX] | │                        ИНТЕРНЕТ                               │
+[ 623] align=None                           style=Normal               [BOX] | │                                                               │
+[ 624] align=None                           style=Normal               [BOX] | │   Пользователи ──► Cloudflare (DNS, SSL, CDN, DDoS-защита)    │
+[ 625] align=None                           style=Normal               [BOX] | │                           │                                   │
+[ 626] align=None                           style=Normal               [BOX] | │                    ┌──────┴──────┐                            │
+[ 627] align=None                           style=Normal               [BOX] | │                    │ pandapal.ru │                            │
+[ 628] align=None                           style=Normal               [BOX] | │                    └──────┬──────┘                            │
+[ 629] align=None                           style=Normal               [BOX] | │                           │                                   │
+[ 630] align=None                           style=Normal               [BOX] | │   ┌───────────────────────┼───────────────────────────────┐   │
+[ 631] align=None                           style=Normal               [BOX] | │   │               RAILWAY (PaaS)                          │   │
+[ 632] align=None                           style=Normal               [BOX] | │   │                       │                               │   │
+[ 633] align=None                           style=Normal               [BOX] | │   │  ┌────────────────────┴────────────────────┐          │   │
+[ 634] align=None                           style=Normal               [BOX] | │   │  │          Docker-контейнер               │          │   │
+[ 635] align=None                           style=Normal               [BOX] | │   │  │    web_server.py (aiogram + aiohttp)    │          │   │
+[ 636] align=None                           style=Normal               [BOX] | │   │  └────────────────────┬────────────────────┘          │   │
+[ 637] align=None                           style=Normal               [BOX] | │   │                       │                               │   │
+[ 638] align=None                           style=Normal               [BOX] | │   │  ┌──────────────┐  ┌──┴─────────────┐                 │   │
+[ 639] align=None                           style=Normal               [BOX] | │   │  │ PostgreSQL 17│  │ Upstash Redis  │                 │   │
+[ 640] align=None                           style=Normal               [BOX] | │   │  │ + pgvector   │  │ (кэш, сессии)  │                 │   │
+[ 641] align=None                           style=Normal               [BOX] | │   │  └──────────────┘  └────────────────┘                 │   │
+[ 642] align=None                           style=Normal               [BOX] | │   └───────────────────────────────────────────────────────┘   │
+[ 643] align=None                           style=Normal               [BOX] | │                       │                                       │
+[ 644] align=None                           style=Normal               [BOX] | │   ┌───────────────────┼────────────────────────────────────┐  │
+[ 645] align=None                           style=Normal               [BOX] | │   │           ВНЕШНИЕ СЕРВИСЫ                              │  │
+[ 646] align=None                           style=Normal               [BOX] | │   │  ┌────────────┐ ┌──────────┐ ┌────────┐ ┌──────────┐   │  │
+[ 647] align=None                           style=Normal               [BOX] | │   │  │Yandex Cloud│ │ Telegram │ │YooKassa│ │  GitHub  │   │  │
+[ 648] align=None                           style=Normal               [BOX] | │   │  │GPT,STT,OCR │ │ Bot API  │ │Платежи │ │  Actions │   │  │
+[ 649] align=None                           style=Normal               [BOX] | │   │  └────────────┘ └──────────┘ └────────┘ └──────────┘   │  │
+[ 650] align=None                           style=Normal               [BOX] | │   └────────────────────────────────────────────────────────┘  │
+[ 651] align=None                           style=Normal               [BOX] | └───────────────────────────────────────────────────────────────┘
+[ 652] align=CENTER (1)                     style=Normal               [FIG_CAPTION, SCHEMA] | Рисунок 4 — Схема развёртывания платформы
+[ 653] align=JUSTIFY (3)                    style=Normal               [APPENDIX] | Приложение В. Описание интерфейса платформы
+[ 654] align=JUSTIFY (3)                    style=Normal               | Интерфейс PandaPal реализован как одностраничное приложение (SPA) с адаптивным дизайном для мобильных устройств. Основны
+[ 655] align=JUSTIFY (3)                    style=Normal               | 1. Главный экран (Dashboard) — отображает приветствие, быстрые действия (начать чат, открыть игры), прогресс по предмета
+[ 656] align=JUSTIFY (3)                    style=Normal               | 2. AI-чат — полноэкранный чат с поддержкой Markdown-форматирования, LaTeX-формул, подсветки кода, прикрепления фотографи
+[ 657] align=JUSTIFY (3)                    style=Normal               | 3. PandaPalGo (Игры) — карусель карточек с пятью играми. Каждая игра открывается на отдельном экране с анимированным инт
+[ 658] align=JUSTIFY (3)                    style=Normal               | 4. Моя панда — экран виртуального питомца с индикаторами настроения, сытости и энергии, кнопками действий (кормить, игра
+[ 659] align=JUSTIFY (3)                    style=Normal               | 5. Достижения — список разблокированных и заблокированных бейджей с прогресс-барами.
+[ 660] align=JUSTIFY (3)                    style=Normal               | 6. Premium — страница с описанием преимуществ подписки и кнопкой оплаты через YooKassa.
+[ 661] align=JUSTIFY (3)                    style=Normal               [APPENDIX] | Приложение Г. Фрагменты ключевого кода
+[ 662] align=JUSTIFY (3)                    style=Normal               | Пример конфигурации системного промпта с адаптацией по возрасту (prompt_builder.py, упрощённо):
+[ 663] align=None                           style=Normal               | def build_system_prompt(user_age: int, user_grade: int, subject: str) -> str:
+[ 664] align=None                           style=Normal               |     """Формирует системный промпт с учётом возраста ученика."""
+[ 665] align=None                           style=Normal               |     if user_grade <= 4:
+[ 666] align=None                           style=Normal               |         style = "простым языком, с примерами из жизни, короткими предложениями"
+[ 667] align=None                           style=Normal               |         emoji_policy = "используй эмодзи для наглядности"
+[ 668] align=None                           style=Normal               |     elif user_grade <= 7:
+[ 669] align=None                           style=Normal               |         style = "понятным языком, с определениями терминов"
+[ 670] align=None                           style=Normal               |         emoji_policy = "эмодзи допустимы, но умеренно"
+[ 671] align=None                           style=Normal               |     else:
+[ 672] align=None                           style=Normal               |         style = "академическим языком с научными терминами"
+[ 673] align=None                           style=Normal               |         emoji_policy = "минимум эмодзи, фокус на точности"
+[ 674] align=None                           style=Normal               |
+[ 675] align=None                           style=Normal               |     return f"""Ты — PandaPal, дружелюбный AI-помощник для школьника {user_grade} класса.
+[ 676] align=None                           style=Normal               | Объясняй {style}. {emoji_policy}.
+[ 677] align=None                           style=Normal               | Предмет: {subject}.
+[ 678] align=None                           style=Normal               | ЗАПРЕЩЕНО: давать готовые ответы на задачи, обсуждать темы не по возрасту.
+[ 679] align=None                           style=Normal               | Направляй ученика к самостоятельному решению через наводящие вопросы."""
+[ 680] align=None                           style=Normal               |
+[ 681] align=JUSTIFY (3)                    style=Normal               | Пример многоуровневой модерации (moderation_service.py, упрощённо):
+[ 682] align=None                           style=Normal               | async def moderate_message(text: str, user_age: int) -> ModerationResult:
+[ 683] align=None                           style=Normal               |     """Проверяет сообщение на всех уровнях модерации."""
+[ 684] align=None                           style=Normal               |     # Уровень 1: Фильтрация запрещённых паттернов
+[ 685] align=None                           style=Normal               |     if forbidden_patterns_check(text):
+[ 686] align=None                           style=Normal               |         return ModerationResult(allowed=False, reason="forbidden_pattern")
+[ 687] align=None                           style=Normal               |
+[ 688] align=None                           style=Normal               |     # Уровень 2: Расширенная модерация (обход фильтров)
+[ 689] align=None                           style=Normal               |     if advanced_moderation_check(text):
+[ 690] align=None                           style=Normal               |         return ModerationResult(allowed=False, reason="filter_bypass")
+[ 691] align=None                           style=Normal               |
+[ 692] align=None                           style=Normal               |     # Уровень 3: AI-модерация (семантический анализ)
+[ 693] align=None                           style=Normal               |     ai_result = await ai_moderator.check(text, user_age)
+[ 694] align=None                           style=Normal               |     if not ai_result.is_safe:
+[ 695] align=None                           style=Normal               |         return ModerationResult(allowed=False, reason="ai_moderation")
+[ 696] align=None                           style=Normal               |
+[ 697] align=None                           style=Normal               |     # Уровень 4: Проверка чувствительных тем
+[ 698] align=None                           style=Normal               |     adult_topic = adult_topics_service.classify(text)
+[ 699] align=None                           style=Normal               |     if adult_topic:
+[ 700] align=None                           style=Normal               |         return ModerationResult(allowed=True, adult_topic=adult_topic)
+[ 701] align=None                           style=Normal               |
+[ 702] align=None                           style=Normal               |     return ModerationResult(allowed=True)
+[ 703] align=None                           style=Normal               |
+[ 704] align=CENTER (1)                     style=Normal               | СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ
+[ 705] align=JUSTIFY (3)                    style=Normal               | Нормативные правовые акты
+[ 706] align=JUSTIFY (3)                    style=Normal               | 1. Федеральный закон от 29.12.2010 № 436-ФЗ «О защите детей от информации, причиняющей вред их здоровью и развитию» (ред
+[ 707] align=JUSTIFY (3)                    style=Normal               | Книги
+[ 708] align=JUSTIFY (3)                    style=Normal               | 2. Лутц М. Изучаем Python / М. Лутц. — 5-е изд. — М. : Вильямс, 2020. — 1280 с.
+[ 709] align=JUSTIFY (3)                    style=Normal               | 3. Грингаус А. Чистый Python. Тонкости программирования для профи / А. Грингаус. — СПб. : Питер, 2019. — 288 с.
+[ 710] align=JUSTIFY (3)                    style=Normal               | 4. Суэйгарт Э. Автоматизация рутинных задач с помощью Python / Э. Суэйгарт. — М. : Вильямс, 2021. — 672 с.
+[ 711] align=JUSTIFY (3)                    style=Normal               | 5. Гринберг М. Разработка веб-приложений с использованием Flask на языке Python / М. Гринберг. — М. : ДМК Пресс, 2020. —
+[ 712] align=JUSTIFY (3)                    style=Normal               | 6. Фаулер М. Архитектура корпоративных программных приложений / М. Фаулер. — М. : Вильямс, 2018. — 544 с.
+[ 713] align=JUSTIFY (3)                    style=Normal               | Статьи из периодических изданий и сборников
+[ 714] align=JUSTIFY (3)                    style=Normal               | 7. Суздалева Г. Р., Соснина П. О. Чат-бот как инструмент цифровизации в высшем образовании / Г. Р. Суздалева, П. О. Сосн
+[ 715] align=JUSTIFY (3)                    style=Normal               | 8. Долженкова М. А. Использование чат-ботов в образовательной деятельности / М. А. Долженкова. — Текст : электронный //
+[ 716] align=JUSTIFY (3)                    style=Normal               | 9. Кречетова А. В. и др. Геймификация как инструмент повышения мотивации обучающихся / А. В. Кречетова, О. Н. Михайлова,
+[ 717] align=JUSTIFY (3)                    style=Normal               | 10. Кошелева Е. А. Геймификация в образовании: перспективы развития / Е. А. Кошелева. — Текст : электронный // КиберЛени
+[ 718] align=JUSTIFY (3)                    style=Normal               | Иностранные источники
+[ 719] align=JUSTIFY (3)                    style=Normal               | 11. Lewis P. et al. Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks / P. Lewis, E. Perez, A. Piktus [et
+[ 720] align=JUSTIFY (3)                    style=Normal               | 12. Deterding S. et al. From Game Design Elements to Gamefulness: Defining Gamification / S. Deterding, D. Dixon, R. Kha
+[ 721] align=JUSTIFY (3)                    style=Normal               | 13. Zawacki-Richter O. et al. Systematic Review of Research on Artificial Intelligence Applications in Higher Education
+[ 722] align=JUSTIFY (3)                    style=Normal               | 14. Hwang G.-J., Chang C.-Y. A Review of Opportunities and Challenges of Chatbots in Education / G.-J. Hwang, C.-Y. Chan
+[ 723] align=JUSTIFY (3)                    style=Normal               | 15. Sailer M., Homner L. The Gamification of Learning: A Meta-analysis / M. Sailer, L. Homner // Educational Psychology
+[ 724] align=JUSTIFY (3)                    style=Normal               | 16. UNESCO. AI and Education: Guidance for Policy-makers / UNESCO. — Paris : UNESCO Publishing, 2021. — 45 p.
+[ 725] align=JUSTIFY (3)                    style=Normal               | Электронные ресурсы
+[ 726] align=JUSTIFY (3)                    style=Normal               | 17. Документация aiogram 3 [Электронный ресурс]. — Режим доступа: https://docs.aiogram.dev/en/latest/ (дата обращения: 1
+[ 727] align=JUSTIFY (3)                    style=Normal               | 18. Документация SQLAlchemy 2.0 [Электронный ресурс]. — Режим доступа: https://docs.sqlalchemy.org/en/20/ (дата обращени
+[ 728] align=JUSTIFY (3)                    style=Normal               | 19. Документация React 19 [Электронный ресурс]. — Режим доступа: https://react.dev/ (дата обращения: 10.02.2026).
+[ 729] align=JUSTIFY (3)                    style=Normal               | 20. Документация TypeScript [Электронный ресурс]. — Режим доступа: https://www.typescriptlang.org/docs/ (дата обращения:
+[ 730] align=JUSTIFY (3)                    style=Normal               | 21. Документация Telegram Bot API [Электронный ресурс]. — Режим доступа: https://core.telegram.org/bots/api (дата обраще
+[ 731] align=JUSTIFY (3)                    style=Normal               | 22. Документация Telegram Mini App [Электронный ресурс]. — Режим доступа: https://core.telegram.org/bots/webapps (дата о
+[ 732] align=JUSTIFY (3)                    style=Normal               | 23. Документация YandexGPT API [Электронный ресурс]. — Режим доступа: https://yandex.cloud/ru/docs/foundation-models/con
+[ 733] align=JUSTIFY (3)                    style=Normal               | 24. Документация Yandex SpeechKit [Электронный ресурс]. — Режим доступа: https://yandex.cloud/ru/docs/speechkit/ (дата о
+[ 734] align=JUSTIFY (3)                    style=Normal               | 25. Документация Yandex Vision OCR [Электронный ресурс]. — Режим доступа: https://yandex.cloud/ru/docs/vision/ (дата обр
+[ 735] align=JUSTIFY (3)                    style=Normal               | 26. pgvector: Open-source vector similarity search for PostgreSQL [Электронный ресурс]. — Режим доступа: https://github.
+[ 736] align=JUSTIFY (3)                    style=Normal               | 27. Документация PostgreSQL 17 [Электронный ресурс]. — Режим доступа: https://www.postgresql.org/docs/17/ (дата обращени
+[ 737] align=JUSTIFY (3)                    style=Normal               | 28. Документация Redis [Электронный ресурс]. — Режим доступа: https://redis.io/docs/ (дата обращения: 01.10.2025).
+[ 738] align=JUSTIFY (3)                    style=Normal               | 29. Документация YooKassa API [Электронный ресурс]. — Режим доступа: https://yookassa.ru/developers/ (дата обращения: 20
+[ 739] align=JUSTIFY (3)                    style=Normal               | 30. Документация Vite [Электронный ресурс]. — Режим доступа: https://vite.dev/guide/ (дата обращения: 10.02.2026).
+[ 740] align=JUSTIFY (3)                    style=Normal               | 31. Дети в интернете — 2024 : ежегодный отчёт [Электронный ресурс] / Лаборатория Касперского. — М., 2024. — Режим доступ
+[ 741] align=None                           style=Normal               |
+[ 742] align=CENTER (1)                     style=Normal               | ПРИЛОЖЕНИЕ А
+[ 743] align=CENTER (1)                     style=Normal               | (обязательное)
+[ 744] align=CENTER (1)                     style=Normal               [SCHEMA] | Схема базы данных (ERD)
+[ 745] align=None                           style=Normal               [TBL_CAPTION] | Таблица А.1 — Структура сущности USERS (Пользователи)
+[ 746] align=None                           style=Normal               [TBL_CAPTION] | Таблица 4 — Описание полей базы данных (часть 1)
+[ 747] align=None                           style=Normal               |
+[ 748] align=None                           style=Normal               [TBL_CAPTION] | Таблица А.2 — Структура сущности PANDA_PET (Тамагочи)
+[ 749] align=None                           style=Normal               [TBL_CAPTION] | Таблица 5 — Описание полей базы данных (часть 2)
+[ 750] align=None                           style=Normal               |
+[ 751] align=None                           style=Normal               [TBL_CAPTION] | Таблица А.3 — Структура сущности PAYMENTS (Платежи)
+[ 752] align=None                           style=Normal               [TBL_CAPTION] | Таблица 6 — Описание полей базы данных (часть 3)
+[ 753] align=None                           style=Normal               |
+[ 754] align=CENTER (1)                     style=Normal               | ПРИЛОЖЕНИЕ Б
+[ 755] align=CENTER (1)                     style=Normal               | (обязательное)
+[ 756] align=CENTER (1)                     style=Normal               | Архитектура программного комплекса
+[ 757] align=None                           style=Normal               | Архитектура системы построена по паттерну «Асинхронный микромонолит» и состоит из следующих слоев:\n\n1. КЛИЕНТСКИЙ СЛОЙ (
+
+--- BODY ELEMENTS WITH IMAGES ---
+
+--- INLINE SHAPES ---

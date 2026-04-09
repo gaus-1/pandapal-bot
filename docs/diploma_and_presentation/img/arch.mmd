@@ -1,0 +1,38 @@
+graph TB
+    subgraph Frontend [Клиентская часть]
+        TG[Telegram Client]
+        MAPP[Mini App React 19]
+        WEB[Web Landing]
+    end
+
+    subgraph Backend [Backend aiohttp + aiogram]
+        BOT[Tg Bot Webhook]
+        API[Fast API / aiohttp]
+        MOD[4-Layer AI Moderation]
+        RAG[RAG Engine]
+        GAME[Game & Pet Engine]
+    end
+
+    subgraph Data [Базы данных]
+        PG[(PostgreSQL + pgvector)]
+        REDIS[(Redis In-Memory)]
+    end
+
+    subgraph External [Внешние API]
+        YGPT[YandexGPT Pro]
+        YVIS[Yandex Vision OCR]
+        YOO[YooKassa Webhooks]
+    end
+
+    TG --> BOT
+    MAPP --> API
+    WEB --> API
+    BOT --> MOD
+    API --> MOD
+    MOD --> RAG
+    MOD --> GAME
+    RAG --> YGPT
+    RAG --> PG
+    GAME --> REDIS
+    API --> YVIS
+    API -.-> YOO
