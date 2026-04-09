@@ -159,6 +159,9 @@ class PandaPetService:
         if pet.total_played_count >= 10 and "ten_play" not in achievements:
             achievements["ten_play"] = True
             changed = True
+        if pet.last_slept_at is not None and "first_sleep" not in achievements:
+            achievements["first_sleep"] = True
+            changed = True
         if pet.consecutive_visit_days >= 7 and "week_visit" not in achievements:
             achievements["week_visit"] = True
             changed = True
