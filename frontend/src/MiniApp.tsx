@@ -251,7 +251,9 @@ function MiniAppContent() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-slate-800 overflow-hidden safe-area-inset-top">
+    <div className={`h-full flex flex-col bg-white dark:bg-slate-800 overflow-hidden ${
+      ["weba", "webk", "macos", "tdesktop", "web"].includes(telegram.getPlatform()) ? 'safe-area-inset-top' : ''
+    }`}>
       {/* Основной контент с Suspense для lazy loading */}
       <div className="flex-1 overflow-hidden">
         <Suspense fallback={<LoadingFallback />}>
