@@ -182,7 +182,7 @@ class TestPandaPetService:
 
             svc = PandaPetService(db)
             svc.feed(111222338)
-            with pytest.raises(ValueError, match="30 минут"):
+            with pytest.raises(ValueError, match="каждый час"):
                 svc.feed(111222338)
 
     def test_play_updates_mood_energy_and_cooldown(self):
@@ -205,7 +205,7 @@ class TestPandaPetService:
             assert state["energy"] == 40
             assert state["can_play"] is False
 
-            with pytest.raises(ValueError, match="раз в час"):
+            with pytest.raises(ValueError, match="4 часа"):
                 svc.play(111222339)
 
     def test_sleep_increases_energy_and_cooldown(self):
@@ -227,7 +227,7 @@ class TestPandaPetService:
             assert state["energy"] == 80
             assert state["can_sleep"] is False
 
-            with pytest.raises(ValueError, match="2 часа"):
+            with pytest.raises(ValueError, match="4 часа"):
                 svc.sleep(111222340)
 
     def test_feed_hunger_capped_at_100(self):
