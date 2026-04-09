@@ -687,7 +687,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               {actionLoading === 'feed' ? '...' : 'Покормить'}
             </button>
             <span className="min-h-[1.25rem] text-[10px] sm:text-xs text-gray-500 dark:text-slate-500 text-center leading-tight" aria-hidden="true">
-              {cooldown.feedInSec > 0 ? `через ${Math.ceil(cooldown.feedInSec / 60)} мин` : state.can_feed ? 'каждые 30 мин' : '\u00A0'}
+              {cooldown.feedInSec > 0 ? `через ${Math.ceil(cooldown.feedInSec / 60)} мин` : state.can_feed ? 'едят 12 ч/день' : '\u00A0'}
             </span>
           </div>
           <div className="flex flex-col items-center gap-0.5 min-w-0">
@@ -702,7 +702,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               {actionLoading === 'play' ? '...' : 'Играть'}
             </button>
             <span className="min-h-[1.25rem] text-[10px] sm:text-xs text-gray-500 dark:text-slate-500 text-center leading-tight" aria-hidden="true">
-              {cooldown.playInSec > 0 ? `через ${Math.ceil(cooldown.playInSec / 60)} мин` : '\u00A0'}
+              {cooldown.playInSec > 0 ? `через ${Math.ceil(cooldown.playInSec / 60)} мин` : state.can_play ? '1-2 ч/день' : '\u00A0'}
             </span>
           </div>
           <div className="flex flex-col items-center gap-0.5 min-w-0">
@@ -717,7 +717,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               {actionLoading === 'sleep' ? '...' : 'Спать'}
             </button>
             <span className="min-h-[1.25rem] text-[10px] sm:text-xs text-gray-500 dark:text-slate-500 text-center leading-tight" aria-hidden="true">
-              {cooldown.sleepInSec > 0 ? `через ${Math.ceil(cooldown.sleepInSec / 60)} мин` : '\u00A0'}
+              {cooldown.sleepInSec > 0 ? `через ${Math.ceil(cooldown.sleepInSec / 60)} мин` : state.can_sleep ? 'спят 10 ч/сутки' : '\u00A0'}
             </span>
           </div>
           {/* Ряд 2: На дерево, Упасть, В туалет */}
@@ -733,7 +733,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               {actionLoading === 'climb' ? '...' : 'На дерево'}
             </button>
             <span className="min-h-[1.25rem] text-[10px] sm:text-xs text-gray-500 dark:text-slate-500 text-center leading-tight" aria-hidden="true">
-              {cooldown.climbInSec > 0 ? `через ${Math.ceil(cooldown.climbInSec / 60)} мин` : (state.can_climb !== false ? 'раз в час' : '\u00A0')}
+              {cooldown.climbInSec > 0 ? `через ${Math.ceil(cooldown.climbInSec / 60)} мин` : (state.can_climb !== false ? '3 пика активности' : '\u00A0')}
             </span>
           </div>
           <div className="flex flex-col items-center gap-0.5 min-w-0">
@@ -748,7 +748,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               {actionLoading === 'fall' ? '...' : 'Упасть'}
             </button>
             <span className="min-h-[1.25rem] text-[10px] sm:text-xs text-gray-500 dark:text-slate-500 text-center leading-tight" aria-hidden="true">
-              {cooldown.fallInSec > 0 ? `через ${Math.ceil(cooldown.fallInSec / 60)} мин` : (state.can_fall !== false ? 'раз в час' : '\u00A0')}
+              {cooldown.fallInSec > 0 ? `через ${Math.ceil(cooldown.fallInSec / 60)} мин` : (state.can_fall !== false ? 'неуклюжие' : '\u00A0')}
             </span>
           </div>
           <div className="flex flex-col items-center gap-0.5 min-w-0">
@@ -763,7 +763,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
               {actionLoading === 'toilet' ? '...' : 'В туалет'}
             </button>
             <span className="min-h-[1.25rem] text-[10px] sm:text-xs text-gray-500 dark:text-slate-500 text-center leading-tight" aria-hidden="true">
-              {cooldown.toiletInSec > 0 ? `через ${Math.ceil(cooldown.toiletInSec / 60)} мин` : '\u00A0'}
+              {cooldown.toiletInSec > 0 ? `через ${Math.ceil(cooldown.toiletInSec / 60)} мин` : (state.can_toilet !== false ? 'до 40 раз в день' : '\u00A0')}
             </span>
           </div>
         </div>

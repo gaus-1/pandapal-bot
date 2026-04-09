@@ -176,8 +176,8 @@ export function TicTacToe({ sessionId, user, onBack, onGameEnd }: TicTacToeProps
 
       {/* Игровая доска */}
       <div className="flex-1 flex items-center justify-center px-fib-3 min-h-0">
-        <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1 w-full max-w-[220px] mx-auto border border-gray-200 dark:border-slate-600">
-          <div className="grid grid-cols-3 gap-0.5 w-full">
+        <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-1.5 w-full max-w-[280px] fold:max-w-[260px] xs:max-w-[320px] sm:max-w-[360px] md:max-w-[400px] mx-auto border border-gray-200 dark:border-slate-600 shadow-md">
+          <div className="grid grid-cols-3 gap-1 w-full">
             {Array.from({ length: 9 }).map((_, index) => {
               const content = getSquareContent(index);
               const isAiMove = aiMoveIndex === index;
@@ -190,7 +190,7 @@ export function TicTacToe({ sessionId, user, onBack, onGameEnd }: TicTacToeProps
                   onClick={() => handleSquareClick(index)}
                   disabled={!isEmpty || isLoading || gameOver}
                   className={`
-                    aspect-square rounded-md text-base font-bold
+                    aspect-square rounded-lg text-4xl fold:text-3xl xs:text-5xl sm:text-6xl md:text-7xl font-bold
                     flex items-center justify-center
                     transition-all duration-300 touch-manipulation
                     w-full

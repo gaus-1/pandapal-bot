@@ -31,16 +31,16 @@ def _as_datetime(value: datetime | str | None) -> datetime | None:
 
 
 # Лимиты и константы (один конфиг в сервисе)
-FEED_COOLDOWN_MINUTES = 30
+FEED_COOLDOWN_MINUTES = 60
 FEED_HUNGER_DELTA = 25
 PLAY_MOOD_DELTA = 20
 PLAY_ENERGY_COST = 10
 SLEEP_ENERGY_DELTA = 30
-MIN_PLAY_INTERVAL_MINUTES = 60
-MIN_SLEEP_INTERVAL_MINUTES = 120
-TOILET_COOLDOWN_MINUTES = 20
-CLIMB_COOLDOWN_MINUTES = 60
-FALL_COOLDOWN_MINUTES = 60
+MIN_PLAY_INTERVAL_MINUTES = 240
+MIN_SLEEP_INTERVAL_MINUTES = 240
+TOILET_COOLDOWN_MINUTES = 36
+CLIMB_COOLDOWN_MINUTES = 240
+FALL_COOLDOWN_MINUTES = 240
 ABSENCE_OFFENDED_HOURS = 24
 MOOD_OFFENDED_MAX = 65
 TOILET_MOOD_DELTA = 15
@@ -243,7 +243,7 @@ class PandaPetService:
         now = datetime.now(UTC)
 
         if not self._can_feed(pet, now):
-            raise ValueError("Кормить можно каждые 30 минут")
+            raise ValueError("Кормить можно каждый час (едят 12 ч/день)")
 
         # Деградация перед действием (корректный порядок с min/max capping)
         self._apply_decay(pet, now)
@@ -263,7 +263,7 @@ class PandaPetService:
         now = datetime.now(UTC)
 
         if not self._can_play(pet, now):
-            raise ValueError("Играть можно раз в час")
+            raise ValueError("Играть можно раз в 4 часа (1-2 ч/день активности)")
 
         self._apply_decay(pet, now)
         pet.last_opened_at = now
@@ -283,7 +283,7 @@ class PandaPetService:
         now = datetime.now(UTC)
 
         if not self._can_sleep(pet, now):
-            raise ValueError("Укладывать спать можно раз в 2 часа")
+            raise ValueError("Укладывать спать можно раз в 4 часа (спят 10 ч/сутки)")
 
         self._apply_decay(pet, now)
         pet.last_opened_at = now
@@ -300,7 +300,7 @@ class PandaPetService:
         pet = self.get_or_create(telegram_id)
         now = datetime.now(UTC)
         if not self._can_climb(pet, now):
-            raise ValueError("На дерево можно раз в час")
+            raise ValueError("На дерево можно раз в 4 часа (3 пика активности)")
         self._apply_decay(pet, now)
         pet.last_opened_at = now
         pet.mood = min(100, pet.mood + CLIMB_MOOD_DELTA)
@@ -314,7 +314,7 @@ class PandaPetService:
         pet = self.get_or_create(telegram_id)
         now = datetime.now(UTC)
         if not self._can_fall(pet, now):
-            raise ValueError("Упасть можно раз в час")
+            raise ValueError("Упасть можно раз в 4 часа (3 пика активности)")
         self._apply_decay(pet, now)
         pet.last_opened_at = now
         pet.mood = min(pet.mood, MOOD_OFFENDED_MAX)
@@ -328,7 +328,7 @@ class PandaPetService:
         pet = self.get_or_create(telegram_id)
         now = datetime.now(UTC)
         if not self._can_toilet(pet, now):
-            raise ValueError("Действие доступно раз в 20 минут")
+            raise ValueError("Действие доступно раз в 36 минут (~40 раз в день)")
         self._apply_decay(pet, now)
         pet.last_opened_at = now
         pet.last_toilet_at = now

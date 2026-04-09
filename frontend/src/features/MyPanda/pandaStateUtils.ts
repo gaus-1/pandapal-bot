@@ -8,12 +8,12 @@ import type { PandaReactionKey } from './constants';
 export const LAST_ACTION_DURATION_SEC = 45;
 
 /** Интервалы до следующего действия (минуты), синхронно с бэкендом */
-export const FEED_COOLDOWN_MINUTES = 30;
-export const MIN_PLAY_INTERVAL_MINUTES = 60;
-export const MIN_SLEEP_INTERVAL_MINUTES = 120;
-export const MIN_TOILET_INTERVAL_MINUTES = 20;
-export const MIN_CLIMB_INTERVAL_MINUTES = 60;
-export const MIN_FALL_INTERVAL_MINUTES = 60;
+export const FEED_COOLDOWN_MINUTES = 60;
+export const MIN_PLAY_INTERVAL_MINUTES = 240;
+export const MIN_SLEEP_INTERVAL_MINUTES = 240;
+export const MIN_TOILET_INTERVAL_MINUTES = 36;
+export const MIN_CLIMB_INTERVAL_MINUTES = 240;
+export const MIN_FALL_INTERVAL_MINUTES = 240;
 
 const HUNGER_LOW = 30;
 const HUNGER_OK = 60;
