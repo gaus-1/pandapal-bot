@@ -74,10 +74,9 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Изображения - lazy loading + responsive */
+  /* Изображения - responsive */
   img {
     @apply max-w-full h-auto;
-    loading: lazy;
   }
 }
 
@@ -118,25 +117,16 @@
   @media (max-width: 640px) {
     .animate-logo-bounce {
       animation: logoBounce 2s ease-in-out infinite !important;
-      -webkit-animation: logoBounce 2s ease-in-out infinite !important;
       will-change: transform !important;
       transform: translateZ(0) !important;
-      -webkit-transform: translateZ(0) !important;
       backface-visibility: hidden !important;
-      -webkit-backface-visibility: hidden !important;
       animation-name: logoBounce !important;
-      -webkit-animation-name: logoBounce !important;
       animation-duration: 2s !important;
-      -webkit-animation-duration: 2s !important;
       animation-timing-function: ease-in-out !important;
-      -webkit-animation-timing-function: ease-in-out !important;
       animation-iteration-count: infinite !important;
-      -webkit-animation-iteration-count: infinite !important;
-      animationFillMode: both !important;
-      -webkit-animation-fill-mode: both !important;
+      animation-fill-mode: both !important;
       /* Принудительное включение анимации на мобильных */
       animation-play-state: running !important;
-      -webkit-animation-play-state: running !important;
     }
   }
 
@@ -144,7 +134,6 @@
   @media (max-width: 1024px) {
     .animate-logo-bounce {
       animation: logoBounce 2s ease-in-out infinite !important;
-      -webkit-animation: logoBounce 2s ease-in-out infinite !important;
     }
   }
 
@@ -312,22 +301,8 @@
 @keyframes logoBounce {
   0%, 100% {
     transform: translateY(0) translateZ(0);
-    -webkit-transform: translateY(0) translateZ(0);
   }
   50% {
-    transform: translateY(-10px) translateZ(0);
-    -webkit-transform: translateY(-10px) translateZ(0);
-  }
-}
-
-/* КРИТИЧЕСКИ ВАЖНО: Дополнительные keyframes для мобильных устройств */
-@-webkit-keyframes logoBounce {
-  0%, 100% {
-    -webkit-transform: translateY(0) translateZ(0);
-    transform: translateY(0) translateZ(0);
-  }
-  50% {
-    -webkit-transform: translateY(-10px) translateZ(0);
     transform: translateY(-10px) translateZ(0);
   }
 }
