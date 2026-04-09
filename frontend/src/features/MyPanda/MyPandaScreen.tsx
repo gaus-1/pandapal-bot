@@ -171,15 +171,14 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   const isSleepReaction =
     lastAction === 'sleep' && (reactionKey === 'sleeping' || reactionKey === 'sleepy');
 
-  // Видео отключено для ускорения загрузки
   useEffect(() => {
-    setShowVideo(false);
+    if (hasVideo) setShowVideo(true);
   }, [reactionKey, hasVideo]);
   useEffect(() => {
-    setShowVideo(false);
+    if (isFeedReaction && feedMediaIsVideo) setShowVideo(true);
   }, [isFeedReaction, feedMediaIsVideo]);
   useEffect(() => {
-    setShowVideo(false);
+    if (isSleepReaction && sleepMediaIsVideo) setShowVideo(true);
   }, [isSleepReaction, sleepMediaIsVideo]);
   // Не сбрасывать выбор видео/картинки во время запроса кормления — иначе к моменту прихода state уже null и видео не показывается
   useEffect(() => {
@@ -187,7 +186,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   }, [lastAction, actionLoading]);
   useEffect(() => {
     if (isFeedReaction && feedMediaIsVideo === null) {
-      setFeedMediaIsVideo(false);
+      setFeedMediaIsVideo(Math.random() < 0.5);
     }
   }, [isFeedReaction, feedMediaIsVideo]);
   useEffect(() => {
@@ -210,7 +209,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
   }, [showClimbUntil, actionLoading]);
   useEffect(() => {
     if (isSleepReaction && sleepMediaIsVideo === null) {
-      setSleepMediaIsVideo(false);
+      setSleepMediaIsVideo(Math.random() < 0.5);
     }
   }, [isSleepReaction, sleepMediaIsVideo]);
   const nowForEffects = Date.now();
@@ -288,7 +287,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       last_fed_at: new Date().toISOString(),
       can_feed: false,
     });
-    setFeedMediaIsVideo(false);
+    setFeedMediaIsVideo(Math.random() < 0.5);
     setActionLoading('feed');
     try {
       const next = await feedPandaPet(user.telegram_id);
@@ -344,7 +343,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       last_slept_at: new Date().toISOString(),
       can_sleep: false,
     });
-    setSleepMediaIsVideo(false);
+    setSleepMediaIsVideo(Math.random() < 0.5);
     setActionLoading('sleep');
     try {
       const next = await sleepPandaPet(user.telegram_id);
@@ -406,7 +405,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       last_climb_at: new Date().toISOString(),
       can_climb: false,
     });
-    setClimbMediaIsVideo(false);
+    setClimbMediaIsVideo(Math.random() < 0.5);
     setShowClimbUntil(Date.now() + CLIMB_DURATION_MS);
     setActionLoading('climb');
     try {
@@ -436,7 +435,7 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
       last_fall_at: new Date().toISOString(),
       can_fall: false,
     });
-    setFallMediaIsVideo(false);
+    setFallMediaIsVideo(Math.random() < 0.5);
     setShowFallUntil(Date.now() + FALL_DURATION_MS);
     setActionLoading('fall');
     try {
