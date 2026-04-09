@@ -354,7 +354,7 @@ export function AIChat({ user }: AIChatProps) {
       {/* Основной контент */}
       <div className="flex flex-col h-full relative" style={{ zIndex: 1, position: 'relative' }}>
         {/* Заголовок */}
-        <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-slate-800 dark:to-slate-800 shadow-sm p-1 sm:p-1.5 border-b border-blue-500/30 dark:border-slate-700 relative z-10">
+        <div className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-slate-800 dark:to-slate-800 shadow-sm p-1 sm:p-1.5 border-b border-blue-500/30 dark:border-slate-700 relative z-10" style={{ paddingTop: 'calc(var(--tg-content-safe-area-inset-top, 0px) + 4px)' }}>
           <div className="flex items-center gap-1 sm:gap-1.5">
             <img src="/logo.png" alt="PandaPal" width={28} height={28} loading="lazy" className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/90 dark:bg-slate-800/90 p-0.5 shadow-sm" />
             <div className="flex-1 min-w-0">

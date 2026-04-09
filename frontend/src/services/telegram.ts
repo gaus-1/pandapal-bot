@@ -38,8 +38,10 @@ export class TelegramService {
 
       // Safe area для полноэкранного режима (Bot API 8.0+)
       this.applySafeAreaInsets();
+      this.applyContentSafeAreaInsets();
       if (typeof this.webApp.onEvent === "function") {
         this.webApp.onEvent("safeAreaChanged", () => this.applySafeAreaInsets());
+        this.webApp.onEvent("contentSafeAreaChanged", () => this.applyContentSafeAreaInsets());
       }
 
       // Включаем плавные анимации (60 FPS)
@@ -225,6 +227,38 @@ export class TelegramService {
     if (typeof inset.bottom === "number") root.setProperty("--tg-safe-area-inset-bottom", `${inset.bottom}px`);
     if (typeof inset.left === "number") root.setProperty("--tg-safe-area-inset-left", `${inset.left}px`);
     if (typeof inset.right === "number") root.setProperty("--tg-safe-area-inset-right", `${inset.right}px`);
+  }
+
+  /**
+   * Применить content safe area insets (Bot API 8.0+).
+   * contentSafeAreaInset.top — высота шапки Telegram Mini App (кнопки ✕, +).
+   * Без этого в web.telegram.org верхние кнопки приложения скрыты под шапкой.
+   */
+  private applyContentSafeAreaInsets(): void {
+    const inset = (this.webApp as { contentSafeAreaInset?: { top?: number; bottom?: number; left?: number; right?: number } }).contentSafeAreaInset;
+    const root = document.documentElement.style;
+
+    if (inset) {
+      if (typeof inset.top === "number") root.setProperty("--tg-content-safe-area-inset-top", `${inset.top}px`);
+      if (typeof inset.bottom === "number") root.setProperty("--tg-content-safe-area-inset-bottom", `${inset.bottom}px`);
+      if (typeof inset.left === "number") root.setProperty("--tg-content-safe-area-inset-left", `${inset.left}px`);
+      if (typeof inset.right === "number") root.setProperty("--tg-content-safe-area-inset-right", `${inset.right}px`);
+      return;
+    }
+
+    // Fallback: если API недоступен, но мы в веб-версии Telegram — ставим разумный отступ сверху.
+    // Шапка Mini App в web.telegram.org ~44-56px. Не fullscreen = есть шапка.
+    const isWebTelegram = typeof window !== "undefined" && (
+      window.location.hostname.includes("telegram.org") ||
+      window.location.hostname.includes("web.telegram.org")
+    );
+    const platform = this.webApp.platform || "";
+    const isDesktopPlatform = platform === "weba" || platform === "webk" || platform === "macos";
+    const isFullscreen = (this.webApp as { isFullscreen?: boolean }).isFullscreen === true;
+
+    if ((isWebTelegram || isDesktopPlatform) && !isFullscreen) {
+      root.setProperty("--tg-content-safe-area-inset-top", "0px");
+    }
   }
 
   /**
