@@ -55,7 +55,7 @@ export const Section: React.FC<SectionProps> = React.memo(({ section }) => {
   const benefitsGroups = isBenefitsSection ? buildBenefitsGroups(descriptionItems) : [];
 
   return (
-    <section id={section.id} className="py-fib-5 sm:py-fib-6 lg:py-fib-7">
+    <section id={section.id} className="py-fib-5 sm:py-fib-6 lg:py-fib-7 scroll-mt-24">
       {/* Контейнер с профессиональным дизайном */}
       <div className="max-w-6xl mx-auto">
         <div className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-800/95 border border-gray-100 dark:border-slate-600/60 p-fib-4 sm:p-fib-5 lg:p-fib-5 shadow-lg dark:shadow-xl hover:shadow-xl dark:hover:shadow-2xl transition-shadow duration-300 text-center">

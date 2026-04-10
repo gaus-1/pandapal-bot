@@ -54,24 +54,9 @@ export const Hero: React.FC = React.memo(() => {
           </a>
         )}
 
-        {/* Вторичная CTA */}
         <a
           href="#benefits"
-          onClick={(e) => {
-            e.preventDefault();
-            const element = document.getElementById('benefits');
-            if (element) {
-              // Динамически учитываем текущую высоту header на любом устройстве
-              const header = document.querySelector('header');
-              const headerOffset = Math.ceil(header?.getBoundingClientRect().height ?? 88) + 12;
-              const elementPosition = element.getBoundingClientRect().top;
-              const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-              window.scrollTo({
-                top: offsetPosition,
-                behavior: 'smooth',
-              });
-            }
+          onClick={() => {
             trackButtonClick('hero_learn_more');
           }}
           className="inline-flex items-center justify-center px-fib-4 sm:px-fib-5 py-fib-2 sm:py-fib-3 rounded-full bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 font-semibold text-base sm:text-lg shadow-md hover:shadow-lg dark:hover:shadow-xl transition-all duration-300 border-2 border-gray-200 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400 active:bg-gray-50 dark:active:bg-slate-600 min-h-[44px] sm:min-h-[48px] touch-manipulation"
