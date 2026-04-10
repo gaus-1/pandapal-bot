@@ -74,7 +74,6 @@ def setup_middleware(app: web.Application) -> None:
             "text/plain",
             "text/xml",
             "application/javascript",
-            "application/json",
             "application/xml",
             "image/svg+xml",
         )
