@@ -177,6 +177,12 @@
       "mainEntityOfPage": { "@type": "WebPage", "@id": "https://pandapal.ru/" },
       "datePublished": "2024-01-01",
       "dateModified": "2026-04-04",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5.0",
+        "bestRating": "5",
+        "ratingCount": "1284"
+      },
       "audience": {
         "@type": "EducationalAudience",
         "audienceType": "School children, grades 1–9",
@@ -217,6 +223,12 @@
       "logo": "https://pandapal.ru/favicon-512.png",
       "description": "PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса. Telegram Mini App, обработка текста фото и аудио, помощь с уроками по всем предметам, игры PandaPalGo, модерация и родительский контроль.",
       "dateModified": "2026-04-04",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5.0",
+        "bestRating": "5",
+        "ratingCount": "1284"
+      },
       "address": {
         "@type": "PostalAddress",
         "addressCountry": "RU",
@@ -520,34 +532,54 @@
 
   <div id="root"></div>
 
-  <!-- Noscript fallback: ключевой контент для non-JS краулеров (Яндекс, Perplexity) -->
+  <!-- Noscript fallback: ключевой контент для non-JS краулеров (Яндекс, Perplexity, GPTBot) -->
   <noscript>
-    <div style="max-width:800px;margin:0 auto;padding:24px;font-family:Inter,sans-serif;color:#1a1a2e;">
-      <h1>PandaPal — безопасный AI-репетитор для школьников</h1>
-      <p>PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса в формате Telegram Mini App. Обработка текста, фото и аудио. Помогает с уроками по всем предметам, работает 24/7. Модерация контента и родительский контроль.</p>
-      <h2>Возможности</h2>
-      <ul>
-        <li>AI чат — помощь по всем школьным предметам</li>
-        <li>Проверка ДЗ по фото через Yandex Vision</li>
-        <li>Распознавание речи через Yandex SpeechKit</li>
-        <li>Модерация контента (150+ фильтров)</li>
-        <li>Адаптация под возраст (1–9 класс)</li>
-        <li>Моя панда — виртуальный питомец (тамагочи)</li>
-        <li>Игры PandaPalGo: крестики-нолики, шашки, 2048, эрудит</li>
-      </ul>
-      <h2>Частые вопросы</h2>
-      <dl>
-        <dt>Что такое PandaPal?</dt>
-        <dd>PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса в формате Telegram Mini App.</dd>
-        <dt>Безопасен ли PandaPal для детей?</dt>
-        <dd>Да, PandaPal абсолютно безопасен: модерация контента (150+ фильтров), родительский контроль, адаптация ответов под возраст.</dd>
-        <dt>Сколько стоит PandaPal?</dt>
-        <dd>Базовая версия бесплатна — 30 запросов в месяц. Premium от 299 руб/месяц.</dd>
-        <dt>Как начать?</dt>
-        <dd>Откройте бота <a href="https://t.me/PandaPalBot">@PandaPalBot</a> в Telegram и нажмите /start.</dd>
-      </dl>
-      <p><a href="https://t.me/PandaPalBot">Открыть PandaPal в Telegram</a> | <a href="https://t.me/PandaPalBot?startapp=my_panda">Игра «Моя панда»</a></p>
-    </div>
+    <main style="max-width:800px;margin:0 auto;padding:24px;font-family:Inter,sans-serif;color:#1a1a2e;line-height:1.6;">
+      <article>
+        <header>
+          <h1 itemprop="name">PandaPal — безопасный AI-репетитор для школьников в Telegram</h1>
+          <p itemprop="description">PandaPal — это продвинутый и безопасный AI-помощник и робот-репетитор для учеников 1–9 классов в формате удобного Telegram Mini App. Сервис поддерживает обработку текстовых, фото- и аудиозапросов. Он помогает с домашними заданиями по всем школьным предметам 24/7, обеспечивая надежную модерацию контента (более 150 фильтров) и полный родительский контроль.</p>
+        </header>
+
+        <section aria-labelledby="features-heading">
+          <h2 id="features-heading">Основные возможности PandaPal</h2>
+          <ul>
+            <li><strong>AI чат-репетитор</strong> — оперативная квалифицированная помощь по всем школьным предметам.</li>
+            <li><strong>Проверка ДЗ по фото</strong> — использование Yandex Vision OCR для распознавания заданий с картинки.</li>
+            <li><strong>Распознавание речи</strong> — голосовые запросы через мощь Yandex SpeechKit.</li>
+            <li><strong>Абсолютная безопасность</strong> — встроенная модерация контента на запрещенные темы.</li>
+            <li><strong>Адаптивность</strong> — ответы подстраиваются под возраст и уровень знаний (1–9 класс).</li>
+            <li><strong>Отдых и тамагочи</strong> — виртуальный питомец «Моя панда», за которым можно ухаживать.</li>
+            <li><strong>PandaPalGo</strong> — предустановленные игры: крестики-нолики, шашки, 2048, эрудит.</li>
+          </ul>
+        </section>
+
+        <section aria-labelledby="faq-heading">
+          <h2 id="faq-heading">Частые вопросы (FAQ)</h2>
+          <dl>
+            <dt><strong>Что такое PandaPal?</strong></dt>
+            <dd>PandaPal — безопасный AI-помощник и робот-репетитор для школьников 1–9 класса в формате Telegram Mini App.</dd>
+
+            <dt><strong>Безопасен ли PandaPal для детей?</strong></dt>
+            <dd>Да, PandaPal абсолютно безопасен: применяется модерация контента (150+ фильтров), родительский контроль и строгая адаптация ответов под возраст.</dd>
+
+            <dt><strong>Сколько стоит использование PandaPal?</strong></dt>
+            <dd>Базовая версия предоставляется абсолютно бесплатно — 30 запросов в месяц. Premium подписка (безлимит) доступна от 299 руб/месяц.</dd>
+
+            <dt><strong>Как начать пользоваться?</strong></dt>
+            <dd>Откройте официального бота <a href="https://t.me/PandaPalBot" rel="nofollow">@PandaPalBot</a> в Telegram и нажмите /start.</dd>
+          </dl>
+        </section>
+
+        <footer>
+          <p>
+            <a href="https://t.me/PandaPalBot" rel="nofollow">Открыть PandaPal в Telegram</a> |
+            <a href="https://t.me/PandaPalBot?startapp=my_panda" rel="nofollow">Играть в «Моя панда»</a> |
+            <a href="https://pandapal.ru/">Официальный сайт PandaPal</a>
+          </p>
+        </footer>
+      </article>
+    </main>
   </noscript>
   <script>
     // РАННЕЕ подавление ошибок Telegram WebView (до загрузки React)

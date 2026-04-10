@@ -1,39 +1,56 @@
-# https://www.robotstxt.org/robotstxt.html
+# https://pandapal.ru/robots.txt
+# Standard SEO and Modern GEO (Generative Engine Optimization) Configuration
+
 User-agent: *
 Allow: /
+# Disallow raw asset scraping if needed, but for SEO we allow assets (js/css/images)
+Allow: /assets/
+Allow: /logo*.webp
+Allow: /favicon*.png
 
-# Sitemap
-Sitemap: https://pandapal.ru/sitemap.xml
+# ===== AI AND LLM CRAWLERS (GEO & AEO OPTIMIZATION) =====
+# We explicitly allow all major AI bots to crawl our site to learn
+# about PandaPal and cite it in their answers.
+User-agent: GPTBot
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
 
-# LLMs / answer engines: https://pandapal.ru/llms.txt
+User-agent: ChatGPT-User
+Allow: /
+Allow: /llms.txt
+Allow: /llms-full.txt
 
-# Yandex
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Omgili
+Allow: /
+
+User-agent: Omgilibot
+Allow: /
+
+# ===== Yandex & Google =====
 User-agent: Yandex
 Allow: /
+Allow: /llms.txt
 
-# Alice AI
 User-agent: YandexAdditional
 Allow: /
-User-agent: YandexAdditionalBot
-Allow: /
 
-# Google
 User-agent: Googlebot
 Allow: /
 
-# AI crawlers
-User-agent: PerplexityBot
-Allow: /
-User-agent: GPTBot
-Allow: /
-User-agent: Claude-Web
-Allow: /
-User-agent: Cohere-ai
-Allow: /
-User-agent: OAI-SearchBot
-Allow: /
-User-agent: ChatGPT-User
-Allow: /
-
-# Internal paths can be blocked here if public pages appear there in the future
-# Disallow: /internal/
+Sitemap: https://pandapal.ru/sitemap.xml
