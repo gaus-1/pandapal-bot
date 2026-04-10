@@ -29,6 +29,8 @@
     min-height: calc(var(--vh, 1vh) * 100);
     /* Новые единицы 2025: динамический viewport height */
     min-height: 100dvh;
+    /* Запрещаем скролл самого body, чтобы скроллились только внутренние контейнеры (.overflow-y-auto) */
+    overflow: hidden;
   }
 
   /* Гарантируем непрерывную цепочку height: 100% для корректной работы h-full в iframe (веб-версия Telegram) */

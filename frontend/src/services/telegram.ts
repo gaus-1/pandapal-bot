@@ -246,15 +246,10 @@ export class TelegramService {
       return;
     }
 
-    // Fallback: если API недоступен, но мы в веб-версии Telegram — ставим разумный отступ сверху.
-    // Шапка Mini App в web.telegram.org ~44-56px. Не fullscreen = есть шапка.
-    const platform = this.webApp.platform || "";
-    const isDesktopPlatform = ["weba", "webk", "macos", "tdesktop", "web"].includes(platform);
-    const isFullscreen = (this.webApp as { isFullscreen?: boolean }).isFullscreen === true;
-
-    if (isDesktopPlatform && !isFullscreen) {
-      root.setProperty("--tg-content-safe-area-inset-top", "56px");
-    }
+    // В десктопных и веб-версиях Telegram (если не fullscreen) системная шапка (X, +)
+    // не накладывается поверх iframe, а находится НАД ним.
+    // Следовательно, дополнительный внутренний отступ (safe-area) не требуется (он равен 0).
+    // Мы НЕ сетим 56px принудительно, оставляя 0 (или значение из API).
   }
 
   /**
