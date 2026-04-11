@@ -64,7 +64,10 @@ npm run dev
 - Визуализации по предметам (графики, таблицы, диаграммы, схемы, карты)
 - Генерация изображений по учебным темам (YandexART)
 - RAG-поиск по базе знаний с `pgvector` (`knowledge_embeddings`)
-- Игры PandaPalGo: Моя панда (тамагочи), Крестики-нолики, Шашки, 2048, Эрудит
+- Игры PandaPalGo: Моя панда (тамагочи с предзагрузкой), Крестики-нолики, Шашки, 2048, Эрудит
+- AEO & GEO Оптимизация (Generative Engine Optimization) — полная поддержка AI поисковиков (Алиса, ChatGPTBot) через `llms.txt` и семантический `index.html` (Answer-first подход)
+- Встроенная система защиты от перегрузок (Overload Protection Middleware)
+- Мониторинг Prometheus, кастомное форматирование Loguru и система подробных health-чеков
 - Прогресс, достижения и геймификация
 - Premium через YooKassa (299 ₽/месяц), сохранение карт
 - Реферальная программа (`ref_<telegram_id>`)
@@ -86,12 +89,13 @@ npm run dev
 - Redis 7.1 (Upstash)
 - Yandex Cloud: YandexGPT Pro, YandexART, SpeechKit STT, Vision OCR, Translate API, Embeddings API
 - YooKassa 3.9.0
+- Мониторинг и Логирование: `Prometheus` metrics, `Loguru` formatting
 - Параметры генерации по умолчанию: `temperature=0.35`, `max_tokens=8192`
 
 ### Frontend
 
 - React 19, TypeScript 5, Vite 7
-- TanStack Query 5, Zustand 5
+- TanStack Query 5, Zustand 5, Playwright (E2E), Vitest
 - Tailwind CSS 3
 - Telegram Mini App SDK 8.0
 
@@ -172,6 +176,9 @@ graph TB
 
 ### API Endpoints
 
+- `GET /metrics` — сбор метрик в формате Prometheus
+- `GET /api/v1/health` — проверка здоровья БД, систем и AI-сервисов
+- `GET /api/v1/analytics/metrics` — системная аналитика в JSON формате
 - `POST /api/miniapp/ai/chat` — non-streaming чат
 - `POST /api/miniapp/ai/chat-stream` — streaming чат (SSE)
 - `POST /api/miniapp/auth` — аутентификация Mini App
