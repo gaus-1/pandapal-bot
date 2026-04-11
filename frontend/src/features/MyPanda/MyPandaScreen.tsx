@@ -25,6 +25,7 @@ import {
   PANDA_FALL_VIDEO,
   PANDA_SLEEP_VIDEO,
   PANDA_CLIMB_VIDEO,
+  PANDA_REACTION_KEYS,
 } from './constants';
 import {
   getPandaReactionKey,
@@ -796,12 +797,28 @@ export function MyPandaScreen({ user }: MyPandaScreenProps) {
 
 function PandaPreloader() {
   return (
-    <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
-      <img src={PANDA_FALL_IMAGE} loading="eager" alt="preload" />
-      <img src={PANDA_CLIMB_IMAGE} loading="eager" alt="preload" />
-      <img src={PANDA_POOPS_IMAGE} loading="eager" alt="preload" />
-      <img src={getPandaImagePath('eating')} loading="eager" alt="preload" />
-      <img src={getPandaImagePath('sleeping')} loading="eager" alt="preload" />
+    <div className="hidden" aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', opacity: 0, pointerEvents: 'none', zIndex: -1 }}>
+      {/* 1. Предзагрузка всех возможных картинок-реакций для мгновенного отклика */}
+      {PANDA_REACTION_KEYS.map((key) => (
+        <img key={key} src={getPandaImagePath(key)} loading="eager" fetchPriority="high" alt="preload" />
+      ))}
+
+      {/* 2. Предзагрузка сценарных картинок */}
+      <img src={PANDA_FALL_IMAGE} loading="eager" fetchPriority="high" alt="preload" />
+      <img src={PANDA_CLIMB_IMAGE} loading="eager" fetchPriority="high" alt="preload" />
+      <img src={PANDA_POOPS_IMAGE} loading="eager" fetchPriority="high" alt="preload" />
+
+      {/* 3. Предзагрузка видео через link (современный стандарт для Chrome/Android) */}
+      <link rel="preload" as="video" href={PANDA_FEED_VIDEO} type="video/mp4" />
+      <link rel="preload" as="video" href={PANDA_FALL_VIDEO} type="video/mp4" />
+      <link rel="preload" as="video" href={PANDA_SLEEP_VIDEO} type="video/mp4" />
+      <link rel="preload" as="video" href={PANDA_CLIMB_VIDEO} type="video/mp4" />
+
+      {/* 4. Скрытые video теги (самый надежный способ загрузки в кэш для iOS Safari) */}
+      <video src={PANDA_FEED_VIDEO} preload="auto" muted playsInline width="1" height="1" />
+      <video src={PANDA_FALL_VIDEO} preload="auto" muted playsInline width="1" height="1" />
+      <video src={PANDA_SLEEP_VIDEO} preload="auto" muted playsInline width="1" height="1" />
+      <video src={PANDA_CLIMB_VIDEO} preload="auto" muted playsInline width="1" height="1" />
     </div>
   );
 }
