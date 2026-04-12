@@ -114,6 +114,10 @@ const App: React.FC = () => {
 
       // Fixed positioning prevents any accidental body scrolling
       document.body.style.position = 'fixed';
+      document.body.style.top = '0';
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.bottom = '0';
       document.body.style.width = '100%';
     } else {
       document.documentElement.style.overflow = '';
@@ -122,6 +126,10 @@ const App: React.FC = () => {
       document.body.style.height = '';
       document.body.style.minHeight = '';
       document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.bottom = '';
       document.body.style.width = '';
     }
 
