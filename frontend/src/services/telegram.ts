@@ -246,10 +246,13 @@ export class TelegramService {
       return;
     }
 
-    // В десктопных и веб-версиях Telegram (если не fullscreen) системная шапка (X, +)
-    // не накладывается поверх iframe, а находится НАД ним.
-    // Следовательно, дополнительный внутренний отступ (safe-area) не требуется (он равен 0).
-    // Мы НЕ сетим 56px принудительно, оставляя 0 (или значение из API).
+    // Если API 8.0 недоступно, но мы находимся на десктопе или веб-версии, нативная шапка Telegram
+    // ОЧЕНЬ часто рисуется поверх iframe, скрывая верхний контент (нулевые координаты).
+    // Поэтому делаем fallback на 56px (стандартная высота шапки).
+    const platform = this.webApp.platform;
+    if (['tdesktop', 'macos', 'weba', 'webk', 'web'].includes(platform)) {
+      root.setProperty("--tg-content-safe-area-inset-top", "56px");
+    }
   }
 
   /**
