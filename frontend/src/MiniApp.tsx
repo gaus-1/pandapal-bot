@@ -345,10 +345,13 @@ interface NavButtonProps {
 }
 
 function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isWeb = typeof window !== 'undefined' && ['tdesktop', 'macos', 'weba', 'webk', 'web'].includes((window as any).Telegram?.WebApp?.platform || '');
+
   return (
     <button
       onClick={onClick}
-      className={`flex-1 flex flex-col items-center justify-center gap-fib-1 sm:gap-fib-1 py-fib-1 sm:py-fib-1 px-fib-2 sm:px-fib-2 rounded-lg sm:rounded-xl transition-all min-w-0 min-h-[48px] sm:min-h-[56px] touch-manipulation ${
+      className={`flex-1 flex flex-col items-center justify-center ${isWeb ? 'gap-0.5 py-1 px-1.5 min-h-[40px] rounded-md' : 'gap-fib-1 sm:gap-fib-1 py-fib-1 sm:py-fib-1 px-fib-2 sm:px-fib-2 rounded-lg sm:rounded-xl min-h-[48px] sm:min-h-[56px]'} transition-all min-w-0 touch-manipulation ${
         isActive
           ? 'bg-blue-500 dark:bg-blue-600 text-white font-semibold shadow-md'
           : 'text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 active:bg-gray-200 dark:active:bg-slate-600 active:scale-95 font-medium border border-gray-200 dark:border-slate-700'
@@ -356,8 +359,8 @@ function NavButton({ icon, label, isActive, onClick }: NavButtonProps) {
       aria-label={label}
       aria-current={isActive ? 'page' : undefined}
     >
-      <span className="text-lg sm:text-xl md:text-2xl flex-shrink-0 leading-none" aria-hidden="true">{icon}</span>
-      <span className="text-[11px] sm:text-xs md:text-sm font-medium leading-tight text-center break-words line-clamp-2 w-full px-0.5">
+      <span className={`flex-shrink-0 leading-none ${isWeb ? 'text-base' : 'text-lg sm:text-xl md:text-2xl'}`} aria-hidden="true">{icon}</span>
+      <span className={`font-medium leading-tight text-center break-words line-clamp-2 w-full px-0.5 ${isWeb ? 'text-[9px]' : 'text-[11px] sm:text-xs md:text-sm'}`}>
         {label}
       </span>
     </button>
