@@ -44,7 +44,7 @@ export function getPandaReactionKey(input: PandaStateInput): PandaReactionKey {
     return 'played';
   }
   if (lastAction === 'sleep') {
-    return energy >= 80 ? 'sleeping' : 'sleepy';
+    return 'sleeping';
   }
 
   // Приоритет реакциям грусти/обиды (если долго не было)
