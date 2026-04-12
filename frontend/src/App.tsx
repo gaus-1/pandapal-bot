@@ -101,14 +101,28 @@ const App: React.FC = () => {
     setIsInTelegram(inTelegram);
     setIsChecking(false);
 
-    // Apply strict overflow constraints for the Mini App to prevent native browser bouncing
-    // and layout shifts that cause the top header to be hidden. Landing page requires native scroll.
+    // Apply strict overflow and height constraints for the Mini App to prevent native browser bouncing
+    // and iframe 100dvh resolution bugs (which cause the header to scroll out of view in Telegram Web).
     if (inTelegram) {
-      document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+
+      // Override 100dvh from css with exactly 100% of iframe window
+      document.documentElement.style.height = '100%';
+      document.body.style.height = '100%';
+      document.body.style.minHeight = '100%';
+
+      // Fixed positioning prevents any accidental body scrolling
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
     } else {
-      document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      document.documentElement.style.height = '';
+      document.body.style.height = '';
+      document.body.style.minHeight = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     }
 
     logger.debug('App started:', inTelegram ? 'Telegram' : 'Browser');
