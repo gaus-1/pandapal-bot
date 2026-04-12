@@ -101,6 +101,16 @@ const App: React.FC = () => {
     setIsInTelegram(inTelegram);
     setIsChecking(false);
 
+    // Apply strict overflow constraints for the Mini App to prevent native browser bouncing
+    // and layout shifts that cause the top header to be hidden. Landing page requires native scroll.
+    if (inTelegram) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+
     logger.debug('App started:', inTelegram ? 'Telegram' : 'Browser');
   }, []);
 
