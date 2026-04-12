@@ -353,7 +353,20 @@ export function AIChat({ user }: AIChatProps) {
 
       {/* Основной контент */}
       <div className="flex flex-col h-full relative" style={{ zIndex: 1, position: 'relative' }}>
-        {/* Заголовок */}
+        {/*
+          ВАЖНО ДЛЯ РАЗРАБОТЧИКОВ (TELEGRAM WEB/DESKTOP BUG):
+          В десктопных и веб-версиях Telegram (tdesktop, macos, weba, webk, web) Mini App
+          открывается во встроенном iframe или WebView. При этом серая нативная шапка
+          самого клиента Telegram (с кнопкой [X] и названием бота) физически рисуется
+          ПОВЕРХ нашего iframe, полностью перекрывая его верхние ~56 пикселей.
+          Если не сделать отступ, наша синяя шапка PandaPal AI окажется точно под серой
+          панелью Telegram и будет абсолютно невидимой для пользователя (координата 0,0 скрыта).
+
+          Решение: Мы принудительно задаем 60px padding-top для десктопа и веба.
+          Это заставляет контент шапки "вынырнуть" из-под интерфейса Telegram.
+          Для мобильных клиентов (iOS/Android), где такого перекрытия нет,
+          мы опираемся на стандартную переменную safe-area.
+        */}
         <div
           className="flex-shrink-0 bg-gradient-to-r from-blue-500 to-cyan-500 dark:from-slate-800 dark:to-slate-800 shadow-sm p-1 sm:p-1.5 border-b border-blue-500/30 dark:border-slate-700 relative z-10"
           style={{
