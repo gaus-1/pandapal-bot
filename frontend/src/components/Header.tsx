@@ -15,7 +15,7 @@ import { trackButtonClick } from '../utils/analytics';
  */
 export const Header: React.FC = React.memo(() => {
   return (
-    <header className="absolute top-0 left-0 right-0 z-40 relative">
+    <header className="relative z-40">
       {/* Градиентная граница снизу - прозрачная вверху, видимая внизу, без размытия */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-b from-transparent to-gray-200/60 dark:to-slate-600/60"></div>
       <div className="max-w-6xl mx-auto px-fib-4 sm:px-fib-4 lg:px-fib-5 py-fib-4 sm:py-fib-4 lg:py-fib-5 flex items-center justify-between">
