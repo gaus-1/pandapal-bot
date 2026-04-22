@@ -71,7 +71,7 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
                 className="flex h-full transition-transform duration-500 ease-out"
                 style={{ transform: `translateX(-${currentIndex * 100}%)` }}
               >
-                {MINIAPP_SCREENSHOTS.map((item) => (
+                {MINIAPP_SCREENSHOTS.map((item, index) => (
                   <div key={item.id} className="relative h-full w-full flex-shrink-0">
                     {broken[item.id] ? (
                       <div className="w-full h-full flex flex-col items-center justify-center text-center p-fib-4">
@@ -86,7 +86,8 @@ export const MiniAppScreenshotsCarousel: React.FC = React.memo(() => {
                       <img
                         src={item.src}
                         alt={item.title}
-                        loading="lazy"
+                        loading={index === 0 ? "eager" : "lazy"}
+                        fetchPriority={index === 0 ? "high" : "auto"}
                         className="absolute inset-0 m-auto block max-w-full max-h-full w-auto h-auto object-contain object-center"
                         onError={() => setBroken((prev) => ({ ...prev, [item.id]: true }))}
                       />
