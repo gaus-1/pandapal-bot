@@ -4,24 +4,39 @@
  * @module App
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { Header, Hero, Features, Section, Footer, CallToAction, SeoHead, type BreadcrumbItem } from './components';
 import { SECTIONS } from './config/constants';
 import { PANDA_PET_PAGE_TITLE_RU, PANDA_PET_DESCRIPTION_RU, PANDA_PET_FAQ_RU, PANDA_PET_DIRECT_LINK, HELP_PAGE_DESCRIPTION_RU } from './config/seo-text';
 import { telegram } from './services/telegram';
-import { MiniApp } from './MiniApp';
-import { PremiumScreen } from './features/Premium/PremiumScreen';
-import { DonationScreen } from './features/Donation/DonationScreen';
-import { PrivacyPage, PersonalDataPage, OfferPage } from './features/Legal';
-import { IntentPage } from './features/Discoverability';
-import { HelpCenterPage, HelpArticlePage } from './features/Help';
 import { getHelpArticleBySlug } from './config/help-articles';
 import { CookieBanner } from './components/CookieBanner';
 import { logger } from './utils/logger';
 import './index.css';
 
+// Lazy-loaded маршруты — загружаются только при переходе (PageSpeed: -260 КиБ initial JS)
+const MiniApp = React.lazy(() => import('./MiniApp').then(m => ({ default: m.MiniApp })));
+const PremiumScreen = React.lazy(() => import('./features/Premium/PremiumScreen').then(m => ({ default: m.PremiumScreen })));
+const DonationScreen = React.lazy(() => import('./features/Donation/DonationScreen').then(m => ({ default: m.DonationScreen })));
+const PrivacyPage = React.lazy(() => import('./features/Legal').then(m => ({ default: m.PrivacyPage })));
+const PersonalDataPage = React.lazy(() => import('./features/Legal').then(m => ({ default: m.PersonalDataPage })));
+const OfferPage = React.lazy(() => import('./features/Legal').then(m => ({ default: m.OfferPage })));
+const IntentPage = React.lazy(() => import('./features/Discoverability').then(m => ({ default: m.IntentPage })));
+const HelpCenterPage = React.lazy(() => import('./features/Help').then(m => ({ default: m.HelpCenterPage })));
+const HelpArticlePage = React.lazy(() => import('./features/Help').then(m => ({ default: m.HelpArticlePage })));
+
 const DEFAULT_OG_IMAGE = 'https://pandapal.ru/og-image.png';
 const BREADCRUMB_HOME: BreadcrumbItem[] = [{ name: 'Главная', path: '/' }];
+
+/** Спиннер для lazy-loaded маршрутов */
+const LazyFallback: React.FC = () => (
+  <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-slate-800">
+    <div className="text-center">
+      <div className="text-6xl mb-fib-3">🐼</div>
+      <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
+    </div>
+  </div>
+);
 
 /**
  * Корневой компонент приложения PandaPal
@@ -190,7 +205,7 @@ const App: React.FC = () => {
 
   // Если в Telegram → Mini App
   if (isInTelegram) {
-    return <MiniApp />;
+    return <Suspense fallback={<LazyFallback />}><MiniApp /></Suspense>;
   }
 
   // Если в браузере → Роутинг
@@ -207,7 +222,7 @@ const App: React.FC = () => {
         />
         <Header />
         <main className="max-w-4xl mx-auto px-fib-2 sm:px-fib-3 lg:px-fib-4 py-fib-5 sm:py-fib-6 lg:py-fib-6">
-          <PremiumScreen user={null} />
+          <Suspense fallback={<LazyFallback />}><PremiumScreen user={null} /></Suspense>
         </main>
         <Footer />
         <CookieBanner />
@@ -228,7 +243,7 @@ const App: React.FC = () => {
         />
         <Header />
         <main className="max-w-4xl mx-auto px-fib-2 sm:px-fib-3 lg:px-fib-4 py-fib-5 sm:py-fib-6 lg:py-fib-6">
-          <DonationScreen user={null} />
+          <Suspense fallback={<LazyFallback />}><DonationScreen user={null} /></Suspense>
         </main>
         <Footer />
         <CookieBanner />
@@ -247,7 +262,7 @@ const App: React.FC = () => {
           imageUrl={DEFAULT_OG_IMAGE}
           breadcrumbs={[...BREADCRUMB_HOME, { name: 'Политика конфиденциальности', path: '/privacy' }]}
         />
-        <PrivacyPage />
+        <Suspense fallback={<LazyFallback />}><PrivacyPage /></Suspense>
         <Footer />
         <CookieBanner />
       </div>
@@ -263,7 +278,7 @@ const App: React.FC = () => {
           imageUrl={DEFAULT_OG_IMAGE}
           breadcrumbs={[...BREADCRUMB_HOME, { name: 'Персональные данные', path: '/personal-data' }]}
         />
-        <PersonalDataPage />
+        <Suspense fallback={<LazyFallback />}><PersonalDataPage /></Suspense>
         <Footer />
         <CookieBanner />
       </div>
@@ -279,7 +294,7 @@ const App: React.FC = () => {
           imageUrl={DEFAULT_OG_IMAGE}
           breadcrumbs={[...BREADCRUMB_HOME, { name: 'Оферта', path: '/offer' }]}
         />
-        <OfferPage />
+        <Suspense fallback={<LazyFallback />}><OfferPage /></Suspense>
         <Footer />
         <CookieBanner />
       </div>
@@ -296,7 +311,7 @@ const App: React.FC = () => {
           imageUrl={DEFAULT_OG_IMAGE}
           breadcrumbs={[...BREADCRUMB_HOME, { name: 'Безопасный ИИ для детей', path: '/bezopasnyy-ai-dlya-detey' }]}
         />
-        <IntentPage
+        <Suspense fallback={<LazyFallback />}><IntentPage
           title="Безопасный ИИ для детей: PandaPal"
           subtitle="Помощь с учебой для школьников 1-9 классов в безопасной среде"
           description="PandaPal помогает детям с уроками по основным школьным предметам, поддерживает текст, фото и голосовые вопросы и использует модерацию контента для безопасного общения."
@@ -308,7 +323,7 @@ const App: React.FC = () => {
             { question: 'Чем PandaPal полезен родителям?', answer: 'Сервис делает помощь с учебой более понятной и безопасной за счет встроенной модерации.' },
             { question: 'Где начать?', answer: 'Откройте официальный Telegram-бот @PandaPalBot или зайдите на pandapal.ru.' },
           ]}
-        />
+        /></Suspense>
         <Footer />
         <CookieBanner />
       </div>
@@ -326,7 +341,7 @@ const App: React.FC = () => {
           imageUrl={DEFAULT_OG_IMAGE}
           breadcrumbs={[...BREADCRUMB_HOME, { name: 'Помощь с домашкой', path: '/pomoshch-s-domashkoy-v-telegram' }]}
         />
-        <IntentPage
+        <Suspense fallback={<LazyFallback />}><IntentPage
           title="Помощь с домашним заданием в Telegram"
           subtitle="Быстрые объяснения по школьным предметам в формате Telegram-бота"
           description="PandaPal объясняет решения понятным языком, помогает разобрать ошибки и поддерживает вопросы в формате текста, фото задания и голосовых сообщений."
@@ -338,7 +353,7 @@ const App: React.FC = () => {
             { question: 'По каким предметам работает бот?', answer: 'По основным школьным предметам для 1-9 классов.' },
             { question: 'Нужно ли что-то устанавливать?', answer: 'Нет, достаточно открыть @PandaPalBot в Telegram.' },
           ]}
-        />
+        /></Suspense>
         <Footer />
         <CookieBanner />
       </div>
@@ -356,7 +371,7 @@ const App: React.FC = () => {
           imageUrl={DEFAULT_OG_IMAGE}
           breadcrumbs={[...BREADCRUMB_HOME, { name: PANDA_PET_PAGE_TITLE_RU, path: '/igra-moya-panda' }]}
         />
-        <IntentPage
+        <Suspense fallback={<LazyFallback />}><IntentPage
           title={PANDA_PET_PAGE_TITLE_RU}
           subtitle="Виртуальный питомец (тамагочи) в Mini App"
           description={PANDA_PET_DESCRIPTION_RU}
@@ -366,7 +381,7 @@ const App: React.FC = () => {
           faq={PANDA_PET_FAQ_RU}
           directLinkUrl={PANDA_PET_DIRECT_LINK}
           directLinkLabel="Открыть игру сразу"
-        />
+        /></Suspense>
         <Footer />
         <CookieBanner />
       </div>
@@ -383,7 +398,7 @@ const App: React.FC = () => {
           imageUrl={DEFAULT_OG_IMAGE}
           breadcrumbs={[...BREADCRUMB_HOME, { name: 'Вопросы и ответы', path: '/help' }]}
         />
-        <HelpCenterPage />
+        <Suspense fallback={<LazyFallback />}><HelpCenterPage /></Suspense>
         <Footer />
         <CookieBanner />
       </div>
@@ -407,7 +422,7 @@ const App: React.FC = () => {
               : [...BREADCRUMB_HOME, { name: 'Вопросы и ответы', path: '/help' }]
           }
         />
-        <HelpArticlePage />
+        <Suspense fallback={<LazyFallback />}><HelpArticlePage /></Suspense>
         <Footer />
         <CookieBanner />
       </div>
