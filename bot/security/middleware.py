@@ -427,6 +427,18 @@ async def security_middleware(request: web.Request, handler) -> web.Response:
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    # Permissions-Policy: ограничиваем доступ к API браузера (защита детей)
+    response.headers["Permissions-Policy"] = (
+        "geolocation=(), "
+        "microphone=(), "
+        "camera=(), "
+        "usb=(), "
+        "magnetometer=(), "
+        "gyroscope=(), "
+        "accelerometer=(), "
+        "payment=(), "
+        "sync-xhr=()"
+    )
 
     # HSTS только для HTTPS
     # Проверяем scheme напрямую или через X-Forwarded-Proto (для Railway/Cloudflare прокси)
