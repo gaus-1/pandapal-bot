@@ -39,13 +39,13 @@ pycparser==2.23
 rsa==4.9.1
 pyasn1==0.6.3
 pyasn1_modules==0.4.2
-authlib==1.6.9
+authlib==1.6.11
 
 # Конфиг и валидация
 pydantic==2.12.5
 pydantic-settings==2.12.0
 pydantic_core==2.41.5
-python-dotenv==1.2.1
+python-dotenv==1.2.2
 PyYAML==6.0.3
 tomlkit==0.13.3
 marshmallow==4.2.0
@@ -59,12 +59,12 @@ psutil==7.2.1
 
 # Парсинг
 beautifulsoup4==4.14.3
-lxml==6.0.2
+lxml==6.1.0
 soupsieve==2.8.1
 regex==2025.11.3
 
 # Картинки и графика
-pillow==12.1.1
+pillow==12.2.0
 qrcode[pil]==8.2
 matplotlib==3.9.3
 numpy==2.4.1
@@ -128,7 +128,7 @@ mdurl==0.1.2
 Pygments==2.19.2
 
 # Тесты
-pytest==8.3.4
+pytest==9.0.3
 pytest-cov==6.0.0
 pytest-asyncio==0.24.0
 iniconfig==2.3.0
