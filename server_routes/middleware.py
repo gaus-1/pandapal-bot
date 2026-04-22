@@ -55,66 +55,30 @@ def setup_middleware(app: web.Application) -> None:
         """Gzip-сжатие текстовых ответов для уменьшения размера передачи."""
         response = await handler(request)
 
-        # FileResponse — потоковый ответ, у него нет атрибута body.
-        # Используем встроенный enable_compression() для gzip-сжатия.
-        if isinstance(response, web.FileResponse):
-            accept_encoding = request.headers.get("Accept-Encoding", "")
-            if "gzip" in accept_encoding:
-                content_type = response.content_type or response.headers.get("Content-Type", "")
-                compressible_ext = (
-                    "text/html",
-                    "text/css",
-                    "text/plain",
-                    "text/xml",
-                    "application/javascript",
-                    "application/json",
-                    "application/xml",
-                    "image/svg+xml",
-                )
-                if any(ct in content_type for ct in compressible_ext):
-                    response.enable_compression()
-            return response
-
         # Проверяем что клиент поддерживает gzip
         accept_encoding = request.headers.get("Accept-Encoding", "")
-        if "gzip" not in accept_encoding:
-            return response
-
-        # Сжимаем только текстовые ответы
-        content_type = response.headers.get("Content-Type", "")
-        compressible_types = (
-            "text/html",
-            "text/css",
-            "text/plain",
-            "text/xml",
-            "application/javascript",
-            "application/xml",
-            "image/svg+xml",
-        )
-        if not any(ct in content_type for ct in compressible_types):
-            return response
-
-        # Не сжимаем уже сжатые или маленькие ответы
-        if response.headers.get("Content-Encoding"):
-            return response
-
-        body = getattr(response, "body", None)
-        if body is None or len(body) < 1024:
-            return response
-
-        import zlib
-
-        compressed = zlib.compress(body, level=6, wbits=16 + zlib.MAX_WBITS)
-
-        # Сжатие имеет смысл только если результат меньше оригинала
-        if len(compressed) >= len(body):
-            return response
-
-        response.body = compressed
-        response.headers["Content-Encoding"] = "gzip"
-        response.headers["Vary"] = "Accept-Encoding"
-        if "Content-Length" in response.headers:
-            response.headers["Content-Length"] = str(len(compressed))
+        if "gzip" in accept_encoding:
+            # Получаем content-type (обрабатывает и FileResponse и обычный Response)
+            content_type = getattr(response, "content_type", "") or response.headers.get(
+                "Content-Type", ""
+            )
+            compressible_ext = (
+                "text/html",
+                "text/css",
+                "text/plain",
+                "text/xml",
+                "application/javascript",
+                "application/json",
+                "application/xml",
+                "image/svg+xml",
+            )
+            # Проверяем, избегаем ошибок при content_type=None
+            if (
+                content_type
+                and any(ct in content_type for ct in compressible_ext)
+                and hasattr(response, "enable_compression")
+            ):
+                response.enable_compression()
 
         return response
 
