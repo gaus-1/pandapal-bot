@@ -60,7 +60,7 @@ def setup_middleware(app: web.Application) -> None:
         if isinstance(response, web.FileResponse):
             accept_encoding = request.headers.get("Accept-Encoding", "")
             if "gzip" in accept_encoding:
-                content_type = response.headers.get("Content-Type", "")
+                content_type = response.content_type or response.headers.get("Content-Type", "")
                 compressible_ext = (
                     "text/html",
                     "text/css",

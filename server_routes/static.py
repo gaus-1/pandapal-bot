@@ -445,6 +445,7 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             return web.FileResponse(
                 frontend_dist / "index.html",
                 headers={
+                    "Content-Type": "text/html",
                     "X-Robots-Tag": "index, follow, max-snippet:-1, max-image-preview:large",
                     "Cache-Control": "no-cache",
                 },
