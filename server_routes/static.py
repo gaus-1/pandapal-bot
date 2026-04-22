@@ -370,6 +370,36 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             ".webmanifest",
         )
 
+        # Белый список валидных маршрутов фронтенда (точные совпадения)
+        # Для неизвестных URL возвращаем 404 вместо index.html с 200
+        # (рекомендация Яндекс Вебмастера: корректное отображение несуществующих страниц)
+        _KNOWN_SPA_ROUTES = {
+            "/",
+            "/premium",
+            "/donation",
+            "/support",
+            "/privacy",
+            "/personal-data",
+            "/offer",
+            "/bezopasnyy-ai-dlya-detey",
+            "/pomoshch-s-domashkoy-v-telegram",
+            "/igra-moya-panda",
+            "/help",
+            "/miniapp",
+        }
+
+        # Префиксы маршрутов с динамическими сегментами (help-статьи)
+        _KNOWN_SPA_ROUTE_PREFIXES = ("/help/",)
+
+        # Слаги help-статей (для точной валидации)
+        _KNOWN_HELP_SLUGS = {
+            "kak-nachat",
+            "proverka-dz-po-foto",
+            "igra-moya-panda",
+            "premium-i-limity",
+            "bezopasnost-i-moderaciya",
+        }
+
         async def spa_fallback(request: web.Request) -> web.Response:
             path = request.path.rstrip("/") or "/"
             if (
@@ -392,6 +422,23 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             # Запрос к несуществующей странице с расширением файла — 404 для корректной индексации
             if any(path.endswith(ext) for ext in _STATIC_LIKE_EXTENSIONS):
                 return web.Response(status=404, text="Not Found")
+
+            # Проверяем, является ли путь известным маршрутом фронтенда
+            is_known_route = path in _KNOWN_SPA_ROUTES
+
+            # Проверяем динамические маршруты (help-статьи)
+            if not is_known_route:
+                for prefix in _KNOWN_SPA_ROUTE_PREFIXES:
+                    if path.startswith(prefix):
+                        # Для /help/<slug> — проверяем существование слага
+                        slug = path[len(prefix) :].strip("/")
+                        if slug and "/" not in slug and slug in _KNOWN_HELP_SLUGS:
+                            is_known_route = True
+                        break
+
+            if not is_known_route:
+                return web.Response(status=404, text="Not Found")
+
             return web.FileResponse(
                 frontend_dist / "index.html",
                 headers={
