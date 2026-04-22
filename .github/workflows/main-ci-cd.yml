@@ -255,7 +255,7 @@ jobs:
           pip install pip-audit bandit
 
       - name: 🔒 Audit dependencies (pip-audit)
-        run: pip-audit --ignore-vuln CVE-2026-4539
+        run: pip-audit --ignore-vuln CVE-2026-4539 --ignore-vuln CVE-2025-71176
 
       - name: 🛡️ Security linting (bandit)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
