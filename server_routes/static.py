@@ -403,6 +403,12 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             "bezopasnost-i-moderaciya",
         }
 
+        # Кэшируем index.html в памяти для мгновенной отдачи без Disk I/O
+        index_html_path = frontend_dist / "index.html"
+        index_html_content = ""
+        if index_html_path.exists():
+            index_html_content = index_html_path.read_text(encoding="utf-8")
+
         async def spa_fallback(request: web.Request) -> web.Response:
             path = request.path.rstrip("/") or "/"
             if (
@@ -442,10 +448,14 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
             if not is_known_route:
                 return web.Response(status=404, text="Not Found")
 
-            return web.FileResponse(
-                frontend_dist / "index.html",
+            if not index_html_content:
+                return web.Response(status=404, text="index.html not found")
+
+            # Используем web.Response вместо FileResponse для гарантии сжатия и нулевого Disk I/O
+            return web.Response(
+                text=index_html_content,
+                content_type="text/html",
                 headers={
-                    "Content-Type": "text/html",
                     "X-Robots-Tag": "index, follow, max-snippet:-1, max-image-preview:large",
                     "Cache-Control": "no-cache",
                 },
