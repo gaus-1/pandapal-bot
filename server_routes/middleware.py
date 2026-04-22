@@ -55,30 +55,28 @@ def setup_middleware(app: web.Application) -> None:
         """Gzip-сжатие текстовых ответов для уменьшения размера передачи."""
         response = await handler(request)
 
-        # Проверяем что клиент поддерживает gzip
-        accept_encoding = request.headers.get("Accept-Encoding", "")
-        if "gzip" in accept_encoding:
-            # Получаем content-type (обрабатывает и FileResponse и обычный Response)
-            content_type = getattr(response, "content_type", "") or response.headers.get(
-                "Content-Type", ""
-            )
-            compressible_ext = (
-                "text/html",
-                "text/css",
-                "text/plain",
-                "text/xml",
-                "application/javascript",
-                "application/json",
-                "application/xml",
-                "image/svg+xml",
-            )
-            # Проверяем, избегаем ошибок при content_type=None
-            if (
-                content_type
-                and any(ct in content_type for ct in compressible_ext)
-                and hasattr(response, "enable_compression")
-            ):
-                response.enable_compression()
+        # Забираем Content-Type
+        content_type = getattr(response, "content_type", "") or response.headers.get(
+            "Content-Type", ""
+        )
+        compressible_ext = (
+            "text/html",
+            "text/css",
+            "text/plain",
+            "text/xml",
+            "application/javascript",
+            "application/json",
+            "application/xml",
+            "image/svg+xml",
+        )
+        # Принудительно сжимаем, игнорируя Accept-Encoding, так как Railway Edge proxy может его вырезать,
+        # оставляя нас без сжатия при отдаче SPA index.html (из-за no-cache прокси сам не может его сжать).
+        if (
+            content_type
+            and any(ct in content_type for ct in compressible_ext)
+            and hasattr(response, "enable_compression")
+        ):
+            response.enable_compression(web.ContentCoding.gzip)
 
         return response
 
