@@ -81,10 +81,15 @@ async def test_spa_fallback_serves_index_for_non_file_paths(tmp_path: Path) -> N
 
     async with TestServer(app) as server:
         async with TestClient(server) as client:
-            response = await client.get("/education-ai-for-kids")
+            # Известный SPA-маршрут → 200 + index.html
+            response = await client.get("/premium")
             body = await response.text()
             assert response.status == 200
             assert "PandaPal" in body
+
+            # Неизвестный маршрут → 404
+            response = await client.get("/nonexistent-page-xyz")
+            assert response.status == 404
 
 
 @pytest.mark.asyncio
