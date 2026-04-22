@@ -457,7 +457,7 @@ def setup_frontend_static(app: web.Application, root_dir: Path) -> None:
                 content_type="text/html",
                 headers={
                     "X-Robots-Tag": "index, follow, max-snippet:-1, max-image-preview:large",
-                    "Cache-Control": "no-cache",
+                    "Cache-Control": "public, max-age=0, must-revalidate",
                 },
             )
 
